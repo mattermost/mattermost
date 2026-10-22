@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AccessControlPolicy} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, AccessControlPolicyProps} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isWrappedInParens, referencedUserAttributeNames} from '../cel_lexer';
@@ -18,6 +18,16 @@ const BOT_SCOPE_PREFIX = '!user.isbot || ';
 
 export function isBotScopePolicy(policy: Pick<AccessControlPolicy, 'props'>): boolean {
     return policy.props?.bot_scope === true;
+}
+
+export function withBotScope(props: AccessControlPolicyProps | undefined, botScope: boolean): AccessControlPolicyProps {
+    const next = {...props};
+    if (botScope) {
+        next.bot_scope = true;
+    } else {
+        delete next.bot_scope;
+    }
+    return next;
 }
 
 export function toServerRole(key: string): string {

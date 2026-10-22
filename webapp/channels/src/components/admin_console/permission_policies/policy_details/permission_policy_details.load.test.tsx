@@ -84,7 +84,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     const BOT_D1_RETURNED = '!user.isbot || "a" in user.attributes.Tags || "b" in user.attributes.Tags';
     const D1_UNWRAPPED = '"a" in user.attributes.Tags || "b" in user.attributes.Tags';
     const HAS_ANY_OF = '"a" in user.attributes.teams || "b" in user.attributes.teams';
-    const BOT_HELP_TEXT = 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).';
+    const BOT_HELP_TEXT = 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with the logical AND operator (`&&`).';
     const BOT_EMPTY_STATE_TEXT = 'Select a bot attribute and values to create a rule';
     const CPA_EMAIL = customField('cpa-email', 'email', {managed: 'admin', display_name: 'Work email'});
 

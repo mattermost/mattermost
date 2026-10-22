@@ -156,7 +156,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
             expect(savedPayload().rules[0].expression).toBe(E);
             expect(savedPayload().roles).toEqual(['system_user']);
-            expect(savedPayload()).not.toHaveProperty('props');
+            expect(savedPayload().props).toEqual({});
             expect(checkExpressionSpy).not.toHaveBeenCalled();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
         });
@@ -199,7 +199,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
         });
 
-        test('a hand-written prefixed Members rule saves byte-for-byte without props', async () => {
+        test('a hand-written prefixed Members rule saves byte-for-byte without the flag', async () => {
             mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', roles: ['system_user'], rules: [{actions: ['download_file_attachment'], expression: SERVER_PREFIXED_E}]}});
             renderWithPolicy({expressions: [SERVER_PREFIXED_E]});
             await screen.findByTestId('cel-editor');
@@ -215,8 +215,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 type: 'permission',
                 roles: ['system_user'],
                 rules: [{actions: ['download_file_attachment'], expression: SERVER_PREFIXED_E}],
+                props: {},
             });
-            expect(savedPayload()).not.toHaveProperty('props');
             expect(checkExpressionSpy).not.toHaveBeenCalled();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
         });
@@ -375,7 +375,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
             expect(savedPayload().rules[0].expression).toBe(E);
             expect(savedPayload().roles).toEqual(['system_user']);
-            expect(savedPayload()).not.toHaveProperty('props');
+            expect(savedPayload().props).toEqual({});
             expect(checkExpressionSpy).not.toHaveBeenCalled();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
         });
@@ -407,7 +407,42 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
             expect(savedPayload().rules[0].expression).toBe(E);
             expect(savedPayload().roles).toEqual(['system_guest']);
-            expect(savedPayload()).not.toHaveProperty('props');
+            expect(savedPayload().props).toEqual({});
+        });
+
+        test('Bot accounts to Members keeps other props and drops only the flag', async () => {
+            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', roles: ['system_user'], rules: [{actions: ['download_file_attachment'], expression: E}]}});
+            renderWithPolicy({expressions: [wrapBotExpression(E)], props: {...BOT_PROPS, foo: 'x'}});
+            await screen.findByTestId('table-editor');
+
+            await selectScope('pp-role-option-system_user');
+            await clickSave();
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+            expect(savedPayload().props).toEqual({foo: 'x'});
+        });
+
+        test('Members to Bot accounts keeps other props and adds the flag', async () => {
+            mockCreatePolicy.mockResolvedValue(savedBotPolicy());
+            renderWithPolicy({expressions: [E], props: {foo: 'x'}});
+            await screen.findByTestId('table-editor');
+
+            await selectScope('pp-role-option-bot');
+            await clickSave();
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+            expect(savedPayload().props).toEqual({foo: 'x', bot_scope: true});
+        });
+
+        test('saving a Bot accounts policy keeps other props', async () => {
+            renderWithPolicy({expressions: [wrapBotExpression(E)], props: {...BOT_PROPS, foo: 'x'}});
+            await screen.findByTestId('table-editor');
+            await editTable(E);
+
+            await clickSave();
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+            expect(savedPayload().props).toEqual({bot_scope: true, foo: 'x'});
         });
 
         test('switching scope keeps a showing validation error', async () => {

@@ -24,6 +24,7 @@ import {
     isBotScopePolicy,
     toServerRole,
     unwrapBotExpression,
+    withBotScope,
     wrapBotExpression,
 } from './index';
 
@@ -257,6 +258,25 @@ describe('getSyncedAttributeReferences', () => {
 
     it('works on a fixture with newlines', () => {
         expect(getSyncedAttributeReferences(fixture('d3 masking on GET').unwrapped, fields)).toEqual([clearance]);
+    });
+});
+
+describe('withBotScope', () => {
+    it.each([
+        ['missing props, bot scope', undefined, true, {bot_scope: true}],
+        ['missing props, other scope', undefined, false, {}],
+        ['flagged props with other keys, other scope', {bot_scope: true, foo: 'x'}, false, {foo: 'x'}],
+        ['unflagged props with other keys, bot scope', {foo: 'x'}, true, {foo: 'x', bot_scope: true}],
+        ['bot_scope false, other scope', {bot_scope: false}, false, {}],
+    ])('withBotScope for %s', (_, props, botScope, expected) => {
+        expect(withBotScope(props, botScope)).toEqual(expected);
+    });
+
+    it('does not mutate its input', () => {
+        const props = {bot_scope: true, foo: 'x'};
+        withBotScope(props, false);
+        withBotScope(props, true);
+        expect(props).toEqual({bot_scope: true, foo: 'x'});
     });
 });
 

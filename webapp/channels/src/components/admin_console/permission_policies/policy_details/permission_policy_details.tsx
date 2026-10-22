@@ -8,7 +8,7 @@ import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
-import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, type AccessControlPolicy, type AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, type AccessControlPolicy, type AccessControlPolicyProps, type AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
@@ -40,6 +40,7 @@ import {
     getSyncedAttributeReferences,
     toServerRole,
     unwrapBotExpression,
+    withBotScope,
     wrapBotExpression,
 } from '../../access_control/bot_scope';
 import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
@@ -154,6 +155,7 @@ function PermissionPolicyDetails({
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>(
         getPermissionActions(policy?.rules || []),
     );
+    const [loadedProps, setLoadedProps] = useState<AccessControlPolicyProps>();
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [editorMode, setEditorMode] = useState<EditorMode>('table');
     const [saveNeeded, setSaveNeeded] = useState(false);
@@ -255,6 +257,7 @@ function PermissionPolicyDetails({
                 setSelectedRole(roleKey);
                 setExpression(inner);
                 setSelectedPermissions(getPermissionActions(rules));
+                setLoadedProps(loaded?.props);
                 setEditorMode(isSimpleExpression(inner) ? 'table' : 'cel');
             });
             await Promise.all([fieldsPromise, policyPromise]);
@@ -340,7 +343,7 @@ function PermissionPolicyDetails({
                 rules: buildRulesWithActions(expression, selectedPermissions, isBotScope),
                 roles: [toServerRole(selectedRole)],
                 type: 'permission',
-                ...(isBotScope ? {props: {bot_scope: true}} : {}),
+                props: withBotScope(loadedProps, isBotScope),
             });
 
             if (result.error) {

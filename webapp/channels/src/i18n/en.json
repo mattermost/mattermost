@@ -10916,7 +10916,7 @@
     "description": "Message shown in the empty access-rule table editor on the permission policy edit page for Bot accounts policies, before any rule rows are added."
   },
   "admin.permission_policies.edit.table_help_text_bot": {
-    "defaultMessage": "Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).",
+    "defaultMessage": "Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with the logical AND operator (`&&`).",
     "description": "Help text (markdown) under the access-rule table editor for Bot accounts policies; '&&' inside backticks is a code literal for the logical AND operator."
   },
   "admin.permission_policies.edit.title": {
