@@ -585,7 +585,7 @@ func ambientMachineGrantAllow(field *PropertyField) []string {
 	return allow
 }
 
-// syncGrantAllow returns what the ldap/saml sync identity may do on a field
+// syncGrantAllow returns what the sync service identity may do on a field
 // synced from its source, which is what master's hook lets the sync caller do
 // there:
 //   - It reads the whole option list and every value, whatever the access
@@ -682,8 +682,8 @@ func isMachineOwnerType(ownerType string) bool {
 }
 
 // syncLockSource returns the sync source whose lock applies to field's own
-// values. A template holds no values, so its ldap/saml attrs lock nothing on
-// it; a user field linked to it takes the lock from its own copy of the attr,
+// values. A template holds no values, so its sync attrs lock nothing on it;
+// a user field linked to it takes the lock from its own copy of the attr,
 // which the link copies onto it. Its sync still gets a grant over its options
 // (see syncGrantAllow).
 func syncLockSource(field *PropertyField) string {

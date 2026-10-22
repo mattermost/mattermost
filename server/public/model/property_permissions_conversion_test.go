@@ -668,27 +668,32 @@ func TestPermissionsFromLegacyGrantsOwnedProtectedField(t *testing.T) {
 }
 
 func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
-	// An ldap-synced field converts to a service grant allowing every action:
-	// the sync reads every option and value, provisions options on a field
-	// with no owners and no protection, writes values, and retires a field it
-	// maps. The field has no owners and is not protected, and is public, so a
-	// second, wildcard grant appears for everything the lock never touched:
-	// reads (public) and definition and option writes.
-	field := &PropertyField{
-		Attrs: StringInterface{
-			PropertyFieldAttrLDAP: "ldap-sync-id",
-		},
+	// A synced field converts to a service grant for its sync allowing every
+	// action: the sync reads every option and value, provisions options on a
+	// field with no owners and no protection, writes values, and retires a
+	// field it maps. The field has no owners and is not protected, and is
+	// public, so a second, wildcard grant appears for everything the lock
+	// never touched: reads (public) and definition and option writes. Every
+	// sync source converts the same way.
+	for _, source := range PropertySyncSources() {
+		t.Run(source, func(t *testing.T) {
+			field := &PropertyField{
+				Attrs: StringInterface{
+					PropertySyncSourceAttr(source): source + "-sync-id",
+				},
+			}
+
+			p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+			require.Len(t, p.Grants, 2)
+			assert.Equal(t, PropertyOwnerTypeService, p.Grants[0].Type)
+			assert.Equal(t, source, p.Grants[0].ID)
+			assert.Equal(t, validPropertyActions, p.Grants[0].Allow)
+			assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[1].Type)
+			assert.Equal(t, "*", p.Grants[1].ID)
+			assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite, PropertyActionValueRead}, p.Grants[1].Allow)
+		})
 	}
-
-	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
-
-	require.Len(t, p.Grants, 2)
-	assert.Equal(t, PropertyOwnerTypeService, p.Grants[0].Type)
-	assert.Equal(t, "ldap", p.Grants[0].ID)
-	assert.Equal(t, validPropertyActions, p.Grants[0].Allow)
-	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[1].Type)
-	assert.Equal(t, "*", p.Grants[1].ID)
-	assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite, PropertyActionValueRead}, p.Grants[1].Allow)
 }
 
 func TestSyncGrantAllow(t *testing.T) {
@@ -1507,6 +1512,7 @@ func TestProjectLegacyPermissionsOmitsDerivedGrants(t *testing.T) {
 		"protected":           {PropertyAttrsProtected: true, PropertyAttrsSourcePluginID: "plugin1"},
 		"ldap-synced":         {PropertyFieldAttrLDAP: "employeeID"},
 		"protected and saml":  {PropertyAttrsProtected: true, PropertyAttrsSourcePluginID: "plugin1", PropertyFieldAttrSAML: "employeeID"},
+		"openid-synced":       {PropertyFieldAttrOpenID: "department"},
 		"unprotected, plugin": {PropertyAttrsSourcePluginID: "plugin1"},
 	}
 	for name, attrs := range tests {
