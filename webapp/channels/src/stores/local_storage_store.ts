@@ -6,13 +6,16 @@ import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities
 import {getBasePath} from 'selectors/general';
 import store from 'stores/redux_store';
 
-import {PreviousViewedTypes} from 'utils/constants';
+import {MarkdownViews, PreviousViewedTypes} from 'utils/constants';
+import type {MarkdownView} from 'utils/constants';
 
 const getPreviousTeamIdKey = (userId: string) => ['user_prev_team', userId].join(':');
 const getPreviousChannelNameKey = (userId: string | null, teamId: string) => ['user_team_prev_channel', userId, teamId].join(':');
 const getPreviousViewedTypeKey = (userId: string | null, teamId: string) => ['user_team_prev_viewed_type', userId, teamId].join(':');
 const getPenultimateViewedTypeKey = (userId: string, teamId: string) => ['user_team_penultimate_viewed_type', userId, teamId].join(':');
 export const getPenultimateChannelNameKey = (userId: string, teamId: string) => ['user_team_penultimate_channel', userId, teamId].join(':');
+const getMarkdownFilePreviewViewKey = (userId: string) => ['markdown_file_preview_view', userId].join(':');
+const getMarkdownCodeBlockViewKey = (userId: string) => ['markdown_code_block_view', userId].join(':');
 const getRecentEmojisKey = (userId: string) => ['recent_emojis', userId].join(':');
 const getWasLoggedInKey = () => 'was_logged_in';
 const teamIdJoinedOnLoadKey = 'teamIdJoinedOnLoad';
@@ -69,6 +72,22 @@ class LocalStorageStoreClass {
 
     setPreviousViewedType(userId: string, teamId: string, channelType: string) {
         this.setItem(getPreviousViewedTypeKey(userId, teamId), channelType);
+    }
+
+    getMarkdownFilePreviewView(userId: string, state = store.getState()): MarkdownView {
+        return this.getItem(getMarkdownFilePreviewViewKey(userId), state) === MarkdownViews.RAW ? MarkdownViews.RAW : MarkdownViews.RENDERED;
+    }
+
+    setMarkdownFilePreviewView(userId: string, view: MarkdownView) {
+        this.setItem(getMarkdownFilePreviewViewKey(userId), view);
+    }
+
+    getMarkdownCodeBlockView(userId: string, state = store.getState()): MarkdownView {
+        return this.getItem(getMarkdownCodeBlockViewKey(userId), state) === MarkdownViews.RENDERED ? MarkdownViews.RENDERED : MarkdownViews.RAW;
+    }
+
+    setMarkdownCodeBlockView(userId: string, view: MarkdownView) {
+        this.setItem(getMarkdownCodeBlockViewKey(userId), view);
     }
 
     getPenultimateViewedType(userId: string, teamId: string, state = store.getState()) {

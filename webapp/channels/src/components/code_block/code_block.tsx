@@ -1,12 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState, type JSX} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useState, type JSX} from 'react';
 import {useSelector} from 'react-redux';
 
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+
+import LocalStorageStore from 'stores/local_storage_store';
+
 import CopyButton from 'components/copy_button';
+import Markdown from 'components/markdown';
+import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_toggle';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+import {MarkdownViews} from 'utils/constants';
+import type {MarkdownView} from 'utils/constants';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
 
@@ -18,7 +26,13 @@ type Props = {
     searchedContent?: string;
 };
 
+// Markdown rendered from inside a code block must not offer its own toggle
+const CodeBlockDepthContext = createContext(0);
+
 const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
+    const currentUserId = useSelector(getCurrentUserId);
+    const depth = useContext(CodeBlockDepthContext);
+
     const getUsedLanguage = useCallback(() => {
         let usedLanguage = language || '';
         usedLanguage = usedLanguage.toLowerCase();
@@ -37,8 +51,20 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
     const usedLanguage = getUsedLanguage();
 
+    const canToggleMarkdown = depth === 0 && SyntaxHighlighting.isMarkdownLanguage(usedLanguage);
+    const [markdownView, setMarkdownView] = useState<MarkdownView>(() => (canToggleMarkdown ? LocalStorageStore.getMarkdownCodeBlockView(currentUserId) : MarkdownViews.RAW));
+    const showRendered = canToggleMarkdown && markdownView === MarkdownViews.RENDERED;
+
+    const handleMarkdownViewChange = (view: MarkdownView) => {
+        LocalStorageStore.setMarkdownCodeBlockView(currentUserId, view);
+        setMarkdownView(view);
+    };
+
+    // Markdown is prose, so wrap it; the separate line number column can't follow wrapped lines
+    const wrapLines = !usedLanguage || SyntaxHighlighting.isMarkdownLanguage(usedLanguage);
+
     let className = 'post-code';
-    if (!usedLanguage) {
+    if (wrapLines) {
         className += ' post-code--wrap';
     }
 
@@ -50,11 +76,13 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
                 {SyntaxHighlighting.getLanguageName(usedLanguage)}
             </span>
         );
-        lineNumbers = (
-            <div className='post-code__line-numbers'>
-                {SyntaxHighlighting.renderLineNumbers(code)}
-            </div>
-        );
+        if (!SyntaxHighlighting.isMarkdownLanguage(usedLanguage)) {
+            lineNumbers = (
+                <div className='post-code__line-numbers'>
+                    {SyntaxHighlighting.renderLineNumbers(code)}
+                </div>
+            );
+        }
     }
 
     // If we have to apply syntax highlighting AND highlighting of search terms, create two copies
@@ -103,16 +131,35 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
         });
 
     return (
-        <div className={className}>
+        <div
+            className={className}
+            data-markdown-source={showRendered ? code : undefined}
+        >
             <div className='post-code__overlay'>
+                {canToggleMarkdown && (
+                    <MarkdownViewToggle
+                        className='post-code__markdown-toggle'
+                        size='compact'
+                        view={showRendered ? MarkdownViews.RENDERED : MarkdownViews.RAW}
+                        onChange={handleMarkdownViewChange}
+                    />
+                )}
                 <CopyButton content={code}/>
                 {pluginItems}
                 {header}
             </div>
-            <div className='hljs'>
-                {lineNumbers}
-                <code dangerouslySetInnerHTML={{__html: htmlContent}}/>
-            </div>
+            {showRendered ? (
+                <div className='post-code__rendered'>
+                    <CodeBlockDepthContext.Provider value={depth + 1}>
+                        <Markdown message={code}/>
+                    </CodeBlockDepthContext.Provider>
+                </div>
+            ) : (
+                <div className='hljs'>
+                    {lineNumbers}
+                    <code dangerouslySetInnerHTML={{__html: htmlContent}}/>
+                </div>
+            )}
         </div>
     );
 };

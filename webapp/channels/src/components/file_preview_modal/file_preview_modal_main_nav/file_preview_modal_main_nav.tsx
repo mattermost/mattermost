@@ -4,9 +4,13 @@
 import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import './file_preview_modal_main_nav.scss';
-
+import ChevronLeftIcon from '@mattermost/compass-icons/components/chevron-left';
+import ChevronRightIcon from '@mattermost/compass-icons/components/chevron-right';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
+import './file_preview_modal_main_nav.scss';
 
 interface Props {
     fileIndex: number;
@@ -15,32 +19,37 @@ interface Props {
     handleNext: () => void;
 }
 
+const iconButtonProps = {size: 'medium', style: 'inverted'} as const;
+
 const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     const {formatMessage} = useIntl();
+    const prevLabel = formatMessage({id: 'file_preview_modal_main_nav.prevAriaLabel', defaultMessage: 'Previous file'});
+    const nextLabel = formatMessage({id: 'file_preview_modal_main_nav.nextAriaLabel', defaultMessage: 'Next file'});
+
     const leftArrow = (
         <WithTooltip
             key='previewArrowLeft'
             title={
                 <FormattedMessage
-                    id='generic.close'
-                    defaultMessage='Close'
+                    id='generic.previous'
+                    defaultMessage='Previous'
                 />
             }
         >
-            <button
+            <IconButton
                 id='previewArrowLeft'
                 className='file_preview_modal_main_nav__prev'
+                {...iconButtonProps}
+                icon={<Icon glyph={<ChevronLeftIcon/>}/>}
                 onClick={props.handlePrev}
-                aria-label={formatMessage({id: 'file_preview_modal_main_nav.prevAriaLabel', defaultMessage: 'Previous file'})}
-            >
-                <i className='icon icon-chevron-left'/>
-            </button>
+                aria-label={prevLabel}
+            />
         </WithTooltip>
     );
 
     const rightArrow = (
         <WithTooltip
-            key='publicLink'
+            key='previewArrowRight'
             title={
                 <FormattedMessage
                     id='generic.next'
@@ -48,14 +57,14 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
                 />
             }
         >
-            <button
+            <IconButton
                 id='previewArrowRight'
                 className='file_preview_modal_main_nav__next'
+                {...iconButtonProps}
+                icon={<Icon glyph={<ChevronRightIcon/>}/>}
                 onClick={props.handleNext}
-                aria-label={formatMessage({id: 'file_preview_modal_main_nav.nextAriaLabel', defaultMessage: 'Next file'})}
-            >
-                <i className='icon icon-chevron-right'/>
-            </button>
+                aria-label={nextLabel}
+            />
         </WithTooltip>
     );
     return (

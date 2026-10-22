@@ -66,7 +66,7 @@ turndownService.addRule('mattermostCodeBlock', {
     filter: (node) => node.nodeName === 'DIV' && node.classList.contains('post-code'),
     replacement: (content, node) => {
         const element = node as HTMLElement;
-        const code = element.querySelector('code')?.textContent ?? '';
+        const code = element.getAttribute('data-markdown-source') ?? element.querySelector('code')?.textContent ?? '';
         const languageLabel = element.querySelector('.post-code__language')?.textContent ?? '';
         const fence = codeBlockFence(code);
 

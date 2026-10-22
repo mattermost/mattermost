@@ -154,7 +154,7 @@ h6.markdown__heading {
     overflow-x: auto;
     overflow-y: hidden;
 
-    code {
+    .hljs code {
         position: relative;
         display: block;
         padding: 0;
@@ -164,7 +164,8 @@ h6.markdown__heading {
         white-space: pre;
     }
 
-    &:hover .post-code__clipboard {
+    &:hover .post-code__clipboard,
+    &:hover .post-code__markdown-toggle {
         opacity: 1;
     }
 
@@ -181,7 +182,7 @@ h6.markdown__heading {
     }
 
     &.post-code--wrap {
-        code {
+        .hljs code {
             white-space: pre-wrap;
         }
     }
@@ -210,6 +211,18 @@ h6.markdown__heading {
         visibility: visible;
         white-space: pre;
     }
+
+    .post-code__rendered {
+        padding: 8.5px 12px;
+        border: 1px solid rgba(functions.v(center-channel-color-rgb), 0.2);
+        border-radius: 0.25em;
+        margin: 5px 0;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        overflow-x: auto;
+        text-align: left;
+        white-space: normal;
+    }
 }
 
 .post-code__overlay {
@@ -228,6 +241,15 @@ h6.markdown__heading {
         position: relative;
         padding: 4px;
         opacity: 0;
+    }
+
+    .post-code__markdown-toggle {
+        margin-right: 4px;
+        opacity: 0;
+
+        &:focus-within {
+            opacity: 1;
+        }
     }
 
     .post-code__clipboard {

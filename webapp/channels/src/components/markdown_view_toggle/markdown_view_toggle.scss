@@ -1,0 +1,67 @@
+.MarkdownViewToggle {
+    --markdown-view-toggle-segment: 32px;
+    --markdown-view-toggle-gap: 2px;
+    --markdown-view-toggle-track: rgba(var(--center-channel-color-rgb), 0.08);
+    --markdown-view-toggle-thumb: var(--center-channel-bg);
+    --markdown-view-toggle-active-icon: var(--center-channel-color);
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: var(--markdown-view-toggle-gap);
+    border-radius: 6px;
+    background: var(--markdown-view-toggle-track);
+    gap: var(--markdown-view-toggle-gap);
+
+    &.compact {
+        --markdown-view-toggle-segment: 28px;
+    }
+
+    // Always-dark surfaces: feed the inverted IconButton style fixed light colors instead of sidebar theme colors
+    &.onDark {
+        --sidebar-text: white;
+        --sidebar-text-rgb: 255, 255, 255;
+        --markdown-view-toggle-track: rgba(255, 255, 255, 0.16);
+        --markdown-view-toggle-thumb: white;
+        --markdown-view-toggle-active-icon: #3f4350;
+    }
+
+    &__thumb {
+        position: absolute;
+        top: var(--markdown-view-toggle-gap);
+        left: var(--markdown-view-toggle-gap);
+        width: var(--markdown-view-toggle-segment);
+        height: var(--markdown-view-toggle-segment);
+        border-radius: 4px;
+        background: var(--markdown-view-toggle-thumb);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+        pointer-events: none;
+        transition: transform var(--duration-moderate) var(--ease-transition);
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+    }
+
+    &.raw &__thumb {
+        transform: translateX(calc(var(--markdown-view-toggle-segment) + var(--markdown-view-toggle-gap)));
+    }
+
+    &__option {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+// The sliding thumb is the selected background, so cancel the hover/pressed backgrounds IconButton paints
+.MarkdownViewToggle .MarkdownViewToggle__option.MarkdownViewToggle__option[aria-pressed='true'] {
+    &,
+    &:hover:not(:disabled):not(:active),
+    &:active:not(:disabled) {
+        --icon-button-fg: var(--markdown-view-toggle-active-icon);
+
+        background-color: transparent;
+        color: var(--markdown-view-toggle-active-icon);
+        cursor: default;
+    }
+}

@@ -76,6 +76,13 @@ export const PreviousViewedTypes = {
     THREADS: 'threads',
 };
 
+export const MarkdownViews = {
+    RENDERED: 'rendered',
+    RAW: 'raw',
+} as const;
+
+export type MarkdownView = typeof MarkdownViews[keyof typeof MarkdownViews];
+
 export const Preferences = {
     CATEGORY_CHANNEL_OPEN_TIME: 'channel_open_time',
     CATEGORY_DIRECT_CHANNEL_SHOW: ReduxPreferences.CATEGORY_DIRECT_CHANNEL_SHOW,

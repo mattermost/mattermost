@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
 import FileInfoPreview from 'components/file_info_preview';
+import Markdown from 'components/markdown';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
@@ -17,6 +19,7 @@ type Props = {
     fileInfo: FileInfo;
     fileUrl: string;
     getContent?: (code: string) => void;
+    renderMarkdown?: boolean;
 };
 
 export function hasSupportedLanguage(fileInfo: FileInfo | LinkInfo) {
@@ -27,6 +30,7 @@ const CodePreview = ({
     fileInfo,
     fileUrl,
     getContent,
+    renderMarkdown = false,
 }: Props) => {
     const [codeInfo, setCodeInfo] = useState({
         code: '',
@@ -133,17 +137,30 @@ const CodePreview = ({
         );
     }
 
+    // Markdown files keep one fixed-size box in both views so switching doesn't resize the modal
+    const isMarkdownFile = SyntaxHighlighting.isMarkdownLanguage(codeInfo.lang);
+
+    if (renderMarkdown && isMarkdownFile) {
+        return (
+            <div className='code-preview code-preview--markdown code-preview--fixed-size'>
+                <Markdown message={codeInfo.code}/>
+            </div>
+        );
+    }
+
     const language = SyntaxHighlighting.getLanguageName(codeInfo.lang);
 
     return (
-        <div className='post-code code-preview'>
+        <div className={classNames('post-code code-preview', {'code-preview--fixed-size code-preview--wrap': isMarkdownFile})}>
             <span className='post-code__language'>
                 {`${fileInfo.name} - ${language}`}
             </span>
             <div className='hljs'>
-                <div className='post-code__line-numbers'>
-                    {SyntaxHighlighting.renderLineNumbers(codeInfo.code)}
-                </div>
+                {!isMarkdownFile && (
+                    <div className='post-code__line-numbers'>
+                        {SyntaxHighlighting.renderLineNumbers(codeInfo.code)}
+                    </div>
+                )}
                 <code dangerouslySetInnerHTML={{__html: codeInfo.highlighted}}/>
             </div>
         </div>
