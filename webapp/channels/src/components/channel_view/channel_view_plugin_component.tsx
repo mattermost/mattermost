@@ -9,7 +9,6 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
-
 import {clearChannelSwitchMarks} from 'utils/performance_telemetry';
 
 import type {GlobalState} from 'types/store';
