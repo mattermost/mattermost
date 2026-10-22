@@ -49,14 +49,14 @@ var versionESRNearEOL = healthcheck.Rule{
 }
 
 func evalVersionEOL(table []model.ReleaseLifecycle, now func() time.Time) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return func(s *healthcheck.Snapshot) []healthcheck.Result {
+	return healthcheck.Single(func(s *healthcheck.Snapshot) healthcheck.Result {
 		at := now()
 		a, subject, reasonID := assess(table, s, at)
 		switch {
 		case reasonID != "":
-			return []healthcheck.Result{healthcheck.UnknownSubject(subject, reasonID)}
+			return healthcheck.UnknownSubject(subject, reasonID)
 		case !a.ended:
-			return []healthcheck.Result{healthcheck.ResolvedSubject(subject)}
+			return healthcheck.ResolvedSubject(subject)
 		}
 
 		result := healthcheck.FiringSubject(subject, healthcheck.TranslationId("health.rule.version_eol.message")).
@@ -68,7 +68,7 @@ func evalVersionEOL(table []model.ReleaseLifecycle, now func() time.Time) func(*
 				result = result.WithDetail("target", next)
 				result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.below_floor_target")
 			}
-			return []healthcheck.Result{result}
+			return result
 		}
 
 		result = result.WithDetail("eol_date", a.running.EOLDate.Format(time.DateOnly))
@@ -80,27 +80,27 @@ func evalVersionEOL(table []model.ReleaseLifecycle, now func() time.Time) func(*
 			result = result.WithDetail("target", next)
 			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.target")
 		}
-		return []healthcheck.Result{result}
-	}
+		return result
+	})
 }
 
 func evalVersionESRNearEOL(table []model.ReleaseLifecycle, now func() time.Time) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return func(s *healthcheck.Snapshot) []healthcheck.Result {
+	return healthcheck.Single(func(s *healthcheck.Snapshot) healthcheck.Result {
 		at := now()
 		a, subject, reasonID := assess(table, s, at)
 		if reasonID != "" {
-			return []healthcheck.Result{healthcheck.UnknownSubject(subject, reasonID)}
+			return healthcheck.UnknownSubject(subject, reasonID)
 		}
 
 		remaining := a.running.EOLDate.Sub(at)
 		if !a.running.ESR || remaining <= 0 || remaining > nearEOLWithin {
-			return []healthcheck.Result{healthcheck.ResolvedSubject(subject)}
+			return healthcheck.ResolvedSubject(subject)
 		}
 
-		return []healthcheck.Result{healthcheck.FiringSubject(subject, healthcheck.TranslationId("health.rule.version_esr_near_eol.message")).
+		return healthcheck.FiringSubject(subject, healthcheck.TranslationId("health.rule.version_esr_near_eol.message")).
 			WithDetail("version", s.Version.Current).
 			WithDetail("esr", a.running.MajorMinor).
 			WithDetail("eol_date", a.running.EOLDate.Format(time.DateOnly)).
-			WithValue(math.Floor(remaining.Hours() / 24))}
-	}
+			WithValue(math.Floor(remaining.Hours() / 24))
+	})
 }
