@@ -760,6 +760,7 @@
         "PostDeliveryTracking": false,
         "EnforceLogPathRoot": false,
         "HealthDashboard": false,
+        "EnableBrotliCompression": false,
         "OpenIdAttributeSync": false
     }
 }

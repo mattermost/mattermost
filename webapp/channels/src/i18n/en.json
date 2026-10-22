@@ -17780,7 +17780,7 @@
     "description": "Description of the 'gzip' option in the Webserver Mode dropdown on the System Console Web Server page; gzip is a compression format (keep name)."
   },
   "admin.webserverModeHelpText": {
-    "defaultMessage": "gzip compression applies to static content files. It is recommended to enable gzip to improve performance unless your environment has specific restrictions, such as a web proxy that distributes gzip files poorly.",
+    "defaultMessage": "gzip compression applies to static content files. It is recommended to enable compression to improve performance unless your environment has specific restrictions, such as a web proxy that distributes compressed files poorly.",
     "description": "Help paragraph shown below the Webserver Mode option table in the admin console; explains when to use gzip compression."
   },
   "admin.webserverModeTitle": {
@@ -34604,8 +34604,8 @@
     "description": "Menu item in the help menu that opens the keyboard shortcuts reference."
   },
   "userGuideHelp.mattermostUserGuide": {
-    "defaultMessage": "Mattermost user guide",
-    "description": "Menu item in the help menu linking to the official user documentation."
+    "defaultMessage": "Mattermost documentation",
+    "description": "Menu item in the help menu linking to the Mattermost documentation."
   },
   "userGuideHelp.reportAProblem": {
     "defaultMessage": "Report a problem",

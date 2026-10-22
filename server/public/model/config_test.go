@@ -416,7 +416,7 @@ func TestServiceSettingsIsValid(t *testing.T) {
 		},
 		"WebserverMode is invalid": {
 			ServiceSettings: ServiceSettings{
-				WebserverMode: new("brotli"),
+				WebserverMode: new("unknown"),
 			},
 			ExpectError: true,
 		},
@@ -635,6 +635,26 @@ func TestEmailSettingsIsValid(t *testing.T) {
 			appErr := settings.isValid()
 			require.NotNil(t, appErr)
 			require.Equal(t, tc.errID, appErr.Id)
+		})
+	}
+}
+
+func TestServiceSettingsCompressResponses(t *testing.T) {
+	for mode, expected := range map[string]struct {
+		compress bool
+		brotli   bool
+	}{
+		"gzip":         {compress: true, brotli: true},
+		"uncompressed": {compress: false, brotli: false},
+		"disabled":     {compress: false, brotli: false},
+	} {
+		t.Run(mode, func(t *testing.T) {
+			ss := ServiceSettings{WebserverMode: new(mode)}
+
+			assert.Equal(t, expected.compress, ss.CompressResponses())
+			assert.Equal(t, expected.brotli, ss.CompressResponsesWithBrotli(true))
+			assert.False(t, ss.CompressResponsesWithBrotli(false),
+				"brotli must stay off regardless of WebserverMode when the feature flag is off")
 		})
 	}
 }
