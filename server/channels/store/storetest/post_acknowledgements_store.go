@@ -67,7 +67,7 @@ func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.
 		_, err = ss.PostAcknowledgement().SaveWithModel(ack)
 		require.NoError(t, err)
 
-		post, err = ss.Post().GetSingle(rctx, post.Id, false)
+		post, err = ss.Post().GetSingle(store.RequestContextWithMaster(rctx), post.Id, false)
 		require.NoError(t, err)
 		require.Greater(t, post.UpdateAt, oldUpdateAt)
 	})
@@ -336,7 +336,7 @@ func testPostAcknowledgementsStoreBatchSave(t *testing.T, rctx request.CTX, ss s
 		require.NoError(t, err)
 
 		// Verify post's update_at was updated
-		updatedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
+		updatedPost, err := ss.Post().GetSingle(store.RequestContextWithMaster(rctx), post.Id, false)
 		require.NoError(t, err)
 		require.Greater(t, updatedPost.UpdateAt, oldUpdateAt)
 	})
@@ -400,7 +400,7 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 		require.NoError(t, err)
 
 		// Verify post's update_at was updated
-		updatedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
+		updatedPost, err := ss.Post().GetSingle(store.RequestContextWithMaster(rctx), post.Id, false)
 		require.NoError(t, err)
 		require.Greater(t, updatedPost.UpdateAt, oldUpdateAt)
 	})
