@@ -339,12 +339,14 @@ func NewServer(options ...Option) (*Server, error) {
 		// Local-mode (unrestricted) sessions are tagged with
 		// CallerIDLocalAdmin by the HTTP layer; grant them without a
 		// user lookup, as permChecker below does for its own case. A value
-		// write at tier none is the exception: that tier is what a sync
-		// lock, an owners list or a protected field converts to, and local
-		// mode never wrote those values, so only a grant can admit it there.
+		// write to a field that is itself synced, owner-managed or
+		// protected is the exception: local mode was never let write those
+		// values, so there it is judged like any other caller. The field's
+		// own attrs decide, as they did before conversion, so a late-linked
+		// field carrying no copy of its template's sync link stays open.
 		if userID == model.CallerIDLocalAdmin {
-			if action != model.PropertyActionValueWrite || field.Permissions == nil ||
-				field.Permissions.Restrictions.TierFor(action) != model.PermissionLevelNone {
+			if action != model.PropertyActionValueWrite ||
+				(!model.IsPropertyFieldSynced(field) && !model.HasPropertyFieldOwners(field) && !model.IsPropertyFieldProtected(field)) {
 				return true
 			}
 		}
