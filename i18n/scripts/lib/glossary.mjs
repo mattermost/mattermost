@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 // i18n/glossary/: en.json is the term inventory, and <locale>.json holds each
 // term's target in that locale. See i18n/glossary/README.md.
 //
@@ -47,6 +50,24 @@ export function readGlossary(tree, locale) {
         // capitalizes at the start of a sentence and in title case.
         patterns: [term, ...(entry.aliases || [])].map((form) => ({form, re: wordPattern(form, entry.doNotTranslate ? '' : 'i')})),
     }));
+}
+
+/** The glossary entries a source string uses, as hints for its translator. */
+export function termsIn(glossary, english) {
+    const text = flatten(english);
+    const out = [];
+    for (const entry of glossary) {
+        if (entry.patterns.some(({re}) => re.test(text))) {
+            out.push({
+                term: entry.term,
+                ...(entry.target === undefined ? {} : {target: entry.target}),
+                ...(entry.note ? {note: entry.note} : {}),
+                ...(entry.doNotTranslate ? {doNotTranslate: true} : {}),
+                ...(entry.commonWord ? {commonWord: true} : {}),
+            });
+        }
+    }
+    return out;
 }
 
 /**
