@@ -951,9 +951,10 @@ func TestDeletePropertyValuesForChannelField(t *testing.T) {
 
 // TestLocalModeValueWrite writes user field values as a local-mode admin
 // through the access control hook, with no stubbed ladder. Local mode passes
-// every restrictions tier but a value.write of none, which is what a sync
-// lock, an owners list or a protected field converts to; there it is refused
-// unless a grant names it, as it was before conversion.
+// the ladder everywhere except a value write to a field that is itself synced,
+// owner-managed or protected, where it is refused unless a grant names it, as
+// it was before conversion. Each field carries the permissions its legacy
+// columns and attrs convert to.
 func TestLocalModeValueWrite(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -964,17 +965,26 @@ func TestLocalModeValueWrite(t *testing.T) {
 
 	adminRctx := RequestContextWithCallerID(th.Context, th.SystemAdminUser.Id)
 
-	createField := func(t *testing.T, attrs model.StringInterface, permissions *model.Permissions) *model.PropertyField {
+	newField := func(attrs model.StringInterface, valuesLevel model.PermissionLevel) *model.PropertyField {
+		sysadmin := model.PermissionLevelSysadmin
+		field := &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              "local_mode_attr_" + model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeUser,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   &sysadmin,
+			PermissionOptions: &sysadmin,
+			PermissionValues:  &valuesLevel,
+			Attrs:             attrs,
+		}
+		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: true})
+		return field
+	}
+
+	createField := func(t *testing.T, attrs model.StringInterface, valuesLevel model.PermissionLevel) *model.PropertyField {
 		t.Helper()
-		field, appErr := th.App.CreatePropertyField(adminRctx, &model.PropertyField{
-			GroupID:     group.ID,
-			Name:        "local_mode_attr_" + model.NewId(),
-			Type:        model.PropertyFieldTypeText,
-			ObjectType:  model.PropertyFieldObjectTypeUser,
-			TargetType:  string(model.PropertyFieldTargetLevelSystem),
-			Attrs:       attrs,
-			Permissions: permissions,
-		}, false, "")
+		field, appErr := th.App.CreatePropertyField(adminRctx, newField(attrs, valuesLevel), false, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, field.Permissions)
 		return field
@@ -999,42 +1009,44 @@ func TestLocalModeValueWrite(t *testing.T) {
 	}
 
 	t.Run("refused on a synced field", func(t *testing.T) {
-		sysadmin := model.PermissionLevelSysadmin
-		attrs := model.StringInterface{model.PropertyFieldAttrLDAP: "mail"}
-		permissions := model.PermissionsFromLegacy(&model.PropertyField{
-			ObjectType:        model.PropertyFieldObjectTypeUser,
-			PermissionField:   &sysadmin,
-			PermissionOptions: &sysadmin,
-			PermissionValues:  &sysadmin,
-			Attrs:             attrs,
-		}, model.LegacyConversionOpts{ConvertAttrs: true})
-		require.Equal(t, model.PermissionLevelNone, permissions.Restrictions.TierFor(model.PropertyActionValueWrite))
-		field := createField(t, attrs, permissions)
+		field := createField(t, model.StringInterface{model.PropertyFieldAttrLDAP: "mail"}, model.PermissionLevelSysadmin)
 
 		requireAccessDenied(t, upsertAs(model.CallerIDLocalAdmin, field))
 		require.Nil(t, upsertAs(model.CallerIDLDAPSync, field))
 	})
 
-	t.Run("refused on an owner-locked field", func(t *testing.T) {
-		field := createField(t, nil, &model.Permissions{
-			Restrictions: &model.Restrictions{
-				Value: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
-			},
-			Grants: []model.Grant{{
-				Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "com.example.owner"},
-				Allow:    []string{model.PropertyActionValueWrite},
-			}},
-		})
+	t.Run("refused on an owner-managed field", func(t *testing.T) {
+		field := createField(t, model.StringInterface{
+			model.PropertyAttrsOwners: []model.PropertyOwner{{ID: "com.example.owner", Type: model.PropertyOwnerTypePlugin}},
+		}, model.PermissionLevelSysadmin)
+		require.True(t, model.HasPropertyFieldOwners(field))
 
 		requireAccessDenied(t, upsertAs(model.CallerIDLocalAdmin, field))
 	})
 
-	t.Run("allowed on a field whose value.write tier is not none", func(t *testing.T) {
-		field := createField(t, nil, &model.Permissions{
-			Restrictions: &model.Restrictions{
-				Value: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
-			},
-		})
+	t.Run("refused on a protected field", func(t *testing.T) {
+		// Only a field's source plugin may create it protected, so it is
+		// written to the store directly.
+		field, err := th.App.Srv().Store().PropertyField().Create(newField(model.StringInterface{
+			model.PropertyAttrsProtected:      true,
+			model.PropertyAttrsSourcePluginID: "com.example.source",
+		}, model.PermissionLevelSysadmin))
+		require.NoError(t, err)
+
+		requireAccessDenied(t, upsertAs(model.CallerIDLocalAdmin, field))
+	})
+
+	t.Run("allowed on an ordinary field", func(t *testing.T) {
+		field := createField(t, nil, model.PermissionLevelSysadmin)
+
+		require.Nil(t, upsertAs(model.CallerIDLocalAdmin, field))
+	})
+
+	t.Run("allowed on an ordinary field whose value.write tier is none", func(t *testing.T) {
+		// Local mode was let write such a field before conversion, since only
+		// the locks above refused it; the tier alone does not.
+		field := createField(t, nil, model.PermissionLevelNone)
+		require.Equal(t, model.PermissionLevelNone, field.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite))
 
 		require.Nil(t, upsertAs(model.CallerIDLocalAdmin, field))
 	})
