@@ -205,7 +205,7 @@ If the upstream request fails, the whole listing fails, including your plugins.
 
 A Marketplace host that cannot reach the internet stays current another way: replace `plugins.json` with the file from [mattermost/mattermost-marketplace](https://github.com/mattermost/mattermost-marketplace) and restart the server. That file is a snapshot of the public catalog. It changes when you replace it. To keep your own plugins in that snapshot, merge your listings into the file before you restart.
 
-`go run ./cmd/generator/ add mattermost-plugin-jitsi v2.0.0` registers that GitHub release and stores the signature already published with it. The repository name and version are required. Use it for plugins signed by the key that produced those release signatures. A bundle you signed with your own key is added by editing `plugins.json`, as shown above.
+`go run ./cmd/generator/ add mattermost-plugin-jitsi v2.0.0 --official` adds a release that is already published to the plugin store. The repository name, the version tag, and exactly one of `--official`, `--partner`, or `--community` are required. The command downloads `{store}/{repo}-{tag}.tar.gz` and the matching `.sig` from `--remote-plugin-store`, which defaults to `https://plugins.releases.mattermost.com/release`. It does not read the assets from GitHub. Publish the bundle and signature to that store first, or pass `--remote-plugin-store` when they live on another host. A bundle you signed with your own key, or one that exists only as a GitHub release, is added by editing `plugins.json`, as shown above.
 
 ### Point Mattermost at the Marketplace
 
