@@ -2644,8 +2644,8 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 			require.Nil(t, appErr)
 
 			require.EventuallyWithT(t, func(c *assert.CollectT) {
-				postIds, appErr := th.App.getReviewerPostsForFlaggedPost(th.Context, groupId, post.Id, flaggedPostIdFieldId)
-				require.Nil(c, appErr)
+				postIds, postsErr := th.App.getReviewerPostsForFlaggedPost(th.Context, groupId, post.Id, flaggedPostIdFieldId)
+				require.Nil(c, postsErr)
 				require.Len(c, postIds, 1)
 				reviewerPostIds[post.Id] = postIds[0]
 			}, 5*time.Second, 100*time.Millisecond)
@@ -2656,8 +2656,8 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		for flaggedPostId, reviewerPostId := range reviewerPostIds {
 			require.EventuallyWithT(t, func(c *assert.CollectT) {
-				thread, appErr := th.App.GetPostThread(th.Context, reviewerPostId, model.GetPostsOptions{}, th.BasicUser.Id)
-				require.Nil(c, appErr)
+				thread, threadErr := th.App.GetPostThread(th.Context, reviewerPostId, model.GetPostsOptions{}, th.BasicUser.Id)
+				require.Nil(c, threadErr)
 
 				var removalNotices, reports int
 				for _, p := range thread.Posts {
@@ -2668,8 +2668,8 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 						removalNotices++
 					}
 					if len(p.FileIds) == 1 {
-						fileInfo, appErr := th.App.GetFileInfo(th.Context, p.FileIds[0])
-						require.Nil(c, appErr)
+						fileInfo, fileErr := th.App.GetFileInfo(th.Context, p.FileIds[0])
+						require.Nil(c, fileErr)
 						if fileInfo.Name == "deletion_report_"+flaggedPostId+".md" {
 							reports++
 						}
