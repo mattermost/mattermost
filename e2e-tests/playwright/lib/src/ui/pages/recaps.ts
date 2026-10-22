@@ -4,6 +4,7 @@
 import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {switchLabel} from '@/ui/components/switch';
 import {duration} from '@/util';
 
 class CreateRecapModal {
@@ -56,7 +57,7 @@ class CreateRecapModal {
         const runOnce = this.container.locator('#run-once-toggle');
         await expect(runOnce).toBeVisible();
         if (!(await runOnce.isChecked())) {
-            await runOnce.check({force: true});
+            await switchLabel(runOnce).check();
         }
     }
 
@@ -267,13 +268,13 @@ class ScheduledRecapItem {
         // Click instead of uncheck: the Switch is controlled by async Redux/API
         // updates, so Playwright's checked-state verification fails before the
         // store refreshes. expectPaused() polls until aria-checked flips.
-        await this.toggleButton.click({force: true});
+        await switchLabel(this.toggleButton).click();
         await this.expectPaused();
     }
 
     async resume() {
         await this.expectPaused();
-        await this.toggleButton.click({force: true});
+        await switchLabel(this.toggleButton).click();
         await this.expectActive();
     }
 

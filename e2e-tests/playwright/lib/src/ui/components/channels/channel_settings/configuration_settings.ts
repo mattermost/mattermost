@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {switchLabel} from '../../switch';
+
 export default class ConfigurationSettings {
     readonly container: Locator;
 
@@ -62,28 +64,28 @@ export default class ConfigurationSettings {
     async enableChannelBanner() {
         const toggleButton = this.container.getByTestId('channelBannerToggle-button');
         if (!(await toggleButton.isChecked())) {
-            await toggleButton.check({force: true});
+            await switchLabel(toggleButton).check();
         }
     }
 
     async disableChannelBanner() {
         const toggleButton = this.container.getByTestId('channelBannerToggle-button');
         if (await toggleButton.isChecked()) {
-            await toggleButton.uncheck({force: true});
+            await switchLabel(toggleButton).uncheck();
         }
     }
 
     async enableChannelAutotranslation() {
         const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
         if (!(await toggleButton.isChecked())) {
-            await toggleButton.check({force: true});
+            await switchLabel(toggleButton).check();
         }
     }
 
     async disableChannelAutotranslation() {
         const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
         if (await toggleButton.isChecked()) {
-            await toggleButton.uncheck({force: true});
+            await switchLabel(toggleButton).uncheck();
         }
     }
 
@@ -107,14 +109,14 @@ export default class ConfigurationSettings {
     async enableJoinLeaveMessages() {
         const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
         if (!(await toggleButton.isChecked())) {
-            await toggleButton.check({force: true});
+            await switchLabel(toggleButton).check();
         }
     }
 
     async disableJoinLeaveMessages() {
         const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
         if (await toggleButton.isChecked()) {
-            await toggleButton.uncheck({force: true});
+            await switchLabel(toggleButton).uncheck();
         }
     }
 
@@ -195,14 +197,14 @@ export default class ConfigurationSettings {
     async enableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
         if (!(await toggle.isChecked())) {
-            await toggle.check({force: true});
+            await switchLabel(toggle).check();
         }
     }
 
     async disableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
         if (await toggle.isChecked()) {
-            await toggle.uncheck({force: true});
+            await switchLabel(toggle).uncheck();
         }
     }
 

@@ -8,6 +8,7 @@ import {
     navigateToABACPage,
     runSyncJob,
     verifyUserInChannel,
+    switchLabel,
 } from '@mattermost/playwright-lib';
 
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
@@ -111,7 +112,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await abacToggle.waitFor({state: 'visible', timeout: 5000});
 
         if (!(await abacToggle.isChecked())) {
-            await abacToggle.check({force: true});
+            await switchLabel(abacToggle).check();
         }
         await systemConsolePage.page.waitForTimeout(500);
 
