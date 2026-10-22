@@ -1,0 +1,9 @@
+-- Deliberately empty, for the reasons given in 000222's down migration: Postgres
+-- cannot remove a value from an enum type in place, and rebuilding
+-- property_field_type without 'number' and 'checkbox' would mean dropping and
+-- recreating the attribute views that read PropertyFields.Type and rewriting
+-- every field row that holds either type into some other type, which is a data
+-- change rather than a schema reversal.
+--
+-- An enum value no row uses is inert, and the up migration adds both values
+-- with IF NOT EXISTS, so re-applying it is a no-op.
