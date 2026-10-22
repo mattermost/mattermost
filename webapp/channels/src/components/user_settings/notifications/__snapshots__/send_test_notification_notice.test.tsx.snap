@@ -53,7 +53,7 @@ exports[`components/user_settings/notifications/send_test_notification_notice sh
           >
             Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
             <div
-              class="SectionNoticeActions-fFAaaB hERYcA"
+              class="SectionNoticeActions-ebsFMK cCnyOI"
             >
               <button
                 class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
