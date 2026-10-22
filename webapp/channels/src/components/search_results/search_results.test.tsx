@@ -199,6 +199,28 @@ describe('components/SearchResults', () => {
         });
     });
 
+    describe('recent mentions empty state', () => {
+        test('should say there are no mentions yet when no filters are applied', () => {
+            // An explicit team counts as a filter, so the unscoped view is the one with no filters.
+            const unscoped = merge({}, baseState, {views: {rhs: {searchTeam: null}}});
+
+            const {container} = renderSearchResults({isMentionSearch: true}, unscoped);
+
+            expect(within(container).getByText('No mentions yet')).toBeInTheDocument();
+            expect(within(container).queryByText('No mentions match your filters')).not.toBeInTheDocument();
+        });
+
+        test('should say no mentions match when filters are applied', () => {
+            const mentionFilters: MentionFilters = {channelIds: [], mentionTypes: ['direct'], date: 'any'};
+            const filtered = merge({}, baseState, {views: {rhs: {mentionFilters}}});
+
+            const {container} = renderSearchResults({isMentionSearch: true}, filtered);
+
+            expect(within(container).getByText('No mentions match your filters')).toBeInTheDocument();
+            expect(within(container).queryByText('No mentions yet')).not.toBeInTheDocument();
+        });
+    });
+
     describe('messagesCounter', () => {
         // Render with the Files tab selected so the body of the panel does not
         // try to render the message Post items (whose connected components

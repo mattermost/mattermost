@@ -5,7 +5,8 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {CalendarOutlineIcon, CloseCircleIcon} from '@mattermost/compass-icons/components';
+import {CalendarOutlineIcon} from '@mattermost/compass-icons/components';
+import {Chip} from '@mattermost/compass-ui/components/chip';
 
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -19,31 +20,6 @@ import type {MentionType} from 'types/store/rhs';
 
 import {dateRangeLabels, mentionTypeLabels} from './labels';
 import useFilterableChannels, {useTeamNames} from './use_filterable_channels';
-
-type ChipProps = {
-    label: string;
-    onRemove: () => void;
-    icon?: React.ReactNode;
-};
-
-function Chip({label, onRemove, icon}: ChipProps) {
-    const {formatMessage} = useIntl();
-
-    return (
-        <span className='MentionFilterChip'>
-            {icon}
-            <span className='MentionFilterChip__label'>{label}</span>
-            <button
-                type='button'
-                className='MentionFilterChip__remove'
-                aria-label={formatMessage({id: 'search_results.mention_filters.remove_filter', defaultMessage: 'Remove {filter} filter'}, {filter: label})}
-                onClick={onRemove}
-            >
-                <CloseCircleIcon size={14}/>
-            </button>
-        </span>
-    );
-}
 
 // MentionFilterChips lists the filters currently narrowing the mentions panel, each removable on its
 // own. It renders nothing when no filter is applied.
@@ -97,6 +73,11 @@ export default function MentionFilterChips() {
         return channel.display_name;
     };
 
+    const removeLabel = (label: string) => formatMessage(
+        {id: 'search_results.mention_filters.remove_filter', defaultMessage: 'Remove {filter} filter'},
+        {filter: label},
+    );
+
     return (
         <div
             className='MentionFilterChips'
@@ -104,30 +85,48 @@ export default function MentionFilterChips() {
         >
             {team && (
                 <Chip
-                    label={team.display_name}
+                    size='small'
+                    aria-label={removeLabel(team.display_name)}
                     onRemove={removeTeam}
-                />
+                >
+                    {team.display_name}
+                </Chip>
             )}
-            {filters.channelIds.map((channelId) => (
-                <Chip
-                    key={channelId}
-                    label={channelLabel(channelId)}
-                    onRemove={() => removeChannel(channelId)}
-                />
-            ))}
-            {mentionTypeOrder.filter((type) => filters.mentionTypes.includes(type)).map((type) => (
-                <Chip
-                    key={type}
-                    label={formatMessage(mentionTypeLabels[type])}
-                    onRemove={() => removeMentionType(type)}
-                />
-            ))}
+            {filters.channelIds.map((channelId) => {
+                const label = channelLabel(channelId);
+                return (
+                    <Chip
+                        key={channelId}
+                        size='small'
+                        aria-label={removeLabel(label)}
+                        onRemove={() => removeChannel(channelId)}
+                    >
+                        {label}
+                    </Chip>
+                );
+            })}
+            {mentionTypeOrder.filter((type) => filters.mentionTypes.includes(type)).map((type) => {
+                const label = formatMessage(mentionTypeLabels[type]);
+                return (
+                    <Chip
+                        key={type}
+                        size='small'
+                        aria-label={removeLabel(label)}
+                        onRemove={() => removeMentionType(type)}
+                    >
+                        {label}
+                    </Chip>
+                );
+            })}
             {filters.date !== 'any' && (
                 <Chip
-                    label={formatMessage(dateRangeLabels[filters.date])}
-                    icon={<CalendarOutlineIcon size={14}/>}
+                    size='small'
+                    aria-label={removeLabel(formatMessage(dateRangeLabels[filters.date]))}
+                    leadingIcon={<CalendarOutlineIcon/>}
                     onRemove={removeDate}
-                />
+                >
+                    {formatMessage(dateRangeLabels[filters.date])}
+                </Chip>
             )}
         </div>
     );
