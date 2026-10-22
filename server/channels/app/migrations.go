@@ -1098,6 +1098,20 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
+	// The bump has to land before the group is registered and its fields are
+	// converted: an older install's group is still at version 1, where a
+	// converted field doesn't validate, and registering caches the version it
+	// reads.
+	if data != nil && data.Value != managedCategoryMigrationVersion {
+		if incrementErr := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); incrementErr != nil {
+			return fmt.Errorf("failed to increment managed category group version: %w", incrementErr)
+		}
+
+		if saveErr := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); saveErr != nil {
+			return fmt.Errorf("failed to save managed category setup done flag: %w", saveErr)
+		}
+	}
+
 	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2})
 	if err != nil {
 		return fmt.Errorf("failed to register managed category group: %w", err)
@@ -1113,18 +1127,6 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	}
 
 	if data != nil {
-		if data.Value == managedCategoryMigrationVersion {
-			return s.cacheManagedCategoryIDs()
-		}
-
-		if incrementErr := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); incrementErr != nil {
-			return fmt.Errorf("failed to increment managed category group version: %w", incrementErr)
-		}
-
-		if saveErr := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); saveErr != nil {
-			return fmt.Errorf("failed to save managed category setup done flag: %w", saveErr)
-		}
-
 		return s.cacheManagedCategoryIDs()
 	}
 
