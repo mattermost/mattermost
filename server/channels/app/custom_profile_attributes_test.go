@@ -252,6 +252,9 @@ func TestCPAValueSyncLock(t *testing.T) {
 	ldapField := createField("ldap_attr_"+model.NewId(), model.CPAAttrs{LDAP: "mail"})
 	samlField := createField("saml_attr_"+model.NewId(), model.CPAAttrs{SAML: "email"})
 	plainField := createField("plain_attr_"+model.NewId(), model.CPAAttrs{})
+	ownedField := createField("owned_attr_"+model.NewId(), model.CPAAttrs{
+		Owners: []model.PropertyOwner{{ID: "com.example.owner", Type: model.PropertyOwnerTypePlugin}},
+	})
 
 	userID := model.NewId()
 	upsertAs := func(callerID string, field *model.PropertyField) *model.AppError {
@@ -299,5 +302,23 @@ func TestCPAValueSyncLock(t *testing.T) {
 
 	t.Run("SAML sync caller is blocked on an LDAP-synced field", func(t *testing.T) {
 		requireAccessDenied(upsertAs(model.CallerIDSAMLSync, ldapField))
+	})
+
+	// Local mode passes every restrictions tier but a value.write of none,
+	// which is what the sync lock and an owners list convert to.
+	t.Run("a local-mode admin is blocked on an LDAP-synced field", func(t *testing.T) {
+		requireAccessDenied(upsertAs(model.CallerIDLocalAdmin, ldapField))
+	})
+
+	t.Run("a local-mode admin is blocked on a SAML-synced field", func(t *testing.T) {
+		requireAccessDenied(upsertAs(model.CallerIDLocalAdmin, samlField))
+	})
+
+	t.Run("a local-mode admin is blocked on an owner-managed field", func(t *testing.T) {
+		requireAccessDenied(upsertAs(model.CallerIDLocalAdmin, ownedField))
+	})
+
+	t.Run("a local-mode admin is allowed on a non-synced field", func(t *testing.T) {
+		require.Nil(t, upsertAs(model.CallerIDLocalAdmin, plainField))
 	})
 }

@@ -2157,7 +2157,7 @@ func TestUpsertPropertyValue_ServiceGrant(t *testing.T) {
 		require.NoError(t, upsertErr)
 		assert.NotEmpty(t, result.ID)
 
-		for _, callerID := range []string{model.NewId(), "service-grant-plugin", model.CallerIDLDAPSync, model.CallerIDSAMLSync} {
+		for _, callerID := range []string{"", model.NewId(), "service-grant-plugin", model.CallerIDLDAPSync, model.CallerIDSAMLSync, model.CallerIDLocalAdmin} {
 			_, upsertErr = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, callerID), openIDValue())
 			require.Error(t, upsertErr, "caller %q", callerID)
 			assert.ErrorIs(t, upsertErr, ErrAccessDenied, "caller %q", callerID)
