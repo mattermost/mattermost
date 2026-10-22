@@ -165,13 +165,13 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 	}
 
 	// Decide machine vs. human before matching any grant, mirroring
-	// AccessControlHook.isMachineCaller exactly (plugin, or LDAP sync, or
-	// SAML sync) so the audit basis and the enforcement gate cannot
-	// disagree about a caller. An installed plugin's ID could otherwise
+	// AccessControlHook.isMachineCaller exactly (plugin, or an AD/LDAP, SAML
+	// or OpenID Connect sync) so the audit basis and the enforcement gate
+	// cannot disagree about a caller. An installed plugin's ID could otherwise
 	// match a wildcard ("*") plugin grant even when the caller is actually
 	// a human, since Permissions.MatchingGrant honours the wildcard against
 	// any ID.
-	switch {
+	switch source := model.PropertySyncSourceForCallerID(callerID); {
 	case a.IsInstalledPlugin(callerID):
 		scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
 		// A machine caller has no role, so the ladder never applies and a
@@ -179,10 +179,8 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 		// decision below, which would run a.GetUser against a manifest ID
 		// and log a spurious denial.
 		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypePlugin, callerID, scope, action)
-	case callerID == model.CallerIDLDAPSync:
-		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP, "", action)
-	case callerID == model.CallerIDSAMLSync:
-		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrSAML, "", action)
+	case source != "":
+		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertySyncSourceAttr(source), "", action)
 	}
 
 	return a.decidePropertyFieldPermission(rctx, callerID, field, action, valueTargetID)

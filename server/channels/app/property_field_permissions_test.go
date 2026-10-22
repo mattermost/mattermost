@@ -733,6 +733,41 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldAttrSAML, basis.GrantID)
 	})
 
+	t.Run("an OpenID Connect sync caller allowed by a service grant on openid", func(t *testing.T) {
+		// value.write is none for humans, so only the service grant can allow
+		// the write: judged as a human, the sync caller would be refused.
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "openid sync basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrOpenID},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDOpenIDSync)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypeService, basis.CallerType)
+		assert.Equal(t, model.PropertyFieldAttrOpenID, basis.GrantID)
+
+		// A grant to another sync service doesn't allow it.
+		field.Permissions.Grants[0].ID = model.PropertyFieldAttrLDAP
+		basis = th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.False(t, basis.Allowed)
+		assert.Empty(t, basis.GrantID)
+	})
+
 	t.Run("a field with no permissions falls back to the legacy columns", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    groupID,
