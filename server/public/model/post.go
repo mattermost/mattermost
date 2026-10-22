@@ -1591,6 +1591,12 @@ type UpdatePostOptions struct {
 	// remote genuinely clearing an override propagates via the payload
 	// itself, not through this empty-string mechanism.
 	AllowIdentityPropsUpdate bool
+
+	// FileCreatorID, when set, selects newly added files by that creator
+	// instead of the session user. Files uploaded with no user (creator
+	// "nouser") still attach. Empty keeps the session-user lookup. This
+	// does not change who the edit is attributed to.
+	FileCreatorID string
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {

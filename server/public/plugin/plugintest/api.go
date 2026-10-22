@@ -6361,21 +6361,21 @@ func (_m *API) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return r0, r1
 }
 
-// UpdatePostAsUser provides a mock function with given fields: post, userID
-func (_m *API) UpdatePostAsUser(post *model.Post, userID string) (*model.Post, *model.AppError) {
-	ret := _m.Called(post, userID)
+// UpdatePostWithFileCreator provides a mock function with given fields: post, fileCreatorID
+func (_m *API) UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) (*model.Post, *model.AppError) {
+	ret := _m.Called(post, fileCreatorID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for UpdatePostAsUser")
+		panic("no return value specified for UpdatePostWithFileCreator")
 	}
 
 	var r0 *model.Post
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(*model.Post, string) (*model.Post, *model.AppError)); ok {
-		return rf(post, userID)
+		return rf(post, fileCreatorID)
 	}
 	if rf, ok := ret.Get(0).(func(*model.Post, string) *model.Post); ok {
-		r0 = rf(post, userID)
+		r0 = rf(post, fileCreatorID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -6383,7 +6383,7 @@ func (_m *API) UpdatePostAsUser(post *model.Post, userID string) (*model.Post, *
 	}
 
 	if rf, ok := ret.Get(1).(func(*model.Post, string) *model.AppError); ok {
-		r1 = rf(post, userID)
+		r1 = rf(post, fileCreatorID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -794,14 +794,18 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
-	// UpdatePostAsUser updates a post as the given user, as if that user made the edit
-	// through the REST API, without core's permission checks: the plugin is responsible
-	// for authorizing the edit. The user is used where core needs the acting user: files
-	// newly added to FileIds must have been uploaded by that user, and hooks see that user.
+	// UpdatePostWithFileCreator updates a post the same way UpdatePost does.
+	// fileCreatorID is used only for FileIds that were not already on the post.
+	// A new file is attached when its creator is fileCreatorID, or when it was
+	// uploaded with UploadFile (creator "nouser"). The same call may change the
+	// message and props. Permissions, hooks, the stored post, and the post
+	// returned to the plugin match UpdatePost. The plugin authorizes the edit.
+	// A new file that cannot be attached is omitted and the rest of the edit is
+	// saved.
 	//
 	// @tag Post
 	// Minimum server version: 12.0
-	UpdatePostAsUser(post *model.Post, userID string) (*model.Post, *model.AppError)
+	UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) (*model.Post, *model.AppError)
 
 	// GetProfileImage gets user's profile image.
 	//

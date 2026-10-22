@@ -1012,35 +1012,24 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	return api.updatePostForPlugin(api.ctx, "UpdatePost", post)
+	return api.updatePostForPlugin("UpdatePost", post, "")
 }
 
-// UpdatePostAsUser updates a post as the given user.
-func (api *PluginAPI) UpdatePostAsUser(post *model.Post, userID string) (*model.Post, *model.AppError) {
-	if !model.IsValidId(userID) {
-		return nil, model.NewAppError("UpdatePostAsUser", "plugin.api.update_post_as_user.invalid_user.app_error", nil, "", http.StatusBadRequest)
+// UpdatePostWithFileCreator updates a post the same way UpdatePost does.
+// fileCreatorID is used only when attaching newly added files.
+func (api *PluginAPI) UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) (*model.Post, *model.AppError) {
+	if !model.IsValidId(fileCreatorID) {
+		return nil, model.NewAppError("UpdatePostWithFileCreator", "plugin.api.update_post_with_file_creator.invalid_user.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	user, appErr := api.app.GetUser(api.ctx, userID)
-	if appErr != nil {
+	if _, appErr := api.app.GetUser(api.ctx, fileCreatorID); appErr != nil {
 		return nil, appErr
 	}
-	if user.DeleteAt != 0 {
-		return nil, model.NewAppError("UpdatePostAsUser", "plugin.api.update_post_as_user.inactive_user.app_error", nil, "", http.StatusBadRequest)
-	}
 
-	// Identify the acting user without creating a login. Id stays empty so
-	// hooks and session-attribute lookups do not treat this as a REST session,
-	// and integration flags stay unset so mm_blocks_actions still depends on
-	// the explicit plugin grant.
-	rctx := api.ctx.WithSession(&model.Session{
-		UserId: user.Id,
-		Roles:  user.GetRawRoles(),
-	})
-	return api.updatePostForPlugin(rctx, "UpdatePostAsUser", post)
+	return api.updatePostForPlugin("UpdatePostWithFileCreator", post, fileCreatorID)
 }
 
-func (api *PluginAPI) updatePostForPlugin(rctx request.CTX, where string, post *model.Post) (*model.Post, *model.AppError) {
+func (api *PluginAPI) updatePostForPlugin(where string, post *model.Post, fileCreatorID string) (*model.Post, *model.AppError) {
 	// Grant mm_blocks_actions write access only when the plugin's update
 	// actually includes the prop, AND the value passes validation.
 	// Otherwise the freeze in UpdatePost preserves whatever the original
@@ -1058,9 +1047,10 @@ func (api *PluginAPI) updatePostForPlugin(rctx request.CTX, where string, post *
 	// render path honors a plugin-authored override (see CreatePost above), so
 	// SanitizeProps' default strip-and-preserve-from-old behavior applies to
 	// plugin edits like any other non-federated caller.
-	post, _, appErr := api.app.UpdatePost(rctx, post, &model.UpdatePostOptions{
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{
 		SafeUpdate:                 false,
 		AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate,
+		FileCreatorID:              fileCreatorID,
 	})
 	if post != nil {
 		post = post.ForPlugin()

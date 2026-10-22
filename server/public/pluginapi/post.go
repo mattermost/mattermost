@@ -70,11 +70,12 @@ func (p *PostService) UpdatePost(post *model.Post) error {
 	return nil
 }
 
-// UpdatePostAsUser updates a post as the given user.
+// UpdatePostWithFileCreator updates a post the same way UpdatePost does.
+// fileCreatorID selects newly added files and is not an acting user.
 //
 // Minimum server version: 12.0
-func (p *PostService) UpdatePostAsUser(post *model.Post, userID string) error {
-	updatedPost, appErr := p.api.UpdatePostAsUser(post, userID)
+func (p *PostService) UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) error {
+	updatedPost, appErr := p.api.UpdatePostWithFileCreator(post, fileCreatorID)
 	if appErr != nil {
 		return normalizeAppErr(appErr)
 	}
