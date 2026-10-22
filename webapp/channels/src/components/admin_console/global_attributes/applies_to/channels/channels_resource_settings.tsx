@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 
 import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 
@@ -284,28 +284,15 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                         {CHANNEL_DISPLAY_LOCATION_OPTIONS.map((location) => {
                             const checked = value.displayLocations.includes(location);
                             return (
-                                <label
+                                <Checkbox
                                     key={location}
-                                    className='ChannelsResourceSettings__checkbox'
+                                    checked={checked}
+                                    disabled={disabled}
+                                    onChange={(e) => handleLocationChange(location, e.target.checked)}
+                                    data-testid={`channelsResourceLocation-${location}`}
                                 >
-                                    <input
-                                        type='checkbox'
-                                        className='ChannelsResourceSettings__checkboxInput'
-                                        checked={checked}
-                                        disabled={disabled}
-                                        onChange={(e) => handleLocationChange(location, e.target.checked)}
-                                        data-testid={`channelsResourceLocation-${location}`}
-                                    />
-                                    <span
-                                        className='ChannelsResourceSettings__checkboxBox'
-                                        aria-hidden={true}
-                                    >
-                                        {checked && <CheckIcon size={12}/>}
-                                    </span>
-                                    <span className='ChannelsResourceSettings__checkboxLabel'>
-                                        {displayLocationLabel(location, intl)}
-                                    </span>
-                                </label>
+                                    {displayLocationLabel(location, intl)}
+                                </Checkbox>
                             );
                         })}
                     </div>

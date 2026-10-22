@@ -5,6 +5,8 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
@@ -73,9 +75,11 @@ describe('ChannelsResourceSettings', () => {
         mockUseNotifyChannelAdmins.mockReturnValue(promptNotify);
     });
 
+    // Pass {} as state for the flag-off baseline: an explicit undefined would
+    // fall back to the default and silently render with the flag on.
     const renderComponent = (
         props: Partial<React.ComponentProps<typeof ChannelsResourceSettings>> = {},
-        state: DeepPartial<GlobalState> | undefined = requiredEnabledState,
+        state: DeepPartial<GlobalState> = requiredEnabledState,
     ) => {
         const onChange = jest.fn();
         renderWithContext(
@@ -93,7 +97,7 @@ describe('ChannelsResourceSettings', () => {
     };
 
     it('hides the Required toggle by default (ChannelAttributesRequired off)', () => {
-        renderComponent({}, undefined);
+        renderComponent({}, {});
 
         expect(screen.queryByTestId('channelsResourceRequired-button')).not.toBeInTheDocument();
         expect(screen.queryByText('Required')).not.toBeInTheDocument();
@@ -107,10 +111,45 @@ describe('ChannelsResourceSettings', () => {
     });
 
     it('still shows every other setting when the Required toggle is hidden', () => {
-        renderComponent({}, undefined);
+        renderComponent({}, {});
 
         expect(screen.getByText('Display location')).toBeInTheDocument();
         expect(screen.getByText('Changing the value')).toBeInTheDocument();
+    });
+
+    it('renders Header and Banner location checkboxes', () => {
+        renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, displayLocations: [DISPLAY_LABEL_HEADER]}}, {});
+
+        const header = screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`);
+        const banner = screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`);
+
+        expect(header).toBeChecked();
+        expect(banner).not.toBeChecked();
+        expect(screen.getByText('Header')).toBeInTheDocument();
+        expect(screen.getByText('Banner')).toBeInTheDocument();
+    });
+
+    it('toggles a display location via Compass Checkbox', async () => {
+        const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, displayLocations: []}}, {});
+
+        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+            displayLocations: [DISPLAY_LABEL_HEADER],
+        }));
+    });
+
+    it('disables location checkboxes when disabled', () => {
+        renderComponent({disabled: true}, {});
+
+        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`)).toBeDisabled();
+        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`)).toBeDisabled();
+    });
+
+    it('keeps the Required control as a switch, not a Compass Checkbox', () => {
+        renderComponent();
+
+        expect(screen.getByTestId('channelsResourceRequired-button')).toHaveAttribute('role', 'switch');
     });
 
     it('renders no banner when nothing is missing', () => {

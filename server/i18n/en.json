@@ -17187,6 +17187,11 @@
     "description": "Config validation error shown to system admins configuring Microsoft Intune MAM when the tenant ID is not in UUID format."
   },
   {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Redis cache prefix must not contain ':', '*', '?', '[', ']' or '\\'.",
+    "description": "Config validation error shown to system admins; 'Redis cache prefix' is the setting that namespaces this server's keys and cluster messages in a Redis instance shared with other servers."
+  },
+  {
     "id": "model.config.is_valid.invalid_redis_db.app_error",
     "translation": "Redis DB must have a value greater or equal to zero.",
     "description": "Config validation error shown to system admins; 'Redis DB' is the numeric Redis database index setting."

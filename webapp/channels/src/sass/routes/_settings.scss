@@ -280,6 +280,14 @@
                         .checkbox.single-checkbox {
                             min-height: unset;
                             padding: 0;
+
+                            // Compass Checkbox is itself a label; Bootstrap's
+                            // .checkbox label { padding-left: 20px } no longer cancels
+                            // (native inputs used margin-left: -20px). Prefer
+                            // .no-padding on wrappers; keep label reset here too.
+                            label {
+                                padding: 0;
+                            }
                         }
 
                         .inlineCheckboxSelect {
@@ -805,9 +813,13 @@
     padding-top: 5px;
 }
 
+// Space before Save/Cancel for Theme apply-to-all-teams.
+// Beat Bootstrap `.form-horizontal .checkbox { margin-bottom: 0 }` (0,2,0) and
+// survive `.checkbox.no-padding { padding: 0 }` which cleared the old padding-bottom.
+.form-horizontal .checkbox.user-settings__submit-checkbox,
 .user-settings__submit-checkbox {
     padding-top: 0;
-    padding-bottom: 20px;
+    margin-bottom: var(--spacing-xxl, 20px);
 }
 
 .section-min {
