@@ -1114,8 +1114,8 @@ func (h *AccessControlHook) permissionsGrantAllows(field *model.PropertyField, c
 // lateLinkedSyncAllows reports whether the sync caller may take action, a
 // value read or write, on field when no grant of its own allows it. That is
 // the case for a user field linked to its template before the template got
-// its sync link: the field carries no copy of the template's ldap/saml attr,
-// so it has neither the sync lock nor the sync's grant, and the sync follows
+// its sync link: the field carries no copy of the template's sync attr, so
+// it has neither the sync lock nor the sync's grant, and the sync follows
 // the template for it (see isDefinitionSync). Master leaves such a field open
 // to every machine caller, the sync included, so the sync is let in only
 // where any plugin would be, that is where the field's catch-all plugin grant
