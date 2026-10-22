@@ -491,9 +491,15 @@ func TestScopedSessionSearch(t *testing.T) {
 	ctx := context.Background()
 
 	publicClosed := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, f.closedTeam.Id)
+	privateClosed := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypePrivate, f.closedTeam.Id)
+	unlistedClosed := th.CreateTeam(t)
+	unlistedClosed.AllowOpenInvite = false
+	unlistedClosed.Type = model.TeamInvite
+	_, err := th.App.Srv().Store().Team().Update(unlistedClosed)
+	require.NoError(t, err)
 	term := "scopedapineedle" + model.NewId()[:6]
 	posts := map[string]*model.Post{}
-	for _, channel := range []*model.Channel{f.triggering, f.publicOpen, f.memberPriv, publicClosed, f.botDM} {
+	for _, channel := range []*model.Channel{f.triggering, f.publicOpen, f.memberPriv, publicClosed, privateClosed, f.botDM} {
 		post, _, err := th.Client.CreatePost(ctx, &model.Post{ChannelId: channel.Id, Message: term + " " + channel.Name})
 		require.NoError(t, err)
 		posts[channel.Id] = post
@@ -520,8 +526,16 @@ func TestScopedSessionSearch(t *testing.T) {
 		assert.ElementsMatch(t, []string{posts[f.publicOpen.Id].Id}, found(t, results))
 	})
 
-	t.Run("closed team cannot be searched by team", func(t *testing.T) {
-		_, resp, err := f.client.SearchPosts(ctx, f.closedTeam.Id, term, false)
+	t.Run("invite-only team holding a listed channel searches only that channel", func(t *testing.T) {
+		results, _, err := f.client.SearchPosts(ctx, f.closedTeam.Id, term, false)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{posts[f.triggering.Id].Id}, found(t, results), "not the team's public channel")
+	})
+
+	t.Run("invite-only team without a listed channel cannot be searched", func(t *testing.T) {
+		_, resp, err := f.client.SearchPosts(ctx, unlistedClosed.Id, term, false)
+		requireScopeError(t, resp, err)
+		_, resp, err = f.client.SearchFiles(ctx, unlistedClosed.Id, term, false)
 		requireScopeError(t, resp, err)
 	})
 
@@ -535,7 +549,7 @@ func TestScopedSessionSearch(t *testing.T) {
 
 	t.Run("files", func(t *testing.T) {
 		names := map[string]string{}
-		for _, channel := range []*model.Channel{f.publicOpen, f.memberPriv, f.botDM} {
+		for _, channel := range []*model.Channel{f.publicOpen, f.memberPriv, f.botDM, f.triggering, publicClosed, privateClosed} {
 			info := &model.FileInfo{CreatorId: th.BasicUser.Id, PostId: posts[channel.Id].Id, ChannelId: channel.Id, Path: "scoped/" + model.NewId(), Name: term + "-report", Extension: "txt"}
 			info, err := th.App.Srv().Store().FileInfo().Save(th.Context, info)
 			require.NoError(t, err)
@@ -548,6 +562,14 @@ func TestScopedSessionSearch(t *testing.T) {
 			got = append(got, id)
 		}
 		assert.ElementsMatch(t, []string{names[f.publicOpen.Id]}, got)
+
+		results, _, err = f.client.SearchFiles(ctx, f.closedTeam.Id, term, false)
+		require.NoError(t, err)
+		got = nil
+		for id := range results.FileInfos {
+			got = append(got, id)
+		}
+		assert.ElementsMatch(t, []string{names[f.triggering.Id]}, got, "invite-only team: only the listed channel's file")
 	})
 
 	t.Run("channel listing is limited to the scope", func(t *testing.T) {
@@ -580,9 +602,16 @@ func TestScopedSessionSearch(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, searched)
 
-		_, resp, err := f.client.GetPublicChannelsForTeam(ctx, f.closedTeam.Id, 0, 100, "")
+		closedChannels, _, err := f.client.GetPublicChannelsForTeam(ctx, f.closedTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assert.Empty(t, closedChannels, "the invite-only team's public channels are not in scope")
+		closedSearch, _, err := f.client.SearchChannels(ctx, f.closedTeam.Id, &model.ChannelSearch{Term: publicClosed.Name})
+		require.NoError(t, err)
+		assert.Empty(t, closedSearch)
+
+		_, resp, err := f.client.GetPublicChannelsForTeam(ctx, unlistedClosed.Id, 0, 100, "")
 		requireScopeError(t, resp, err)
-		_, resp, err = f.client.SearchChannels(ctx, f.closedTeam.Id, &model.ChannelSearch{Term: f.triggering.Name})
+		_, resp, err = f.client.SearchChannels(ctx, unlistedClosed.Id, &model.ChannelSearch{Term: "x"})
 		requireScopeError(t, resp, err)
 	})
 }
