@@ -108,10 +108,10 @@ func TestSessionScopeChannelReads(t *testing.T) {
 
 	inScope := []*model.Channel{f.triggering, f.extra, f.publicOpen}
 	outOfScope := map[string]*model.Channel{
-		"public channel on closed team": f.publicClosed,
+		"public channel on closed team":                         f.publicClosed,
 		"unlisted private channel on the listed channel's team": th.CreatePrivateChannel(t, f.closedTeam),
-		"private member channel":        f.memberPriv,
-		"bot DM":                        f.botDM,
+		"private member channel":                                f.memberPriv,
+		"bot DM":                                                f.botDM,
 	}
 
 	check := func(t *testing.T, channel *model.Channel, permission *model.Permission, want bool) {
