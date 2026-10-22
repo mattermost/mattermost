@@ -16,3 +16,4 @@ export const ELASTICSEARCH_VERSION = '9.0.0';
 // Built from a Dockerfile on top of opensearchproject/opensearch, rather than pulled as a fixed
 // image — so only the version is fixed here.
 export const OPENSEARCH_VERSION = '3.0.0';
+export const NGINX_IMAGE = 'nginx:1.31.6-alpine';
