@@ -112,6 +112,32 @@ describe('MentionFiltersButton', () => {
         expect(screen.getByLabelText('Directly mentioning you')).not.toBeChecked();
     });
 
+    test('opening from the keyboard moves focus onto the popover', async () => {
+        renderWithContext(<MentionFiltersButton/>, crossTeamState);
+
+        screen.getByTestId('mentionFiltersButton').focus();
+        await userEvent.keyboard('{Enter}');
+
+        // * Verify focus is on the dialog, and no Combobox menu opened from it
+        const dialog = await screen.findByRole('dialog', {name: 'Filters'});
+        await waitFor(() => expect(dialog).toHaveFocus());
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+
+        await userEvent.keyboard('{Escape}');
+
+        // * Verify closing returns focus to the button
+        await waitFor(() => expect(screen.getByTestId('mentionFiltersButton')).toHaveFocus());
+    });
+
+    test('opening with the mouse leaves focus on the button', async () => {
+        renderWithContext(<MentionFiltersButton/>, crossTeamState);
+
+        await openPopover();
+
+        // * Verify focus stayed on the button
+        expect(screen.getByTestId('mentionFiltersButton')).toHaveFocus();
+    });
+
     test('Escape closes an open combobox first and the popover on the next press', async () => {
         renderWithContext(<MentionFiltersButton/>, crossTeamState);
 

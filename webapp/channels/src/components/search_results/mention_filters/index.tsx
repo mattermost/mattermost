@@ -44,12 +44,18 @@ export {default as MentionFilterChips} from './mention_filter_chips';
 // Matches Compass's --duration-quick, which the popover's CSS transition uses.
 const POPOVER_TRANSITION_MS = 150;
 
+// A click made by the keyboard, or by a screen reader, has no pointer and so reports a detail of 0.
+function isKeyboardEvent(event?: Event) {
+    return event instanceof KeyboardEvent || (event instanceof MouseEvent && event.detail === 0);
+}
+
 export default function MentionFiltersButton() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     const [isOpen, setIsOpen] = useState(false);
     const [openCount, setOpenCount] = useState(0);
+    const [openedFromKeyboard, setOpenedFromKeyboard] = useState(false);
 
     const filters = useSelector(getMentionFilters);
     const teamId = useSelector(getExplicitSearchTeam);
@@ -63,12 +69,13 @@ export default function MentionFiltersButton() {
     // the button flash its keyboard focus ring. Floating UI reads this ref when the popover unmounts.
     const returnFocusRef = useRef<HTMLElement | null>(null);
 
-    const handleOpenChange = useCallback((open: boolean, _event?: Event, reason?: string) => {
+    const handleOpenChange = useCallback((open: boolean, event?: Event, reason?: string) => {
         if (!open && reason === 'outside-press') {
             returnFocusRef.current = null;
         }
         if (open) {
             setOpenCount((previous) => previous + 1);
+            setOpenedFromKeyboard(isKeyboardEvent(event));
         }
         setIsOpen(open);
     }, []);
@@ -146,10 +153,13 @@ export default function MentionFiltersButton() {
             </Button>
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
+                    {/* Opened from the keyboard, focus moves onto the dialog itself so keyboard and
+                        screen reader users land inside it. It doesn't go to the first field, because
+                        focusing a Combobox opens its menu. A mouse click leaves focus on the button. */}
                     <FloatingFocusManager
                         context={context}
                         modal={false}
-                        initialFocus={-1}
+                        initialFocus={openedFromKeyboard ? refs.floating : -1}
                         returnFocus={returnFocusRef}
                     >
                         <div
@@ -157,6 +167,7 @@ export default function MentionFiltersButton() {
                             style={floatingStyles}
                             className='MentionFilters__floating'
                             data-testid='mentionFiltersPopover'
+                            aria-label={formatMessage({id: 'search_results.mention_filters.button', defaultMessage: 'Filters'})}
                             {...getFloatingProps()}
                         >
                             <div

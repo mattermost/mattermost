@@ -21,7 +21,7 @@ export default class MentionFilters {
     }
 
     /**
-     * The remove button of every chip, one per applied filter.
+     * Every applied-filter chip. A removable chip is itself the button, labelled "Remove ... filter".
      */
     getChipRemoveButtons() {
         return this.chips.getByRole('button', {name: /^Remove .+ filter$/});
@@ -33,20 +33,22 @@ export default class MentionFilters {
     }
 
     async selectTeam(teamDisplayName: string) {
-        await this.popover.getByTestId('mentionFiltersTeamSelector').click();
-        await this.popover.getByRole('menuitemradio', {name: teamDisplayName}).click();
+        await this.popover.getByRole('combobox', {name: 'Team'}).click();
+        await this.popover.getByRole('option', {name: teamDisplayName, exact: true}).click();
     }
 
     /**
-     * Ticks a channel in the channel picker, opening the picker first if it is closed. A channel's
-     * option may carry its team name too, so the name is matched as a substring.
+     * Picks a channel in the channel picker, then closes its menu so it doesn't cover the rest of the
+     * popover. A channel's option may carry its team name too, so the name is matched as a substring.
      */
     async selectChannel(channelDisplayName: string) {
-        const selector = this.popover.getByTestId('mentionFiltersChannelSelector');
-        if ((await selector.getAttribute('aria-expanded')) !== 'true') {
-            await selector.click();
+        const picker = this.popover.getByRole('combobox', {name: 'Channel or Direct Messages'});
+        await picker.fill(channelDisplayName);
+        await this.popover.getByRole('option', {name: channelDisplayName}).first().click();
+        if ((await picker.getAttribute('aria-expanded')) === 'true') {
+            await picker.press('Escape');
         }
-        await this.popover.getByRole('checkbox', {name: channelDisplayName}).first().check();
+        await expect(picker).toHaveAttribute('aria-expanded', 'false');
     }
 
     /**
@@ -67,16 +69,18 @@ export default class MentionFilters {
         await this.popover.getByRole('button', {name: 'Reset'}).click();
     }
 
-    async done() {
-        await this.popover.getByRole('button', {name: 'Done'}).click();
+    async apply() {
+        await this.popover.getByRole('button', {name: 'Apply'}).click();
         await expect(this.popover).not.toBeVisible();
     }
 
     /**
      * Removes the chip whose label starts with the given text. A channel chip also names its team
-     * when no team filter is set, so the label is matched as a prefix.
+     * when no team filter is set, so the label is matched as a prefix. The chip's remove icon is
+     * hidden from the accessibility tree, so it is found by its data attribute.
      */
     async removeChip(label: string) {
-        await this.chips.getByRole('button', {name: `Remove ${label}`}).click();
+        const chip = this.chips.getByRole('button', {name: `Remove ${label}`});
+        await chip.locator('[data-chip-remove]').click();
     }
 }

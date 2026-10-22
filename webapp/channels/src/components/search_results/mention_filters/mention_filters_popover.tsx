@@ -93,7 +93,12 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
     };
 
     const selectChannels = (value: string | string[] | null) => {
-        const channelIds = value == null ? [] : Array.isArray(value) ? value : [value];
+        let channelIds: string[] = [];
+        if (Array.isArray(value)) {
+            channelIds = value;
+        } else if (value) {
+            channelIds = [value];
+        }
         setDraft((current) => ({...current, channelIds}));
     };
 

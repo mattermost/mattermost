@@ -67,7 +67,7 @@ test('channel filter narrows recent mentions to the selected channel', {tag: '@s
     // # Filter down to one of the two channels
     await filters.open();
     await filters.selectChannel(otherChannel.display_name);
-    await filters.done();
+    await filters.apply();
 
     // * Verify only the mention from the selected channel remains
     await expect(panel.getResultItems()).toHaveCount(1);
@@ -90,7 +90,7 @@ test('removing a filter chip restores the excluded mentions', {tag: '@search'}, 
 
     await filters.open();
     await filters.selectChannel(otherChannel.display_name);
-    await filters.done();
+    await filters.apply();
     await expect(panel.getResultItems()).toHaveCount(1);
     await expect(panel.getResultByText(townSquareMention)).toHaveCount(0);
 
@@ -135,7 +135,7 @@ test('mention type filter separates direct mentions from keyword mentions', {tag
     // # Keep only direct mentions
     await filters.open();
     await filters.selectMentionType('Directly mentioning you');
-    await filters.done();
+    await filters.apply();
 
     // * Verify the keyword mention is excluded
     await expect(panel.getResultItems()).toHaveCount(1);
@@ -182,7 +182,7 @@ test('a team and its channels picked together are both applied', {tag: '@search'
     await filters.open();
     await filters.selectTeam(secondTeam.display_name);
     await filters.selectChannel(secondTeamChannel.display_name);
-    await filters.done();
+    await filters.apply();
 
     // * Verify the channel filter survived being applied alongside the team change
     await expect(filters.chips).toContainText(secondTeamChannel.display_name);
@@ -203,7 +203,7 @@ test('popping out a filtered mentions panel keeps the filters', {tag: '@search'}
 
     await filters.open();
     await filters.selectChannel(otherChannel.display_name);
-    await filters.done();
+    await filters.apply();
     await expect(panel.getResultItems()).toHaveCount(1);
     await expect(panel.getResultByText(townSquareMention)).toHaveCount(0);
 
@@ -309,7 +309,7 @@ test('the date filter narrows mentions by when they arrived', {tag: '@search'}, 
     // # Narrow to today
     await filters.open();
     await filters.selectDate('Today');
-    await filters.done();
+    await filters.apply();
 
     // * Verify only today's mention survives, with a chip naming the range
     await expect(filters.chips).toContainText('Today');
@@ -321,7 +321,7 @@ test('the date filter narrows mentions by when they arrived', {tag: '@search'}, 
     // # Widen to the last 7 days
     await filters.open();
     await filters.selectDate('Last 7 days');
-    await filters.done();
+    await filters.apply();
 
     // * Verify the range now reaches the three day old mention but still not the ten day old one
     await expect(filters.chips).toContainText('Last 7 days');
@@ -345,7 +345,7 @@ test('removing the team chip clears the channel chips', {tag: '@search'}, async 
     await filters.open();
     await filters.selectTeam(secondTeam.display_name);
     await filters.selectChannel(secondTeamChannel.display_name);
-    await filters.done();
+    await filters.apply();
 
     // * Verify both a team chip and a channel chip are showing
     await expect(filters.getChipRemoveButtons()).toHaveCount(2);
@@ -374,7 +374,7 @@ test('filters by channels from two teams at once', {tag: '@search'}, async ({pw}
     for (const channel of [firstTeamChannel, secondTeamChannel]) {
         await filters.selectChannel(channel.display_name);
     }
-    await filters.done();
+    await filters.apply();
 
     // * Verify a chip per channel, each naming its team since the names span teams
     await expect(filters.getChipRemoveButtons()).toHaveCount(2);
@@ -401,7 +401,7 @@ test('the filter count matches the chips, and Reset clears them', {tag: '@search
     await filters.selectChannel(secondTeamChannel.display_name);
     await filters.selectMentionType('Directly mentioning you');
     await filters.selectDate('Last 7 days');
-    await filters.done();
+    await filters.apply();
 
     // * Verify the button counts exactly what the chip row shows
     await expect(filters.button).toHaveText('Filters (4)');
@@ -410,7 +410,7 @@ test('the filter count matches the chips, and Reset clears them', {tag: '@search
     // # Reset the popover and apply it
     await filters.open();
     await filters.reset();
-    await filters.done();
+    await filters.apply();
 
     // * Verify nothing is counted, no chips are left and every mention is back
     await expect(filters.button).toHaveText('Filters');
@@ -432,7 +432,7 @@ test('removing every chip one at a time clears the filters', {tag: '@search'}, a
     await filters.selectChannel(otherChannel.display_name);
     await filters.selectMentionType('Directly mentioning you');
     await filters.selectDate('Last 7 days');
-    await filters.done();
+    await filters.apply();
 
     await expect(filters.button).toHaveText('Filters (3)');
     await expect(panel.getResultItems()).toHaveCount(1);
@@ -467,7 +467,7 @@ test('the mentions button and its shortcut return to all mentions', {tag: '@sear
     const applyChannelFilter = async () => {
         await filters.open();
         await filters.selectChannel(otherChannel.display_name);
-        await filters.done();
+        await filters.apply();
         await expect(panel.getResultItems()).toHaveCount(1);
         await expect(panel.getResultByText(townSquareMention)).toHaveCount(0);
     };
@@ -550,7 +550,7 @@ test('a keyword shaped like a search modifier still finds mentions', {tag: '@sea
     // # Keep only keyword mentions, so the query is the keyword alone with nothing else to carry it
     await filters.open();
     await filters.selectMentionType('Keywords triggering mentions');
-    await filters.done();
+    await filters.apply();
 
     // * Verify it survives on its own
     await expect(panel.getResultByText(keywordMention)).toHaveCount(1);

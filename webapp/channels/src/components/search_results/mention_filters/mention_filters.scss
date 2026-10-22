@@ -115,6 +115,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    // Same as the trigger: restate the outline the global focus reset removes. The popover mounts in
+    // #root-portal, where the webapp's a11y--focused shadow is also turned off for Compass buttons,
+    // so without this Reset and Apply show no focus ring at all.
+    button:focus-visible {
+        outline: 2px solid var(--link-color);
+        outline-offset: 3px;
+    }
 }
 
 .MentionFilterChips {
