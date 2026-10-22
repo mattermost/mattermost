@@ -223,5 +223,7 @@ export type ViewsState = {
 export type PendingQuote = {
     channelId: string;
     rootId: string;
+
+    // Markdown of the quoted text
     text: string;
 };

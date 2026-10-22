@@ -111,3 +111,112 @@ test('quotes text selected in the RHS into the thread reply box', TAGS, async ({
     await expect(channelsPage.sidebarRight.postCreate.input).toHaveValue('> pretium eget massa\n\n');
     await expect(channelsPage.centerView.postCreate.input).toHaveValue('');
 });
+
+/**
+ * @objective Verify that quoting formatted text keeps its Markdown formatting, such as headings,
+ * lists, code blocks and links.
+ */
+test('keeps the Markdown formatting of the quoted text', TAGS, async ({pw}) => {
+    const {user, userClient, team} = await pw.initSetup();
+    const townSquare = await userClient.getChannelByName(team.id, 'town-square');
+    await userClient.createPost({
+        channel_id: townSquare.id,
+        message: [
+            '## Project Update',
+            '',
+            'We are making **excellent** progress.',
+            '',
+            '* **Performance:** faster',
+            '* Security',
+            '',
+            '```javascript',
+            'const client = 1;',
+            '```',
+            '',
+            'Check the [dashboard](https://example.com).',
+        ].join('\n'),
+    });
+
+    const {channelsPage, page} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    // # Select the whole message and quote it
+    const post = await channelsPage.getLastPost();
+    await selectTextWithMouse(post.body.locator('.post-message__text'), 'Project Update', {untilPhrase: 'dashboard'});
+    await page.getByRole('button', {name: 'Quote selection'}).click();
+
+    // * Verify the quote keeps the heading, emphasis, list, code block and link
+    await expect(channelsPage.centerView.postCreate.input).toHaveValue(
+        [
+            '> ## Project Update',
+            '>',
+            '> We are making **excellent** progress.',
+            '>',
+            '> * **Performance:** faster',
+            '> * Security',
+            '>',
+            '> ```javascript',
+            '> const client = 1;',
+            '> ```',
+            '>',
+            '> Check the [dashboard](https://example.com)',
+            '',
+            '',
+        ].join('\n'),
+    );
+});
+
+/**
+ * @objective Verify that the quote button can be reached with Tab and used with the keyboard.
+ */
+test('quotes the selection with the keyboard', TAGS, async ({pw}) => {
+    const {user, userClient, team} = await pw.initSetup();
+    const townSquare = await userClient.getChannelByName(team.id, 'town-square');
+    await userClient.createPost({channel_id: townSquare.id, message: MESSAGE});
+
+    const {channelsPage, page} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    // # Select part of the message
+    const post = await channelsPage.getLastPost();
+    await selectTextWithMouse(post.body.locator('.post-message__text'), 'Diam sapien pellentesque');
+    const quoteButton = page.getByRole('button', {name: 'Quote selection'});
+    await expect(quoteButton).toBeVisible();
+
+    // # Move to the quote button with Tab and press Enter
+    await page.keyboard.press('Tab');
+    await expect(quoteButton).toBeFocused();
+    await page.keyboard.press('Enter');
+
+    // * Verify the quote is in the message box
+    await expect(channelsPage.centerView.postCreate.input).toHaveValue('> Diam sapien pellentesque\n\n');
+});
+
+/**
+ * @objective Verify that quoting isn't offered in an archived channel, where nothing can be posted.
+ */
+test('does not offer to quote in an archived channel', TAGS, async ({pw}) => {
+    const {user, userClient, team} = await pw.initSetup();
+    const channel = await userClient.createChannel(
+        pw.random.channel({teamId: team.id, name: 'quote-archived', displayName: 'Quote Archived', type: 'O'}),
+    );
+    const archivedPost = await userClient.createPost({channel_id: channel.id, message: MESSAGE});
+    await userClient.deleteChannel(channel.id);
+
+    const {channelsPage, page} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // * The archived channel has no message box, so wait for the post instead
+    await expect(page.getByText('Diam sapien pellentesque', {exact: false}).first()).toBeVisible();
+
+    // # Select part of the message (the last post is the system message about archiving)
+    const post = await channelsPage.centerView.getPostById(archivedPost.id);
+    await selectTextWithMouse(post.body.locator('.post-message__text'), 'Diam sapien pellentesque');
+
+    // * Verify the text is selected but no quote button is shown
+    await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe('Diam sapien pellentesque');
+    await page.waitForTimeout(500);
+    await expect(page.getByRole('button', {name: 'Quote selection'})).not.toBeVisible();
+});

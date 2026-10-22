@@ -2,38 +2,19 @@
 // See LICENSE.txt for license information.
 
 /**
- * Splits text that is about to be quoted into paragraphs, each one being a list of lines.
- * Line endings are normalized, trailing whitespace is dropped and runs of blank lines
- * separate paragraphs. Returns an empty array when there is nothing to quote.
+ * Turns Markdown into a blockquote by prefixing every line with "> " (">" for blank lines, so the
+ * quote isn't split into several blockquotes). Leading and trailing blank lines are dropped.
  */
-export function getQuoteParagraphs(text: string): string[][] {
-    const paragraphs: string[][] = [];
-    let current: string[] = [];
-
-    for (const line of text.replace(/\r\n?/g, '\n').split('\n')) {
-        if (line.trim()) {
-            current.push(line.trimEnd());
-        } else if (current.length) {
-            paragraphs.push(current);
-            current = [];
-        }
+export function formatQuote(markdown: string): string {
+    const lines = markdown.replace(/\r\n?/g, '\n').split('\n').map((line) => line.trimEnd());
+    while (lines.length && !lines[0]) {
+        lines.shift();
+    }
+    while (lines.length && !lines[lines.length - 1]) {
+        lines.pop();
     }
 
-    if (current.length) {
-        paragraphs.push(current);
-    }
-
-    return paragraphs;
-}
-
-/**
- * Turns plain text into a Markdown blockquote by prefixing every line with "> ".
- * Paragraphs are separated by a ">" line so the quote isn't split into several blockquotes.
- */
-export function formatQuote(text: string): string {
-    return getQuoteParagraphs(text).
-        map((lines) => lines.map((line) => `> ${line}`).join('\n')).
-        join('\n>\n');
+    return lines.map((line) => (line ? `> ${line}` : '>')).join('\n');
 }
 
 /**

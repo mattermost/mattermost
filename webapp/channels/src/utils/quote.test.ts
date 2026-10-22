@@ -1,17 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {appendQuoteToMessage, formatQuote, getQuoteParagraphs} from './quote';
-
-describe('getQuoteParagraphs', () => {
-    test('should group lines into paragraphs separated by blank lines', () => {
-        expect(getQuoteParagraphs('one\ntwo\n\nthree')).toEqual([['one', 'two'], ['three']]);
-    });
-
-    test('should return no paragraphs for blank text', () => {
-        expect(getQuoteParagraphs('\n  \n')).toEqual([]);
-    });
-});
+import {appendQuoteToMessage, formatQuote} from './quote';
 
 describe('formatQuote', () => {
     test('should prefix a single line', () => {
@@ -22,8 +12,8 @@ describe('formatQuote', () => {
         expect(formatQuote('first line\n\nsecond line\nthird line')).toBe('> first line\n>\n> second line\n> third line');
     });
 
-    test('should collapse several blank lines into a single quoted blank line', () => {
-        expect(formatQuote('first\n\n \n\nsecond')).toBe('> first\n>\n> second');
+    test('should keep every blank line so code blocks stay intact', () => {
+        expect(formatQuote('```\nfirst\n\n\nsecond\n```')).toBe('> ```\n> first\n>\n>\n> second\n> ```');
     });
 
     test('should normalize Windows line endings', () => {

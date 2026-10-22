@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {postHtmlToMarkdown} from 'utils/post_html_to_markdown';
+
 const MESSAGE_TEXT_SELECTOR = '.post-message__text';
 const CENTER_POST_ID_PREFIX = 'post_';
 const RHS_POST_ID_PREFIX = 'rhsPost_';
@@ -9,6 +11,8 @@ const POST_ID_PATTERN = /^[a-z0-9]{26}$/;
 export type QuotableSelection = {
     postId: string;
     isRHS: boolean;
+
+    // Markdown of the selected part of the message
     text: string;
 
     // Where the user finished the selection, used to position the quote button next to it.
@@ -27,13 +31,52 @@ function getPostElement(element: Element | null): Element | null {
     return element?.closest(`[id^="${CENTER_POST_ID_PREFIX}"], [id^="${RHS_POST_ID_PREFIX}"]`) ?? null;
 }
 
-function getCaretRect(node: Node, offset: number): DOMRect | null {
-    const caret = document.createRange();
-    caret.setStart(node, offset);
-    caret.collapse(true);
+function getSelectedTextNodes(range: Range): Text[] {
+    const root = range.commonAncestorContainer;
+    if (root.nodeType === Node.TEXT_NODE) {
+        return [root as Text];
+    }
 
-    const rect = caret.getBoundingClientRect();
-    return rect.height ? rect : null;
+    const nodes: Text[] = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (range.intersectsNode(node)) {
+            nodes.push(node as Text);
+        }
+    }
+    return nodes;
+}
+
+/**
+ * Returns the rect of the first (or, with `fromEnd`, the last) selected non-whitespace character.
+ * A collapsed caret can't be used for this: at the start of a wrapped line, the same position is
+ * also the end of the previous line, and browsers report it there.
+ */
+function getEdgeCharacterRect(range: Range, fromEnd: boolean): DOMRect | null {
+    const nodes = getSelectedTextNodes(range);
+    if (fromEnd) {
+        nodes.reverse();
+    }
+
+    for (const node of nodes) {
+        const start = node === range.startContainer ? range.startOffset : 0;
+        const end = node === range.endContainer ? range.endOffset : node.length;
+        const text = node.data;
+
+        for (let i = fromEnd ? end - 1 : start; fromEnd ? i >= start : i < end; i += fromEnd ? -1 : 1) {
+            if (!(/\s/).test(text[i])) {
+                const character = document.createRange();
+                character.setStart(node, i);
+                character.setEnd(node, i + 1);
+                const rect = character.getBoundingClientRect();
+                if (rect.height) {
+                    return rect;
+                }
+            }
+        }
+    }
+
+    return null;
 }
 
 // Whether the range includes text from outside of the given element. A triple click on the last
@@ -59,6 +102,24 @@ function selectsTextOutsideOf(range: Range, element: Element) {
     }
 
     return false;
+}
+
+/**
+ * Returns the selected part of the message as HTML. A selection inside formatted content, like part
+ * of a list item or a code block, is wrapped in shallow copies of its ancestors up to the message so
+ * that the formatting it's in is kept.
+ */
+function getSelectedHtml(range: Range, messageElement: Element): HTMLElement {
+    let content: Node = range.cloneContents();
+    for (let element = getElement(range.commonAncestorContainer); element && element !== messageElement && messageElement.contains(element); element = element.parentElement) {
+        const wrapper = element.cloneNode(false);
+        wrapper.appendChild(content);
+        content = wrapper;
+    }
+
+    const container = document.createElement('div');
+    container.appendChild(content);
+    return container;
 }
 
 function isSelectionBackward(selection: Selection) {
@@ -118,10 +179,11 @@ export function getQuotableSelection(selection: Selection | null): QuotableSelec
     }
 
     // Unlike Range.toString, Selection.toString keeps line breaks between paragraphs.
-    const text = selection.toString();
-    if (!text.trim()) {
+    const plainText = selection.toString();
+    if (!plainText.trim()) {
         return null;
     }
+    const text = postHtmlToMarkdown(getSelectedHtml(quotedRange, messageElement)) || plainText;
 
     const isRHS = postElement.id.startsWith(RHS_POST_ID_PREFIX);
     const postId = postElement.id.slice((isRHS ? RHS_POST_ID_PREFIX : CENTER_POST_ID_PREFIX).length);
@@ -129,9 +191,12 @@ export function getQuotableSelection(selection: Selection | null): QuotableSelec
         return null;
     }
 
-    let focusRect = isBackward ? getCaretRect(quotedRange.startContainer, quotedRange.startOffset) : getCaretRect(quotedRange.endContainer, quotedRange.endOffset);
+    // The button goes next to where the selection ended: before its first character when selecting
+    // backwards and after its last character otherwise.
+    const edge = getEdgeCharacterRect(quotedRange, !isBackward);
+    let focusRect = edge && new DOMRect(isBackward ? edge.left : edge.right, edge.top, 0, edge.height);
     if (!focusRect) {
-        // Fall back to the first or last line of the selection when the caret position can't be measured.
+        // Fall back to the first or last line of the selection when no character can be measured.
         const rects = Array.from(quotedRange.getClientRects()).filter((rect) => rect.height > 0);
         if (!rects.length) {
             return null;

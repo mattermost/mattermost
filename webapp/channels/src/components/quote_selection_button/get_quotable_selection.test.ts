@@ -90,7 +90,7 @@ describe('getQuotableSelection', () => {
     test('should return text spanning several paragraphs of the same message', () => {
         const selection = select(textOf('first'), 19, textOf('second'), 4);
 
-        expect(getQuotableSelection(selection)?.text).toBe('dictumst nec.Diam');
+        expect(getQuotableSelection(selection)?.text).toBe('dictumst nec.\n\nDiam');
     });
 
     test('should trim a selection that spills over the rest of the post', () => {
@@ -118,6 +118,68 @@ describe('getQuotableSelection', () => {
         const selection = select(textOf('second'), 0, avatar, 0);
 
         expect(getQuotableSelection(selection)).toMatchObject({postId, text: 'Diam sapien pellentesque.'});
+    });
+
+    describe('on a wrapped line', () => {
+        // "Diam sapien pellentesque." wraps after "Diam ", so "sapien" starts the second line at offset 5
+        const WRAP_OFFSET = 5;
+
+        beforeEach(() => {
+            Range.prototype.getBoundingClientRect = function(this: Range) {
+                const offset = this.startOffset;
+                if (this.collapsed && offset === WRAP_OFFSET) {
+                    // Like browsers, report the caret at the wrap point at the end of the first line
+                    return new DOMRect(300, 40, 0, 20);
+                }
+                const onSecondLine = offset >= WRAP_OFFSET;
+                const left = 10 * (onSecondLine ? offset - WRAP_OFFSET : offset);
+                return new DOMRect(left, onSecondLine ? 60 : 40, this.collapsed ? 0 : 10, 20);
+            };
+        });
+
+        afterEach(() => {
+            Range.prototype.getBoundingClientRect = () => new DOMRect(120, 40, 0, 20);
+        });
+
+        test('should place the button at the start of the line when selecting backwards to it', () => {
+            const selection = select(textOf('second'), 11, textOf('second'), WRAP_OFFSET);
+
+            expect(getQuotableSelection(selection)).toMatchObject({text: 'sapien', isBackward: true, focusRect: {x: 0, y: 60, height: 20}});
+        });
+
+        test('should place the button after the last selected word when selecting forwards up to the wrap', () => {
+            const selection = select(textOf('second'), 0, textOf('second'), WRAP_OFFSET);
+
+            expect(getQuotableSelection(selection)).toMatchObject({text: 'Diam', isBackward: false, focusRect: {x: 40, y: 40, height: 20}});
+        });
+    });
+
+    describe('formatting', () => {
+        function renderMessage(html: string) {
+            document.body.innerHTML = `<div id="post_${postId}"><div class="post-message__text">${html}</div></div>`;
+        }
+
+        test('should keep the formatting the selection is in', () => {
+            renderMessage('<p>We are making <strong id="bold">excellent progress</strong> now.</p>');
+            const selection = select(textOf('bold'), 0, textOf('bold'), 9);
+
+            expect(getQuotableSelection(selection)?.text).toBe('**excellent**');
+        });
+
+        test('should quote part of a code block as a code block', () => {
+            renderMessage('<div class="post-code" data-language="javascript"><div class="post-code__overlay"><span class="post-code__language">JavaScript</span></div><div class="hljs"><div class="post-code__line-numbers">1\n2</div><code id="code">const a = 1;\nconst b = 2;</code></div></div>');
+            const selection = select(textOf('code'), 0, textOf('code'), 12);
+
+            expect(getQuotableSelection(selection)?.text).toBe('```javascript\nconst a = 1;\n```');
+        });
+
+        test('should quote mentions by username', () => {
+            renderMessage('<p id="text">cc <span data-mention="alex.morgan"><button><span>@Alex Morgan</span></button></span> please</p>');
+            const paragraph = document.getElementById('text')!;
+            const selection = select(paragraph, 0, paragraph, paragraph.childNodes.length);
+
+            expect(getQuotableSelection(selection)?.text).toBe('cc @alex.morgan please');
+        });
     });
 
     test('should ignore a collapsed selection', () => {
