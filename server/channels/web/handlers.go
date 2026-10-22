@@ -350,6 +350,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && c.AppContext.Session().IsScoped() && (!h.AllowScopedSession || IsScopedSessionHardDeniedPath(r.URL.Path)) {
 		c.Err = NewScopedSessionOutOfScopeError("ServeHTTP")
+		c.Err.DetailedError = ScopedSessionRouteDeniedDetail
 	}
 
 	if c.Err == nil && h.RequireSession {
@@ -388,7 +389,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err != nil && c.Err.Id == "api.context.permissions.app_error" && c.AppContext.Session().IsScoped() {
-		c.Err = NewScopedSessionOutOfScopeError(c.Err.Where)
+		c.Err = NewScopedSessionOutOfScopeError(c.Err.Where).Wrap(c.Err)
 	}
 
 	// Handle errors that have occurred
