@@ -1320,11 +1320,11 @@ func legacyPermissionAttrsChanged(field, existing, template *model.PropertyField
 		protected != legacyAttrBool(projected.Attrs, model.PropertyAttrsProtected) {
 		return true
 	}
-	if legacyAttrString(field.Attrs, model.PropertyFieldAttrLDAP) != legacyAttrString(existing.Attrs, model.PropertyFieldAttrLDAP) {
-		return true
-	}
-	if legacyAttrString(field.Attrs, model.PropertyFieldAttrSAML) != legacyAttrString(existing.Attrs, model.PropertyFieldAttrSAML) {
-		return true
+	for _, source := range model.PropertySyncSources() {
+		syncAttr := model.PropertySyncSourceAttr(source)
+		if legacyAttrString(field.Attrs, syncAttr) != legacyAttrString(existing.Attrs, syncAttr) {
+			return true
+		}
 	}
 	return legacyOwnersChanged(field, existing)
 }
