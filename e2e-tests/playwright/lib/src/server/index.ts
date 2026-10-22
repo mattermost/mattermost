@@ -68,6 +68,7 @@ export {
     generateKeycloakUser,
     createKeycloakUser,
     deleteKeycloakUser,
+    setKeycloakUserAttributes,
     suspendKeycloakUser,
     samlServerConfig,
     keycloakSamlDescriptorUrl,
