@@ -38,7 +38,7 @@ func (api *API) InitFile() {
 	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequesterGzip(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo, handlerParamScopedSession)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.Files.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchFilesInAllTeams)).Methods(http.MethodPost)
 
 	api.BaseRoutes.PublicFile.Handle("", api.APIHandlerGzip(getPublicFile)).Methods(http.MethodGet, http.MethodHead)
