@@ -29,8 +29,9 @@ type SessionScopeTarget struct {
 //
 // A scoped session may use a permission only if the scope holds it, and only
 // on a channel in the scope (see model.SessionScopeAllowsChannel), or for
-// view_team/list_team_channels, on a team open to all users. Everything else,
-// including every system-wide check, is denied.
+// view_team/list_team_channels, on a team open to all users or holding a
+// channel the scope lists by ID. Everything else, including every system-wide
+// check, is denied.
 func (a *App) EvaluateSessionScope(rctx request.CTX, session *model.Session, permissionID string, target SessionScopeTarget) (scoped bool, allowed bool) {
 	if session == nil {
 		return false, false
@@ -66,10 +67,25 @@ func (a *App) EvaluateSessionScope(rctx request.CTX, session *model.Session, per
 		if appErr != nil {
 			return true, false
 		}
-		return true, team.IsOpenToAllUsers()
+		return true, team.IsOpenToAllUsers() || a.scopeListsChannelOnTeam(rctx, scope, team)
 	}
 
 	return true, false
+}
+
+// scopeListsChannelOnTeam reports whether the scope lists, by ID, an in-scope
+// channel on team, which makes the team itself visible to the session.
+func (a *App) scopeListsChannelOnTeam(rctx request.CTX, scope *model.SessionScope, team *model.Team) bool {
+	if team.DeleteAt != 0 {
+		return false
+	}
+	for _, channelID := range scope.Resources.ChannelIDs {
+		channel, appErr := a.GetChannel(rctx, channelID)
+		if appErr == nil && channel.TeamId == team.Id && model.SessionScopeAllowsChannel(scope, channel, nil, false) {
+			return true
+		}
+	}
+	return false
 }
 
 // ScopeAllowsChannel reports whether channel is in scope, loading the channel's
