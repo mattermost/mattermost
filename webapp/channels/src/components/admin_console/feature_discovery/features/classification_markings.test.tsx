@@ -52,6 +52,6 @@ describe('components/admin_console/feature_discovery/features/ClassificationMark
             'href',
             expect.stringContaining('#classification-markings'),
         );
-        expect(document.querySelector('.FeatureDiscovery_imageWrapper svg')).toBeInTheDocument();
+        expect(screen.getByTestId('featureDiscovery').querySelector('svg')).toBeInTheDocument();
     });
 });

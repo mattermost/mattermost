@@ -26,7 +26,7 @@ var ldapProbeFailed = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityProbe,
 	AppliesToCloud: true,
 	Subject:        "LdapSettings.LdapServer",
-	Eval:           gated(ldapEnabled, evalLdapProbeFailed),
+	Eval:           ldapRule(ldapEnabled, evalLdapProbeFailed),
 }
 
 var samlProbeFailed = healthcheck.Rule{
@@ -43,7 +43,7 @@ var samlProbeFailed = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityProbe,
 	AppliesToCloud: true,
 	Subject:        "SamlSettings.IdpCertificateFile",
-	Eval:           gated(samlEnabled, evalSamlProbeFailed),
+	Eval:           samlRule(evalSamlProbeFailed),
 }
 
 // leaderProbe resolves only on OK: an empty or disabled status means the leader never ran the probe.

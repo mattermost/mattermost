@@ -16,19 +16,14 @@ const (
 	samlDocsURL     = "https://docs.mattermost.com/administration-guide/onboard/sso-saml.html"
 )
 
-// gated resolves a rule whose gate is closed, so a condition that cannot bite never fires.
-func gated(gate func(*healthcheck.Snapshot) (bool, bool), check func(*healthcheck.Snapshot) healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return func(s *healthcheck.Snapshot) []healthcheck.Result {
-		open, ok := gate(s)
-		switch {
-		case !ok:
-			return []healthcheck.Result{unknownConfig()}
-		case !open:
-			return []healthcheck.Result{healthcheck.Resolved()}
-		default:
-			return []healthcheck.Result{check(s)}
-		}
-	}
+// ldapRule checks the LDAP license feature before the config gate: the server ignores LDAP settings without it.
+func ldapRule(gate func(*healthcheck.Snapshot) (bool, bool), check func(*healthcheck.Snapshot) healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
+	return healthcheck.Licensed(func(f *model.Features) *bool { return f.LDAP }, healthcheck.Gate(gate, healthcheck.ReasonConfigUnavailable, check))
+}
+
+// samlRule checks the SAML license feature before SamlSettings.Enable: the server ignores SAML settings without it.
+func samlRule(check func(*healthcheck.Snapshot) healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
+	return healthcheck.Licensed(func(f *model.Features) *bool { return f.SAML }, healthcheck.Gate(samlEnabled, healthcheck.ReasonConfigUnavailable, check))
 }
 
 // ldapEnabled matches the server's own test before probing LDAP: sync-only installs count.

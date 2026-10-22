@@ -27,11 +27,11 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 class="settings-radio-group"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationImmediately"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
@@ -39,26 +39,26 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     On
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationNever"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14 a11y--active a11y--focused"
+                    class="_radio__input_h0rbb_17 a11y--active a11y--focused"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
@@ -66,15 +66,15 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     Off
                   </span>
@@ -268,11 +268,11 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 class="settings-radio-group"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationImmediately"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
@@ -280,25 +280,25 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     As soon as you’re away for 5 minutes
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationMinutes"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-email-interval="900"
                     data-enable-email="true"
                     id="emailNotificationMinutes"
@@ -306,25 +306,25 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     Every 15 minutes
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationHour"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-email-interval="3600"
                     data-enable-email="true"
                     id="emailNotificationHour"
@@ -332,26 +332,26 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     Every hour
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationNever"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14 a11y--active a11y--focused"
+                    class="_radio__input_h0rbb_17 a11y--active a11y--focused"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
@@ -359,15 +359,15 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     Never
                   </span>
@@ -487,11 +487,11 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 class="settings-radio-group"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationImmediately"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
@@ -499,26 +499,26 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     On
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationNever"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14 a11y--active a11y--focused"
+                    class="_radio__input_h0rbb_17 a11y--active a11y--focused"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
@@ -526,15 +526,15 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     Off
                   </span>
@@ -629,12 +629,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 class="settings-radio-group"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationImmediately"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14 a11y--active a11y--focused"
+                    class="_radio__input_h0rbb_17 a11y--active a11y--focused"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
@@ -642,25 +642,25 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     On
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationNever"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
@@ -668,15 +668,15 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     Off
                   </span>
@@ -764,11 +764,11 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 class="settings-radio-group"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationImmediately"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
@@ -776,26 +776,26 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     On
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="emailNotificationNever"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14 a11y--active a11y--focused"
+                    class="_radio__input_h0rbb_17 a11y--active a11y--focused"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
@@ -803,15 +803,15 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     type="radio"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     Off
                   </span>

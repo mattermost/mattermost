@@ -232,6 +232,36 @@ func (_m *FileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID s
 	return r0, r1
 }
 
+// GetForPermanentDeleteByUser provides a mock function with given fields: userID, limit
+func (_m *FileInfoStore) GetForPermanentDeleteByUser(userID string, limit int) ([]*model.FileInfo, error) {
+	ret := _m.Called(userID, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForPermanentDeleteByUser")
+	}
+
+	var r0 []*model.FileInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int) ([]*model.FileInfo, error)); ok {
+		return rf(userID, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int) []*model.FileInfo); ok {
+		r0 = rf(userID, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.FileInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(userID, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForPost provides a mock function with given fields: postID, readFromMaster, includeDeleted, allowFromCache
 func (_m *FileInfoStore) GetForPost(postID string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
 	ret := _m.Called(postID, readFromMaster, includeDeleted, allowFromCache)

@@ -1,0 +1,87 @@
+name: Conflicts Babysit
+
+# On every master merge, send open PRs labeled AI/ConflictsBabysit that now
+# conflict with master to the Cursor automation webhook, which starts a cloud
+# agent to resolve the conflicts. The agent removes the label while it works
+# and adds it back when done, so in-flight PRs are not dispatched twice.
+#
+# Requires CURSOR_CONFLICTS_WEBHOOK_URL + CURSOR_CONFLICTS_WEBHOOK_TOKEN
+# (secrets). Soft-skips when either is unset.
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: conflicts-babysit
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    name: Dispatch conflicting PRs to Cursor
+    if: github.repository == 'mattermost/mattermost'
+    runs-on: ubuntu-24.04
+    env:
+      HAS_WEBHOOK: ${{ secrets.CURSOR_CONFLICTS_WEBHOOK_URL != '' && secrets.CURSOR_CONFLICTS_WEBHOOK_TOKEN != '' }}
+    steps:
+      - name: Soft-skip when secrets are unset
+        id: gate
+        run: |
+          set -euo pipefail
+          if [ "$HAS_WEBHOOK" != "true" ]; then
+            echo "::warning::CURSOR_CONFLICTS_WEBHOOK_URL or CURSOR_CONFLICTS_WEBHOOK_TOKEN unset; skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Best-effort: failures surface as warnings and in the job summary, never
+      # as a red run on master.
+      - name: Checkout
+        id: checkout
+        if: steps.gate.outputs.run == 'true'
+        continue-on-error: true
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - name: Dispatch conflicting PRs
+        id: dispatch
+        if: steps.gate.outputs.run == 'true' && steps.checkout.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 10
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WEBHOOK_URL: ${{ secrets.CURSOR_CONFLICTS_WEBHOOK_URL }}
+          WEBHOOK_TOKEN: ${{ secrets.CURSOR_CONFLICTS_WEBHOOK_TOKEN }}
+          BABYSIT_LABEL: ${{ vars.CONFLICTS_BABYSIT_LABEL || 'AI/ConflictsBabysit' }}
+          BASE_REF: master
+          BASE_SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: .github/scripts/conflicts-babysit.sh
+
+      - name: Report step failures
+        if: >-
+          always() && steps.gate.outputs.run == 'true' &&
+          (steps.checkout.outcome == 'failure' || steps.dispatch.outcome == 'failure')
+        env:
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          DISPATCH_OUTCOME: ${{ steps.dispatch.outcome }}
+        run: |
+          echo "::warning::Conflicts babysit did not complete (checkout: ${CHECKOUT_OUTCOME}, dispatch: ${DISPATCH_OUTCOME}); will retry on the next master merge."
+          {
+            echo "## Conflicts babysit"
+            echo ""
+            echo "A step failed, so some PRs may not have been dispatched."
+            echo ""
+            echo "| Step | Outcome |"
+            echo "| --- | --- |"
+            echo "| Checkout | ${CHECKOUT_OUTCOME} |"
+            echo "| Dispatch | ${DISPATCH_OUTCOME} |"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -26,17 +26,17 @@ var sessionExtendOff = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ServiceSettings.ExtendSessionLengthWithActivity",
-	Eval:       evalSessionExtendOff,
+	Eval:       healthcheck.Single(evalSessionExtendOff),
 }
 
-func evalSessionExtendOff(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalSessionExtendOff(s *healthcheck.Snapshot) healthcheck.Result {
 	extend, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ServiceSettings.ExtendSessionLengthWithActivity })
 	switch {
 	case !ok:
-		return []healthcheck.Result{unknownConfig()}
+		return unknownConfig()
 	case !extend:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.session_extend_off.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.session_extend_off.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
