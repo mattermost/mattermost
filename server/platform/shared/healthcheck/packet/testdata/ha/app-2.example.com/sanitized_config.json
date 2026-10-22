@@ -10,7 +10,8 @@
         "TLSMinVer": "1.2",
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
-        "EnableOutgoingWebhooks": true
+        "EnableOutgoingWebhooks": true,
+        "ExtendSessionLengthWithActivity": true
     },
     "TeamSettings": {
         "MaxNotificationsPerChannel": 1000
@@ -26,6 +27,12 @@
         "QueryTimeout": 30,
         "DisableDatabaseSearch": false,
         "ReplicaLagSettings": []
+    },
+    "ExperimentalAuditSettings": {
+        "FileEnabled": true,
+        "FileName": "/var/log/mattermost/audit.log",
+        "AdvancedLoggingJSON": {},
+        "Certificate": ""
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -51,8 +58,34 @@
         "PushNotificationServer": "http://push.example.com",
         "PushNotificationContents": "full"
     },
+    "ComplianceSettings": {
+        "Enable": false,
+        "Directory": "./data/",
+        "EnableDaily": false,
+        "BatchSize": 30000
+    },
     "LdapSettings": {
-        "EnableSync": true
+        "Enable": false,
+        "EnableSync": true,
+        "LdapServer": "dc1.example.com",
+        "LdapPort": 636,
+        "ConnectionSecurity": "TLS",
+        "BaseDN": "dc=example,dc=com",
+        "IdAttribute": "objectGUID",
+        "SyncIntervalMinutes": 60,
+        "SkipCertificateVerification": false,
+        "QueryTimeout": 60
+    },
+    "SamlSettings": {
+        "Enable": true,
+        "Verify": true,
+        "Encrypt": false,
+        "SignRequest": false,
+        "IdpURL": "https://adfs.example.com/adfs/ls/",
+        "IdpDescriptorURL": "https://adfs.example.com/adfs/services/trust",
+        "IdpMetadataURL": "https://adfs.example.com/FederationMetadata/2007-06/FederationMetadata.xml",
+        "SignatureAlgorithm": "RSAwithSHA256",
+        "IdAttribute": "objectGUID"
     },
     "ClusterSettings": {
         "Enable": true,
@@ -93,8 +126,32 @@
         "VaryByUser": false,
         "VaryByHeader": ""
     },
+    "DataRetentionSettings": {
+        "EnableMessageDeletion": true,
+        "EnableFileDeletion": true,
+        "MessageRetentionDays": 0,
+        "MessageRetentionHours": 17520,
+        "FileRetentionDays": 0,
+        "FileRetentionHours": 17520,
+        "DeletionJobStartTime": "02:00",
+        "BatchSize": 3000,
+        "TimeBetweenBatchesMilliseconds": 100
+    },
     "MessageExportSettings": {
-        "EnableExport": true
+        "EnableExport": true,
+        "ExportFormat": "globalrelay",
+        "DailyRunTime": "01:00",
+        "ExportFromTimestamp": 0,
+        "BatchSize": 10000,
+        "GlobalRelaySettings": {
+            "CustomerType": "A9",
+            "SMTPUsername": "archive-user@example.com",
+            "SMTPPassword": "********************************",
+            "EmailAddress": "archive@example.com",
+            "SMTPServerTimeout": 10,
+            "CustomSMTPServerName": "",
+            "CustomSMTPPort": "25"
+        }
     },
     "MetricsSettings": {
         "Enable": true,

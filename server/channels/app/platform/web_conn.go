@@ -852,21 +852,21 @@ func (wc *WebConn) IsBasicAuthenticated() bool {
 	return true
 }
 
+// getRCtx returns the request context built in SetSession, or an empty one when there is no
+// session. IsMFAAuthenticated runs for every broadcast event on every connection, and building
+// a context there would allocate on each call.
+func (wc *WebConn) getRCtx() request.CTX {
+	if s := wc.session.Load(); s != nil {
+		return s.rctx
+	}
+	return request.EmptyContext(wc.Platform.logger).WithSession(nil)
+}
+
 // IsMFAAuthenticated returns whether the user has completed MFA when required.
 func (wc *WebConn) IsMFAAuthenticated() bool {
-	// Reuse the request context built in SetSession: this method runs for every
-	// broadcast event on every connection, and building a context here would
-	// allocate on each call.
-	var c request.CTX
-	if s := wc.session.Load(); s != nil {
-		c = s.rctx
-	} else {
-		c = request.EmptyContext(wc.Platform.logger).WithSession(nil)
-	}
-
 	// Check if MFA is required and user has NOT completed MFA
 	// WebSocket connections are established via an HTTP GET upgrade request.
-	if appErr := wc.Suite.MFARequired(c, http.MethodGet); appErr != nil {
+	if appErr := wc.Suite.MFARequired(wc.getRCtx(), http.MethodGet); appErr != nil {
 		return false
 	}
 

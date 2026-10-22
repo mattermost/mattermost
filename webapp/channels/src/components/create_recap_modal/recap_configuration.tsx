@@ -5,10 +5,10 @@ import React, {useCallback, useState} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 
 import {ProductChannelsIcon, LightningBoltOutlineIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 
-import Toggle from 'components/toggle';
 const RECAP_NAME_MAX_LENGTH = 100;
 
 type Props = {
@@ -53,13 +53,14 @@ const RecapConfiguration = ({
 
     const runOnceToggle = (
         <div className='run-once-toggle'>
-            <Toggle
+            <Switch
                 id='run-once-toggle'
-                toggled={runOnce}
-                onToggle={() => setRunOnce(!runOnce)}
-                size='btn-sm'
-                toggleClassName='btn-toggle-primary'
+                size='small'
+                checked={runOnce}
+                onChange={() => setRunOnce(!runOnce)}
                 disabled={runOnceDisabled}
+                data-testid='run-once-toggle-button'
+                tabIndex={0}
             />
             <label
                 htmlFor='run-once-toggle'

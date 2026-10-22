@@ -223,6 +223,57 @@ func TestClusterSettingsIsValid(t *testing.T) {
 	})
 }
 
+func TestCacheSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &CacheSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("redis cache prefix", func(t *testing.T) {
+		for _, prefix := range []string{"", "hub", "c4ja3w3h8tgwiy5c5dbmhmkpje", "my-prefix_1"} {
+			t.Run("valid "+prefix, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:        NewPointer(CacheTypeRedis),
+					RedisAddress:     NewPointer("localhost:6379"),
+					RedisDB:          NewPointer(0),
+					RedisCachePrefix: NewPointer(prefix),
+				}
+				settings.SetDefaults()
+
+				assert.Nil(t, settings.isValid())
+			})
+		}
+
+		for _, prefix := range []string{"hub:", "a:b", "hub*", "hub?", "hub[0]", `hub\`} {
+			t.Run("invalid "+prefix, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:        NewPointer(CacheTypeRedis),
+					RedisAddress:     NewPointer("localhost:6379"),
+					RedisDB:          NewPointer(0),
+					RedisCachePrefix: NewPointer(prefix),
+				}
+				settings.SetDefaults()
+
+				appErr := settings.isValid()
+				require.NotNil(t, appErr)
+				assert.Equal(t, "model.config.is_valid.invalid_redis_cache_prefix.app_error", appErr.Id)
+			})
+		}
+	})
+
+	t.Run("redis cache prefix is ignored for lru", func(t *testing.T) {
+		settings := &CacheSettings{
+			CacheType:        NewPointer(CacheTypeLRU),
+			RedisCachePrefix: NewPointer("a:b"),
+		}
+		settings.SetDefaults()
+
+		assert.Nil(t, settings.isValid())
+	})
+}
+
 func TestAnnouncementSettingsIsValid(t *testing.T) {
 	t.Run("defaults are valid", func(t *testing.T) {
 		settings := &AnnouncementSettings{}
@@ -416,7 +467,7 @@ func TestServiceSettingsIsValid(t *testing.T) {
 		},
 		"WebserverMode is invalid": {
 			ServiceSettings: ServiceSettings{
-				WebserverMode: new("brotli"),
+				WebserverMode: new("unknown"),
 			},
 			ExpectError: true,
 		},
@@ -635,6 +686,26 @@ func TestEmailSettingsIsValid(t *testing.T) {
 			appErr := settings.isValid()
 			require.NotNil(t, appErr)
 			require.Equal(t, tc.errID, appErr.Id)
+		})
+	}
+}
+
+func TestServiceSettingsCompressResponses(t *testing.T) {
+	for mode, expected := range map[string]struct {
+		compress bool
+		brotli   bool
+	}{
+		"gzip":         {compress: true, brotli: true},
+		"uncompressed": {compress: false, brotli: false},
+		"disabled":     {compress: false, brotli: false},
+	} {
+		t.Run(mode, func(t *testing.T) {
+			ss := ServiceSettings{WebserverMode: new(mode)}
+
+			assert.Equal(t, expected.compress, ss.CompressResponses())
+			assert.Equal(t, expected.brotli, ss.CompressResponsesWithBrotli(true))
+			assert.False(t, ss.CompressResponsesWithBrotli(false),
+				"brotli must stay off regardless of WebserverMode when the feature flag is off")
 		})
 	}
 }
@@ -1393,6 +1464,57 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 		c1.SetDefaults()
 
 		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+}
+
+func TestConfigDefaultMetricsPluginState(t *testing.T) {
+	t.Run("should not enable metrics plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.NotContains(t, c1.PluginSettings.PluginStates, PluginIdMetrics)
+	})
+
+	t.Run("should enable metrics plugin once performance monitoring gets enabled", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		*c1.MetricsSettings.Enable = true
+		c1.SetDefaults()
+
+		require.Contains(t, c1.PluginSettings.PluginStates, PluginIdMetrics)
+		assert.True(t, c1.PluginSettings.PluginStates[PluginIdMetrics].Enable)
+	})
+
+	t.Run("should enable metrics plugin if performance monitoring is enabled", func(t *testing.T) {
+		c1 := Config{
+			MetricsSettings: MetricsSettings{
+				Enable: new(true),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates[PluginIdMetrics].Enable)
+	})
+
+	t.Run("should not re-enable metrics plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			MetricsSettings: MetricsSettings{
+				Enable: new(true),
+			},
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					PluginIdMetrics: {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates[PluginIdMetrics].Enable)
 	})
 }
 
@@ -2228,6 +2350,58 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSSOSettingsIsValid(t *testing.T) {
+	for _, test := range []struct {
+		Name             string
+		AdditionalScopes *string
+		ExpectError      bool
+	}{
+		{Name: "unset", AdditionalScopes: nil},
+		{Name: "empty", AdditionalScopes: new("")},
+		{Name: "one scope", AdditionalScopes: new("groups")},
+		{Name: "several scopes, extra spaces", AdditionalScopes: new(" groups  offline_access api://mattermost/read ")},
+		{Name: "every allowed character", AdditionalScopes: new("!#[]~")},
+		{Name: "double quote", AdditionalScopes: new(`gro"ups`), ExpectError: true},
+		{Name: "backslash", AdditionalScopes: new(`gro\ups`), ExpectError: true},
+		{Name: "tab separator", AdditionalScopes: new("groups\tprofile"), ExpectError: true},
+		{Name: "newline", AdditionalScopes: new("groups\nprofile"), ExpectError: true},
+		{Name: "non-ASCII", AdditionalScopes: new("gruppé"), ExpectError: true},
+		{Name: "at the length limit", AdditionalScopes: new(strings.Repeat("a", SSOSettingsAdditionalScopesMaxLength))},
+		{Name: "over the length limit", AdditionalScopes: new(strings.Repeat("a", SSOSettingsAdditionalScopesMaxLength+1)), ExpectError: true},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			settings := SSOSettings{AdditionalScopes: test.AdditionalScopes}
+			appErr := settings.isValid()
+			if test.ExpectError {
+				require.NotNil(t, appErr)
+				assert.Equal(t, "model.config.is_valid.sso_additional_scopes.app_error", appErr.Id)
+			} else {
+				require.Nil(t, appErr)
+			}
+		})
+	}
+
+	t.Run("Config.IsValid validates the OpenID Connect settings", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.Equal(t, "", *c.OpenIdSettings.AdditionalScopes)
+		require.Nil(t, c.IsValid())
+
+		c.OpenIdSettings.AdditionalScopes = new("bad\"scope")
+		appErr := c.IsValid()
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.config.is_valid.sso_additional_scopes.app_error", appErr.Id)
+	})
+}
+
+func TestJoinOAuthScopes(t *testing.T) {
+	assert.Equal(t, "", JoinOAuthScopes())
+	assert.Equal(t, "", JoinOAuthScopes("", "  "))
+	assert.Equal(t, "profile openid email", JoinOAuthScopes("profile openid email", ""))
+	assert.Equal(t, "profile openid email groups", JoinOAuthScopes("profile openid email", "groups"))
+	assert.Equal(t, "profile openid email groups offline_access", JoinOAuthScopes("profile  openid email", " groups openid  offline_access groups"), "duplicates dropped, first appearance kept")
 }
 
 func TestLdapSettingsIsValid(t *testing.T) {
@@ -3177,7 +3351,7 @@ func TestPluginSettingsSanitize(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			c := PluginSettings{}
-			c.SetDefaults(*NewLogSettings())
+			c.SetDefaults(*NewLogSettings(), MetricsSettings{})
 
 			c.Plugins[pluginID1] = make(map[string]any)
 			maps.Copy(c.Plugins[pluginID1], settingsPlugin1)

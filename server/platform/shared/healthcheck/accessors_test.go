@@ -242,8 +242,14 @@ func TestLicenseFeature(t *testing.T) {
 		require.False(t, ok)
 	})
 
+	t.Run("unlicensed", func(t *testing.T) {
+		value, ok := licensedSnapshot(model.SupportPacketLicense{}).LicenseFeature(ldap)
+		require.True(t, ok)
+		require.False(t, value)
+	})
+
 	t.Run("features not in packet", func(t *testing.T) {
-		_, ok := licensedSnapshot(model.SupportPacketLicense{}).LicenseFeature(ldap)
+		_, ok := licensedSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise}).LicenseFeature(ldap)
 		require.False(t, ok)
 	})
 
@@ -272,6 +278,37 @@ func TestLicenseFeature(t *testing.T) {
 		require.True(t, ok)
 		require.False(t, value)
 	})
+}
+
+func TestLicenseAllows(t *testing.T) {
+	t.Parallel()
+
+	ldap := func(f *model.Features) *bool { return f.LDAP }
+	enterprise := func(features *model.Features) *Snapshot {
+		return licensedSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, Features: features})
+	}
+
+	testCases := []struct {
+		name     string
+		snapshot *Snapshot
+		allowed  bool
+		ok       bool
+	}{
+		{name: "license not collected", snapshot: &Snapshot{}},
+		{name: "unlicensed", snapshot: licensedSnapshot(model.SupportPacketLicense{}), ok: true},
+		{name: "packet predates features", snapshot: enterprise(nil), allowed: true, ok: true},
+		{name: "feature not recorded", snapshot: enterprise(&model.Features{}), allowed: true, ok: true},
+		{name: "feature off", snapshot: enterprise(&model.Features{LDAP: new(false)}), ok: true},
+		{name: "feature on", snapshot: enterprise(&model.Features{LDAP: new(true)}), allowed: true, ok: true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			allowed, ok := tc.snapshot.LicenseAllows(ldap)
+			require.Equal(t, tc.ok, ok)
+			assert.Equal(t, tc.allowed, allowed)
+		})
+	}
 }
 
 func TestPluginEnabled(t *testing.T) {
@@ -350,4 +387,62 @@ func TestStat(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, int64(9), value)
 	})
+}
+
+func TestConfigRoot(t *testing.T) {
+	t.Parallel()
+
+	t.Run("section absent", func(t *testing.T) {
+		s := &Snapshot{Config: &model.SupportPacketConfig{Config: &model.Config{}}}
+		_, ok := s.ConfigRoot()
+		require.False(t, ok)
+	})
+
+	t.Run("redacted values are kept", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SqlSettings.DataSourceReplicas = []string{model.FakeSetting}
+		s := &Snapshot{
+			Config:   &model.SupportPacketConfig{Config: cfg},
+			Sections: map[model.WorkspaceSection]error{model.SectionConfig: nil},
+		}
+
+		got, ok := s.ConfigRoot()
+		require.True(t, ok)
+		assert.Equal(t, []string{model.FakeSetting}, got.SqlSettings.DataSourceReplicas)
+	})
+}
+
+func TestLeaderDiag(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil snapshot", func(t *testing.T) {
+		var s *Snapshot
+		_, ok := s.LeaderDiag(model.SectionLicense)
+		require.False(t, ok)
+	})
+
+	t.Run("section absent counts as clean", func(t *testing.T) {
+		s := licensedSnapshot(model.SupportPacketLicense{})
+		_, ok := s.LeaderDiag(model.SectionSMTPProbe)
+		require.True(t, ok)
+	})
+
+	t.Run("section errored", func(t *testing.T) {
+		s := licensedSnapshot(model.SupportPacketLicense{})
+		s.nodes[0].Diagnostics.Errors = model.SectionErrors{model.SectionSMTPProbe: assert.AnError}
+		_, ok := s.LeaderDiag(model.SectionSMTPProbe)
+		require.False(t, ok)
+	})
+}
+
+func TestSince(t *testing.T) {
+	t.Parallel()
+
+	_, ok := (&Snapshot{}).Since(time.Now())
+	require.False(t, ok)
+
+	collectedAt := time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)
+	elapsed, ok := (&Snapshot{CollectedAt: collectedAt}).Since(collectedAt.Add(-time.Hour))
+	require.True(t, ok)
+	assert.Equal(t, time.Hour, elapsed)
 }

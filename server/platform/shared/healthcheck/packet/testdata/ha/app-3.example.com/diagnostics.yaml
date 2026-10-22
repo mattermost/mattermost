@@ -6,7 +6,10 @@ license:
   expires_at: 1792058400000
   is_seat_count_enforced: true
   features:
+    compliance: true
+    data_retention: true
     id_loaded: true
+    message_export: true
     metrics: true
 server:
   # Machine
@@ -67,9 +70,12 @@ notifications:
   push:
     status: OK
 ldap:
-  status: disabled
+  status: OK
+  server_name: unknown
+  server_version: unknown
 saml:
-  status: disabled
+  provider_type: ADFS
+  status: OK
 elastic:
   status: OK
   backend: opensearch

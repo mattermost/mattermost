@@ -352,10 +352,6 @@
         }
     }
 
-    .line-switch__toggle {
-        margin: 8px 0;
-    }
-
     .backstage-list__item {
         .item-actions,
         .actions {
@@ -532,8 +528,7 @@
     .integration-option {
         width: 100%;
         height: auto;
-        flex: 0 0 100%;
-        margin: 0 0 30px;
+        margin: 0;
         margin-left: 0;
     }
 

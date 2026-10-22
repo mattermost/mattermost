@@ -5,6 +5,8 @@ import React from 'react';
 import type {ChangeEvent} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+
 import LocalizedPlaceholderTextarea from 'components/localized_placeholder_textarea';
 import SettingItemMax from 'components/setting_item_max';
 
@@ -46,20 +48,18 @@ export default class ManageAutoResponder extends React.PureComponent<Props> {
             <div
                 id='autoResponderCheckbox'
                 key='autoResponderCheckbox'
-                className='checkbox'
+                className='checkbox no-padding'
             >
-                <label>
-                    <input
-                        id='autoResponderActive'
-                        type='checkbox'
-                        checked={autoResponderActive}
-                        onChange={this.handleAutoResponderChecked}
-                    />
+                <Checkbox
+                    id='autoResponderActive'
+                    checked={autoResponderActive}
+                    onChange={this.handleAutoResponderChecked}
+                >
                     <FormattedMessage
                         id='user.settings.notifications.autoResponderEnabled'
                         defaultMessage='Enabled'
                     />
-                </label>
+                </Checkbox>
             </div>
         );
 

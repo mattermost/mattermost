@@ -3,6 +3,8 @@
 
 import React, {useCallback, type JSX} from 'react';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+
 type Props = {
     name: string;
     checked: boolean;
@@ -16,37 +18,20 @@ function FilterCheckbox({
     label,
     updateOption,
 }: Props) {
-    const toggleOption = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        updateOption(!checked, name);
-    }, [name, checked, updateOption]);
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        updateOption(e.target.checked, name);
+    }, [name, updateOption]);
 
     return (
-        <div
-            className='FilterList_checkbox'
-            onClick={toggleOption}
-        >
-            <label>
-                {checked &&
-                    <input
-                        type='checkbox'
-                        id={name}
-                        name={name}
-                        defaultChecked={true}
-                    />
-                }
-
-                {!checked &&
-                    <input
-                        type='checkbox'
-                        id={name}
-                        name={name}
-                        defaultChecked={false}
-                    />
-                }
+        <div className='FilterList_checkbox'>
+            <Checkbox
+                id={name}
+                name={name}
+                checked={checked}
+                onChange={handleChange}
+            >
                 {label}
-            </label>
+            </Checkbox>
         </div>
     );
 }
