@@ -328,8 +328,27 @@ func TestScopedSessionReads(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("an invite-only team is visible when it holds a listed channel", func(t *testing.T) {
+		_, _, err := f.client.GetTeam(ctx, f.closedTeam.Id, "")
+		require.NoError(t, err)
+
+		otherPrivate := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypePrivate, f.closedTeam.Id)
+		otherPublic := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, f.closedTeam.Id)
+		for _, channel := range []*model.Channel{otherPrivate, otherPublic} {
+			_, resp, err := f.client.GetChannel(ctx, channel.Id)
+			requireScopeError(t, resp, err)
+			_, resp, err = f.client.GetPostsForChannel(ctx, channel.Id, 0, 10, "", false, false)
+			requireScopeError(t, resp, err)
+		}
+	})
+
 	t.Run("out-of-scope reads get the scope error", func(t *testing.T) {
-		_, resp, err := f.client.GetTeam(ctx, f.closedTeam.Id, "")
+		unlistedClosed := th.CreateTeam(t)
+		unlistedClosed.AllowOpenInvite = false
+		unlistedClosed.Type = model.TeamInvite
+		_, err := th.App.Srv().Store().Team().Update(unlistedClosed)
+		require.NoError(t, err)
+		_, resp, err := f.client.GetTeam(ctx, unlistedClosed.Id, "")
 		requireScopeError(t, resp, err)
 		_, resp, err = f.client.GetChannel(ctx, f.memberPriv.Id)
 		requireScopeError(t, resp, err)
