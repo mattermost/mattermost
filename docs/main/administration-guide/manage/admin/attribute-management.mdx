@@ -107,8 +107,6 @@ The **Users** resource also applies to bot accounts. Bots are evaluated by acces
 
 Attributes used in access control policies should be set by **System Administrator** or synchronized from an identity provider. Users can't change these values themselves, so they can't grant themselves access. By default, ABAC rules exclude attributes users can set themselves, unless `EnableUserManagedAttributes` is enabled. See [User attributes](/administration-guide/manage/admin/user-attributes#before-you-begin) for details.
 
-If you enable `EnableUserManagedAttributes`, keep in mind that bot owners can set **Member** values on their bots, which can grant those bots access. Keep attributes used in access control policies at **System Administrator**.
-
 </Security>
 
 To view or update an individual user's values, see [Manage user attributes](/administration-guide/configure/user-management-configuration-settings#manage-user-attributes).
