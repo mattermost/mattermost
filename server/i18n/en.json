@@ -9142,7 +9142,8 @@
   },
   {
     "id": "app.import.import_user_teams.team_not_found.error",
-    "translation": "Error importing user teams. Team not found."
+    "translation": "Error importing user teams. Team not found.",
+    "description": ""
   },
   {
     "id": "app.import.pre_create_sso_user.missing_fields.app_error",
