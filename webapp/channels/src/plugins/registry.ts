@@ -1553,7 +1553,7 @@ export default class PluginRegistry {
      *
      * `component` receives {channel, channelId, teamId, focusedPostId}, where teamId is the current
      * team's id. Core marks the channel as read when the component mounts and whenever the channel
-     * changes, as the post list would.
+     * changes, as the post list would, and skips that on a permalink.
      *
      * Permalinks (`/:team/channels/:channel/:postid`) render the component too. It receives the
      * linked post id as `focusedPostId` and is responsible for showing that post. `focusedPostId`

@@ -8,7 +8,10 @@ import {markChannelAsRead} from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
+import {clearMarks} from 'actions/telemetry_actions';
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+
+import {Mark} from 'utils/performance_telemetry';
 
 import type {GlobalState} from 'types/store';
 import type {ChannelViewRegistration} from 'types/store/plugins';
@@ -24,12 +27,18 @@ export default function ChannelViewPluginComponent({registration, channelId, foc
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const teamId = useSelector(getCurrentTeamId);
 
-    // Stands in for PostList, which marks the channel as read after loading posts.
+    // PostList marks the channel read after posts load, except on a permalink, and clears the
+    // channel-switch perf marks once it is on screen. This view replaces the post list, so it does both.
     useEffect(() => {
-        if (channelId) {
+        clearMarks([
+            Mark.ChannelLinkClicked,
+            Mark.TeamLinkClicked,
+            Mark.PostListLoaded,
+        ]);
+        if (channelId && !focusedPostId) {
             dispatch(markChannelAsRead(channelId));
         }
-    }, [channelId, dispatch]);
+    }, [channelId, focusedPostId, dispatch]);
 
     if (!channel) {
         return null;

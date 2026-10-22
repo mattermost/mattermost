@@ -44,7 +44,16 @@ jest.mock('components/deferComponentRender', () => {
 
 jest.mock('components/post_view', () => () => <div data-testid='post-view'/>);
 
-jest.mock('components/channel_header', () => () => <div data-testid='channel-header'/>);
+const channelHeaderMounts = {current: 0};
+jest.mock('components/channel_header', () => {
+    const React = require('react');
+    return function MockChannelHeader() {
+        React.useEffect(() => {
+            channelHeaderMounts.current += 1;
+        }, []);
+        return React.createElement('div', {'data-testid': 'channel-header'});
+    };
+});
 
 jest.mock('components/advanced_create_post', () => () => <div data-testid='advanced-create-post'/>);
 
@@ -62,6 +71,7 @@ jest.mock('mattermost-redux/actions/channels', () => ({
 
 beforeEach(() => {
     jest.mocked(markChannelAsRead).mockClear();
+    channelHeaderMounts.current = 0;
 });
 
 describe('components/channel_view', () => {
@@ -245,7 +255,7 @@ describe('components/channel_view', () => {
             expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-focused-post-id', 'postid');
             expect(screen.queryByTestId('deferred-post-view')).not.toBeInTheDocument();
             expect(screen.queryByTestId('post-create')).not.toBeInTheDocument();
-            expect(markChannelAsRead).toHaveBeenCalledWith('channelId');
+            expect(markChannelAsRead).not.toHaveBeenCalled();
         });
 
         it('keeps focusedPostId after the permalink is dropped from the URL until the channel changes', () => {
@@ -267,6 +277,7 @@ describe('components/channel_view', () => {
             );
             expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-focused-post-id', 'postid');
             expect(screen.queryByTestId('deferred-post-view')).not.toBeInTheDocument();
+            expect(markChannelAsRead).not.toHaveBeenCalled();
 
             rerender(
                 <ChannelView
@@ -277,6 +288,38 @@ describe('components/channel_view', () => {
                 />,
             );
             expect(screen.getByTestId('plugin-channel-view')).not.toHaveAttribute('data-focused-post-id');
+            expect(markChannelAsRead).toHaveBeenCalledTimes(1);
+            expect(markChannelAsRead).toHaveBeenCalledWith('otherChannelId');
+        });
+
+        it('keeps the channel header mounted when the center switches to the plugin view', () => {
+            const {rerender} = renderWithContext(<ChannelView {...baseProps}/>, state);
+            const mountsAfterFirstRender = channelHeaderMounts.current;
+            expect(mountsAfterFirstRender).toBeGreaterThan(0);
+
+            rerender(
+                <ChannelView
+                    {...baseProps}
+                    channelViewPluginComponent={registration}
+                />,
+            );
+            expect(screen.getByTestId('plugin-channel-view')).toBeInTheDocument();
+            expect(channelHeaderMounts.current).toBe(mountsAfterFirstRender);
+        });
+
+        it('clears channel-switch perf marks when the plugin view is shown', () => {
+            const clearMarks = jest.spyOn(performance, 'clearMarks');
+            renderWithContext(
+                <ChannelView
+                    {...baseProps}
+                    channelViewPluginComponent={registration}
+                />,
+                state,
+            );
+
+            expect(clearMarks).toHaveBeenCalledWith('SidebarChannelLink#click');
+            expect(clearMarks).toHaveBeenCalledWith('TeamLink#click');
+            clearMarks.mockRestore();
         });
 
         it('does not pass focusedPostId to the plugin component outside of a permalink', () => {
