@@ -8,6 +8,10 @@ import (
 	"testing"
 	"time"
 
+	// Embed the IANA database so the assertions below do not depend on
+	// whatever tzdata the host or the runtime image happens to carry.
+	_ "time/tzdata"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -36,6 +40,8 @@ func TestDefaultUserTimezone(t *testing.T) {
 func TestDefaultSupportedTimezonesAreLoadable(t *testing.T) {
 	// The list is served from GET /api/v4/system/timezones, so a name the Go
 	// runtime cannot load is a name a client can pick and then fail on.
+	// time/tzdata above pins the database, so this answers the same way on a
+	// developer machine, on CI and in the runtime image.
 	for _, name := range DefaultSupportedTimezones {
 		_, err := time.LoadLocation(name)
 		assert.NoError(t, err, "timezone %q is offered but cannot be loaded", name)
