@@ -32,6 +32,8 @@ New setting options were added to ``config.json``. Below is a list of the additi
     - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableFileIndexing`` configuration setting to control indexing of file attachments in Elasticsearch and OpenSearch.
   - **Changes to All plans:**
     - ``ServiceSettings.EnableFileSearch``, which defaults to ``true``, is now configurable in the System Console. It moved from **System Console > Experimental > Features** to **System Console > Site Configuration > File Sharing and Downloads**, and is also reported in the client configuration so the web app can hide the file search and channel files entry points when it's disabled. The setting itself is unchanged.
+  - **Changes to Professional, Enterprise, and Enterprise Advanced plans:**
+    - Under ``OpenIdSettings`` in ``config.json``, added ``AdditionalScopes`` configuration setting to request additional scopes from the OpenID Connect provider. The default is an empty string.
 
 #### Compatibility
   - Updated minimum supported Firefox version to 153+.
@@ -61,6 +63,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - The auto-translation AI Service setting in the System Console now shows when the saved service no longer exists in the Agents plugin, instead of displaying a different service as selected.
   - Completed the missing Brazilian Portuguese web translations, and localized interface and accessibility labels that were English-only.
   - Translated the corrected and newly added English strings into all supported languages.
+  - Renamed the help menu's Mattermost user guide link to Mattermost documentation, opening the server's bundled documentation on root installs and https://docs.mattermost.com on subpath installs.
 
 #### Plugins/Integrations
   - Added the ``pluginapi/testhelper`` package to the public module, enabling plugin authors to write integration tests using real Mattermost containers via testcontainers-go.
@@ -73,6 +76,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Support packet ``diagnostics.yaml`` now omits a field when collecting it fails, instead of reporting it as 0 or empty. This covers the hostname, total memory, file descriptor counts, database type, version and schema version, database connection pool counters, file store disk space and filesystem type, and the cluster node count. A standalone server without a cluster interface now reports ``number_of_nodes`` as 1 instead of 0.
   - Unhandled promise rejections in the web app are now logged to the server, and are shown in the error bar when Developer Mode is enabled.
   - AD/LDAP and SAML can now sync select and multiselect user attributes. Values from the identity provider are added as options automatically, and options no user holds are removed. An attribute that the identity provider stops sending now clears the user's synced value at the next sync or login instead of keeping the previous value. Only the sync can add, rename, or remove the options of a synced attribute. An attribute linked to both AD/LDAP and SAML is now synced from AD/LDAP only.
+  - User attributes can now be synced from OpenID Connect claims at every sign-in, including nested claims (dot paths) and list claims, for use in attribute-based access control. A claim that the provider stops sending clears the attribute. Added ``OpenIdSettings.AdditionalScopes`` to request additional scopes from the OpenID Connect provider, and the ``OpenIdAttributeSync`` feature flag, which is on by default.
   - Added a new Attribute-Based Access Control (ABAC) permission, Create Burn-on-Read Message, so administrators can restrict which users are able to send burn-on-read messages.
   - Added a new "creator" permission level for property fields. It grants the creator of the target object the same access that the "admin" level grants, in addition to everyone the "admin" level already covers.
   - Added ``ElasticsearchSettings.EnableFileIndexing`` configuration setting to stop indexing file attachments in Elasticsearch and OpenSearch.
@@ -107,6 +111,8 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Corrected spelling and grammar in a number of English web app messages.
   - Corrected spelling and grammar in a number of English server messages.
   - Fixed an issue where ``mmctl config set`` could not set a list setting, such as ``SqlSettings.DataSourceReplicas``, to exactly one value (reported on macOS).
+  - Fixed an issue where deleting a thread reply that mentioned multiple groups could leave a background process repeatedly querying the database until the server was restarted.
+  - Fixed an issue where v12 servers failed to start when ``SupportSettings.SupportEmail``, ``EmailSettings.FeedbackEmail``, or ``EmailSettings.ReplyToAddress`` held a list of addresses or a value that was not an email address. Such values are now reduced to their first valid address or cleared, and a warning is logged. Also fixed ``mattermost db`` commands reporting configuration validation errors as untranslated message IDs.
 
 ### API Changes
   - Added an optional ``includePropertyGroups`` query parameter to ``GET /api/v4/posts/{post_id}``, ``GET /api/v4/posts/{post_id}/thread``, ``GET /api/v4/channels/{channel_id}/posts``, ``GET /api/v4/users/{user_id}/channels/{channel_id}/posts/unread``, and ``GET /api/v4/channels/{channel_id}/views/{view_id}/posts``, which hydrates each post's property values for the named group onto post metadata.
@@ -119,7 +125,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Added ``AuditEventUnmuteHealthFinding`` audit log event.
 
 ### Go Version
- - v12.1 is built with Go ``v1.26.7``.
+ - v12.1 is built with Go ``v1.26.10``.
 
 ### Open Source Components
   - Added ``@mattermost/compass-ui``, ``fflate``, ``go.uber.org/mock``, ``goccy/go-yaml``, ``golang-jwt/jwt``, ``golang-migrate/migrate``, ``golang/freetype``, ``react``, and ``react-dom``.
