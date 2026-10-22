@@ -19,22 +19,22 @@ exports[`components/widgets/modals/components/CheckboxSettingItem should render 
         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
       >
         <label
-          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 mm-modal-generic-section-item__fieldset-checkbox"
+          class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 mm-modal-generic-section-item__fieldset-checkbox"
           for="enable-feature"
         >
           <input
             checked=""
-            class="_checkbox__input_1rll8_22"
+            class="_checkbox__input_18swc_25"
             data-testid="enable-feature-checkbox"
             id="enable-feature"
             name="enable feature"
             type="checkbox"
           />
           <span
-            class="_checkbox__box_1rll8_41"
+            class="_checkbox__box_18swc_44"
           >
             <span
-              class="_checkbox__icon_1rll8_66"
+              class="_checkbox__icon_18swc_69"
             >
               <div
                 aria-hidden="true"
@@ -60,7 +60,7 @@ exports[`components/widgets/modals/components/CheckboxSettingItem should render 
             </span>
           </span>
           <span
-            class="_checkbox__label_1rll8_117"
+            class="_checkbox__label_18swc_120"
           >
             Enable feature
           </span>

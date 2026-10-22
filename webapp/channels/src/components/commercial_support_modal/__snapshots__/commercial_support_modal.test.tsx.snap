@@ -33,22 +33,22 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
             class="CommercialSupportModal__option"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
               for="basic.contents"
             >
               <input
                 checked=""
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 disabled=""
                 id="basic.contents"
                 name="basic.contents"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               >
                 <span
-                  class="_checkbox__icon_1rll8_66"
+                  class="_checkbox__icon_18swc_69"
                 >
                   <div
                     aria-hidden="true"
@@ -74,7 +74,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
                 </span>
               </span>
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 Basic contents
               </span>
@@ -84,21 +84,21 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
             class="CommercialSupportModal__option"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
               for="basic.server.logs"
             >
               <input
                 checked=""
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="basic.server.logs"
                 name="basic.server.logs"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               >
                 <span
-                  class="_checkbox__icon_1rll8_66"
+                  class="_checkbox__icon_18swc_69"
                 >
                   <div
                     aria-hidden="true"
@@ -124,7 +124,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
                 </span>
               </span>
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 Server Logs
               </span>

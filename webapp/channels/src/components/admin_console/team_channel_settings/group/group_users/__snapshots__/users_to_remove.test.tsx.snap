@@ -86,20 +86,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="system_guest"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="system_guest"
                           name="system_guest"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           Guest
                         </span>
@@ -113,20 +113,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="team_user"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="team_user"
                           name="team_user"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           Member
                         </span>
@@ -140,20 +140,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="team_admin"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="team_admin"
                           name="team_admin"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           Team Admin
                         </span>
@@ -167,20 +167,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="system_admin"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="system_admin"
                           name="system_admin"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           System Admin
                         </span>
@@ -351,20 +351,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="system_guest"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="system_guest"
                           name="system_guest"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           Guest
                         </span>
@@ -378,20 +378,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="team_user"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="team_user"
                           name="team_user"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           Member
                         </span>
@@ -405,20 +405,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="team_admin"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="team_admin"
                           name="team_admin"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           Team Admin
                         </span>
@@ -432,20 +432,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="system_admin"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="system_admin"
                           name="system_admin"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           System Admin
                         </span>
@@ -752,20 +752,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="team_user"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="team_user"
                           name="team_user"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           Member
                         </span>
@@ -779,20 +779,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="team_admin"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="team_admin"
                           name="team_admin"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           Team Admin
                         </span>
@@ -806,20 +806,20 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
                       class="FilterList_checkbox"
                     >
                       <label
-                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                         for="system_admin"
                       >
                         <input
-                          class="_checkbox__input_1rll8_22"
+                          class="_checkbox__input_18swc_25"
                           id="system_admin"
                           name="system_admin"
                           type="checkbox"
                         />
                         <span
-                          class="_checkbox__box_1rll8_41"
+                          class="_checkbox__box_18swc_44"
                         />
                         <span
-                          class="_checkbox__label_1rll8_117"
+                          class="_checkbox__label_18swc_120"
                         >
                           System Admin
                         </span>

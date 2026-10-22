@@ -4,21 +4,21 @@ exports[`components/admin_console/CheckboxSetting should match snapshot 1`] = `
 <div>
   <div>
     <label
-      class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 checkbox-inline"
+      class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 checkbox-inline"
       for="string.id"
     >
       <input
-        class="_checkbox__input_1rll8_22"
+        class="_checkbox__input_18swc_25"
         data-testid="string.id"
         id="string.id"
         name="string.id"
         type="checkbox"
       />
       <span
-        class="_checkbox__box_1rll8_41"
+        class="_checkbox__box_18swc_44"
       />
       <span
-        class="_checkbox__label_1rll8_117"
+        class="_checkbox__label_18swc_120"
       >
         some label
       </span>

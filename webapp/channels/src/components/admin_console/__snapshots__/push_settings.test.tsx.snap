@@ -123,20 +123,20 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
               class="col-sm-8"
             >
               <label
-                class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                 for="_r_0_"
               >
                 <input
                   checked=""
-                  class="_checkbox__input_1rll8_22"
+                  class="_checkbox__input_18swc_25"
                   id="_r_0_"
                   type="checkbox"
                 />
                 <span
-                  class="_checkbox__box_1rll8_41"
+                  class="_checkbox__box_18swc_44"
                 />
                 <span
-                  class="_checkbox__label_1rll8_117"
+                  class="_checkbox__label_18swc_120"
                 >
                    I understand and accept the Mattermost Hosted Push Notification Service 
                   <a

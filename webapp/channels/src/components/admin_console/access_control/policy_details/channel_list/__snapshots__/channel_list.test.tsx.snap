@@ -188,20 +188,20 @@ exports[`components/admin_console/access_control/channel_list should match snaps
             class="ChannelList__autoAddHeader"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 header-checkbox"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
               for="auto-add-header-checkbox"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 data-testid="auto-add-header-checkbox"
                 id="auto-add-header-checkbox"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 Auto-add members
               </span>
@@ -465,20 +465,20 @@ exports[`components/admin_console/access_control/channel_list should match snaps
             class="ChannelList__autoAddHeader"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 header-checkbox"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
               for="auto-add-header-checkbox"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 data-testid="auto-add-header-checkbox"
                 id="auto-add-header-checkbox"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 Auto-add members
               </span>
@@ -742,20 +742,20 @@ exports[`components/admin_console/access_control/channel_list should match snaps
             class="ChannelList__autoAddHeader"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 header-checkbox"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
               for="auto-add-header-checkbox"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 data-testid="auto-add-header-checkbox"
                 id="auto-add-header-checkbox"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 Auto-add members
               </span>
@@ -1019,20 +1019,20 @@ exports[`components/admin_console/access_control/channel_list should match snaps
             class="ChannelList__autoAddHeader"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 header-checkbox"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
               for="auto-add-header-checkbox"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 data-testid="auto-add-header-checkbox"
                 id="auto-add-header-checkbox"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 Auto-add members
               </span>

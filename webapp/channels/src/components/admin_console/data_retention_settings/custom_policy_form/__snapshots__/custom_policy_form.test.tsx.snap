@@ -473,20 +473,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                                 class="FilterList_checkbox"
                               >
                                 <label
-                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                                   for="public"
                                 >
                                   <input
-                                    class="_checkbox__input_1rll8_22"
+                                    class="_checkbox__input_18swc_25"
                                     id="public"
                                     name="public"
                                     type="checkbox"
                                   />
                                   <span
-                                    class="_checkbox__box_1rll8_41"
+                                    class="_checkbox__box_18swc_44"
                                   />
                                   <span
-                                    class="_checkbox__label_1rll8_117"
+                                    class="_checkbox__label_18swc_120"
                                   >
                                     Public
                                   </span>
@@ -500,20 +500,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                                 class="FilterList_checkbox"
                               >
                                 <label
-                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                                   for="private"
                                 >
                                   <input
-                                    class="_checkbox__input_1rll8_22"
+                                    class="_checkbox__input_18swc_25"
                                     id="private"
                                     name="private"
                                     type="checkbox"
                                   />
                                   <span
-                                    class="_checkbox__box_1rll8_41"
+                                    class="_checkbox__box_18swc_44"
                                   />
                                   <span
-                                    class="_checkbox__label_1rll8_117"
+                                    class="_checkbox__label_18swc_120"
                                   >
                                     Private
                                   </span>
@@ -527,20 +527,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                                 class="FilterList_checkbox"
                               >
                                 <label
-                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                                   for="deleted"
                                 >
                                   <input
-                                    class="_checkbox__input_1rll8_22"
+                                    class="_checkbox__input_18swc_25"
                                     id="deleted"
                                     name="deleted"
                                     type="checkbox"
                                   />
                                   <span
-                                    class="_checkbox__box_1rll8_41"
+                                    class="_checkbox__box_18swc_44"
                                   />
                                   <span
-                                    class="_checkbox__label_1rll8_117"
+                                    class="_checkbox__label_18swc_120"
                                   >
                                     Archived
                                   </span>
@@ -1097,20 +1097,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                                 class="FilterList_checkbox"
                               >
                                 <label
-                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                                   for="public"
                                 >
                                   <input
-                                    class="_checkbox__input_1rll8_22"
+                                    class="_checkbox__input_18swc_25"
                                     id="public"
                                     name="public"
                                     type="checkbox"
                                   />
                                   <span
-                                    class="_checkbox__box_1rll8_41"
+                                    class="_checkbox__box_18swc_44"
                                   />
                                   <span
-                                    class="_checkbox__label_1rll8_117"
+                                    class="_checkbox__label_18swc_120"
                                   >
                                     Public
                                   </span>
@@ -1124,20 +1124,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                                 class="FilterList_checkbox"
                               >
                                 <label
-                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                                   for="private"
                                 >
                                   <input
-                                    class="_checkbox__input_1rll8_22"
+                                    class="_checkbox__input_18swc_25"
                                     id="private"
                                     name="private"
                                     type="checkbox"
                                   />
                                   <span
-                                    class="_checkbox__box_1rll8_41"
+                                    class="_checkbox__box_18swc_44"
                                   />
                                   <span
-                                    class="_checkbox__label_1rll8_117"
+                                    class="_checkbox__label_18swc_120"
                                   >
                                     Private
                                   </span>
@@ -1151,20 +1151,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                                 class="FilterList_checkbox"
                               >
                                 <label
-                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
                                   for="deleted"
                                 >
                                   <input
-                                    class="_checkbox__input_1rll8_22"
+                                    class="_checkbox__input_18swc_25"
                                     id="deleted"
                                     name="deleted"
                                     type="checkbox"
                                   />
                                   <span
-                                    class="_checkbox__box_1rll8_41"
+                                    class="_checkbox__box_18swc_44"
                                   />
                                   <span
-                                    class="_checkbox__label_1rll8_117"
+                                    class="_checkbox__label_18swc_120"
                                   >
                                     Archived
                                   </span>

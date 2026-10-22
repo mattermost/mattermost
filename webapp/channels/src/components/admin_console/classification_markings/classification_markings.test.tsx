@@ -2297,10 +2297,10 @@ describe('Clearance name shared with another attribute', () => {
         // the same icon and differs from this one in nothing a query by role or
         // text can see, so without this the warning could be dressed as a block
         // while still reading as a warning. SectionNotice puts its type on the
-        // container's class list.
-        const notice = section.getByRole('heading', {name: 'Another attribute already uses this name'}).closest('.sectionNoticeContainer');
-        expect(notice).toHaveClass('warning');
-        expect(notice).not.toHaveClass('danger');
+        // root's class list.
+        const notice = section.getByRole('heading', {name: 'Another attribute already uses this name'}).closest('[class*="section-notice--type-"]');
+        expect(notice?.className).toContain('section-notice--type-warning');
+        expect(notice?.className).not.toContain('section-notice--type-danger');
 
         // The half that matters: this one warns, it does not block. The server
         // accepts the user field this page creates, so the admin is still allowed

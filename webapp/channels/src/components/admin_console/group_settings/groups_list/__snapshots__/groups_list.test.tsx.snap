@@ -116,19 +116,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           class="filter-row"
         >
           <label
-            class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 filter-check"
+            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 filter-check"
             for="_r_4a_"
           >
             <input
-              class="_checkbox__input_1rll8_22"
+              class="_checkbox__input_18swc_25"
               id="_r_4a_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_1rll8_41"
+              class="_checkbox__box_18swc_44"
             />
             <span
-              class="_checkbox__label_1rll8_117"
+              class="_checkbox__label_18swc_120"
             >
               Is Linked
             </span>
@@ -138,19 +138,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           class="filter-row"
         >
           <label
-            class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 filter-check"
+            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 filter-check"
             for="_r_4b_"
           >
             <input
-              class="_checkbox__input_1rll8_22"
+              class="_checkbox__input_18swc_25"
               id="_r_4b_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_1rll8_41"
+              class="_checkbox__box_18swc_44"
             />
             <span
-              class="_checkbox__label_1rll8_117"
+              class="_checkbox__label_18swc_120"
             >
               Is Not Linked
             </span>
@@ -160,19 +160,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           class="filter-row"
         >
           <label
-            class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 filter-check"
+            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 filter-check"
             for="_r_4c_"
           >
             <input
-              class="_checkbox__input_1rll8_22"
+              class="_checkbox__input_18swc_25"
               id="_r_4c_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_1rll8_41"
+              class="_checkbox__box_18swc_44"
             />
             <span
-              class="_checkbox__label_1rll8_117"
+              class="_checkbox__label_18swc_120"
             >
               Is Configured
             </span>
@@ -182,19 +182,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           class="filter-row"
         >
           <label
-            class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 filter-check"
+            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 filter-check"
             for="_r_4d_"
           >
             <input
-              class="_checkbox__input_1rll8_22"
+              class="_checkbox__input_18swc_25"
               id="_r_4d_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_1rll8_41"
+              class="_checkbox__box_18swc_44"
             />
             <span
-              class="_checkbox__label_1rll8_117"
+              class="_checkbox__label_18swc_120"
             >
               Is Not Configured
             </span>
@@ -323,19 +323,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_4_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_4_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               >
                 <span
-                  class="_checkbox__icon_1rll8_66"
+                  class="_checkbox__icon_18swc_69"
                 >
                   <div
                     aria-hidden="true"
@@ -361,7 +361,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
                 </span>
               </span>
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test1
               </span>
@@ -400,19 +400,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_5_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_5_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               >
                 <span
-                  class="_checkbox__icon_1rll8_66"
+                  class="_checkbox__icon_18swc_69"
                 >
                   <div
                     aria-hidden="true"
@@ -438,7 +438,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
                 </span>
               </span>
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test2
               </span>
@@ -596,19 +596,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_0_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_0_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test1
               </span>
@@ -647,19 +647,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               >
                 <span
-                  class="_checkbox__icon_1rll8_66"
+                  class="_checkbox__icon_18swc_69"
                 >
                   <div
                     aria-hidden="true"
@@ -685,7 +685,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
                 </span>
               </span>
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test2
               </span>
@@ -843,19 +843,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_2_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_2_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               >
                 <span
-                  class="_checkbox__icon_1rll8_66"
+                  class="_checkbox__icon_18swc_69"
                 >
                   <div
                     aria-hidden="true"
@@ -881,7 +881,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
                 </span>
               </span>
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test1
               </span>
@@ -920,19 +920,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_3_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_3_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test2
               </span>
@@ -1090,19 +1090,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_g_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_g_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test1
               </span>
@@ -1141,19 +1141,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_h_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_h_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test2
               </span>
@@ -1199,19 +1199,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_i_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_i_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test3
               </span>
@@ -1369,19 +1369,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_17_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_17_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test1
               </span>
@@ -1420,19 +1420,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_18_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_18_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test2
               </span>
@@ -1478,19 +1478,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_19_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_19_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test3
               </span>
@@ -1536,19 +1536,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1a_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1a_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test4
               </span>
@@ -1587,19 +1587,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1b_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1b_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test5
               </span>
@@ -1638,19 +1638,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1c_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1c_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test6
               </span>
@@ -1689,19 +1689,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1d_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1d_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test7
               </span>
@@ -1740,19 +1740,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1e_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1e_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test8
               </span>
@@ -1791,19 +1791,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1f_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1f_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test9
               </span>
@@ -1842,19 +1842,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1g_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1g_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test10
               </span>
@@ -2004,19 +2004,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_t_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_t_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test1
               </span>
@@ -2055,19 +2055,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_u_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_u_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test2
               </span>
@@ -2113,19 +2113,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_v_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_v_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test3
               </span>
@@ -2171,19 +2171,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_10_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_10_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test4
               </span>
@@ -2222,19 +2222,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_11_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_11_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test5
               </span>
@@ -2273,19 +2273,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_12_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_12_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test6
               </span>
@@ -2324,19 +2324,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_13_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_13_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test7
               </span>
@@ -2375,19 +2375,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_14_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_14_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test8
               </span>
@@ -2426,19 +2426,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_15_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_15_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test9
               </span>
@@ -2477,19 +2477,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_16_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_16_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test10
               </span>
@@ -2638,19 +2638,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1k_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1k_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test1
               </span>
@@ -2689,19 +2689,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1l_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1l_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test2
               </span>
@@ -2747,19 +2747,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_1m_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_1m_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test3
               </span>
@@ -2982,19 +2982,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_6_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_6_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test1
               </span>
@@ -3033,19 +3033,19 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="group-name"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
               for="_r_7_"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="_r_7_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 test2
               </span>

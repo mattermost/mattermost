@@ -26,19 +26,19 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             id="autoResponderCheckbox"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
               for="autoResponderActive"
             >
               <input
-                class="_checkbox__input_1rll8_22 a11y--active a11y--focused"
+                class="_checkbox__input_18swc_25 a11y--active a11y--focused"
                 id="autoResponderActive"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 Enabled
               </span>
@@ -107,20 +107,20 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             id="autoResponderCheckbox"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
               for="autoResponderActive"
             >
               <input
                 checked=""
-                class="_checkbox__input_1rll8_22 a11y--active a11y--focused"
+                class="_checkbox__input_18swc_25 a11y--active a11y--focused"
                 id="autoResponderActive"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               >
                 <span
-                  class="_checkbox__icon_1rll8_66"
+                  class="_checkbox__icon_18swc_69"
                 >
                   <div
                     aria-hidden="true"
@@ -146,7 +146,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                 </span>
               </span>
               <span
-                class="_checkbox__label_1rll8_117"
+                class="_checkbox__label_18swc_120"
               >
                 Enabled
               </span>

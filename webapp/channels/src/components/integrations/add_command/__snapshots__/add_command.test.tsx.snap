@@ -269,16 +269,16 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 backstage-form__checkbox"
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
               for="autocomplete"
             >
               <input
-                class="_checkbox__input_1rll8_22"
+                class="_checkbox__input_18swc_25"
                 id="autocomplete"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1rll8_41"
+                class="_checkbox__box_18swc_44"
               />
             </label>
             <div
