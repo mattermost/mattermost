@@ -30,11 +30,11 @@ import {editLatestPost} from 'actions/views/create_comment';
 
 import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
-import {getQuoteParagraphs} from 'utils/quote';
+import {formatQuote} from 'utils/quote';
 import {canHighlight} from 'utils/syntax_highlighting';
 
 import WysiwygImage from './wysiwyg_image';
-import {insertMarkdown, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
+import {insertMarkdown, parseMarkdownContent, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
 import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
@@ -154,9 +154,9 @@ export type WysiwygEditorHandle = {
     getEditor: () => Editor | null;
     insertText: (text: string) => void;
 
-    // Appends the text as a blockquote at the end of the document, followed by an
+    // Appends the Markdown as a blockquote at the end of the document, followed by an
     // empty paragraph that receives the caret.
-    appendQuote: (text: string) => void;
+    appendQuote: (markdown: string) => void;
 
     // Parity with the legacy `Textbox` ref so focus/upload hooks can drive
     // either composer.
@@ -613,21 +613,20 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 ed.chain().focus().insertContent({type: 'text', text: content}).run();
             }
         },
-        appendQuote: (text: string) => {
+        appendQuote: (markdown: string) => {
             const ed = editorRef.current;
-            const paragraphs = getQuoteParagraphs(text);
-            if (!ed || ed.isDestroyed || readOnlyRef.current || !paragraphs.length) {
+            if (!ed || ed.isDestroyed || readOnlyRef.current) {
+                return;
+            }
+
+            const quote = formatQuote(markdown);
+            const parsed = quote ? parseMarkdownContent(ed, quote)?.content : undefined;
+            if (!parsed?.length) {
                 return;
             }
 
             const content: JSONContent[] = [
-                {
-                    type: 'blockquote',
-                    content: paragraphs.map((lines) => ({
-                        type: 'paragraph',
-                        content: lines.flatMap((line, i) => (i ? [{type: 'hardBreak'}, {type: 'text', text: line}] : [{type: 'text', text: line}])),
-                    })),
-                },
+                ...parsed,
                 {type: 'paragraph'},
 
                 // The editor hides an empty last paragraph, so the reply goes in the one before it,

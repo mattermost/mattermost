@@ -242,5 +242,7 @@ export type ProductRailTab = ProductRailSection | 'threads' | `product:${string}
 export type PendingQuote = {
     channelId: string;
     rootId: string;
+
+    // Markdown of the quoted text
     text: string;
 };

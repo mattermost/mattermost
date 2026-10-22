@@ -276,8 +276,7 @@ describe('WysiwygEditor interactions', () => {
             });
             typeText(editor, 'my reply');
 
-            // Lines of a paragraph are kept together with hard breaks, which serialize with trailing spaces
-            expect(serializeToMarkdown(editor)).toBe('> Diam sapien  \n> pellentesque\n>\n> vestibulum\n\nmy reply');
+            expect(serializeToMarkdown(editor)).toBe('> Diam sapien\n> pellentesque\n>\n> vestibulum\n\nmy reply');
 
             // The reply must not be typed into the last paragraph, which the editor hides while it's empty
             expect(editor.state.doc.lastChild!.type.name).toBe('paragraph');
@@ -294,6 +293,23 @@ describe('WysiwygEditor interactions', () => {
 
             expect(serializeToMarkdown(editor)).toBe('Hey there\n\n> Diam sapien\n\nmy reply');
             expect(editor.state.doc.lastChild!.content.size).toBe(0);
+        });
+
+        test('keeps the Markdown formatting of the quote', () => {
+            const {ref, editor} = renderEditor('');
+
+            act(() => {
+                ref.current!.appendQuote('## Key Objectives\n\n* **Performance:** faster\n* Security\n\n```javascript\nconst a = 1;\n```');
+            });
+
+            expect(editor.getJSON().content?.[0]).toMatchObject({
+                type: 'blockquote',
+                content: [
+                    {type: 'heading', attrs: {level: 2}},
+                    {type: 'bulletList'},
+                    {type: 'codeBlock', attrs: {language: 'javascript'}},
+                ],
+            });
         });
 
         test('does nothing for blank text', () => {
