@@ -1,5 +1,5 @@
 ---
-# E2E autofix on merge. After each master E2E run, the toolkit's e2e-master-watch action picks
+# E2E autofix on merge. After each master E2E run, the toolkit's e2e-test-watch action picks
 # the Playwright specs that keep failing on master, and the agent's own PRs that no longer merge.
 # This workflow adds the server images to test with and sends each request to the "E2E Autofix"
 # Cursor automation, which follows .cursor/automations/e2e-autofix.md.
@@ -42,7 +42,7 @@ jobs:
     steps:
       - name: ci/e2e-autofix-plan
         id: plan
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@8c8bbf2b9abc22800dc0f2961eb26820dc93c6d5 # actions/e2e-master-watch
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-watch@69047491d0516c6c7fe6dfc2e273241b35b30483 # actions/e2e-test-watch
         with:
           repository: ${{ github.repository }}
           gh-run-id: ${{ github.event.workflow_run.id }}
@@ -129,6 +129,6 @@ jobs:
       # Runs on every trunk run, even one that sent nothing, to keep the record of sent requests alive.
       - name: ci/e2e-autofix-record
         if: always() && steps.plan.outcome == 'success'
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch/record@8c8bbf2b9abc22800dc0f2961eb26820dc93c6d5 # actions/e2e-master-watch/record
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-watch/record@69047491d0516c6c7fe6dfc2e273241b35b30483 # actions/e2e-test-watch/record
         with:
           results: ${{ steps.send.outputs.results || '[]' }}
