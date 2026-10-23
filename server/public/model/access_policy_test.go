@@ -753,6 +753,8 @@ func TestPermissionPolicyRoles(t *testing.T) {
 				SystemUserRoleId,
 				SystemGuestRoleId,
 				AccessControlPolicyRoleSystemBot,
+				SystemManagerRoleId,
+				"custom_role",
 			} {
 				t.Run("accepts "+role, func(t *testing.T) {
 					require.Nil(t, newPermissionPolicy(version, []string{role}).IsValid())
@@ -760,28 +762,19 @@ func TestPermissionPolicyRoles(t *testing.T) {
 			}
 
 			tests := []struct {
-				name       string
-				roles      []string
-				expectedID string
+				name  string
+				roles []string
 			}{
-				{"unknown role rejected", []string{"system_robot"}, "model.access_policy.is_valid.unknown_role.app_error"},
-				{"RBAC-only system role rejected", []string{SystemManagerRoleId}, "model.access_policy.is_valid.unknown_role.app_error"},
-				{"channel role rejected", []string{ChannelUserRoleId}, "model.access_policy.is_valid.unknown_role.app_error"},
-				{"role is case sensitive", []string{"System_Bot"}, "model.access_policy.is_valid.unknown_role.app_error"},
-				{"padded role rejected", []string{" system_bot "}, "model.access_policy.is_valid.unknown_role.app_error"},
-				{"empty roles", []string{}, "model.access_policy.is_valid.roles.app_error"},
-				{"blank role", []string{""}, "model.access_policy.is_valid.roles.app_error"},
-				{"whitespace role", []string{"   "}, "model.access_policy.is_valid.roles.app_error"},
-				{"multiple valid roles", []string{SystemUserRoleId, AccessControlPolicyRoleSystemBot}, "model.access_policy.is_valid.roles.app_error"},
+				{"empty roles", []string{}},
+				{"blank role", []string{""}},
+				{"whitespace role", []string{"   "}},
+				{"multiple roles", []string{SystemUserRoleId, AccessControlPolicyRoleSystemBot}},
 			}
 			for _, tc := range tests {
 				t.Run(tc.name, func(t *testing.T) {
 					err := newPermissionPolicy(version, tc.roles).IsValid()
 					require.NotNil(t, err)
-					require.Equal(t, tc.expectedID, err.Id)
-					if tc.expectedID == "model.access_policy.is_valid.unknown_role.app_error" {
-						require.Contains(t, err.DetailedError, tc.roles[0])
-					}
+					require.Equal(t, "model.access_policy.is_valid.roles.app_error", err.Id)
 				})
 			}
 		})

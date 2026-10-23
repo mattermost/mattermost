@@ -105,15 +105,6 @@ var allowedChannelRolesV0_4 = map[string]bool{
 	ChannelAdminRoleId: true,
 }
 
-// allowedPermissionPolicyRoles is the set of roles a system permission policy
-// may target.
-var allowedPermissionPolicyRoles = []string{
-	SystemAdminRoleId,
-	SystemUserRoleId,
-	SystemGuestRoleId,
-	AccessControlPolicyRoleSystemBot,
-}
-
 // allowedPermissionActionsV0_4 is the set of non-membership actions that may
 // appear on a v0.4 channel resource policy rule. Each such rule must carry a
 // channel-scoped role.
@@ -640,14 +631,10 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_2() *AppError {
 	return nil
 }
 
-// validatePermissionPolicyRoles requires exactly one non-blank role from
-// allowedPermissionPolicyRoles.
+// validatePermissionPolicyRoles requires exactly one non-blank role.
 func validatePermissionPolicyRoles(roles []string) *AppError {
 	if len(roles) != 1 || strings.TrimSpace(roles[0]) == "" {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
-	}
-	if role := roles[0]; !slices.Contains(allowedPermissionPolicyRoles, role) {
-		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.unknown_role.app_error", nil, fmt.Sprintf("unknown permission policy role: %q", role), 400)
 	}
 	return nil
 }
