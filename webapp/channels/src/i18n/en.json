@@ -11028,8 +11028,8 @@
     "description": "Option label in the role dropdown of the permission policy editor targeting system administrators."
   },
   "admin.permission_policies.role.system_bot.description": {
-    "defaultMessage": "Applies only to bot accounts. For bots, these policies take the place of Members policies on the permissions they cover.",
-    "description": "Description under the 'Bot accounts' option in the role dropdown of the permission policy editor, explaining that for bots these policies replace Members policies on the permissions they cover."
+    "defaultMessage": "Applies only to bot accounts",
+    "description": "Description under the 'Bot accounts' option in the role dropdown of the permission policy editor."
   },
   "admin.permission_policies.role.system_bot.label": {
     "defaultMessage": "Bot accounts",
@@ -11044,7 +11044,7 @@
     "description": "Option label in the role dropdown of the permission policy editor targeting guest users."
   },
   "admin.permission_policies.role.system_user.description": {
-    "defaultMessage": "Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists. Bot accounts fall back to this rule only if no Bot accounts policy covers the same permissions.",
+    "defaultMessage": "Applies to regular members, including bot accounts. System administrators and bot accounts fall back to this rule if no role specific policy with the same permission exists",
     "description": "Description under the 'Members' option in the role dropdown of the permission policy editor, explaining that system administrators and bot accounts fall back to Members policies when no policy for their own role covers the same permissions."
   },
   "admin.permission_policies.role.system_user.label": {

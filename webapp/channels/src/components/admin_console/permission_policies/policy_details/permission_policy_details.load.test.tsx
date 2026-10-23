@@ -79,8 +79,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     const BOT_HELP_TEXT = 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).';
     const BOT_EMPTY_STATE_TEXT = 'Select a bot attribute and values to create a rule';
     const CPA_EMAIL = customField('cpa-email', 'email', {managed: 'admin', display_name: 'Work email'});
-    const MEMBERS_DESCRIPTION = 'Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists. Bot accounts fall back to this rule only if no Bot accounts policy covers the same permissions.';
-    const BOT_DESCRIPTION = 'Applies only to bot accounts. For bots, these policies take the place of Members policies on the permissions they cover.';
+    const MEMBERS_DESCRIPTION = 'Applies to regular members, including bot accounts. System administrators and bot accounts fall back to this rule if no role specific policy with the same permission exists';
+    const BOT_DESCRIPTION = 'Applies only to bot accounts';
 
     const nativeCELNames = () => lastCELProps().userAttributes.filter((a) => a.isNative).map((a) => a.attribute);
 
