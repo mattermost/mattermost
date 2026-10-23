@@ -4,18 +4,20 @@
 import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {switchLabel} from '@/ui/components/switch';
+import Switch from '@/ui/components/switch';
 import {duration} from '@/util';
 
 class CreateRecapModal {
     readonly container: Locator;
     readonly titleInput: Locator;
     readonly channelSearchInput: Locator;
+    readonly runOnceSwitch: Switch;
 
     constructor(private readonly page: Page) {
         this.container = page.locator('#createRecapModal');
         this.titleInput = this.container.locator('#recap-name-input');
         this.channelSearchInput = this.container.getByPlaceholder('Search and select channels');
+        this.runOnceSwitch = new Switch(this.container, 'run-once-toggle-button');
     }
 
     async toBeVisible() {
@@ -54,10 +56,9 @@ class CreateRecapModal {
     }
 
     async enableRunOnce() {
-        const runOnce = this.container.locator('#run-once-toggle');
-        await expect(runOnce).toBeVisible();
-        if (!(await runOnce.isChecked())) {
-            await switchLabel(this.container, 'run-once-toggle-button').check();
+        await expect(this.runOnceSwitch.input).toBeVisible();
+        if (!(await this.runOnceSwitch.isChecked())) {
+            await this.runOnceSwitch.check();
         }
     }
 
@@ -229,8 +230,7 @@ class RecapItem {
 class ScheduledRecapItem {
     readonly menuButton: Locator;
     readonly schedulePattern: Locator;
-    readonly toggleButton: Locator;
-    readonly toggleLabel: Locator;
+    readonly toggle: Switch;
 
     constructor(
         private readonly page: Page,
@@ -238,9 +238,7 @@ class ScheduledRecapItem {
     ) {
         this.menuButton = container.getByRole('button', {name: /Options for /});
         this.schedulePattern = container.locator('.schedule-pattern');
-        const toggle = container.locator('.scheduled-recap-toggle');
-        this.toggleButton = toggle.getByRole('switch');
-        this.toggleLabel = switchLabel(toggle, page.getByRole('switch'));
+        this.toggle = new Switch(container.locator('.scheduled-recap-toggle'));
     }
 
     async toBeVisible() {
@@ -257,13 +255,13 @@ class ScheduledRecapItem {
     }
 
     async expectActive() {
-        await expect(this.toggleButton).toBeChecked();
-        await expect(this.toggleButton).toHaveAccessibleName('Active - click to pause');
+        await expect(this.toggle.input).toBeChecked();
+        await expect(this.toggle.input).toHaveAccessibleName('Active - click to pause');
     }
 
     async expectPaused() {
-        await expect(this.toggleButton).not.toBeChecked();
-        await expect(this.toggleButton).toHaveAccessibleName('Paused - click to resume');
+        await expect(this.toggle.input).not.toBeChecked();
+        await expect(this.toggle.input).toHaveAccessibleName('Paused - click to resume');
     }
 
     async pause() {
@@ -271,13 +269,13 @@ class ScheduledRecapItem {
         // Click instead of uncheck: the Switch is controlled by async Redux/API
         // updates, so Playwright's checked-state verification fails before the
         // store refreshes. expectPaused() polls until aria-checked flips.
-        await this.toggleLabel.click();
+        await this.toggle.click();
         await this.expectPaused();
     }
 
     async resume() {
         await this.expectPaused();
-        await this.toggleLabel.click();
+        await this.toggle.click();
         await this.expectActive();
     }
 
