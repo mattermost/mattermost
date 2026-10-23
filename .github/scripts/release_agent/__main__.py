@@ -87,7 +87,9 @@ def command_run(args) -> int:
         return 0
     except Exception as err:  # noqa: BLE001 - recorded, then the step fails
         body["error"] = agent.public_error(err) if not isinstance(err, ValueError) else str(err)
-        details.append(f"run: {agent.private_error(err)}")
+        private = agent.private_error(err)
+        if private != body["error"]:
+            details.append(f"run: {private}")
         print(f"::error::{body['error']}")
         return 1
     finally:
