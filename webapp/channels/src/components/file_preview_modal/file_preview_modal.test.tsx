@@ -724,6 +724,38 @@ describe('FilePreviewModal instance behavior', () => {
             expect(ref.current?.state.translate[1]).toEqual({x: 0, y: 0});
         });
 
+        test('drops the loaded content when the shown file is swapped for another, but not when another index is', () => {
+            const initial = {
+                ...imageProps,
+                fileInfos: [
+                    TestHelper.getFileInfoMock({id: 'a', extension: 'png'}),
+                    TestHelper.getFileInfoMock({id: 'b', extension: 'png'}),
+                ],
+            };
+            const {ref, rerender} = mountModal(initial);
+            act(() => {
+                ref.current?.setState({content: 'loaded'});
+            });
+
+            rerender(
+                <FilePreviewModal
+                    ref={ref}
+                    {...initial}
+                    fileInfos={[initial.fileInfos[0], TestHelper.getFileInfoMock({id: 'c', extension: 'png'})]}
+                />,
+            );
+            expect(ref.current?.state.content).toBe('loaded');
+
+            rerender(
+                <FilePreviewModal
+                    ref={ref}
+                    {...initial}
+                    fileInfos={[TestHelper.getFileInfoMock({id: 'd', extension: 'png'}), initial.fileInfos[1]]}
+                />,
+            );
+            expect(ref.current?.state.content).toBe('');
+        });
+
         test('seeds default scale/translate for brand-new indexes when the list grows', () => {
             const {ref, rerender} = mountModal();
             act(() => {

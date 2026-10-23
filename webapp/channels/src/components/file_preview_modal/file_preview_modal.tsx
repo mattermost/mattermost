@@ -266,6 +266,11 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             updatedState.prevFileInfosCount = props.fileInfos.length;
             updatedState.prevFileIds = nextFileIds;
 
+            // The content belongs to the file that was shown, so drop it when that file is swapped out underneath us
+            if (nextFileIds[state.imageIndex] !== state.prevFileIds[state.imageIndex]) {
+                updatedState.content = '';
+            }
+
             // Reconcile scale/translate per index: preserve entries whose
             // file identity is unchanged; reset to the new file's default
             // when the identity at that index changed (or is brand new).

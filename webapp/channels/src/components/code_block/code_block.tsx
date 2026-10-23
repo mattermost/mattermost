@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState, type JSX} from 'react';
+import React, {createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useState, type JSX} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
@@ -9,7 +9,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import CopyButton from 'components/copy_button';
-import Markdown from 'components/markdown';
 import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_toggle';
 import WrappedCodeLines from 'components/wrapped_code_lines';
 
@@ -27,6 +26,10 @@ type Props = {
     language: string;
     searchedContent?: string;
 };
+
+// Loaded lazily because Markdown reaches this file again through the LaTeX block, and a static import would make that cycle
+// fail to initialise whenever the LaTeX block is the first module loaded
+const Markdown = lazy(() => import('components/markdown'));
 
 // Markdown rendered from inside a code block must not offer its own toggle
 const CodeBlockDepthContext = createContext(0);
@@ -162,7 +165,9 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
             {showRendered ? (
                 <div className='post-code__rendered'>
                     <CodeBlockDepthContext.Provider value={depth + 1}>
-                        <Markdown message={code}/>
+                        <Suspense fallback={null}>
+                            <Markdown message={code}/>
+                        </Suspense>
                     </CodeBlockDepthContext.Provider>
                 </div>
             ) : (

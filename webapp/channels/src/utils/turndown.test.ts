@@ -16,4 +16,11 @@ describe('utils/turndown mattermostCodeBlock', () => {
 
         expect(turndownService.turndown(html)).toBe('```markdown\n# Title\n\nUse `code` here\n```');
     });
+
+    test('should read the language of the outer code block, not of one rendered inside it', () => {
+        const source = '# Title\n\n```typescript\nconst a = 1;\n```';
+        const html = `<div class="post-code" data-markdown-source="${source.replace(/"/g, '&quot;')}"><div class="post-code__overlay"></div><div class="post-code__rendered"><h1>Title</h1><div class="post-code"><div class="post-code__overlay"><span class="post-code__language">TypeScript</span></div><div class="hljs"><code>const a = 1;</code></div></div></div></div>`;
+
+        expect(turndownService.turndown(html)).toBe('````\n' + source + '\n````');
+    });
 });

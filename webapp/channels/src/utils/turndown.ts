@@ -67,7 +67,10 @@ turndownService.addRule('mattermostCodeBlock', {
     replacement: (content, node) => {
         const element = node as HTMLElement;
         const code = element.getAttribute('data-markdown-source') ?? element.querySelector('code')?.textContent ?? '';
-        const languageLabel = element.querySelector('.post-code__language')?.textContent ?? '';
+
+        // Only the block's own overlay holds its language; a code block rendered inside Markdown has one of its own
+        const overlay = Array.from(element.children).find((child) => child.classList.contains('post-code__overlay'));
+        const languageLabel = overlay?.querySelector('.post-code__language')?.textContent ?? '';
         const fence = codeBlockFence(code);
 
         return `\n\n${fence}${getLanguageFromDisplayName(languageLabel)}\n${code}\n${fence}\n\n`;
