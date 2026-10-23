@@ -228,6 +228,12 @@ class ReleaseNoteFlagTest(unittest.TestCase):
         self.assertIn("no release-note-none label", gc.flag_reason("missing", set()))
         self.assertIn("labelled release-note", gc.flag_reason("none", {"release-note"}))
 
+    def test_cherry_pick_origin(self):
+        self.assertEqual(gc.cherry_picked_from("Automated cherry pick of #39121"), 39121)
+        self.assertEqual(gc.cherry_picked_from("Cherry pick #38833 to release-12.1"), 38833)
+        self.assertEqual(gc.cherry_picked_from("Bumping prepackaged Dataminr plugin version to v3.0.0 (#39291)"), 39291)
+        self.assertIsNone(gc.cherry_picked_from("Fix #123 in the sidebar"))
+
 
 class SeedTest(unittest.TestCase):
     def test_seed_includes_prs_merged_before_the_pr_was_opened_and_derived_notes(self):
@@ -297,7 +303,9 @@ class MainTest(unittest.TestCase):
             self._pr(2, NOTE_BODY.replace("Added a thing.", "Fixed an issue found later."), "2026-10-21T10:00:00Z"),
             self._pr(3, NONE_BODY, "2026-10-19T11:00:00Z", ["release-note-none"]),
             self._pr(4, EMPTY_TEMPLATE_BODY, "2026-10-19T12:00:00Z"),
+            self._pr(5, EMPTY_TEMPLATE_BODY, "2026-10-19T13:00:00Z", ["release-note"]),
         ]
+        self.prs[-1]["title"] = "Automated cherry pick of #1"
 
     def tearDown(self):
         for name, value in self.saved.items():
@@ -329,7 +337,7 @@ class MainTest(unittest.TestCase):
         self.assertEqual(payload["schema_version"], 2)
         self.assertEqual(payload["derived_sources"], ["plugin:mattermost-plugin-calls@v1.12.6"])
         self.assertEqual([pr["source"] for pr in payload["prs_flagged"]], ["mattermost/mattermost#4"])
-        self.assertEqual(payload["metrics"]["prs_merged"], 4)
+        self.assertEqual(payload["metrics"]["prs_merged"], 5)
         self.assertEqual(payload["metrics"]["prs_flagged"], 1)
         self.assertIn("plugin:mattermost-plugin-calls@v1.12.6", (self.out / "pr_body.md").read_text())
         summary = (self.out / "summary.md").read_text()

@@ -21,7 +21,8 @@ Expects these environment variables:
                       migrations between them are added as notes (see changelog_release.py).
   SOURCES_SEED_BEFORE - (update mode, optional) When the changelog PR body has no
                       changelog-sources list (a PR opened before it existed), treat PRs
-                      merged before this ISO time as already included instead of failing.
+                      merged before this ISO time — when the PR branch was last updated —
+                      as already included instead of failing.
   DRY_RUN           - (optional) "true" allows create mode to run for a version whose
                       entry already exists in the changelog file, for previews.
   BLOG_POST_URL     - (optional) Blog post URL for the Improvements section.
@@ -326,6 +327,12 @@ def flag_reason(status: str, labels: set) -> str | None:
     return None
 
 
+def cherry_picked_from(title: str) -> int | None:
+    """The PR a cherry-pick was made from: "Automated cherry pick of #39121", "Fix x (#39291)"."""
+    match = re.search(r"cherry[- ]?pick(?:ed)? (?:of )?#(\d+)|\(#(\d+)\)\s*$", title or "", re.IGNORECASE)
+    return int(match.group(1) or match.group(2)) if match else None
+
+
 def parse_github_time(value: str) -> datetime:
     return datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
 
@@ -333,10 +340,12 @@ def parse_github_time(value: str) -> datetime:
 def seed_sources(notes: list[dict], cutoff: str) -> set:
     """The sources a changelog PR opened before source tracking already covers.
 
-    Such a PR has no changelog-sources list, but it was generated from every PR merged
-    before it was opened, so those are treated as included. Derived notes count as
-    included as well: such a PR predates them, so its plugin and schema bullets were
-    written by hand and adding generated ones would duplicate them.
+    Such a PR has no changelog-sources list. ``cutoff`` is when its branch was last
+    updated: it was generated from the PRs merged before it was opened, and reviewers
+    keep such a PR current by hand from then on, so every PR merged before the cutoff
+    is treated as included.
+    Derived notes count as included as well: such a PR predates them, so its plugin and
+    schema bullets were written by hand and adding generated ones would duplicate them.
     """
     limit = parse_github_time(cutoff)
     return {
@@ -1240,9 +1249,9 @@ def render_summary(payload: dict, entry: str) -> str:
         lines += ["No new release notes since the last run.", ""]
     if payload.get("seeded_before"):
         lines += [
-            f"The changelog PR had no changelog-sources list, so the PRs merged before it was "
-            f"opened ({payload['seeded_before']}) and every derived note were treated as already "
-            "included. Check the added bullets against the edits already made in the PR.",
+            f"The changelog PR had no changelog-sources list, so the PRs merged before its branch "
+            f"was last updated ({payload['seeded_before']}) and every derived note were treated as "
+            "already included. Check the added bullets against the edits already made in the PR.",
             "",
         ]
 
@@ -1357,9 +1366,18 @@ def main():
                 print(f"   ⏭️  #{pr['number']}: {pr['title']} (NONE / no notes)")
             reason = flag_reason(release_note_status(body), {label["name"] for label in pr.get("labels") or []})
             if reason:
-                flagged_prs.append({"source": source, "title": pr["title"], "reason": reason})
-                print(f"::warning title=Release note needed::{source} {pr['title']}: {reason}")
+                origin = cherry_picked_from(pr["title"])
+                flagged_prs.append({
+                    "source": source, "title": pr["title"], "reason": reason,
+                    "origin": f"{repo}#{origin}" if origin else None,
+                })
         print()
+
+    # A cherry-pick needs no note of its own when the PR it was picked from has one.
+    noted = {note["source"] for note in all_notes}
+    flagged_prs = [pr for pr in flagged_prs if pr.pop("origin") not in noted]
+    for pr in flagged_prs:
+        print(f"::warning title=Release note needed::{pr['source']} {pr['title']}: {pr['reason']}")
 
     # What the release changes that developers rarely write notes for: pre-packaged
     # plugin versions, WebSocket events and schema migrations, read from the git diff
@@ -1397,7 +1415,7 @@ def main():
                     "The changelog PR body has no changelog-sources comment, so there is no way "
                     "to tell which PRs it already includes. Re-run in regenerate mode, which "
                     "rebuilds the entry and records the list, or set SOURCES_SEED_BEFORE to the "
-                    "time the PR was opened."
+                    "time the PR branch was last updated."
                 )
             listed = seed_sources(all_notes, seeded_before)
             print(
@@ -1408,7 +1426,7 @@ def main():
             seeded_before = ""
         included = listed
         all_notes = [note for note in all_notes if note["source"] not in included]
-        print(f"ℹ️  {len(included)} PR(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
+        print(f"ℹ️  {len(included)} source(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
 
     for number, note in enumerate(all_notes, start=1):
         note["id"] = f"N{number}"
@@ -1576,6 +1594,7 @@ def main():
     # sent again on the next run instead of being skipped forever.
     unattributed = unattributed_sources(sources_by_id, referenced)
     included |= {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
+    original_body = pr_body
     pr_body = render_pr_body(pr_body, included)
 
     added_sources = set(sources_by_id.values())
@@ -1617,6 +1636,7 @@ def main():
     }
     write_outputs(output_dir, entry, payload, pr_body)
     set_github_output("changed", "true" if changed else "false")
+    set_github_output("body_changed", "true" if pr_body != original_body else "false")
     set_github_output("added_prs", len(added_sources - derived_sources))
     set_github_output("added_derived", len(added_sources & derived_sources))
     set_github_output("flagged_prs", len(flagged_prs))

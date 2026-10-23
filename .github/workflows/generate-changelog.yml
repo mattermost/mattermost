@@ -185,12 +185,12 @@ jobs:
 
           PR_NUMBER="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "changelog/$VERSION" --state open --json number --jq '.[0].number // empty')"
           BODY_FILE=""
-          CREATED_AT=""
+          UPDATED_AT=""
           if [ -n "$PR_NUMBER" ]; then
             BODY_FILE="$RUNNER_TEMP/changelog-pr-body.md"
             gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json body --jq .body > "$BODY_FILE"
-            CREATED_AT="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json createdAt --jq .createdAt)"
-            echo "Open changelog PR: #$PR_NUMBER (opened $CREATED_AT)"
+            UPDATED_AT="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json commits --jq '.commits[-1].committedDate')"
+            echo "Open changelog PR: #$PR_NUMBER (branch last updated $UPDATED_AT)"
           fi
           case "$MODE" in
             dry_run)    SCRIPT_MODE=create; PUBLISH=none; BODY_FILE="" ;;
@@ -203,7 +203,7 @@ jobs:
           {
             echo "number=$PR_NUMBER"
             echo "body_file=$BODY_FILE"
-            echo "created_at=$CREATED_AT"
+            echo "updated_at=$UPDATED_AT"
             echo "script_mode=$SCRIPT_MODE"
             echo "publish=$PUBLISH"
           } >> "$GITHUB_OUTPUT"
@@ -241,9 +241,9 @@ jobs:
           RELEASE_BASE_REF: ${{ needs.resolve.outputs.base_ref }}
           MODE: ${{ steps.pr.outputs.script_mode }}
           PR_BODY_FILE: ${{ steps.pr.outputs.body_file }}
-          # A PR opened before changelog-sources existed has no list; it was generated
-          # from every PR merged before it was opened.
-          SOURCES_SEED_BEFORE: ${{ steps.pr.outputs.created_at }}
+          # A PR opened before changelog-sources existed has no list. Reviewers kept it
+          # current by hand, so PRs merged before its last commit count as included.
+          SOURCES_SEED_BEFORE: ${{ steps.pr.outputs.updated_at }}
           DRY_RUN: ${{ needs.resolve.outputs.mode == 'dry_run' }}
           OUTPUT_DIR: ${{ runner.temp }}/changelog-output
         run: python "$RUNNER_TEMP/generate_changelog.py"
@@ -285,6 +285,7 @@ jobs:
           PUBLISH: ${{ steps.pr.outputs.publish }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           CHANGED: ${{ steps.generate.outputs.changed }}
+          BODY_CHANGED: ${{ steps.generate.outputs.body_changed }}
           ADDED_PRS: ${{ steps.generate.outputs.added_prs }}
           ADDED_DERIVED: ${{ steps.generate.outputs.added_derived }}
         run: |
@@ -296,7 +297,13 @@ jobs:
             # Already on the PR branch. New commits only, never a force-push, so every
             # edit made in the PR survives.
             if [ "$CHANGED" != "true" ]; then
-              echo "No new release notes — changelog PR #$PR_NUMBER left unchanged"
+              # A seeded run records the changelog-sources list even with nothing to add.
+              if [ "$BODY_CHANGED" = "true" ]; then
+                gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+                echo "No new release notes — recorded the changelog-sources list on #$PR_NUMBER"
+              else
+                echo "No new release notes — changelog PR #$PR_NUMBER left unchanged"
+              fi
               exit 0
             fi
             git add "$CHANGELOG_FILE"
