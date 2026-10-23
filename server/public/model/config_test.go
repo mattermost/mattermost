@@ -223,6 +223,57 @@ func TestClusterSettingsIsValid(t *testing.T) {
 	})
 }
 
+func TestCacheSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &CacheSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("redis cache prefix", func(t *testing.T) {
+		for _, prefix := range []string{"", "hub", "c4ja3w3h8tgwiy5c5dbmhmkpje", "my-prefix_1"} {
+			t.Run("valid "+prefix, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:        NewPointer(CacheTypeRedis),
+					RedisAddress:     NewPointer("localhost:6379"),
+					RedisDB:          NewPointer(0),
+					RedisCachePrefix: NewPointer(prefix),
+				}
+				settings.SetDefaults()
+
+				assert.Nil(t, settings.isValid())
+			})
+		}
+
+		for _, prefix := range []string{"hub:", "a:b", "hub*", "hub?", "hub[0]", `hub\`} {
+			t.Run("invalid "+prefix, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:        NewPointer(CacheTypeRedis),
+					RedisAddress:     NewPointer("localhost:6379"),
+					RedisDB:          NewPointer(0),
+					RedisCachePrefix: NewPointer(prefix),
+				}
+				settings.SetDefaults()
+
+				appErr := settings.isValid()
+				require.NotNil(t, appErr)
+				assert.Equal(t, "model.config.is_valid.invalid_redis_cache_prefix.app_error", appErr.Id)
+			})
+		}
+	})
+
+	t.Run("redis cache prefix is ignored for lru", func(t *testing.T) {
+		settings := &CacheSettings{
+			CacheType:        NewPointer(CacheTypeLRU),
+			RedisCachePrefix: NewPointer("a:b"),
+		}
+		settings.SetDefaults()
+
+		assert.Nil(t, settings.isValid())
+	})
+}
+
 func TestAnnouncementSettingsIsValid(t *testing.T) {
 	t.Run("defaults are valid", func(t *testing.T) {
 		settings := &AnnouncementSettings{}

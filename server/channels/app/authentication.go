@@ -62,7 +62,7 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	return nil
 }
 
-func (a *App) checkUserPassword(user *model.User, password string) *model.AppError {
+func (a *App) checkUserPassword(user *model.User, password string) error {
 	if user.Password == "" || password == "" {
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -84,7 +84,7 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 	// Migrate the password if needed
 	if !hashers.IsLatestHasher(hasher) {
 		if err := a.migratePassword(user, password); err != nil {
-			return model.AsAppError(err)
+			return err
 		}
 	}
 
@@ -138,12 +138,13 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 		// credential mismatch; backend errors (hasher failures, migration
 		// failures, malformed stored hash) must not consume a slot or a
 		// transient infra issue could lock out a user with valid creds.
-		if err.Id != "api.user.check_user_password.invalid.app_error" {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) && appErr.Id != "api.user.check_user_password.invalid.app_error" {
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
 				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
 		}
-		return err
+		return model.AsAppError(err)
 	}
 
 	if err := a.CheckUserMfa(rctx, user, mfaToken); err != nil {
@@ -183,12 +184,13 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
-		if err.Id != "api.user.check_user_password.invalid.app_error" {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) && appErr.Id != "api.user.check_user_password.invalid.app_error" {
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
 				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
 		}
-		return err
+		return model.AsAppError(err)
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {

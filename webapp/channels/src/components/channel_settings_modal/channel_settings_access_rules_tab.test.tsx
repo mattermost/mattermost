@@ -495,7 +495,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             const checkbox = screen.getByRole('checkbox');
             expect(checkbox).toBeInTheDocument();
-            expect(checkbox).toHaveClass('ChannelSettingsModal__autoSyncCheckbox');
+            expect(checkbox.closest('.ChannelSettingsModal__autoSyncCheckbox')).toBeInTheDocument();
         });
 
         test('should render auto-sync label and description', () => {

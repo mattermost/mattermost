@@ -5,6 +5,7 @@ import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {
     getMembershipRule,
@@ -796,18 +797,13 @@ function ChannelSettingsAccessRulesTab({
             {/* Auto-sync members toggle */}
             <div className='ChannelSettingsModal__autoSyncSection'>
                 <div className='ChannelSettingsModal__autoSyncCheckboxContainer'>
-                    <input
-                        type='checkbox'
+                    <Checkbox
                         className='ChannelSettingsModal__autoSyncCheckbox'
                         checked={autoSyncMembers}
                         onChange={handleAutoSyncToggle}
                         disabled={isEmptyRulesState || !rulesEditable}
                         id='autoSyncMembersCheckbox'
                         name='autoSyncMembers'
-                    />
-                    <label
-                        htmlFor='autoSyncMembersCheckbox'
-                        className='ChannelSettingsModal__autoSyncLabel'
                         title={(() => {
                             if (isEmptyRulesState) {
                                 return formatMessage({
@@ -831,7 +827,7 @@ function ChannelSettingsAccessRulesTab({
                                 defaultMessage: 'Auto-add members based on access rules',
                             })}
                         </span>
-                    </label>
+                    </Checkbox>
                 </div>
                 <p className='ChannelSettingsModal__autoSyncDescription'>
                     {(() => {

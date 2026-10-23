@@ -61,60 +61,58 @@ func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.
 }
 
 func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
-	logData := make(map[string][]string)
-
-	serverName := "default"
-
+	cluster := s.platform.Cluster()
 	license := s.License()
-	if license != nil && *license.Features.Cluster && s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
-		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
-			serverName = info.Hostname
+	clustered := license != nil && *license.Features.Cluster && cluster != nil && *s.platform.Config().ClusterSettings.Enable
+
+	localName := "default"
+	if clustered {
+		if info := cluster.GetMyClusterInfo(); info != nil {
+			localName = info.Hostname
 		} else {
 			rctx.Logger().Error("Could not get cluster info")
 		}
 	}
 
-	var appErr *model.AppError
-	serverNames := logFilter.ServerNames
-	if len(serverNames) > 0 {
-		for _, nodeName := range serverNames {
-			if nodeName == "default" {
-				appErr = addLocalLogs(rctx, logData, s, page, perPage, nodeName, logFilter)
-			}
+	// "default" stays an alias for the local node so pre-cluster-aware clients keep working.
+	wantLocal := len(logFilter.ServerNames) == 0
+	var remoteNames []string
+	for _, name := range logFilter.ServerNames {
+		if name == localName || name == "default" {
+			wantLocal = true
+		} else {
+			remoteNames = append(remoteNames, name)
 		}
-	} else {
-		appErr = addLocalLogs(rctx, logData, s, page, perPage, serverName, logFilter)
 	}
+
+	logData := make(map[string][]string)
+	if wantLocal {
+		localLogs, appErr := s.GetLogsSkipSend(rctx, page, perPage, logFilter)
+		if appErr != nil {
+			return nil, appErr
+		}
+		logData[localName] = localLogs
+	}
+
+	wantRemote := len(logFilter.ServerNames) == 0 || len(remoteNames) > 0
+	if !clustered || !wantRemote {
+		return logData, nil
+	}
+
+	clusterLogs, appErr := cluster.QueryLogs(rctx, page, perPage)
 	if appErr != nil {
 		return nil, appErr
 	}
-
-	if s.platform.Cluster() != nil && *s.Config().ClusterSettings.Enable {
-		clusterLogs, err := s.platform.Cluster().QueryLogs(rctx, page, perPage)
-		if err != nil {
-			return nil, err
-		}
-
-		if clusterLogs != nil && len(serverNames) > 0 {
-			for _, filteredNodeName := range serverNames {
-				logData[filteredNodeName] = clusterLogs[filteredNodeName]
-			}
-		} else {
-			maps.Copy(logData, clusterLogs)
+	if len(logFilter.ServerNames) == 0 {
+		maps.Copy(logData, clusterLogs)
+	}
+	for _, name := range remoteNames {
+		if lines, ok := clusterLogs[name]; ok {
+			logData[name] = lines
 		}
 	}
 
 	return logData, nil
-}
-
-func addLocalLogs(rctx request.CTX, logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
-	currentServerLogs, err := s.GetLogsSkipSend(rctx, page, perPage, logFilter)
-	if err != nil {
-		return err
-	}
-
-	logData[serverName] = currentServerLogs
-	return nil
 }
 
 func (a *App) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
