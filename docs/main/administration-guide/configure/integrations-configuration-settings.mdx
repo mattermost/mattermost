@@ -250,7 +250,7 @@ The number of seconds to wait for external integration HTTP requests before timi
 
 To manage who can create personal access tokens or to search users by token ID, go to the **System Console \> Users** page.
 
-**False**: Personal access tokens are disabled on the server.
+**False**: Personal access tokens for user accounts are disabled. This setting doesn't disable bot account tokens.
 
 <table style={{width: '98%'}}>
 <colgroup>
@@ -262,6 +262,35 @@ To manage who can create personal access tokens or to search users by token ID, 
 </tr>
 </tbody>
 </table>
+
+### Maximum personal access token lifetime
+
+Set the maximum number of days a newly created or regenerated personal access token can remain valid. From Mattermost v12.0, this policy also applies to user-owned bot tokens. Plugin-owned bot tokens are exempt.
+
+- **0**: **(Default)** Tokens can be created without an expiry date.
+- **1–36500**: Tokens must expire within the specified number of days.
+
+Changing this setting doesn't change existing tokens. Use **Revoke non-compliant tokens** to revoke existing tokens that don't meet the policy.
+
+The policy continues to apply to user-owned bot tokens when **Enable personal access tokens** is disabled. Enable personal access tokens to edit the maximum lifetime and use the revocation controls in the System Console.
+
+<table style={{width: '98%'}}>
+<tbody>
+<tr>
+<td>The <code>config.json</code> setting is <code>ServiceSettings.MaximumPersonalAccessTokenLifetimeDays</code>, with a default value of <code>0</code>. The environment variable is <code>MM_SERVICESETTINGS_MAXIMUMPERSONALACCESSTOKENLIFETIMEDAYS</code>.</td>
+</tr>
+</tbody>
+</table>
+
+### Revoke non-compliant tokens
+
+After saving a positive maximum token lifetime, select **Revoke non-compliant tokens** to permanently revoke active tokens that never expire or expire beyond the current maximum. This includes user-owned bot tokens. Plugin-owned bot tokens are exempt.
+
+Review the number of affected tokens before confirming. The button is disabled when there are no non-compliant tokens.
+
+:::warning
+Revocation permanently deletes the affected tokens and their associated sessions. This can't be undone. Integrations using these tokens need replacement tokens to continue authenticating.
+:::
 
 ### Enforce incoming webhook channel locking
 

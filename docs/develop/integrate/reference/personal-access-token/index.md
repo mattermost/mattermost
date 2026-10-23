@@ -30,7 +30,7 @@ Then select **Save**.
 
     ![Create a Access Token in the Security tab under the Profile Menu.](access_token_create.png)
 
-7. Enter a description for the token, so you remember what it's used for. Then select **Save**.
+7. Enter a description for the token, choose an expiry using **Expires**, then select **Save**. If your System Admin has configured a maximum token lifetime, choose an expiry within that limit.
 
     ![Save the Access Token with a description.](access_token_save.png)
 
@@ -69,7 +69,7 @@ Tokens can also be temporarily deactivated from the user's profile. Once deactiv
 
 ### How do personal access tokens differ from regular session tokens?
 
-- Personal access tokens do not expire. As a result, you can more easily integrate with Mattermost, bypassing the [session length limits set in the System Console](https://docs.mattermost.com/configure/environment-configuration-settings.html#session-lengths).
+- Personal access tokens can optionally expire on a selected date. If your System Admin enforces a maximum token lifetime, an expiry date is required.
 - Personal access tokens can be used to authenticate against the API more easily, including with AD/LDAP and SAML accounts.
 - You can optionally assign additional roles for the account creating personal access tokens. This lets the account post to any channel in Mattermost, including direct messages.
 
@@ -77,7 +77,7 @@ Besides the above differences, personal access tokens are exactly the same as re
 
 ### Can I set personal access tokens to expire?
 
-Not in Mattermost, but you can automate your integration to cycle its token [through the REST API](https://api.mattermost.com/#operation/CreateUserAccessToken).
+Yes. Choose an expiry when you create or regenerate a token. System Admins can require an expiry by configuring a maximum token lifetime in **System Console > Integrations > Integration Management**. From Mattermost v12.0, this policy also applies to user-owned bot tokens. Plugin-owned bot tokens remain exempt.
 
 ### How do I identify a badly behaving personal access token?
 

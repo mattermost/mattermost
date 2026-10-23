@@ -645,6 +645,7 @@ mmctl bot create [username] [flags]
 
 ``` sh
 mmctl bot create testbot
+mmctl bot create deploybot --with-token --expires-in 90d
 ```
 
 **Options**
@@ -653,7 +654,8 @@ mmctl bot create testbot
 --description string    Optional. The description text for the new bot.
 --display-name string   Optional. The display name for the new bot.
 -h, --help              help for create
---with-token            Optional. Auto genreate access token for the bot.
+--with-token            Optional. Auto generate access token for the bot.
+--expires-in string     Duration after which the generated token expires (e.g. 90d, 12h, 30m). Requires --with-token.
 ```
 
 **Options inherited from parent commands**
