@@ -200,6 +200,19 @@ export type ViewsState = {
         initChannelMembershipsLoaded: boolean;
     };
 
+    productRail: {
+
+        // Which channel list the LHS shows while the product rail is on and a plugin registers boards.
+        section: ProductRailSection;
+
+        // The path last viewed under each rail item, keyed by ProductRailTab then team id, so
+        // clicking an item returns to it.
+        lastPathByTeam: Record<string, Record<string, string>>;
+
+        // Whether the paths saved from earlier sessions have been restored.
+        lastPathsLoaded: boolean;
+    };
+
     addChannelCtaDropdown: {
         isOpen: boolean;
     };
@@ -218,3 +231,9 @@ export type ViewsState = {
         toastStatus: boolean;
     };
 };
+
+// Home shows channels and boards together; Channels and Boards each show only their own.
+export type ProductRailSection = 'home' | 'channels' | 'boards';
+
+// A rail item that remembers where the user was: a section, Threads, or a product as `product:<id>`.
+export type ProductRailTab = ProductRailSection | 'threads' | `product:${string}`;

@@ -13,7 +13,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {markAllInTeamAsRead} from 'mattermost-redux/actions/teams';
 import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
 import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled, get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
@@ -35,6 +35,7 @@ import {
     getCategoriesForCurrentTeam,
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
+import {getFirstBoardInCurrentTeam, getProductRailFilter} from 'selectors/views/product_rail';
 
 import type {GlobalState} from 'types/store';
 
@@ -67,6 +68,8 @@ function mapStateToProps(state: GlobalState) {
         hasUnreadThreads,
         markAllAsReadWithoutConfirm: getmarkAllAsReadWithoutConfirm(state) === 'true',
         markAllAsReadShortcutEnabled: getFeatureFlagValue(state, 'EnableShiftEscapeToMarkAllRead') === 'true',
+        isProductRailEnabled: isProductRailEnabled(state),
+        showNoBoards: getProductRailFilter(state) === 'boards' && !getFirstBoardInCurrentTeam(state),
         currentStaticPageId: getCurrentStaticPageId(state),
         staticPages: getVisibleStaticPages(state),
     };

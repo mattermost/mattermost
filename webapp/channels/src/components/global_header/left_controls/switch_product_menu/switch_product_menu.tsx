@@ -9,7 +9,7 @@ import type {ProductIdentifier} from '@mattermost/types/products';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
-import {getConfig, isCloudLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isCloudLicense, isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -69,6 +69,9 @@ export function SwitchProductMenu(props: Props) {
 
     const isChannelsProductActive = isChannels(props.productId);
 
+    // The product rail lists Channels and every product, so the menu keeps only the rest.
+    const productRailEnabled = useSelector(isProductRailEnabled);
+
     useEffect(() => {
         dispatch(getPrevTrialLicense());
     }, [dispatch]);
@@ -108,14 +111,18 @@ export function SwitchProductMenu(props: Props) {
                 />
             }
         >
-            <ProductSwitcherChannelsMenuItem
-                isChannelsProductActive={isChannelsProductActive}
-            />
-            <ProductSwitcherProductsMenuItems
-                currentProductID={props.productId}
-            />
+            {!productRailEnabled && (
+                <ProductSwitcherChannelsMenuItem
+                    isChannelsProductActive={isChannelsProductActive}
+                />
+            )}
+            {!productRailEnabled && (
+                <ProductSwitcherProductsMenuItems
+                    currentProductID={props.productId}
+                />
+            )}
             <ProductSwitcherPluginMenuItems/>
-            <Menu.Separator/>
+            {!productRailEnabled && <Menu.Separator/>}
             <ProductSwitcherCloudTrialMenuItem
                 isUserAdmin={isUserAdmin}
                 isCloudLicensed={isCloudLicensed}

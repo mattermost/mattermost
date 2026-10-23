@@ -1,0 +1,304 @@
+.ProductRail {
+    // Set off from the team sidebar by a darker shade of the theme's sidebar header color.
+    --product-rail-bg: color-mix(in srgb, var(--sidebar-header-bg) 76%, black);
+
+    z-index: 17;
+    display: flex;
+    overflow: auto;
+    width: 72px;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0 12px;
+    border-radius: var(--radius-l);
+    background: var(--product-rail-bg);
+    gap: 4px;
+    grid-area: product-rail;
+    scrollbar-width: none;
+
+    // Scoped under .app__body to win over the theme's link colors (.app__body a and its :hover).
+    .app__body &__item,
+    .app__body &__item:hover,
+    .app__body &__item:focus {
+        color: rgba(var(--sidebar-text-rgb), 0.75);
+        text-decoration: none;
+    }
+
+    &__item {
+        display: flex;
+        width: 64px;
+        flex-direction: column;
+        align-items: center;
+        padding: 4px 0;
+
+        // Items without a destination render as buttons, which shouldn't look any different.
+        border: none;
+        border-radius: var(--radius-m);
+        background: none;
+        font-family: inherit;
+        gap: 4px;
+
+        &:hover .ProductRail__icon {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+        }
+
+        &:focus-visible {
+            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+            outline: none;
+        }
+
+        &--unread .ProductRail__label {
+            font-weight: 600;
+        }
+    }
+
+    .app__body &__item:hover,
+    .app__body &__item--active,
+    .app__body &__item--active:hover,
+    .app__body &__item--active:focus {
+        color: var(--sidebar-text);
+    }
+
+    &__item--active .ProductRail__icon,
+    &__item--active:hover .ProductRail__icon {
+        background: rgba(var(--sidebar-text-rgb), 0.16);
+    }
+
+    &__icon {
+        position: relative;
+        display: flex;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-m);
+        transition: background-color 0.15s ease;
+
+        svg {
+            fill: currentColor;
+        }
+
+        img {
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    &__label {
+        overflow: hidden;
+        max-width: 100%;
+        padding: 0 2px;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 14px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__badge {
+        position: absolute;
+        top: -4px;
+        right: -8px;
+        min-width: 18px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 8px;
+        background: var(--mention-bg);
+        box-shadow: 0 0 0 2px var(--product-rail-bg);
+        color: var(--mention-color);
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 16px;
+        text-align: center;
+
+        &--urgent {
+            background: var(--dnd-indicator);
+            color: var(--button-color);
+        }
+    }
+
+    &__dot {
+        position: absolute;
+        top: -1px;
+        right: -1px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--sidebar-text);
+        box-shadow: 0 0 0 2px var(--product-rail-bg);
+    }
+
+    &__teamButton {
+        position: relative;
+        display: flex;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-m);
+        margin: 0 0 4px;
+        background: none;
+
+        &:focus-visible {
+            box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
+            outline: none;
+        }
+
+        &:hover .ProductRail__teamAvatar--lg {
+            box-shadow: 0 0 0 2px rgba(var(--sidebar-text-rgb), 0.32), 0 2px 4px rgba(0, 0, 0, 0.32);
+        }
+    }
+
+    // The current team on top of one or two cards that peek out below it, hinting at the other teams.
+    &__teamStack {
+        position: relative;
+        display: block;
+        width: 40px;
+        height: 40px;
+        margin-bottom: 8px;
+
+        .ProductRail__dot {
+            z-index: 2;
+            top: -3px;
+            right: -3px;
+        }
+    }
+
+    &__teamStackCard {
+        position: absolute;
+        z-index: 0;
+        top: 4px;
+        right: 3px;
+        bottom: -4px;
+        left: 3px;
+        border-radius: var(--radius-m);
+        background: color-mix(in srgb, var(--sidebar-header-bg) 80%, var(--sidebar-text));
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+        &--back {
+            top: 8px;
+            right: 6px;
+            bottom: -8px;
+            left: 6px;
+            background: color-mix(in srgb, var(--sidebar-header-bg) 88%, var(--sidebar-text));
+        }
+    }
+
+    &__divider {
+        width: 32px;
+        height: 1px;
+        flex: 0 0 auto;
+        margin: 4px 0;
+        background: rgba(var(--sidebar-text-rgb), 0.16);
+    }
+
+    @media screen and (max-width: 768px) {
+        display: none;
+    }
+}
+
+.SidebarProductRailEmpty {
+    padding: 8px 20px;
+    color: rgba(var(--sidebar-text-rgb), 0.64);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+// The team menu renders in a popover outside the rail, so its indicators are styled at the top level.
+.ProductRail__menuBadge {
+    min-width: 20px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--mention-bg);
+    color: var(--mention-color);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+
+    &--urgent {
+        background: var(--dnd-indicator);
+        color: var(--button-color);
+    }
+}
+
+.ProductRail__menuDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--center-channel-color);
+}
+
+.ProductRail__teamAvatar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    background-color: color-mix(in srgb, var(--sidebar-header-bg) 70%, var(--sidebar-text));
+    background-position: center;
+    background-size: cover;
+    color: var(--sidebar-text);
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &--lg {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-m);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.32);
+        font-size: 14px;
+    }
+
+    // Menu rows sit on the center channel colors, so their avatar takes those.
+    &--md {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-m);
+        background-color: rgba(var(--center-channel-color-rgb), 0.16);
+        color: var(--center-channel-color);
+        font-size: 12px;
+    }
+}
+
+// The team menu opens to the right of the team stack, its top level with the stack's top. Menus
+// drop 4px below their button by default; this one sits 4px clear of it to the side instead.
+.MuiPopover-root.menu_menuStyled .MuiPaper-root:has(#productRailTeamMenu) {
+    margin-block-start: 0;
+    margin-inline-start: 4px;
+}
+
+// Teams lead the menu, so their rows are taller and their names bolder than the action below
+// them. Prefixed with .MuiPopover-root to outrank the menu item's own rules (its leading slot is
+// fixed at 18px, and its labels at 14px).
+.MuiPopover-root .ProductRail__teamMenuItem.MuiMenuItem-root {
+    min-height: 48px;
+
+    > .leading-element {
+        display: flex;
+        width: 32px;
+        height: 32px;
+        margin-inline-end: 12px;
+    }
+
+    .label-elements > .ProductRail__teamMenuLabel {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+}
+
+// With the rail on, the thread list stands in for the channel sidebar in Threads, so it takes the
+// sidebar's colors. Remapping the center channel variables (and the borders built from them, which
+// resolve where they're declared) recolors everything inside to match.
+#root:has(.ProductRail) .GlobalThreads .ThreadList {
+    --center-channel-bg: var(--sidebar-bg);
+    --center-channel-bg-rgb: var(--sidebar-bg-rgb);
+    --center-channel-color: var(--sidebar-text);
+    --center-channel-color-rgb: var(--sidebar-text-rgb);
+    --border-default: solid 1px rgba(var(--sidebar-text-rgb), 0.12);
+    --border-light: solid 1px rgba(var(--sidebar-text-rgb), 0.08);
+    --border-dark: solid 1px rgba(var(--sidebar-text-rgb), 0.16);
+
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
