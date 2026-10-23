@@ -69,8 +69,25 @@ export default class DirectChannelsModal {
         ).toHaveCount(count);
     }
 
+    /**
+     * Types into the search input and waits for the modal's server-side user search for that term.
+     * The modal first lists locally matching users, then swaps every row for a loading screen while
+     * that search runs, so a row clicked before it answers can be unmounted mid-click.
+     */
     async fillSearchInput(text: string) {
+        const term = text.trim();
+        const searchResponse = term
+            ? this.container
+                  .page()
+                  .waitForResponse(
+                      (response) =>
+                          response.url().endsWith('/api/v4/users/search') &&
+                          response.request().postDataJSON()?.term === term,
+                  )
+            : undefined;
+
         await this.searchInput.fill(text);
+        await searchResponse;
     }
 
     getUserResult(username: string) {
