@@ -14,11 +14,47 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
+
+func TestPopulateWebConnConfigRejectedResume(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	metricsMock := &mocks.MetricsInterface{}
+	// Pumping a connection reports its gauges, and registering it sets the user online,
+	// which broadcasts a status change.
+	metricsMock.On("IncrementHTTPWebSockets", mock.Anything).Maybe()
+	metricsMock.On("DecrementHTTPWebSockets", mock.Anything).Maybe()
+	metricsMock.On("IncrementWebSocketBroadcastUsersRegistered", mock.Anything, mock.Anything).Maybe()
+	metricsMock.On("DecrementWebSocketBroadcastUsersRegistered", mock.Anything, mock.Anything).Maybe()
+	metricsMock.On("IncrementWebsocketEvent", mock.Anything).Maybe()
+	metricsMock.On("IncrementWebSocketBroadcastBufferSize", mock.Anything, mock.Anything).Maybe()
+	metricsMock.On("DecrementWebSocketBroadcastBufferSize", mock.Anything, mock.Anything).Maybe()
+	metricsMock.On("IncrementWebSocketBroadcast", mock.Anything).Maybe()
+	metricsMock.On("IncrementWebsocketReconnectEvent", reconnectNotFound, "1006", "mobile").Once()
+	metricsMock.On("IncrementWebsocketReconnectFailure", "old_conn_still_open", model.NewPointer(false), "1006", "mobile").Once()
+	th := Setup(t)
+	th.Service.metricsIFace = metricsMock
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+	wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+	cfg, err := th.Service.PopulateWebConnConfig(&model.Session{UserId: wc.UserId}, &WebConnConfig{
+		ConnectionID:      wc.GetConnectionID(),
+		OriginClient:      "mobile",
+		DisconnectErrCode: "1006",
+	}, "5")
+	require.NoError(t, err)
+	assert.NotEqual(t, wc.GetConnectionID(), cfg.ConnectionID)
+	assert.Zero(t, cfg.sequence)
+	metricsMock.AssertExpectations(t)
+}
 
 type hookRunner struct {
 }
@@ -139,6 +175,36 @@ func TestWebConnClearDeadQueue(t *testing.T) {
 	wc.clearDeadQueue()
 
 	assert.Equal(t, 0, wc.deadQueuePointer)
+}
+
+func TestDeadQueueBounds(t *testing.T) {
+	fill := func(n int) ([]*model.WebSocketEvent, int) {
+		dq := make([]*model.WebSocketEvent, deadQueueSize)
+		var ptr int
+		for i := range n {
+			dq[ptr] = model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "").SetSequence(int64(i))
+			ptr = (ptr + 1) % deadQueueSize
+		}
+		return dq, ptr
+	}
+
+	t.Run("partially filled", func(t *testing.T) {
+		oldest, newest := deadQueueBounds(fill(3))
+		assert.Equal(t, int64(0), oldest)
+		assert.Equal(t, int64(2), newest)
+	})
+
+	t.Run("exactly full", func(t *testing.T) {
+		oldest, newest := deadQueueBounds(fill(deadQueueSize))
+		assert.Equal(t, int64(0), oldest)
+		assert.Equal(t, int64(deadQueueSize-1), newest)
+	})
+
+	t.Run("wrapped", func(t *testing.T) {
+		oldest, newest := deadQueueBounds(fill(deadQueueSize + 10))
+		assert.Equal(t, int64(10), oldest)
+		assert.Equal(t, int64(deadQueueSize+9), newest)
+	})
 }
 
 func TestWebConnDrainDeadQueue(t *testing.T) {
