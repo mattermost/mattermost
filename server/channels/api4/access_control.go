@@ -1431,7 +1431,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ac []*model.PropertyField
 	var appErr *model.AppError
 
-	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, c.AppContext.Session().UserId)
+	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, sessionCallerID(c))
 
 	if appErr != nil {
 		c.Err = appErr

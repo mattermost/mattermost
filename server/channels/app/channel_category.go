@@ -344,7 +344,8 @@ func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *m
 // category entry points and channel creation's attribute values reach here
 // from the channel handlers, where the session's user ID is the right caller
 // to attribute the write to, and from PluginAPI.CreateChannel, which has no
-// session. A local-mode session (empty UserId, full privileges) is tagged
+// session. Post hydration uses it to identify the viewer of a post read. A
+// local-mode session (empty UserId, full privileges) is tagged
 // CallerIDLocalAdmin instead, matching how api4's sessionCallerID does it for
 // other property writes.
 func rctxWithSessionCallerID(rctx request.CTX) request.CTX {

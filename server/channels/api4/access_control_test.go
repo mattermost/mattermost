@@ -3546,6 +3546,33 @@ func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
 		require.Nil(t, find(asked, channelField.ID), "include_resource_fields must not surface a channel field while off")
 	})
 
+	// A local-mode session names no user, so the handler has to tag it as the
+	// local admin: an empty caller has the access control hook hide every
+	// field's options.
+	t.Run("local mode sees a field's options", func(t *testing.T) {
+		selectField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "clearance" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Secret"},
+					map[string]any{"name": "Top secret"},
+				},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		fields := get(t, th.LocalClient, "?limit=100")
+		found := find(fields, selectField.ID)
+		require.NotNil(t, found, "select field must be present for local mode")
+		cpaField, err := model.NewCPAFieldFromPropertyField(found)
+		require.NoError(t, err)
+		require.Len(t, cpaField.Attrs.Options, 2, "local mode must see the field's options")
+	})
+
 	t.Run("regular user without manage-system is denied when unscoped", func(t *testing.T) {
 		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100", "")
 		require.Error(t, err)

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -195,6 +196,27 @@ func TestHydratePropertyValues(t *testing.T) {
 		hydrated := th.prepare(t, post, th.groupID)
 		require.Len(t, hydrated.Metadata.PropertyValues, 2)
 		assert.Equal(t, []string{first.ID, second.ID}, valueFieldIDs(hydrated))
+	})
+
+	// A local-mode (mmctl --local) session names no user, so the viewer has to
+	// be tagged as the local admin; tagging its empty UserId would have the
+	// access control hook refuse the read and the post come back without values.
+	t.Run("a local-mode session gets values", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		post := th.post(t, th.BasicChannel)
+		th.setValue(t, post, field, `"confidential"`)
+
+		fresh, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr)
+		fresh.Metadata = nil
+		// Untagged, unlike th.Context, so only the session decides the caller.
+		viewer := request.EmptyContext(th.App.Log()).WithSession(&model.Session{Local: true})
+		hydrated := th.App.PreparePostForClient(viewer, fresh, &model.PreparePostForClientOpts{PropertyGroupID: th.groupID})
+
+		require.Len(t, hydrated.Metadata.PropertyValues, 1)
+		assert.Equal(t, field.ID, hydrated.Metadata.PropertyValues[0].FieldID)
+		assert.False(t, hydrated.Metadata.PropertyValuesUnavailable)
 	})
 
 	t.Run("a deleted post is never hydrated", func(t *testing.T) {
