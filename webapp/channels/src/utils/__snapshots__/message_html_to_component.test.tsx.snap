@@ -188,7 +188,6 @@ exports[`messageHtmlToComponent html 1`] = `
 <div>
   <div
     class="post-code"
-    data-language="html"
   >
     <div
       class="post-code__overlay"
@@ -233,7 +232,6 @@ exports[`messageHtmlToComponent latex 1`] = `
 
   <div
     class="post-code"
-    data-language="latex"
   >
     <div
       class="post-code__overlay"
@@ -268,7 +266,6 @@ exports[`messageHtmlToComponent latex 1`] = `
   </div>
   <div
     class="post-code"
-    data-language="latex"
   >
     <div
       class="post-code__overlay"
@@ -353,7 +350,6 @@ exports[`messageHtmlToComponent typescript 1`] = `
 <div>
   <div
     class="post-code"
-    data-language="typescript"
   >
     <div
       class="post-code__overlay"

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {postHtmlToMarkdown} from 'utils/post_html_to_markdown';
+import turndownService from 'utils/turndown';
 
 const MESSAGE_TEXT_SELECTOR = '.post-message__text';
 const CENTER_POST_ID_PREFIX = 'post_';
@@ -114,6 +114,13 @@ function getSelectedHtml(range: Range, messageElement: Element): HTMLElement {
     for (let element = getElement(range.commonAncestorContainer); element && element !== messageElement && messageElement.contains(element); element = element.parentElement) {
         const wrapper = element.cloneNode(false);
         wrapper.appendChild(content);
+
+        // The language of a code block is read from its label, which isn't part of a selection inside the code
+        const languageLabel = element.classList.contains('post-code') ? element.querySelector('.post-code__language') : null;
+        if (languageLabel && !(wrapper as Element).querySelector('.post-code__language')) {
+            wrapper.appendChild(languageLabel.cloneNode(true));
+        }
+
         content = wrapper;
     }
 
@@ -183,7 +190,7 @@ export function getQuotableSelection(selection: Selection | null): QuotableSelec
     if (!plainText.trim()) {
         return null;
     }
-    const text = postHtmlToMarkdown(getSelectedHtml(quotedRange, messageElement)) || plainText;
+    const text = turndownService.turndown(getSelectedHtml(quotedRange, messageElement)).trim() || plainText;
 
     const isRHS = postElement.id.startsWith(RHS_POST_ID_PREFIX);
     const postId = postElement.id.slice((isRHS ? RHS_POST_ID_PREFIX : CENTER_POST_ID_PREFIX).length);

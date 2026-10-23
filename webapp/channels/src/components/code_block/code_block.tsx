@@ -103,10 +103,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
         });
 
     return (
-        <div
-            className={className}
-            data-language={language || undefined}
-        >
+        <div className={className}>
             <div className='post-code__overlay'>
                 <CopyButton content={code}/>
                 {pluginItems}
