@@ -376,6 +376,24 @@ class MainTest(unittest.TestCase):
         os.environ["DRY_RUN"] = "true"
         gc.main()
 
+    def test_empty_proposal_still_asks_for_the_list(self):
+        self.changelog.write_text(gc.CHANGELOG_HEADER_TEMPLATE.format(major=12) + "\n\n" + ENTRY_V12_1)
+        body = self.tmp / "body.md"
+        body.write_text("Auto-generated changelog.")
+        os.environ.update({
+            "MODE": "update", "PR_BODY_FILE": str(body), "RELEASE_BASE_REF": "",
+            "SOURCES_SEED_BEFORE": "2026-01-01T00:00:00Z",
+        })
+        gc.main()
+        payload = self._payload()
+        self.assertEqual(payload["proposed_sources"], [])
+        self.assertEqual((self.out / "pr_body.md").read_text(), "Auto-generated changelog.")
+        summary = (self.out / "summary.md").read_text()
+        self.assertIn("Action needed: confirm the changelog sources", summary)
+        self.assertIn("<!-- changelog-sources:  -->", summary)
+        self.assertNotIn("No new release notes", summary)
+        self.assertEqual(gc.parse_sources_comment("<!-- changelog-sources:  -->"), set())
+
     def test_update_proposes_sources_for_a_pr_opened_before_source_tracking(self):
         self.changelog.write_text(gc.CHANGELOG_HEADER_TEMPLATE.format(major=12) + "\n\n" + ENTRY_V12_1)
         body = self.tmp / "body.md"

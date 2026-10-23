@@ -1258,7 +1258,7 @@ def render_summary(payload: dict, entry: str) -> str:
     """The run summary: what was generated, the run's metrics, and the PRs that need a look."""
     metrics = payload["metrics"]
     lines = [f"## {payload['version']} changelog ({payload['mode']})", ""]
-    if payload.get("proposed_sources"):
+    if payload.get("proposed_before"):
         proposed = payload["proposed_sources"]
         lines += [
             "### Action needed: confirm the changelog sources",
@@ -1630,7 +1630,8 @@ def main():
     # sent again on the next run instead of being skipped forever.
     unattributed = unattributed_sources(sources_by_id, referenced)
     included |= {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
-    if not proposed_sources:
+    # proposed_before is only left set when the run proposed a list instead of updating.
+    if not proposed_before:
         pr_body = render_pr_body(pr_body, included)
 
     added_sources = set(sources_by_id.values())
