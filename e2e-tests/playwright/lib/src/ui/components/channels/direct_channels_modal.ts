@@ -75,14 +75,13 @@ export default class DirectChannelsModal {
      * that search runs, so a row clicked before it answers can be unmounted mid-click.
      */
     async fillSearchInput(text: string) {
-        const term = text.trim();
-        const searchResponse = term
+        const searchResponse = text
             ? this.container
                   .page()
                   .waitForResponse(
                       (response) =>
                           response.url().endsWith('/api/v4/users/search') &&
-                          response.request().postDataJSON()?.term === term,
+                          response.request().postDataJSON()?.term === text,
                   )
             : undefined;
 
