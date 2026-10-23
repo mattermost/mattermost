@@ -1574,6 +1574,8 @@ export default class PluginRegistry {
      *
      * Sub-paths (`/:team/channels/:channel/<subpath>`): pass `handlesSubpaths: true` to receive the
      * URL remainder as `subpath` (e.g. `'pages/abc123'`), so the plugin can deep link into its view.
+     * At the channel root `subpath` is `''`; it is only `undefined` without `handlesSubpaths`, so a
+     * string value means the server supports sub-paths.
      * A 26-character id after the channel is always treated as a permalink. Otherwise, once the
      * channel has loaded, core redirects a sub-path URL to the channel root, so the matcher must
      * already return true by then (load the state it depends on in `initialize`).

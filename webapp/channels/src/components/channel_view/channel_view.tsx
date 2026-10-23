@@ -128,10 +128,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
     getHandledSubpath = () => {
         const {match, channelViewPluginComponent} = this.props;
-        if (match.params.subpath && channelViewPluginComponent?.handlesSubpaths && this.isRouteChannelCurrent()) {
-            return match.params.subpath;
+        if (!channelViewPluginComponent?.handlesSubpaths) {
+            return undefined;
         }
-        return undefined;
+        return (this.isRouteChannelCurrent() && match.params.subpath) || '';
     };
 
     redirectUnhandledSubpath = () => {
