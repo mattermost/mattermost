@@ -1215,6 +1215,111 @@ def _insert_heading_block(lines, start, end, level, title, order, block_lines) -
         lines[at:at] = body + [""]
 
 
+def _entry_start(lines: list[str], version_short: str) -> int | None:
+    heading_re = re.compile(r"^## Release " + re.escape(version_short) + r"\b(?!\.)")
+    return next((i for i, line in enumerate(lines) if heading_re.match(line)), None)
+
+
+def _section_of(lines: list[str], start: int, index: int) -> tuple[str | None, str | None]:
+    """The ``###`` section and ``####`` subsection line ``index`` sits under."""
+    subsection = None
+    for i in range(index, start, -1):
+        if lines[i].startswith("#### ") and subsection is None:
+            subsection = lines[i][5:].strip()
+        elif lines[i].startswith("### "):
+            return lines[i][4:].strip(), subsection
+    return None, subsection
+
+
+def _bullet_text(line: str) -> str:
+    match = _BULLET_RE.match(line)
+    return match.group(1) if match else line.strip()
+
+
+_GO_LINE_RE = re.compile(r"(is built with Go\s+``)(v?[\d.]+)(``)")
+
+
+def replace_entry_go_version(content: str, version_short: str, go_version: str) -> tuple[str, str | None, str | None]:
+    """Set the Go version in the entry's ``### Go Version`` line.
+
+    Returns (content, the version the entry had or None when it has no such line, the
+    line as written). Only the version is replaced, so a reviewer's wording is kept.
+    """
+    lines = content.split("\n")
+    start = _entry_start(lines, version_short)
+    if start is None:
+        return content, None, None
+    end = _region_end(lines, start, r"^## ")
+    go = next((i for i in range(start, end) if re.match(r"^### +Go Version\s*$", lines[i])), None)
+    if go is None:
+        return content, None, None
+    for i in range(go + 1, _region_end(lines, go, r"^#{2,3} ")):
+        match = _GO_LINE_RE.search(lines[i])
+        if match:
+            lines[i] = lines[i][:match.start(2)] + go_version + lines[i][match.end(2):]
+            return "\n".join(lines), normalize_go_version(match.group(2)), _bullet_text(lines[i])
+    return content, None, None
+
+
+_DIFF_DERIVED = ("plugin:", "websocket:", "migration:")
+
+
+def reconcile_derived(content: str, version_short: str, included: set, derived: list[dict]) -> tuple[str, set, set, list[dict]]:
+    """Bring bullets read from an earlier release diff in line with the current one.
+
+    A plugin bumped again since the last run (calls@v1.12.6, now v1.12.7) gets a new
+    source key, so on its own it would be added as a second bullet claiming both
+    versions ship. When the old version's release link appears exactly once in the
+    entry, it is replaced in place and the key swapped. Otherwise, or when an included
+    change is no longer in the diff at all, the bullet is left for a reviewer and the
+    newer note is withheld until the sources list says it is handled.
+
+    Returns (content, included, sources to withhold, one result per reconciled source).
+    """
+    lines = content.split("\n")
+    start = _entry_start(lines, version_short)
+    if start is None:
+        return content, included, set(), []
+    end = _region_end(lines, start, r"^## ")
+    current = {note["source"] for note in derived}
+    plugins = {}
+    for source in current:
+        if source.startswith("plugin:"):
+            package, _, version = source[len("plugin:"):].rpartition("@")
+            plugins[package] = version
+
+    included = set(included)
+    withheld, results = set(), []
+    for source in sorted(s for s in included if s.startswith(_DIFF_DERIVED) and s not in current):
+        result = {"source": source, "status": "needs_review", "replaced_by": None, "section": None, "subsection": None}
+        package, _, old = source[len("plugin:"):].rpartition("@") if source.startswith("plugin:") else ("", "", "")
+        new = plugins.get(package) if package else None
+        if new is None:
+            result["detail"] = "no longer in the release diff; the bullet may describe a change that was reverted"
+            result["remedy"] = f"Remove or correct the bullet, then drop `{source}` from the changelog-sources comment."
+            results.append(result)
+            continue
+
+        newer = f"plugin:{package}@{new}"
+        result["replaced_by"] = newer
+        withheld.add(newer)
+        old_link = changelog_release.plugin_version_link(package, old)
+        hits = [i for i in range(start, end) if old_link in lines[i]]
+        if old != "removed" and new != "removed" and len(hits) == 1 and lines[hits[0]].count(old_link) == 1:
+            lines[hits[0]] = lines[hits[0]].replace(old_link, changelog_release.plugin_version_link(package, new))
+            included.discard(source)
+            included.add(newer)
+            result.update(status="replaced", text=_bullet_text(lines[hits[0]]),
+                          detail=f"{old} replaced by {new}, the version the release branch now ships")
+            result["section"], result["subsection"] = _section_of(lines, start, hits[0])
+        else:
+            result["detail"] = f"the entry says {old}, the release branch now ships {new}"
+            result["remedy"] = (f"Correct the bullet, then replace `{source}` with `{newer}` in the "
+                                "changelog-sources comment.")
+        results.append(result)
+    return "\n".join(lines), included, withheld, results
+
+
 def merge_into_entry(content: str, version_short: str, fragment: str) -> str:
     """Add the bullets of ``fragment`` to the ``version_short`` entry in ``content``.
 
@@ -1223,8 +1328,7 @@ def merge_into_entry(content: str, version_short: str, fragment: str) -> str:
     canonical position; one it already has receives the new bullets at its end.
     """
     lines = content.split("\n")
-    heading_re = re.compile(r"^## Release " + re.escape(version_short) + r"\b(?!\.)")
-    entry_start = next((i for i, line in enumerate(lines) if heading_re.match(line)), None)
+    entry_start = _entry_start(lines, version_short)
     if entry_start is None:
         raise RuntimeError(
             f"Could not find the '## Release {version_short}' entry to update. It may "
@@ -1354,11 +1458,13 @@ def preflight_checks(changelog_path: str, mode: str, milestones: dict, go_source
 
 
 def gap_status(derived: list[dict], refs_read: bool, go_version: str, go_source: str | None,
-               previous_go: str | None) -> list[dict]:
-    """The sections no developer note fills: ready, no_changes_this_release or not_yet_checked.
+               previous_go: str | None, entry_go: dict | None = None) -> list[dict]:
+    """The sections no developer note fills: ready, no_changes_this_release, not_yet_checked
+    or needs_review.
 
     A section is never ready just because nothing was found; with no refs to diff it
-    was not checked at all.
+    was not checked at all. ``entry_go`` is given in update mode: ``{"had": version}``,
+    the Go version the entry said before this run, None when it has no Go line.
     """
     def of(prefix):
         return [note["source"] for note in derived if note["source"].startswith(prefix)]
@@ -1380,10 +1486,19 @@ def gap_status(derived: list[dict], refs_read: bool, go_version: str, go_source:
                f"{len(migrations)} new migration(s): {', '.join(s.split(':', 1)[1] for s in migrations)}"),
         diffed("Pre-packaged plugins", plugins, f"{len(plugins)} plugin(s) bumped or removed"),
     ]
-    if go_source:
+    if go_source and entry_go is not None and entry_go["had"] is None:
+        gaps.append({"section": "Go version", "status": "needs_review",
+                     "detail": f"{normalize_go_version(go_version)} from {go_source}, but the entry has no "
+                               "`is built with Go ``vX.Y.Z``` line under ### Go Version to update; add it"})
+    elif go_source:
         formatted = normalize_go_version(go_version)
-        unchanged = " (unchanged from the previous entry)" if previous_go == formatted else ""
-        gaps.append({"section": "Go version", "status": "ready", "detail": f"{formatted} from {go_source}{unchanged}"})
+        if entry_go is not None and entry_go["had"] != formatted:
+            note = f" (the entry said {entry_go['had']}; updated)"
+        elif entry_go is not None:
+            note = " (matches the entry)"
+        else:
+            note = " (unchanged from the previous entry)" if previous_go == formatted else ""
+        gaps.append({"section": "Go version", "status": "ready", "detail": f"{formatted} from {go_source}{note}"})
     else:
         gaps.append({"section": "Go version", "status": "not_yet_checked", "detail": "not read from the release branch"})
     benchmark = of("benchmark:")
@@ -1403,7 +1518,8 @@ def missing_by_owner(flagged: list[dict]) -> list[dict]:
 
 
 _STATUS_ICONS = {"pass": "✅", "fail": "❌", "unknown": "❔", "ready": "✅",
-                 "no_changes_this_release": "➖", "not_yet_checked": "⏳"}
+                 "no_changes_this_release": "➖", "not_yet_checked": "⏳", "needs_review": "⚠️",
+                 "replaced": "🔁"}
 
 
 def render_status(readiness: dict) -> list[str]:
@@ -1436,6 +1552,14 @@ def render_status(readiness: dict) -> list[str]:
         blocks = " (blocks publish)" if gap.get("blocks_publish") else ""
         lines.append(f"- {_STATUS_ICONS[gap['status']]} **{gap['section']}**: {gap['detail']}{blocks}")
     lines.append("")
+
+    reconciled = readiness.get("reconciled", [])
+    if reconciled:
+        lines += ["### Bullets from an earlier release diff that no longer match it", ""]
+        for item in reconciled:
+            line = f"- {_STATUS_ICONS[item['status']]} `{item['source']}`: {item['detail']}"
+            lines.append(line + (f". {item['remedy']}" if item["status"] == "needs_review" else "."))
+        lines.append("")
 
     if readiness["note_quality"]:
         lines += [f"### Note quality: {len(readiness['note_quality'])} note(s) will need rewriting", ""]
@@ -1685,6 +1809,12 @@ def main():
         print()
     all_notes += derived
 
+    version_short = changelog_release.short_version(VERSION)
+    # Derived from VERSION by default so a new major version needs no edit here, and
+    # cannot land in the previous major's file. CHANGELOG_PATH overrides it.
+    changelog_path = os.environ.get("CHANGELOG_PATH") or changelog_path_for_version(VERSION)
+    print(f"📄 Changelog file: {changelog_path}")
+
     # In update mode only the PRs the open changelog PR does not already include are
     # generated. Which PRs those are is read from the PR body, not from the entry text,
     # so a bullet a reviewer has rewritten is still recognised as present.
@@ -1695,6 +1825,8 @@ def main():
     included = set()
     proposed_before = os.environ.get("SOURCES_SEED_BEFORE", "").strip() if mode == "update" else ""
     proposed_sources = []
+    original_content = content = None
+    withheld, reconciled, extra_items = set(), [], []
     body_file = os.environ.get("PR_BODY_FILE", "").strip()
     if body_file and os.path.exists(body_file):
         with open(body_file, "r", encoding="utf-8") as f:
@@ -1724,16 +1856,25 @@ def main():
             )
         else:
             proposed_before = ""
+            if os.path.exists(changelog_path):
+                with open(changelog_path, "r", encoding="utf-8") as f:
+                    original_content = content = f.read()
         included = listed
-        all_notes = [note for note in all_notes if note["source"] not in included]
+        if content is not None and base_ref and head_ref:
+            content, included, withheld, reconciled = reconcile_derived(content, version_short, included, derived)
+            for item in reconciled:
+                if item["status"] == "replaced":
+                    print(f"🔁 {item['source']}: {item['detail']}")
+                    extra_items.append({"section": item["section"], "subsection": item["subsection"],
+                                        "text": item["text"], "sources": [item["replaced_by"]]})
+                else:
+                    print(f"::warning title=Changelog bullet needs review::{item['source']}: {item['detail']}. {item['remedy']}")
+        all_notes = [note for note in all_notes if note["source"] not in included | withheld]
         print(f"ℹ️  {len(included)} source(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
 
     for number, note in enumerate(all_notes, start=1):
         note["id"] = f"N{number}"
     sources_by_id = {note["id"]: note["source"] for note in all_notes}
-
-    # Derive short version for heading/anchor: "v11.7.0" → "v11.7", "11.7.0" → "v11.7"
-    version_short = "v" + re.sub(r"\.0$", "", VERSION.lstrip("v"))
 
     release_type = os.environ.get("RELEASE_TYPE", "feature").strip().lower()
     release_date = os.environ.get("RELEASE_DATE", "").strip() or date.today().strftime("%Y-%m-%d")
@@ -1748,10 +1889,19 @@ def main():
         if go_version:
             go_source = f"{head_ref}:{changelog_release.BUILDENV_DOCKERFILE}"
             print(f"ℹ️  Go version read from {go_source}: {go_version}")
-    # Derived from VERSION by default so a new major version needs no edit here, and
-    # cannot land in the previous major's file. CHANGELOG_PATH overrides it.
-    changelog_path = os.environ.get("CHANGELOG_PATH") or changelog_path_for_version(VERSION)
-    print(f"📄 Changelog file: {changelog_path}")
+
+    # The entry's Go Version section is written once, on create; a later Go bump on the
+    # release branch is applied to it here.
+    entry_go = None
+    if content is not None and go_source:
+        formatted_go = normalize_go_version(go_version)
+        content, had, go_line = replace_entry_go_version(content, version_short, formatted_go)
+        entry_go = {"had": had}
+        if had is None:
+            print(f"::warning title=Go version needs review::The {version_short} entry has no Go version line to set to {formatted_go}")
+        elif had != formatted_go:
+            print(f"🔁 Go version: {had} → {formatted_go}")
+            extra_items.append({"section": "Go Version", "subsection": None, "text": go_line, "sources": []})
 
     previous_go = None
     if mode == "create":
@@ -1771,7 +1921,8 @@ def main():
         "note_quality": note_quality,
         "doc_links": [{"source": source, **link} for source, link in docs_links.items() if link.get("url")],
         "doc_links_unclear": [{"source": source, **link} for source, link in docs_links.items() if link.get("candidates")],
-        "gaps": gap_status(derived, bool(base_ref and head_ref), go_version, go_source, previous_go),
+        "gaps": gap_status(derived, bool(base_ref and head_ref), go_version, go_source, previous_go, entry_go),
+        "reconciled": reconciled,
     }
     blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
     if blocking:
@@ -1799,6 +1950,7 @@ def main():
 
     if mode == "update":
         entry = ""
+        updated = content
         if all_notes:
             fragment, items, referenced, ai_polished = render_fragment(all_notes, sources_by_id)
             # The entry already has its Go Version section; a new ### Improvements
@@ -1808,16 +1960,17 @@ def main():
             if ai_polished:
                 check_for_truncation(fragment)
             require_sources_attributed(sources_by_id, referenced)
-            with open(changelog_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            updated = merge_into_entry(content, version_short, fragment)
+            updated = merge_into_entry(updated, version_short, fragment)
             require_fragment_merged(fragment, updated)
-            with open(changelog_path, "w", encoding="utf-8") as f:
-                f.write(updated)
             entry = fragment
             print(f"✅ Added {len(items)} bullet(s) from {len(sources_by_id)} note(s) to the {version_short} entry")
-        else:
+        elif updated == original_content:
             print("✅ No new release notes since the last run — changelog left unchanged")
+        changed = updated is not None and updated != original_content
+        if changed:
+            with open(changelog_path, "w", encoding="utf-8") as f:
+                f.write(updated)
+        items += extra_items
     else:
         # Anchor slugs replace dots with dashes: "v11.9" → "v11-9"
         version_slug_anchor = version_short.replace(".", "-")
@@ -1899,6 +2052,8 @@ def main():
         else:
             entry += go_section + "\n"
             entry += "\n_No other release notes for this version._\n"
+        items.append({"section": "Go Version", "subsection": None,
+                      "text": _bullet_text(go_section.split("\n", 1)[1]), "sources": []})
 
         # Last gate before the entry is written: fail the run rather than commit a
         # half-written sentence to customer-facing docs.
@@ -1969,6 +2124,8 @@ def main():
             "derived_changes": len(added_sources & derived_sources),
             "sources_added": len(added_sources),
             "bullets_written": len(items),
+            "bullets_corrected": len(extra_items),
+            "bullets_needing_review": sum(item["status"] == "needs_review" for item in reconciled),
             "sources_unattributed": len(unattributed),
             "ai_polished": ai_polished,
             "duration_seconds": round(time.monotonic() - started, 1),
@@ -1979,6 +2136,7 @@ def main():
     set_github_output("added_prs", len(added_sources - derived_sources))
     set_github_output("added_derived", len(added_sources & derived_sources))
     set_github_output("flagged_prs", len(flagged_prs))
+    set_github_output("corrected", len(extra_items))
 
     if no_notes_prs:
         print(f"\n⚠️  {len(no_notes_prs)} PR(s) had no release notes (marked NONE or section missing):")

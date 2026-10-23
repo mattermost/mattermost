@@ -342,7 +342,7 @@ See [this blog post](https://example.com) on the highlights in our latest releas
  - Fixed an issue that was already here.
 
 ### Go Version
- - v12.1 is built with Go ``v1.26.10``.
+ - v12.1 is built with Go ``v1.27.1``.
 """
 
 
@@ -583,6 +583,72 @@ class MainTest(unittest.TestCase):
         gc.main()
         self.assertEqual(self.changelog.read_text(), after)
         self.assertFalse(self._payload()["changed"])
+
+    def _update_with(self, entry, sources):
+        self.changelog.write_text(gc.CHANGELOG_HEADER_TEMPLATE.format(major=12) + "\n\n" + entry)
+        body = self.tmp / "body.md"
+        body.write_text(gc.render_pr_body("Changelog.", set(sources)))
+        os.environ.update({"MODE": "update", "PR_BODY_FILE": str(body)})
+        gc.main()
+        return self.changelog.read_text(), self._payload()
+
+    def test_update_follows_a_go_bump_on_the_release_branch(self):
+        prs = ["mattermost/mattermost#1", "mattermost/mattermost#2", "plugin:mattermost-plugin-calls@v1.12.6"]
+        content, payload = self._update_with(ENTRY_V12_1.replace("v1.27.1", "v1.26.10"), prs)
+        self.assertIn("v12.1 is built with Go ``v1.27.1``.", content)
+        self.assertNotIn("v1.26.10", content)
+        self.assertTrue(payload["changed"])
+        self.assertEqual(payload["sections"], [{"section": "Go Version", "subsection": None, "items": [
+            {"text": "v12.1 is built with Go ``v1.27.1``.", "sources": []}]}])
+        gap = next(g for g in payload["readiness"]["gaps"] if g["section"] == "Go version")
+        self.assertEqual(gap["status"], "ready")
+        self.assertIn("the entry said v1.26.10; updated", gap["detail"])
+
+        content, payload = self._update_with(ENTRY_V12_1.replace(" - v12.1 is built with Go ``v1.27.1``.\n", ""), prs)
+        self.assertFalse(payload["changed"])
+        gap = next(g for g in payload["readiness"]["gaps"] if g["section"] == "Go version")
+        self.assertEqual(gap["status"], "needs_review")
+        self.assertIn("⚠️ **Go version**", (self.out / "summary.md").read_text())
+
+    def test_update_replaces_a_plugin_version_bumped_again_since_the_last_run(self):
+        old = "[v1.12.5](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.5)"
+        new = "[v1.12.6](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.6)"
+        entry = ENTRY_V12_1.replace(
+            "### Go Version", f"### Open Source Components\n - Reviewer wording for Calls {old}, kept.\n\n### Go Version")
+        prs = ["mattermost/mattermost#1", "mattermost/mattermost#2", "plugin:mattermost-plugin-calls@v1.12.5"]
+        content, payload = self._update_with(entry, prs)
+        self.assertIn(f" - Reviewer wording for Calls {new}, kept.", content)
+        self.assertNotIn("v1.12.5", content)
+        self.assertEqual(content.count("mattermost-plugin-calls"), 1)
+        recorded = gc.parse_sources_comment((self.out / "pr_body.md").read_text())
+        self.assertIn("plugin:mattermost-plugin-calls@v1.12.6", recorded)
+        self.assertNotIn("plugin:mattermost-plugin-calls@v1.12.5", recorded)
+        self.assertEqual(payload["sections"][0]["section"], "Open Source Components")
+        self.assertEqual(payload["metrics"]["bullets_corrected"], 1)
+        self.assertEqual(payload["readiness"]["reconciled"][0]["status"], "replaced")
+
+    def test_update_leaves_an_ambiguous_plugin_bullet_for_a_reviewer(self):
+        entry = ENTRY_V12_1.replace(
+            "### Go Version", "### Open Source Components\n - Calls was rewritten without its link.\n\n### Go Version")
+        prs = ["mattermost/mattermost#1", "mattermost/mattermost#2",
+               "plugin:mattermost-plugin-calls@v1.12.5", "websocket:gone@added"]
+        content, payload = self._update_with(entry, prs)
+        self.assertNotIn("v1.12.6", content)
+        self.assertFalse(payload["changed"])
+        recorded = gc.parse_sources_comment((self.out / "pr_body.md").read_text())
+        self.assertEqual(recorded, set(prs))
+        results = {item["source"]: item for item in payload["readiness"]["reconciled"]}
+        self.assertEqual({item["status"] for item in results.values()}, {"needs_review"})
+        self.assertIn("replace `plugin:mattermost-plugin-calls@v1.12.5` with `plugin:mattermost-plugin-calls@v1.12.6`",
+                      results["plugin:mattermost-plugin-calls@v1.12.5"]["remedy"])
+        self.assertIn("no longer in the release diff", results["websocket:gone@added"]["detail"])
+        self.assertEqual(payload["metrics"]["bullets_needing_review"], 2)
+
+    def test_create_reports_the_go_bullet_in_sections(self):
+        gc.main()
+        go = [group for group in self._payload()["sections"] if group["section"] == "Go Version"]
+        self.assertEqual(go, [{"section": "Go Version", "subsection": None, "items": [
+            {"text": "v12.1 is built with Go ``v1.27.1``.", "sources": []}]}])
 
 
 if __name__ == "__main__":

@@ -298,6 +298,7 @@ jobs:
           CHANGED: ${{ steps.generate.outputs.changed }}
           ADDED_PRS: ${{ steps.generate.outputs.added_prs }}
           ADDED_DERIVED: ${{ steps.generate.outputs.added_derived }}
+          CORRECTED: ${{ steps.generate.outputs.corrected }}
         run: |
           BODY_FILE="$RUNNER_TEMP/changelog-output/pr_body.md"
           git config user.name "$COMMIT_USER_NAME"
@@ -312,7 +313,7 @@ jobs:
             fi
             git add "$CHANGELOG_FILE"
             git diff --staged --quiet && echo "No changes to commit" && exit 0
-            git commit -m "docs: add release notes from $ADDED_PRS newly merged PR(s) and $ADDED_DERIVED release change(s) to the $VERSION changelog"
+            git commit -m "docs: add release notes from $ADDED_PRS newly merged PR(s) and $ADDED_DERIVED release change(s) to the $VERSION changelog, and correct ${CORRECTED:-0} bullet(s)"
             git push origin "HEAD:changelog/$VERSION"
             gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
             echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
