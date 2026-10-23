@@ -1637,7 +1637,12 @@ def render_status(readiness: dict) -> list[str]:
         for link in links:
             where = ""
             if "used_in" in link:
-                where = f" (linked in {', '.join(link['used_in'])})" if link["used_in"] else " (no bullet links it)"
+                if link["used_in"]:
+                    where = f" (linked in {', '.join(link['used_in'])})"
+                elif link.get("linked_elsewhere"):
+                    where = f" (linked from the bullet for {', '.join(pr(s) for s in link['linked_elsewhere'])} instead)"
+                else:
+                    where = " (no bullet links it)"
             lines.append(f"- {pr(link['source'])} is documented in {_docs_link(link['url'], link.get('title'))}{where}. "
                          f"Basis: {link['basis']}.")
         if unclear:
@@ -2221,6 +2226,12 @@ def main():
             item["subsection"] or item["section"] for item in items
             if link["source"] in item["sources"] and link["url"] in item["text"]
         ]
+        # The model may put the link on a related feature's bullet instead.
+        link["linked_elsewhere"] = sorted({
+            source for item in items
+            if link["source"] not in item["sources"] and link["url"] in item["text"]
+            for source in item["sources"]
+        }, key=_source_sort_key)
 
     added_sources = set(sources_by_id.values())
     derived_sources = {note["source"] for note in derived}

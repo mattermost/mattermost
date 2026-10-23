@@ -500,6 +500,26 @@ class MainTest(unittest.TestCase):
         self.assertIn("changed in the same PR, which added the page", link["basis"])
         self.assertIn(f"is documented in [Feature]({url}) (linked in Administration)", (self.out / "summary.md").read_text())
 
+    def test_docs_link_on_another_prs_bullet_is_reported_there(self):
+        self.details[1] = {"head_ref": "MM-123-feature", "files": [{
+            "filename": "docs/main/administration-guide/manage/admin/feature.mdx", "status": "added",
+            "patch": "+# Feature\n+\n+Use the feature.\n",
+        }]}
+        pages = {"docs/main/administration-guide/manage/admin/feature.mdx": "---\ntitle: Feature\n---\n# Feature\n"}
+        gc.changelog_release.git_show = lambda ref, path: pages.get(path, "FROM golang:1.27.1-bookworm\n")
+        self.site_pages.update(pages)
+
+        def polish(notes):
+            url = next(n["docs_url"] for n in notes if n.get("docs_url"))
+            return (f"### Improvements\n\n#### Administration\n - Added the feature. [[N1]]\n"
+                    f" - Extended the [feature]({url}). [[N2]]\n - Pre-packaged Calls plugin version [v1.12.6](https://example.com). [[N3]]\n"), True
+        gc.polish_with_ai = polish
+        gc.main()
+        link = self._payload()["readiness"]["doc_links"][0]
+        self.assertEqual((link["used_in"], link["linked_elsewhere"]), ([], ["mattermost/mattermost#2"]))
+        self.assertIn("(linked from the bullet for [mattermost/mattermost#2](https://github.com/mattermost/mattermost/pull/2) instead)",
+                      (self.out / "summary.md").read_text())
+
     def test_docs_line_outranks_the_followed_page_and_is_checked(self):
         self.details[1] = {"head_ref": "MM-123-feature", "files": [{
             "filename": "docs/main/administration-guide/manage/admin/feature.mdx", "status": "added",
@@ -526,7 +546,7 @@ class MainTest(unittest.TestCase):
         readiness = self._payload()["readiness"]
         self.assertEqual(readiness["doc_links"], [{
             "source": "mattermost/mattermost#1", "url": named, "title": "Named page",
-            "basis": "named on the Docs: line of the PR's release note", "used_in": [],
+            "basis": "named on the Docs: line of the PR's release note", "used_in": [], "linked_elsewhere": [],
         }])
         self.assertEqual(readiness["doc_links_named_broken"][0]["source"], "mattermost/mattermost#2")
         self.assertNotIn("Docs:", self.changelog.read_text())
