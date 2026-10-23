@@ -15,6 +15,9 @@ import Constants from 'utils/constants';
 type Props = {
     onExited: () => void;
     channel: Channel;
+
+    /** Whether the channel is a board, so the modal says "board" rather than "channel". */
+    isBoard?: boolean;
     actions: ChannelDetailsActions;
 };
 
@@ -61,22 +64,40 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                         componentClass='h1'
                         id='unarchiveChannelModalLabel'
                     >
-                        <FormattedMessage
-                            id='unarchive_channel.confirm'
-                            defaultMessage='Confirm UNARCHIVE Channel'
-                        />
+                        {this.props.isBoard ? (
+                            <FormattedMessage
+                                id='unarchive_channel.confirm.board'
+                                defaultMessage='Confirm UNARCHIVE Board'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='unarchive_channel.confirm'
+                                defaultMessage='Confirm UNARCHIVE Channel'
+                            />
+                        )}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='alert alert-danger'>
-                        <FormattedMessage
-                            id='unarchiveChannelModal.viewArchived.question'
-                            defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> channel?'}
-                            values={{
-                                display_name: this.props.channel.display_name,
-                                b: (chunks) => <b>{chunks}</b>,
-                            }}
-                        />
+                        {this.props.isBoard ? (
+                            <FormattedMessage
+                                id='unarchiveChannelModal.viewArchived.question.board'
+                                defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> board?'}
+                                values={{
+                                    display_name: this.props.channel.display_name,
+                                    b: (chunks) => <b>{chunks}</b>,
+                                }}
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='unarchiveChannelModal.viewArchived.question'
+                                defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> channel?'}
+                                values={{
+                                    display_name: this.props.channel.display_name,
+                                    b: (chunks) => <b>{chunks}</b>,
+                                }}
+                            />
+                        )}
                     </div>
                 </Modal.Body>
                 <Modal.Footer>

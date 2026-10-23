@@ -966,6 +966,38 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 	return list, appErr
 }
 
+func (api *PluginAPI) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	if !model.IsValidId(threadID) {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	followers, err := api.app.Srv().Store().Thread().GetThreadFollowers(threadID, true)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.get_thread_followers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return followers, nil
+}
+
+func (api *PluginAPI) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	if !model.IsValidId(userID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !model.IsValidId(threadID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	post, appErr := api.app.GetSinglePost(api.ctx, threadID, false)
+	if appErr != nil {
+		return appErr
+	}
+	if post.RootId != "" {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.not_root_post.app_error", nil, "", http.StatusBadRequest)
+	}
+	channel, appErr := api.app.GetChannel(api.ctx, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+	return api.app.UpdateThreadFollowForUser(userID, channel.TeamId, threadID, following)
+}
+
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {

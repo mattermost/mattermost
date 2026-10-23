@@ -45,10 +45,16 @@ function renderFormattedText(value: unknown, options?: Partial<TextFormattingOpt
     );
 }
 
-function renderJoinChannelMessage(post: Post): ReactNode {
+function renderJoinChannelMessage(post: Post, isBoard: boolean): ReactNode {
     const username = renderUsername(post.props.username);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.join_channel.post_and_forget.board'
+            defaultMessage='{username} joined the board.'
+            values={{username}}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.join_channel.post_and_forget'
             defaultMessage='{username} joined the channel.'
@@ -57,13 +63,19 @@ function renderJoinChannelMessage(post: Post): ReactNode {
     );
 }
 
-function renderGuestJoinChannelMessage(post: Post, hideGuestTags: boolean): ReactNode {
+function renderGuestJoinChannelMessage(post: Post, hideGuestTags: boolean, isBoard: boolean): ReactNode {
     if (hideGuestTags) {
-        return renderJoinChannelMessage(post);
+        return renderJoinChannelMessage(post, isBoard);
     }
     const username = renderUsername(post.props.username);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.guest_join_channel.post_and_forget.board'
+            defaultMessage='{username} joined the board as a guest.'
+            values={{username}}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.guest_join_channel.post_and_forget'
             defaultMessage='{username} joined the channel as a guest.'
@@ -72,10 +84,16 @@ function renderGuestJoinChannelMessage(post: Post, hideGuestTags: boolean): Reac
     );
 }
 
-function renderLeaveChannelMessage(post: Post): ReactNode {
+function renderLeaveChannelMessage(post: Post, isBoard: boolean): ReactNode {
     const username = renderUsername(post.props.username);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.leave.left.board'
+            defaultMessage='{username} left the board.'
+            values={{username}}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.leave.left'
             defaultMessage='{username} left the channel.'
@@ -84,11 +102,20 @@ function renderLeaveChannelMessage(post: Post): ReactNode {
     );
 }
 
-function renderAddToChannelMessage(post: Post): ReactNode {
+function renderAddToChannelMessage(post: Post, isBoard: boolean): ReactNode {
     const username = renderUsername(post.props.username);
     const addedUsername = renderUsername(post.props.addedUsername);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.add_member.added.board'
+            defaultMessage='{addedUsername} added to the board by {username}.'
+            values={{
+                username,
+                addedUsername,
+            }}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.add_member.added'
             defaultMessage='{addedUsername} added to the channel by {username}.'
@@ -100,14 +127,23 @@ function renderAddToChannelMessage(post: Post): ReactNode {
     );
 }
 
-function renderAddGuestToChannelMessage(post: Post, hideGuestTags: boolean): ReactNode {
+function renderAddGuestToChannelMessage(post: Post, hideGuestTags: boolean, isBoard: boolean): ReactNode {
     if (hideGuestTags) {
-        return renderAddToChannelMessage(post);
+        return renderAddToChannelMessage(post, isBoard);
     }
     const username = renderUsername(post.props.username);
     const addedUsername = renderUsername(post.props.addedUsername);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.add_guest.added.board'
+            defaultMessage='{addedUsername} added to the board as a guest by {username}.'
+            values={{
+                username,
+                addedUsername,
+            }}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.add_guest.added'
             defaultMessage='{addedUsername} added to the channel as a guest by {username}.'
@@ -119,10 +155,18 @@ function renderAddGuestToChannelMessage(post: Post, hideGuestTags: boolean): Rea
     );
 }
 
-function renderRemoveFromChannelMessage(post: Post): ReactNode {
+function renderRemoveFromChannelMessage(post: Post, isBoard: boolean): ReactNode {
     const removedUsername = renderUsername(post.props.removedUsername);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.remove_member.removed.board'
+            defaultMessage='{removedUsername} was removed from the board'
+            values={{
+                removedUsername,
+            }}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.remove_member.removed'
             defaultMessage='{removedUsername} was removed from the channel'
@@ -223,7 +267,7 @@ function renderTeamAccessControlAdditionMessage(post: Post): ReactNode {
     );
 }
 
-function renderHeaderChangeMessage(post: Post): ReactNode {
+function renderHeaderChangeMessage(post: Post, isBoard: boolean): ReactNode {
     if (!post.props.username) {
         return null;
     }
@@ -239,7 +283,19 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
 
     if (post.props.new_header) {
         if (post.props.old_header) {
-            return (
+            return isBoard ? (
+                <FormattedMessage
+                    id='api.channel.post_update_channel_header_message_and_forget.updated_from.board'
+                    defaultMessage='{username} updated the board header <br></br><strong>From:</strong> {old} <br></br><strong>To:</strong> {new}'
+                    values={{
+                        username,
+                        old: oldHeader,
+                        new: newHeader,
+                        strong: (chunks: React.ReactNode) => (<strong>{chunks}</strong>),
+                        br: (x: React.ReactNode) => (<><br/>{x}</>),
+                    }}
+                />
+            ) : (
                 <FormattedMessage
                     id='api.channel.post_update_channel_header_message_and_forget.updated_from'
                     defaultMessage='{username} updated the channel header <br></br><strong>From:</strong> {old} <br></br><strong>To:</strong> {new}'
@@ -254,7 +310,16 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
             );
         }
 
-        return (
+        return isBoard ? (
+            <FormattedMessage
+                id='api.channel.post_update_channel_header_message_and_forget.updated_to.board'
+                defaultMessage='{username} updated the board header to: {new}'
+                values={{
+                    username,
+                    new: newHeader,
+                }}
+            />
+        ) : (
             <FormattedMessage
                 id='api.channel.post_update_channel_header_message_and_forget.updated_to'
                 defaultMessage='{username} updated the channel header to: {new}'
@@ -265,7 +330,16 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
             />
         );
     } else if (post.props.old_header) {
-        return (
+        return isBoard ? (
+            <FormattedMessage
+                id='api.channel.post_update_channel_header_message_and_forget.removed.board'
+                defaultMessage='{username} removed the board header (was: {old})'
+                values={{
+                    username,
+                    old: oldHeader,
+                }}
+            />
+        ) : (
             <FormattedMessage
                 id='api.channel.post_update_channel_header_message_and_forget.removed'
                 defaultMessage='{username} removed the channel header (was: {old})'
@@ -280,7 +354,7 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
     return null;
 }
 
-function renderDisplayNameChangeMessage(post: Post): ReactNode {
+function renderDisplayNameChangeMessage(post: Post, isBoard: boolean): ReactNode {
     if (!(post.props.username && post.props.old_displayname && post.props.new_displayname)) {
         return null;
     }
@@ -289,7 +363,17 @@ function renderDisplayNameChangeMessage(post: Post): ReactNode {
     const oldDisplayName = ensureString(post.props.old_displayname);
     const newDisplayName = ensureString(post.props.new_displayname);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.post_update_channel_displayname_message_and_forget.updated_from.board'
+            defaultMessage='{username} updated the board display name from: {old} to: {new}'
+            values={{
+                username,
+                old: oldDisplayName,
+                new: newDisplayName,
+            }}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.post_update_channel_displayname_message_and_forget.updated_from'
             defaultMessage='{username} updated the channel display name from: {old} to: {new}'
@@ -302,14 +386,22 @@ function renderDisplayNameChangeMessage(post: Post): ReactNode {
     );
 }
 
-function renderConvertChannelToPrivateMessage(post: Post): ReactNode {
+function renderConvertChannelToPrivateMessage(post: Post, isBoard: boolean): ReactNode {
     if (!(post.props.username)) {
         return null;
     }
 
     const username = renderUsername(post.props.username);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.post_convert_channel_to_private.updated_from.board'
+            defaultMessage='{username} converted the board from public to private'
+            values={{
+                username,
+            }}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.post_convert_channel_to_private.updated_from'
             defaultMessage='{username} converted the channel from public to private'
@@ -320,7 +412,7 @@ function renderConvertChannelToPrivateMessage(post: Post): ReactNode {
     );
 }
 
-function renderPurposeChangeMessage(post: Post): ReactNode {
+function renderPurposeChangeMessage(post: Post, isBoard: boolean): ReactNode {
     if (!post.props.username) {
         return null;
     }
@@ -331,7 +423,17 @@ function renderPurposeChangeMessage(post: Post): ReactNode {
 
     if (post.props.new_purpose) {
         if (post.props.old_purpose) {
-            return (
+            return isBoard ? (
+                <FormattedMessage
+                    id='app.channel.post_update_channel_purpose_message.updated_from.board'
+                    defaultMessage='{username} updated the board purpose from: {old} to: {new}'
+                    values={{
+                        username,
+                        old: oldPurpose,
+                        new: newPurpose,
+                    }}
+                />
+            ) : (
                 <FormattedMessage
                     id='app.channel.post_update_channel_purpose_message.updated_from'
                     defaultMessage='{username} updated the channel purpose from: {old} to: {new}'
@@ -344,7 +446,16 @@ function renderPurposeChangeMessage(post: Post): ReactNode {
             );
         }
 
-        return (
+        return isBoard ? (
+            <FormattedMessage
+                id='app.channel.post_update_channel_purpose_message.updated_to.board'
+                defaultMessage='{username} updated the board purpose to: {new}'
+                values={{
+                    username,
+                    new: newPurpose,
+                }}
+            />
+        ) : (
             <FormattedMessage
                 id='app.channel.post_update_channel_purpose_message.updated_to'
                 defaultMessage='{username} updated the channel purpose to: {new}'
@@ -355,7 +466,16 @@ function renderPurposeChangeMessage(post: Post): ReactNode {
             />
         );
     } else if (post.props.old_purpose) {
-        return (
+        return isBoard ? (
+            <FormattedMessage
+                id='app.channel.post_update_channel_purpose_message.removed.board'
+                defaultMessage='{username} removed the board purpose (was: {old})'
+                values={{
+                    username,
+                    old: oldPurpose,
+                }}
+            />
+        ) : (
             <FormattedMessage
                 id='app.channel.post_update_channel_purpose_message.removed'
                 defaultMessage='{username} removed the channel purpose (was: {old})'
@@ -370,14 +490,20 @@ function renderPurposeChangeMessage(post: Post): ReactNode {
     return null;
 }
 
-function renderChannelDeletedMessage(post: Post): ReactNode {
+function renderChannelDeletedMessage(post: Post, isBoard: boolean): ReactNode {
     if (!post.props.username) {
         return null;
     }
 
     const username = renderUsername(post.props.username);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.delete_channel.archived.board'
+            defaultMessage='{username} archived the board.'
+            values={{username}}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.delete_channel.archived'
             defaultMessage='{username} archived the channel.'
@@ -386,14 +512,20 @@ function renderChannelDeletedMessage(post: Post): ReactNode {
     );
 }
 
-function renderChannelUnarchivedMessage(post: Post): ReactNode {
+function renderChannelUnarchivedMessage(post: Post, isBoard: boolean): ReactNode {
     if (!post.props.username) {
         return null;
     }
 
     const username = renderUsername(post.props.username);
 
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.restore_channel.unarchived.board'
+            defaultMessage='{username} unarchived the board.'
+            values={{username}}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.restore_channel.unarchived'
             defaultMessage='{username} unarchived the channel.'
@@ -402,7 +534,7 @@ function renderChannelUnarchivedMessage(post: Post): ReactNode {
     );
 }
 
-function renderAutoTranslationChangeMessage(post: Post): ReactNode {
+function renderAutoTranslationChangeMessage(post: Post, isBoard: boolean): ReactNode {
     if (!post.props.username) {
         return null;
     }
@@ -410,7 +542,13 @@ function renderAutoTranslationChangeMessage(post: Post): ReactNode {
     const username = renderUsername(post.props.username);
     const enabled = post.props.enabled;
     if (enabled) {
-        return (
+        return isBoard ? (
+            <FormattedMessage
+                id='api.channel.auto_translation_change.message.enabled.board'
+                defaultMessage='{username} enabled Auto-translation for this board. All new messages will appear in your preferred language.'
+                values={{username}}
+            />
+        ) : (
             <FormattedMessage
                 id='api.channel.auto_translation_change.message.enabled'
                 defaultMessage='{username} enabled Auto-translation for this channel. All new messages will appear in your preferred language.'
@@ -418,7 +556,13 @@ function renderAutoTranslationChangeMessage(post: Post): ReactNode {
             />
         );
     }
-    return (
+    return isBoard ? (
+        <FormattedMessage
+            id='api.channel.auto_translation_change.message.disabled.board'
+            defaultMessage='{username} disabled Auto-translation for this board. All messages will appear in the original language.'
+            values={{username}}
+        />
+    ) : (
         <FormattedMessage
             id='api.channel.auto_translation_change.message.disabled'
             defaultMessage='{username} disabled Auto-translation for this channel. All messages will appear in the original language.'
@@ -427,12 +571,18 @@ function renderAutoTranslationChangeMessage(post: Post): ReactNode {
     );
 }
 
-function renderSharedChannelStateMessage(post: Post): ReactNode {
+function renderSharedChannelStateMessage(post: Post, isBoard: boolean): ReactNode {
     const state = ensureString(post.props?.shared_channel_state);
     const workspaceName = ensureString(post.props?.workspace_name);
 
     if (state === 'shared') {
-        return (
+        return isBoard ? (
+            <FormattedMessage
+                id='shared_channel.system_message.now_shared.board'
+                defaultMessage='This board is now shared with {workspaceName}.'
+                values={{workspaceName}}
+            />
+        ) : (
             <FormattedMessage
                 id='shared_channel.system_message.now_shared'
                 defaultMessage='This channel is now shared with {workspaceName}.'
@@ -442,14 +592,25 @@ function renderSharedChannelStateMessage(post: Post): ReactNode {
     }
     if (state === 'unshared') {
         if (workspaceName === '') {
-            return (
+            return isBoard ? (
+                <FormattedMessage
+                    id='shared_channel.system_message.no_longer_shared_unknown.board'
+                    defaultMessage='This board is no longer shared with another workspace.'
+                />
+            ) : (
                 <FormattedMessage
                     id='shared_channel.system_message.no_longer_shared_unknown'
                     defaultMessage='This channel is no longer shared with another workspace.'
                 />
             );
         }
-        return (
+        return isBoard ? (
+            <FormattedMessage
+                id='shared_channel.system_message.no_longer_shared.board'
+                defaultMessage='This board is no longer shared with {workspaceName}.'
+                values={{workspaceName}}
+            />
+        ) : (
             <FormattedMessage
                 id='shared_channel.system_message.no_longer_shared'
                 defaultMessage='This channel is no longer shared with {workspaceName}.'
@@ -467,7 +628,7 @@ function renderMeMessage(post: Post): ReactNode {
     return renderFormattedText(message);
 }
 
-const systemMessageRenderers = {
+const systemMessageRenderers: Record<string, (post: Post, isBoard: boolean) => ReactNode> = {
     [Posts.POST_TYPES.JOIN_CHANNEL]: renderJoinChannelMessage,
     [Posts.POST_TYPES.LEAVE_CHANNEL]: renderLeaveChannelMessage,
     [Posts.POST_TYPES.ADD_TO_CHANNEL]: renderAddToChannelMessage,
@@ -521,7 +682,7 @@ export function isAddMemberProps(v: unknown): v is AddMemberProps {
     return true;
 }
 
-export function renderSystemMessage(post: Post, currentTeamName: string, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
+export function renderSystemMessage(post: Post, currentTeamName: string, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string, isBoard = false): ReactNode {
     const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
         return renderReminderACKMessage(post, currentTeamName, Boolean(isMilitaryTime), timezone);
@@ -544,11 +705,11 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
 
         return null;
     } else if (systemMessageRenderers[post.type]) {
-        return systemMessageRenderers[post.type](post);
+        return systemMessageRenderers[post.type](post, isBoard);
     } else if (post.type === Posts.POST_TYPES.GUEST_JOIN_CHANNEL) {
-        return renderGuestJoinChannelMessage(post, hideGuestTags);
+        return renderGuestJoinChannelMessage(post, hideGuestTags, isBoard);
     } else if (post.type === Posts.POST_TYPES.ADD_GUEST_TO_CHANNEL) {
-        return renderAddGuestToChannelMessage(post, hideGuestTags);
+        return renderAddGuestToChannelMessage(post, hideGuestTags, isBoard);
     } else if (post.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY && isUserActivityProp(post.props.user_activity)) {
         const {allUserIds, allUsernames, messageData} = post.props.user_activity;
 
@@ -557,6 +718,7 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
                 allUserIds={allUserIds}
                 allUsernames={allUsernames}
                 messageData={messageData}
+                isBoard={isBoard}
             />
         );
     } else if (post.type === Posts.POST_TYPES.GM_CONVERTED_TO_CHANNEL) {

@@ -13,6 +13,9 @@ import Constants from 'utils/constants';
 export type Props = {
     onExited: () => void;
     channel: Channel;
+
+    /** Whether the channel is a board, so the modal says "board" rather than "channel". */
+    isBoard?: boolean;
     actions: {
         deleteChannel: (channelId: string) => void;
     };
@@ -56,29 +59,54 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                         componentClass='h1'
                         id='deleteChannelModalLabel'
                     >
-                        <FormattedMessage
-                            id='delete_channel.confirm'
-                            defaultMessage='Confirm ARCHIVE Channel'
-                        />
+                        {this.props.isBoard ? (
+                            <FormattedMessage
+                                id='delete_channel.confirm.board'
+                                defaultMessage='Confirm ARCHIVE Board'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='delete_channel.confirm'
+                                defaultMessage='Confirm ARCHIVE Channel'
+                            />
+                        )}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='alert alert-danger'>
                         <p>
-                            <FormattedMessage
-                                id='deleteChannelModal.canViewArchivedChannelsWarning'
-                                defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
-                            />
+                            {this.props.isBoard ? (
+                                <FormattedMessage
+                                    id='deleteChannelModal.canViewArchivedChannelsWarning.board'
+                                    defaultMessage='This will archive the board from the team. Board contents will still be accessible by board members.'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='deleteChannelModal.canViewArchivedChannelsWarning'
+                                    defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
+                                />
+                            )}
                         </p>
                         <p>
-                            <FormattedMessage
-                                id='deleteChannelModal.confirmArchive'
-                                defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
-                                values={{
-                                    display_name: this.props.channel.display_name,
-                                    strong: (chunks) => <strong>{chunks}</strong>,
-                                }}
-                            />
+                            {this.props.isBoard ? (
+                                <FormattedMessage
+                                    id='deleteChannelModal.confirmArchive.board'
+                                    defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> board?'
+                                    values={{
+                                        display_name: this.props.channel.display_name,
+                                        strong: (chunks) => <strong>{chunks}</strong>,
+                                    }}
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='deleteChannelModal.confirmArchive'
+                                    defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                                    values={{
+                                        display_name: this.props.channel.display_name,
+                                        strong: (chunks) => <strong>{chunks}</strong>,
+                                    }}
+                                />
+                            )}
                         </p>
                     </div>
                 </Modal.Body>

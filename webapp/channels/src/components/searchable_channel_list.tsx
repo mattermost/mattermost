@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {connect, shallowEqual} from 'react-redux';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
@@ -20,8 +21,11 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
+import {isBoardChannel} from 'utils/channel_kind';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+
+import type {GlobalState} from 'types/store';
 
 import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';
@@ -56,6 +60,9 @@ interface Props extends WrappedComponentProps {
     myPendingJoinRequests?: Record<string, ChannelJoinRequest>;
     handleRequestToJoin?: (channel: Channel, done: () => void) => void;
     handleWithdrawRequest?: (channel: Channel, done: () => void) => void;
+
+    // The ids of the listed channels that are boards, whose rows say "board" rather than "channel".
+    boardChannelIds?: string[];
 }
 
 type State = {
@@ -177,6 +184,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
     }
 
     createChannelRow = (channel: Channel) => {
+        const isBoard = Boolean(this.props.boardChannelIds?.includes(channel.id));
         const channelTypeIcon = (
             <ChannelIcon
                 channel={channel}
@@ -223,7 +231,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <div
                 className='discoverableIndicatorContainer'
                 data-testid='discoverable-indicator'
-                aria-label={this.props.intl.formatMessage({id: 'more_channels.discoverable.aria', defaultMessage: 'Discoverable private channel'})}
+                aria-label={isBoard ? this.props.intl.formatMessage({id: 'more_channels.discoverable.aria.board', defaultMessage: 'Discoverable private board'}) : this.props.intl.formatMessage({id: 'more_channels.discoverable.aria', defaultMessage: 'Discoverable private channel'})}
             >
                 <AccountPlusOutlineIcon size={14}/>
                 <FormattedMessage
@@ -234,7 +242,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         ) : null;
 
         const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
-            messages.channelPurpose,
+            isBoard ? messages.boardPurpose : messages.channelPurpose,
             {memberCount, channelPurpose: channel.purpose || ''},
         );
 
@@ -397,13 +405,23 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                             className='sr-only'
                             role='alert'
                         >
-                            <FormattedMessage
-                                id='more_channels.joinedChannel'
-                                defaultMessage='Joined channel {channelName}'
-                                values={{
-                                    channelName: channel.display_name,
-                                }}
-                            />
+                            {isBoard ? (
+                                <FormattedMessage
+                                    id='more_channels.joinedChannel.board'
+                                    defaultMessage='Joined board {channelName}'
+                                    values={{
+                                        channelName: channel.display_name,
+                                    }}
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='more_channels.joinedChannel'
+                                    defaultMessage='Joined channel {channelName}'
+                                    values={{
+                                        channelName: channel.display_name,
+                                    }}
+                                />
+                            )}
                         </span>
                     )}
                 </div>
@@ -948,6 +966,10 @@ const messages = defineMessages({
         id: 'more_channels.channel_purpose',
         defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
     },
+    boardPurpose: {
+        id: 'more_channels.channel_purpose.board',
+        defaultMessage: 'Board Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
+    },
     joiningButton: {
         id: 'joinChannel.joiningButton',
         defaultMessage: 'Joining...',
@@ -966,4 +988,23 @@ const messages = defineMessages({
     },
 });
 
-export default injectIntl(SearchableChannelList);
+type OwnProps = {
+    channels: Channel[];
+};
+
+// Each list gets its own last result, so the ids keep their identity while the boards among the
+// listed channels stay the same, and the list doesn't re-render on every store change.
+function makeMapStateToProps() {
+    let boardChannelIds: string[] = [];
+
+    return (state: GlobalState, ownProps: OwnProps) => {
+        const ids = ownProps.channels.filter((channel) => isBoardChannel(state, channel)).map((channel) => channel.id);
+        if (!shallowEqual(ids, boardChannelIds)) {
+            boardChannelIds = ids;
+        }
+
+        return {boardChannelIds};
+    };
+}
+
+export default connect(makeMapStateToProps)(injectIntl(SearchableChannelList));

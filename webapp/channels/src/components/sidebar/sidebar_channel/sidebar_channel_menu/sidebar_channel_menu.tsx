@@ -25,6 +25,7 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {copyToClipboard} from 'utils/utils';
@@ -56,6 +57,7 @@ const SidebarChannelMenu = ({
 }: Props) => {
     const isLeaving = useRef(false);
     const isInManagedCategory = useSelector((state: GlobalState) => isChannelInManagedCategory(state, channel.id));
+    const isBoard = useIsBoardChannel(channel);
 
     const {formatMessage} = useIntl();
 
@@ -162,6 +164,14 @@ const SidebarChannelMenu = ({
                 defaultMessage='Unmute Channel'
             />
         );
+        if (isBoard) {
+            muteChannelText = (
+                <FormattedMessage
+                    id='sidebar_left.sidebar_channel_menu.unmuteChannel.board'
+                    defaultMessage='Unmute Board'
+                />
+            );
+        }
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
@@ -190,6 +200,14 @@ const SidebarChannelMenu = ({
                 defaultMessage='Mute Channel'
             />
         );
+        if (isBoard) {
+            muteChannelText = (
+                <FormattedMessage
+                    id='sidebar_left.sidebar_channel_menu.muteChannel.board'
+                    defaultMessage='Mute Board'
+                />
+            );
+        }
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
@@ -268,6 +286,14 @@ const SidebarChannelMenu = ({
                 defaultMessage='Leave Channel'
             />
         );
+        if (isBoard) {
+            leaveChannelText = (
+                <FormattedMessage
+                    id='sidebar_left.sidebar_channel_menu.leaveChannel.board'
+                    defaultMessage='Leave Board'
+                />
+            );
+        }
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             leaveChannelText = (
                 <FormattedMessage
@@ -305,7 +331,10 @@ const SidebarChannelMenu = ({
             menuButton={{
                 id: `SidebarChannelMenu-Button-${channel.id}`,
                 class: 'SidebarMenu_menuButton',
-                'aria-label': formatMessage({
+                'aria-label': isBoard ? formatMessage({
+                    id: 'sidebar_left.sidebar_channel_menu.editChannel.ariaLabel.board',
+                    defaultMessage: 'Board options for {channelName}',
+                }, {channelName: channel.name}) : formatMessage({
                     id: 'sidebar_left.sidebar_channel_menu.editChannel.ariaLabel',
                     defaultMessage: 'Channel options for {channelName}',
                 }, {channelName: channel.name}),
@@ -313,11 +342,11 @@ const SidebarChannelMenu = ({
             }}
             menuButtonTooltip={{
                 class: 'hidden-xs',
-                text: formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
+                text: isBoard ? formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel.board', defaultMessage: 'Board options'}) : formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
             }}
             menu={{
                 id: `SidebarChannelMenu-MenuList-${channel.id}`,
-                'aria-label': formatMessage({id: 'sidebar_left.sidebar_channel_menu.dropdownAriaLabel', defaultMessage: 'Edit channel menu'}),
+                'aria-label': isBoard ? formatMessage({id: 'sidebar_left.sidebar_channel_menu.dropdownAriaLabel.board', defaultMessage: 'Edit board menu'}) : formatMessage({id: 'sidebar_left.sidebar_channel_menu.dropdownAriaLabel', defaultMessage: 'Edit channel menu'}),
                 onToggle: onMenuToggle,
             }}
         >

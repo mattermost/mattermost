@@ -11,6 +11,8 @@ import ChannelInfoAttributes from 'components/channel_attributes/channel_info_at
 import CopyButton from 'components/copy_button';
 import Markdown from 'components/markdown';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
 
@@ -86,6 +88,9 @@ interface Props {
 
 const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) => {
     const {formatMessage} = useIntl();
+    const isBoard = useIsBoardChannel(channel);
+
+    const renameLabel = isBoard ? formatMessage({id: 'channel_info_rhs.about_area.edit_channel_name.board', defaultMessage: 'Rename board'}) : formatMessage({id: 'channel_info_rhs.about_area.edit_channel_name', defaultMessage: 'Rename channel'});
 
     return (
         <>
@@ -94,8 +99,8 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                     editable={canEditChannelProperties}
                     content={<div>{channel.display_name}</div>}
                     onEdit={actions.editChannelName}
-                    editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_name', defaultMessage: 'Rename channel'})}
-                    emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_name', defaultMessage: 'Rename channel'})}
+                    editTooltip={renameLabel}
+                    emptyLabel={renameLabel}
                 />
             </ChannelName>
 
@@ -104,7 +109,7 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
             {(channel.purpose || canEditChannelProperties) && (
                 <ChannelPurpose>
                     <ChannelDescriptionHeading>
-                        {formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.heading', defaultMessage: 'Channel Purpose'})}
+                        {isBoard ? formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.heading.board', defaultMessage: 'Board Purpose'}) : formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.heading', defaultMessage: 'Channel Purpose'})}
                     </ChannelDescriptionHeading>
                     <EditableArea
                         editable={canEditChannelProperties}
@@ -119,8 +124,8 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                             </LineLimiter>
                         )}
                         onEdit={actions.editChannelPurpose}
-                        editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_purpose', defaultMessage: 'Edit channel purpose'})}
-                        emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_purpose', defaultMessage: 'Add a channel purpose'})}
+                        editTooltip={isBoard ? formatMessage({id: 'channel_info_rhs.about_area.edit_channel_purpose.board', defaultMessage: 'Edit board purpose'}) : formatMessage({id: 'channel_info_rhs.about_area.edit_channel_purpose', defaultMessage: 'Edit channel purpose'})}
+                        emptyLabel={isBoard ? formatMessage({id: 'channel_info_rhs.about_area.add_channel_purpose.board', defaultMessage: 'Add a board purpose'}) : formatMessage({id: 'channel_info_rhs.about_area.add_channel_purpose', defaultMessage: 'Add a channel purpose'})}
                     />
                 </ChannelPurpose>
             )}
@@ -128,7 +133,7 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
             {(channel.header || canEditChannelProperties) && (
                 <ChannelHeader>
                     <ChannelDescriptionHeading>
-                        {formatMessage({id: 'channel_info_rhs.about_area.channel_header.heading', defaultMessage: 'Channel Header'})}
+                        {isBoard ? formatMessage({id: 'channel_info_rhs.about_area.channel_header.heading.board', defaultMessage: 'Board Header'}) : formatMessage({id: 'channel_info_rhs.about_area.channel_header.heading', defaultMessage: 'Channel Header'})}
                     </ChannelDescriptionHeading>
                     <EditableArea
                         content={channel.header && (
@@ -143,14 +148,14 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                         )}
                         editable={canEditChannelProperties}
                         onEdit={actions.editChannelHeader}
-                        editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
-                        emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_header', defaultMessage: 'Add a channel header'})}
+                        editTooltip={isBoard ? formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header.board', defaultMessage: 'Edit board header'}) : formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
+                        emptyLabel={isBoard ? formatMessage({id: 'channel_info_rhs.about_area.add_channel_header.board', defaultMessage: 'Add a board header'}) : formatMessage({id: 'channel_info_rhs.about_area.add_channel_header', defaultMessage: 'Add a channel header'})}
                     />
                 </ChannelHeader>
             )}
 
             <ChannelId>
-                {formatMessage({id: 'channel_info_rhs.about_area_handle', defaultMessage: 'Channel handle:'})} {channel.name}
+                {isBoard ? formatMessage({id: 'channel_info_rhs.about_area_handle.board', defaultMessage: 'Board handle:'}) : formatMessage({id: 'channel_info_rhs.about_area_handle', defaultMessage: 'Channel handle:'})} {channel.name}
                 <SmallCopyButton
                     content={channel.name}
                     isForText={true}

@@ -10,6 +10,7 @@ import {markChannelAsRead} from 'mattermost-redux/actions/channels';
 import {clearLoggedChannelViewErrors} from 'selectors/channel_view_plugin';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -86,6 +87,7 @@ describe('components/channel_view', () => {
         canRestrictDirectMessage: false,
         restrictDirectMessage: false,
         channelViewPluginComponent: null,
+        isBoard: false,
     };
 
     it('Should match snapshot with base props', () => {
@@ -101,6 +103,22 @@ describe('components/channel_view', () => {
             />,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    it('should call an archived board a board', () => {
+        renderWithContext(
+            <ChannelView
+                {...baseProps}
+                channelIsArchived={true}
+                isBoard={true}
+            />,
+            boardChannelsState('channelId'),
+        );
+
+        expect(screen.getByText('archived board')).toBeInTheDocument();
+        expect(screen.queryByText('archived channel')).not.toBeInTheDocument();
+        expect(screen.getByText('Close Board')).toBeInTheDocument();
+        expect(screen.queryByText('Close Channel')).not.toBeInTheDocument();
     });
 
     it('Should match snapshot if channel is deactivated', () => {

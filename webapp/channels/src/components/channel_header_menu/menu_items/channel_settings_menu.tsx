@@ -16,6 +16,7 @@ import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import * as Menu from 'components/menu';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -26,6 +27,7 @@ type Props = {
 
 const ChannelSettingsMenu = ({channel}: Props): JSX.Element | null => {
     const dispatch = useDispatch();
+    const isBoard = useIsBoardChannel(channel);
     const canAccess = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
 
     // Don't render the menu item if the user doesn't have access to any channel settings tab
@@ -50,12 +52,17 @@ const ChannelSettingsMenu = ({channel}: Props): JSX.Element | null => {
     return (
         <Menu.Item
             id={'channelSettings'}
-            labels={
+            labels={isBoard ? (
+                <FormattedMessage
+                    id='channel_header.channel_settings.board'
+                    defaultMessage='Board Settings'
+                />
+            ) : (
                 <FormattedMessage
                     id='channel_header.channel_settings'
                     defaultMessage='Channel Settings'
                 />
-            }
+            )}
             onClick={handleOpenChannelSettings}
             leadingElement={<CogOutlineIcon size={18}/>}
         />

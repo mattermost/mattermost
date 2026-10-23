@@ -51,11 +51,36 @@ const typeMessage = defineMessages({
     },
 });
 
+// For a board: the channel messages above, saying "board", each its own message.
+const typeBoardMessage = defineMessages({
+    [Posts.POST_TYPES.ADD_TO_CHANNEL]: {
+        id: 'last_users_message.added_to_channel.type.board',
+        defaultMessage: 'were **added to the board** by {actor}.',
+    },
+    [Posts.POST_TYPES.JOIN_CHANNEL]: {
+        id: 'last_users_message.joined_channel.type.board',
+        defaultMessage: '**joined the board**.',
+    },
+    [Posts.POST_TYPES.LEAVE_CHANNEL]: {
+        id: 'last_users_message.left_channel.type.board',
+        defaultMessage: '**left the board**.',
+    },
+    [Posts.POST_TYPES.JOIN_LEAVE_CHANNEL]: {
+        id: 'last_users_message.joined_left_channel.type.board',
+        defaultMessage: '**joined and left the board**.',
+    },
+    [Posts.POST_TYPES.REMOVE_FROM_CHANNEL]: {
+        id: 'last_users_message.removed_from_channel.type.board',
+        defaultMessage: 'were **removed from the board**.',
+    },
+});
+
 type Props = {
     actor?: string;
     expandedLocale: MessageDescriptor;
     formatOptions: Partial<TextFormattingOptions>;
     intl: IntlShape;
+    isBoard?: boolean;
     postType: string;
     usernames: string[];
 };
@@ -122,7 +147,7 @@ export class LastUsers extends React.PureComponent<Props, State> {
             {numOthers: lastIndex},
         );
 
-        const selectedTypeMessage = secureGetFromRecord(typeMessage, postType);
+        const selectedTypeMessage = (this.props.isBoard && secureGetFromRecord(typeBoardMessage, postType)) || secureGetFromRecord(typeMessage, postType);
 
         const actorMessage = selectedTypeMessage ? formatMessage(
             {id: selectedTypeMessage.id, defaultMessage: selectedTypeMessage.defaultMessage},

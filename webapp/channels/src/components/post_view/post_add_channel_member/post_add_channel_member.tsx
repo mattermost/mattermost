@@ -21,6 +21,9 @@ interface Actions {
 export interface Props {
     currentUser: UserProfile;
     channelType: string;
+
+    /** The post is in a board, which the message calls a board. */
+    isBoard?: boolean;
     postId: string;
     post: Post;
     userIds: string[];
@@ -162,7 +165,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                 return null;
             }
 
-            const messageText = 'did not get notified by this mention because they are not in the channel.';
+            const messageText = this.props.isBoard ? 'did not get notified by this mention because they are not in the board.' : 'did not get notified by this mention because they are not in the channel.';
 
             return (
                 <p>
@@ -174,8 +177,23 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         }
 
         // Regular flow for non-ABAC channels
+        const isBoard = Boolean(this.props.isBoard);
         let link;
-        if (channelType === Constants.PRIVATE_CHANNEL) {
+        if (isBoard && channelType === Constants.PRIVATE_CHANNEL) {
+            link = (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.link.private.board'
+                    defaultMessage='add them to this private board'
+                />
+            );
+        } else if (isBoard && channelType === Constants.OPEN_CHANNEL) {
+            link = (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_mentions.link.public.board'
+                    defaultMessage='add them to the board'
+                />
+            );
+        } else if (channelType === Constants.PRIVATE_CHANNEL) {
             link = (
                 <FormattedMessage
                     id='post_body.check_for_out_of_channel_mentions.link.private'
@@ -200,7 +218,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         // Handle invitable users with invite functionality
         if (invitableUsers.length > 0) {
             const invitableAtMentions = this.generateAtMentions(invitableUsers);
-            const invitableMessagePart = invitableUsers.length === 1 ? (
+            let invitableMessagePart = invitableUsers.length === 1 ? (
                 <FormattedMessage
                     id='post_body.check_for_out_of_channel_mentions.message.one'
                     defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
@@ -211,6 +229,19 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                     defaultMessage='did not get notified by this mention because they are not in the channel. Would you like to '
                 />
             );
+            if (isBoard) {
+                invitableMessagePart = invitableUsers.length === 1 ? (
+                    <FormattedMessage
+                        id='post_body.check_for_out_of_channel_mentions.message.one.board'
+                        defaultMessage='did not get notified by this mention because they are not in the board. Would you like to '
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='post_body.check_for_out_of_channel_mentions.message.multiple.board'
+                        defaultMessage='did not get notified by this mention because they are not in the board. Would you like to '
+                    />
+                );
+            }
 
             messages.push(
                 <p key='invitable'>
@@ -234,7 +265,12 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         // Handle users not in required groups with specific messaging
         if (outOfGroupsUsers.length > 0) {
             const outOfGroupsAtMentions = this.generateAtMentions(outOfGroupsUsers);
-            const outOfGroupsMessagePart = (
+            const outOfGroupsMessagePart = isBoard ? (
+                <FormattedMessage
+                    id='post_body.check_for_out_of_channel_groups_mentions.message.board'
+                    defaultMessage='did not get notified by this mention because they are not in the board. They cannot be added to the board because they are not a member of the linked groups. To add them to this board, they must be added to the linked groups.'
+                />
+            ) : (
                 <FormattedMessage
                     id='post_body.check_for_out_of_channel_groups_mentions.message'
                     defaultMessage='did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.'

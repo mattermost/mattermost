@@ -10,6 +10,7 @@ import * as teams from 'mattermost-redux/selectors/entities/teams';
 import * as channelActions from 'actions/views/channel';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsArchiveTab from './channel_settings_archive_tab';
@@ -63,6 +64,24 @@ describe('ChannelSettingsArchiveTab', () => {
         const archiveButton = screen.getByText('Archive this channel');
         expect(archiveButton).toBeInTheDocument();
         expect(archiveButton).toHaveAttribute('aria-label', 'Archive channel Test Channel');
+    });
+
+    it('says board rather than channel for a board', async () => {
+        renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>, boardChannelsState(mockChannel.id));
+
+        expect(screen.getByText(/Archiving a board removes it from the user interface/)).toBeInTheDocument();
+        expect(screen.queryByText(/Archiving a channel/)).not.toBeInTheDocument();
+
+        const archiveButton = screen.getByText('Archive this board');
+        expect(archiveButton).toHaveAttribute('aria-label', 'Archive board Test Channel');
+        expect(screen.queryByText('Archive this channel')).not.toBeInTheDocument();
+
+        await userEvent.click(archiveButton);
+
+        expect(screen.getByText('Archive board?')).toBeInTheDocument();
+        expect(screen.queryByText('Archive channel?')).not.toBeInTheDocument();
+        expect(screen.getByText('This will archive the board from the team. Board contents will still be accessible by board members.')).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to archive the/)).toHaveTextContent('Are you sure you wish to archive the Test Channel board?');
     });
 
     it('should show confirmation modal when archive button is clicked', async () => {

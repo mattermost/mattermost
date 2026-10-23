@@ -9,6 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 import LeaveChannelModal from 'components/leave_channel_modal';
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import SidebarBaseChannelIcon from './sidebar_base_channel_icon';
@@ -26,6 +27,7 @@ const SidebarBaseChannel = ({
     actions,
 }: Props) => {
     const intl = useIntl();
+    const isBoard = useIsBoardChannel(channel);
 
     const handleLeavePublicChannel = useCallback((callback: () => void) => {
         actions.leaveChannel(channel.id);
@@ -51,7 +53,11 @@ const SidebarBaseChannel = ({
     );
 
     let ariaLabelPrefix;
-    if (channel.type === Constants.OPEN_CHANNEL) {
+    if (isBoard && channel.type === Constants.OPEN_CHANNEL) {
+        ariaLabelPrefix = intl.formatMessage({id: 'accessibility.sidebar.types.public.board', defaultMessage: 'public board'});
+    } else if (isBoard && channel.type === Constants.PRIVATE_CHANNEL) {
+        ariaLabelPrefix = intl.formatMessage({id: 'accessibility.sidebar.types.private.board', defaultMessage: 'private board'});
+    } else if (channel.type === Constants.OPEN_CHANNEL) {
         ariaLabelPrefix = intl.formatMessage({id: 'accessibility.sidebar.types.public', defaultMessage: 'public channel'});
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
         ariaLabelPrefix = intl.formatMessage({id: 'accessibility.sidebar.types.private', defaultMessage: 'private channel'});

@@ -3848,6 +3848,38 @@ func (_m *API) GetTelemetryId() string {
 	return r0
 }
 
+// GetThreadFollowers provides a mock function with given fields: threadID
+func (_m *API) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	ret := _m.Called(threadID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetThreadFollowers")
+	}
+
+	var r0 []string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) ([]string, *model.AppError)); ok {
+		return rf(threadID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []string); ok {
+		r0 = rf(threadID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(threadID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetUnsanitizedConfig provides a mock function with no fields
 func (_m *API) GetUnsanitizedConfig() *model.Config {
 	ret := _m.Called()
@@ -5814,6 +5846,26 @@ func (_m *API) SetTeamIcon(teamID string, data []byte) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
 		r0 = rf(teamID, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SetThreadFollowing provides a mock function with given fields: userID, threadID, following
+func (_m *API) SetThreadFollowing(userID string, threadID string, following bool) *model.AppError {
+	ret := _m.Called(userID, threadID, following)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetThreadFollowing")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.AppError); ok {
+		r0 = rf(userID, threadID, following)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

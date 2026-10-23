@@ -5,15 +5,16 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {GlobalState} from '@mattermost/types/store';
-
 import {addChannelMember} from 'mattermost-redux/actions/channels';
 import {removePost} from 'mattermost-redux/actions/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
+import {isBoardChannel} from 'utils/channel_kind';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
+
+import type {GlobalState} from 'types/store';
 
 import PostAddChannelMember from './post_add_channel_member';
 
@@ -41,6 +42,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     return {
         channelType,
+        isBoard: post && post.channel_id ? isBoardChannel(state, {id: post.channel_id}) : false,
         currentUser: getCurrentUser(state),
         post,
         isPolicyEnforced,
