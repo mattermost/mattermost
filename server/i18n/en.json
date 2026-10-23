@@ -13397,6 +13397,11 @@
     "description": "Error shown to admins trying to change settings from the System Console when the server runs in High Availability mode; 'System Console' is the admin UI and 'ReadOnlyConfig' is a config setting name that should stay untranslated."
   },
   {
+    "id": "ent.cluster.send.error",
+    "translation": "Failed to send cluster request",
+    "description": "Log/error message for admins when a node in a high-availability cluster cannot send a request to another node."
+  },
+  {
     "id": "ent.cluster.timeout.error",
     "translation": "Timed out waiting for cluster response",
     "description": "Log/error message for admins when a node in a high-availability cluster does not answer a request in time."

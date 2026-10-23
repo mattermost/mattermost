@@ -7,12 +7,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"maps"
 	"net/http"
+	"slices"
 	"time"
+
+	"github.com/mattermost/logr/v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -99,20 +102,37 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 		return logData, nil
 	}
 
-	clusterLogs, appErr := cluster.QueryLogs(rctx, page, perPage)
+	clusterLogs, appErr := cluster.QueryLogs(rctx, page, perPage, logFilter)
 	if appErr != nil {
 		return nil, appErr
 	}
-	if len(logFilter.ServerNames) == 0 {
-		maps.Copy(logData, clusterLogs)
-	}
-	for _, name := range remoteNames {
-		if lines, ok := clusterLogs[name]; ok {
-			logData[name] = lines
+	for name, nodeLogs := range clusterLogs {
+		if len(logFilter.ServerNames) > 0 && !slices.Contains(remoteNames, name) {
+			continue
+		}
+		if nodeLogs.Err != nil {
+			logData[name] = []string{failedNodeLogLine(nodeLogs.Err)}
+		} else {
+			logData[name] = nodeLogs.Lines
 		}
 	}
 
 	return logData, nil
+}
+
+// failedNodeLogLine returns an mlog-style JSON log line reporting that a node's logs could not be fetched.
+func failedNodeLogLine(appErr *model.AppError) string {
+	return string(model.ToJSON(struct {
+		Timestamp string `json:"timestamp"`
+		Level     string `json:"level"`
+		Msg       string `json:"msg"`
+		Error     string `json:"error"`
+	}{
+		Timestamp: time.Now().Format(logr.DefTimestampFormat),
+		Level:     mlog.LvlError.Name,
+		Msg:       "Failed to fetch logs from node",
+		Error:     appErr.Error(),
+	}))
 }
 
 func (a *App) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
