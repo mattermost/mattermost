@@ -179,6 +179,16 @@ class FragmentMergedTest(unittest.TestCase):
 
 
 class BulletMarkerTest(unittest.TestCase):
+    def test_empty_headings_are_dropped(self):
+        raw = ("### Upgrade Impact\n\n#### Database Schema Changes\n\n#### config.json\n - Added a setting.\n\n"
+               "### Removed and Deprecated Features\n#### Deprecated\n\n"
+               "### Improvements\nSee BLOG_POST_LINK on the highlights.\n#### User Interface\n - Added a page.\n"
+               "#### Performance\n\n### Go Version\n")
+        self.assertEqual(gc.normalize_formatting(raw),
+                         "### Upgrade Impact\n\n#### config.json\n - Added a setting.\n\n"
+                         "### Improvements\nSee BLOG_POST_LINK on the highlights.\n#### User Interface\n - Added a page.\n"
+                         "### Go Version\n")
+
     def test_star_and_plus_bullets_become_dashes_and_are_inserted(self):
         normalized = gc.normalize_formatting("* Fixed an issue where the toast never dismissed.\n  * Nested detail.\n+ Added a setting.\n")
         self.assertNotIn("\n* ", "\n" + normalized)

@@ -540,6 +540,7 @@ def normalize_formatting(text: str) -> str:
          single minimum taken across the whole fragment.
       3. Remove a blank line between the ``### Improvements`` heading and the blog
          post line that must immediately follow it.
+      4. Drop headings with nothing under them, other than ``### Go Version``.
 
     MDX safety: rule 1 would otherwise strip the ``---`` delimiters of a YAML
     frontmatter block, which MDX requires at the very start of the file. This is
@@ -599,7 +600,15 @@ def normalize_formatting(text: str) -> str:
     # 3. Close the gap between ### Improvements and its blog post line.
     text = re.sub(r"(?m)^(### Improvements)[ \t]*\n\s*\n(?=See )", r"\1\n", text)
 
-    # 4. Collapse runs of blank lines (removing a rule can leave a doubled gap).
+    # 4. Drop headings with nothing under them (the model sometimes keeps
+    #    "#### Database Schema Changes" for a release with no migrations), subsections
+    #    first so a section left with only empty subsections goes too. ### Go Version is
+    #    empty by design here; its line is filled in later.
+    for level in ("####", "###"):
+        text = re.sub(
+            rf"(?m)^{level} (?!Go Version\b)[^\n]*(?:\n|\Z)(?:[ \t]*\n)*(?=#{{1,{len(level)}}} |\Z)", "", text)
+
+    # 5. Collapse runs of blank lines (removing a rule can leave a doubled gap).
     #    At least one blank line is always kept, which MDX needs around JSX blocks.
     text = re.sub(r"\n{3,}", "\n\n", text)
 
