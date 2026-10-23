@@ -803,7 +803,7 @@ func TestUpdatePostOptionsCopy(t *testing.T) {
 	// Every field must be non-zero so a new field fails this test until the
 	// fixture and Copy both include it.
 	value := reflect.ValueOf(*original)
-	for i := 0; i < value.NumField(); i++ {
+	for i := range value.NumField() {
 		require.Falsef(t, value.Field(i).IsZero(), "set %s on the copy fixture", value.Type().Field(i).Name)
 	}
 
