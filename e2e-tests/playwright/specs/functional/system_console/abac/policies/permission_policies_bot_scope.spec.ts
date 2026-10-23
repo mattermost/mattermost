@@ -111,7 +111,6 @@ test.describe('Permission Policies - Bot accounts scope', () => {
 
     let adminClient: Client4;
     let adminUser: UserProfile;
-    let licensed = true;
     let fieldId = '';
     let fieldName = '';
     let channelId = '';
@@ -137,7 +136,6 @@ test.describe('Permission Policies - Bot accounts scope', () => {
 
         const lic = await adminClient.getClientLicenseOld();
         if (lic?.IsLicensed !== 'true') {
-            licensed = false;
             return;
         }
 
@@ -221,8 +219,8 @@ test.describe('Permission Policies - Bot accounts scope', () => {
         expect(await downloadStatus(botMemberClient, fileId), baselineDownload).toEqual({status: 200});
     });
 
-    test.beforeEach(async () => {
-        test.skip(!licensed, 'No ABAC license');
+    test.beforeEach(async ({pw}) => {
+        await pw.skipIfNoLicense();
         await ensureABACEnabled(adminClient);
     });
 
