@@ -730,6 +730,64 @@ func TestAccessPolicyVersionV0_4(t *testing.T) {
 	})
 }
 
+func TestPermissionPolicyRoles(t *testing.T) {
+	newPermissionPolicy := func(version string, roles []string) *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
+			Revision: 0,
+			Version:  version,
+			Roles:    roles,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "user.attributes.dept == \"eng\"",
+			}},
+		}
+	}
+
+	for _, version := range []string{AccessControlPolicyVersionV0_3, AccessControlPolicyVersionV0_4} {
+		t.Run(version, func(t *testing.T) {
+			for _, role := range []string{
+				SystemAdminRoleId,
+				SystemUserRoleId,
+				SystemGuestRoleId,
+				AccessControlPolicyRoleSystemBot,
+			} {
+				t.Run("accepts "+role, func(t *testing.T) {
+					require.Nil(t, newPermissionPolicy(version, []string{role}).IsValid())
+				})
+			}
+
+			tests := []struct {
+				name       string
+				roles      []string
+				expectedID string
+			}{
+				{"unknown role rejected", []string{"system_robot"}, "model.access_policy.is_valid.unknown_role.app_error"},
+				{"RBAC-only system role rejected", []string{SystemManagerRoleId}, "model.access_policy.is_valid.unknown_role.app_error"},
+				{"channel role rejected", []string{ChannelUserRoleId}, "model.access_policy.is_valid.unknown_role.app_error"},
+				{"role is case sensitive", []string{"System_Bot"}, "model.access_policy.is_valid.unknown_role.app_error"},
+				{"padded role rejected", []string{" system_bot "}, "model.access_policy.is_valid.unknown_role.app_error"},
+				{"empty roles", []string{}, "model.access_policy.is_valid.roles.app_error"},
+				{"blank role", []string{""}, "model.access_policy.is_valid.roles.app_error"},
+				{"whitespace role", []string{"   "}, "model.access_policy.is_valid.roles.app_error"},
+				{"multiple valid roles", []string{SystemUserRoleId, AccessControlPolicyRoleSystemBot}, "model.access_policy.is_valid.roles.app_error"},
+			}
+			for _, tc := range tests {
+				t.Run(tc.name, func(t *testing.T) {
+					err := newPermissionPolicy(version, tc.roles).IsValid()
+					require.NotNil(t, err)
+					require.Equal(t, tc.expectedID, err.Id)
+					if tc.expectedID == "model.access_policy.is_valid.unknown_role.app_error" {
+						require.Contains(t, err.DetailedError, tc.roles[0])
+					}
+				})
+			}
+		})
+	}
+}
+
 func TestInheritV0_4(t *testing.T) {
 	t.Run("v0.4 child can import v0.4 parent", func(t *testing.T) {
 		// Same-version happy path: a v0.4 channel policy importing

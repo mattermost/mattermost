@@ -10779,14 +10779,6 @@
     "defaultMessage": "Delete policy",
     "description": "Heading of the delete section on the permission policy edit page."
   },
-  "admin.permission_policies.edit.error.bot_expression_check_failed": {
-    "defaultMessage": "Couldn't validate the expression. Try again.",
-    "description": "Inline error when the expression check request for a Bot accounts policy fails, so the save or simulation is blocked."
-  },
-  "admin.permission_policies.edit.error.bot_expression_invalid_detail": {
-    "defaultMessage": "This expression isn't valid. Check parentheses and quotes. Details: {error}",
-    "description": "Inline save error on the permission policy editor when the server's expression check rejects a Bot accounts policy's expression; {error} is the first error message from the server."
-  },
   "admin.permission_policies.edit.error.delete": {
     "defaultMessage": "Error deleting policy: {error}",
     "description": "Error message on the permission policy edit page when deletion fails; {error} is the server error detail."
@@ -10794,6 +10786,10 @@
   "admin.permission_policies.edit.error.expression_required": {
     "defaultMessage": "Please add an expression to the policy",
     "description": "Validation error on the permission policy edit page when no attribute expression has been defined."
+  },
+  "admin.permission_policies.edit.error.hidden_native_bot": {
+    "defaultMessage": "Remove {attributes} from the rules. Bot accounts policies can't use {count, plural, one {this attribute} other {these attributes}}.",
+    "description": "Validation error that blocks saving a Bot accounts permission policy whose rules reference attributes bots don't have (such as Email); {attributes} is a localized list of attribute labels and {count} is how many there are."
   },
   "admin.permission_policies.edit.error.load": {
     "defaultMessage": "Failed to load policy",
@@ -10834,6 +10830,14 @@
   "admin.permission_policies.edit.notice.button": {
     "defaultMessage": "Configure user attributes",
     "description": "Button in the notice on the permission policy edit page that navigates to the user attributes configuration page."
+  },
+  "admin.permission_policies.edit.notice.hidden_native_bot.text": {
+    "defaultMessage": "{count, plural, one {{attributes} can't be used in Bot accounts policies. Remove it from the rules to save this policy.} other {{attributes} can't be used in Bot accounts policies. Remove them from the rules to save this policy.}}",
+    "description": "Warning text (markdown) for a Bot accounts policy whose rules reference attributes that can't be used in Bot accounts policies (such as Email); {attributes} is a localized list of attribute labels (each in backticks) and {count} is how many there are."
+  },
+  "admin.permission_policies.edit.notice.hidden_native_bot.title": {
+    "defaultMessage": "Some attributes aren't available for bots",
+    "description": "Warning title on the permission policy editor when a Bot accounts policy's rules reference attributes bots don't have, such as Email, Email verified or Bot account."
   },
   "admin.permission_policies.edit.notice.synced_bot.text": {
     "defaultMessage": "{attributes} {count, plural, one {is} other {are}} synced from LDAP or SAML, and bots can't hold synced values. This policy will deny every bot.",
@@ -10916,7 +10920,7 @@
     "description": "Message shown in the empty access-rule table editor on the permission policy edit page for Bot accounts policies, before any rule rows are added."
   },
   "admin.permission_policies.edit.table_help_text_bot": {
-    "defaultMessage": "Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with the logical AND operator (`&&`).",
+    "defaultMessage": "Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).",
     "description": "Help text (markdown) under the access-rule table editor for Bot accounts policies; '&&' inside backticks is a code literal for the logical AND operator."
   },
   "admin.permission_policies.edit.title": {
@@ -11011,14 +11015,6 @@
     "defaultMessage": "Role",
     "description": "Column header in the Permission Policies table showing the system role (guests, members, admins, bot accounts) each policy applies to."
   },
-  "admin.permission_policies.role.bot.description": {
-    "defaultMessage": "Applies only to bot accounts",
-    "description": "Description under the 'Bot accounts' option in the role dropdown of the permission policy editor."
-  },
-  "admin.permission_policies.role.bot.label": {
-    "defaultMessage": "Bot accounts",
-    "description": "Option label in the role dropdown of the permission policy editor, and role label in the Permission Policies list, for policies that apply only to bot accounts."
-  },
   "admin.permission_policies.role.select": {
     "defaultMessage": "Select a role",
     "description": "Placeholder text of the role dropdown on the permission policy edit page before a role is chosen."
@@ -11031,6 +11027,14 @@
     "defaultMessage": "System administrators",
     "description": "Option label in the role dropdown of the permission policy editor targeting system administrators."
   },
+  "admin.permission_policies.role.system_bot.description": {
+    "defaultMessage": "Applies only to bot accounts. For bots, these policies take the place of Members policies on the permissions they cover.",
+    "description": "Description under the 'Bot accounts' option in the role dropdown of the permission policy editor, explaining that for bots these policies replace Members policies on the permissions they cover."
+  },
+  "admin.permission_policies.role.system_bot.label": {
+    "defaultMessage": "Bot accounts",
+    "description": "Option label in the role dropdown of the permission policy editor, and role label in the Permission Policies list, for policies that apply only to bot accounts."
+  },
   "admin.permission_policies.role.system_guest.description": {
     "defaultMessage": "Applies only to guest users",
     "description": "Description under the 'Guest users' option in the role dropdown of the permission policy editor."
@@ -11040,8 +11044,8 @@
     "description": "Option label in the role dropdown of the permission policy editor targeting guest users."
   },
   "admin.permission_policies.role.system_user.description": {
-    "defaultMessage": "Applies to regular members, including bot accounts. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.",
-    "description": "Description under the regular-members option in the role dropdown of the permission policy editor, explaining the admin fallback behavior."
+    "defaultMessage": "Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists. Bot accounts fall back to this rule only if no Bot accounts policy covers the same permissions.",
+    "description": "Description under the 'Members' option in the role dropdown of the permission policy editor, explaining that system administrators and bot accounts fall back to Members policies when no policy for their own role covers the same permissions."
   },
   "admin.permission_policies.role.system_user.label": {
     "defaultMessage": "Members",

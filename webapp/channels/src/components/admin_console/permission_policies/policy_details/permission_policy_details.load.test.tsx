@@ -7,15 +7,12 @@ import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_te
 
 import PermissionPolicyDetails from './permission_policy_details';
 import {
-    BOT_C_RETURNED,
-    BOT_C_UNWRAPPED,
-    BOT_PROPS,
     E,
     LDAP_TEAMS,
     MockedCELEditor,
     MockedTableEditor,
     NATIVE_FIELDS,
-    SERVER_PREFIXED_E,
+    TERNARY_E,
     baseProps,
     customField,
     lastCELProps,
@@ -31,8 +28,6 @@ import {
     switchToAdvanced,
     useFields,
 } from './test_utils';
-
-import {wrapBotExpression} from '../../access_control/bot_scope';
 
 const mockHistoryPush = jest.fn();
 jest.mock('utils/browser_history', () => ({
@@ -79,14 +74,13 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         jest.clearAllMocks();
     });
 
-    const BOT_A_RETURNED = '!user.isbot || user.attributes.Clearance == "Secret" && user.attributes.Program == "Dragon" &&\nuser.attributes.Clearance != "Public" && user.attributes.Program != "Phoenix" &&\nuser.attributes.Clearance != "Restricted"';
-    const BOT_A_UNWRAPPED = 'user.attributes.Clearance == "Secret" && user.attributes.Program == "Dragon" &&\nuser.attributes.Clearance != "Public" && user.attributes.Program != "Phoenix" &&\nuser.attributes.Clearance != "Restricted"';
-    const BOT_D1_RETURNED = '!user.isbot || "a" in user.attributes.Tags || "b" in user.attributes.Tags';
-    const D1_UNWRAPPED = '"a" in user.attributes.Tags || "b" in user.attributes.Tags';
+    const D1 = '"a" in user.attributes.Tags || "b" in user.attributes.Tags';
     const HAS_ANY_OF = '"a" in user.attributes.teams || "b" in user.attributes.teams';
-    const BOT_HELP_TEXT = 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with the logical AND operator (`&&`).';
+    const BOT_HELP_TEXT = 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).';
     const BOT_EMPTY_STATE_TEXT = 'Select a bot attribute and values to create a rule';
     const CPA_EMAIL = customField('cpa-email', 'email', {managed: 'admin', display_name: 'Work email'});
+    const MEMBERS_DESCRIPTION = 'Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists. Bot accounts fall back to this rule only if no Bot accounts policy covers the same permissions.';
+    const BOT_DESCRIPTION = 'Applies only to bot accounts. For bots, these policies take the place of Members policies on the permissions they cover.';
 
     const nativeCELNames = () => lastCELProps().userAttributes.filter((a) => a.isNative).map((a) => a.attribute);
 
@@ -172,7 +166,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
         test('the table editor gets every field in Bot accounts and hides the built-ins only from its picker', async () => {
             useFields([...NATIVE_FIELDS, CPA_EMAIL, LDAP_TEAMS]);
-            renderBotPolicy([wrapBotExpression(E)]);
+            renderBotPolicy([E]);
             await screen.findByTestId('table-editor');
 
             expect(lastTableProps().hiddenPickerAttributeNames).toEqual(['email', 'verified', 'isbot']);
@@ -183,7 +177,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
         test('CEL autocomplete drops the native built-ins in Bot accounts but keeps the custom email and session fields', async () => {
             useFields([...NATIVE_FIELDS, CPA_EMAIL, LDAP_TEAMS]);
-            renderBotPolicy([wrapBotExpression(E)]);
+            renderBotPolicy([E]);
             await screen.findByTestId('table-editor');
             await switchToAdvanced();
 
@@ -209,7 +203,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             await screen.findByTestId('table-editor');
             await switchToAdvanced();
 
-            await selectScope('pp-role-option-bot');
+            await selectScope('pp-role-option-system_bot');
             expect(nativeCELNames()).toEqual(['createat']);
 
             await selectScope('pp-role-option-system_user');
@@ -311,7 +305,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     });
 
     describe('role detection', () => {
-        test('lists the four scopes with Guest users second to last and Bot accounts last', async () => {
+        test('lists the four roles with Guest users second to last and Bot accounts last', async () => {
             renderWithExpression(E);
             await screen.findByTestId('table-editor');
 
@@ -321,17 +315,18 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 'pp-role-option-system_user',
                 'pp-role-option-system_admin',
                 'pp-role-option-system_guest',
-                'pp-role-option-bot',
+                'pp-role-option-system_bot',
             ]);
-            expect(screen.getByText('Applies only to bot accounts')).toBeInTheDocument();
+            expect(screen.getByText(BOT_DESCRIPTION)).toBeInTheDocument();
+            expect(screen.getByText(MEMBERS_DESCRIPTION)).toBeInTheDocument();
         });
 
-        test('seeds Bot accounts from a store-copy bot policy without waiting for fetchPolicy', async () => {
+        test('seeds Bot accounts from a store-copy system_bot policy without waiting for fetchPolicy', async () => {
             renderWithContext(
                 <PermissionPolicyDetails
                     {...baseProps}
                     policyId={undefined}
-                    policy={{id: 'policy1', name: 'Policy 1', type: 'permission', roles: ['system_user'], props: BOT_PROPS, rules: []}}
+                    policy={{id: 'policy1', name: 'Policy 1', type: 'permission', roles: ['system_bot'], rules: []}}
                 />,
             );
             await screen.findByTestId('table-editor');
@@ -340,40 +335,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(selectorText()).toContain('Bot accounts');
         });
 
-        test('a wrapped && chain selects Bot accounts and opens the unwrapped rule in table mode', async () => {
-            renderBotPolicy([BOT_A_RETURNED]);
-
-            expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
-            expect(lastTableProps().value).toBe(BOT_A_UNWRAPPED);
-            expect(selectorText()).toContain('Bot accounts');
-        });
-
-        test('a wrapped has-any-of group without parens opens in table mode', async () => {
-            renderBotPolicy([BOT_D1_RETURNED]);
-
-            expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
-            expect(lastTableProps().value).toBe(D1_UNWRAPPED);
-            expect(selectorText()).toContain('Bot accounts');
-        });
-
-        test('a wrapped ternary opens CEL mode with the unwrapped rule, still in Bot accounts', async () => {
-            renderBotPolicy([BOT_C_RETURNED]);
-
-            expect(await screen.findByTestId('cel-editor')).toBeInTheDocument();
-            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
-            expect(lastCELProps().value).toBe(BOT_C_UNWRAPPED);
-            expect(selectorText()).toContain('Bot accounts');
-        });
-
-        test('a doubled prefix unwraps to the inner rule', async () => {
-            renderBotPolicy([`!user.isbot || !user.isbot || ${E}`]);
-
-            expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
-            expect(lastTableProps().value).toBe(E);
-            expect(selectorText()).toContain('Bot accounts');
-        });
-
-        test('a flagged policy with a plain rule loads as Bot accounts with the rule as is', async () => {
+        test('a system_bot policy loads as Bot accounts with its rule as is in table mode', async () => {
             renderBotPolicy([E]);
 
             expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
@@ -381,41 +343,28 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(selectorText()).toContain('Bot accounts');
         });
 
-        test('a flag alongside other props still loads as Bot accounts', async () => {
-            renderWithPolicy({expressions: [wrapBotExpression(E)], props: {...BOT_PROPS, child_ids: []}});
+        test('a system_bot has-any-of group without parens opens in table mode', async () => {
+            renderBotPolicy([D1]);
+
+            expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
+            expect(lastTableProps().value).toBe(D1);
+        });
+
+        test('a system_bot ternary opens CEL mode verbatim', async () => {
+            renderBotPolicy([TERNARY_E]);
+
+            expect(await screen.findByTestId('cel-editor')).toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+            expect(lastCELProps().value).toBe(TERNARY_E);
+            expect(selectorText()).toContain('Bot accounts');
+        });
+
+        test('a system_bot policy with several rules loads the first rule', async () => {
+            renderWithPolicy({roles: ['system_bot'], expressions: [E, TERNARY_E]});
 
             expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
             expect(lastTableProps().value).toBe(E);
             expect(selectorText()).toContain('Bot accounts');
-        });
-
-        test.each([
-            ['the submitted wrapper', wrapBotExpression(E)],
-            ['the server-serialized wrapper', SERVER_PREFIXED_E],
-        ])('a hand-written system_user rule with %s and no props loads as Members, shown verbatim', async (_label, expression) => {
-            renderWithPolicy({expressions: [expression]});
-
-            expect(await screen.findByTestId('cel-editor')).toBeInTheDocument();
-            expect(lastCELProps().value).toBe(expression);
-            expect(selectorText()).toContain('Members');
-            expect(selectorText()).not.toContain('Bot accounts');
-        });
-
-        test('a wrapped rule with bot_scope false loads as Members', async () => {
-            renderWithPolicy({expressions: [wrapBotExpression(E)], props: {bot_scope: false}});
-
-            expect(await screen.findByTestId('cel-editor')).toBeInTheDocument();
-            expect(lastCELProps().value).toBe(wrapBotExpression(E));
-            expect(selectorText()).toContain('Members');
-        });
-
-        test('mixed prefixed and unprefixed rules load as Members with the raw first rule', async () => {
-            renderWithPolicy({expressions: [wrapBotExpression(E), E]});
-
-            expect(await screen.findByTestId('cel-editor')).toBeInTheDocument();
-            expect(lastCELProps().value).toBe(wrapBotExpression(E));
-            expect(selectorText()).toContain('Members');
-            expect(selectorText()).not.toContain('Bot accounts');
         });
 
         test('a policy with no rules loads as Members with an empty table', async () => {
@@ -426,12 +375,19 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(selectorText()).toContain('Members');
         });
 
-        test('a prefixed rule on a guest policy stays Guest users', async () => {
-            renderWithPolicy({roles: ['system_guest'], expressions: [wrapBotExpression(E)]});
+        test('a policy with no roles falls back to Members', async () => {
+            renderWithPolicy({roles: [], expressions: [E]});
 
-            await screen.findByTestId('cel-editor');
-            expect(selectorText()).toContain('Guest users');
-            expect(lastCELProps().value).toBe(wrapBotExpression(E));
+            await screen.findByTestId('table-editor');
+            expect(selectorText()).toContain('Members');
+        });
+
+        test('an unknown stored role shows the Select a role placeholder', async () => {
+            renderWithPolicy({roles: ['custom_role'], expressions: [E]});
+
+            await screen.findByTestId('table-editor');
+            expect(selectorText()).toContain('Select a role');
+            expect(screen.getByText('Define rules based on user attributes and values')).toBeInTheDocument();
         });
     });
 
@@ -441,13 +397,25 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             await screen.findByTestId('table-editor');
             expect(screen.getByText('Define rules based on user attributes and values')).toBeInTheDocument();
 
-            await selectScope('pp-role-option-bot');
+            await selectScope('pp-role-option-system_bot');
 
             expect(screen.getByText('Define rules based on bot attributes and values')).toBeInTheDocument();
             expect(screen.queryByText('Define rules based on user attributes and values')).not.toBeInTheDocument();
             expect(screen.getByText('Bot attribute requirements')).toBeInTheDocument();
             expect(lastTableProps().helpText).toBe(BOT_HELP_TEXT);
             expect(lastTableProps().emptyStateText).toBe(BOT_EMPTY_STATE_TEXT);
+        });
+
+        test('switching back to Members restores the user copy', async () => {
+            renderWithExpression(E);
+            await screen.findByTestId('table-editor');
+
+            await selectScope('pp-role-option-system_bot');
+            await selectScope('pp-role-option-system_user');
+
+            expect(screen.getByText('Define rules based on user attributes and values')).toBeInTheDocument();
+            expect(screen.queryByText('Bot attribute requirements')).not.toBeInTheDocument();
+            expect(lastTableProps().helpText).not.toBe(BOT_HELP_TEXT);
         });
     });
 });

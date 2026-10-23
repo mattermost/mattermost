@@ -27,8 +27,6 @@ import ProfilePicture from 'components/profile_picture';
 
 import DecisionChip from './decision_chip';
 
-import {unwrapBotTrace} from '../../bot_scope/trace';
-
 import './decision_details_modal.scss';
 
 type Props = {
@@ -874,11 +872,10 @@ function buildTraceFromBlame(
     action: string,
     policy?: AccessControlPolicy,
 ): DenyTrace | null {
-    const rawExpression = blame.expression || lookupDraftExpression(blame, policy);
-    if (!rawExpression) {
+    const expression = blame.expression || lookupDraftExpression(blame, policy);
+    if (!expression) {
         return null;
     }
-    const {expression, evaluationTree} = unwrapBotTrace(rawExpression, blame.evaluation_tree);
     const trace: DenyTrace = {
         expression,
         outcome: blame.outcome === 'allow' ? 'allow' : 'deny',
@@ -920,7 +917,8 @@ function buildTraceFromBlame(
     if (blame.merged_rules && blame.merged_rules.length > 1) {
         trace.mergedRules = blame.merged_rules.map((m) => ({
             name: m.name,
-            ...unwrapBotTrace(m.expression ?? '', m.evaluation_tree),
+            expression: m.expression,
+            evaluationTree: m.evaluation_tree,
         }));
     } else if (
         blame.role &&
@@ -933,15 +931,15 @@ function buildTraceFromBlame(
     ) {
         const merged = (policy.rules ?? []).
             filter((r) => r.role === blame.role && (r.actions ?? []).includes(action)).
-            map((r) => ({name: r.name ?? ''})).
+            map((r) => ({name: r.name ?? '', expression: r.expression})).
             filter((m) => m.name);
         if (merged.length > 1) {
             trace.mergedRules = merged;
         }
     }
 
-    if (evaluationTree) {
-        trace.evaluationTree = evaluationTree;
+    if (blame.evaluation_tree) {
+        trace.evaluationTree = blame.evaluation_tree;
     }
     return trace;
 }

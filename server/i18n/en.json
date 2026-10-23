@@ -15982,6 +15982,11 @@
     "description": "API validation error shown to system admins saving an attribute-based access control policy with an unrecognized policy type (parent, channel, team, permission)."
   },
   {
+    "id": "model.access_policy.is_valid.unknown_role.app_error",
+    "translation": "Permission policies must target a supported system role.",
+    "description": "API validation error shown to system admins saving a permission-type access control policy whose role is not one of the supported system roles (system admin, member, guest or bot); the rejected role identifier is reported separately in the error details."
+  },
+  {
     "id": "model.access_policy.is_valid.version.app_error",
     "translation": "Version is not valid for this access control policy.",
     "description": "API validation error shown to system admins saving an attribute-based access control policy whose schema version string is not supported."

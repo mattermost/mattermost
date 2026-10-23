@@ -34,7 +34,7 @@ const userText = defineMessages({
 const botText = defineMessages({
     attributesTitle: {id: 'admin.permission_policies.edit.who.attributes_title_bot', defaultMessage: 'Bot attribute requirements'},
     attributesSubtitle: {id: 'admin.permission_policies.edit.who.attributes_subtitle_bot', defaultMessage: 'Select attributes and values that bots must have for this policy'},
-    tableHelp: {id: 'admin.permission_policies.edit.table_help_text_bot', defaultMessage: 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with the logical AND operator (`&&`).'},
+    tableHelp: {id: 'admin.permission_policies.edit.table_help_text_bot', defaultMessage: 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).'},
     tableEmpty: {id: 'admin.permission_policies.edit.table_empty_bot', defaultMessage: 'Select a bot attribute and values to create a rule'},
 });
 
@@ -62,8 +62,6 @@ type Props = {
     mergedAttributes: UserPropertyField[];
     enableUserManagedAttributes: boolean;
     abacActions: TableEditorProps['actions'];
-
-    // Opens the policy simulator.
     onTestClick: () => void;
 
     // Why the simulator can't run yet; disables the test button.

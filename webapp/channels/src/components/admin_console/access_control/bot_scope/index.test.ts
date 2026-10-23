@@ -1,32 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {
-    BREAKOUT_OR_RETURNED,
-    BREAKOUT_TERNARY_RETURNED,
-    COMMENT_E,
-    COMMENT_RETURNED,
-    FIELD_DELETED_RETURNED,
-    MASKED_MIXED_RETURNED,
-    MASKED_RETURNED,
-    PROGRAM_DRAGON,
-    SERIALIZER_CASES,
-    fixture,
-} from '../cel_serializer_test_fixtures';
+import {fixture} from '../cel_expression_test_fixtures';
 
-import {
-    BOT_ROLE_KEY,
-    getPolicyRoleKey,
-    getSyncedAttributeReferences,
-    isBotScopePolicy,
-    toServerRole,
-    unwrapBotExpression,
-    withBotScope,
-    wrapBotExpression,
-} from './index';
+import {getHiddenNativeReferences, getSyncedAttributeReferences} from './index';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']> = {}): UserPropertyField => ({
     id: `id-${name}`,
@@ -47,168 +26,6 @@ const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']> = {}
     delete_at: 0,
     created_by: '',
     updated_by: '',
-});
-
-describe('unwrapBotExpression', () => {
-    it.each(SERIALIZER_CASES)('$name unwraps exactly', ({returned, unwrapped}) => {
-        expect(unwrapBotExpression(returned)).toBe(unwrapped);
-    });
-
-    it('keeps the ternary condition parens while stripping the enclosing pair', () => {
-        const result = unwrapBotExpression(fixture('c masking on GET').returned);
-        expect(result.startsWith('(user.attributes.Program == "Dragon") ? (')).toBe(true);
-        expect(result).toContain('&&\nuser.attributes.Program != "Phoenix")');
-    });
-
-    it('keeps a leading group that does not enclose the whole expression', () => {
-        expect(unwrapBotExpression(fixture('d2 masking on GET').returned)).toBe('("a" in user.attributes.Tags || "b" in user.attributes.Tags) && user.attributes.Clearance == "Secret"');
-    });
-
-    it.each([
-        [MASKED_RETURNED, 'user.attributes.Level == "--------"'],
-        [MASKED_MIXED_RETURNED, 'user.attributes.Level == "--------" && user.attributes.Program == "Dragon"'],
-        [FIELD_DELETED_RETURNED, 'user.attributes.Temp == "--------"'],
-    ])('unwraps masked placeholder %j', (input, expected) => {
-        expect(unwrapBotExpression(input)).toBe(expected);
-    });
-
-    it('strips a doubled prefix', () => {
-        expect(unwrapBotExpression('!user.isbot || !user.isbot || (user.attributes.Program == "Dragon"\n)')).toBe('user.attributes.Program == "Dragon"');
-    });
-
-    it('strips every prefix from the server form of a prefixed body', () => {
-        expect(unwrapBotExpression('!user.isbot || !user.isbot || x')).toBe('x');
-    });
-
-    it('unwraps the server form of a commented rule', () => {
-        expect(unwrapBotExpression(COMMENT_RETURNED)).toBe(PROGRAM_DRAGON);
-    });
-
-    it('keeps parens when the first group closes early', () => {
-        expect(unwrapBotExpression('!user.isbot || (user.attributes.A == "a") && (user.attributes.B == "b")')).toBe('(user.attributes.A == "a") && (user.attributes.B == "b")');
-    });
-
-    it('ignores parens inside string literals', () => {
-        expect(unwrapBotExpression('!user.isbot || ("a)" in user.attributes.Tags || "b(" in user.attributes.Tags) && user.attributes.Clearance == "Secret"')).toBe('("a)" in user.attributes.Tags || "b(" in user.attributes.Tags) && user.attributes.Clearance == "Secret"');
-    });
-
-    it('ignores || and ( inside a string literal', () => {
-        expect(unwrapBotExpression('!user.isbot || user.attributes.X == "a || (b"')).toBe('user.attributes.X == "a || (b"');
-    });
-
-    it('strips an enclosing pair whose body has parens in literals', () => {
-        expect(unwrapBotExpression('!user.isbot || (user.attributes.X == ")" && user.attributes.Y == "(")')).toBe('user.attributes.X == ")" && user.attributes.Y == "("');
-    });
-
-    it('handles a single-quoted literal with an escaped quote', () => {
-        expect(unwrapBotExpression("!user.isbot || (user.attributes.X == 'it\\'s (x'\n)")).toBe("user.attributes.X == 'it\\'s (x'");
-    });
-
-    it('returns non-prefixed input unchanged and untrimmed', () => {
-        expect(unwrapBotExpression('  user.attributes.X == "a"  ')).toBe('  user.attributes.X == "a"  ');
-    });
-
-    it('returns empty input unchanged', () => {
-        expect(unwrapBotExpression('')).toBe('');
-    });
-
-    it.each([
-        ['masking failure', 'false'],
-        ['leading whitespace', ' !user.isbot || x'],
-        ['no spaces around ||', '!user.isbot||x'],
-        ['bare negation', '!user.isbot'],
-        ['prefix without trailing space', '!user.isbot ||'],
-        ['positive isbot', 'user.isbot || x'],
-        ['a breakout that lost the prefix', BREAKOUT_TERNARY_RETURNED],
-    ])('returns %s unchanged', (_, expr) => {
-        expect(unwrapBotExpression(expr)).toBe(expr);
-    });
-
-    it('returns an empty string for a bare prefix', () => {
-        expect(unwrapBotExpression('!user.isbot || ')).toBe('');
-    });
-
-    it('returns an empty string for an empty wrapped body', () => {
-        expect(unwrapBotExpression('!user.isbot || (\n)')).toBe('');
-    });
-
-    it('unwraps a prefix-kept OR breakout without hiding the || true', () => {
-        expect(unwrapBotExpression(BREAKOUT_OR_RETURNED)).toBe('user.attributes.Program == "Dragon" || true');
-    });
-
-    it('strips only one enclosing pair', () => {
-        expect(unwrapBotExpression('!user.isbot || ((user.attributes.A == "a"))')).toBe('(user.attributes.A == "a")');
-    });
-
-    it('does not strip an unbalanced leading paren', () => {
-        expect(unwrapBotExpression('!user.isbot || (user.attributes.A == "a"')).toBe('(user.attributes.A == "a"');
-    });
-});
-
-describe('wrapBotExpression', () => {
-    // The newline keeps a trailing `// comment` in the rule from commenting out
-    // the closing paren; without it the stored rule is unbalanced and the server rejects it.
-    it('round-trips through the stored form with the newline before the closing paren', () => {
-        const stored = wrapBotExpression(COMMENT_E);
-
-        expect(stored).toBe('!user.isbot || (user.attributes.Program == "Dragon" // note\n)');
-        expect(unwrapBotExpression(stored)).toBe(COMMENT_E);
-
-        for (const expr of [
-            PROGRAM_DRAGON,
-            fixture('c masking on GET').unwrapped,
-            fixture('d2 masking on GET').unwrapped,
-            fixture('a masking on GET').unwrapped,
-            '!user.isbot || x',
-        ]) {
-            expect(unwrapBotExpression(wrapBotExpression(expr))).toBe(expr);
-        }
-    });
-
-    it('does not trim its input', () => {
-        expect(wrapBotExpression('  x  ')).toContain('(  x  ');
-    });
-});
-
-describe('isBotScopePolicy', () => {
-    const withProps = (props?: unknown) => ({props} as Pick<AccessControlPolicy, 'props'>);
-
-    it('is true when props.bot_scope is true', () => {
-        expect(isBotScopePolicy(withProps({bot_scope: true}))).toBe(true);
-    });
-
-    it('is true when props.bot_scope is true alongside other keys', () => {
-        expect(isBotScopePolicy(withProps({bot_scope: true, child_ids: ['c1'], channel_count: 1}))).toBe(true);
-    });
-
-    it.each([
-        ['props are missing', undefined],
-        ['props are empty', {}],
-        ['bot_scope is false', {bot_scope: false}],
-        ['bot_scope is the string "true"', {bot_scope: 'true'}],
-        ['bot_scope is 1', {bot_scope: 1}],
-        ['bot_scope is null', {bot_scope: null}],
-        ['only other keys are set', {bot: true, child_ids: []}],
-    ])('is false when %s', (_, props) => {
-        expect(isBotScopePolicy(withProps(props))).toBe(false);
-    });
-
-    it('ignores a bot-prefixed system_user rule without the flag', () => {
-        const policy: Pick<AccessControlPolicy, 'props' | 'roles' | 'rules'> = {
-            roles: ['system_user'],
-            rules: [{actions: ['upload_file_attachment'], expression: MASKED_RETURNED}],
-        };
-        expect(isBotScopePolicy(policy)).toBe(false);
-    });
-
-    it('ignores the rule text when the flag is set', () => {
-        const policy: Pick<AccessControlPolicy, 'props' | 'roles' | 'rules'> = {
-            props: {bot_scope: true},
-            roles: ['system_user'],
-            rules: [{actions: ['upload_file_attachment'], expression: PROGRAM_DRAGON}],
-        };
-        expect(isBotScopePolicy(policy)).toBe(true);
-    });
 });
 
 describe('getSyncedAttributeReferences', () => {
@@ -252,54 +69,68 @@ describe('getSyncedAttributeReferences', () => {
         expect(getSyncedAttributeReferences('// don\'t drop this\nuser.attributes.Tags == \'a\' && user.attributes.Clearance == "b"', fields)).toEqual([clearance]);
     });
 
+    it('finds a synced name with whitespace or a newline around the dots', () => {
+        expect(getSyncedAttributeReferences('user.attributes .Clearance == "a"', fields)).toEqual([clearance]);
+        expect(getSyncedAttributeReferences('user\n  .attributes\n  .Program == "a"', fields)).toEqual([program]);
+    });
+
     it('finds a synced name used with bracket access', () => {
         expect(getSyncedAttributeReferences('user.attributes["Program"] == "x"', fields)).toEqual([program]);
     });
 
     it('works on a fixture with newlines', () => {
-        expect(getSyncedAttributeReferences(fixture('d3 masking on GET').unwrapped, fields)).toEqual([clearance]);
+        expect(getSyncedAttributeReferences(fixture('d3 masking on GET').expression, fields)).toEqual([clearance]);
     });
 });
 
-describe('withBotScope', () => {
-    it.each([
-        ['missing props, bot scope', undefined, true, {bot_scope: true}],
-        ['missing props, other scope', undefined, false, {}],
-        ['flagged props with other keys, other scope', {bot_scope: true, foo: 'x'}, false, {foo: 'x'}],
-        ['unflagged props with other keys, bot scope', {foo: 'x'}, true, {foo: 'x', bot_scope: true}],
-        ['bot_scope false, other scope', {bot_scope: false}, false, {}],
-    ])('withBotScope for %s', (_, props, botScope, expected) => {
-        expect(withBotScope(props, botScope)).toEqual(expected);
+describe('getHiddenNativeReferences', () => {
+    it('finds email in a simple-mode comparison', () => {
+        expect(getHiddenNativeReferences('user.email == "a@b.com"')).toEqual(['email']);
     });
 
-    it('does not mutate its input', () => {
-        const props = {bot_scope: true, foo: 'x'};
-        withBotScope(props, false);
-        withBotScope(props, true);
-        expect(props).toEqual({bot_scope: true, foo: 'x'});
+    it('finds every hidden native in a hand-written expression, in hidden-list order', () => {
+        expect(getHiddenNativeReferences('user.isbot == false || (user.email.endsWith("@x.com") && user.verified == true)')).toEqual(['email', 'verified', 'isbot']);
     });
-});
 
-describe('toServerRole', () => {
-    it.each([
-        [BOT_ROLE_KEY, 'system_user'],
-        ['system_user', 'system_user'],
-        ['system_guest', 'system_guest'],
-        ['system_admin', 'system_admin'],
-        ['custom_role', 'custom_role'],
-    ])('toServerRole(%p) returns %p', (key, expected) => {
-        expect(toServerRole(key)).toBe(expected);
+    it('finds bracket access on the user object', () => {
+        expect(getHiddenNativeReferences('user["email"] == "a@b.com"')).toEqual(['email']);
     });
-});
 
-describe('getPolicyRoleKey', () => {
-    it.each([
-        ['an unflagged system_user policy', {roles: ['system_user']}, 'system_user'],
-        ['a flagged system_user policy', {roles: ['system_user'], props: {bot_scope: true}}, BOT_ROLE_KEY],
-        ['an unflagged system_user policy with a bot-prefixed rule', {roles: ['system_user'], rules: [{actions: [], expression: MASKED_RETURNED}]}, 'system_user'],
-        ['an unflagged policy whose first of several roles is system_user', {roles: ['system_user', 'system_admin']}, 'system_user'],
-        ['an unflagged policy with no roles', {roles: undefined}, undefined],
-    ])('getPolicyRoleKey for %s', (_, policy, expected) => {
-        expect(getPolicyRoleKey(policy as Pick<AccessControlPolicy, 'roles' | 'props'>)).toBe(expected);
+    it('finds single-quoted bracket access', () => {
+        expect(getHiddenNativeReferences('user[\'verified\'] == true')).toEqual(['verified']);
+    });
+
+    it('finds a negated selector', () => {
+        expect(getHiddenNativeReferences('!user.isbot')).toEqual(['isbot']);
+    });
+
+    it('finds a has() presence test', () => {
+        expect(getHiddenNativeReferences('has(user.email)')).toEqual(['email']);
+    });
+
+    it('finds selectors with whitespace or a newline around the dot', () => {
+        expect(getHiddenNativeReferences('user .email == "a"')).toEqual(['email']);
+        expect(getHiddenNativeReferences('user. verified == true')).toEqual(['verified']);
+        expect(getHiddenNativeReferences('user.attributes.Team == "a" &&\nuser\n  .isbot')).toEqual(['isbot']);
+    });
+
+    it('does not flag a spaced custom attribute selector', () => {
+        expect(getHiddenNativeReferences('user.attributes .email == "a" && user .attributes. verified == "b"')).toEqual([]);
+    });
+
+    it('ignores allowed natives, custom and session attributes with the same names', () => {
+        expect(getHiddenNativeReferences('user.createat.youngerThanDays(7) && user.attributes.email == "a" && user.session.isbot == "b" && user.attributes["verified"] == "c"')).toEqual([]);
+    });
+
+    it('ignores names inside literals and comments', () => {
+        expect(getHiddenNativeReferences('user.attributes.Tags == "user.email" // user.isbot\n&& user.attributes.Team == \'user.verified\'')).toEqual([]);
+    });
+
+    it('ignores a selector whose receiver is not the user object', () => {
+        expect(getHiddenNativeReferences('resource.user.email == "a" && someuser.email == "b"')).toEqual([]);
+    });
+
+    it('returns nothing for an empty expression', () => {
+        expect(getHiddenNativeReferences('')).toEqual([]);
     });
 });

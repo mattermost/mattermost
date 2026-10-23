@@ -2671,7 +2671,7 @@
   "admin.permission_policies.role.system_admin.label": "System administrators",
   "admin.permission_policies.role.system_guest.description": "Applies only to guest users",
   "admin.permission_policies.role.system_guest.label": "Guest users",
-  "admin.permission_policies.role.system_user.description": "Applies to regular members, including bot accounts. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.",
+  "admin.permission_policies.role.system_user.description": "Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.",
   "admin.permission_policies.role.system_user.label": "Members",
   "admin.permission_policies.search_errored": "Something went wrong. Try again",
   "admin.permission_policies.title": "Permission Policies",

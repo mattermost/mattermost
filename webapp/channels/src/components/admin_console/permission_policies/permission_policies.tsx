@@ -18,8 +18,6 @@ import {getHistory} from 'utils/browser_history';
 
 import {AVAILABLE_ROLES} from './roles';
 
-import {getPolicyRoleKey} from '../access_control/bot_scope';
-
 import '../access_control/policies.scss';
 
 type Props = {
@@ -44,12 +42,12 @@ function getActionsLabel(policy: AccessControlPolicy): string {
 }
 
 function getRoleLabel(policy: AccessControlPolicy, formatMessage: IntlShape['formatMessage']): string {
-    const key = getPolicyRoleKey(policy);
-    if (!key) {
+    const roleValue = policy.roles?.[0];
+    if (!roleValue) {
         return 'None';
     }
-    const role = AVAILABLE_ROLES.find((r) => r.value === key);
-    return role ? formatMessage(role.label) : key;
+    const role = AVAILABLE_ROLES.find((r) => r.value === roleValue);
+    return role ? formatMessage(role.label) : roleValue;
 }
 
 export default function PermissionPolicyList(props: Props): JSX.Element {

@@ -9,9 +9,9 @@ import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PermissionPolicyDetails from './permission_policy_details';
 import {
-    BOT_C_RETURNED,
     E,
     NATIVE_FIELDS,
+    TERNARY_E,
     baseProps,
     chooseMenuItem,
     lastCELProps,
@@ -24,8 +24,6 @@ import {
     useFields,
 } from './test_utils';
 
-import {wrapBotExpression} from '../../access_control/bot_scope';
-
 const mockHistoryPush = jest.fn();
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({push: mockHistoryPush}),
@@ -35,11 +33,8 @@ jest.mock('hooks/useEnabledSessionAttributeFields', () => ({
     useEnabledSessionAttributeFields: jest.fn(() => []),
 }));
 
-// Render the editors as identifiable stand-ins. The real CELEditor boots
-// Monaco (unavailable in JSDOM) and the real TableEditor parses CEL via an
-// async action, neither of which is relevant here: these tests assert which
-// editor the parent chooses on load. The shared isSimpleExpression helper is
-// intentionally left unmocked so the real classification runs.
+// Stand-ins: the real CELEditor boots Monaco (unavailable in JSDOM) and the
+// real TableEditor parses CEL through an async action.
 jest.mock('../../access_control/editors/table_editor/table_editor', () => {
     const reactLib = require('react');
     return jest.fn(() => reactLib.createElement('div', {'data-testid': 'table-editor'}));
@@ -79,8 +74,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     const triggerTest = () => act(() => lastTableProps().onTestClick!());
 
     describe('modal wiring', () => {
-        test('Bot accounts passes the wrapped rule and system_user role to the simulator', async () => {
-            renderBotPolicy([wrapBotExpression(E)], SIM_STATE);
+        test('Bot accounts passes the plain rule and system_bot to the simulator', async () => {
+            renderBotPolicy([E], SIM_STATE);
             await screen.findByTestId('table-editor');
 
             await triggerTest();
@@ -88,23 +83,24 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(await screen.findByTestId('simulate-modal')).toBeInTheDocument();
             const props = lastModalProps();
             expect(props.policy.id).toBe('policy1');
-            expect(props.policy.roles).toEqual(['system_user']);
-            expect(props.policy.rules).toEqual([{actions: ['download_file_attachment'], expression: wrapBotExpression(E)}]);
-            expect(props.targetRole).toBe('system_user');
+            expect(props.policy.roles).toEqual(['system_bot']);
+            expect(props.policy.rules).toEqual([{actions: ['download_file_attachment'], expression: E}]);
+            expect(props.targetRole).toBe('system_bot');
             expect(checkExpressionSpy).not.toHaveBeenCalled();
         });
 
-        test('Simulate in the CEL editor opens the modal without an expression check', async () => {
-            renderBotPolicy([BOT_C_RETURNED], SIM_STATE);
+        test('Simulate in the CEL editor opens the modal', async () => {
+            renderBotPolicy([TERNARY_E], SIM_STATE);
             await screen.findByTestId('cel-editor');
 
             act(() => lastCELProps().onTestClick!());
 
             expect(await screen.findByTestId('simulate-modal')).toBeInTheDocument();
+            expect(lastModalProps().policy.rules[0].expression).toBe(TERNARY_E);
             expect(checkExpressionSpy).not.toHaveBeenCalled();
         });
 
-        test('Members simulates the unwrapped rule without a check', async () => {
+        test('Members simulates the plain rule as system_user', async () => {
             mockFetchPolicy.mockResolvedValue({
                 data: {id: 'policy1', name: 'Policy 1', roles: ['system_user'], rules: [{actions: ['download_file_attachment'], expression: E}]},
             });
@@ -119,9 +115,26 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(checkExpressionSpy).not.toHaveBeenCalled();
         });
 
+        test.each([
+            ['pp-role-option-system_user', 'system_user'],
+            ['pp-role-option-system_admin', 'system_admin'],
+            ['pp-role-option-system_guest', 'system_guest'],
+            ['pp-role-option-system_bot', 'system_bot'],
+        ])('after choosing %s the simulator gets %s', async (optionId, role) => {
+            renderWithPolicy({expressions: [E]}, SIM_STATE);
+            await screen.findByTestId('table-editor');
+            await selectScope(optionId);
+
+            await triggerTest();
+
+            expect(await screen.findByTestId('simulate-modal')).toBeInTheDocument();
+            expect(lastModalProps().targetRole).toBe(role);
+            expect(lastModalProps().policy.roles).toEqual([role]);
+        });
+
         test('the simulator keeps the unfiltered fields', async () => {
             useFields([...NATIVE_FIELDS]);
-            renderBotPolicy([wrapBotExpression(E)], SIM_STATE);
+            renderBotPolicy([E], SIM_STATE);
             await screen.findByTestId('table-editor');
 
             await triggerTest();
@@ -134,7 +147,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     // MM-71299: the editors' own expression-only test ignores the policy's
     // role, so no scope may fall back to it when the simulator can't run.
     describe('test button gating', () => {
-        const ROLE_OPTIONS = ['pp-role-option-system_user', 'pp-role-option-system_admin', 'pp-role-option-system_guest', 'pp-role-option-bot'];
+        const ROLE_OPTIONS = ['pp-role-option-system_user', 'pp-role-option-system_admin', 'pp-role-option-system_guest', 'pp-role-option-system_bot'];
 
         const renderWithoutPermissions = () => {
             mockFetchPolicy.mockResolvedValue({

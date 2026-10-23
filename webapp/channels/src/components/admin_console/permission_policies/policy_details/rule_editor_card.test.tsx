@@ -220,7 +220,7 @@ describe('components/admin_console/permission_policies/policy_details/RuleEditor
         test('bot scope gives the table editor bot help and empty-state text', () => {
             renderCard({scope: 'bot'});
 
-            expect(lastTableProps().helpText).toBe('Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with the logical AND operator (`&&`).');
+            expect(lastTableProps().helpText).toBe('Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).');
             expect(lastTableProps().emptyStateText).toBe('Select a bot attribute and values to create a rule');
         });
 

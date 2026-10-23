@@ -8,8 +8,15 @@ const LITERAL_OR_COMMENT = String.raw`"(?:[^"\\\n\r]|\\.)*"?|'(?:[^'\\\n\r]|\\.)
 
 const LITERALS_AND_COMMENTS = new RegExp(LITERAL_OR_COMMENT, 'g');
 
-// Literals and comments are alternatives, so a reference inside one is consumed as part of it.
-const USER_ATTRIBUTE_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|user\.attributes(?:\.(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
+// The reference patterns can't run over the masked string because the bracket form
+// (`user.attributes["x"]`) names the attribute inside a literal. Instead, literals and
+// comments are leading alternatives, so a reference inside one is consumed as part of it
+// and produces no capture. Captures: 1 = dotted name, 2 = "quoted" name, 3 = 'quoted' name.
+const USER_ATTRIBUTE_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|user\s*\.\s*attributes(?:\s*\.\s*(\w+)|\s*\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
+
+// A single-segment `user.<name>` selector such as `user.email`; `attributes` and `session` are namespaces, not fields.
+const NATIVE_USER_REFERENCE = new RegExp(String.raw`${LITERAL_OR_COMMENT}|(?<![\w.])user\s*(?:\.\s*(\w+)|\[\s*(?:"([^"]*)"|'([^']*)')\s*\])`, 'g');
+const USER_NAMESPACES = new Set(['attributes', 'session']);
 
 // Same length as `s`, so an index into the result is an index into `s`.
 function maskLiteralsAndComments(s: string): string {
@@ -50,13 +57,21 @@ export function splitOutsideLiterals(s: string, separator: string): string[] {
     return parts;
 }
 
-export function referencedUserAttributeNames(expr: string): string[] {
+function referencedNames(expr: string, pattern: RegExp): Set<string> {
     const names = new Set<string>();
-    for (const [, dotted, doubleQuoted, singleQuoted] of expr.matchAll(USER_ATTRIBUTE_REFERENCE)) {
+    for (const [, dotted, doubleQuoted, singleQuoted] of expr.matchAll(pattern)) {
         const name = dotted ?? doubleQuoted ?? singleQuoted;
         if (name !== undefined) {
             names.add(name);
         }
     }
-    return Array.from(names);
+    return names;
+}
+
+export function referencedUserAttributeNames(expr: string): string[] {
+    return Array.from(referencedNames(expr, USER_ATTRIBUTE_REFERENCE));
+}
+
+export function referencedNativeUserAttributeNames(expr: string): string[] {
+    return Array.from(referencedNames(expr, NATIVE_USER_REFERENCE)).filter((name) => !USER_NAMESPACES.has(name));
 }

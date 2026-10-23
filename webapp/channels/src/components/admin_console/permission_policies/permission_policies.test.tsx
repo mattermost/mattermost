@@ -12,31 +12,19 @@ import {renderWithContext, screen, within} from 'tests/react_testing_utils';
 import PermissionPolicyList from './permission_policies';
 import {AVAILABLE_ROLES, roleMessages} from './roles';
 
-import {BOT_ROLE_KEY} from '../access_control/bot_scope';
-
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({
         push: jest.fn(),
     }),
 }));
 
-const SEARCH_BOT_EXPRESSION =
-    '!user.isbot || user.id_7swqffpxy7dnxyf6wipuc8grwr.id_9f34qgf7zb817xobspzmk1qx1h == "Secret" &&\n' +
-    'user.id_7swqffpxy7dnxyf6wipuc8grwr.id_ht5zt6domfbexcfor5hiymn9dr == "Dragon" &&\n' +
-    'user.id_7swqffpxy7dnxyf6wipuc8grwr.id_9f34qgf7zb817xobspzmk1qx1h != "Public" &&\n' +
-    'user.id_7swqffpxy7dnxyf6wipuc8grwr.id_ht5zt6domfbexcfor5hiymn9dr != "Phoenix" &&\n' +
-    'user.id_7swqffpxy7dnxyf6wipuc8grwr.id_9f34qgf7zb817xobspzmk1qx1h != "Restricted"';
-
 const SEARCH_MEMBER_EXPRESSION = 'user.id_7swqffpxy7dnxyf6wipuc8grwr.id_9f34qgf7zb817xobspzmk1qx1h == "Secret"';
 
-const BOT_PROPS = {bot_scope: true};
-
-const makePolicy = (id: string, roles: string[] | undefined, expressions: string[], props?: AccessControlPolicy['props']): AccessControlPolicy => ({
+const makePolicy = (id: string, roles: string[] | undefined, expressions: string[]): AccessControlPolicy => ({
     id,
     name: `Policy ${id}`,
     type: 'permission',
     roles,
-    props,
     rules: expressions.map((expression) => ({actions: ['upload_file_attachment'], expression})),
 } as AccessControlPolicy);
 
@@ -66,22 +54,16 @@ describe('components/admin_console/permission_policies/PermissionPolicyList', ()
     });
 
     test.each([
-        ['plain system_user policy', makePolicy('member', ['system_user'], [SEARCH_MEMBER_EXPRESSION]), 'Members'],
-        ['flagged, ID-encoded, multi-line bot-prefixed policy', makePolicy('bot', ['system_user'], [SEARCH_BOT_EXPRESSION], BOT_PROPS), 'Bot accounts'],
-        ['flagged policy with a plain rule', makePolicy('botplain', ['system_user'], [SEARCH_MEMBER_EXPRESSION], BOT_PROPS), 'Bot accounts'],
-        ['flagged policy alongside other props', makePolicy('botextra', ['system_user'], [SEARCH_BOT_EXPRESSION], {...BOT_PROPS, child_ids: []}), 'Bot accounts'],
-        ['bot-prefixed system_user policy without the flag', makePolicy('prefixed', ['system_user'], [SEARCH_BOT_EXPRESSION]), 'Members'],
-        ['policy whose props set bot_scope to false', makePolicy('botfalse', ['system_user'], [SEARCH_BOT_EXPRESSION], {bot_scope: false}), 'Members'],
-        ['policy mixing prefixed and unprefixed rules', makePolicy('mixed', ['system_user'], [SEARCH_BOT_EXPRESSION, SEARCH_MEMBER_EXPRESSION]), 'Members'],
+        ['system_user policy', makePolicy('member', ['system_user'], [SEARCH_MEMBER_EXPRESSION]), 'Members'],
+        ['system_bot policy', makePolicy('bot', ['system_bot'], [SEARCH_MEMBER_EXPRESSION]), 'Bot accounts'],
+        ['system_bot policy with zero rules', makePolicy('botnorules', ['system_bot'], []), 'Bot accounts'],
+        ['policy whose first of several roles is system_bot', makePolicy('botfirst', ['system_bot', 'system_user'], [SEARCH_MEMBER_EXPRESSION]), 'Bot accounts'],
         ['system_user policy with zero rules', makePolicy('norules', ['system_user'], []), 'Members'],
         ['guest policy', makePolicy('guest', ['system_guest'], [SEARCH_MEMBER_EXPRESSION]), 'Guest users'],
         ['admin policy', makePolicy('admin', ['system_admin'], [SEARCH_MEMBER_EXPRESSION]), 'System administrators'],
-        ['admin policy with bot-prefixed rules', makePolicy('adminbot', ['system_admin'], [SEARCH_BOT_EXPRESSION]), 'System administrators'],
-        ['guest policy with bot-prefixed rules', makePolicy('guestbot', ['system_guest'], [SEARCH_BOT_EXPRESSION]), 'Guest users'],
         ['unknown role', makePolicy('custom', ['custom_role'], [SEARCH_MEMBER_EXPRESSION]), 'custom_role'],
         ['undefined roles', makePolicy('none', undefined, [SEARCH_MEMBER_EXPRESSION]), 'None'],
         ['empty roles', makePolicy('empty', [], [SEARCH_MEMBER_EXPRESSION]), 'None'],
-        ['undefined roles with bot-prefixed rules', makePolicy('nonebot', undefined, [SEARCH_BOT_EXPRESSION]), 'None'],
     ])('shows the role label for %s', async (_, policy, expected) => {
         renderWithPolicies([policy]);
 
@@ -90,29 +72,26 @@ describe('components/admin_console/permission_policies/PermissionPolicyList', ()
         expect(within(row).getByText(expected)).toBeInTheDocument();
     });
 
-    test('shows Bot accounts instead of Members for a bot-scope policy and never renders the expression', async () => {
-        renderWithPolicies([makePolicy('bot', ['system_user'], [SEARCH_BOT_EXPRESSION], BOT_PROPS)]);
+    test('shows Bot accounts instead of Members for a system_bot policy and never renders the expression', async () => {
+        renderWithPolicies([makePolicy('bot', ['system_bot'], [SEARCH_MEMBER_EXPRESSION])]);
 
         const row = await getRow('Policy bot');
 
         expect(within(row).getByText('Bot accounts')).toBeInTheDocument();
         expect(within(row).queryByText('Members')).not.toBeInTheDocument();
         expect(within(row).queryByText(/id_9f34/)).not.toBeInTheDocument();
-        expect(within(row).queryByText(/user\.isbot/)).not.toBeInTheDocument();
     });
 
     test('resolves the role label per row when several policies are listed', async () => {
         renderWithPolicies([
             makePolicy('member', ['system_user'], [SEARCH_MEMBER_EXPRESSION]),
-            makePolicy('bot', ['system_user'], [SEARCH_BOT_EXPRESSION], BOT_PROPS),
-            makePolicy('mixed', ['system_user'], [SEARCH_BOT_EXPRESSION, SEARCH_MEMBER_EXPRESSION]),
+            makePolicy('bot', ['system_bot'], [SEARCH_MEMBER_EXPRESSION]),
             makePolicy('guest', ['system_guest'], [SEARCH_MEMBER_EXPRESSION]),
             makePolicy('admin', ['system_admin'], [SEARCH_MEMBER_EXPRESSION]),
         ]);
 
         const memberRow = await getRow('Policy member');
         const botRow = await getRow('Policy bot');
-        const mixedRow = await getRow('Policy mixed');
         const guestRow = await getRow('Policy guest');
         const adminRow = await getRow('Policy admin');
 
@@ -122,14 +101,11 @@ describe('components/admin_console/permission_policies/PermissionPolicyList', ()
         expect(within(botRow).getByText('Bot accounts')).toBeInTheDocument();
         expect(within(botRow).queryByText('Members')).not.toBeInTheDocument();
 
-        expect(within(mixedRow).getByText('Members')).toBeInTheDocument();
-        expect(within(mixedRow).queryByText('Bot accounts')).not.toBeInTheDocument();
-
         expect(within(guestRow).getByText('Guest users')).toBeInTheDocument();
         expect(within(adminRow).getByText('System administrators')).toBeInTheDocument();
 
         expect(screen.getAllByText('Bot accounts')).toHaveLength(1);
-        expect(screen.getAllByText('Members')).toHaveLength(2);
+        expect(screen.getAllByText('Members')).toHaveLength(1);
     });
 });
 
@@ -139,7 +115,14 @@ describe('components/admin_console/permission_policies/roles', () => {
             {value: 'system_user', label: roleMessages.memberLabel, description: roleMessages.memberDescription},
             {value: 'system_admin', label: roleMessages.adminLabel, description: roleMessages.adminDescription},
             {value: 'system_guest', label: roleMessages.guestLabel, description: roleMessages.guestDescription},
-            {value: BOT_ROLE_KEY, label: roleMessages.botLabel, description: roleMessages.botDescription},
+            {value: 'system_bot', label: roleMessages.botLabel, description: roleMessages.botDescription},
         ]);
+    });
+
+    test('role messages use the role value in their ids', () => {
+        for (const role of AVAILABLE_ROLES) {
+            expect(role.label.id).toBe(`admin.permission_policies.role.${role.value}.label`);
+            expect(role.description.id).toBe(`admin.permission_policies.role.${role.value}.description`);
+        }
     });
 });

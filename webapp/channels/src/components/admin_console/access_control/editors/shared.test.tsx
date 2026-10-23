@@ -9,7 +9,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {TestButton, celPrefixForField, excludeHiddenNativeFields, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
 
-import {fixture} from '../cel_serializer_test_fixtures';
+import {fixture} from '../cel_expression_test_fixtures';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
@@ -730,8 +730,8 @@ describe('isSimpleExpression on server-serialized bodies', () => {
         'd3 masking on GET',
         'e masking on GET',
         'e masking off GET',
-    ])('%s unwrapped is simple', (name) => {
-        expect(isSimpleExpression(fixture(name).unwrapped)).toBe(true);
+    ])('%s is simple', (name) => {
+        expect(isSimpleExpression(fixture(name).expression)).toBe(true);
     });
 
     it.each([
@@ -739,8 +739,8 @@ describe('isSimpleExpression on server-serialized bodies', () => {
         'b masking off GET',
         'c masking on GET',
         'c masking off GET',
-    ])('%s unwrapped is not simple', (name) => {
-        expect(isSimpleExpression(fixture(name).unwrapped)).toBe(false);
+    ])('%s is not simple', (name) => {
+        expect(isSimpleExpression(fixture(name).expression)).toBe(false);
     });
 });
 

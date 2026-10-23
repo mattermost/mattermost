@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {AccessControlPolicyProps} from '@mattermost/types/access_control';
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
@@ -26,10 +26,7 @@ export const mockUseEnabledSessionAttributeFields = useEnabledSessionAttributeFi
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
 
 export const E = 'user.attributes.teams == "engineering"';
-export const SERVER_PREFIXED_E = `!user.isbot || ${E}`;
-export const BOT_C_RETURNED = '!user.isbot || ((user.attributes.Program == "Dragon") ? (user.attributes.Clearance == "Secret" &&\nuser.attributes.Program != "Phoenix") : (user.attributes.Clearance == "TopSecret" &&\nuser.attributes.Program == "Hydra"))';
-export const BOT_C_UNWRAPPED = '(user.attributes.Program == "Dragon") ? (user.attributes.Clearance == "Secret" &&\nuser.attributes.Program != "Phoenix") : (user.attributes.Clearance == "TopSecret" &&\nuser.attributes.Program == "Hydra")';
-export const BOT_PROPS = {bot_scope: true};
+export const TERNARY_E = '(user.attributes.Program == "Dragon") ? (user.attributes.Clearance == "Secret" &&\nuser.attributes.Program != "Phoenix") : (user.attributes.Clearance == "TopSecret" &&\nuser.attributes.Program == "Hydra")';
 
 export const mockFetchPolicy = jest.fn();
 export const mockCreatePolicy = jest.fn();
@@ -137,7 +134,7 @@ export const renderWithExpression = (expression: string) => {
     return renderWithContext(<PermissionPolicyDetails {...baseProps}/>);
 };
 
-export const renderWithPolicy = (policy: {roles?: string[]; expressions: string[]; props?: AccessControlPolicyProps}, initialState = {}) => {
+export const renderWithPolicy = (policy: {roles?: string[]; expressions: string[]; props?: AccessControlPolicy['props']}, initialState = {}) => {
     mockFetchPolicy.mockResolvedValue({
         data: {
             id: 'policy1',
@@ -151,7 +148,7 @@ export const renderWithPolicy = (policy: {roles?: string[]; expressions: string[
     return renderWithContext(<PermissionPolicyDetails {...baseProps}/>, initialState);
 };
 
-export const renderBotPolicy = (expressions: string[], initialState = {}) => renderWithPolicy({expressions, props: BOT_PROPS}, initialState);
+export const renderBotPolicy = (expressions: string[], initialState = {}) => renderWithPolicy({roles: ['system_bot'], expressions}, initialState);
 
 export const lastTableProps = () => MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
 export const lastCELProps = () => MockedCELEditor.mock.calls[MockedCELEditor.mock.calls.length - 1][0];

@@ -3,19 +3,14 @@
 
 import React from 'react';
 
-import type {CELExpressionError} from '@mattermost/types/access_control';
-
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import PermissionPolicyDetails from './permission_policy_details';
 import {
-    BOT_C_RETURNED,
-    BOT_C_UNWRAPPED,
-    BOT_PROPS,
     E,
     LDAP_TEAMS,
     NATIVE_FIELDS,
-    SERVER_PREFIXED_E,
+    TERNARY_E,
     baseProps,
     chooseMenuItem,
     customField,
@@ -32,8 +27,6 @@ import {
     useFields,
 } from './test_utils';
 
-import {wrapBotExpression} from '../../access_control/bot_scope';
-
 const mockHistoryPush = jest.fn();
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({push: mockHistoryPush}),
@@ -43,11 +36,8 @@ jest.mock('hooks/useEnabledSessionAttributeFields', () => ({
     useEnabledSessionAttributeFields: jest.fn(() => []),
 }));
 
-// Render the editors as identifiable stand-ins. The real CELEditor boots
-// Monaco (unavailable in JSDOM) and the real TableEditor parses CEL via an
-// async action, neither of which is relevant here: these tests assert which
-// editor the parent chooses on load. The shared isSimpleExpression helper is
-// intentionally left unmocked so the real classification runs.
+// Stand-ins: the real CELEditor boots Monaco (unavailable in JSDOM) and the
+// real TableEditor parses CEL through an async action.
 jest.mock('../../access_control/editors/table_editor/table_editor', () => {
     const reactLib = require('react');
     return jest.fn(() => reactLib.createElement('div', {'data-testid': 'table-editor'}));
@@ -80,8 +70,6 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     });
 
     const POLICIES_PATH = '/admin_console/system_attributes/permission_policies';
-    const BREAKOUT_OR = 'user.attributes.teams == "x") || (true';
-    const BREAKOUT_TERNARY = 'user.attributes.teams == "x") ? (true) : (false';
     const SAML_REGION = customField('u-region', 'region', {saml: 'Region', display_name: 'Sales region'});
     const PLAIN_DEPT = customField('u-dept', 'department', {managed: 'admin'});
 
@@ -97,12 +85,12 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         return {promise, resolve};
     };
 
-    const savedBotPolicy = (expression = wrapBotExpression(E)) => ({
-        data: {id: 'policy1', roles: ['system_user'], props: BOT_PROPS, rules: [{actions: ['download_file_attachment'], expression}]},
+    const savedBotPolicy = (expression = E) => ({
+        data: {id: 'policy1', roles: ['system_bot'], rules: [{actions: ['download_file_attachment'], expression}]},
     });
 
     const renderDirtyBotPolicy = async (initialState = {}) => {
-        const utils = renderBotPolicy([wrapBotExpression(E)], initialState);
+        const utils = renderBotPolicy([E], initialState);
         await screen.findByTestId('table-editor');
         await editTable(E);
         return utils;
@@ -113,7 +101,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     });
 
     describe('payload', () => {
-        test('wraps the rule, sends system_user with props.bot_scope, and navigates back', async () => {
+        test('sends system_bot with the plain rule and no props, then navigates back', async () => {
             await renderDirtyBotPolicy();
 
             await clickSave();
@@ -123,29 +111,26 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 id: 'policy1',
                 name: 'Policy 1',
                 type: 'permission',
-                roles: ['system_user'],
-                rules: [{actions: ['download_file_attachment'], expression: wrapBotExpression(E)}],
-                props: {bot_scope: true},
+                roles: ['system_bot'],
+                rules: [{actions: ['download_file_attachment'], expression: E}],
             });
-            expect(savedPayload().props).toEqual({bot_scope: true});
-            expect(checkExpressionSpy).toHaveBeenCalledTimes(1);
-            expect(checkExpressionSpy).toHaveBeenCalledWith(E);
+            expect(savedPayload()).not.toHaveProperty('props');
+            expect(checkExpressionSpy).not.toHaveBeenCalled();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
             expect(baseProps.actions.setNavigationBlocked).toHaveBeenLastCalledWith(false);
         });
 
-        test('validates the trimmed bare rule and wraps it trimmed', async () => {
+        test('trims the rule before saving', async () => {
             await renderDirtyBotPolicy();
             await editTable(`  ${E}  `);
 
             await clickSave();
 
             await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(checkExpressionSpy).toHaveBeenCalledWith(E);
-            expect(savedPayload().rules[0].expression).toBe(wrapBotExpression(E));
+            expect(savedPayload().rules[0].expression).toBe(E);
         });
 
-        test('Members sends the rule unwrapped without an expression check', async () => {
+        test('Members sends system_user with the plain rule and no props', async () => {
             mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', roles: ['system_user'], rules: [{actions: ['download_file_attachment'], expression: E}]}});
             renderWithExpression(E);
             await screen.findByTestId('table-editor');
@@ -156,12 +141,12 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
             expect(savedPayload().rules[0].expression).toBe(E);
             expect(savedPayload().roles).toEqual(['system_user']);
-            expect(savedPayload().props).toEqual({});
+            expect(savedPayload()).not.toHaveProperty('props');
             expect(checkExpressionSpy).not.toHaveBeenCalled();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
         });
 
-        test('a new Bot accounts policy is created with an empty id and props.bot_scope', async () => {
+        test('a new Bot accounts policy is created with an empty id and system_bot', async () => {
             renderWithContext(
                 <PermissionPolicyDetails
                     {...baseProps}
@@ -172,7 +157,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
             await userEvent.type(screen.getByPlaceholderText('Add a unique policy name'), 'Bot policy');
             await chooseMenuItem('pp-add-permission-btn', 'pp-add-permission-menu', 'pp-add-permission-upload_file_attachment');
-            await selectScope('pp-role-option-bot');
+            await selectScope('pp-role-option-system_bot');
             await editTable(E);
 
             await clickSave();
@@ -182,116 +167,63 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 id: '',
                 name: 'Bot policy',
                 type: 'permission',
-                roles: ['system_user'],
-                rules: [{actions: ['upload_file_attachment'], expression: wrapBotExpression(E)}],
-                props: {bot_scope: true},
+                roles: ['system_bot'],
+                rules: [{actions: ['upload_file_attachment'], expression: E}],
             });
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
         });
 
-        test('saving navigates back even when the response lacks the flag', async () => {
-            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', roles: ['system_user'], rules: [{actions: ['download_file_attachment'], expression: E}]}});
-            await renderDirtyBotPolicy();
+        test('loaded props are not sent back', async () => {
+            renderWithPolicy({roles: ['system_bot'], expressions: [E], props: {foo: ['x']}});
+            await screen.findByTestId('table-editor');
+            await editTable(E);
 
             await clickSave();
 
-            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
-            expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+            expect(savedPayload()).not.toHaveProperty('props');
         });
 
-        test('a hand-written prefixed Members rule saves byte-for-byte without the flag', async () => {
-            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', roles: ['system_user'], rules: [{actions: ['download_file_attachment'], expression: SERVER_PREFIXED_E}]}});
-            renderWithPolicy({expressions: [SERVER_PREFIXED_E]});
+        test('a top-level OR expression loads in CEL and saves verbatim', async () => {
+            const orExpression = `user.attributes.department == "eng" || ${E}`;
+            renderBotPolicy([orExpression]);
             await screen.findByTestId('cel-editor');
-            expect(selectorText()).toContain('Members');
-            await act(() => lastCELProps().onChange(SERVER_PREFIXED_E));
+            expect(lastCELProps().value).toBe(orExpression);
+            await act(() => lastCELProps().onChange(orExpression));
 
             await clickSave();
 
             await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(savedPayload()).toEqual({
-                id: 'policy1',
-                name: 'Policy 1',
-                type: 'permission',
-                roles: ['system_user'],
-                rules: [{actions: ['download_file_attachment'], expression: SERVER_PREFIXED_E}],
-                props: {},
-            });
-            expect(checkExpressionSpy).not.toHaveBeenCalled();
-            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
+            expect(savedPayload().roles).toEqual(['system_bot']);
+            expect(savedPayload().rules[0].expression).toBe(orExpression);
         });
 
-        test('an edit during the save check still saves the validated rule', async () => {
-            const check = deferred<CELExpressionError[]>();
-            checkExpressionSpy.mockReturnValue(check.promise);
-            await renderDirtyBotPolicy();
-
-            await clickSave();
-            await editTable(BREAKOUT_OR);
-            await act(async () => check.resolve([]));
-
-            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(savedPayload().rules[0].expression).toBe(wrapBotExpression(E));
-            expect(checkExpressionSpy).toHaveBeenCalledTimes(1);
-            expect(checkExpressionSpy).toHaveBeenCalledWith(E);
-        });
-    });
-
-    describe('validation', () => {
-        test.each([
-            ['an || breakout', BREAKOUT_OR],
-            ['a ternary breakout', BREAKOUT_TERNARY],
-            ['an unclosed paren', `(${E}`],
-            ['an unterminated string', 'user.attributes.teams == "x'],
-        ])('checks %s unwrapped and blocks the save on the server error', async (_label, expression) => {
-            checkExpressionSpy.mockResolvedValue([{message: 'Syntax error', line: 1, column: 1}]);
-            await renderDirtyBotPolicy();
-            await editTable(expression);
+        test('an unknown stored role blocks save with the role-required error', async () => {
+            renderWithPolicy({roles: ['custom_role'], expressions: [E]});
+            await screen.findByTestId('table-editor');
+            await editTable(E);
 
             await clickSave();
 
-            expect(await screen.findByText(/This expression isn't valid\. Check parentheses and quotes\. Details: Syntax error$/)).toBeInTheDocument();
-            expect(checkExpressionSpy).toHaveBeenCalledWith(expression);
+            expect(await screen.findByText(/Please select a role/)).toBeInTheDocument();
             expect(mockCreatePolicy).not.toHaveBeenCalled();
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
-        test('blocks the save when the expression check reports errors, showing the first', async () => {
-            checkExpressionSpy.mockResolvedValue([
-                {message: 'Syntax error: mismatched input \')\'', line: 1, column: 4},
-                {message: 'second error', line: 1, column: 9},
-            ]);
+        test('a server rejection of a Bot accounts expression shows the server error without a pre-check', async () => {
+            mockCreatePolicy.mockResolvedValue({error: {message: 'Invalid expression'}});
             await renderDirtyBotPolicy();
+            await editTable('user.attributes.teams == "x');
 
             await clickSave();
 
-            expect(await screen.findByText(/This expression isn't valid\. Check parentheses and quotes\. Details: Syntax error: mismatched input '\)'/)).toBeInTheDocument();
-            expect(screen.queryByText(/second error/)).not.toBeInTheDocument();
-            expect(mockCreatePolicy).not.toHaveBeenCalled();
-        });
-
-        test('blocks the save when the expression check fails', async () => {
-            checkExpressionSpy.mockRejectedValue(new Error('network'));
-            await renderDirtyBotPolicy();
-
-            await clickSave();
-
-            expect(await screen.findByText(/Couldn't validate the expression\. Try again\./)).toBeInTheDocument();
-            expect(mockCreatePolicy).not.toHaveBeenCalled();
+            expect(await screen.findByText(/There are errors in the form above: Invalid expression/)).toBeInTheDocument();
+            expect(checkExpressionSpy).not.toHaveBeenCalled();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
             expect(screen.getByTestId('saveSetting')).toBeEnabled();
         });
 
-        test('treats a null expression check response as valid', async () => {
-            checkExpressionSpy.mockResolvedValue(null as unknown as CELExpressionError[]);
-            await renderDirtyBotPolicy();
-
-            await clickSave();
-
-            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
-        });
-
-        test('an empty rule keeps the expression-required error and skips the check', async () => {
+        test('an empty rule keeps the expression-required error', async () => {
             await renderDirtyBotPolicy();
             await editTable('   ');
 
@@ -301,26 +233,12 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(checkExpressionSpy).not.toHaveBeenCalled();
             expect(mockCreatePolicy).not.toHaveBeenCalled();
         });
-
-        test('a validation error clears once a later save validates', async () => {
-            checkExpressionSpy.mockResolvedValueOnce([{message: 'bad', line: 1, column: 1}]);
-            mockCreatePolicy.mockResolvedValue({error: {message: 'boom'}});
-            await renderDirtyBotPolicy();
-
-            await clickSave();
-            expect(await screen.findByText(/Details: bad/)).toBeInTheDocument();
-
-            await clickSave();
-            expect(await screen.findByText(/There are errors in the form above: boom/)).toBeInTheDocument();
-            expect(screen.queryByText(/Details: bad/)).not.toBeInTheDocument();
-        });
     });
 
     describe('saving state', () => {
         test('disables the table editor while saving and re-enables it after a failed save', async () => {
-            const check = deferred<CELExpressionError[]>();
-            checkExpressionSpy.mockReturnValue(check.promise);
-            mockCreatePolicy.mockResolvedValue({error: {message: 'boom'}});
+            const save = deferred<{error: {message: string}}>();
+            mockCreatePolicy.mockReturnValue(save.promise);
             await renderDirtyBotPolicy();
             expect(lastTableProps().disabled).toBe(false);
 
@@ -328,29 +246,43 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(lastTableProps().disabled).toBe(true);
             expect(screen.getByTestId('saveSetting')).toBeDisabled();
 
-            await act(async () => check.resolve([]));
+            await act(async () => save.resolve({error: {message: 'boom'}}));
 
             expect(await screen.findByText(/There are errors in the form above: boom/)).toBeInTheDocument();
             expect(lastTableProps().disabled).toBe(false);
             expect(screen.getByTestId('saveSetting')).toBeEnabled();
         });
 
+        test('a second Save click while the first is in flight does not save again', async () => {
+            const save = deferred<ReturnType<typeof savedBotPolicy>>();
+            mockCreatePolicy.mockReturnValue(save.promise);
+            await renderDirtyBotPolicy();
+
+            await clickSave();
+            await clickSave();
+            expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
+
+            await act(async () => save.resolve(savedBotPolicy()));
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
+            expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
+        });
+
         test('disables the CEL editor while saving', async () => {
-            const check = deferred<CELExpressionError[]>();
-            checkExpressionSpy.mockReturnValue(check.promise);
-            renderBotPolicy([BOT_C_RETURNED]);
+            const save = deferred<ReturnType<typeof savedBotPolicy>>();
+            mockCreatePolicy.mockReturnValue(save.promise);
+            renderBotPolicy([TERNARY_E]);
             await screen.findByTestId('cel-editor');
-            await act(() => lastCELProps().onChange(BOT_C_UNWRAPPED));
+            await act(() => lastCELProps().onChange(TERNARY_E));
             expect(lastCELProps().disabled).toBe(false);
 
             await clickSave();
             expect(lastCELProps().disabled).toBe(true);
 
-            await act(async () => check.resolve([]));
+            await act(async () => save.resolve(savedBotPolicy(TERNARY_E)));
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
         });
 
-        test('shows a server error after a valid check', async () => {
+        test('shows a server error', async () => {
             mockCreatePolicy.mockResolvedValue({error: {message: 'boom'}});
             await renderDirtyBotPolicy();
 
@@ -362,107 +294,72 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
     });
 
-    describe('scope switching', () => {
-        test('Bot accounts to Members saves unwrapped without a check', async () => {
-            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', roles: ['system_user'], rules: [{actions: ['download_file_attachment'], expression: E}]}});
-            renderBotPolicy([wrapBotExpression(E)]);
+    describe('role switching', () => {
+        const expectSavedRole = async (role: string) => {
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+            expect(savedPayload().roles).toEqual([role]);
+            expect(savedPayload().rules[0].expression).toBe(E);
+            expect(savedPayload()).not.toHaveProperty('props');
+            expect(checkExpressionSpy).not.toHaveBeenCalled();
+        };
+
+        test('Bot accounts to Members saves system_user', async () => {
+            renderBotPolicy([E]);
             await screen.findByTestId('table-editor');
 
             await selectScope('pp-role-option-system_user');
             expect(selectorText()).toContain('Members');
             await clickSave();
 
-            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(savedPayload().rules[0].expression).toBe(E);
-            expect(savedPayload().roles).toEqual(['system_user']);
-            expect(savedPayload().props).toEqual({});
-            expect(checkExpressionSpy).not.toHaveBeenCalled();
-            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
+            await expectSavedRole('system_user');
         });
 
-        test('Members to Bot accounts saves wrapped as system_user', async () => {
-            mockCreatePolicy.mockResolvedValue(savedBotPolicy());
+        test('Members to Bot accounts saves system_bot', async () => {
             renderWithExpression(E);
             await screen.findByTestId('table-editor');
 
-            await selectScope('pp-role-option-bot');
+            await selectScope('pp-role-option-system_bot');
             expect(selectorText()).toContain('Bot accounts');
             await clickSave();
 
-            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(savedPayload().rules[0].expression).toBe(wrapBotExpression(E));
-            expect(savedPayload().roles).toEqual(['system_user']);
-            expect(savedPayload().props).toEqual({bot_scope: true});
-            expect(checkExpressionSpy).toHaveBeenCalledWith(E);
+            await expectSavedRole('system_bot');
         });
 
-        test('Bot accounts to Guest users saves unwrapped as system_guest', async () => {
-            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', roles: ['system_guest'], rules: [{actions: ['download_file_attachment'], expression: E}]}});
-            renderBotPolicy([wrapBotExpression(E)]);
+        test('Bot accounts to Guest users saves system_guest', async () => {
+            renderBotPolicy([E]);
             await screen.findByTestId('table-editor');
 
             await selectScope('pp-role-option-system_guest');
             await clickSave();
 
-            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(savedPayload().rules[0].expression).toBe(E);
-            expect(savedPayload().roles).toEqual(['system_guest']);
-            expect(savedPayload().props).toEqual({});
+            await expectSavedRole('system_guest');
         });
 
-        test('Bot accounts to Members keeps other props and drops only the flag', async () => {
-            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', roles: ['system_user'], rules: [{actions: ['download_file_attachment'], expression: E}]}});
-            renderWithPolicy({expressions: [wrapBotExpression(E)], props: {...BOT_PROPS, foo: 'x'}});
+        test('Bot accounts to System administrators saves system_admin', async () => {
+            renderBotPolicy([E]);
             await screen.findByTestId('table-editor');
 
+            await selectScope('pp-role-option-system_admin');
+            await clickSave();
+
+            await expectSavedRole('system_admin');
+        });
+
+        test('Members to Bot accounts and back saves system_user', async () => {
+            renderWithExpression(E);
+            await screen.findByTestId('table-editor');
+
+            await selectScope('pp-role-option-system_bot');
             await selectScope('pp-role-option-system_user');
             await clickSave();
 
-            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(savedPayload().props).toEqual({foo: 'x'});
-        });
-
-        test('Members to Bot accounts keeps other props and adds the flag', async () => {
-            mockCreatePolicy.mockResolvedValue(savedBotPolicy());
-            renderWithPolicy({expressions: [E], props: {foo: 'x'}});
-            await screen.findByTestId('table-editor');
-
-            await selectScope('pp-role-option-bot');
-            await clickSave();
-
-            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(savedPayload().props).toEqual({foo: 'x', bot_scope: true});
-        });
-
-        test('saving a Bot accounts policy keeps other props', async () => {
-            renderWithPolicy({expressions: [wrapBotExpression(E)], props: {...BOT_PROPS, foo: 'x'}});
-            await screen.findByTestId('table-editor');
-            await editTable(E);
-
-            await clickSave();
-
-            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(savedPayload().props).toEqual({bot_scope: true, foo: 'x'});
-        });
-
-        test('switching scope keeps a showing validation error', async () => {
-            checkExpressionSpy.mockResolvedValue([{message: 'Syntax error', line: 1, column: 1}]);
-            renderBotPolicy([wrapBotExpression(E)]);
-            await screen.findByTestId('table-editor');
-            await editTable(BREAKOUT_OR);
-            await clickSave();
-            expect(await screen.findByText(/This expression isn't valid/)).toBeInTheDocument();
-
-            await selectScope('pp-role-option-system_user');
-
-            expect(selectorText()).toContain('Members');
-            expect(screen.getByText(/This expression isn't valid/)).toBeInTheDocument();
+            await expectSavedRole('system_user');
         });
     });
 
     describe('synced-attribute warning', () => {
         const SYNCED_TITLE = 'Bots can\'t hold synced attributes';
-        const syncedNotice = () => screen.queryByText(SYNCED_TITLE)?.closest('.sectionNoticeContainer') ?? null;
+        const syncedNotice = () => screen.queryByText(SYNCED_TITLE)?.closest('[class*="section-notice--type-"]') ?? null;
         const editorStandIn = () => screen.queryByTestId('table-editor') ?? screen.getByTestId('cel-editor');
         const follows = (a: Element, b: Element) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
 
@@ -471,7 +368,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
 
         test('an LDAP-synced reference shows the warning with the label in a code span', async () => {
-            renderBotPolicy([wrapBotExpression('user.attributes.teams == "engineering"')]);
+            renderBotPolicy(['user.attributes.teams == "engineering"']);
 
             expect(await screen.findByText(SYNCED_TITLE)).toBeInTheDocument();
             expect(syncedNotice()).toHaveTextContent('teams is synced from LDAP or SAML, and bots can\'t hold synced values. This policy will deny every bot.');
@@ -479,7 +376,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
 
         test('a SAML-synced reference uses the display label', async () => {
-            renderBotPolicy([wrapBotExpression('user.attributes.region == "EMEA"')]);
+            renderBotPolicy(['user.attributes.region == "EMEA"']);
 
             await screen.findByText(SYNCED_TITLE);
             expect(syncedNotice()).toHaveTextContent('Sales region is synced from LDAP or SAML');
@@ -487,14 +384,14 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
 
         test('a plain admin-managed attribute shows no warning', async () => {
-            renderBotPolicy([wrapBotExpression('user.attributes.department == "eng"')]);
+            renderBotPolicy(['user.attributes.department == "eng"']);
             await screen.findByTestId('table-editor');
 
             expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument();
         });
 
         test('a synced name only inside a string literal shows no warning', async () => {
-            renderBotPolicy([wrapBotExpression('user.attributes.department == "user.attributes.teams"')]);
+            renderBotPolicy(['user.attributes.department == "user.attributes.teams"']);
             expect(await screen.findByText('Bot attribute requirements')).toBeInTheDocument();
             expect(editorStandIn()).toBeInTheDocument();
 
@@ -502,7 +399,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
 
         test('it updates as the expression changes and pluralizes in field order', async () => {
-            renderBotPolicy([wrapBotExpression('user.attributes.department == "eng"')]);
+            renderBotPolicy(['user.attributes.department == "eng"']);
             await screen.findByTestId('table-editor');
             expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument();
 
@@ -519,14 +416,14 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         test('three synced attributes are joined as a localized list', async () => {
             const ldapLevel = customField('u-level', 'level', {ldap: 'title', display_name: 'Level'});
             useFields([LDAP_TEAMS, SAML_REGION, ldapLevel, PLAIN_DEPT]);
-            renderBotPolicy([wrapBotExpression('user.attributes.level == "x" && user.attributes.region == "y" && user.attributes.teams == "z"')]);
+            renderBotPolicy(['user.attributes.level == "x" && user.attributes.region == "y" && user.attributes.teams == "z"']);
 
             await screen.findByText(SYNCED_TITLE);
             expect(syncedNotice()).toHaveTextContent('teams, Sales region, and Level are synced from LDAP or SAML');
         });
 
         test('a duplicate reference is listed once and stays singular', async () => {
-            renderBotPolicy([wrapBotExpression('user.attributes.department == "eng"')]);
+            renderBotPolicy(['user.attributes.department == "eng"']);
             await screen.findByTestId('table-editor');
 
             await editTable('user.attributes.teams == "a" && user.attributes.teams != "b"');
@@ -542,7 +439,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             await screen.findByTestId('table-editor');
             expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument();
 
-            await selectScope('pp-role-option-bot');
+            await selectScope('pp-role-option-system_bot');
             expect(await screen.findByText(SYNCED_TITLE)).toBeInTheDocument();
 
             await selectScope('pp-role-option-system_user');
@@ -550,7 +447,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
 
         test('it sits above the editor card', async () => {
-            renderBotPolicy([wrapBotExpression('user.attributes.teams == "engineering"')]);
+            renderBotPolicy(['user.attributes.teams == "engineering"']);
             await screen.findByText(SYNCED_TITLE);
 
             expect(follows(syncedNotice()!, screen.getByTestId('table-editor'))).toBe(true);
@@ -559,7 +456,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
 
         test('it updates from CEL-mode edits', async () => {
-            renderBotPolicy([wrapBotExpression('user.attributes.department == "eng"')]);
+            renderBotPolicy(['user.attributes.department == "eng"']);
             await screen.findByTestId('table-editor');
             await switchToAdvanced();
 
@@ -572,7 +469,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         test('a markdown-unsafe display label renders literally with backticks stripped', async () => {
             const odd = customField('u-odd', 'cost', {ldap: 'cc', display_name: '*Cost_center* `x`'});
             useFields([odd]);
-            renderBotPolicy([wrapBotExpression('user.attributes.cost == "1"')]);
+            renderBotPolicy(['user.attributes.cost == "1"']);
 
             await screen.findByText(SYNCED_TITLE);
             const codes = syncedNotice()!.querySelectorAll('code');
@@ -584,20 +481,20 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         test('a native field never triggers it, but a synced custom field with the same name does', async () => {
             const syncedEmail = customField('cpa-email', 'email', {saml: 'mail', display_name: 'Work email'});
             useFields([...NATIVE_FIELDS]);
-            const {unmount} = renderBotPolicy([wrapBotExpression('user.attributes.email == "a@b.c"')]);
+            const {unmount} = renderBotPolicy(['user.attributes.email == "a@b.c"']);
             await screen.findByTestId('table-editor');
             expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument();
             unmount();
 
             useFields([...NATIVE_FIELDS, syncedEmail]);
-            renderBotPolicy([wrapBotExpression('user.attributes.email == "a@b.c"')]);
+            renderBotPolicy(['user.attributes.email == "a@b.c"']);
             await screen.findByText(SYNCED_TITLE);
             expect(syncedNotice()).toHaveTextContent('Work email is synced');
         });
 
         test('it is advisory and does not block saving', async () => {
-            mockCreatePolicy.mockResolvedValue(savedBotPolicy(wrapBotExpression('user.attributes.teams == "x"')));
-            renderBotPolicy([wrapBotExpression('user.attributes.department == "eng"')]);
+            mockCreatePolicy.mockResolvedValue(savedBotPolicy('user.attributes.teams == "x"'));
+            renderBotPolicy(['user.attributes.department == "eng"']);
             await screen.findByTestId('table-editor');
             await editTable('user.attributes.teams == "x"');
             await screen.findByText(SYNCED_TITLE);
@@ -605,7 +502,140 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             await clickSave();
 
             await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
-            expect(savedPayload().rules[0].expression).toBe(wrapBotExpression('user.attributes.teams == "x"'));
+            expect(savedPayload().rules[0].expression).toBe('user.attributes.teams == "x"');
+            expect(savedPayload().roles).toEqual(['system_bot']);
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
+        });
+    });
+
+    describe('attributes bots do not have', () => {
+        const HIDDEN_TITLE = 'Some attributes aren\'t available for bots';
+        const EMAIL_RULE = 'user.email == "a@b.com"';
+        const hiddenNotice = () => screen.queryByText(HIDDEN_TITLE)?.closest('[class*="section-notice--type-"]') ?? null;
+
+        beforeEach(() => {
+            useFields([...NATIVE_FIELDS, LDAP_TEAMS]);
+        });
+
+        test('switching a new Members policy with an Email rule to Bot accounts warns and blocks save', async () => {
+            renderWithContext(
+                <PermissionPolicyDetails
+                    {...baseProps}
+                    policyId={undefined}
+                />,
+            );
+            await screen.findByTestId('table-editor');
+            await userEvent.type(screen.getByPlaceholderText('Add a unique policy name'), 'Bot policy');
+            await editTable(EMAIL_RULE);
+            expect(screen.queryByText(HIDDEN_TITLE)).not.toBeInTheDocument();
+
+            await selectScope('pp-role-option-system_bot');
+            await chooseMenuItem('pp-add-permission-btn', 'pp-add-permission-menu', 'pp-add-permission-upload_file_attachment');
+
+            expect(await screen.findByText(HIDDEN_TITLE)).toBeInTheDocument();
+            expect(hiddenNotice()).toHaveTextContent('Email can\'t be used in Bot accounts policies. Remove it from the rules to save this policy.');
+            expect(hiddenNotice()!.querySelector('code')).toHaveTextContent('Email');
+            expect(lastTableProps().value).toBe(EMAIL_RULE);
+
+            await clickSave();
+
+            expect(await screen.findByText('There are errors in the form above: Remove Email from the rules. Bot accounts policies can\'t use this attribute.')).toBeInTheDocument();
+            expect(mockCreatePolicy).not.toHaveBeenCalled();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+        });
+
+        test('an advanced-mode expression referencing user.email under Bot accounts is blocked', async () => {
+            renderBotPolicy([E]);
+            await screen.findByTestId('table-editor');
+            await switchToAdvanced();
+
+            await act(() => lastCELProps().onChange(`${E} && (user.email.endsWith("@x.com") || user.isbot == true)`));
+
+            expect(await screen.findByText(HIDDEN_TITLE)).toBeInTheDocument();
+            expect(hiddenNotice()).toHaveTextContent('Email and Bot account can\'t be used in Bot accounts policies. Remove them from the rules');
+
+            await clickSave();
+
+            expect(await screen.findByText(/Remove Email and Bot account from the rules\. Bot accounts policies can't use these attributes\./)).toBeInTheDocument();
+            expect(mockCreatePolicy).not.toHaveBeenCalled();
+        });
+
+        test('without native field metadata the attribute name is shown and save is still blocked', async () => {
+            useFields([LDAP_TEAMS]);
+            renderBotPolicy([E]);
+            await screen.findByTestId('table-editor');
+            await editTable('user.verified == true');
+
+            await screen.findByText(HIDDEN_TITLE);
+            expect(hiddenNotice()!.querySelector('code')).toHaveTextContent('verified');
+
+            await clickSave();
+
+            expect(await screen.findByText(/Remove verified from the rules/)).toBeInTheDocument();
+            expect(mockCreatePolicy).not.toHaveBeenCalled();
+        });
+
+        test('removing the rule clears the warning and the policy saves', async () => {
+            renderBotPolicy([E]);
+            await screen.findByTestId('table-editor');
+            await editTable(`${E} && ${EMAIL_RULE}`);
+            await screen.findByText(HIDDEN_TITLE);
+
+            await clickSave();
+            await screen.findByText(/Remove Email from the rules/);
+            expect(mockCreatePolicy).not.toHaveBeenCalled();
+
+            await editTable(E);
+            await waitFor(() => expect(screen.queryByText(HIDDEN_TITLE)).not.toBeInTheDocument());
+            await clickSave();
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+            expect(savedPayload().rules[0].expression).toBe(E);
+        });
+
+        test('the same Email rule under Members shows no warning and saves', async () => {
+            mockCreatePolicy.mockResolvedValue({data: {id: 'policy1', roles: ['system_user'], rules: [{actions: ['download_file_attachment'], expression: EMAIL_RULE}]}});
+            renderWithExpression(EMAIL_RULE);
+            await screen.findByTestId('table-editor');
+            await editTable(EMAIL_RULE);
+
+            await clickSave();
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+            expect(savedPayload().roles).toEqual(['system_user']);
+            expect(savedPayload().rules[0].expression).toBe(EMAIL_RULE);
+            expect(screen.queryByText(HIDDEN_TITLE)).not.toBeInTheDocument();
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
+        });
+
+        test('switching back to Members clears the warning and saves', async () => {
+            renderWithExpression(EMAIL_RULE);
+            await screen.findByTestId('table-editor');
+
+            await selectScope('pp-role-option-system_bot');
+            expect(await screen.findByText(HIDDEN_TITLE)).toBeInTheDocument();
+
+            await selectScope('pp-role-option-system_user');
+            await waitFor(() => expect(screen.queryByText(HIDDEN_TITLE)).not.toBeInTheDocument());
+            await clickSave();
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+            expect(savedPayload().roles).toEqual(['system_user']);
+        });
+
+        test('Bot accounts with only allowed attributes shows no warning and saves', async () => {
+            const allowed = `user.createat.youngerThanDays(7) && ${E} && user.attributes.email == "a@b.com"`;
+            mockCreatePolicy.mockResolvedValue(savedBotPolicy(allowed));
+            renderBotPolicy([E]);
+            await screen.findByTestId('table-editor');
+            await editTable(allowed);
+
+            await clickSave();
+
+            await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+            expect(savedPayload().roles).toEqual(['system_bot']);
+            expect(savedPayload().rules[0].expression).toBe(allowed);
+            expect(screen.queryByText(HIDDEN_TITLE)).not.toBeInTheDocument();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
         });
     });

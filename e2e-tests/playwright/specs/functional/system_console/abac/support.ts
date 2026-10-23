@@ -1339,7 +1339,7 @@ export async function getPolicyIdByName(
  * Create a permission policy using the CEL (Advanced) editor.
  * Caller must already be on the Permission Policies list page.
  * Available permissions: 'Download Files' | 'Upload Files' | 'Create Burn-on-Read Message'
- * Available roles: 'system_guest' | 'system_user' | 'system_admin' | 'bot'
+ * Available roles: 'system_guest' | 'system_user' | 'system_admin' | 'system_bot' (Bot accounts)
  */
 export async function createPermissionPolicy(
     page: Page,
@@ -1347,7 +1347,7 @@ export async function createPermissionPolicy(
         name: string;
         celExpression: string;
         permissions: Array<'Download Files' | 'Upload Files' | 'Create Burn-on-Read Message'>;
-        role?: 'system_guest' | 'system_user' | 'system_admin' | 'bot';
+        role?: 'system_guest' | 'system_user' | 'system_admin' | 'system_bot';
         adminClient?: Client4;
     },
 ): Promise<void> {

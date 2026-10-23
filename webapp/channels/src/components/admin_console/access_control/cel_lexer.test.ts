@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fixture} from './cel_expression_test_fixtures';
 import {isWrappedInParens, referencedUserAttributeNames, splitOutsideLiterals} from './cel_lexer';
-import {fixture} from './cel_serializer_test_fixtures';
 
 describe('referencedUserAttributeNames', () => {
     it.each([
@@ -18,15 +18,15 @@ describe('referencedUserAttributeNames', () => {
     });
 
     it('collects names from a multi-line fixture in order of first occurrence', () => {
-        expect(referencedUserAttributeNames(fixture('d3 masking on GET').unwrapped)).toEqual(['Tags', 'Clearance']);
+        expect(referencedUserAttributeNames(fixture('d3 masking on GET').expression)).toEqual(['Tags', 'Clearance']);
     });
 
     it('collects names from a ternary fixture', () => {
-        expect(referencedUserAttributeNames(fixture('c masking on GET').unwrapped)).toEqual(['Program', 'Clearance']);
+        expect(referencedUserAttributeNames(fixture('c masking on GET').expression)).toEqual(['Program', 'Clearance']);
     });
 
     it('finds no names in the ID-encoded search form', () => {
-        expect(referencedUserAttributeNames(fixture('a masking on search').unwrapped)).toEqual([]);
+        expect(referencedUserAttributeNames(fixture('a masking on search').expression)).toEqual([]);
     });
 
     describe('comments', () => {

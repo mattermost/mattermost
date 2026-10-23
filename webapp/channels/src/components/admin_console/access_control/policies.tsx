@@ -151,8 +151,8 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getResources = (policy: AccessControlPolicy) => {
-        const channelCount = policy.props?.channel_count || 0;
-        const teamCount = policy.props?.team_count || 0;
+        const channelCount = (policy.props?.channel_count as unknown as number) || 0;
+        const teamCount = (policy.props?.team_count as unknown as number) || 0;
 
         if (channelCount === 0 && teamCount === 0) {
             return (
