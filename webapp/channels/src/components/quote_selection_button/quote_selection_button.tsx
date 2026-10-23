@@ -53,7 +53,9 @@ const QuoteSelectionButton = () => {
     // Where the focus was before tabbing to the button, so that it can be returned there.
     const returnFocusRef = useRef<HTMLElement | null>(null);
     const isShownRef = useRef(false);
-    isShownRef.current = Boolean(selection);
+    useLayoutEffect(() => {
+        isShownRef.current = Boolean(selection);
+    }, [selection]);
 
     const {refs, floatingStyles, placement} = useFloating({
         open: Boolean(selection),
