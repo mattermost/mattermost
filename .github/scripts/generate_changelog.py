@@ -11,7 +11,9 @@ Expects these environment variables:
   RELEASE_TYPE      - (optional) "feature" (default), "major" (a vX.0 release), or
                       "esr" (Extended Support Release). Selects the heading label and
                       the anchor slug other docs pages deep-link to.
-  RELEASE_DATE      - (optional) Release day date (e.g. "2026-05-15"). Defaults to today.
+  RELEASE_DATE      - (optional) Release day date (e.g. "2026-05-15"). Defaults to today,
+                      or to "TBD" on a scheduled run (EVENT_NAME=schedule), which is
+                      reported in the preflight checks.
   GO_VERSION        - (optional) Go version used in this release (e.g. "go1.22.5").
                       If not provided, it is read from RELEASE_HEAD_REF's
                       server/build/Dockerfile.buildenv, then from the previous entry.
@@ -67,6 +69,7 @@ GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 REPOS = [r.strip() for r in os.environ["REPOS"].split(",") if r.strip()]
 MILESTONE_TITLE = os.environ["MILESTONE"]
 VERSION = os.environ["VERSION"]
+RELEASE_DATE_PLACEHOLDER = "TBD"
 
 HEADERS = {
     "Authorization": f"token {GITHUB_TOKEN}",
@@ -1455,7 +1458,8 @@ def _check(check: str, status: str, detail: str, remedy: str = "", blocking: boo
     return {"check": check, "status": status, "detail": detail, "remedy": remedy, "blocking": blocking}
 
 
-def preflight_checks(changelog_path: str, mode: str, milestones: dict, go_source: str | None) -> list[dict]:
+def preflight_checks(changelog_path: str, mode: str, milestones: dict, go_source: str | None,
+                     release_date: str = "") -> list[dict]:
     """Each check is pass, fail or unknown. A failing blocking check stops the run.
 
     ``milestones`` maps each repo to its milestone number, None when it has no such
@@ -1498,6 +1502,10 @@ def preflight_checks(changelog_path: str, mode: str, milestones: dict, go_source
     else:
         checks.append(_check("Go version", "fail", "not read from the release branch; the entry reuses the previous one",
                              "Pass go_version on dispatch, or fetch the release branch."))
+
+    if mode == "create" and release_date == RELEASE_DATE_PLACEHOLDER:
+        checks.append(_check("Release day", "unknown", f"written as `{RELEASE_DATE_PLACEHOLDER}`; a scheduled run is not given one",
+                             "Set the Release day line on the changelog PR before it merges."))
     return checks
 
 
@@ -2000,7 +2008,11 @@ def main():
     sources_by_id = {note["id"]: note["source"] for note in all_notes}
 
     release_type = os.environ.get("RELEASE_TYPE", "feature").strip().lower()
-    release_date = os.environ.get("RELEASE_DATE", "").strip() or date.today().strftime("%Y-%m-%d")
+    release_date = os.environ.get("RELEASE_DATE", "").strip()
+    if not release_date:
+        # A scheduled run happens weeks before release day, so its date would be wrong.
+        scheduled = os.environ.get("EVENT_NAME") == "schedule"
+        release_date = RELEASE_DATE_PLACEHOLDER if scheduled else date.today().strftime("%Y-%m-%d")
     go_version = os.environ.get("GO_VERSION", "").strip()
     go_source = "the go_version input" if go_version else None
     if not go_version and head_ref:
@@ -2032,7 +2044,7 @@ def main():
             previous_major_changelog_path(changelog_path) or ""
         )
     readiness = {
-        "preflight": preflight_checks(changelog_path, mode, milestones, go_source),
+        "preflight": preflight_checks(changelog_path, mode, milestones, go_source, release_date),
         "repos_unaudited": unaudited,
         "repos_private": private_repos,
         "notes": {

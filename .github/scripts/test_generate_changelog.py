@@ -475,6 +475,21 @@ class MainTest(unittest.TestCase):
         os.environ["DRY_RUN"] = "true"
         gc.main()
 
+    def test_release_day_is_tbd_on_a_scheduled_run_without_a_date(self):
+        del os.environ["RELEASE_DATE"]
+        os.environ["EVENT_NAME"] = "schedule"
+        gc.main()
+        self.assertIn("**Release day: TBD**", self.changelog.read_text())
+        check = next(c for c in self._payload()["readiness"]["preflight"] if c["check"] == "Release day")
+        self.assertEqual((check["status"], check["blocking"]), ("unknown", False))
+        self.assertIn("Set the Release day line on the changelog PR before it merges.", (self.out / "summary.md").read_text())
+
+        os.environ["EVENT_NAME"] = "workflow_dispatch"
+        self.changelog.unlink()
+        gc.main()
+        self.assertIn(f"**Release day: {gc.date.today():%Y-%m-%d}**", self.changelog.read_text())
+        self.assertNotIn("Release day", [c["check"] for c in self._payload()["readiness"]["preflight"]])
+
     def test_docs_link_is_sent_with_the_note_and_reported(self):
         self.details[1] = {"head_ref": "MM-123-feature", "files": [{
             "filename": "docs/main/administration-guide/manage/admin/feature.mdx", "status": "added",

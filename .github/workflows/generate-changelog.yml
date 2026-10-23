@@ -251,6 +251,7 @@ jobs:
           REPOS: ${{ inputs.server_repos || 'mattermost/mattermost,mattermost/enterprise' }}
           RELEASE_TYPE: ${{ needs.resolve.outputs.release_type }}
           RELEASE_DATE: ${{ inputs.release_date }}
+          EVENT_NAME: ${{ github.event_name }} # a scheduled run writes the release day as TBD
           GO_VERSION: ${{ inputs.go_version }}
           BLOG_POST_URL: ${{ inputs.blog_post_url }}
           CHANGELOG_PATH: ${{ needs.resolve.outputs.changelog }}
