@@ -111,6 +111,7 @@ const (
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 	PostPropsExpireAt                 = "expire_at"
 	PostPropsReadDurationSeconds      = "read_duration"
+	PostPropsRemoveLinkPreview        = "remove_link_preview"
 	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
 	PostPropsSharedChannelState         = "shared_channel_state"
 	PostPropsSharedChannelWorkspaceName = "workspace_name"
