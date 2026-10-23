@@ -69,7 +69,8 @@ def parse_ls_remote(output: str) -> tuple[set, set]:
     return branches, tags
 
 
-def pending_release(branches: set, tags: set, published=lambda release: False) -> tuple[int, int] | None:
+def pending_release(branches: set, tags: set, published=lambda release: False,
+                    start=(0, 0)) -> tuple[int, int] | None:
     """The release the changelog is being written for, or None.
 
     That is the newest tagged release while its entry is not on master yet (the final
@@ -77,27 +78,32 @@ def pending_release(branches: set, tags: set, published=lambda release: False) -
     day), else the oldest cut branch with no vX.Y.0 tag. ``published((major, minor))``
     says whether the entry is on master. A branch older than the newest tagged release
     is ignored, so an abandoned branch left behind by a cancelled release cannot be
-    picked up forever.
+    picked up forever. Releases before ``start`` are left to be finished by hand.
     """
     newest_shipped = max(tags) if tags else (0, 0)
-    if newest_shipped in branches and not published(newest_shipped):
+    if newest_shipped in branches and newest_shipped >= start and not published(newest_shipped):
         return newest_shipped
-    candidates = sorted(b for b in branches if b not in tags and b > newest_shipped)
+    candidates = sorted(b for b in branches if b not in tags and b > newest_shipped and b >= start)
     return candidates[0] if candidates else None
 
 
-def previous_release_tag(major: int, minor: int, tags: set) -> str | None:
-    """The vX.Y.0 tag of the release before this one, the baseline for derived notes.
+def previous_release_base(major: int, minor: int, branches: set, tags: set) -> tuple[str, str] | None:
+    """(ref, fetch refspec) of the release before this one, the baseline for derived notes.
 
-    The .0 tag rather than the previous release branch's head: a dot release can ship a
+    Its vX.Y.0 tag rather than its release branch's head: a dot release can ship a
     plugin bump that the feature release then announces again, so the branch head
-    would hide it.
+    would hide it. Until that release is tagged, its branch is the closest stand-in;
+    an older tag would put the previous release's changes in this one.
     """
-    earlier = sorted(t for t in tags if t < (major, minor))
+    earlier = sorted(r for r in branches | tags if r < (major, minor))
     if not earlier:
         return None
     prev_major, prev_minor = earlier[-1]
-    return f"v{prev_major}.{prev_minor}.0"
+    if earlier[-1] in tags:
+        tag = f"v{prev_major}.{prev_minor}.0"
+        return tag, f"+refs/tags/{tag}:refs/tags/{tag}"
+    branch = f"release-{prev_major}.{prev_minor}"
+    return f"origin/{branch}", f"+refs/heads/{branch}:refs/remotes/origin/{branch}"
 
 
 def release_type_for(version: str, requested: str, esr_versions: str) -> str:
@@ -136,9 +142,12 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
             version = f"v{release[0]}.{release[1]}.0"
             return has_entry(read_file(changelog_path(version)), version)
 
-        pending = pending_release(branches, tags, published)
+        start = env.get("SCHEDULE_FROM", "").strip()
+        start = parse_version(start)[:2] if start else (0, 0)
+        pending = pending_release(branches, tags, published, start)
         if not pending:
-            return {"run": "false", "reason": "No release is between its branch cut and its changelog being merged."}
+            since = f" from v{start[0]}.{start[1]} on" if start > (0, 0) else ""
+            return {"run": "false", "reason": f"No release{since} is between its branch cut and its changelog being merged."}
         version = f"v{pending[0]}.{pending[1]}.0"
         milestone = version
         mode = (env.get("SCHEDULE_MODE") or "dry_run").strip()
@@ -163,7 +172,7 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
         raise ValueError(reason + " Use mode dry_run to preview it again.")
 
     head_branch = f"release-{major}.{minor}" if (major, minor) in branches else "master"
-    base_tag = previous_release_tag(major, minor, tags)
+    base_ref, base_fetch = previous_release_base(major, minor, branches, tags) or ("", "")
     return {
         "run": "true",
         "reason": "scheduled" if scheduled else "dispatched",
@@ -174,8 +183,8 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
         "changelog": path,
         "head_ref": f"origin/{head_branch}",
         "head_fetch": f"+refs/heads/{head_branch}:refs/remotes/origin/{head_branch}",
-        "base_ref": base_tag or "",
-        "base_fetch": f"+refs/tags/{base_tag}:refs/tags/{base_tag}" if base_tag else "",
+        "base_ref": base_ref,
+        "base_fetch": base_fetch,
     }
 
 

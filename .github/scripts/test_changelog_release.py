@@ -69,6 +69,25 @@ class ResolveTest(unittest.TestCase):
         shipped = LS_REMOTE + f"\n{'0' * 40}\trefs/tags/v12.1.0"
         self.assertEqual(cr.resolve({"EVENT_NAME": "schedule"}, shipped, merged)["run"], "false")
 
+    def test_schedule_starts_from_the_configured_release(self):
+        env = {"EVENT_NAME": "schedule", "SCHEDULE_FROM": "v12.2.0"}
+        out = cr.resolve(env, LS_REMOTE, V12_PUBLISHED)
+        self.assertEqual(out["run"], "false")
+        self.assertIn("No release from v12.2 on", out["reason"])
+
+        cut = LS_REMOTE + f"\n{'0' * 40}\trefs/heads/release-12.2"
+        out = cr.resolve(env, cut, V12_PUBLISHED)
+        self.assertEqual((out["version"], out["base_ref"]), ("v12.2.0", "origin/release-12.1"))
+
+        tagged = cut + f"\n{'0' * 40}\trefs/tags/v12.1.0"
+        out = cr.resolve(env, tagged, V12_PUBLISHED)
+        self.assertEqual((out["version"], out["base_ref"], out["base_fetch"]),
+                         ("v12.2.0", "v12.1.0", "+refs/tags/v12.1.0:refs/tags/v12.1.0"))
+
+        self.assertEqual(cr.resolve({**env, "SCHEDULE_FROM": ""}, cut, V12_PUBLISHED)["version"], "v12.1.0")
+        with self.assertRaises(ValueError):
+            cr.resolve({**env, "SCHEDULE_FROM": "next"}, cut, V12_PUBLISHED)
+
     def test_stale_branch_older_than_the_newest_release_is_ignored(self):
         branches, tags = cr.parse_ls_remote(LS_REMOTE + f"\n{'0' * 40}\trefs/heads/release-11.11")
         self.assertEqual(cr.pending_release(branches, tags, lambda release: True), (12, 1))
@@ -88,7 +107,9 @@ class ResolveTest(unittest.TestCase):
         self.assertEqual(out["milestone"], "v12.2.0")
         self.assertEqual(out["mode"], "auto")
         self.assertEqual(out["head_ref"], "origin/master")
-        self.assertEqual(out["base_ref"], "v12.0.0")
+        # v12.1 is not tagged yet: its branch, not v12.0.0, which would pull in v12.1's changes.
+        self.assertEqual(out["base_ref"], "origin/release-12.1")
+        self.assertEqual(out["base_fetch"], "+refs/heads/release-12.1:refs/remotes/origin/release-12.1")
 
         with self.assertRaises(ValueError):
             cr.resolve({"INPUT_VERSION": "v12.1.0", "INPUT_MILESTONE": "v11.12.0"}, LS_REMOTE, files({}))

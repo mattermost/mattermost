@@ -17,6 +17,8 @@ name: Generate Changelog
 #
 # Repository variables read here, all optional:
 #   CHANGELOG_SCHEDULE_MODE     — auto | dry_run (default) for scheduled runs
+#   CHANGELOG_SCHEDULE_FROM     — the first release scheduled runs take on (default
+#                                 v12.2.0); earlier ones are finished by hand
 #   CHANGELOG_ESR_VERSIONS      — releases that are ESRs, e.g. "v11.7, v12.4"; other
 #                                 X.0 releases are major and the rest feature releases
 #   CHANGELOG_SECTION_REVIEWERS — JSON mapping a section pattern to reviewers, e.g.
@@ -76,7 +78,9 @@ jobs:
   # Decides what the run is for. A scheduled run picks the release between its
   # release-X.Y branch cut and its entry being merged to master: the newest tagged
   # release until its entry lands (the tag is pushed about five working days before
-  # release day), else the oldest cut branch with no vX.Y.0 tag. It also fails a dispatch whose version and
+  # release day), else the oldest cut branch with no vX.Y.0 tag, from
+  # CHANGELOG_SCHEDULE_FROM on. The diff base is the previous release's vX.Y.0 tag, or
+  # its release branch until that is tagged. It also fails a dispatch whose version and
   # milestone disagree on the major version, which would file one release's notes
   # under another's.
   resolve:
@@ -110,6 +114,7 @@ jobs:
           INPUT_RELEASE_TYPE: ${{ inputs.release_type }}
           INPUT_MODE: ${{ inputs.mode }}
           SCHEDULE_MODE: ${{ vars.CHANGELOG_SCHEDULE_MODE }}
+          SCHEDULE_FROM: ${{ vars.CHANGELOG_SCHEDULE_FROM || 'v12.2.0' }}
           ESR_VERSIONS: ${{ vars.CHANGELOG_ESR_VERSIONS }}
         run: python3 .github/scripts/changelog_release.py resolve
 
