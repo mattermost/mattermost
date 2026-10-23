@@ -826,6 +826,19 @@ describe('components/integrations/bots/AddBot', () => {
             expect(historyMock.push).not.toHaveBeenCalled();
         });
 
+        test('edit switching an existing Pull subscription to Push shows the new secret', async () => {
+            const pullSubscription = {...subscription, mode: 'pull' as const, callback_url: ''};
+            renderForm({bot: editBot}, {getBotEventSubscription: jest.fn().mockResolvedValue({data: pullSubscription})});
+
+            await waitFor(() => expect(screen.getByRole('radio', {name: 'Pull'})).toBeChecked());
+            chooseMode('Push');
+            enterUrl(PUSH_URL);
+            submit('Update');
+
+            expect(await screen.findByText('whsec_edit')).toBeInTheDocument();
+            expect(historyMock.push).not.toHaveBeenCalled();
+        });
+
         test('edit to Pull navigates away without showing a secret', async () => {
             renderForm({bot: editBot}, {upsertBotEventSubscription: jest.fn().mockResolvedValue({data: {...subscription, mode: 'pull', secret: 'whsec_pull'}})});
 

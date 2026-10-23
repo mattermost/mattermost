@@ -28,7 +28,8 @@ func botEventSubscriptionError(where, botUserID string, err error, fallback *mod
 	}
 }
 
-// CreateOrUpdateBotEventSubscription returns the subscription with its secret only when it was created.
+// CreateOrUpdateBotEventSubscription returns the subscription with its secret only when it was created
+// or when an update switched it to push mode, which generates a new secret.
 func (a *App) CreateOrUpdateBotEventSubscription(rctx request.CTX, botUserID string, patch *model.BotEventSubscriptionPatch) (*model.BotEventSubscription, bool, *model.AppError) {
 	const where = "CreateOrUpdateBotEventSubscription"
 
@@ -49,7 +50,7 @@ func (a *App) CreateOrUpdateBotEventSubscription(rctx request.CTX, botUserID str
 			return nil, false, appErr
 		}
 		sub := newBotEventSubscription(botUserID, patch)
-		if appErr := a.verifyBotEventSubscription(rctx, sub); appErr != nil {
+		if appErr := a.verifyBotEventSubscription(rctx, sub, botUserID); appErr != nil {
 			return nil, false, appErr
 		}
 
@@ -71,22 +72,44 @@ func (a *App) CreateOrUpdateBotEventSubscription(rctx request.CTX, botUserID str
 
 	prevMode, prevURL := existing.Mode, existing.CallbackURL
 	existing.Patch(patch)
+
+	// A subscription that wasn't push has never shown its secret, so switching to push issues a new one.
+	issuedSecret := existing.Mode == model.BotEventSubscriptionModePush && prevMode != model.BotEventSubscriptionModePush
+	if issuedSecret {
+		existing.Secret = model.NewRandomString(model.BotEventSecretLength)
+	}
 	if existing.Mode != prevMode || existing.CallbackURL != prevURL {
-		if appErr := a.verifyBotEventSubscription(rctx, existing); appErr != nil {
+		if appErr := a.verifyBotEventSubscription(rctx, existing, botUserID); appErr != nil {
 			return nil, false, appErr
 		}
 	}
-	updated, err := subs.Update(masterCtx, existing)
-	if err != nil {
-		return nil, false, botEventSubscriptionError(where, botUserID, err, model.NewAppError(where, "app.bot_event_subscription.update.app_error", nil, "", http.StatusInternalServerError))
+
+	updateErr := model.NewAppError(where, "app.bot_event_subscription.update.app_error", nil, "", http.StatusInternalServerError)
+	if issuedSecret {
+		// Stored first: a failed update then only changes the secret of a subscription that didn't use one.
+		if err = subs.UpdateSecret(masterCtx, botUserID, existing.Secret, model.GetMillis()); err != nil {
+			return nil, false, botEventSubscriptionError(where, botUserID, err, updateErr)
+		}
 	}
-	updated.Sanitize()
+	if _, err = subs.Update(masterCtx, existing); err != nil {
+		return nil, false, botEventSubscriptionError(where, botUserID, err, updateErr)
+	}
+
+	// Read back so the response shows the counters the update reset.
+	updated, err := subs.Get(masterCtx, botUserID)
+	if err != nil {
+		return nil, false, botEventSubscriptionError(where, botUserID, err, model.NewAppError(where, "app.bot_event_subscription.get.app_error", nil, "", http.StatusInternalServerError))
+	}
+	if !issuedSecret {
+		updated.Sanitize()
+	}
 	return updated, false, nil
 }
 
 // verifyBotEventSubscription validates the subscription and, for push mode, proves that
-// the callback URL answers a challenge before anything is stored.
-func (a *App) verifyBotEventSubscription(rctx request.CTX, sub *model.BotEventSubscription) *model.AppError {
+// the callback URL answers a challenge before anything is stored. The challenge names
+// challengeBotID, which is empty while the bot doesn't exist yet.
+func (a *App) verifyBotEventSubscription(rctx request.CTX, sub *model.BotEventSubscription, challengeBotID string) *model.AppError {
 	sub.PreSave()
 	if appErr := sub.IsValid(); appErr != nil {
 		return appErr
@@ -94,7 +117,7 @@ func (a *App) verifyBotEventSubscription(rctx request.CTX, sub *model.BotEventSu
 	if sub.Mode != model.BotEventSubscriptionModePush {
 		return nil
 	}
-	return a.verifyBotEventCallbackURL(rctx, sub.BotUserId, sub.CallbackURL, sub.Secret)
+	return a.verifyBotEventCallbackURL(rctx, challengeBotID, sub.CallbackURL, sub.Secret)
 }
 
 // newBotEventSubscription builds the subscription to store; the store stamps and validates it.
@@ -187,12 +210,19 @@ func (a *App) EnableBotEventSubscription(rctx request.CTX, botUserID string) (*m
 	return sub, nil
 }
 
-// CreateBotWithEventSubscription creates the bot and its subscription, removing the
-// bot again if the subscription cannot be created or its push callback URL fails verification.
+// CreateBotWithEventSubscription validates the subscription and verifies a push callback URL
+// before creating the bot, so a rejected request leaves nothing behind. The bot is removed
+// again if the subscription cannot be saved afterwards.
 func (a *App) CreateBotWithEventSubscription(rctx request.CTX, bot *model.Bot, patch *model.BotEventSubscriptionPatch) (*model.Bot, *model.BotEventSubscription, *model.AppError) {
 	const where = "CreateBotWithEventSubscription"
 
 	if appErr := patch.IsValidForCreate(); appErr != nil {
+		return nil, nil, appErr
+	}
+
+	// The bot's id doesn't exist yet; a placeholder lets the subscription validate.
+	sub := newBotEventSubscription(model.NewId(), patch)
+	if appErr := a.verifyBotEventSubscription(rctx, sub, ""); appErr != nil {
 		return nil, nil, appErr
 	}
 
@@ -201,20 +231,13 @@ func (a *App) CreateBotWithEventSubscription(rctx request.CTX, bot *model.Bot, p
 		return nil, nil, appErr
 	}
 
-	rollback := func(cause *model.AppError) (*model.Bot, *model.BotEventSubscription, *model.AppError) {
+	sub.BotUserId = createdBot.UserId
+	sub, err := a.Srv().Store().BotEventSubscription().Save(rctx, sub)
+	if err != nil {
 		if deleteErr := a.PermanentDeleteBot(rctx, createdBot.UserId); deleteErr != nil {
 			rctx.Logger().Error("Failed to remove bot after its event subscription could not be created", mlog.String("bot_user_id", createdBot.UserId), mlog.Err(deleteErr))
 		}
-		return nil, nil, cause
-	}
-
-	sub := newBotEventSubscription(createdBot.UserId, patch)
-	if appErr := a.verifyBotEventSubscription(rctx, sub); appErr != nil {
-		return rollback(appErr)
-	}
-	sub, err := a.Srv().Store().BotEventSubscription().Save(rctx, sub)
-	if err != nil {
-		return rollback(botEventSubscriptionError(where, createdBot.UserId, err, model.NewAppError(where, "app.bot_event_subscription.save.app_error", nil, "", http.StatusInternalServerError)))
+		return nil, nil, botEventSubscriptionError(where, createdBot.UserId, err, model.NewAppError(where, "app.bot_event_subscription.save.app_error", nil, "", http.StatusInternalServerError))
 	}
 
 	return createdBot, sub, nil

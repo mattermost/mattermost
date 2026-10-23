@@ -384,7 +384,8 @@
         the request timeout (at most 10 seconds). Nothing is stored when verification fails, and the response is a 400 error. The
         verification request is signed like an event, but on creation the receiver has not seen the
         secret yet, so it only needs to echo the challenge. The same verification applies when
-        creating the bot with `POST /api/v4/bots`, which then does not create the bot.
+        creating the bot with `POST /api/v4/bots`, which runs it before the bot exists, so that
+        a failure creates nothing. In that case `bot_user_id` is empty.
 
         ##### Push mode: requests
         Every request carries these headers:
@@ -421,7 +422,8 @@
 
         When the subscription is created, the response has status 201 and contains the `secret`. The secret
         is not returned again, except by the regenerate secret endpoint. Updating returns status 200
-        without the secret.
+        without the secret, except when the update switches a pull subscription to push mode: that
+        issues a new secret, which is returned once in the 200 response.
 
         System-owned bots cannot have an event subscription.
 
@@ -447,7 +449,7 @@
               $ref: "#/components/schemas/BotEventSubscriptionPatch"
       responses:
         "200":
-          description: Event subscription updated.
+          description: Event subscription updated. Includes a new secret only when the update switched a pull subscription to push mode.
           content:
             application/json:
               schema:

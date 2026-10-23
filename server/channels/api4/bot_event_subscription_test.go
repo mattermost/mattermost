@@ -227,6 +227,72 @@ func TestBotEventSubscriptionPushAPI(t *testing.T) {
 		CheckErrorID(t, err, "app.bot_event_subscription.url_verification.bad_status.app_error")
 	})
 
+	t.Run("switching from pull to push issues a secret once", func(t *testing.T) {
+		rcv := testlib.NewBotEventReceiver(t, nil)
+		bot := th.CreateBotWithClient(t, th.Client)
+		_, _, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pullSubscription())
+		require.NoError(t, err)
+
+		switched, resp, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pushTo(rcv.URL()))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, switched.Secret, model.BotEventSecretLength)
+		stored, err := th.App.Srv().Store().BotEventSubscription().Get(th.Context, bot.UserId)
+		require.NoError(t, err)
+		assert.Equal(t, switched.Secret, stored.Secret)
+
+		again, _, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, &model.BotEventSubscriptionPatch{IgnoreBotAuthors: new(false)})
+		require.NoError(t, err)
+		assert.Empty(t, again.Secret)
+		stored, err = th.App.Srv().Store().BotEventSubscription().Get(th.Context, bot.UserId)
+		require.NoError(t, err)
+		assert.Equal(t, switched.Secret, stored.Secret, "a push update keeps the secret")
+	})
+
+	t.Run("an update returns the reset failure counters", func(t *testing.T) {
+		bot := th.CreateBotWithClient(t, th.Client)
+		_, _, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pushTo(testlib.NewBotEventReceiver(t, nil).URL()))
+		require.NoError(t, err)
+		_, err = th.App.Srv().Store().GetInternalMasterDB().Exec(`UPDATE BotEventSubscriptions SET ConsecutiveFailures = 3 WHERE BotUserId = $1`, bot.UserId)
+		require.NoError(t, err)
+
+		updated, _, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pushTo(testlib.NewBotEventReceiver(t, nil).URL()))
+		require.NoError(t, err)
+		assert.Zero(t, updated.ConsecutiveFailures)
+	})
+
+	t.Run("a failed push create leaves no bot, DM or post behind", func(t *testing.T) {
+		directChannels := func() int {
+			channels, err := th.App.Srv().Store().Channel().GetChannelsByUser(th.BasicUser.Id, false, 0, 1000, "")
+			require.NoError(t, err)
+			count := 0
+			for _, channel := range channels {
+				if channel.Type == model.ChannelTypeDirect {
+					count++
+				}
+			}
+			return count
+		}
+		before := directChannels()
+
+		username := GenerateTestUsername()
+		_, _, err := th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
+			BotPatch:          model.BotPatch{Username: &username},
+			EventSubscription: pushTo(broken.URL),
+		})
+		require.Error(t, err)
+		_, err = th.App.Srv().Store().User().GetByUsername(username)
+		assert.Error(t, err, "no bot is left behind")
+		assert.Equal(t, before, directChannels(), "the owner gets no DM from the failed bot")
+
+		_, _, err = th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
+			BotPatch:          model.BotPatch{Username: new(GenerateTestUsername())},
+			EventSubscription: pushTo(testlib.NewBotEventReceiver(t, nil).URL()),
+		})
+		require.NoError(t, err)
+		assert.Equal(t, before+1, directChannels(), "a successful create still DMs the owner")
+	})
+
 	t.Run("creating a bot verifies the receiver", func(t *testing.T) {
 		username := GenerateTestUsername()
 		_, resp, err := th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{

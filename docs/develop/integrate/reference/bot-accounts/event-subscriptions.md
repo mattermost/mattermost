@@ -15,14 +15,14 @@ Event subscriptions require Mattermost server v12.2 or later. The bot must be a 
 
 In the UI, go to **Integrations > Bot Accounts**, create or edit a bot, and choose a mode under **Event delivery**. With the API, send `PUT /api/v4/bots/{bot_user_id}/event_subscription`, or include `event_subscription` in `POST /api/v4/bots`. See the [API reference](https://api.mattermost.com/#tag/bots). Creating a bot together with a subscription requires the `manage_bots` permission.
 
-The signing `secret` is returned only when the subscription is created and when it is regenerated with `POST /api/v4/bots/{bot_user_id}/event_subscription/regenerate_secret`. Store it when you receive it.
+The signing `secret` is returned only when the subscription is created and when it is regenerated with `POST /api/v4/bots/{bot_user_id}/event_subscription/regenerate_secret`. Switching an existing pull subscription to push also returns a new secret, in the response to that update. Store it when you receive it.
 
 ## Event types and payload
 
 | Type | Delivered when |
 |---|---|
 | `post_dm` | A post is created in a direct message with the bot. |
-| `post_mention` | A post mentions the bot, a group containing it, or `@channel`, `@all`, or `@here`. |
+| `post_mention` | A post mentions the bot, a group containing it, or `@channel` or `@all`. `@here` only counts when the bot is online, which a receiver-only bot usually isn't, so mention the bot by name (`@botname`) when you need to reach it. |
 | `post_gm` | A post is created in a group message that includes the bot. |
 | `post_thread_reply` | A reply is created in a thread the bot follows. |
 | `reaction_added`, `reaction_removed` | A reaction changes on a post by the bot, or in a direct or group message the bot is in. |
@@ -78,7 +78,7 @@ Every request has these headers:
 
 Compute the signature over the raw request body, compare in constant time, and reject timestamps more than 5 minutes from your clock. `model.VerifyBotEventSignature` does all three.
 
-When you create a push subscription, or change its mode or URL, Mattermost first posts `{"type": "url_verification", "challenge": "...", "bot_user_id": "..."}` and expects a 2xx response with `{"challenge": "..."}`. On creation your receiver doesn't have the secret yet, so it can't check the signature of this request. Nothing is saved if verification fails.
+When you create a push subscription, or change its mode or URL, Mattermost first posts `{"type": "url_verification", "challenge": "...", "bot_user_id": "..."}` and expects a 2xx response with `{"challenge": "..."}`. On creation your receiver doesn't have the secret yet, so it can't check the signature of this request. Nothing is saved if verification fails, and when you create a bot together with its subscription, no bot is created. In that case `bot_user_id` is empty, because the bot doesn't exist yet.
 
 Respond with a 2xx status within 10 seconds. Redirects aren't followed. Failed requests are retried with a growing delay, from 5 seconds up to once an hour. Delivery is disabled after 24 hours of failures, or immediately after `410 Gone`, and the bot owner gets a direct message. Choose **Enable delivery** in the bot list, or call `POST /api/v4/bots/{bot_user_id}/event_subscription/enable`, to resume from the first event that wasn't acknowledged. Changing the callback URL of a disabled subscription doesn't re-enable it.
 
