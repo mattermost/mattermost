@@ -105,7 +105,7 @@ async function expectEventually(probe: () => Promise<ApiResult>, expected: ApiRe
 }
 
 // Tests 2 and 3 rely on the Bot accounts upload policy that test 1 creates through the UI, so the tests run serially.
-// Test 3 also creates its own download policies and reuses the shared bots, human, channel, and file.
+// Test 3 also creates its own download policies and reuses the shared bots, non-bot user, channel, and file.
 test.describe('Permission Policies - Bot accounts scope', () => {
     test.describe.configure({mode: 'serial'});
 
@@ -115,7 +115,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
     let fieldName = '';
     let channelId = '';
     let fileId = '';
-    let humanClient: PlaywrightClient4;
+    let systemUserClient: PlaywrightClient4;
     let botSecret: Bot;
     let botMember: Bot;
     let botSecretClient: PlaywrightClient4;
@@ -164,18 +164,18 @@ test.describe('Permission Policies - Bot accounts scope', () => {
         const channel = await createPrivateChannelForABAC(adminClient, team.id);
         channelId = channel.id;
 
-        const username = `human${getRandomId()}`;
+        const username = `systemuser${getRandomId()}`;
         const password = newTestPassword();
-        const human = await adminClient.createUser(
+        const systemUser = await adminClient.createUser(
             {email: `${username}@example.com`, username, password} as any,
             '',
             '',
         );
-        await adminClient.addToTeam(team.id, human.id);
-        await adminClient.addToChannel(human.id, channelId);
-        humanClient = new PlaywrightClient4();
-        humanClient.setUrl(testConfig.baseURL);
-        await humanClient.login(username, password);
+        await adminClient.addToTeam(team.id, systemUser.id);
+        await adminClient.addToChannel(systemUser.id, channelId);
+        systemUserClient = new PlaywrightClient4();
+        systemUserClient.setUrl(testConfig.baseURL);
+        await systemUserClient.login(username, password);
 
         botSecret = await adminClient.createBot({username: `botsecret${getRandomId()}`, display_name: 'Bot Secret'});
         botMember = await adminClient.createBot({username: `botmember${getRandomId()}`, display_name: 'Bot Member'});
@@ -209,12 +209,12 @@ test.describe('Permission Policies - Bot accounts scope', () => {
         });
 
         const baselineUpload = 'baseline upload must succeed before the Bot accounts policy exists';
-        expect(await uploadStatus(humanClient, channelId), baselineUpload).toEqual({status: 201});
+        expect(await uploadStatus(systemUserClient, channelId), baselineUpload).toEqual({status: 201});
         expect(await uploadStatus(botSecretClient, channelId), baselineUpload).toEqual({status: 201});
         expect(await uploadStatus(botMemberClient, channelId), baselineUpload).toEqual({status: 201});
 
         const baselineDownload = 'baseline download must succeed before any download policy exists';
-        expect(await downloadStatus(humanClient, fileId), baselineDownload).toEqual({status: 200});
+        expect(await downloadStatus(systemUserClient, fileId), baselineDownload).toEqual({status: 200});
         expect(await downloadStatus(botSecretClient, fileId), baselineDownload).toEqual({status: 200});
         expect(await downloadStatus(botMemberClient, fileId), baselineDownload).toEqual({status: 200});
     });
@@ -359,7 +359,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
     );
 
     /**
-     * @objective Verify a saved Bot accounts policy constrains only bots on file upload: humans are
+     * @objective Verify a saved Bot accounts policy constrains only bots on file upload: non-bot users are
      * unaffected, botSecret ("Secret") is allowed, and botMember ("Member") is denied by ABAC.
      *
      * @precondition
@@ -367,7 +367,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
      * botMember holding "Member", and bot personal access tokens
      */
     test(
-        'enforces the Bot accounts policy on file upload: human allowed, bot with "Secret" allowed, bot with "Member" denied',
+        'enforces the Bot accounts policy on file upload: non-bot user allowed, bot with "Secret" allowed, bot with "Member" denied',
         {tag: '@abac_permission_policies'},
         async ({pw}) => {
             test.setTimeout(pw.duration.two_min);
@@ -376,18 +376,18 @@ test.describe('Permission Policies - Bot accounts scope', () => {
             const denied = {status: 403, errorId: ABAC_UPLOAD_DENIED};
             const allowed = {status: 201};
 
-            // # Upload a file to the channel as each bot and the human through the API
+            // # Upload a file to the channel as each bot and the non-bot user through the API
             // * Verify botMember is denied once the policy is live
             await expectEventually(() => uploadStatus(botMemberClient, channelId), denied);
 
-            // * Verify botSecret and the human can still upload
+            // * Verify botSecret and the non-bot user can still upload
             await expectEventually(() => uploadStatus(botSecretClient, channelId), allowed);
-            await expectEventually(() => uploadStatus(humanClient, channelId), allowed);
+            await expectEventually(() => uploadStatus(systemUserClient, channelId), allowed);
 
             // * Verify each decision is stable on a repeat upload
             expect(await uploadStatus(botMemberClient, channelId)).toEqual(denied);
             expect(await uploadStatus(botSecretClient, channelId)).toEqual(allowed);
-            expect(await uploadStatus(humanClient, channelId)).toEqual(allowed);
+            expect(await uploadStatus(systemUserClient, channelId)).toEqual(allowed);
         },
     );
 
@@ -396,7 +396,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
      * bots are evaluated against the Members download policy (the bot passing it downloads, the bot failing
      * it is denied). Once a Bot accounts download policy exists it replaces the Members policy for bots: the
      * bot passing only the Bot accounts rule downloads, the bot passing only the Members rule is denied, and a
-     * human failing the Members rule is still denied.
+     * non-bot user failing the Members rule is still denied.
      *
      * @precondition
      * The Bot accounts upload policy created by the first test, botSecret holding "Secret" and botMember holding
@@ -423,8 +423,8 @@ test.describe('Permission Policies - Bot accounts scope', () => {
                 }),
             );
 
-            // * Verify the human failing the Members policy is denied once it is live
-            await expectEventually(() => downloadStatus(humanClient, fileId), denied);
+            // * Verify the non-bot user failing the Members policy is denied once it is live
+            await expectEventually(() => downloadStatus(systemUserClient, fileId), denied);
 
             // * Verify bots with no Bot accounts download policy are evaluated against the Members policy
             await expectEventually(() => downloadStatus(botSecretClient, fileId), denied);
@@ -446,7 +446,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
             await expectEventually(() => downloadStatus(botMemberClient, fileId), denied);
 
             // * Verify each decision is stable on a repeat download
-            expect(await downloadStatus(humanClient, fileId)).toEqual(denied);
+            expect(await downloadStatus(systemUserClient, fileId)).toEqual(denied);
             expect(await downloadStatus(botMemberClient, fileId)).toEqual(denied);
             expect(await downloadStatus(botSecretClient, fileId)).toEqual(allowed);
         },

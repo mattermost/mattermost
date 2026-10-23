@@ -111,7 +111,7 @@ function RuleEditorCard({
 
     // Always override the editors' own test: it matches the bare expression
     // against every user, ignoring the policy's role, so it would list e.g.
-    // guests under a Members policy or humans under a Bot accounts policy.
+    // guests under a Members policy or non-bot users under a Bot accounts policy.
     const testButtonProps = {
         onTestClick,
         testButtonDisabled: Boolean(simulateBlockedBy),
