@@ -151,6 +151,12 @@ class OverrideAndFailureTest(unittest.TestCase):
         self.assertNotIn("someone@example.com", json.dumps(body))
         self.assertTrue(any("someone@example.com" in d for d in details))
 
+    def test_error_text(self):
+        self.assertEqual(agent.private_error(ServiceError("Jira", 404)), "Jira request failed (HTTP 404)")
+        self.assertEqual(agent.private_error(ServiceError("Jira", 401, "bad token")), "Jira request failed (HTTP 401): bad token")
+        self.assertEqual(agent.public_error(KeyError("MM-123 secret")), "unexpected KeyError")
+        self.assertEqual(agent.private_error(KeyError("x")), "unexpected KeyError: 'x'")
+
     def test_mode(self):
         self.assertEqual(agent.resolve_mode("repository-variable", ""), "test")
         self.assertEqual(agent.resolve_mode("repository-variable", "live"), "live")

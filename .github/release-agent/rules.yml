@@ -97,7 +97,8 @@ rules:
     source: [github]
     query:
       repos: [mattermost/mattermost, mattermost/enterprise]
-      label: CherryPick/Approved
+      # The bot swaps Approved for Done once it opens the cherry-pick, so both are checked.
+      labels: [CherryPick/Approved, CherryPick/Done]
     pass_when: all_on_release_branch
     on_fail: needs_attention
 

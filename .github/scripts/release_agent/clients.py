@@ -49,7 +49,7 @@ class Http:
                 raise ServiceError(self.service, None, str(err)) from None
         raise AssertionError("unreachable")
 
-    def get(self, path: str, **params):
+    def get(self, path: str, /, **params):
         return self.request("GET", path, params or None)[1]
 
 

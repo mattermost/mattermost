@@ -145,6 +145,7 @@ class CherryPicksTest(unittest.TestCase):
         self.assertEqual(result.status, checks.FAIL)
         self.assertEqual(result.summary, "2 of 4 approved cherry-picks aren't on release-12.2 (1 in a private repo)")
         self.assertEqual([i.public_label for i in result.items], ["mattermost#101", "(private repo)"])
+        self.assertIn('label:"CherryPick/Approved","CherryPick/Done" milestone:"v12.2.0"', github.queries[0])
 
     def test_passes_with_nothing_to_cherry_pick(self):
         result = checks.cherry_picks(context(), RULES["cherry-picks"])
@@ -197,14 +198,15 @@ class ReleaseTagsTest(unittest.TestCase):
 class VersionGoPrsTest(unittest.TestCase):
     def test_merged(self):
         github = FakeGitHub()
-        github.searches["version to 12.2"] = [pr(1, "Update latest minor version to 12.2.0"),
+        github.searches["Update latest"] = [pr(1, "Update latest minor version to 12.2.0"),
                                               pr(2, "Update latest minor version to 12.20.0", state="open")]
         result = checks.version_go_prs(context(github), RULES["version-go-prs"])
         self.assertEqual((result.status, result.summary), (checks.PASS, "1 version.go PR merged"))
+        self.assertIn('in:title "Update latest" created:>=2026-09-04', github.queries[0])
 
     def test_open_pr_fails(self):
         github = FakeGitHub()
-        github.searches["version to 12.2"] = [pr(1, "Update latest minor version to 12.2.0", state="open")]
+        github.searches["Update latest"] = [pr(1, "Update latest minor version to 12.2.0", state="open")]
         result = checks.version_go_prs(context(github), RULES["version-go-prs"])
         self.assertEqual((result.status, result.summary), (checks.FAIL, "1 version.go PR not merged: mattermost#1"))
 

@@ -64,8 +64,9 @@ def public_error(err: Exception) -> str:
 
 
 def private_error(err: Exception) -> str:
-    detail = getattr(err, "detail", "") or str(err)
-    return f"{public_error(err)}: {detail}"[:300]
+    public = public_error(err)
+    detail = getattr(err, "detail", "") if isinstance(err, ServiceError) else str(err)
+    return (f"{public}: {detail}" if detail and detail != public else public)[:300]
 
 
 def template_vars(release, naming: dict, rc_numbers: list) -> dict:

@@ -8,7 +8,7 @@ are shown publicly as "(private repo)".
 
 import re
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 PUBLIC_REPOS = frozenset({"mattermost/mattermost"})
 
@@ -192,9 +192,10 @@ def cherry_picks(ctx: Context, rule: dict) -> Result:
     if not ctx.has_branch:
         return Result(SKIPPED, f"{branch} doesn't exist yet")
     query = ctx.query(rule)
+    labels = ",".join(f'"{label}"' for label in query["labels"])
     total, missing = 0, []
     for repo in query["repos"]:
-        search = f'repo:{repo} is:pr is:merged base:master label:"{query["label"]}" milestone:"{ctx.vars["milestone"]}"'
+        search = f'repo:{repo} is:pr is:merged base:master label:{labels} milestone:"{ctx.vars["milestone"]}"'
         prs = ctx.github.search_issues(search)
         if not prs:
             continue
@@ -263,7 +264,9 @@ def version_go_prs(ctx: Context, rule: dict) -> Result:
     query = ctx.query(rule)
     repo = query["repo"]
     major, minor = ctx.release.key
-    search = f'repo:{repo} is:pr author:{query["author"]} in:title "version to {major}.{minor}"'
+    # Search indexes "12.2.0" as one token, so "12.2" can't be searched for; filter instead.
+    since = date.fromisoformat(ctx.vars["branch_cut"]) - timedelta(days=45)
+    search = f'repo:{repo} is:pr author:{query["author"]} in:title "Update latest" created:>={since.isoformat()}'
     title = re.compile(rf"version to {major}\.{minor}\.\d+\s*$")
     prs = [pr for pr in ctx.github.search_issues(search) if title.search(pr.get("title", ""))]
     if not prs:

@@ -86,8 +86,8 @@ def _items(items: list) -> list[str]:
     return lines
 
 
-def _proof(result) -> str:
-    return f" · [proof]({result.proof_url})" if result and result.proof_url else ""
+def _proof(result, label: str = "proof") -> str:
+    return f" · [{label}]({result.proof_url})" if result and result.proof_url else ""
 
 
 def _tick_note(ticks_by_task: dict, task: str) -> str:
@@ -154,7 +154,7 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict) -> st
             lines.append(f"- **{outcome.title}**{due} — {outcome.result.summary}")
 
     for outcome in by_state.get(REPORT, []):
-        lines += ["", f"**{outcome.title}** — {outcome.result.summary}{_proof(outcome.result)}"]
+        lines += ["", f"**{outcome.title}** — {outcome.result.summary}{_proof(outcome.result, 'Jira filter')}"]
         groups = {}
         for item in outcome.result.items:
             groups.setdefault(item.owner or "Unassigned", []).append(item)
