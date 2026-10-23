@@ -957,7 +957,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             // The danger SectionNotice renders with its title and body copy.
             expect(screen.getByText(WARNING_TITLE)).toBeInTheDocument();
             expect(screen.getByText(WARNING_TEXT)).toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
 
             // The normal help text still renders alongside the callout.
             expect(screen.getByText('danger-help-text')).toBeInTheDocument();
@@ -968,7 +968,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
             expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
             expect(screen.queryByText(WARNING_TEXT)).not.toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
 
             // The normal help text is unaffected.
             expect(screen.getByText('danger-help-text')).toBeInTheDocument();
@@ -1065,7 +1065,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             );
 
             expect(screen.getByText(WARNING_TITLE)).toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
         });
 
         test('does not render the callout when the setting is disabled even at the insecure value', () => {
@@ -1100,7 +1100,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             );
 
             expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
         });
     });
 

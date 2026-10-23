@@ -39,8 +39,9 @@ import (
 
 type fixedDBStatsStore struct {
 	store.Store
-	masterStats  sql.DBStats
-	replicaStats sql.DBStats
+	masterStats    sql.DBStats
+	replicaStats   sql.DBStats
+	replicasOnline int
 }
 
 func (s *fixedDBStatsStore) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagnostics, error) {
@@ -57,6 +58,7 @@ func (s *fixedDBStatsStore) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagno
 		ReplicaPoolWaitDurationMs:           s.replicaStats.WaitDuration.Milliseconds(),
 		ReplicaConnectionsClosedMaxIdle:     s.replicaStats.MaxIdleClosed,
 		ReplicaConnectionsClosedMaxLifetime: s.replicaStats.MaxLifetimeClosed,
+		ReplicasOnline:                      s.replicasOnline,
 	}
 
 	return diagnostics, nil
@@ -326,7 +328,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Zero(t, d.Database.SearchConnections)
 		require.NotNil(t, d.Database.MasterConnectionsInUse)
 		assert.GreaterOrEqual(t, *d.Database.MasterConnectionsInUse, 0)
-		for _, v := range []*int{d.Database.MasterConnectionsIdle, d.Database.ReplicaConnectionsInUse, d.Database.ReplicaConnectionsIdle} {
+		for _, v := range []*int{d.Database.MasterConnectionsIdle, d.Database.ReplicaConnectionsInUse, d.Database.ReplicaConnectionsIdle, d.Database.ReplicasOnline} {
 			require.NotNil(t, v)
 			assert.GreaterOrEqual(t, *v, 0)
 		}
@@ -368,6 +370,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, d.Cluster.ID)
 		require.NotNil(t, d.Cluster.NumberOfNodes)
 		assert.Equal(t, 1, *d.Cluster.NumberOfNodes)
+		require.NotNil(t, d.Cluster.NumberOfConnectedNodes)
+		assert.Equal(t, 1, *d.Cluster.NumberOfConnectedNodes)
 		assert.False(t, d.Cluster.IsLeader)
 
 		/* LDAP */
@@ -389,6 +393,29 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Google.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Office365.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.OpenID.Status)
+	})
+
+	t.Run("database-only nodes count as nodes but not as connected", func(t *testing.T) {
+		cluster := emocks.NewClusterInterface(t)
+		cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
+		cluster.On("GetClusterId").Return("cluster-id")
+		cluster.On("IsLeader").Return(true)
+		cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{
+			{Id: "a", Hostname: "app-1", IPAddress: "10.0.0.1"},
+			{Id: "b", Hostname: "app-2", IPAddress: "10.0.0.2"},
+			{Id: "c", Hostname: "app-3"},
+		}, nil)
+		originalCluster := th.Service.clusterIFace
+		t.Cleanup(func() {
+			th.Service.clusterIFace = originalCluster
+		})
+		th.Service.clusterIFace = cluster
+
+		d := getDiagnostics(t)
+		require.NotNil(t, d.Cluster.NumberOfNodes)
+		assert.Equal(t, 3, *d.Cluster.NumberOfNodes)
+		require.NotNil(t, d.Cluster.NumberOfConnectedNodes)
+		assert.Equal(t, 2, *d.Cluster.NumberOfConnectedNodes)
 	})
 
 	t.Run("only the cluster leader writes is_leader", func(t *testing.T) {
@@ -428,6 +455,45 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		fileData, err := supportPacketDiagnosticsFile(d, nil)
 		require.NoError(t, err)
 		assert.Contains(t, string(fileData.Body), "is_cloud: true")
+	})
+
+	t.Run("trial recognized by duration writes is_trial", func(t *testing.T) {
+		trialLicense := model.NewTestLicense("ldap")
+		trialLicense.IsTrial = false
+		trialLicense.StartsAt = model.GetMillis()
+		trialLicense.ExpiresAt = trialLicense.StartsAt + (30*24*time.Hour + 8*time.Hour).Milliseconds()
+		require.True(t, trialLicense.IsTrialLicense())
+		require.True(t, th.Service.SetLicense(trialLicense))
+		t.Cleanup(func() {
+			require.True(t, th.Service.SetLicense(license))
+		})
+
+		assert.True(t, getDiagnostics(t).License.IsTrial)
+	})
+
+	t.Run("enforced license writes expiry, seat limit and features", func(t *testing.T) {
+		enforcedLicense := model.NewTestLicense("ldap")
+		enforcedLicense.IsSeatCountEnforced = true
+		enforcedLicense.ExtraUsers = new(5)
+		require.True(t, th.Service.SetLicense(enforcedLicense))
+		t.Cleanup(func() {
+			require.True(t, th.Service.SetLicense(license))
+		})
+
+		d := getDiagnostics(t)
+		assert.Equal(t, enforcedLicense.ExpiresAt, d.License.ExpiresAt)
+		assert.True(t, d.License.IsSeatCountEnforced)
+		assert.Equal(t, new(5), d.License.ExtraUsers)
+		require.NotNil(t, d.License.Features)
+		assert.Equal(t, new(true), d.License.Features.LDAP)
+
+		fileData, err := supportPacketDiagnosticsFile(d, nil)
+		require.NoError(t, err)
+		body := string(fileData.Body)
+		assert.Contains(t, body, "expires_at: "+strconv.FormatInt(enforcedLicense.ExpiresAt, 10)+"\n")
+		assert.Contains(t, body, "is_seat_count_enforced: true\n")
+		assert.Contains(t, body, "extra_users: 5\n")
+		assert.Contains(t, body, "    ldap: true\n")
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -569,7 +635,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, packet.SAML.Error)
 	})
 
-	t.Run("SAML enabled with reachable metadata URL", func(t *testing.T) {
+	t.Run("SAML enabled with passing diagnostic", func(t *testing.T) {
 		diagMock := &emocks.SamlDiagnosticInterface{}
 		diagMock.On(
 			"RunSupportPacketTest",
@@ -585,7 +651,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
@@ -598,66 +663,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusOk, packet.SAML.Status)
 		assert.Empty(t, packet.SAML.Error)
 		assert.Equal(t, "Keycloak", packet.SAML.ProviderType)
-	})
-
-	t.Run("SAML enabled with missing metadata URL", func(t *testing.T) {
-		diagMock := &emocks.SamlDiagnosticInterface{}
-		diagMock.On(
-			"RunSupportPacketTest",
-			mock.AnythingOfType("*request.Context"),
-			mock.AnythingOfType("model.SamlSettings"),
-		).Return(errors.New("SAML metadata URL is not configured"))
-		originalSAMLDiag := th.Service.samlDiagnostic
-		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
-		th.Service.samlDiagnostic = diagMock
-
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("")
-		})
-
-		packet := getDiagnostics(t)
-
-		assert.Equal(t, model.StatusFail, packet.SAML.Status)
-		assert.Equal(t, "SAML metadata URL is not configured", packet.SAML.Error)
-	})
-
-	t.Run("SAML enabled with metadata URL returning non-200", func(t *testing.T) {
-		diagMock := &emocks.SamlDiagnosticInterface{}
-		diagMock.On(
-			"RunSupportPacketTest",
-			mock.AnythingOfType("*request.Context"),
-			mock.AnythingOfType("model.SamlSettings"),
-		).Return(errors.New("SAML metadata URL returned unexpected status 503"))
-		originalSAMLDiag := th.Service.samlDiagnostic
-		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
-		th.Service.samlDiagnostic = diagMock
-
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
-		})
-
-		packet := getDiagnostics(t)
-
-		assert.Equal(t, model.StatusFail, packet.SAML.Status)
-		assert.Equal(t, "SAML metadata URL returned unexpected status 503", packet.SAML.Error)
 	})
 
 	t.Run("SAML diagnostics enterprise interface override", func(t *testing.T) {
@@ -678,7 +683,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
@@ -879,13 +883,25 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, packet.Notifications.Push.Error)
 	})
 
-	t.Run("email notifications disabled", func(t *testing.T) {
+	t.Run("SMTP unused", func(t *testing.T) {
+		requireVerification := *th.Service.Config().EmailSettings.RequireEmailVerification
+		emailInvitations := *th.Service.Config().ServiceSettings.EnableEmailInvitations
+		signInWithEmail := *th.Service.Config().EmailSettings.EnableSignInWithEmail
+		signInWithUsername := *th.Service.Config().EmailSettings.EnableSignInWithUsername
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendEmailNotifications = new(false)
+			cfg.EmailSettings.RequireEmailVerification = new(false)
+			cfg.ServiceSettings.EnableEmailInvitations = new(false)
+			cfg.EmailSettings.EnableSignInWithEmail = new(false)
+			cfg.EmailSettings.EnableSignInWithUsername = new(false)
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.EmailSettings.SendEmailNotifications = new(true)
+				cfg.EmailSettings.RequireEmailVerification = new(requireVerification)
+				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
+				cfg.EmailSettings.EnableSignInWithEmail = new(signInWithEmail)
+				cfg.EmailSettings.EnableSignInWithUsername = new(signInWithUsername)
 			})
 		})
 
@@ -979,6 +995,31 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, packet.Notifications.Email.Error)
 	})
 
+	t.Run("email invitations probe SMTP with notification emails off", func(t *testing.T) {
+		emailInvitations := *th.Service.Config().ServiceSettings.EnableEmailInvitations
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = new(false)
+			cfg.ServiceSettings.EnableEmailInvitations = new(true)
+			cfg.EmailSettings.SMTPServer = new("localhost")
+			cfg.EmailSettings.SMTPPort = new("1")
+			cfg.EmailSettings.SMTPServerTimeout = new(1)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = new(true)
+				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
+				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
+				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+				cfg.EmailSettings.SMTPServerTimeout = new(10)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
+		assert.NotEmpty(t, packet.Notifications.Email.Error)
+	})
+
 	t.Run("maps connection pool diagnostics for master and replica", func(t *testing.T) {
 		originalStore := th.Service.Store
 		customStore := &fixedDBStatsStore{
@@ -999,6 +1040,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 				MaxIdleClosed:     23,
 				MaxLifetimeClosed: 29,
 			},
+			replicasOnline: 2,
 		}
 		th.Service.Store = customStore
 		t.Cleanup(func() {
@@ -1019,6 +1061,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, new(int64(4090)), packet.Database.ReplicaPoolWaitDurationMs)
 		assert.Equal(t, new(int64(23)), packet.Database.ReplicaConnectionsClosedMaxIdle)
 		assert.Equal(t, new(int64(29)), packet.Database.ReplicaConnectionsClosedMaxLifetime)
+		assert.Equal(t, new(2), packet.Database.ReplicasOnline)
 	})
 
 	t.Run("OpenID disabled", func(t *testing.T) {
@@ -1282,6 +1325,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		assert.Nil(t, d.Database.ReplicaPoolWaitDurationMs)
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxIdle)
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
+		assert.Nil(t, d.Database.ReplicasOnline)
 	})
 
 	t.Run("disk space fails", func(t *testing.T) {
@@ -1329,6 +1373,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			model.SectionCluster: {"error while getting cluster infos"},
 		})
 		assert.Nil(t, d.Cluster.NumberOfNodes)
+		assert.Nil(t, d.Cluster.NumberOfConnectedNodes)
 	})
 
 	t.Run("LDAP vendor info fails", func(t *testing.T) {
@@ -1564,6 +1609,8 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.License.SkuShortName = "enterprise"
 	diagnostics.License.IsTrial = true
 	diagnostics.License.IsNonProduction = true
+	diagnostics.License.ExpiresAt = time.Date(2027, 1, 2, 3, 4, 5, 0, time.UTC).UnixMilli()
+	diagnostics.License.Features = &model.Features{IDLoadedPushNotifications: new(true), LDAP: new(false)}
 	diagnostics.Server.OS = "linux"
 	diagnostics.Server.Architecture = "amd64"
 	diagnostics.Server.Hostname = new("mm-host")
@@ -1599,6 +1646,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Database.ReplicaPoolWaitDurationMs = new(int64(66))
 	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = new(int64(4))
 	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = new(int64(3))
+	diagnostics.Database.ReplicasOnline = new(1)
 	diagnostics.Database.CacheHitRatio = &cacheHitRatio
 	diagnostics.Database.Deadlocks = &deadlocks
 	diagnostics.Database.TempFiles = &tempFiles
@@ -1617,6 +1665,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Websocket.Connections = 77
 	diagnostics.Cluster.ID = "cluster-id"
 	diagnostics.Cluster.NumberOfNodes = new(3)
+	diagnostics.Cluster.NumberOfConnectedNodes = new(2)
 	diagnostics.Notifications.Email.Status = model.StatusOk
 	diagnostics.Notifications.Push.Status = model.StatusFail
 	diagnostics.Notifications.Push.Error = "proxy timeout"

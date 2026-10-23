@@ -35,7 +35,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -289,7 +289,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -433,7 +433,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -728,7 +728,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -808,7 +808,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -888,7 +888,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -968,7 +968,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -1094,7 +1094,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -1343,7 +1343,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -1483,7 +1483,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -1771,7 +1771,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -1849,7 +1849,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -1927,7 +1927,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -2005,7 +2005,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -2129,7 +2129,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -2378,7 +2378,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -2518,7 +2518,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -2815,7 +2815,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -2893,7 +2893,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -2971,7 +2971,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -3049,7 +3049,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"

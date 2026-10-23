@@ -91,10 +91,6 @@ func readPacket(z *budgetedZip) (*Packet, error) {
 	snapshot.Jobs = readSection[model.SupportPacketJobList](z, snapshot.Sections, model.SectionJobs, model.SupportPacketJobsFileName, yaml.Unmarshal)
 	snapshot.Plugins = readSection[model.SupportPacketPluginList](z, snapshot.Sections, model.SectionPlugins, model.SupportPacketPluginsFileName, json.Unmarshal)
 
-	if diag, ok := leader.Diag(); ok {
-		snapshot.Deployment.IsCloud = diag.License.IsCloud
-	}
-
 	var metadata model.PacketMetadata
 	found, err := z.readMember(model.PacketMetadataFileName, &metadata, yaml.Unmarshal)
 	switch {

@@ -83,46 +83,45 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
               class="separator__hr"
             />
           </div>
-          <div>
-            <div
-              class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+          <div
+            data-testid="allowReferenceSwitch"
+          >
+            <label
+              class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+              for="allowReferenceSwitch"
             >
-              <label
-                class="line-switch__label"
+              <span
+                class="switch__labels"
               >
-                Enable Group Mentions
-              </label>
-              <div
-                class="line-switch__toggle"
-                data-testid="allowReferenceSwitch"
-              >
-                <button
-                  aria-pressed="false"
-                  class="btn btn-lg btn-toggle"
-                  data-testid="allowReferenceSwitch-button"
-                  id="allowReferenceSwitch"
-                  tabindex="0"
-                  type="button"
+                <span
+                  class="switch__label"
                 >
-                  <div
-                    class="handle"
-                  />
-                </button>
-              </div>
-            </div>
-            <div
-              class="row"
-            >
-              <div
-                class="col-sm-10"
-              >
-                <div
-                  class="help-text-small help-text-no-padding "
+                  Enable Group Mentions
+                </span>
+                <span
+                  class="switch__secondary-label"
                 >
                   When enabled, this group can be mentioned in other channels and teams. This may result in the group member list being visible to all users.
-                </div>
-              </div>
-            </div>
+                </span>
+              </span>
+              <span
+                class="switch__track"
+              >
+                <input
+                  aria-checked="false"
+                  class="switch__input"
+                  data-testid="allowReferenceSwitch-button"
+                  id="allowReferenceSwitch"
+                  role="switch"
+                  tabindex="0"
+                  type="checkbox"
+                />
+                <span
+                  aria-hidden="true"
+                  class="switch__knob"
+                />
+              </span>
+            </label>
           </div>
         </div>
       </div>
@@ -134,7 +133,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
 exports[`components/admin_console/group_settings/group_details/GroupProfileAndSettings should match snapshot, with toggle on 1`] = `
 <div>
   <section
-    aria-labelledby="_r_1_"
+    aria-labelledby="_r_2_"
     class="_admin-panel_iwm08_2 AdminPanel clearfix"
     id="group_profile"
   >
@@ -155,7 +154,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
             >
               <h2
                 class="_admin-panel-header__title_19tix_37"
-                id="_r_1_"
+                id="_r_2_"
               >
                 Group Profile
               </h2>
@@ -214,46 +213,46 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
               class="separator__hr"
             />
           </div>
-          <div>
-            <div
-              class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+          <div
+            data-testid="allowReferenceSwitch"
+          >
+            <label
+              class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+              for="allowReferenceSwitch"
             >
-              <label
-                class="line-switch__label"
+              <span
+                class="switch__labels"
               >
-                Enable Group Mentions
-              </label>
-              <div
-                class="line-switch__toggle"
-                data-testid="allowReferenceSwitch"
-              >
-                <button
-                  aria-pressed="true"
-                  class="btn btn-lg btn-toggle active"
-                  data-testid="allowReferenceSwitch-button"
-                  id="allowReferenceSwitch"
-                  tabindex="0"
-                  type="button"
+                <span
+                  class="switch__label"
                 >
-                  <div
-                    class="handle"
-                  />
-                </button>
-              </div>
-            </div>
-            <div
-              class="row"
-            >
-              <div
-                class="col-sm-10"
-              >
-                <div
-                  class="help-text-small help-text-no-padding "
+                  Enable Group Mentions
+                </span>
+                <span
+                  class="switch__secondary-label"
                 >
                   When enabled, this group can be mentioned in other channels and teams. This may result in the group member list being visible to all users.
-                </div>
-              </div>
-            </div>
+                </span>
+              </span>
+              <span
+                class="switch__track"
+              >
+                <input
+                  aria-checked="true"
+                  checked=""
+                  class="switch__input"
+                  data-testid="allowReferenceSwitch-button"
+                  id="allowReferenceSwitch"
+                  role="switch"
+                  tabindex="0"
+                  type="checkbox"
+                />
+                <span
+                  aria-hidden="true"
+                  class="switch__knob"
+                />
+              </span>
+            </label>
           </div>
         </div>
       </div>

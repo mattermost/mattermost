@@ -5,6 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
 import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -22,7 +23,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TextSetting from 'components/widgets/settings/text_setting';
@@ -594,18 +594,16 @@ function PolicyDetails({
                                     defaultMessage='Please add user attributes and values to use Attribute-Based Access Control'
                                 />
                             }
-                            text={formatMessage({
+                            description={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.notice.text',
                                 defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.',
                             })}
-                            primaryButton={{
-                                text: formatMessage({
-                                    id: 'admin.access_control.policy.edit_policy.notice.button',
-                                    defaultMessage: 'Configure user attributes',
-                                }),
-                                onClick: () => {
-                                    getHistory().push('/admin_console/system_attributes/manage_attributes');
-                                },
+                            primaryButtonLabel={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.notice.button',
+                                defaultMessage: 'Configure user attributes',
+                            })}
+                            onPrimaryAction={() => {
+                                getHistory().push('/admin_console/system_attributes/manage_attributes');
                             }}
                         />
                     </div>)}
@@ -618,7 +616,7 @@ function PolicyDetails({
                                     defaultMessage='Channels without this attribute lose all members'
                                 />
                             }
-                            text={formatMessage({
+                            description={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.channel_attribute_notice.text',
                                 defaultMessage: 'If an assigned channel is missing the referenced attribute, every member of that channel is removed.',
                             })}
@@ -673,7 +671,7 @@ function PolicyDetails({
                                                     defaultMessage='This policy contains restricted values'
                                                 />
                                             }
-                                            text={formatMessage({
+                                            description={formatMessage({
                                                 id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
                                                 defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
                                             })}
@@ -751,7 +749,7 @@ function PolicyDetails({
                                             defaultMessage='Membership policies affect public and private channels differently'
                                         />
                                     }
-                                    text={formatMessage({
+                                    description={formatMessage({
                                         id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
                                         defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
                                     })}
@@ -790,7 +788,7 @@ function PolicyDetails({
                                                 defaultMessage='This policy contains restricted values - Deletion not allowed'
                                             />
                                         }
-                                        text={formatMessage({
+                                        description={formatMessage({
                                             id: 'admin.access_control.policy.edit_policy.delete_policy.masked_values_warning.text',
                                             defaultMessage: 'Removing this policy could affect access for users you cannot fully account for.',
                                         })}
@@ -807,23 +805,26 @@ function PolicyDetails({
                                                 defaultMessage='This policy is assigned to teams - Deletion not allowed'
                                             />
                                         }
-                                        text={formatMessage({
-                                            id: 'admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.text',
-                                            defaultMessage: 'Remove this policy from the following teams before deleting it. Team assignment is managed from each team\'s System Console page.',
-                                        })}
-                                    >
-                                        {assignedTeams.length > 0 && (
-                                            <ul className='EditPolicy__delete-linked-teams-list'>
-                                                {assignedTeams.map((team) => (
-                                                    <li key={team.id}>
-                                                        <BlockableLink to={`/admin_console/user_management/teams/${team.id}`}>
-                                                            {team.display_name}
-                                                        </BlockableLink>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </SectionNotice>
+                                        description={
+                                            <>
+                                                {formatMessage({
+                                                    id: 'admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.text',
+                                                    defaultMessage: 'Remove this policy from the following teams before deleting it. Team assignment is managed from each team\'s System Console page.',
+                                                })}
+                                                {assignedTeams.length > 0 && (
+                                                    <ul className='EditPolicy__delete-linked-teams-list'>
+                                                        {assignedTeams.map((team) => (
+                                                            <li key={team.id}>
+                                                                <BlockableLink to={`/admin_console/user_management/teams/${team.id}`}>
+                                                                    {team.display_name}
+                                                                </BlockableLink>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </>
+                                        }
+                                    />
                                 </div>
                             )}
                         </AdminPanel>

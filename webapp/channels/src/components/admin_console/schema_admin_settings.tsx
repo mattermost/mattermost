@@ -7,6 +7,7 @@ import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-in
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckIcon, CloseCircleIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
@@ -35,7 +36,6 @@ import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_
 import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
@@ -533,7 +533,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 <SectionNotice
                     type='warning'
                     title={title}
-                    text={text}
+                    description={text}
                 />
             </div>
         );

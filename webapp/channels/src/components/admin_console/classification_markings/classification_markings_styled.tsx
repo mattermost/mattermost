@@ -21,10 +21,6 @@ export const LevelOptionLabel = styled.div`
 
 export const InformationNoticeWrapper = styled.div`
     margin-bottom: 16px;
-
-    h4 {
-        margin: 0;
-    }
 `;
 
 export const PresetDropdownWrapper = styled.div`

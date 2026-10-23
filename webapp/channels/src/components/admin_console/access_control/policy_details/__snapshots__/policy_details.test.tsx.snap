@@ -57,7 +57,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           </div>
         </div>
         <section
-          aria-labelledby="_r_6_"
+          aria-labelledby="_r_7_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="access_control_membership_rules"
         >
@@ -78,7 +78,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_6_"
+                      id="_r_7_"
                     >
                       Attribute-based membership rules
                     </h2>
@@ -110,7 +110,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           </div>
         </section>
         <section
-          aria-labelledby="_r_7_"
+          aria-labelledby="_r_8_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix add-channels"
           id="access_control_assigned_channels"
         >
@@ -131,7 +131,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_7_"
+                      id="_r_8_"
                     >
                       Assigned channels
                     </h2>
@@ -346,17 +346,25 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                     <div
                       class="ChannelList__autoAddHeader"
                     >
-                      <input
-                        aria-label="Auto-add members"
-                        class="header-checkbox"
-                        id="auto-add-header-checkbox"
-                        type="checkbox"
-                      />
-                      <span
-                        class="header-text"
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
+                        for="auto-add-header-checkbox"
                       >
-                        Auto-add members
-                      </span>
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          data-testid="auto-add-header-checkbox"
+                          id="auto-add-header-checkbox"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Auto-add members
+                        </span>
+                      </label>
                       <i
                         class="icon icon-information-outline ChannelList__autoAddInfoIcon"
                       />
@@ -392,7 +400,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           </div>
         </section>
         <section
-          aria-labelledby="_r_a_"
+          aria-labelledby="_r_c_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix delete-policy"
           id="access_control_delete_policy"
         >
@@ -413,7 +421,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_a_"
+                      id="_r_c_"
                     >
                       Delete policy
                     </h2>
@@ -810,17 +818,25 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                     <div
                       class="ChannelList__autoAddHeader"
                     >
-                      <input
-                        aria-label="Auto-add members"
-                        class="header-checkbox"
-                        id="auto-add-header-checkbox"
-                        type="checkbox"
-                      />
-                      <span
-                        class="header-text"
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
+                        for="auto-add-header-checkbox"
                       >
-                        Auto-add members
-                      </span>
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          data-testid="auto-add-header-checkbox"
+                          id="auto-add-header-checkbox"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Auto-add members
+                        </span>
+                      </label>
                       <i
                         class="icon icon-information-outline ChannelList__autoAddInfoIcon"
                       />
