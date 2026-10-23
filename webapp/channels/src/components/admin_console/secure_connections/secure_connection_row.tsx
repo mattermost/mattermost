@@ -119,7 +119,7 @@ const RowLink = styled(Link<RemoteCluster>).attrs({className: 'secure-connection
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 35px;
+    padding: 16px 0;
     border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
     color: var(--center-channel-color);
 
