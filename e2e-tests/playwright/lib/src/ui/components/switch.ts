@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Locator} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 /**
  * Returns the `<label>` wrapping a Compass `Switch`'s input, which is what receives the click.
@@ -11,8 +11,12 @@ import type {Locator} from '@playwright/test';
  * forced click on a switch inside an opening modal can land where the switch used to be.
  * `check()` and `uncheck()` on the label still read and verify the input's checked state.
  *
- * @param input - the switch's `role="switch"` input, e.g. located by its `data-testid`
+ * @param scope - the page or container the switch is in
+ * @param input - the input's `data-testid`, or a page-rooted locator for it (e.g. `page.getByRole('switch')`),
+ *   since it is matched inside the label rather than from `scope`
  */
-export function switchLabel(input: Locator): Locator {
-    return input.locator('xpath=ancestor::label[1]');
+export function switchLabel(scope: Page | Locator, input: string | Locator): Locator {
+    const page = 'page' in scope ? scope.page() : scope;
+    const inputLocator = typeof input === 'string' ? page.getByTestId(input) : input;
+    return scope.locator('label').filter({has: inputLocator});
 }

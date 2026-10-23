@@ -64,28 +64,28 @@ export default class ConfigurationSettings {
     async enableChannelBanner() {
         const toggleButton = this.container.getByTestId('channelBannerToggle-button');
         if (!(await toggleButton.isChecked())) {
-            await switchLabel(toggleButton).check();
+            await switchLabel(this.container, 'channelBannerToggle-button').check();
         }
     }
 
     async disableChannelBanner() {
         const toggleButton = this.container.getByTestId('channelBannerToggle-button');
         if (await toggleButton.isChecked()) {
-            await switchLabel(toggleButton).uncheck();
+            await switchLabel(this.container, 'channelBannerToggle-button').uncheck();
         }
     }
 
     async enableChannelAutotranslation() {
         const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
         if (!(await toggleButton.isChecked())) {
-            await switchLabel(toggleButton).check();
+            await switchLabel(this.container, 'channelTranslationToggle-button').check();
         }
     }
 
     async disableChannelAutotranslation() {
         const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
         if (await toggleButton.isChecked()) {
-            await switchLabel(toggleButton).uncheck();
+            await switchLabel(this.container, 'channelTranslationToggle-button').uncheck();
         }
     }
 
@@ -109,14 +109,14 @@ export default class ConfigurationSettings {
     async enableJoinLeaveMessages() {
         const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
         if (!(await toggleButton.isChecked())) {
-            await switchLabel(toggleButton).check();
+            await switchLabel(this.container, 'channelJoinLeaveMessagesToggle-button').check();
         }
     }
 
     async disableJoinLeaveMessages() {
         const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
         if (await toggleButton.isChecked()) {
-            await switchLabel(toggleButton).uncheck();
+            await switchLabel(this.container, 'channelJoinLeaveMessagesToggle-button').uncheck();
         }
     }
 
@@ -197,14 +197,14 @@ export default class ConfigurationSettings {
     async enableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
         if (!(await toggle.isChecked())) {
-            await switchLabel(toggle).check();
+            await switchLabel(this.container, 'shareChannelWithWorkspacesToggle-button').check();
         }
     }
 
     async disableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
         if (await toggle.isChecked()) {
-            await switchLabel(toggle).uncheck();
+            await switchLabel(this.container, 'shareChannelWithWorkspacesToggle-button').uncheck();
         }
     }
 
