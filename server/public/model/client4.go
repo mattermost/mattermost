@@ -4455,7 +4455,7 @@ func (c *Client4) GenerateSupportPacket(ctx context.Context) (io.ReadCloser, str
 		return nil, "", BuildResponse(r), fmt.Errorf("could not parse Content-Disposition header: %w", err)
 	}
 
-	return r.Body, params["filename"], BuildResponse(r), nil
+	return r.Body, SanitizeFilename(params["filename"]), BuildResponse(r), nil
 }
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
@@ -7625,9 +7625,7 @@ func (c *Client4) DownloadComplianceExport(ctx context.Context, jobId string, wr
 	if cd := r.Header.Get("Content-Disposition"); cd != "" {
 		var params map[string]string
 		if _, params, err = mime.ParseMediaType(cd); err == nil {
-			if params["filename"] != "" {
-				filename = params["filename"]
-			}
+			filename = SanitizeFilename(params["filename"])
 		}
 	}
 
