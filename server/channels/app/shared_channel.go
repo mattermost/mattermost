@@ -58,8 +58,7 @@ func (a *App) checkChannelNotShared(rctx request.CTX, channelId string) error {
 
 func (a *App) checkChannelIsShared(channelId string) error {
 	if _, err := a.GetSharedChannel(channelId); err != nil {
-		var errNotFound *store.ErrNotFound
-		if errors.As(err, &errNotFound) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return fmt.Errorf("%w: %v", model.ErrChannelNotShared, err)
 		}
 		return fmt.Errorf("cannot find channel: %w", err)
