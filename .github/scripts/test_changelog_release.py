@@ -50,6 +50,19 @@ class ResolveTest(unittest.TestCase):
     def test_schedule_mode_variable_enables_auto(self):
         out = cr.resolve({"EVENT_NAME": "schedule", "SCHEDULE_MODE": "auto"}, LS_REMOTE, V12_PUBLISHED)
         self.assertEqual(out["mode"], "auto")
+        for spelling in ("dryrun", "dry-run", "DRY_RUN", " dry_run "):
+            out = cr.resolve({"EVENT_NAME": "schedule", "SCHEDULE_MODE": spelling}, LS_REMOTE, V12_PUBLISHED)
+            self.assertEqual(out["mode"], "dry_run")
+
+    def test_schedule_never_regenerates(self):
+        for mode in ("regenerate", "preview"):
+            with self.assertRaises(ValueError):
+                cr.resolve({"EVENT_NAME": "schedule", "SCHEDULE_MODE": mode}, LS_REMOTE, V12_PUBLISHED)
+        with self.assertRaises(ValueError):
+            cr.resolve({"EVENT_NAME": "schedule", "SCHEDULE_MODE": "regenerate", "SCHEDULE_FROM": "v13.0.0"},
+                       LS_REMOTE, V12_PUBLISHED)
+        out = cr.resolve({"INPUT_VERSION": "v12.2.0", "INPUT_MODE": "regenerate"}, LS_REMOTE, files({}))
+        self.assertEqual(out["mode"], "regenerate")
 
     def test_schedule_stops_once_the_entry_is_on_master(self):
         published = files({cr.changelog_path("v12.1.0"): "## Release v12.1 - [Feature Release](x)\n" + V12_ENTRY})

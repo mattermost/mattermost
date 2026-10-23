@@ -16,7 +16,8 @@ name: Generate Changelog
 # sources; changelog-link-check.yml does the same for each changelog PR.
 #
 # Repository variables read here, all optional:
-#   CHANGELOG_SCHEDULE_MODE     — auto | dry_run (default) for scheduled runs
+#   CHANGELOG_SCHEDULE_MODE     — auto | dry_run (default; dryrun also accepted) for
+#                                 scheduled runs; anything else fails the run
 #   CHANGELOG_SCHEDULE_FROM     — the first release scheduled runs take on (default
 #                                 v12.2.0); earlier ones are finished by hand
 #   CHANGELOG_ESR_VERSIONS      — releases that are ESRs, e.g. "v11.7, v12.4"; other

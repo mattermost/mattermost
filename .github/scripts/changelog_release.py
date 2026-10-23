@@ -35,6 +35,7 @@ MAX_MIGRATION_SQL_CHARS = 2000
 
 RELEASE_TYPES = ("feature", "major", "esr")
 MODES = ("auto", "regenerate", "dry_run")
+SCHEDULE_MODES = ("auto", "dry_run")
 
 
 # ── Versions and refs ───────────────────────────────────────────────────────────────
@@ -138,6 +139,13 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
     scheduled = env.get("EVENT_NAME") == "schedule"
 
     if scheduled:
+        # Never regenerate on a schedule: it would discard reviewers' edits every weekday.
+        # Checked before anything else so a bad variable fails even on days with no release.
+        mode = (env.get("SCHEDULE_MODE") or "dry_run").strip().lower().replace("-", "_")
+        mode = "dry_run" if mode == "dryrun" else mode
+        if mode not in SCHEDULE_MODES:
+            raise ValueError(f"CHANGELOG_SCHEDULE_MODE must be one of {', '.join(SCHEDULE_MODES)}, not {mode!r}")
+
         def published(release):
             version = f"v{release[0]}.{release[1]}.0"
             return has_entry(read_file(changelog_path(version)), version)
@@ -150,7 +158,6 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
             return {"run": "false", "reason": f"No release{since} is between its branch cut and its changelog being merged."}
         version = f"v{pending[0]}.{pending[1]}.0"
         milestone = version
-        mode = (env.get("SCHEDULE_MODE") or "dry_run").strip()
     else:
         # Normalized so "v13.0" cannot produce a "## Release v13" heading that also
         # slips past the duplicate-entry check.
