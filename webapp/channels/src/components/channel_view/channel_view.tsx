@@ -26,7 +26,10 @@ import InputLoading from './input_loading';
 import type {PropsFromRedux} from './index';
 
 export type Props = PropsFromRedux & RouteComponentProps<{
+    team?: string;
+    identifier?: string;
     postid?: string;
+    subpath?: string;
 }>;
 
 /* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
@@ -115,6 +118,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.props.loadPostAttributeFields(this.props.channelId);
+        this.redirectUnhandledSubpath();
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -128,7 +132,33 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         if (this.props.canRestrictDirectMessage && this.props.restrictDirectMessage === undefined) {
             this.props.fetchIsRestrictedDM(this.props.channelId);
         }
+
+        this.redirectUnhandledSubpath();
     }
+
+    // Until the route's channel is current, channelViewPluginComponent still reflects the previous channel.
+    isRouteChannelCurrent = () => {
+        const {match, channelId, channelName, teamUrl} = this.props;
+        const identifier = match.params.identifier?.toLowerCase();
+        return Boolean(channelId) &&
+            teamUrl === `/${match.params.team}` &&
+            (identifier === channelName.toLowerCase() || identifier === channelId.toLowerCase());
+    };
+
+    getHandledSubpath = () => {
+        const {match, channelViewPluginComponent} = this.props;
+        if (match.params.subpath && channelViewPluginComponent?.handlesSubpaths && this.isRouteChannelCurrent()) {
+            return match.params.subpath;
+        }
+        return undefined;
+    };
+
+    redirectUnhandledSubpath = () => {
+        const {match, history, channelViewPluginComponent} = this.props;
+        if (match.params.subpath && !channelViewPluginComponent?.handlesSubpaths && this.isRouteChannelCurrent()) {
+            history.replace(`/${match.params.team}/channels/${match.params.identifier}`);
+        }
+    };
 
     render() {
         const {channelViewPluginComponent} = this.props;
@@ -141,6 +171,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     registration={channelViewPluginComponent}
                     channelId={this.props.channelId}
                     focusedPostId={focusedPostId}
+                    subpath={this.getHandledSubpath()}
                 />
             );
         }
