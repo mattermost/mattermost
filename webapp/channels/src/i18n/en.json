@@ -28323,9 +28323,33 @@
     "defaultMessage": "Product navigation",
     "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards."
   },
+  "product_rail.boards": {
+    "defaultMessage": "Boards",
+    "description": "Label under the Boards icon in the product navigation rail. Clicking it shows only boards in the left sidebar."
+  },
   "product_rail.channels": {
     "defaultMessage": "Channels",
-    "description": "Label under the Channels icon in the product navigation rail. Clicking it shows the channel sidebar."
+    "description": "Label under the Channels icon in the product navigation rail. Clicking it shows only channels and direct messages in the left sidebar, leaving out boards."
+  },
+  "product_rail.docs": {
+    "defaultMessage": "Docs",
+    "description": "Label under the Docs icon in the product navigation rail. A placeholder for now: clicking it does nothing yet."
+  },
+  "product_rail.home": {
+    "defaultMessage": "Home",
+    "description": "Label under the Home icon in the product navigation rail. Clicking it shows the full left sidebar, with channels and boards together."
+  },
+  "product_rail.teamMenu.buttonLabel": {
+    "defaultMessage": "Switch teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."
+  },
+  "product_rail.teamMenu.menuLabel": {
+    "defaultMessage": "Teams",
+    "description": "Accessible name of the menu of the user's teams opened from the top of the product navigation rail."
+  },
+  "product_rail.teamMenu.showTeamSidebar": {
+    "defaultMessage": "Show team sidebar",
+    "description": "Last item in the team menu at the top of the product navigation rail. It brings back the team sidebar the user hid."
   },
   "product_rail.threads": {
     "defaultMessage": "Threads",
@@ -30719,6 +30743,10 @@
     "defaultMessage": "Open a direct message",
     "description": "Menu item in the Direct Messages category menu that opens the new direct message dialog."
   },
+  "sidebar.productRail.noBoards": {
+    "defaultMessage": "No boards in this team yet.",
+    "description": "Shown in the left sidebar when the Boards item of the product navigation rail is selected but the team has no boards the user is a member of."
+  },
   "sidebar.show": {
     "defaultMessage": "Show",
     "description": "Submenu label in the Direct Messages category menu controlling how many DM conversations are displayed; 'Show' is a verb."
@@ -31766,6 +31794,10 @@
   "team_settings.sync_status.syncing": {
     "defaultMessage": "Syncing...",
     "description": "Status text with a spinner shown in the membership sync footer while a membership sync job is running."
+  },
+  "team_sidebar.hide": {
+    "defaultMessage": "Hide team sidebar",
+    "description": "Tooltip and accessible name of the button at the bottom of the team sidebar that hides it. The teams then move into a menu at the top of the product navigation rail."
   },
   "team_sidebar.join": {
     "defaultMessage": "Other teams you can join",

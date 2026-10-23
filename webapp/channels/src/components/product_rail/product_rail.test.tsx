@@ -11,7 +11,8 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
-import type {ProductComponent} from 'types/store/plugins';
+import type {ChannelKindRegistration, ProductComponent} from 'types/store/plugins';
+import type {ProductRailSection} from 'types/store/views';
 
 import ProductRail from './product_rail';
 
@@ -63,11 +64,68 @@ function getState({
     };
 }
 
+const townSquare = TestHelper.getChannelMock({id: 'town', name: 'town-square', display_name: 'Town Square', team_id: team.id});
+const roadmap = TestHelper.getChannelMock({id: 'roadmap', name: 'roadmap', display_name: 'Roadmap', team_id: team.id});
+const bugs = TestHelper.getChannelMock({id: 'bugs', name: 'bugs', display_name: 'Bugs', team_id: team.id});
+
+// A boards plugin's registration: roadmap and bugs are boards.
+const boardKind: ChannelKindRegistration = {
+    id: 'board-kind',
+    pluginId: 'boards',
+    kind: 'board',
+    matcher: (_state, channel) => channel.id === roadmap.id || channel.id === bugs.id,
+};
+
+function getBoardsState(currentChannelId: string, section: ProductRailSection = 'channels'): DeepPartial<GlobalState> {
+    const channels = [townSquare, roadmap, bugs];
+    const member = (channelId: string, mentions: number) => TestHelper.getChannelMembershipMock({
+        channel_id: channelId,
+        user_id: user.id,
+        mention_count: mentions,
+        mention_count_root: mentions,
+        msg_count: 0,
+        msg_count_root: 0,
+    }, {});
+
+    const state = getState();
+    return {
+        ...state,
+        entities: {
+            ...state.entities,
+            channels: {
+                currentChannelId,
+                channels: Object.fromEntries(channels.map((channel) => [channel.id, channel])),
+                channelsInTeam: {[team.id]: new Set(channels.map((channel) => channel.id))},
+                myMembers: {
+                    [townSquare.id]: member(townSquare.id, 1),
+                    [roadmap.id]: member(roadmap.id, 4),
+                    [bugs.id]: member(bugs.id, 0),
+                },
+                messageCounts: Object.fromEntries(channels.map((channel) => [channel.id, {total: 5, root: 5}])),
+            },
+        },
+        plugins: {
+            components: {
+                Product: [],
+                ChannelKind: [boardKind],
+            },
+        },
+        views: {
+            productRail: {section, lastPathByTeam: {}, lastPathsLoaded: false},
+        },
+    };
+}
+
 function renderAt(pathname: string, state: DeepPartial<GlobalState>) {
     return renderWithContext(<ProductRail/>, state, {history: createMemoryHistory({initialEntries: [pathname]})});
 }
 
 describe('ProductRail', () => {
+    // Where each item was is saved to localStorage, which would otherwise carry between tests.
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
     test('should render nothing when the feature flag is off', () => {
         renderAt('/team-one/channels/town-square', getState({enabled: false}));
 
@@ -112,8 +170,10 @@ describe('ProductRail', () => {
 
         renderAt('/boards/board/abc', getState({products: [boards, playbooks]}));
 
-        expect(screen.getByRole('link', {name: 'Boards'})).toHaveAttribute('href', '/boards');
+        // The current product's item points back at where the user is in it.
+        expect(screen.getByRole('link', {name: 'Boards'})).toHaveAttribute('href', '/boards/board/abc');
         expect(screen.getByRole('link', {name: 'Boards'})).toHaveAttribute('aria-current', 'page');
+        expect(screen.getByRole('link', {name: 'Playbooks'})).toHaveAttribute('href', '/playbooks');
         expect(screen.getByRole('link', {name: 'Playbooks'})).not.toHaveAttribute('aria-current');
         expect(screen.getByRole('link', {name: /Channels/})).not.toHaveAttribute('aria-current');
     });
@@ -124,5 +184,127 @@ describe('ProductRail', () => {
         renderAt('/team-one/channels/town-square', getState({products: [spaces]}));
 
         expect(screen.getByRole('link', {name: 'Spaces'})).toHaveAttribute('href', '/team-one/spaces');
+    });
+
+    describe('with a plugin registering boards', () => {
+        test('should not show Boards without a board registration', () => {
+            renderAt('/team-one/channels/town-square', getState());
+
+            expect(screen.queryByRole('link', {name: /Boards/})).not.toBeInTheDocument();
+        });
+
+        test('should show Boards and open the first board by name', () => {
+            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
+        });
+
+        test('should mark Channels active in a channel', () => {
+            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Boards/})).not.toHaveAttribute('aria-current');
+        });
+
+        test('should mark Boards active in a board, and return Channels to the default channel', () => {
+            renderAt('/team-one/channels/roadmap', getBoardsState(roadmap.id));
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Channels/})).not.toHaveAttribute('aria-current');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
+        });
+
+        test('should split mention counts between Channels and Boards', () => {
+            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('1');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveTextContent('4');
+        });
+    });
+
+    describe('Home', () => {
+        test('should open in Home, ahead of Threads, then Channels and Boards', () => {
+            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id, 'home'));
+
+            const items = [...document.querySelectorAll('.ProductRail__item')].map((item) => item.id);
+            expect(items).toEqual([
+                'product-rail-item-home',
+                'product-rail-item-threads',
+                'product-rail-item-channels',
+                'product-rail-item-boards',
+                'product-rail-item-docs',
+            ]);
+            expect(screen.getByRole('link', {name: /Home/})).toHaveAttribute('aria-current', 'page');
+        });
+
+        test('should stay in Home in a board, and remember it there', () => {
+            renderAt('/team-one/channels/roadmap', getBoardsState(roadmap.id, 'home'));
+
+            expect(screen.getByRole('link', {name: /Home/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Home/})).toHaveAttribute('href', '/team-one/channels/roadmap');
+            expect(screen.getByRole('link', {name: /Boards/})).not.toHaveAttribute('aria-current');
+
+            // Viewed from Home, the board isn't Boards' place to return to.
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
+        });
+
+        test('should count mentions in channels and boards together', () => {
+            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id, 'home'));
+
+            expect(screen.getByRole('link', {name: /Home/})).toHaveTextContent('5');
+        });
+
+        test('should not show Home without boards to split off', () => {
+            renderAt('/team-one/channels/town-square', getState());
+
+            expect(screen.queryByRole('link', {name: /Home/})).not.toBeInTheDocument();
+        });
+    });
+
+    describe('returning to where each item was', () => {
+        test('should point Boards at the open board and Channels at the default channel', () => {
+            renderAt('/team-one/channels/roadmap', getBoardsState(roadmap.id));
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/roadmap');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
+        });
+
+        test('should point Threads at the open thread', () => {
+            renderAt('/team-one/threads/thread1', getState());
+
+            expect(screen.getByRole('link', {name: /Threads/})).toHaveAttribute('href', '/team-one/threads/thread1');
+        });
+
+        test('should leave a permalinked post out of the remembered channel', () => {
+            renderAt('/team-one/channels/town-square/post1', getBoardsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
+        });
+
+        test('should not file a channel under Boards while the open channel still lags the URL', () => {
+            // The URL has moved to town-square, but the open channel is still the roadmap board.
+            renderAt('/team-one/channels/town-square', getBoardsState(roadmap.id));
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
+        });
+
+        test('should restore where each item was from an earlier session', () => {
+            localStorage.setItem(`product_rail_last_paths_${user.id}`, JSON.stringify({
+                boards: {[team.id]: '/team-one/channels/bugs'},
+                threads: {[team.id]: '/team-one/threads/thread2'},
+            }));
+
+            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
+            expect(screen.getByRole('link', {name: /Threads/})).toHaveAttribute('href', '/team-one/threads/thread2');
+        });
+
+        test('should save where the user is for the next session', () => {
+            renderAt('/team-one/channels/roadmap', getBoardsState(roadmap.id));
+
+            const saved = JSON.parse(localStorage.getItem(`product_rail_last_paths_${user.id}`) ?? '{}');
+            expect(saved.boards).toEqual({[team.id]: '/team-one/channels/roadmap'});
+        });
     });
 });

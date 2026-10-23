@@ -9,6 +9,8 @@ import {injectIntl, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {DockLeftIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -201,7 +203,9 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
     render() {
         const {intl} = this.props;
         const root: Element | null = document.querySelector('#root');
-        if (this.props.myTeams.length <= 1) {
+
+        // The product rail's team menu stands in for a hidden team sidebar.
+        if (this.props.myTeams.length <= 1 || this.props.isHiddenByProductRail) {
             root!.classList.remove('multi-teams');
             return null;
         }
@@ -307,6 +311,27 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
             );
         }
 
+        let hideButton;
+        if (this.props.isProductRailEnabled) {
+            const hideLabel = intl.formatMessage({
+                id: 'team_sidebar.hide',
+                defaultMessage: 'Hide team sidebar',
+                description: 'Tooltip and accessible name of the button at the bottom of the team sidebar that hides it. The teams then move into a menu at the top of the product navigation rail.',
+            });
+            hideButton = (
+                <WithTooltip title={hideLabel}>
+                    <button
+                        type='button'
+                        className='team-sidebar__hide'
+                        aria-label={hideLabel}
+                        onClick={() => this.props.actions.setTeamSidebarHidden(true)}
+                    >
+                        <DockLeftIcon size={20}/>
+                    </button>
+                </WithTooltip>
+            );
+        }
+
         return (
             <div
                 className={classNames('team-sidebar', {'move--right': this.props.isOpen})}
@@ -342,6 +367,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                     </div>
                 </Scrollbars>
                 {plugins}
+                {hideButton}
             </div>
         );
     }
