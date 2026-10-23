@@ -54,7 +54,7 @@ exports[`components/SingleImageView permalink preview should render with permali
                           aria-label="Loading Icon"
                           class="_spinner_3elm7_10 spinner"
                           role="status"
-                          style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                         />
                       </span>
                       <span
@@ -176,7 +176,7 @@ exports[`components/SingleImageView should match snapshot 1`] = `
                           aria-label="Loading Icon"
                           class="_spinner_3elm7_10 spinner"
                           role="status"
-                          style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                         />
                       </span>
                       <span
@@ -379,7 +379,7 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
                           aria-label="Loading Icon"
                           class="_spinner_3elm7_10 spinner"
                           role="status"
-                          style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                         />
                       </span>
                       <span

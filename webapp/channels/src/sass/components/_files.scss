@@ -749,6 +749,11 @@
     justify-content: center;
     padding-top: 28px;
     background: variables.$black;
+
+    // TODO(compass-design#142): replace with a dedicated Spinner color token once Compass Spinner exposes one.
+    .spinner {
+        --center-channel-color-rgb: 255, 255, 255;
+    }
 }
 
 .image-loading__container {

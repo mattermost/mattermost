@@ -12,9 +12,9 @@ exports[`components/LoadingImagePreview should match snapshot with progress 50% 
     >
       <span
         aria-label="Loading Icon"
-        class="_spinner_3elm7_10 _spinner--inverted_3elm7_17 spinner"
+        class="_spinner_3elm7_10 spinner"
         role="status"
-        style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
       />
     </span>
     <span
@@ -39,9 +39,9 @@ exports[`components/LoadingImagePreview should match snapshot with progress 90% 
     >
       <span
         aria-label="Loading Icon"
-        class="_spinner_3elm7_10 _spinner--inverted_3elm7_17 spinner"
+        class="_spinner_3elm7_10 spinner"
         role="status"
-        style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
       />
     </span>
     <span

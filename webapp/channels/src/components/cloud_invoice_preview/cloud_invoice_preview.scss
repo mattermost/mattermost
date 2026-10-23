@@ -59,6 +59,11 @@
 
         .view-image__loading {
             background-color: #fff;
+
+            // TODO(compass-design#142): replace with a dedicated Spinner color token once Compass Spinner exposes one.
+            .spinner {
+                --center-channel-color-rgb: 63, 67, 80;
+            }
         }
     }
 

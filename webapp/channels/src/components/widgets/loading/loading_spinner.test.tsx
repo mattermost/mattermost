@@ -78,12 +78,6 @@ describe('components/widgets/loadingLoadingSpinner', () => {
         expect(screen.getByRole('status', {name: 'Loading Icon'})).toHaveStyle({width: '24px', height: '24px'});
     });
 
-    test('renders the inverted Compass spinner', () => {
-        renderWithContext(<LoadingSpinner inverted={true}/>);
-
-        expect(screen.getByRole('status', {name: 'Loading Icon'}).className).toMatch(/spinner--inverted/);
-    });
-
     test('renders the Font Awesome spinner when legacy', () => {
         renderWithContext(<LoadingSpinner legacy={true}/>);
 

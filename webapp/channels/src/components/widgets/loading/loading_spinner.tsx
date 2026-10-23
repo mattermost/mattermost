@@ -16,17 +16,14 @@ type Props = {
     style?: React.CSSProperties;
     size?: SpinnerSize;
 
-    /** Light spinner for dark backgrounds (uses Compass Spinner inverted). */
-    inverted?: boolean;
-
     /** Renders the Font Awesome spinner. Used inside buttons until they move to the Compass Button. */
     legacy?: boolean;
 };
+
 const LoadingSpinner = ({
     text,
     style,
     size = '16',
-    inverted = false,
     legacy = false,
 }: Props) => {
     const {formatMessage} = useIntl();
@@ -47,7 +44,6 @@ const LoadingSpinner = ({
             ) : (
                 <Spinner
                     size={size}
-                    inverted={inverted}
                     className='spinner'
                     aria-label={ariaLabel}
                 />
