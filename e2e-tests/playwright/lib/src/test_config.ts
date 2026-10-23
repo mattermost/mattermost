@@ -19,6 +19,7 @@ export const TESTCONTAINERS_SERVICE_NAMES = [
     'opensearch',
     'minio',
     'azurite',
+    'nginx',
 ] as const;
 export type TestContainersServiceName = (typeof TESTCONTAINERS_SERVICE_NAMES)[number];
 
@@ -124,6 +125,7 @@ export class TestConfig {
     opensearchUrl: string;
     minioUrl: string;
     azuriteUrl: string;
+    nginxUrl: string;
 
     constructor() {
         // Server
@@ -187,6 +189,7 @@ export class TestConfig {
         this.opensearchUrl = process.env.PW_OPENSEARCH_URL || 'http://localhost:9201';
         this.minioUrl = process.env.PW_MINIO_URL || 'http://localhost:9000';
         this.azuriteUrl = process.env.PW_AZURITE_URL || 'http://localhost:10000';
+        this.nginxUrl = process.env.PW_NGINX_URL || 'http://localhost:8057';
     }
 }
 

@@ -24,6 +24,8 @@ import {
     MATTERMOST_PORT,
     MINIO_ALIAS,
     MINIO_PORT,
+    NGINX_ALIAS,
+    NGINX_PORT,
     OPENLDAP_ALIAS,
     OPENLDAP_PORT,
     OPENSEARCH_ALIAS,
@@ -42,6 +44,7 @@ import {
     INBUCKET_IMAGE,
     KEYCLOAK_IMAGE,
     MINIO_IMAGE,
+    NGINX_IMAGE,
     OPENLDAP_IMAGE,
     OPENSEARCH_VERSION,
     POSTGRES_IMAGE,
@@ -232,6 +235,7 @@ function logStackReused(): void {
         opensearch: testConfig.opensearchUrl,
         minio: testConfig.minioUrl,
         azurite: testConfig.azuriteUrl,
+        nginx: testConfig.nginxUrl,
     };
     testConfig.testcontainersServices.forEach((name) => {
         lines.push(`  - ${name.padEnd(13)} = ${additionalUrls[name]}`);
@@ -450,6 +454,7 @@ const ADDITIONAL_CONTAINER_METADATA: Record<TestContainersServiceName, Container
     opensearch: {alias: OPENSEARCH_ALIAS, port: OPENSEARCH_PORT, image: `built, OpenSearch ${OPENSEARCH_VERSION}`},
     minio: {alias: MINIO_ALIAS, port: MINIO_PORT, image: MINIO_IMAGE},
     azurite: {alias: AZURITE_ALIAS, port: AZURITE_BLOB_PORT, image: AZURITE_IMAGE},
+    nginx: {alias: NGINX_ALIAS, port: NGINX_PORT, image: NGINX_IMAGE},
 };
 
 function containerEntries(stack: StartedStack): Array<[string, StartedTestContainer, ContainerMetadata]> {
@@ -571,6 +576,9 @@ function applyResolvedConfig(stack: StartedStack): void {
     if (stack.additional.azurite) {
         testConfig.azuriteUrl = resolveUrl(stack.additional.azurite, AZURITE_BLOB_PORT, AZURITE_ALIAS);
     }
+    if (stack.additional.nginx) {
+        testConfig.nginxUrl = resolveUrl(stack.additional.nginx, NGINX_PORT, NGINX_ALIAS);
+    }
 }
 
 // One block per write: a human-readable `# [timestamp] label` comment line (dotenv ignores
@@ -592,6 +600,7 @@ function envFileLines(label: string): string[] {
         ['PW_OPENSEARCH_URL', testConfig.opensearchUrl],
         ['PW_MINIO_URL', testConfig.minioUrl],
         ['PW_AZURITE_URL', testConfig.azuriteUrl],
+        ['PW_NGINX_URL', testConfig.nginxUrl],
         ['PW_TESTCONTAINERS_NETWORK_NAME', testConfig.testcontainersNetworkName],
         ['PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID', testConfig.mattermostContainerId],
     ];

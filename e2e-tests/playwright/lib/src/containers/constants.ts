@@ -60,6 +60,11 @@ export const OPENSEARCH_ALIAS = 'opensearch';
 export const OPENSEARCH_PORT = 9201;
 export const OPENSEARCH_ADMIN_PASSWORD = 'Test@dmin_123';
 
+// General-purpose nginx reverse proxy fronting the Mattermost server.
+export const NGINX_ALIAS = 'nginx';
+export const NGINX_PORT = 80;
+export const NGINX_FIXED_HOST_PORT = 8057;
+
 // Applied to every container this module starts, so `npm run testcontainers:down` can find and
 // remove them from a fresh process — the in-memory `started` state in stack.ts only exists in
 // the process that created it.
