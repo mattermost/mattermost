@@ -376,18 +376,37 @@ class MainTest(unittest.TestCase):
         os.environ["DRY_RUN"] = "true"
         gc.main()
 
-    def test_update_seeds_a_pr_opened_before_source_tracking(self):
+    def test_update_proposes_sources_for_a_pr_opened_before_source_tracking(self):
         self.changelog.write_text(gc.CHANGELOG_HEADER_TEMPLATE.format(major=12) + "\n\n" + ENTRY_V12_1)
         body = self.tmp / "body.md"
-        body.write_text("Auto-generated changelog for milestone `v12.1.0`.")
+        original_body = "Auto-generated changelog for milestone `v12.1.0`."
+        body.write_text(original_body)
         os.environ.update({"MODE": "update", "PR_BODY_FILE": str(body)})
 
         with self.assertRaises(RuntimeError):
             gc.main()
         self.assertIn("A reviewer rewrote this bullet completely.", self.changelog.read_text())
 
+        # The inferred list is only proposed: nothing is written and the body is unchanged.
         os.environ["SOURCES_SEED_BEFORE"] = "2026-10-20T05:50:50Z"
         before = self.changelog.read_text()
+        gc.main()
+        payload = self._payload()
+        self.assertEqual(self.changelog.read_text(), before)
+        self.assertEqual((self.out / "pr_body.md").read_text(), original_body)
+        self.assertFalse(payload["changed"])
+        self.assertEqual(payload["sources_added"], [])
+        self.assertEqual(payload["proposed_before"], "2026-10-20T05:50:50Z")
+        self.assertEqual(payload["proposed_sources"], [
+            "mattermost/mattermost#1", "plugin:mattermost-plugin-calls@v1.12.6",
+        ])
+        summary = (self.out / "summary.md").read_text()
+        self.assertIn("Action needed: confirm the changelog sources", summary)
+        proposal = gc.render_pr_body("", set(payload["proposed_sources"])).strip()
+        self.assertIn(proposal, summary)
+
+        # A reviewer confirms the list and adds it to the body.
+        body.write_text(original_body + "\n\n" + proposal + "\n")
         with self.assertRaises(RuntimeError) as caught:
             gc.main()
         self.assertIn("no section to be merged into", str(caught.exception))
@@ -403,7 +422,7 @@ class MainTest(unittest.TestCase):
         self.assertEqual(payload["sources_added"], ["mattermost/mattermost#2"])
         self.assertEqual(payload["derived_sources"], ["plugin:mattermost-plugin-calls@v1.12.6"])
         self.assertEqual(payload["metrics"]["derived_changes"], 0)
-        self.assertEqual(payload["seeded_before"], "2026-10-20T05:50:50Z")
+        self.assertEqual(payload["proposed_sources"], [])
         self.assertIn("Fixed an issue found later.", after)
         self.assertNotIn("Added the first thing.", after)
         self.assertEqual(after.count("Pre-packaged Calls plugin"), 0)

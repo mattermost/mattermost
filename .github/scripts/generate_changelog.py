@@ -20,9 +20,10 @@ Expects these environment variables:
                       both set, plugin version changes, WebSocket events and schema
                       migrations between them are added as notes (see changelog_release.py).
   SOURCES_SEED_BEFORE - (update mode, optional) When the changelog PR body has no
-                      changelog-sources list (a PR opened before it existed), treat PRs
-                      merged before this ISO time — when the PR branch was last updated —
-                      as already included instead of failing.
+                      changelog-sources list (a PR opened before it existed), propose the
+                      PRs merged before this ISO time — when the PR branch was last
+                      updated — in the run summary for a reviewer to confirm and add to
+                      the body, instead of failing. Nothing is changed on such a run.
   DRY_RUN           - (optional) "true" allows create mode to run for a version whose
                       entry already exists in the changelog file, for previews.
   BLOG_POST_URL     - (optional) Blog post URL for the Improvements section.
@@ -338,14 +339,14 @@ def parse_github_time(value: str) -> datetime:
 
 
 def seed_sources(notes: list[dict], cutoff: str) -> set:
-    """The sources a changelog PR opened before source tracking already covers.
+    """The sources a changelog PR opened before source tracking probably covers.
 
     Such a PR has no changelog-sources list. ``cutoff`` is when its branch was last
     updated: it was generated from the PRs merged before it was opened, and reviewers
-    keep such a PR current by hand from then on, so every PR merged before the cutoff
-    is treated as included.
-    Derived notes count as included as well: such a PR predates them, so its plugin and
-    schema bullets were written by hand and adding generated ones would duplicate them.
+    keep it current by hand from then on. Derived notes are included because such a PR
+    predates them, so any plugin or schema bullets in it were written by hand.
+
+    This is a guess, so it is only ever proposed for review, never recorded.
     """
     limit = parse_github_time(cutoff)
     return {
@@ -1257,15 +1258,31 @@ def render_summary(payload: dict, entry: str) -> str:
     """The run summary: what was generated, the run's metrics, and the PRs that need a look."""
     metrics = payload["metrics"]
     lines = [f"## {payload['version']} changelog ({payload['mode']})", ""]
-    if payload["mode"] == "update" and not payload["changed"]:
-        lines += ["No new release notes since the last run.", ""]
-    if payload.get("seeded_before"):
+    if payload.get("proposed_sources"):
+        proposed = payload["proposed_sources"]
         lines += [
-            f"The changelog PR had no changelog-sources list, so the PRs merged before its branch "
-            f"was last updated ({payload['seeded_before']}) and every derived note were treated as "
-            "already included. Check the added bullets against the edits already made in the PR.",
+            "### Action needed: confirm the changelog sources",
+            f"The changelog PR has no changelog-sources list, so nothing was changed. These "
+            f"{len(proposed)} source(s) were merged before its branch was last updated "
+            f"({payload['proposed_before']}), or were read from the release diff. Check that the "
+            "entry covers each one, drop any it does not, and add the comment below to the PR "
+            "body. The next run then adds only what is missing.",
+            "",
+            "<details><summary>Proposed sources</summary>",
             "",
         ]
+        lines += [f"- {_pr_link(source)}" for source in proposed]
+        lines += [
+            "",
+            "</details>",
+            "",
+            "```",
+            render_pr_body("", set(proposed)).strip(),
+            "```",
+            "",
+        ]
+    elif payload["mode"] == "update" and not payload["changed"]:
+        lines += ["No new release notes since the last run.", ""]
 
     lines += ["| Metric | Value |", "|:---|---:|"]
     lines += [f"| {key.replace('_', ' ')} | {value} |" for key, value in metrics.items()]
@@ -1412,7 +1429,8 @@ def main():
     # only its included-PR list is replaced.
     pr_body = default_pr_body()
     included = set()
-    seeded_before = os.environ.get("SOURCES_SEED_BEFORE", "").strip() if mode == "update" else ""
+    proposed_before = os.environ.get("SOURCES_SEED_BEFORE", "").strip() if mode == "update" else ""
+    proposed_sources = []
     body_file = os.environ.get("PR_BODY_FILE", "").strip()
     if body_file and os.path.exists(body_file):
         with open(body_file, "r", encoding="utf-8") as f:
@@ -1422,20 +1440,26 @@ def main():
             raise RuntimeError("MODE=update needs PR_BODY_FILE pointing at the changelog PR's body")
         listed = parse_sources_comment(pr_body)
         if listed is None:
-            if not seeded_before:
+            if not proposed_before:
                 raise RuntimeError(
                     "The changelog PR body has no changelog-sources comment, so there is no way "
                     "to tell which PRs it already includes. Re-run in regenerate mode, which "
                     "rebuilds the entry and records the list, or set SOURCES_SEED_BEFORE to the "
-                    "time the PR branch was last updated."
+                    "time the PR branch was last updated to get a list to review."
                 )
-            listed = seed_sources(all_notes, seeded_before)
+            # Only a proposal: recording it unreviewed would make every later run skip a
+            # note that is not actually in the entry. Nothing is generated or written.
+            proposed_sources = sorted(seed_sources(all_notes, proposed_before), key=_source_sort_key)
+            all_notes = []
+            listed = set()
             print(
-                f"⚠️  The changelog PR has no changelog-sources list. Treating the {len(listed)} "
-                f"source(s) merged before {seeded_before}, and every derived note, as already included."
+                f"::warning title=Changelog sources need review::The changelog PR has no "
+                f"changelog-sources list. Proposed {len(proposed_sources)} source(s) merged before "
+                f"{proposed_before}; check them against the entry and add the list from the run "
+                "summary to the PR body. Nothing was changed."
             )
         else:
-            seeded_before = ""
+            proposed_before = ""
         included = listed
         all_notes = [note for note in all_notes if note["source"] not in included]
         print(f"ℹ️  {len(included)} source(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
@@ -1606,14 +1630,14 @@ def main():
     # sent again on the next run instead of being skipped forever.
     unattributed = unattributed_sources(sources_by_id, referenced)
     included |= {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
-    original_body = pr_body
-    pr_body = render_pr_body(pr_body, included)
+    if not proposed_sources:
+        pr_body = render_pr_body(pr_body, included)
 
     added_sources = set(sources_by_id.values())
     derived_sources = {note["source"] for note in derived}
     payload = {
         # 2: sources may be derived keys (plugin:…, websocket:…, migration:…) as well as
-        # owner/repo#number; adds prs_flagged, derived_sources, seeded_before and metrics.
+        # owner/repo#number; adds prs_flagged, derived_sources, proposed_sources and metrics.
         "schema_version": 2,
         "version": VERSION,
         "milestone": MILESTONE_TITLE,
@@ -1628,7 +1652,8 @@ def main():
         "sources_added": sorted(added_sources, key=_source_sort_key),
         "sources_unattributed": unattributed,
         "derived_sources": sorted(derived_sources),
-        "seeded_before": seeded_before,
+        "proposed_before": proposed_before,
+        "proposed_sources": proposed_sources,
         "prs_without_notes": [
             {"source": f"{repo}#{pr['number']}", "title": pr["title"]} for repo, pr in no_notes_prs
         ],
@@ -1648,7 +1673,6 @@ def main():
     }
     write_outputs(output_dir, entry, payload, pr_body)
     set_github_output("changed", "true" if changed else "false")
-    set_github_output("body_changed", "true" if pr_body != original_body else "false")
     set_github_output("added_prs", len(added_sources - derived_sources))
     set_github_output("added_derived", len(added_sources & derived_sources))
     set_github_output("flagged_prs", len(flagged_prs))
