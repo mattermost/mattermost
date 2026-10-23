@@ -148,13 +148,14 @@ func (d *botEventDispatcher) recordFailure(rctx request.CTX, sub *model.BotEvent
 		NextAttemptAt:       now.Add(botEventBackoff(d.backoff, n)).UnixMilli(),
 		DisabledReason:      reason,
 		UpdateAt:            now.UnixMilli(),
+		ExpectedUpdateAt:    sub.UpdateAt,
 	})
 	if err != nil {
 		rctx.Logger().Warn("Failed to record bot event delivery failure", mlog.Err(err))
 		return
 	}
 	if !applied {
-		rctx.Logger().Debug("Bot event delivery failure not recorded: the lease is no longer held")
+		rctx.Logger().Debug("Bot event delivery failure not recorded: the lease is no longer held or the subscription changed")
 		return
 	}
 
@@ -231,10 +232,7 @@ func (a *App) verifyBotEventCallbackURL(rctx request.CTX, botUserID, callbackURL
 	}
 
 	challenge := model.NewRandomString(32)
-	body, err := json.Marshal(model.BotEventURLVerification{Type: model.BotEventTypeURLVerification, Challenge: challenge, BotUserId: botUserID})
-	if err != nil {
-		return model.NewAppError(where, "app.bot_event_subscription.url_verification.request_failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
+	body, _ := json.Marshal(model.BotEventURLVerification{Type: model.BotEventTypeURLVerification, Challenge: challenge, BotUserId: botUserID})
 
 	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), a.Srv().botEventDispatcher.requestTimeout())
 	defer cancel()

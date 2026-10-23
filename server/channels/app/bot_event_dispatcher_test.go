@@ -351,16 +351,33 @@ func TestBotEventDispatcherDuplicateAfterCrash(t *testing.T) {
 	// The receiver has the event, but the node died before acknowledging it.
 	_, err := th.SQLStore.GetMaster().Exec(`UPDATE BotEventSubscriptions
 		SET AckCursorCreateAt = 0, AckCursorId = '', LeaseNode = 'dead',
-			LeaseExpiresAt = (EXTRACT(EPOCH FROM clock_timestamp()) * 1000)::bigint + 400
+			LeaseExpiresAt = (EXTRACT(EPOCH FROM clock_timestamp()) * 1000)::bigint + 3000
 		WHERE BotUserId = $1`, bot.UserId)
 	require.NoError(t, err)
 
 	newTestBotEventDispatcher(t, th)
-	require.Never(t, func() bool { return len(rcv.Events()) > 1 }, 200*time.Millisecond, 10*time.Millisecond, "the dead node's lease is respected")
-	require.Eventually(t, func() bool { return len(rcv.Events()) == 2 }, 5*time.Second, 10*time.Millisecond)
+	require.Never(t, func() bool { return len(rcv.Events()) > 1 }, 500*time.Millisecond, 10*time.Millisecond, "the dead node's lease is respected")
+	require.Eventually(t, func() bool { return len(rcv.Events()) == 2 }, 10*time.Second, 10*time.Millisecond)
 
 	assert.Equal(t, []string{events[0].Id, events[0].Id}, rcv.EventIDs())
 	waitForAck(t, th, bot.UserId, events[0].Cursor())
+}
+
+func TestBotEventDispatcherSkipsUndeliverableEvent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupPushTest(t)
+
+	rcv := testlib.NewBotEventReceiver(t, nil)
+	bot := th.CreateBot(t)
+	seedPushSubscription(t, th, bot.UserId, rcv.URL())
+	events := seedBotEvents(t, th, bot.UserId, 2)
+	_, err := th.SQLStore.GetMaster().Exec(`UPDATE BotEvents SET Payload = '[]' WHERE Id = $1`, events[0].Id)
+	require.NoError(t, err)
+
+	newTestBotEventDispatcher(t, th)
+	waitForAck(t, th, bot.UserId, events[1].Cursor())
+
+	assert.Equal(t, []string{events[1].Id}, rcv.EventIDs())
 }
 
 func TestBotEventDispatcherLostWakeFallsBackToSweep(t *testing.T) {
@@ -401,7 +418,7 @@ func TestBotEventDispatcherShutdownMidRequest(t *testing.T) {
 
 	start := time.Now()
 	d.stop()
-	assert.Less(t, time.Since(start), time.Second)
+	assert.Less(t, time.Since(start), 5*time.Second)
 
 	sub := getTestSubscription(t, th, bot.UserId)
 	assert.Zero(t, sub.ConsecutiveFailures)

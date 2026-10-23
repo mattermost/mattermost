@@ -373,14 +373,15 @@
         In `pull` mode the bot fetches its events with `GET /api/v4/bots/{bot_user_id}/events`.
 
         In `push` mode the server sends each event to `callback_url` as an HTTP POST with the event
-        as the JSON body. Plain HTTP and URLs on internal networks are only accepted when the
-        `ServiceSettings.AllowedUntrustedInternalConnections` setting allows the address.
+        as the JSON body. HTTPS is recommended. URLs that resolve to internal or reserved network
+        addresses are only accepted when the `ServiceSettings.AllowedUntrustedInternalConnections`
+        setting allows the address.
 
         ##### Push mode: URL verification
         When a push subscription is created, or its `mode` or `callback_url` changes, the server first
         posts `{"type": "url_verification", "challenge": "...", "bot_user_id": "..."}` to the URL and
         expects a 2xx response with the JSON body `{"challenge": "..."}` carrying the same value, within
-        10 seconds. Nothing is stored when verification fails, and the response is a 400 error. The
+        the request timeout (at most 10 seconds). Nothing is stored when verification fails, and the response is a 400 error. The
         verification request is signed like an event, but on creation the receiver has not seen the
         secret yet, so it only needs to echo the challenge. The same verification applies when
         creating the bot with `POST /api/v4/bots`, which then does not create the bot.
@@ -403,7 +404,8 @@
         - Events are delivered strictly in order for each bot: the next event is sent only after the
           previous one was acknowledged with a 2xx response.
         - Delivery is at least once. If an acknowledgement is lost, the same `event_id` is sent again, so
-          receivers must deduplicate by `event_id`.
+          receivers must deduplicate by `event_id`. After a stall longer than the delivery lease
+          (30 seconds), a duplicate may arrive after later events.
         - Respond with a 2xx status quickly: a request times out after at most 10 seconds.
           Redirects are not followed and count as failures.
 
@@ -573,7 +575,7 @@
       summary: Enable a bot event subscription
       description: |
         Re-enable a disabled event subscription and reset its delivery failure state. Enabling a
-        subscription that is already enabled has no effect. In `push` mode, delivery resumes from the
+        subscription that is already enabled has no effect, including on its failure state. In `push` mode, delivery resumes from the
         first event that was not acknowledged.
 
         ##### Permissions

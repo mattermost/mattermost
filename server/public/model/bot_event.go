@@ -318,7 +318,8 @@ type BotEventDeliveryFailure struct {
 	FirstFailureAt      int64
 	NextAttemptAt       int64
 	DisabledReason      string
-	UpdateAt            int64
+	UpdateAt            int64 // written only when disabling
+	ExpectedUpdateAt    int64 // the claimed row's UpdateAt; the write is dropped if the config changed since
 }
 
 type BotEventList struct {

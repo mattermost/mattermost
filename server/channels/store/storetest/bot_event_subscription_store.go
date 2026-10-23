@@ -237,13 +237,16 @@ func testBotEventSubscriptionRecordSuccess(t *testing.T, rctx request.CTX, ss st
 }
 
 func testBotEventSubscriptionRecordFailure(t *testing.T, rctx request.CTX, ss store.Store) {
-	failure := model.BotEventDeliveryFailure{ConsecutiveFailures: 2, FirstFailureAt: 100, NextAttemptAt: 300, UpdateAt: 400}
+	failureFor := func(claimed *model.BotEventSubscription, reason string) model.BotEventDeliveryFailure {
+		return model.BotEventDeliveryFailure{ConsecutiveFailures: 2, FirstFailureAt: 100, NextAttemptAt: 300, DisabledReason: reason, UpdateAt: 400, ExpectedUpdateAt: claimed.UpdateAt}
+	}
 
 	t.Run("applies under the callers lease and releases it", func(t *testing.T) {
 		sub := savePushSubscription(t, rctx, ss)
-		require.NotNil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0))
+		claimed := claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0)
+		require.NotNil(t, claimed)
 
-		applied, err := ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-a", failure)
+		applied, err := ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-a", failureFor(claimed, ""))
 		require.NoError(t, err)
 		assert.True(t, applied)
 
@@ -259,9 +262,10 @@ func testBotEventSubscriptionRecordFailure(t *testing.T, rctx request.CTX, ss st
 
 	t.Run("is not applied without the lease", func(t *testing.T) {
 		sub := savePushSubscription(t, rctx, ss)
-		require.NotNil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0))
+		claimed := claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0)
+		require.NotNil(t, claimed)
 
-		applied, err := ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-b", failure)
+		applied, err := ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-b", failureFor(claimed, ""))
 		require.NoError(t, err)
 		assert.False(t, applied)
 
@@ -271,11 +275,30 @@ func testBotEventSubscriptionRecordFailure(t *testing.T, rctx request.CTX, ss st
 		assert.Equal(t, "node-a", got.LeaseNode)
 	})
 
+	t.Run("is not applied after the config changed since the claim", func(t *testing.T) {
+		sub := savePushSubscription(t, rctx, ss)
+		claimed := claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0)
+		require.NotNil(t, claimed)
+
+		require.NoError(t, ss.BotEventSubscription().SetEnabled(rctx, sub.BotUserId, false, model.BotEventDisabledReasonManual, claimed.UpdateAt+1))
+		require.NoError(t, ss.BotEventSubscription().SetEnabled(rctx, sub.BotUserId, true, "", claimed.UpdateAt+2))
+
+		applied, err := ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-a", failureFor(claimed, model.BotEventDisabledReasonDeliveryFailures))
+		require.NoError(t, err)
+		assert.False(t, applied)
+
+		got, err := ss.BotEventSubscription().Get(rctx, sub.BotUserId)
+		require.NoError(t, err)
+		assert.Zero(t, got.ConsecutiveFailures)
+		assert.True(t, got.Enabled)
+	})
+
 	t.Run("disables with a reason", func(t *testing.T) {
 		sub := savePushSubscription(t, rctx, ss)
-		require.NotNil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0))
+		claimed := claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0)
+		require.NotNil(t, claimed)
 
-		failure.DisabledReason = model.BotEventDisabledReasonCallbackGone
+		failure := failureFor(claimed, model.BotEventDisabledReasonCallbackGone)
 		applied, err := ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-a", failure)
 		require.NoError(t, err)
 		assert.True(t, applied)
@@ -506,6 +529,15 @@ func testBotEventSubscriptionSetEnabled(t *testing.T, rctx request.CTX, ss store
 	assert.Zero(t, got.ConsecutiveFailures)
 	assert.Zero(t, got.FirstFailureAt)
 	assert.Zero(t, got.NextAttemptAt)
+
+	_, err = s.GetMaster().Exec("UPDATE BotEventSubscriptions SET ConsecutiveFailures = 2, FirstFailureAt = 100, NextAttemptAt = 200 WHERE BotUserId = ?", saved.BotUserId)
+	require.NoError(t, err)
+	require.NoError(t, ss.BotEventSubscription().SetEnabled(rctx, saved.BotUserId, true, "", got.UpdateAt+1000))
+	after, err := ss.BotEventSubscription().Get(rctx, saved.BotUserId)
+	require.NoError(t, err)
+	assert.Equal(t, 2, after.ConsecutiveFailures, "enabling an enabled subscription keeps the failure state")
+	assert.Equal(t, int64(200), after.NextAttemptAt)
+	assert.Equal(t, got.UpdateAt, after.UpdateAt)
 }
 
 func testBotEventSubscriptionDelete(t *testing.T, rctx request.CTX, ss store.Store) {

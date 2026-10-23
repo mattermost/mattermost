@@ -135,14 +135,16 @@ func (s *SqlBotEventSubscriptionStore) SetEnabled(rctx request.CTX, botUserID st
 		Update(botEventSubscriptionTable).
 		Set("Enabled", enabled).
 		Set("DisabledReason", reason).
-		Set("UpdateAt", updateAt).
 		Where(sq.Eq{"BotUserId": botUserID})
 
 	if enabled {
-		query = query.
-			Set("ConsecutiveFailures", 0).
-			Set("FirstFailureAt", 0).
-			Set("NextAttemptAt", 0)
+		// Enabling an enabled subscription changes nothing, so it cannot keep a dead receiver from being disabled.
+		query = query.Set("UpdateAt", sq.Expr("CASE WHEN Enabled THEN UpdateAt ELSE ? END", updateAt))
+		for _, column := range []string{"ConsecutiveFailures", "FirstFailureAt", "NextAttemptAt"} {
+			query = query.Set(column, sq.Expr(fmt.Sprintf("CASE WHEN Enabled THEN %s ELSE 0 END", column)))
+		}
+	} else {
+		query = query.Set("UpdateAt", updateAt)
 	}
 
 	return s.updateExpectingRow(rctx, query, botUserID)
@@ -228,8 +230,9 @@ func (s *SqlBotEventSubscriptionStore) RecordDeliverySuccess(rctx request.CTX, b
 	return nil
 }
 
-// RecordDeliveryFailure is fenced by the lease and releases it. It reports whether the
-// write applied, which is false when another node owns the subscription now.
+// RecordDeliveryFailure is fenced by the lease and by the config version the caller claimed,
+// and releases the lease. It reports whether the write applied, which is false when another
+// node owns the subscription now or its config changed since the claim.
 func (s *SqlBotEventSubscriptionStore) RecordDeliveryFailure(rctx request.CTX, botUserID, node string, f model.BotEventDeliveryFailure) (bool, error) {
 	query := s.getQueryBuilder().
 		Update(botEventSubscriptionTable).
@@ -238,7 +241,7 @@ func (s *SqlBotEventSubscriptionStore) RecordDeliveryFailure(rctx request.CTX, b
 		Set("NextAttemptAt", f.NextAttemptAt).
 		Set("LeaseNode", "").
 		Set("LeaseExpiresAt", 0).
-		Where(sq.Eq{"BotUserId": botUserID, "LeaseNode": node, "Enabled": true, "Mode": model.BotEventSubscriptionModePush})
+		Where(sq.Eq{"BotUserId": botUserID, "LeaseNode": node, "Enabled": true, "Mode": model.BotEventSubscriptionModePush, "UpdateAt": f.ExpectedUpdateAt})
 	if f.DisabledReason != "" {
 		query = query.Set("Enabled", false).Set("DisabledReason", f.DisabledReason).Set("UpdateAt", f.UpdateAt)
 	}

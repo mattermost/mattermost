@@ -18,7 +18,8 @@ import (
 const (
 	botEventMaxConcurrentBots = 8
 	botEventMaxEventsPerTurn  = 100
-	botEventLeaseDuration     = 30 * time.Second // must stay well above 2 × BotEventMaxRequestTimeout
+	botEventMaxTurnDuration   = 10 * time.Second
+	botEventLeaseDuration     = 30 * time.Second // must exceed the request timeout plus DB latency between claim and send
 	botEventSweepInterval     = 10 * time.Second
 	botEventSweepLimit        = 1000
 	botEventMaxResponseBytes  = 64 * 1024
@@ -49,7 +50,6 @@ type botEventDispatcher struct {
 	active   map[string]bool // bot id -> another kick arrived while its turn was running
 	ctx      context.Context // parent of outbound requests; cancelled by stop
 	cancel   context.CancelFunc
-	stopCh   chan struct{}
 	wg       sync.WaitGroup
 }
 
@@ -79,12 +79,6 @@ func (d *botEventDispatcher) requestTimeout() time.Duration {
 	return min(timeout, model.BotEventMaxRequestTimeout)
 }
 
-func (d *botEventDispatcher) isStopping() bool {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	return d.stopping
-}
-
 func (d *botEventDispatcher) start() {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -93,7 +87,6 @@ func (d *botEventDispatcher) start() {
 	}
 	d.started = true
 	d.ctx, d.cancel = context.WithCancel(d.srv.Platform().GoContext())
-	d.stopCh = make(chan struct{})
 
 	d.wg.Add(1)
 	go d.sweepLoop()
@@ -108,7 +101,6 @@ func (d *botEventDispatcher) stop() {
 		return
 	}
 	d.stopping = true
-	close(d.stopCh)
 	d.cancel()
 	d.mu.Unlock()
 
@@ -123,7 +115,7 @@ func (d *botEventDispatcher) sweepLoop() {
 	defer ticker.Stop()
 	for {
 		select {
-		case <-d.stopCh:
+		case <-d.ctx.Done():
 			return
 		case <-ticker.C:
 			d.sweepOnce()
@@ -168,7 +160,7 @@ func (d *botEventDispatcher) kick(botUserID string) {
 		defer d.wg.Done()
 		for {
 			d.sem <- struct{}{}
-			more := d.runTurnRecovered(botUserID)
+			more := d.runTurn(botUserID)
 			<-d.sem
 
 			d.mu.Lock()
@@ -185,16 +177,6 @@ func (d *botEventDispatcher) kick(botUserID string) {
 	}()
 }
 
-func (d *botEventDispatcher) runTurnRecovered(botUserID string) (more bool) {
-	defer func() {
-		if r := recover(); r != nil {
-			d.logger.Error("Bot event delivery panicked", mlog.String("bot_user_id", botUserID), mlog.String("panic", fmt.Sprint(r)))
-			more = false
-		}
-	}()
-	return d.runTurn(botUserID)
-}
-
 func (d *botEventDispatcher) sweepOnce() {
 	rctx := request.EmptyContext(d.logger)
 	ids, err := d.srv.Store().BotEventSubscription().GetPushDeliveryCandidates(rctx, d.now().UnixMilli(), d.settleWindow.Milliseconds(), botEventSweepLimit)
@@ -207,22 +189,34 @@ func (d *botEventDispatcher) sweepOnce() {
 	}
 }
 
-// runTurn delivers up to botEventMaxEventsPerTurn events, one request at a time. The lease is
-// renewed before each event, which also returns the current URL, secret and ack cursor. It
-// reports whether the cap was reached with events possibly remaining.
+// runTurn delivers events one request at a time until the event or time cap is reached. The
+// lease is renewed before each event, which also returns the current URL, secret and ack
+// cursor. It reports whether a cap was reached with events possibly remaining.
 func (d *botEventDispatcher) runTurn(botUserID string) (more bool) {
 	// Writes use a background context so that a 2xx that just arrived is still acknowledged during stop.
 	rctx := request.EmptyContext(d.logger.With(mlog.String("bot_user_id", botUserID)))
 	subs := d.srv.Store().BotEventSubscription()
+	claimed := false
 	defer func() {
+		if r := recover(); r != nil {
+			rctx.Logger().Error("Bot event delivery panicked", mlog.String("panic", fmt.Sprint(r)))
+			more = false
+		}
+		if !claimed {
+			return
+		}
 		if err := subs.ReleaseLease(rctx, botUserID, d.nodeID); err != nil {
 			rctx.Logger().Warn("Failed to release bot event lease", mlog.Err(err))
 		}
 	}()
 
+	deadline := time.Now().Add(botEventMaxTurnDuration)
 	for range botEventMaxEventsPerTurn {
-		if d.isStopping() {
+		if d.ctx.Err() != nil {
 			return false
+		}
+		if time.Now().After(deadline) {
+			return true
 		}
 
 		sub, err := subs.ClaimForDelivery(rctx, botUserID, d.nodeID, d.leaseDuration.Milliseconds(), d.now().UnixMilli())
@@ -233,6 +227,7 @@ func (d *botEventDispatcher) runTurn(botUserID string) (more bool) {
 		if sub == nil {
 			return false
 		}
+		claimed = true
 
 		events, err := d.srv.Store().BotEvent().GetAfterCursor(rctx, botUserID, sub.AckCursor(), d.settleWindow.Milliseconds(), 1)
 		if err != nil {

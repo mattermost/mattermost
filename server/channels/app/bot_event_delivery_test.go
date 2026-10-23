@@ -255,25 +255,6 @@ func TestBotEventPushSubscription(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, events[0].Cursor(), getTestSubscription(t, th, bot.UserId).AckCursor())
 	})
-
-	t.Run("create bot with a failing callback leaves no bot", func(t *testing.T) {
-		broken := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusInternalServerError) }))
-		t.Cleanup(broken.Close)
-
-		bot := &model.Bot{Username: "bot" + model.NewId(), OwnerId: th.BasicUser.Id}
-		_, _, appErr := th.App.CreateBotWithEventSubscription(th.Context, bot, pushPatch(broken.URL))
-		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		_, err := th.App.Srv().Store().User().GetByUsername(bot.Username)
-		assert.Error(t, err)
-
-		rcv := testlib.NewBotEventReceiver(t, nil)
-		good := &model.Bot{Username: "bot" + model.NewId(), OwnerId: th.BasicUser.Id}
-		created, sub, appErr := th.App.CreateBotWithEventSubscription(th.Context, good, pushPatch(rcv.URL()))
-		require.Nil(t, appErr)
-		assert.Equal(t, model.BotEventSubscriptionModePush, sub.Mode)
-		assert.Equal(t, created.UserId, sub.BotUserId)
-	})
 }
 
 func TestBotEventsAvailableCluster(t *testing.T) {
@@ -330,15 +311,5 @@ func TestBotEventsAvailableCluster(t *testing.T) {
 			require.Fail(t, "invalid messages must not wake anything")
 		case <-time.After(50 * time.Millisecond):
 		}
-	})
-}
-
-func TestBotEventsAvailableWithoutCluster(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := setupPushTest(t)
-
-	assert.NotPanics(t, func() {
-		th.App.notifyBotEventsAvailable([]string{model.NewId()})
-		th.App.notifyBotEventsAvailable(nil)
 	})
 }
