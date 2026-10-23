@@ -22,6 +22,8 @@ const (
 	BotEventTypePostThreadReply BotEventType = "post_thread_reply"
 	BotEventTypeReactionAdded   BotEventType = "reaction_added"
 	BotEventTypeReactionRemoved BotEventType = "reaction_removed"
+
+	BotEventTypeURLVerification BotEventType = "url_verification"
 )
 
 type BotEventSubscriptionMode string
@@ -33,10 +35,13 @@ const (
 
 const (
 	BotEventDisabledReasonDeliveryFailures = "delivery_failures"
+	BotEventDisabledReasonCallbackGone     = "callback_gone"
 	BotEventDisabledReasonManual           = "manual"
 	BotEventDisabledReasonMaxLength        = 64
 
 	BotEventMaxEventAge          = 7 * 24 * time.Hour
+	BotEventMaxRequestTimeout    = 10 * time.Second
+	BotEventMaxFailureDuration   = 24 * time.Hour
 	BotEventSettleWindowMillis   = 1000
 	BotEventsDefaultLimit        = 100
 	BotEventsMaxLimit            = 500
@@ -130,9 +135,9 @@ func (s *BotEventSubscription) AckCursor() BotEventCursor {
 }
 
 // ShouldProduce reports whether new events are written to the outbox. Events keep
-// accumulating while delivery is failing so that nothing is lost once it recovers.
+// accumulating after an automatic disable so that nothing is lost once delivery is re-enabled.
 func (s *BotEventSubscription) ShouldProduce() bool {
-	return s.Enabled || s.DisabledReason == BotEventDisabledReasonDeliveryFailures
+	return s.Enabled || s.DisabledReason == BotEventDisabledReasonDeliveryFailures || s.DisabledReason == BotEventDisabledReasonCallbackGone
 }
 
 func (s *BotEventSubscription) Patch(p *BotEventSubscriptionPatch) {
@@ -293,6 +298,27 @@ type BotEventEnvelope struct {
 	CreatedAt int64        `json:"created_at"`
 	BotUserId string       `json:"bot_user_id"`
 	BotEventData
+}
+
+// BotEventURLVerification is the body sent to a callback URL before a push subscription is saved.
+type BotEventURLVerification struct {
+	Type      BotEventType `json:"type"`
+	Challenge string       `json:"challenge"`
+	BotUserId string       `json:"bot_user_id"`
+}
+
+type BotEventURLVerificationResponse struct {
+	Challenge string `json:"challenge"`
+}
+
+// BotEventDeliveryFailure is what a failed push attempt writes. A non-empty DisabledReason
+// disables the subscription.
+type BotEventDeliveryFailure struct {
+	ConsecutiveFailures int
+	FirstFailureAt      int64
+	NextAttemptAt       int64
+	DisabledReason      string
+	UpdateAt            int64
 }
 
 type BotEventList struct {

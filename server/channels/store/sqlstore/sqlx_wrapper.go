@@ -34,6 +34,10 @@ func (w *StoreTestWrapper) GetMaster() storetest.SqlXExecutor {
 	return w.orig.GetMaster()
 }
 
+func (w *StoreTestWrapper) BeginMaster() (storetest.SqlXTx, error) {
+	return w.orig.GetMaster().Begin()
+}
+
 func (w *StoreTestWrapper) DriverName() string {
 	return w.orig.DriverName()
 }

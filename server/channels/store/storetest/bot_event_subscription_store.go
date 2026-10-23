@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,6 +44,307 @@ func TestBotEventSubscriptionStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("Delete", func(t *testing.T) { testBotEventSubscriptionDelete(t, rctx, ss) })
 	t.Run("AdvanceAckCursor", func(t *testing.T) { testBotEventSubscriptionAdvanceCursor(t, rctx, ss) })
 	t.Run("AdvanceAckCursorConcurrently", func(t *testing.T) { testBotEventSubscriptionAdvanceCursorConcurrently(t, rctx, ss) })
+	t.Run("UpdateResetsFailureWindow", func(t *testing.T) { testBotEventSubscriptionUpdateResetsFailures(t, rctx, ss, s) })
+	t.Run("ClaimForDelivery", func(t *testing.T) { testBotEventSubscriptionClaim(t, rctx, ss, s) })
+	t.Run("ClaimContention", func(t *testing.T) { testBotEventSubscriptionClaimContention(t, rctx, ss) })
+	t.Run("ReleaseLease", func(t *testing.T) { testBotEventSubscriptionReleaseLease(t, rctx, ss) })
+	t.Run("RecordDeliverySuccess", func(t *testing.T) { testBotEventSubscriptionRecordSuccess(t, rctx, ss, s) })
+	t.Run("RecordDeliveryFailure", func(t *testing.T) { testBotEventSubscriptionRecordFailure(t, rctx, ss) })
+	t.Run("GetPushDeliveryCandidates", func(t *testing.T) { testBotEventSubscriptionCandidates(t, rctx, ss, s) })
+}
+
+// savePushSubscription saves an enabled push subscription for a new active bot user.
+func savePushSubscription(t *testing.T, rctx request.CTX, ss store.Store) *model.BotEventSubscription {
+	t.Helper()
+	id := model.NewId()
+	user, err := ss.User().Save(rctx, &model.User{Email: id + "@example.com", Username: "bot" + id[:10], Password: "pass"})
+	require.NoError(t, err)
+
+	sub := newTestBotEventSubscription()
+	sub.BotUserId = user.Id
+	sub.Mode = model.BotEventSubscriptionModePush
+	sub.CallbackURL = "https://example.com/hook"
+	sub, err = ss.BotEventSubscription().Save(rctx, sub)
+	require.NoError(t, err)
+	return sub
+}
+
+func claimTestSubscription(t *testing.T, rctx request.CTX, ss store.Store, botID, node string, leaseMillis, now int64) *model.BotEventSubscription {
+	t.Helper()
+	sub, err := ss.BotEventSubscription().ClaimForDelivery(rctx, botID, node, leaseMillis, now)
+	require.NoError(t, err)
+	return sub
+}
+
+func testBotEventSubscriptionUpdateResetsFailures(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	failures := func(sub *model.BotEventSubscription) (int, int64, int64) {
+		got, err := ss.BotEventSubscription().Get(rctx, sub.BotUserId)
+		require.NoError(t, err)
+		return got.ConsecutiveFailures, got.FirstFailureAt, got.NextAttemptAt
+	}
+	seed := func(sub *model.BotEventSubscription) {
+		_, err := s.GetMaster().Exec("UPDATE BotEventSubscriptions SET ConsecutiveFailures = 3, FirstFailureAt = 100, NextAttemptAt = 200 WHERE BotUserId = ?", sub.BotUserId)
+		require.NoError(t, err)
+	}
+
+	sub := savePushSubscription(t, rctx, ss)
+	seed(sub)
+
+	sub.IgnoreBotAuthors = !sub.IgnoreBotAuthors
+	_, err := ss.BotEventSubscription().Update(rctx, sub)
+	require.NoError(t, err)
+	n, first, next := failures(sub)
+	assert.Equal(t, 3, n, "an ignore_bot_authors change keeps the failure window")
+	assert.Equal(t, int64(100), first)
+	assert.Equal(t, int64(200), next)
+
+	sub.CallbackURL = "https://example.com/other"
+	_, err = ss.BotEventSubscription().Update(rctx, sub)
+	require.NoError(t, err)
+	n, first, next = failures(sub)
+	assert.Zero(t, n, "a URL change resets the failure window")
+	assert.Zero(t, first)
+	assert.Zero(t, next)
+
+	seed(sub)
+	sub.Mode = model.BotEventSubscriptionModePull
+	sub.CallbackURL = ""
+	_, err = ss.BotEventSubscription().Update(rctx, sub)
+	require.NoError(t, err)
+	n, _, _ = failures(sub)
+	assert.Zero(t, n, "a mode change resets the failure window")
+}
+
+func testBotEventSubscriptionClaim(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	const lease = 60_000
+	now := botEventDBNow(t, s)
+
+	t.Run("claims a free row and returns the delivery state", func(t *testing.T) {
+		sub := savePushSubscription(t, rctx, ss)
+		claimed := claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", lease, now)
+		require.NotNil(t, claimed)
+		assert.Equal(t, sub.Secret, claimed.Secret)
+		assert.Equal(t, sub.CallbackURL, claimed.CallbackURL)
+		assert.Equal(t, "node-a", claimed.LeaseNode)
+		assert.Greater(t, claimed.LeaseExpiresAt, now)
+	})
+
+	t.Run("the owner renews and another node waits", func(t *testing.T) {
+		sub := savePushSubscription(t, rctx, ss)
+		first := claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", lease, now)
+		require.NotNil(t, first)
+
+		renewed := claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", lease, now)
+		require.NotNil(t, renewed)
+		assert.GreaterOrEqual(t, renewed.LeaseExpiresAt, first.LeaseExpiresAt)
+
+		assert.Nil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-b", lease, now))
+	})
+
+	t.Run("an expired lease can be taken over", func(t *testing.T) {
+		sub := savePushSubscription(t, rctx, ss)
+		require.NotNil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 1, now))
+		require.Eventually(t, func() bool {
+			return claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-b", lease, now) != nil
+		}, 5*time.Second, 10*time.Millisecond)
+	})
+
+	t.Run("does not claim what cannot be delivered", func(t *testing.T) {
+		missing := claimTestSubscription(t, rctx, ss, model.NewId(), "node-a", lease, now)
+		assert.Nil(t, missing)
+
+		pull := savePushSubscription(t, rctx, ss)
+		pull.Mode = model.BotEventSubscriptionModePull
+		pull.CallbackURL = ""
+		_, err := ss.BotEventSubscription().Update(rctx, pull)
+		require.NoError(t, err)
+		assert.Nil(t, claimTestSubscription(t, rctx, ss, pull.BotUserId, "node-a", lease, now), "pull mode")
+
+		disabled := savePushSubscription(t, rctx, ss)
+		require.NoError(t, ss.BotEventSubscription().SetEnabled(rctx, disabled.BotUserId, false, model.BotEventDisabledReasonManual, now))
+		assert.Nil(t, claimTestSubscription(t, rctx, ss, disabled.BotUserId, "node-a", lease, now), "disabled")
+
+		backoff := savePushSubscription(t, rctx, ss)
+		_, err = s.GetMaster().Exec("UPDATE BotEventSubscriptions SET NextAttemptAt = ? WHERE BotUserId = ?", now+1, backoff.BotUserId)
+		require.NoError(t, err)
+		assert.Nil(t, claimTestSubscription(t, rctx, ss, backoff.BotUserId, "node-a", lease, now), "backing off")
+		assert.NotNil(t, claimTestSubscription(t, rctx, ss, backoff.BotUserId, "node-a", lease, now+1), "due")
+
+		deactivated := savePushSubscription(t, rctx, ss)
+		_, err = s.GetMaster().Exec("UPDATE Users SET DeleteAt = ? WHERE Id = ?", now, deactivated.BotUserId)
+		require.NoError(t, err)
+		assert.Nil(t, claimTestSubscription(t, rctx, ss, deactivated.BotUserId, "node-a", lease, now), "deactivated bot")
+	})
+}
+
+func testBotEventSubscriptionClaimContention(t *testing.T, rctx request.CTX, ss store.Store) {
+	sub := savePushSubscription(t, rctx, ss)
+
+	const nodes = 20
+	var winners atomic.Int32
+	var wg sync.WaitGroup
+	for i := range nodes {
+		wg.Go(func() {
+			claimed, err := ss.BotEventSubscription().ClaimForDelivery(rctx, sub.BotUserId, fmt.Sprintf("node-%d", i), 60_000, model.GetMillis())
+			assert.NoError(t, err)
+			if claimed != nil {
+				winners.Add(1)
+			}
+		})
+	}
+	wg.Wait()
+	assert.Equal(t, int32(1), winners.Load())
+}
+
+func testBotEventSubscriptionReleaseLease(t *testing.T, rctx request.CTX, ss store.Store) {
+	sub := savePushSubscription(t, rctx, ss)
+	require.NotNil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, model.GetMillis()))
+
+	require.NoError(t, ss.BotEventSubscription().ReleaseLease(rctx, sub.BotUserId, "node-b"))
+	assert.Nil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-b", 60_000, model.GetMillis()), "another node cannot release the lease")
+
+	require.NoError(t, ss.BotEventSubscription().ReleaseLease(rctx, sub.BotUserId, "node-a"))
+	assert.NotNil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-b", 60_000, model.GetMillis()))
+
+	require.NoError(t, ss.BotEventSubscription().ReleaseLease(rctx, model.NewId(), "node-a"), "a missing row is not an error")
+}
+
+func testBotEventSubscriptionRecordSuccess(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	sub := savePushSubscription(t, rctx, ss)
+	_, err := s.GetMaster().Exec("UPDATE BotEventSubscriptions SET ConsecutiveFailures = 2, FirstFailureAt = 100, NextAttemptAt = 200 WHERE BotUserId = ?", sub.BotUserId)
+	require.NoError(t, err)
+
+	cursor := model.BotEventCursor{CreateAt: 500, Id: model.NewId()}
+	require.NoError(t, ss.BotEventSubscription().RecordDeliverySuccess(rctx, sub.BotUserId, cursor, 999))
+	got, err := ss.BotEventSubscription().Get(rctx, sub.BotUserId)
+	require.NoError(t, err)
+	assert.Equal(t, cursor, got.AckCursor())
+	assert.Equal(t, int64(999), got.LastDeliveredAt)
+	assert.Zero(t, got.ConsecutiveFailures)
+	assert.Zero(t, got.FirstFailureAt)
+	assert.Zero(t, got.NextAttemptAt)
+
+	_, err = s.GetMaster().Exec("UPDATE BotEventSubscriptions SET ConsecutiveFailures = 2 WHERE BotUserId = ?", sub.BotUserId)
+	require.NoError(t, err)
+	for _, older := range []model.BotEventCursor{cursor, {CreateAt: 499, Id: cursor.Id}} {
+		require.NoError(t, ss.BotEventSubscription().RecordDeliverySuccess(rctx, sub.BotUserId, older, 1000))
+	}
+	got, err = ss.BotEventSubscription().Get(rctx, sub.BotUserId)
+	require.NoError(t, err)
+	assert.Equal(t, cursor, got.AckCursor(), "an older or equal cursor is a no-op")
+	assert.Equal(t, 2, got.ConsecutiveFailures, "a no-op does not reset failures")
+	assert.Equal(t, int64(999), got.LastDeliveredAt)
+}
+
+func testBotEventSubscriptionRecordFailure(t *testing.T, rctx request.CTX, ss store.Store) {
+	failure := model.BotEventDeliveryFailure{ConsecutiveFailures: 2, FirstFailureAt: 100, NextAttemptAt: 300, UpdateAt: 400}
+
+	t.Run("applies under the callers lease and releases it", func(t *testing.T) {
+		sub := savePushSubscription(t, rctx, ss)
+		require.NotNil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0))
+
+		applied, err := ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-a", failure)
+		require.NoError(t, err)
+		assert.True(t, applied)
+
+		got, err := ss.BotEventSubscription().Get(rctx, sub.BotUserId)
+		require.NoError(t, err)
+		assert.Equal(t, 2, got.ConsecutiveFailures)
+		assert.Equal(t, int64(100), got.FirstFailureAt)
+		assert.Equal(t, int64(300), got.NextAttemptAt)
+		assert.Empty(t, got.LeaseNode)
+		assert.Zero(t, got.LeaseExpiresAt)
+		assert.True(t, got.Enabled)
+	})
+
+	t.Run("is not applied without the lease", func(t *testing.T) {
+		sub := savePushSubscription(t, rctx, ss)
+		require.NotNil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0))
+
+		applied, err := ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-b", failure)
+		require.NoError(t, err)
+		assert.False(t, applied)
+
+		got, err := ss.BotEventSubscription().Get(rctx, sub.BotUserId)
+		require.NoError(t, err)
+		assert.Zero(t, got.ConsecutiveFailures)
+		assert.Equal(t, "node-a", got.LeaseNode)
+	})
+
+	t.Run("disables with a reason", func(t *testing.T) {
+		sub := savePushSubscription(t, rctx, ss)
+		require.NotNil(t, claimTestSubscription(t, rctx, ss, sub.BotUserId, "node-a", 60_000, 0))
+
+		failure.DisabledReason = model.BotEventDisabledReasonCallbackGone
+		applied, err := ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-a", failure)
+		require.NoError(t, err)
+		assert.True(t, applied)
+
+		got, err := ss.BotEventSubscription().Get(rctx, sub.BotUserId)
+		require.NoError(t, err)
+		assert.False(t, got.Enabled)
+		assert.Equal(t, model.BotEventDisabledReasonCallbackGone, got.DisabledReason)
+		assert.Equal(t, int64(400), got.UpdateAt)
+
+		applied, err = ss.BotEventSubscription().RecordDeliveryFailure(rctx, sub.BotUserId, "node-a", failure)
+		require.NoError(t, err)
+		assert.False(t, applied, "a disabled subscription is not written again")
+	})
+}
+
+func testBotEventSubscriptionCandidates(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	now := botEventDBNow(t, s)
+	old := now - 10_000
+
+	// withEvent saves a push subscription with one event created at the given time.
+	withEvent := func(createAt int64) *model.BotEventSubscription {
+		sub := savePushSubscription(t, rctx, ss)
+		saveTestBotEvents(t, rctx, ss, newTestBotEvent(sub.BotUserId, createAt))
+		return sub
+	}
+	candidates := func(limit int) []string {
+		ids, err := ss.BotEventSubscription().GetPushDeliveryCandidates(rctx, now, model.BotEventSettleWindowMillis, limit)
+		require.NoError(t, err)
+		return ids
+	}
+	exec := func(query string, args ...any) {
+		_, err := s.GetMaster().Exec(query, args...)
+		require.NoError(t, err)
+	}
+
+	ready := withEvent(old)
+	unsettled := withEvent(now + 60_000)
+	acked := withEvent(old)
+	exec("UPDATE BotEventSubscriptions SET AckCursorCreateAt = ?, AckCursorId = ? WHERE BotUserId = ?", old, "zzzzzzzzzzzzzzzzzzzzzzzzzz", acked.BotUserId)
+	noEvents := savePushSubscription(t, rctx, ss)
+	disabled := withEvent(old)
+	require.NoError(t, ss.BotEventSubscription().SetEnabled(rctx, disabled.BotUserId, false, model.BotEventDisabledReasonManual, now))
+	backoff := withEvent(old)
+	exec("UPDATE BotEventSubscriptions SET NextAttemptAt = ? WHERE BotUserId = ?", now+60_000, backoff.BotUserId)
+	leased := withEvent(old)
+	require.NotNil(t, claimTestSubscription(t, rctx, ss, leased.BotUserId, "node-a", 60_000, now))
+	deactivated := withEvent(old)
+	exec("UPDATE Users SET DeleteAt = ? WHERE Id = ?", now, deactivated.BotUserId)
+	pull := withEvent(old)
+	exec("UPDATE BotEventSubscriptions SET Mode = 'pull', CallbackURL = '' WHERE BotUserId = ?", pull.BotUserId)
+
+	got := candidates(1000)
+	assert.Contains(t, got, ready.BotUserId)
+	for name, excluded := range map[string]*model.BotEventSubscription{
+		"unsettled event": unsettled, "fully acknowledged": acked, "no events": noEvents, "disabled": disabled,
+		"backing off": backoff, "leased": leased, "deactivated bot": deactivated, "pull mode": pull,
+	} {
+		assert.NotContains(t, got, excluded.BotUserId, name)
+	}
+
+	t.Run("an expired lease is a candidate again", func(t *testing.T) {
+		exec("UPDATE BotEventSubscriptions SET LeaseExpiresAt = 1 WHERE BotUserId = ?", leased.BotUserId)
+		assert.Contains(t, candidates(1000), leased.BotUserId)
+	})
+
+	t.Run("respects the limit", func(t *testing.T) {
+		assert.Len(t, candidates(1), 1)
+	})
 }
 
 func testBotEventSubscriptionCRUD(t *testing.T, rctx request.CTX, ss store.Store) {

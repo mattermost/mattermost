@@ -151,6 +151,7 @@ func TestBotEventSubscriptionShouldProduce(t *testing.T) {
 	}{
 		{"enabled", true, "", true},
 		{"disabled for delivery failures", false, BotEventDisabledReasonDeliveryFailures, true},
+		{"disabled because the callback is gone", false, BotEventDisabledReasonCallbackGone, true},
 		{"disabled manually", false, BotEventDisabledReasonManual, false},
 		{"disabled without reason", false, "", false},
 	}

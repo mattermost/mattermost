@@ -43,6 +43,36 @@ func (_m *BotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX, botUserI
 	return r0, r1
 }
 
+// ClaimForDelivery provides a mock function with given fields: rctx, botUserID, node, leaseMillis, now
+func (_m *BotEventSubscriptionStore) ClaimForDelivery(rctx request.CTX, botUserID string, node string, leaseMillis int64, now int64) (*model.BotEventSubscription, error) {
+	ret := _m.Called(rctx, botUserID, node, leaseMillis, now)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ClaimForDelivery")
+	}
+
+	var r0 *model.BotEventSubscription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, int64, int64) (*model.BotEventSubscription, error)); ok {
+		return rf(rctx, botUserID, node, leaseMillis, now)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, int64, int64) *model.BotEventSubscription); ok {
+		r0 = rf(rctx, botUserID, node, leaseMillis, now)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.BotEventSubscription)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, int64, int64) error); ok {
+		r1 = rf(rctx, botUserID, node, leaseMillis, now)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: rctx, botUserID
 func (_m *BotEventSubscriptionStore) Delete(rctx request.CTX, botUserID string) error {
 	ret := _m.Called(rctx, botUserID)
@@ -119,6 +149,100 @@ func (_m *BotEventSubscriptionStore) GetForBots(rctx request.CTX, botUserIDs []s
 	}
 
 	return r0, r1
+}
+
+// GetPushDeliveryCandidates provides a mock function with given fields: rctx, now, settleWindowMillis, limit
+func (_m *BotEventSubscriptionStore) GetPushDeliveryCandidates(rctx request.CTX, now int64, settleWindowMillis int64, limit int) ([]string, error) {
+	ret := _m.Called(rctx, now, settleWindowMillis, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPushDeliveryCandidates")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, int64, int64, int) ([]string, error)); ok {
+		return rf(rctx, now, settleWindowMillis, limit)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, int64, int64, int) []string); ok {
+		r0 = rf(rctx, now, settleWindowMillis, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, int64, int64, int) error); ok {
+		r1 = rf(rctx, now, settleWindowMillis, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RecordDeliveryFailure provides a mock function with given fields: rctx, botUserID, node, f
+func (_m *BotEventSubscriptionStore) RecordDeliveryFailure(rctx request.CTX, botUserID string, node string, f model.BotEventDeliveryFailure) (bool, error) {
+	ret := _m.Called(rctx, botUserID, node, f)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RecordDeliveryFailure")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.BotEventDeliveryFailure) (bool, error)); ok {
+		return rf(rctx, botUserID, node, f)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.BotEventDeliveryFailure) bool); ok {
+		r0 = rf(rctx, botUserID, node, f)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, model.BotEventDeliveryFailure) error); ok {
+		r1 = rf(rctx, botUserID, node, f)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RecordDeliverySuccess provides a mock function with given fields: rctx, botUserID, cursor, deliveredAt
+func (_m *BotEventSubscriptionStore) RecordDeliverySuccess(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) error {
+	ret := _m.Called(rctx, botUserID, cursor, deliveredAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RecordDeliverySuccess")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.BotEventCursor, int64) error); ok {
+		r0 = rf(rctx, botUserID, cursor, deliveredAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ReleaseLease provides a mock function with given fields: rctx, botUserID, node
+func (_m *BotEventSubscriptionStore) ReleaseLease(rctx request.CTX, botUserID string, node string) error {
+	ret := _m.Called(rctx, botUserID, node)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReleaseLease")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
+		r0 = rf(rctx, botUserID, node)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Save provides a mock function with given fields: rctx, sub

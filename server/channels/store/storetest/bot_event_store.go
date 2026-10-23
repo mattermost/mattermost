@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand/v2"
 	"sync"
 	"testing"
@@ -190,17 +189,14 @@ func testBotEventLateCommitOrdering(t *testing.T, rctx request.CTX, ss store.Sto
 	a := newTestBotEvent(botID, 0)
 	b := newTestBotEvent(botID, 0)
 
-	// A DO block inserts, then holds its transaction open before committing.
-	committed := make(chan error, 1)
-	go func() {
-		_, err := s.GetMaster().Exec(fmt.Sprintf(
-			`DO $$ BEGIN
-				INSERT INTO BotEvents (Id, BotUserId, Type, CreateAt, Payload) VALUES ('%s', '%s', 'post_dm', (EXTRACT(EPOCH FROM clock_timestamp()) * 1000)::bigint, '{}');
-				PERFORM pg_sleep(0.5);
-			END $$`, a.Id, botID))
-		committed <- err
-	}()
-	time.Sleep(100 * time.Millisecond)
+	tx, err := s.BeginMaster()
+	require.NoError(t, err)
+	defer func() { _ = tx.Rollback() }()
+	_, err = tx.Exec(
+		"INSERT INTO BotEvents (Id, BotUserId, Type, CreateAt, Payload) VALUES (?, ?, 'post_dm', (EXTRACT(EPOCH FROM clock_timestamp()) * 1000)::bigint, '{}')",
+		a.Id, botID)
+	require.NoError(t, err)
+
 	saveTestBotEvents(t, rctx, ss, b)
 
 	onlyB, err := ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, 0, 10)
@@ -211,7 +207,7 @@ func testBotEventLateCommitOrdering(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NoError(t, err)
 	assert.Empty(t, settled, "inside the settle window nothing is readable")
 
-	require.NoError(t, <-committed)
+	require.NoError(t, tx.Commit())
 
 	var got []*model.BotEvent
 	require.Eventually(t, func() bool {

@@ -1603,6 +1603,27 @@ func (s *RetryLayerBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX,
 
 }
 
+func (s *RetryLayerBotEventSubscriptionStore) ClaimForDelivery(rctx request.CTX, botUserID string, node string, leaseMillis int64, now int64) (*model.BotEventSubscription, error) {
+
+	tries := 0
+	for {
+		result, err := s.BotEventSubscriptionStore.ClaimForDelivery(rctx, botUserID, node, leaseMillis, now)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerBotEventSubscriptionStore) Delete(rctx request.CTX, botUserID string) error {
 
 	tries := 0
@@ -1660,6 +1681,90 @@ func (s *RetryLayerBotEventSubscriptionStore) GetForBots(rctx request.CTX, botUs
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerBotEventSubscriptionStore) GetPushDeliveryCandidates(rctx request.CTX, now int64, settleWindowMillis int64, limit int) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.BotEventSubscriptionStore.GetPushDeliveryCandidates(rctx, now, settleWindowMillis, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerBotEventSubscriptionStore) RecordDeliveryFailure(rctx request.CTX, botUserID string, node string, f model.BotEventDeliveryFailure) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.BotEventSubscriptionStore.RecordDeliveryFailure(rctx, botUserID, node, f)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerBotEventSubscriptionStore) RecordDeliverySuccess(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) error {
+
+	tries := 0
+	for {
+		err := s.BotEventSubscriptionStore.RecordDeliverySuccess(rctx, botUserID, cursor, deliveredAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerBotEventSubscriptionStore) ReleaseLease(rctx request.CTX, botUserID string, node string) error {
+
+	tries := 0
+	for {
+		err := s.BotEventSubscriptionStore.ReleaseLease(rctx, botUserID, node)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

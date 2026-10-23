@@ -5,6 +5,8 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -22,6 +24,9 @@ var botEventSubscriptionColumns = []string{
 	"ConsecutiveFailures", "FirstFailureAt", "NextAttemptAt", "LeaseNode", "LeaseExpiresAt",
 	"CreateAt", "UpdateAt", "LastDeliveredAt",
 }
+
+// A deactivated bot must not keep pushing its backlog.
+var activeBotUserExists = sq.Expr("EXISTS (SELECT 1 FROM Users u WHERE u.Id = BotEventSubscriptions.BotUserId AND u.DeleteAt = 0)")
 
 type SqlBotEventSubscriptionStore struct {
 	*SqlStore
@@ -104,6 +109,11 @@ func (s *SqlBotEventSubscriptionStore) Update(rctx request.CTX, sub *model.BotEv
 		Set("UpdateAt", sub.UpdateAt).
 		Where(sq.Eq{"BotUserId": sub.BotUserId})
 
+	// A new endpoint gets a fresh failure window. SET expressions read the old row.
+	for _, column := range []string{"ConsecutiveFailures", "FirstFailureAt", "NextAttemptAt"} {
+		query = query.Set(column, sq.Expr(fmt.Sprintf("CASE WHEN CallbackURL <> ? OR Mode <> ? THEN 0 ELSE %s END", column), sub.CallbackURL, sub.Mode))
+	}
+
 	if err := s.updateExpectingRow(rctx, query, sub.BotUserId); err != nil {
 		return nil, err
 	}
@@ -159,6 +169,112 @@ func (s *SqlBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX, botUse
 		return false, errors.Wrapf(err, "failed to count advanced ack cursors for bot_user_id=%s", botUserID)
 	}
 	return rows == 1, nil
+}
+
+// ClaimForDelivery acquires or renews the push lease on the database clock, so node clock
+// skew cannot let two nodes hold it. Under READ COMMITTED a concurrent claim waits for the
+// row lock and then re-checks the WHERE clause, so exactly one caller wins.
+func (s *SqlBotEventSubscriptionStore) ClaimForDelivery(rctx request.CTX, botUserID, node string, leaseMillis, now int64) (*model.BotEventSubscription, error) {
+	query := s.getQueryBuilder().
+		Update(botEventSubscriptionTable).
+		Set("LeaseNode", node).
+		Set("LeaseExpiresAt", sq.Expr(dbWriteMillis+" + ?", leaseMillis)).
+		Where(sq.Eq{"BotUserId": botUserID, "Mode": model.BotEventSubscriptionModePush, "Enabled": true}).
+		Where(sq.LtOrEq{"NextAttemptAt": now}).
+		Where(sq.Expr("(LeaseNode = ? OR LeaseExpiresAt < "+dbWriteMillis+")", node)).
+		Where(activeBotUserExists).
+		Suffix("RETURNING " + strings.Join(botEventSubscriptionColumns, ", "))
+
+	var subs []*model.BotEventSubscription
+	if err := s.GetMaster().SelectBuilderCtx(rctx.Context(), &subs, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to claim BotEventSubscription for bot_user_id=%s", botUserID)
+	}
+	if len(subs) == 0 {
+		return nil, nil
+	}
+	return subs[0], nil
+}
+
+func (s *SqlBotEventSubscriptionStore) ReleaseLease(rctx request.CTX, botUserID, node string) error {
+	query := s.getQueryBuilder().
+		Update(botEventSubscriptionTable).
+		Set("LeaseNode", "").
+		Set("LeaseExpiresAt", 0).
+		Where(sq.Eq{"BotUserId": botUserID, "LeaseNode": node})
+
+	if _, err := s.GetMaster().ExecBuilderCtx(rctx.Context(), query); err != nil {
+		return errors.Wrapf(err, "failed to release lease for bot_user_id=%s", botUserID)
+	}
+	return nil
+}
+
+// RecordDeliverySuccess is monotonic but not fenced by the lease: a 2xx proves the
+// receiver has the event, so its acknowledgement is never dropped.
+func (s *SqlBotEventSubscriptionStore) RecordDeliverySuccess(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) error {
+	query := s.getQueryBuilder().
+		Update(botEventSubscriptionTable).
+		Set("AckCursorCreateAt", cursor.CreateAt).
+		Set("AckCursorId", cursor.Id).
+		Set("LastDeliveredAt", deliveredAt).
+		Set("ConsecutiveFailures", 0).
+		Set("FirstFailureAt", 0).
+		Set("NextAttemptAt", 0).
+		Where(sq.Eq{"BotUserId": botUserID}).
+		Where(sq.Expr("(AckCursorCreateAt, AckCursorId) < (?, ?)", cursor.CreateAt, cursor.Id))
+
+	if _, err := s.GetMaster().ExecBuilderCtx(rctx.Context(), query); err != nil {
+		return errors.Wrapf(err, "failed to record delivery success for bot_user_id=%s", botUserID)
+	}
+	return nil
+}
+
+// RecordDeliveryFailure is fenced by the lease and releases it. It reports whether the
+// write applied, which is false when another node owns the subscription now.
+func (s *SqlBotEventSubscriptionStore) RecordDeliveryFailure(rctx request.CTX, botUserID, node string, f model.BotEventDeliveryFailure) (bool, error) {
+	query := s.getQueryBuilder().
+		Update(botEventSubscriptionTable).
+		Set("ConsecutiveFailures", f.ConsecutiveFailures).
+		Set("FirstFailureAt", f.FirstFailureAt).
+		Set("NextAttemptAt", f.NextAttemptAt).
+		Set("LeaseNode", "").
+		Set("LeaseExpiresAt", 0).
+		Where(sq.Eq{"BotUserId": botUserID, "LeaseNode": node, "Enabled": true, "Mode": model.BotEventSubscriptionModePush})
+	if f.DisabledReason != "" {
+		query = query.Set("Enabled", false).Set("DisabledReason", f.DisabledReason).Set("UpdateAt", f.UpdateAt)
+	}
+
+	result, err := s.GetMaster().ExecBuilderCtx(rctx.Context(), query)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to record delivery failure for bot_user_id=%s", botUserID)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to count recorded delivery failures for bot_user_id=%s", botUserID)
+	}
+	return rows == 1, nil
+}
+
+// GetPushDeliveryCandidates returns bots that are due, unleased and have a settled event
+// past their ack cursor. It is the sweep that retries failures and covers lost wake-ups.
+func (s *SqlBotEventSubscriptionStore) GetPushDeliveryCandidates(rctx request.CTX, now, settleWindowMillis int64, limit int) ([]string, error) {
+	query := s.getQueryBuilder().
+		Select("s.BotUserId").
+		From(botEventSubscriptionTable + " s").
+		Where(sq.Eq{"s.Mode": model.BotEventSubscriptionModePush, "s.Enabled": true}).
+		Where(sq.LtOrEq{"s.NextAttemptAt": now}).
+		Where(sq.Expr("s.LeaseExpiresAt < " + dbWriteMillis)).
+		Where(sq.Expr("EXISTS (SELECT 1 FROM Users u WHERE u.Id = s.BotUserId AND u.DeleteAt = 0)")).
+		Where(sq.Expr(`EXISTS (SELECT 1 FROM BotEvents e WHERE e.BotUserId = s.BotUserId
+			AND (e.CreateAt, e.Id) > (s.AckCursorCreateAt, s.AckCursorId)
+			AND e.CreateAt <= `+dbReadMillis+` - ?)`, settleWindowMillis)).
+		OrderBy("s.NextAttemptAt", "s.BotUserId").
+		Limit(uint64(limit))
+
+	var ids []string
+	if err := s.GetMaster().SelectBuilderCtx(rctx.Context(), &ids, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get push delivery candidates")
+	}
+	return ids, nil
 }
 
 // Delete removes the subscription together with its events. Deleting a missing

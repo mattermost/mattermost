@@ -1476,6 +1476,22 @@ func (s *TimerLayerBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX,
 	return result, err
 }
 
+func (s *TimerLayerBotEventSubscriptionStore) ClaimForDelivery(rctx request.CTX, botUserID string, node string, leaseMillis int64, now int64) (*model.BotEventSubscription, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.ClaimForDelivery(rctx, botUserID, node, leaseMillis, now)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.ClaimForDelivery", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerBotEventSubscriptionStore) Delete(rctx request.CTX, botUserID string) error {
 	start := time.Now()
 
@@ -1522,6 +1538,70 @@ func (s *TimerLayerBotEventSubscriptionStore) GetForBots(rctx request.CTX, botUs
 		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.GetForBots", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) GetPushDeliveryCandidates(rctx request.CTX, now int64, settleWindowMillis int64, limit int) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.GetPushDeliveryCandidates(rctx, now, settleWindowMillis, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.GetPushDeliveryCandidates", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) RecordDeliveryFailure(rctx request.CTX, botUserID string, node string, f model.BotEventDeliveryFailure) (bool, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.RecordDeliveryFailure(rctx, botUserID, node, f)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.RecordDeliveryFailure", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) RecordDeliverySuccess(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) error {
+	start := time.Now()
+
+	err := s.BotEventSubscriptionStore.RecordDeliverySuccess(rctx, botUserID, cursor, deliveredAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.RecordDeliverySuccess", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) ReleaseLease(rctx request.CTX, botUserID string, node string) error {
+	start := time.Now()
+
+	err := s.BotEventSubscriptionStore.ReleaseLease(rctx, botUserID, node)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.ReleaseLease", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerBotEventSubscriptionStore) Save(rctx request.CTX, sub *model.BotEventSubscription) (*model.BotEventSubscription, error) {

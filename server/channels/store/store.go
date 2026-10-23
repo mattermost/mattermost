@@ -120,6 +120,13 @@ type BotEventSubscriptionStore interface {
 	UpdateSecret(rctx request.CTX, botUserID, secret string, updateAt int64) error
 	SetEnabled(rctx request.CTX, botUserID string, enabled bool, reason string, updateAt int64) error
 	AdvanceAckCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) (bool, error)
+	// ClaimForDelivery acquires or renews the push lease. It returns nil, nil when the row is missing,
+	// not push, disabled, backing off, leased to another node, or its bot user is deactivated.
+	ClaimForDelivery(rctx request.CTX, botUserID, node string, leaseMillis, now int64) (*model.BotEventSubscription, error)
+	ReleaseLease(rctx request.CTX, botUserID, node string) error
+	RecordDeliverySuccess(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) error
+	RecordDeliveryFailure(rctx request.CTX, botUserID, node string, f model.BotEventDeliveryFailure) (bool, error)
+	GetPushDeliveryCandidates(rctx request.CTX, now, settleWindowMillis int64, limit int) ([]string, error)
 	Delete(rctx request.CTX, botUserID string) error
 }
 
