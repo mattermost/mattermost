@@ -44,4 +44,16 @@ describe('utils/isLikelyMarkdown', () => {
         expect(big.length).toBeGreaterThan(50000);
         expect(isLikelyMarkdown(big)).toBe(false);
     });
+
+    test.each([
+        ['unclosed brackets', '['.repeat(49000)],
+        ['unclosed bold markers', '** x '.repeat(9000)],
+        ['unclosed link targets', '[a]('.repeat(9000)],
+    ])('should stay fast on a huge single line of %s', (_name, line) => {
+        const start = Date.now();
+
+        isLikelyMarkdown(line);
+
+        expect(Date.now() - start).toBeLessThan(500);
+    });
 });

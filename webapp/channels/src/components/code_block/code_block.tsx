@@ -54,13 +54,19 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
     // Untagged blocks are checked too, but an explicit other language is respected
     const detectedMarkdown = useMemo(() => !usedLanguage && isLikelyMarkdown(code), [usedLanguage, code]);
-    const canToggleMarkdown = depth === 0 && (SyntaxHighlighting.isMarkdownLanguage(usedLanguage) || detectedMarkdown);
-    const [markdownView, setMarkdownView] = useState<MarkdownView>(() => (canToggleMarkdown ? LocalStorageStore.getMarkdownCodeBlockView(currentUserId) : MarkdownViews.RAW));
+
+    // Search results highlight matches in the source, which rendering would lose, so they stay raw
+    const canToggleMarkdown = depth === 0 && !searchedContent && (SyntaxHighlighting.isMarkdownLanguage(usedLanguage) || detectedMarkdown);
+
+    // The saved preference is read when the block becomes toggleable, and a click overrides it for this block
+    const storedMarkdownView = useMemo(() => (canToggleMarkdown ? LocalStorageStore.getMarkdownCodeBlockView(currentUserId) : MarkdownViews.RAW), [canToggleMarkdown, currentUserId]);
+    const [chosenMarkdownView, setChosenMarkdownView] = useState<MarkdownView | null>(null);
+    const markdownView = chosenMarkdownView ?? storedMarkdownView;
     const showRendered = canToggleMarkdown && markdownView === MarkdownViews.RENDERED;
 
     const handleMarkdownViewChange = (view: MarkdownView) => {
         LocalStorageStore.setMarkdownCodeBlockView(currentUserId, view);
-        setMarkdownView(view);
+        setChosenMarkdownView(view);
     };
 
     // Markdown is prose, so wrap it; the separate line number column can't follow wrapped lines

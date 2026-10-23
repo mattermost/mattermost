@@ -32,8 +32,10 @@ const CONSTRUCTS: Array<(lines: string[], text: string) => boolean> = [
     hasList,
     hasTable,
     (lines) => lines.some((line) => (/^>[ \t]+\S/).test(line)),
-    (lines, text) => (/\[[^\]\n]+\]\([^)\s]+\)/).test(text),
-    (lines, text) => (/(\*\*|__)[^\s*_][^\n]*?\1/).test(text),
+
+    // The quantifiers are bounded so a huge line of unclosed brackets or asterisks can't make these scan quadratically
+    (lines, text) => (/\[[^\]\n]{1,200}\]\([^)\s]{1,500}\)/).test(text),
+    (lines, text) => (/(\*\*|__)[^\s*_][^\n]{0,200}?\1/).test(text),
 ];
 
 export function isLikelyMarkdown(code: string): boolean {

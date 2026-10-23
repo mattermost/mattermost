@@ -10,6 +10,8 @@ import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import {FILE_PREVIEW_ICON_BUTTON_CLASS, FILE_PREVIEW_ICON_BUTTON_PROPS} from '../icon_button';
+
 import './file_preview_modal_main_nav.scss';
 
 interface Props {
@@ -18,8 +20,6 @@ interface Props {
     handlePrev: () => void;
     handleNext: () => void;
 }
-
-const iconButtonProps = {size: 'medium', padding: 'compact', style: 'inverted'} as const;
 
 const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     const {formatMessage} = useIntl();
@@ -38,8 +38,8 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
         >
             <IconButton
                 id='previewArrowLeft'
-                className='file-preview-modal__icon-button file_preview_modal_main_nav__prev'
-                {...iconButtonProps}
+                className={`${FILE_PREVIEW_ICON_BUTTON_CLASS} file_preview_modal_main_nav__prev`}
+                {...FILE_PREVIEW_ICON_BUTTON_PROPS}
                 icon={<Icon glyph={<ChevronLeftIcon/>}/>}
                 onClick={props.handlePrev}
                 aria-label={prevLabel}
@@ -59,8 +59,8 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
         >
             <IconButton
                 id='previewArrowRight'
-                className='file-preview-modal__icon-button file_preview_modal_main_nav__next'
-                {...iconButtonProps}
+                className={`${FILE_PREVIEW_ICON_BUTTON_CLASS} file_preview_modal_main_nav__next`}
+                {...FILE_PREVIEW_ICON_BUTTON_PROPS}
                 icon={<Icon glyph={<ChevronRightIcon/>}/>}
                 onClick={props.handleNext}
                 aria-label={nextLabel}

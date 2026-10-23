@@ -26,15 +26,13 @@ import {copyToClipboard, getFileType} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+import {FILE_PREVIEW_ICON_BUTTON_CLASS, FILE_PREVIEW_ICON_BUTTON_PROPS} from '../icon_button';
 import {isFileInfo} from '../types';
 import type {LinkInfo} from '../types';
 
 import './file_preview_modal_main_actions.scss';
 
 const COPIED_TOOLTIP_DURATION = 2000;
-
-const iconButtonProps = {size: 'medium', padding: 'compact', style: 'inverted'} as const;
-const ICON_BUTTON_CLASS = 'file-preview-modal__icon-button';
 
 interface Props {
     showOnlyClose?: boolean;
@@ -104,8 +102,8 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
             key='close'
         >
             <IconButton
-                {...iconButtonProps}
-                className={ICON_BUTTON_CLASS}
+                {...FILE_PREVIEW_ICON_BUTTON_PROPS}
+                className={FILE_PREVIEW_ICON_BUTTON_CLASS}
                 icon={<Icon glyph={<CloseIcon/>}/>}
                 onClick={handleModalClose}
                 aria-label={closeMessage}
@@ -131,8 +129,8 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
             title={publicTooltipMessage}
         >
             <IconButton
-                {...iconButtonProps}
-                className={ICON_BUTTON_CLASS}
+                {...FILE_PREVIEW_ICON_BUTTON_PROPS}
+                className={FILE_PREVIEW_ICON_BUTTON_CLASS}
                 icon={<Icon glyph={<LinkVariantIcon/>}/>}
                 onClick={copyPublicLink}
                 aria-label={publicTooltipMessage}
@@ -150,8 +148,8 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
             title={downloadMessage}
         >
             <IconButton
-                {...iconButtonProps}
-                className={`${ICON_BUTTON_CLASS} file-preview-modal-main-actions__download`}
+                {...FILE_PREVIEW_ICON_BUTTON_PROPS}
+                className={`${FILE_PREVIEW_ICON_BUTTON_CLASS} file-preview-modal-main-actions__download`}
                 asChild={true}
                 icon={<Icon glyph={<DownloadOutlineIcon/>}/>}
                 aria-label={downloadMessage}
@@ -169,8 +167,8 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
 
     const copy = (
         <CopyButton
-            className={ICON_BUTTON_CLASS}
-            iconButtonProps={iconButtonProps}
+            className={FILE_PREVIEW_ICON_BUTTON_CLASS}
+            iconButtonProps={FILE_PREVIEW_ICON_BUTTON_PROPS}
             isForText={getFileType(fileInfo.extension) === FileTypes.TEXT}
             content={content}
         />

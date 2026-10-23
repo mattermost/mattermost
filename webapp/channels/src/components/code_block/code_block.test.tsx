@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import LocalStorageStore from 'stores/local_storage_store';
+
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import * as Utils from 'utils/utils';
@@ -236,6 +238,44 @@ it shouldn't highlight, it's just garbage`;
             await actImmediate();
 
             expect(screen.getByRole('heading', {level: 1, name: 'Heading'})).toBeInTheDocument();
+        });
+
+        test('should not offer rendering for search results so highlighted matches stay visible', async () => {
+            LocalStorageStore.setMarkdownCodeBlockView('', 'rendered');
+            renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language='markdown'
+                    searchedContent='<div class="post-code__search-highlighting">x</div>'
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('heading', {name: 'Heading'})).not.toBeInTheDocument();
+        });
+
+        test('should apply the saved preference when a block becomes markdown after it was first rendered', async () => {
+            LocalStorageStore.setMarkdownCodeBlockView('', 'rendered');
+            const {rerender} = renderWithContext(
+                <CodeBlock
+                    code='plain text'
+                    language=''
+                />,
+            );
+            await actImmediate();
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+
+            rerender(
+                <CodeBlock
+                    code={markdown}
+                    language=''
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.getByRole('heading', {level: 1, name: 'Heading'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'true');
         });
 
         test('should not offer a second toggle for a markdown fence inside rendered markdown', async () => {

@@ -860,4 +860,18 @@ describe('FilePreviewModal markdown view', () => {
 
         expect(ref.current?.state.content).toBe('');
     });
+
+    test('should keep the file content when the same file is shown again', () => {
+        const {ref} = mountMarkdownModal();
+        act(() => {
+            ref.current?.getContent('# Title');
+        });
+
+        act(() => {
+            ref.current?.handleNext();
+        });
+
+        expect(ref.current?.state.imageIndex).toBe(0);
+        expect(ref.current?.state.content).toBe('# Title');
+    });
 });

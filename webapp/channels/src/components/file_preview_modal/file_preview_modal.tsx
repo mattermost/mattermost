@@ -287,8 +287,9 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     }
 
     showImage = (id: number) => {
-        // Content belongs to the previously shown file until CodePreview reports the new one
-        this.setState({imageIndex: id, content: ''});
+        // Content belongs to the previously shown file until CodePreview reports the new one. Showing the same file
+        // again (e.g. arrow keys in a single-file preview) isn't re-reported, so its content must be kept.
+        this.setState((prev) => ({imageIndex: id, content: id === prev.imageIndex ? prev.content : ''}));
 
         const imageHeight = window.innerHeight - 100;
         this.setState({imageHeight});
