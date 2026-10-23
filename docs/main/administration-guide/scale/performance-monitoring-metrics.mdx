@@ -186,6 +186,12 @@ The metrics above are measured by the Mattermost server as it executes plugin co
 - `mattermost_remote_cluster_msg_sent_total`: Total number of messages sent to the remote cluster.
 - `mattermost_remote_cluster_ping_time`: The ping roundtrip times to the remote cluster.
 
+### Bot event metrics
+
+- `mattermost_bot_events_delivered_total`: Total number of bot events delivered, by `mode`. Push counts events acknowledged with a 2xx response, and pull counts events returned to the client.
+- `mattermost_bot_events_delivery_failures_total`: Total number of failed push delivery attempts, by `reason`.
+- `mattermost_bot_events_enqueued_total`: Total number of bot events written to the outbox, by event `type`.
+
 ### Notification metrics
 
 - `mattermost_notifications_error`: Total number of errors that stop the notification flow.
