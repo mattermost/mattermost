@@ -25,12 +25,7 @@
     .team-sync-note {
         margin-bottom: 16px;
 
-        // A global h4 margin overrides the notice's flex gap; clamp it directly.
-        h4 {
-            margin-bottom: 1em !important;
-        }
-
-        .sectionNoticeBody p {
+        p {
             margin: 0;
         }
     }

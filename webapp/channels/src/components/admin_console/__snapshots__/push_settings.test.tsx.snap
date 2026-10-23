@@ -122,29 +122,43 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
             <div
               class="col-sm-8"
             >
-              <input
-                checked=""
-                type="checkbox"
-              />
-               I understand and accept the Mattermost Hosted Push Notification Service 
-              <a
-                href="https://mattermost.com/hpns-terms/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
-                location="push_settings"
-                rel="noopener noreferrer"
-                target="_blank"
+              <label
+                class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                for="_r_0_"
               >
-                Terms of Service
-              </a>
-               and 
-              <a
-                href="https://mattermost.com/data-processing-addendum/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
-                location="push_settings"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Privacy Policy
-              </a>
-              .
+                <input
+                  checked=""
+                  class="_checkbox__input_18swc_25"
+                  id="_r_0_"
+                  type="checkbox"
+                />
+                <span
+                  class="_checkbox__box_18swc_44"
+                />
+                <span
+                  class="_checkbox__label_18swc_120"
+                >
+                   I understand and accept the Mattermost Hosted Push Notification Service 
+                  <a
+                    href="https://mattermost.com/hpns-terms/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                    location="push_settings"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Terms of Service
+                  </a>
+                   and 
+                  <a
+                    href="https://mattermost.com/data-processing-addendum/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                    location="push_settings"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </span>
+              </label>
             </div>
           </div>
           <div

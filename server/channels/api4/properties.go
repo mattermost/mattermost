@@ -561,8 +561,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	patch.TargetType = nil
 
 	if err := patch.IsValid(); err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			c.Err = appErr
 		} else {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.invalid_patch.app_error", nil, "", http.StatusBadRequest)

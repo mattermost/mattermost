@@ -186,6 +186,19 @@ type FeatureFlags struct {
 	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
 	// Health Dashboard. Off by default.
 	HealthDashboard bool
+
+	// EnableBrotliCompression negotiates Brotli compression for API responses with
+	// clients that advertise support for it, falling back to gzip otherwise. Requires
+	// WebserverMode to be "gzip".
+	EnableBrotliCompression bool
+
+	// FEATURE_FLAG_REMOVAL: OpenIdAttributeSync - Remove this kill switch once
+	// OpenID Connect attribute sync is proven in production. Gates syncing user
+	// attributes from OpenID Connect claims at sign-in: when off, no claims are
+	// read and no values are written, and new openid links are refused. Fields
+	// already linked keep their link, and their values stay sync-locked and
+	// untouched.
+	OpenIdAttributeSync bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -260,6 +273,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnforceLogPathRoot = false
 
 	f.HealthDashboard = false
+
+	f.EnableBrotliCompression = false
+
+	f.OpenIdAttributeSync = true
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

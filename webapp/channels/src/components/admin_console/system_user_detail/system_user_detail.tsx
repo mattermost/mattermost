@@ -186,7 +186,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             this.getUser(userId);
         }
 
-        // Fetch CPA field definitions if not already available
+        // Fetch CPA field definitions if not already available. Attribute
+        // Management now mirrors its writes into the CPA slice in the originating
+        // tab, and property_field_* events keep every other session in sync, so
+        // an already-populated cache is trustworthy here.
         if (this.props.customProfileAttributeEnabled && this.props.customProfileAttributeFields.length === 0) {
             this.props.getCustomProfileAttributeFields();
         }
@@ -1724,6 +1727,13 @@ export function getUserAuthenticationTextField(intl: IntlShape, mfaEnabled: Prop
                 id: 'admin.oauth.office365',
                 defaultMessage: 'Entra ID',
             });
+        } else if (user.auth_service === Constants.OPENID_SERVICE) {
+            service = intl.formatMessage({
+                id: 'admin.userManagement.userDetail.openId',
+                defaultMessage: 'OpenID Connect',
+            });
+        } else if (user.auth_service === Constants.GITLAB_SERVICE) {
+            service = 'GitLab';
         } else if (user.auth_service === Constants.MAGIC_LINK_SERVICE) {
             service = intl.formatMessage({
                 id: 'admin.userManagement.userDetail.magicLink',

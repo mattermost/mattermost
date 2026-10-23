@@ -6,6 +6,7 @@ import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
@@ -19,7 +20,6 @@ import {excludeSessionAttributes, hasUsableAttributes} from 'components/admin_co
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ChannelList from 'components/admin_console/access_control/policy_details/channel_list';
 import ChannelSelectorModal from 'components/channel_selector_modal';
-import SectionNotice from 'components/section_notice';
 import Input from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
@@ -521,7 +521,7 @@ export default function TeamPolicyEditor({
                                     defaultMessage='This policy contains restricted values'
                                 />
                             }
-                            text={formatMessage({
+                            description={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
                                 defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
                             })}
@@ -598,7 +598,7 @@ export default function TeamPolicyEditor({
                                     defaultMessage='Membership policies affect public and private channels differently'
                                 />
                             }
-                            text={formatMessage({
+                            description={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
                                 defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
                             })}

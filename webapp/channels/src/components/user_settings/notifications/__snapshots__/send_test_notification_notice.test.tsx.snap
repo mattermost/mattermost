@@ -9,51 +9,99 @@ exports[`components/user_settings/notifications/send_test_notification_notice sh
     style="margin-top: 20px;"
   >
     <div
-      class="sectionNoticeContainer hint"
+      class="_section-notice_1x4j7_2 _section-notice--type-hint_1x4j7_85"
     >
       <div
-        class="sectionNoticeContent"
+        class="_section-notice__content_1x4j7_11"
       >
-        <i
-          class="icon sectionNoticeIcon icon-lightbulb-outline hint"
-        />
+        <span
+          aria-hidden="true"
+          class="_section-notice__icon_1x4j7_18"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-20_1i355_46"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
         <div
-          class="sectionNoticeBody"
+          class="_section-notice__body_1x4j7_25"
         >
           <h4
-            class="sectionNoticeTitle"
+            class="_section-notice__title_1x4j7_34"
           >
             Troubleshooting notifications
           </h4>
-          <p>
-            Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
-          </p>
           <div
-            class="sectionNoticeActions"
+            class="_section-notice__description_1x4j7_47"
           >
-            <button
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49 sectionNoticeButton"
-              type="button"
+            Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+            <div
+              class="SectionNoticeActions-ebsFMK cCnyOI"
             >
-              <span
-                class="_button__label_aa8j5_31"
+              <button
+                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+                type="button"
               >
-                Send a test notification
-              </span>
-            </button>
-            <button
-              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 sectionNoticeButton"
-              type="button"
-            >
-              <span
-                class="_button__label_aa8j5_31"
+                <span
+                  class="_button__label_aa8j5_31"
+                >
+                  Send a test notification
+                </span>
+              </button>
+              <button
+                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49"
+                type="button"
               >
-                Troubleshooting docs
-                <i
-                  class="icon icon-open-in-new"
-                />
-              </span>
-            </button>
+                <span
+                  class="_button__label_aa8j5_31"
+                >
+                  Troubleshooting docs
+                </span>
+                <span
+                  aria-hidden="true"
+                  class="_button__icon-slot_aa8j5_35"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

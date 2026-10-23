@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Bot} from '@mattermost/types/bots';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -760,22 +761,19 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     defaultMessage='post:all'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8 checkbox'>
-                                <div className='checkbox no-padding'>
-                                    <label htmlFor='postAll'>
-                                        <input
-                                            id='postAll'
-                                            type='checkbox'
-                                            checked={this.state.postAll || this.state.role === roleOptionSystemAdmin}
-                                            onChange={this.updatePostAll}
-                                            disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin}
-                                        />
-                                        <FormattedMessage
-                                            id='bot.add.post_all.enabled'
-                                            defaultMessage='Enabled'
-                                        />
-                                    </label>
-                                </div>
+                            <div className='col-md-5 col-sm-8'>
+                                <Checkbox
+                                    id='postAll'
+                                    className='backstage-form__checkbox'
+                                    checked={this.state.postAll || this.state.role === roleOptionSystemAdmin}
+                                    onChange={this.updatePostAll}
+                                    disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin}
+                                >
+                                    <FormattedMessage
+                                        id='bot.add.post_all.enabled'
+                                        defaultMessage='Enabled'
+                                    />
+                                </Checkbox>
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='bot.add.post_all.help'
@@ -794,22 +792,19 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     defaultMessage='post:channels'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8 checkbox'>
-                                <div className='checkbox no-padding'>
-                                    <label htmlFor='postChannels'>
-                                        <input
-                                            id='postChannels'
-                                            type='checkbox'
-                                            checked={this.state.postChannels || this.state.role === roleOptionSystemAdmin || this.state.postAll}
-                                            onChange={this.updatePostChannels}
-                                            disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin || this.state.postAll}
-                                        />
-                                        <FormattedMessage
-                                            id='bot.add.post_channels.enabled'
-                                            defaultMessage='Enabled'
-                                        />
-                                    </label>
-                                </div>
+                            <div className='col-md-5 col-sm-8'>
+                                <Checkbox
+                                    id='postChannels'
+                                    className='backstage-form__checkbox'
+                                    checked={this.state.postChannels || this.state.role === roleOptionSystemAdmin || this.state.postAll}
+                                    onChange={this.updatePostChannels}
+                                    disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin || this.state.postAll}
+                                >
+                                    <FormattedMessage
+                                        id='bot.add.post_channels.enabled'
+                                        defaultMessage='Enabled'
+                                    />
+                                </Checkbox>
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='bot.add.post_channels.help'

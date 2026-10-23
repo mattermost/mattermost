@@ -31,10 +31,10 @@ func (a *App) GetDeliveryTrackingConfig(rctx request.CTX) (*model.DeliveryTracki
 	}, nil
 }
 
-func (a *App) SaveDeliveryTrackingConfig(rctx request.CTX, cfg *model.DeliveryTrackingConfig) *model.AppError {
+func (a *App) SaveDeliveryTrackingConfig(rctx request.CTX, cfg *model.DeliveryTrackingConfig) error {
 	if cfg.ChannelIds != nil {
 		if err := a.validateTrackedChannelIDs(cfg.ChannelIds); err != nil {
-			return model.AsAppError(err)
+			return err
 		}
 
 		// Persist the channel list before the toggles so a store failure leaves config

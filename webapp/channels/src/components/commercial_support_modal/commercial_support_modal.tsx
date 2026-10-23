@@ -10,6 +10,7 @@ import {Link} from 'react-router-dom';
 import {extractFilenameFromContentDisposition} from '@mattermost/client';
 import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {SupportPacketContent} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
@@ -188,28 +189,24 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 />
                             </strong>
                         </div>
-                        {this.state.packetContents.map((item, index) => (
-                            <div
-                                className='CommercialSupportModal__option'
-                                key={item.id}
-                            >
-                                <input
-                                    className='CommercialSupportModal__options__checkbox'
-                                    id={item.id}
-                                    name={item.id}
-                                    type='checkbox'
-                                    checked={item.selected}
-                                    disabled={item.mandatory}
-                                    onChange={() => this.updateCheckStatus(index)}
-                                />
-                                <label
-                                    className='CommercialSupportModal__options_checkbox_label'
-                                    htmlFor={item.id}
+                        <div className='CommercialSupportModal__options'>
+                            {this.state.packetContents.map((item, index) => (
+                                <div
+                                    className='CommercialSupportModal__option'
+                                    key={item.id}
                                 >
-                                    {item.label}
-                                </label>
-                            </div>
-                        ))}
+                                    <Checkbox
+                                        id={item.id}
+                                        name={item.id}
+                                        checked={item.selected}
+                                        disabled={item.mandatory}
+                                        onChange={() => this.updateCheckStatus(index)}
+                                    >
+                                        {item.label}
+                                    </Checkbox>
+                                </div>
+                            ))}
+                        </div>
                         <div className='CommercialSupportModal__download'>
                             {this.state.error && (
                                 <div className='CommercialSupportModal__error'>

@@ -58,9 +58,18 @@
                 }
 
                 .SwitchSelector {
+                    display: flex;
                     width: 32px;
                     height: 20px;
                     flex-shrink: 0;
+                    align-items: center;
+
+                    // Compass Switch root is a <label>; Bootstrap form labels
+                    // add margin-bottom which misaligns / can clip hit targets.
+                    > label {
+                        width: auto;
+                        margin-bottom: 0;
+                    }
                 }
             }
         }

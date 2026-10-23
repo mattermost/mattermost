@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import {getAutoAddFromRules} from '@mattermost/types/access_control';
@@ -16,7 +17,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import * as Menu from 'components/menu';
-import SectionNotice from 'components/section_notice';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -521,7 +521,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                             defaultMessage='Unable to delete policy'
                                         />
                                     }
-                                    text={deleteError}
+                                    description={deleteError}
                                 />
                             </div>
                         )}

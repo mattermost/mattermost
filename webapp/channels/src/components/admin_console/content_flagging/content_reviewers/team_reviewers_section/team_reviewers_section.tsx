@@ -6,13 +6,13 @@ import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {TeamReviewerSetting} from '@mattermost/types/config';
 import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 
 import {searchTeams} from 'mattermost-redux/actions/teams';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
-import Toggle from 'components/toggle';
 import {TeamIcon} from 'components/widgets/team_icon/team_icon';
 
 import * as Utils from 'utils/utils';
@@ -152,13 +152,15 @@ export default function TeamReviewers({teamReviewersSetting, onChange, disabled}
                     />
                 ),
                 enabled: (
-                    <Toggle
+                    <Switch
                         id={`team_content_reviewer_toggle_${team.id}`}
-                        ariaLabel={intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.toggle', defaultMessage: 'Enable or disable content reviewers for team {teamName}'}, {teamName: team.display_name})}
-                        size='btn-md'
-                        onToggle={getHandleToggle(team.id)}
-                        toggled={teamReviewersSetting[team.id]?.Enabled || false}
+                        size='medium'
+                        onChange={getHandleToggle(team.id)}
+                        checked={teamReviewersSetting[team.id]?.Enabled || false}
                         disabled={disabled}
+                        data-testid={`team_content_reviewer_toggle_${team.id}-button`}
+                        tabIndex={0}
+                        aria-label={intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.toggle', defaultMessage: 'Enable or disable content reviewers for team {teamName}'}, {teamName: team.display_name})}
                     />
                 ),
             },

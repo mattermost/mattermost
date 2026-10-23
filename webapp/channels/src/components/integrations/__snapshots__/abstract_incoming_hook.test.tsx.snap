@@ -127,12 +127,21 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -350,12 +359,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -573,12 +591,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot w
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -796,12 +823,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -1028,12 +1064,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -1225,12 +1270,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -1422,12 +1476,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/mattermost/logr/v2"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -355,7 +356,8 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 		dateTo = time.Now()
 	}
 
-	timestamp, err := time.Parse(model.LogFilterDateLayout, entry.Timestamp)
+	// Entries use mlog's layout, which writes UTC as "Z" rather than "+00:00".
+	timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
 	if err != nil {
 		rctx.Logger().Debug("Cannot parse timestamp, skipping")
 		return false

@@ -8,6 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -298,10 +299,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                         defaultMessage='Lock to this channel'
                                     />
                                 </label>
-                                <div className='col-md-5 col-sm-8 checkbox'>
-                                    <input
+                                <div className='col-md-5 col-sm-8'>
+                                    <Checkbox
                                         id='channelLocked'
-                                        type='checkbox'
+                                        className='backstage-form__checkbox'
                                         checked={this.state.channelLocked}
                                         onChange={this.updateChannelLocked}
                                     />

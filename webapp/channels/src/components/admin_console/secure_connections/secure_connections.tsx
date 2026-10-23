@@ -7,11 +7,11 @@ import {useIntl, FormattedMessage, defineMessages} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import type {ButtonEmphasis} from '@mattermost/compass-ui/components/button';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import BuildingSvg from './building.svg';

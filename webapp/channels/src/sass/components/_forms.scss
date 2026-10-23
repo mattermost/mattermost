@@ -106,6 +106,13 @@
     &__radio--label-before {
         flex-direction: row-reverse;
     }
+
+    // Compass Checkbox renders label text after the control; reverse flex order when
+    // apps forms request label_position "before".
+    &--label-before {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
 }
 
 .checkbox-matrix {
@@ -310,9 +317,13 @@
 
 .form-control[disabled],
 .form-control[readonly],
-fieldset[disabled] .form-control,
-.backstage-form .form-control[disabled] {
+fieldset[disabled] .form-control {
     background-color: #f9f9f9;
+}
+
+.backstage-form .form-control[disabled] {
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
 }
 
 input[type="file"]:focus,
