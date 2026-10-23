@@ -1502,7 +1502,7 @@ def preflight_checks(changelog_path: str, mode: str, milestones: dict, go_source
             checks.append(_check(f"milestone in {repo}", "pass", f"{MILESTONE_TITLE} found"))
         elif number is None:
             checks.append(_check(f"milestone in {repo}", "fail", f"no {MILESTONE_TITLE} milestone",
-                                 "Create it, or check the milestone input (it is four-part, e.g. v12.1.0).",
+                                 "Create it, or check the milestone input (it is the full three-part version, e.g. v12.1.0).",
                                  blocking=not found))
         else:
             checks.append(_check(f"milestone in {repo}", "unknown", number,
