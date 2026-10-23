@@ -2,7 +2,7 @@
 # E2E autofix on merge. After each master E2E run, the toolkit's e2e-test-watch action picks
 # the Playwright specs that keep failing on master, and the agent's own PRs that no longer merge.
 # This workflow adds the server images to test with and sends each request to the "E2E Autofix"
-# Cursor automation, which follows .cursor/automations/e2e-autofix.md.
+# Cursor automation. Its instructions live in the automation, not in this repository.
 #
 # Without the webhook secrets it only writes the job summary. Set the variable
 # E2E_ENABLE_AUTOFIX to "false" to turn it off.
