@@ -326,6 +326,32 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		assert.True(t, shaped.Permissions.Filtered)
 	})
 
+	t.Run("serveV3 false reports a linked field whose template read fails as shared_only", func(t *testing.T) {
+		// The linked field's own tiers are public, as they are whenever the
+		// template is masked: masking lives on the template alone.
+		field := newLinkedField(model.NewId())
+		field.Permissions.Restrictions.Value.Read = model.PermissionLevelEveryone
+		field.Permissions.Restrictions.Option.Read = model.PermissionLevelEveryone
+
+		session := model.Session{UserId: th.BasicUser.Id}
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, false)
+		require.NotNil(t, shaped)
+		assert.Nil(t, shaped.Permissions)
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, shaped.Attrs[model.PropertyAttrsAccessMode])
+		// The projection works on a copy; the caller's field is untouched.
+		assert.NotContains(t, field.Attrs, model.PropertyAttrsAccessMode)
+	})
+
+	t.Run("serveV3 false keeps source_only for a linked field whose own tiers say so and whose template read fails", func(t *testing.T) {
+		field := newLinkedField(model.NewId())
+		field.Permissions.Restrictions.Value.Read = model.PermissionLevelNone
+
+		session := model.Session{UserId: th.BasicUser.Id}
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, session, field, false)
+		require.NotNil(t, shaped)
+		assert.Equal(t, model.PropertyAccessModeSourceOnly, shaped.Attrs[model.PropertyAttrsAccessMode])
+	})
+
 	t.Run("a batch reads a shared template's masking once for every field linked to it", func(t *testing.T) {
 		template := newTemplate(&model.Permissions{
 			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
