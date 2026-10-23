@@ -1,0 +1,20 @@
+# Checklist item titles of the Cloud & Self-Hosted release playbook on Hub, which rules.yml
+# ticks by title. Refresh it from the playbook's export whenever the playbook changes; the
+# rules test fails if a rule names an item that is not here.
+title: Cloud & Self-Hosted Release
+checklists:
+  - title: Release Branch Cut
+    items:
+      - title: Merge the version.go PRs
+      - title: Triage new regressions
+  - title: Code Freeze
+    items:
+      - title: Update Hub to the release branch
+      - title: Update NOTICE.txt on the release branch
+      - title: Confirm RC tags exist in mattermost and enterprise
+      - title: Confirm E2E results are posted for the latest RC
+      - title: Confirm every merged PR has a changelog label
+  - title: Final Build
+    items:
+      - title: Confirm approved cherry-picks are on the release branch
+      - title: Confirm final tags exist in mattermost and enterprise
