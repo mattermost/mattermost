@@ -208,5 +208,182 @@ class AttributionTest(unittest.TestCase):
         gc.require_sources_attributed(sources, {"N1", "N2"})
 
 
+NOTE_BODY = "#### Summary\nx\n\n#### Release Note\n```release-note\nAdded a thing.\n```\n"
+NONE_BODY = "#### Summary\nx\n\n#### Release Note\n<!-- Write NONE if not needed -->\n```release-note\nNONE\n```\n"
+EMPTY_TEMPLATE_BODY = "#### Summary\nx\n\n#### Release Note\n<!-- Write NONE if no release note is needed -->\n```release-note\n\n```\n"
+
+
+class ReleaseNoteFlagTest(unittest.TestCase):
+    def test_status(self):
+        self.assertEqual(gc.release_note_status(NOTE_BODY), "notes")
+        self.assertEqual(gc.release_note_status(NONE_BODY), "none")
+        self.assertEqual(gc.release_note_status(EMPTY_TEMPLATE_BODY), "missing")
+        self.assertEqual(gc.release_note_status("Just a summary."), "missing")
+        self.assertEqual(gc.release_note_status(""), "missing")
+
+    def test_flags(self):
+        self.assertIsNone(gc.flag_reason("notes", {"release-note"}))
+        self.assertIsNone(gc.flag_reason("none", set()))
+        self.assertIsNone(gc.flag_reason("missing", {"release-note-none"}))
+        self.assertIn("no release-note-none label", gc.flag_reason("missing", set()))
+        self.assertIn("labelled release-note", gc.flag_reason("none", {"release-note"}))
+
+
+class SeedTest(unittest.TestCase):
+    def test_seed_includes_prs_merged_before_the_pr_was_opened_and_derived_notes(self):
+        notes = [
+            {"source": "mattermost/mattermost#1", "merged_at": "2026-10-19T10:00:00Z"},
+            {"source": "mattermost/mattermost#2", "merged_at": "2026-10-21T10:00:00Z"},
+            {"source": "mattermost/mattermost#3", "merged_at": None},
+            {"source": "plugin:mattermost-plugin-calls@v1.12.6", "derived": True},
+        ]
+        self.assertEqual(
+            gc.seed_sources(notes, "2026-10-20T05:50:50Z"),
+            {"mattermost/mattermost#1", "plugin:mattermost-plugin-calls@v1.12.6"},
+        )
+
+
+ENTRY_V12_1 = """## Release v12.1 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \\{#release-v12-1-feature-release}
+
+**Release day: 2026-11-13**
+
+### Improvements
+See [this blog post](https://example.com) on the highlights in our latest release.
+
+#### User Interface
+ - A reviewer rewrote this bullet completely.
+
+### Bug Fixes
+ - Fixed an issue that was already here.
+
+### Go Version
+ - v12.1 is built with Go ``v1.26.10``.
+"""
+
+
+class MainTest(unittest.TestCase):
+    """main() end to end, with the GitHub API and git stubbed."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+        self.changelog = self.tmp / "mattermost-v12-changelog.mdx"
+        self.out = self.tmp / "out"
+        self.saved = {
+            name: getattr(gc, name)
+            for name in ("get_milestone_number", "get_merged_prs", "polish_with_ai", "VERSION", "MILESTONE_TITLE", "REPOS")
+        }
+        self.saved_derived = gc.changelog_release.derived_notes
+        self.saved_show = gc.changelog_release.git_show
+        self.saved_env = dict(os.environ)
+        gc.VERSION = gc.MILESTONE_TITLE = "v12.1.0"
+        gc.REPOS = ["mattermost/mattermost"]
+        gc.get_milestone_number = lambda repo, title: 7
+        gc.get_merged_prs = lambda repo, number: self.prs
+        gc.changelog_release.derived_notes = lambda base, head: [
+            {"source": "plugin:mattermost-plugin-calls@v1.12.6", "derived": True,
+             "text": "Pre-packaged Calls plugin version [v1.12.6](https://example.com).",
+             "fallback": "Pre-packaged Calls plugin version [v1.12.6](https://example.com)."},
+        ] if base else []
+        gc.changelog_release.git_show = lambda ref, path: "FROM golang:1.27.1-bookworm\n"
+        os.environ.pop("ANTHROPIC_API_KEY", None)
+        os.environ.update({
+            "CHANGELOG_PATH": str(self.changelog), "OUTPUT_DIR": str(self.out),
+            "RELEASE_DATE": "2026-11-13", "RELEASE_HEAD_REF": "origin/release-12.1",
+            "RELEASE_BASE_REF": "v12.0.0", "GITHUB_OUTPUT": str(self.tmp / "gh_output"),
+        })
+        self.prs = [
+            self._pr(1, NOTE_BODY.replace("Added a thing.", "Added the first thing."), "2026-10-19T10:00:00Z"),
+            self._pr(2, NOTE_BODY.replace("Added a thing.", "Fixed an issue found later."), "2026-10-21T10:00:00Z"),
+            self._pr(3, NONE_BODY, "2026-10-19T11:00:00Z", ["release-note-none"]),
+            self._pr(4, EMPTY_TEMPLATE_BODY, "2026-10-19T12:00:00Z"),
+        ]
+
+    def tearDown(self):
+        for name, value in self.saved.items():
+            setattr(gc, name, value)
+        gc.changelog_release.derived_notes = self.saved_derived
+        gc.changelog_release.git_show = self.saved_show
+        os.environ.clear()
+        os.environ.update(self.saved_env)
+
+    @staticmethod
+    def _pr(number, body, merged_at, labels=()):
+        return {
+            "number": number, "title": f"PR {number}", "body": body,
+            "labels": [{"name": label} for label in labels],
+            "pull_request": {"merged_at": merged_at},
+        }
+
+    def _payload(self):
+        import json
+        return json.loads((self.out / "sections.json").read_text())
+
+    def test_create_reads_go_version_derived_notes_and_flags(self):
+        gc.main()
+        content = self.changelog.read_text()
+        payload = self._payload()
+        self.assertIn("v12.1 is built with Go ``v1.27.1``.", content)
+        self.assertIn("Pre-packaged Calls plugin version", content)
+        self.assertNotIn("[[N", content)
+        self.assertEqual(payload["schema_version"], 2)
+        self.assertEqual(payload["derived_sources"], ["plugin:mattermost-plugin-calls@v1.12.6"])
+        self.assertEqual([pr["source"] for pr in payload["prs_flagged"]], ["mattermost/mattermost#4"])
+        self.assertEqual(payload["metrics"]["prs_merged"], 4)
+        self.assertEqual(payload["metrics"]["prs_flagged"], 1)
+        self.assertIn("plugin:mattermost-plugin-calls@v1.12.6", (self.out / "pr_body.md").read_text())
+        summary = (self.out / "summary.md").read_text()
+        self.assertIn("1 merged PR(s) need a release-note decision", summary)
+        self.assertIn("[mattermost/mattermost#4](https://github.com/mattermost/mattermost/pull/4)", summary)
+
+        with self.assertRaises(RuntimeError) as caught:
+            gc.main()
+        self.assertIn("already has a v12.1 entry", str(caught.exception))
+        os.environ["DRY_RUN"] = "true"
+        gc.main()
+
+    def test_update_seeds_a_pr_opened_before_source_tracking(self):
+        self.changelog.write_text(gc.CHANGELOG_HEADER_TEMPLATE.format(major=12) + "\n\n" + ENTRY_V12_1)
+        body = self.tmp / "body.md"
+        body.write_text("Auto-generated changelog for milestone `v12.1.0`.")
+        os.environ.update({"MODE": "update", "PR_BODY_FILE": str(body)})
+
+        with self.assertRaises(RuntimeError):
+            gc.main()
+        self.assertIn("A reviewer rewrote this bullet completely.", self.changelog.read_text())
+
+        os.environ["SOURCES_SEED_BEFORE"] = "2026-10-20T05:50:50Z"
+        before = self.changelog.read_text()
+        with self.assertRaises(RuntimeError) as caught:
+            gc.main()
+        self.assertIn("no section to be merged into", str(caught.exception))
+        self.assertEqual(self.changelog.read_text(), before)
+
+        gc.polish_with_ai = lambda notes: (
+            "### Bug Fixes\n" + "\n".join(f" - {n['text']} [[{n['id']}]]" for n in notes), True
+        )
+        gc.main()
+        after = self.changelog.read_text()
+        payload = self._payload()
+
+        self.assertEqual(payload["sources_added"], ["mattermost/mattermost#2"])
+        self.assertEqual(payload["seeded_before"], "2026-10-20T05:50:50Z")
+        self.assertIn("Fixed an issue found later.", after)
+        self.assertNotIn("Added the first thing.", after)
+        self.assertEqual(after.count("Pre-packaged Calls plugin"), 0)
+        before_lines = before.split("\n")
+        self.assertTrue(all(line in after.split("\n") for line in before_lines), "update must only insert")
+        recorded = gc.parse_sources_comment((self.out / "pr_body.md").read_text())
+        self.assertEqual(recorded, {
+            "mattermost/mattermost#1", "mattermost/mattermost#2",
+            "plugin:mattermost-plugin-calls@v1.12.6",
+        })
+
+        body.write_text((self.out / "pr_body.md").read_text())
+        gc.main()
+        self.assertEqual(self.changelog.read_text(), after)
+        self.assertFalse(self._payload()["changed"])
+
+
 if __name__ == "__main__":
     unittest.main()

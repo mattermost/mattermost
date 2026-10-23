@@ -13,7 +13,17 @@ Expects these environment variables:
                       the anchor slug other docs pages deep-link to.
   RELEASE_DATE      - (optional) Release day date (e.g. "2026-05-15"). Defaults to today.
   GO_VERSION        - (optional) Go version used in this release (e.g. "go1.22.5").
-                      If not provided, changelog notes it is unchanged from previous release.
+                      If not provided, it is read from RELEASE_HEAD_REF's
+                      server/build/Dockerfile.buildenv, then from the previous entry.
+  RELEASE_HEAD_REF  - (optional) Git ref of this release, e.g. "origin/release-12.1".
+  RELEASE_BASE_REF  - (optional) Git ref of the previous release, e.g. "v12.0.0". With
+                      both set, plugin version changes, WebSocket events and schema
+                      migrations between them are added as notes (see changelog_release.py).
+  SOURCES_SEED_BEFORE - (update mode, optional) When the changelog PR body has no
+                      changelog-sources list (a PR opened before it existed), treat PRs
+                      merged before this ISO time as already included instead of failing.
+  DRY_RUN           - (optional) "true" allows create mode to run for a version whose
+                      entry already exists in the changelog file, for previews.
   BLOG_POST_URL     - (optional) Blog post URL for the Improvements section.
                       Auto-constructed from VERSION if not provided.
   ANTHROPIC_API_KEY - (optional) If set, release notes are polished by Claude
@@ -40,10 +50,15 @@ must therefore be MDX-safe (see the "MDX safety" rule in SYSTEM_PROMPT).
 import json
 import os
 import re
+import sys
+import time
 import requests
 from datetime import date, datetime, timezone
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import changelog_release  # noqa: E402
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 REPOS = [r.strip() for r in os.environ["REPOS"].split(",") if r.strip()]
@@ -165,7 +180,9 @@ Here are your instructions:
 
 11.  **Focus:** Output only the section content (headings and bullet points). Do not include the release version header line or any introductory or concluding remarks from yourself.
 
-12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. End every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. If a bullet combines several notes, list every ID: `[[N3,N7]]`. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing."""
+12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. End every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. If a bullet combines several notes, list every ID: `[[N3,N7]]`. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
+
+13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code: pre-packaged plugin version changes, added or removed WebSocket events, and database schema migrations (given as SQL). Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing."""
 
 
 def get_milestone_number(repo: str, title: str) -> int | None:
@@ -226,7 +243,9 @@ def get_merged_prs(repo: str, milestone_number: int) -> list:
                 pr_url = f"https://api.github.com/repos/{repo}/pulls/{item['number']}"
                 pr_resp = SESSION.get(pr_url, timeout=API_TIMEOUT)
                 pr_resp.raise_for_status()
-                if pr_resp.json().get("merged"):
+                pr_data = pr_resp.json()
+                if pr_data.get("merged"):
+                    item["pull_request"]["merged_at"] = pr_data.get("merged_at")
                     prs.append(item)
         page += 1
     return prs
@@ -283,6 +302,49 @@ def extract_release_notes(body: str) -> list[str] | None:
     return notes if notes else None
 
 
+# Labels that record a deliberate "no release note" decision.
+NO_NOTE_LABELS = {"release-note-none", "release-note/none", "release-note/na", "Changelog/Not Needed"}
+
+
+def release_note_status(body: str) -> str:
+    """"notes" if the PR has a release note, "none" if its author wrote NONE, else "missing"."""
+    if extract_release_notes(body):
+        return "notes"
+    text = re.sub(r"<!--.*?-->", "", (body or "").replace("\r\n", "\n"), flags=re.DOTALL)
+    section = re.search(r"####\s+Release\s+Notes?\s*\n(.*?)(?=\n####|\Z)", text, re.DOTALL | re.IGNORECASE)
+    blocks = re.findall(r"```release-note\s*\n(.*?)\n?```", text, re.DOTALL)
+    candidates = ([section.group(1)] if section else []) + blocks
+    return "none" if any(re.search(r"\bNONE\b", c, re.IGNORECASE) for c in candidates) else "missing"
+
+
+def flag_reason(status: str, labels: set) -> str | None:
+    """Why a merged PR needs a human look before its notes are silently left out, or None."""
+    if "release-note" in labels and status != "notes":
+        return "labelled release-note, but no release note was found in the PR body"
+    if status == "missing" and not labels & NO_NOTE_LABELS:
+        return "no release note and no release-note-none label"
+    return None
+
+
+def parse_github_time(value: str) -> datetime:
+    return datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+
+
+def seed_sources(notes: list[dict], cutoff: str) -> set:
+    """The sources a changelog PR opened before source tracking already covers.
+
+    Such a PR has no changelog-sources list, but it was generated from every PR merged
+    before it was opened, so those are treated as included. Derived notes count as
+    included as well: such a PR predates them, so its plugin and schema bullets were
+    written by hand and adding generated ones would duplicate them.
+    """
+    limit = parse_github_time(cutoff)
+    return {
+        note["source"] for note in notes
+        if note.get("derived") or (note.get("merged_at") and parse_github_time(note["merged_at"]) <= limit)
+    }
+
+
 # Output cap for the polish request. A full feature release is comfortably larger than
 # the previous 4096: the v12.0 entry is ~32k characters, roughly 8k tokens.
 MAX_OUTPUT_TOKENS = 16384
@@ -296,7 +358,8 @@ def _raw_bullets(notes: list[dict]) -> str:
     """
     blocks = []
     for note in notes:
-        lines = note["text"].replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        text = note.get("fallback") or note["text"]
+        lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
         blocks.append(f"- {lines[0]} [[{note['id']}]]")
         for line in lines[1:]:
             blocks.append(f"  {line.strip()}" if line.strip() else "")
@@ -1127,13 +1190,29 @@ def merge_into_entry(content: str, version_short: str, fragment: str) -> str:
     return "\n".join(lines)
 
 
+def require_fragment_merged(fragment: str, merged: str) -> None:
+    """Fail when a bullet of the fragment did not land in the merged entry.
+
+    Its source would still be recorded as included, so the note would never be added.
+    A bullet outside any ``###`` section (the no-API-key fallback) has nowhere to go.
+    """
+    present = {line.strip() for line in merged.split("\n")}
+    lost = [line.strip() for line in fragment.split("\n") if _BULLET_RE.match(line) and line.strip() not in present]
+    if lost:
+        raise RuntimeError(
+            f"Refusing to write the changelog: {len(lost)} new bullet(s) have no section to be "
+            f"merged into (first: {lost[0]!r}). Update mode needs AI-categorized notes; set "
+            "ANTHROPIC_API_KEY. Nothing was written."
+        )
+
+
 def remove_section(fragment: str, title: str) -> str:
     """Drop a ``###`` section, heading and body, from generated text."""
     return re.sub(r"(?ms)^### " + re.escape(title) + r"\b.*?(?=^### \S|\Z)", "", fragment).strip() + "\n"
 
 
 def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> None:
-    """Write entry.mdx, sections.json and pr_body.md for the workflow to publish."""
+    """Write entry.mdx, sections.json, pr_body.md and summary.md for the workflow to publish."""
     if not output_dir:
         return
     os.makedirs(output_dir, exist_ok=True)
@@ -1144,6 +1223,55 @@ def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> N
         f.write("\n")
     with open(os.path.join(output_dir, "pr_body.md"), "w", encoding="utf-8") as f:
         f.write(pr_body)
+    with open(os.path.join(output_dir, "summary.md"), "w", encoding="utf-8") as f:
+        f.write(render_summary(payload, entry))
+
+
+def _pr_link(source: str) -> str:
+    repo, _, number = source.partition("#")
+    return f"[{source}](https://github.com/{repo}/pull/{number})" if number else f"`{source}`"
+
+
+def render_summary(payload: dict, entry: str) -> str:
+    """The run summary: what was generated, the run's metrics, and the PRs that need a look."""
+    metrics = payload["metrics"]
+    lines = [f"## {payload['version']} changelog ({payload['mode']})", ""]
+    if payload["mode"] == "update" and not payload["changed"]:
+        lines += ["No new release notes since the last run.", ""]
+    if payload.get("seeded_before"):
+        lines += [
+            f"The changelog PR had no changelog-sources list, so the PRs merged before it was "
+            f"opened ({payload['seeded_before']}) and every derived note were treated as already "
+            "included. Check the added bullets against the edits already made in the PR.",
+            "",
+        ]
+
+    lines += ["| Metric | Value |", "|:---|---:|"]
+    lines += [f"| {key.replace('_', ' ')} | {value} |" for key, value in metrics.items()]
+    lines.append("")
+
+    if payload["prs_flagged"]:
+        lines += [
+            f"### {len(payload['prs_flagged'])} merged PR(s) need a release-note decision",
+            "These were left out of the changelog. Add a release note to the PR, or the "
+            "`release-note-none` label if it needs none, then re-run.",
+            "",
+        ]
+        lines += [f"- {_pr_link(pr['source'])}: {pr['title']} — {pr['reason']}" for pr in payload["prs_flagged"]]
+        lines.append("")
+    if payload["sources_unattributed"]:
+        lines += ["### Notes no bullet was attributed to", ""]
+        lines += [f"- {_pr_link(source)}" for source in payload["sources_unattributed"]]
+        lines.append("")
+
+    if entry.strip():
+        lines += ["Added to the open changelog PR:" if payload["mode"] == "update" else "Generated entry:", ""]
+        lines += ["````mdx", entry.rstrip(), "````", ""]
+    lines.append(
+        "Each section's bullets and their sources are in `sections.json` in the "
+        "`changelog-output` artifact."
+    )
+    return "\n".join(lines) + "\n"
 
 
 def set_github_output(name: str, value) -> None:
@@ -1198,10 +1326,12 @@ def main():
 
     print(f"🔍 Milestone: {MILESTONE_TITLE} | Repos: {', '.join(REPOS)} | Mode: {mode}\n")
 
+    started = time.monotonic()
     # Each note keeps the PR it came from, so every bullet written can be traced back.
     all_notes = []
     total_prs = 0
     no_notes_prs = []
+    flagged_prs = []
 
     for repo in REPOS:
         print(f"── {repo}")
@@ -1214,15 +1344,35 @@ def main():
         total_prs += len(prs)
 
         for pr in sorted(prs, key=lambda p: p["number"]):
-            notes = extract_release_notes(pr.get("body") or "")
+            source = f"{repo}#{pr['number']}"
+            body = pr.get("body") or ""
+            notes = extract_release_notes(body)
+            merged_at = (pr.get("pull_request") or {}).get("merged_at")
             if notes:
                 for note in notes:
-                    all_notes.append({"source": f"{repo}#{pr['number']}", "text": note})
+                    all_notes.append({"source": source, "text": note, "merged_at": merged_at})
                 print(f"   ✅ #{pr['number']}: {pr['title']}")
             else:
                 no_notes_prs.append((repo, pr))
                 print(f"   ⏭️  #{pr['number']}: {pr['title']} (NONE / no notes)")
+            reason = flag_reason(release_note_status(body), {label["name"] for label in pr.get("labels") or []})
+            if reason:
+                flagged_prs.append({"source": source, "title": pr["title"], "reason": reason})
+                print(f"::warning title=Release note needed::{source} {pr['title']}: {reason}")
         print()
+
+    # What the release changes that developers rarely write notes for: pre-packaged
+    # plugin versions, WebSocket events and schema migrations, read from the git diff
+    # between the previous release's tag and this release's branch.
+    base_ref = os.environ.get("RELEASE_BASE_REF", "").strip()
+    head_ref = os.environ.get("RELEASE_HEAD_REF", "").strip()
+    derived = changelog_release.derived_notes(base_ref, head_ref)
+    if derived:
+        print(f"🔧 {len(derived)} change(s) read from the {base_ref}..{head_ref} diff:")
+        for note in derived:
+            print(f"   {note['source']}")
+        print()
+    all_notes += derived
 
     # In update mode only the PRs the open changelog PR does not already include are
     # generated. Which PRs those are is read from the PR body, not from the entry text,
@@ -1232,6 +1382,7 @@ def main():
     # only its included-PR list is replaced.
     pr_body = default_pr_body()
     included = set()
+    seeded_before = os.environ.get("SOURCES_SEED_BEFORE", "").strip() if mode == "update" else ""
     body_file = os.environ.get("PR_BODY_FILE", "").strip()
     if body_file and os.path.exists(body_file):
         with open(body_file, "r", encoding="utf-8") as f:
@@ -1241,11 +1392,20 @@ def main():
             raise RuntimeError("MODE=update needs PR_BODY_FILE pointing at the changelog PR's body")
         listed = parse_sources_comment(pr_body)
         if listed is None:
-            raise RuntimeError(
-                "The changelog PR body has no changelog-sources comment, so there is no way "
-                "to tell which PRs it already includes. Re-run in regenerate mode, which "
-                "rebuilds the entry and records the list."
+            if not seeded_before:
+                raise RuntimeError(
+                    "The changelog PR body has no changelog-sources comment, so there is no way "
+                    "to tell which PRs it already includes. Re-run in regenerate mode, which "
+                    "rebuilds the entry and records the list, or set SOURCES_SEED_BEFORE to the "
+                    "time the PR was opened."
+                )
+            listed = seed_sources(all_notes, seeded_before)
+            print(
+                f"⚠️  The changelog PR has no changelog-sources list. Treating the {len(listed)} "
+                f"source(s) merged before {seeded_before}, and every derived note, as already included."
             )
+        else:
+            seeded_before = ""
         included = listed
         all_notes = [note for note in all_notes if note["source"] not in included]
         print(f"ℹ️  {len(included)} PR(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
@@ -1260,10 +1420,29 @@ def main():
     release_type = os.environ.get("RELEASE_TYPE", "feature").strip().lower()
     release_date = os.environ.get("RELEASE_DATE", "").strip() or date.today().strftime("%Y-%m-%d")
     go_version = os.environ.get("GO_VERSION", "").strip()
+    if not go_version and head_ref:
+        # The release branch's build image is what the release is built with; reusing the
+        # previous entry's version is wrong in every release that bumps Go.
+        go_version = changelog_release.go_version_from_buildenv(
+            changelog_release.git_show(head_ref, changelog_release.BUILDENV_DOCKERFILE)
+        ) or ""
+        if go_version:
+            print(f"ℹ️  Go version read from {head_ref}:{changelog_release.BUILDENV_DOCKERFILE}: {go_version}")
     # Derived from VERSION by default so a new major version needs no edit here, and
     # cannot land in the previous major's file. CHANGELOG_PATH overrides it.
     changelog_path = os.environ.get("CHANGELOG_PATH") or changelog_path_for_version(VERSION)
     print(f"📄 Changelog file: {changelog_path}")
+
+    # A second create would insert a duplicate entry above the published one. A dry run
+    # is still allowed, so a shipped release can be regenerated to compare against.
+    if mode == "create" and os.environ.get("DRY_RUN", "").strip().lower() != "true":
+        if os.path.exists(changelog_path):
+            with open(changelog_path, "r", encoding="utf-8") as f:
+                if changelog_release.has_entry(f.read(), VERSION):
+                    raise RuntimeError(
+                        f"{changelog_path} already has a {version_short} entry. Run in update mode "
+                        "against the open changelog PR, or as a dry run to preview."
+                    )
 
     items = []
     referenced = set()
@@ -1284,6 +1463,7 @@ def main():
             with open(changelog_path, "r", encoding="utf-8") as f:
                 content = f.read()
             updated = merge_into_entry(content, version_short, fragment)
+            require_fragment_merged(fragment, updated)
             with open(changelog_path, "w", encoding="utf-8") as f:
                 f.write(updated)
             entry = fragment
@@ -1398,8 +1578,12 @@ def main():
     included |= {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
     pr_body = render_pr_body(pr_body, included)
 
+    added_sources = set(sources_by_id.values())
+    derived_sources = {note["source"] for note in derived}
     payload = {
-        "schema_version": 1,
+        # 2: sources may be derived keys (plugin:…, websocket:…, migration:…) as well as
+        # owner/repo#number; adds prs_flagged, derived_sources, seeded_before and metrics.
+        "schema_version": 2,
         "version": VERSION,
         "milestone": MILESTONE_TITLE,
         "release_type": release_type,
@@ -1410,15 +1594,32 @@ def main():
         "changed": changed,
         "sections": group_items_by_section(items),
         "sources_included": sorted(included, key=_source_sort_key),
-        "sources_added": sorted(set(sources_by_id.values()), key=_source_sort_key),
+        "sources_added": sorted(added_sources, key=_source_sort_key),
         "sources_unattributed": unattributed,
+        "derived_sources": sorted(derived_sources),
+        "seeded_before": seeded_before,
         "prs_without_notes": [
             {"source": f"{repo}#{pr['number']}", "title": pr["title"]} for repo, pr in no_notes_prs
         ],
+        "prs_flagged": flagged_prs,
+        "metrics": {
+            "prs_merged": total_prs,
+            "prs_with_notes": total_prs - len(no_notes_prs),
+            "prs_without_notes": len(no_notes_prs),
+            "prs_flagged": len(flagged_prs),
+            "derived_changes": len(derived_sources),
+            "sources_added": len(added_sources),
+            "bullets_written": len(items),
+            "sources_unattributed": len(unattributed),
+            "ai_polished": ai_polished,
+            "duration_seconds": round(time.monotonic() - started, 1),
+        },
     }
     write_outputs(output_dir, entry, payload, pr_body)
     set_github_output("changed", "true" if changed else "false")
-    set_github_output("added_prs", len(set(sources_by_id.values())))
+    set_github_output("added_prs", len(added_sources - derived_sources))
+    set_github_output("added_derived", len(added_sources & derived_sources))
+    set_github_output("flagged_prs", len(flagged_prs))
 
     if no_notes_prs:
         print(f"\n⚠️  {len(no_notes_prs)} PR(s) had no release notes (marked NONE or section missing):")
