@@ -198,6 +198,21 @@ describe('components/integrations/ConfirmIntegration', () => {
             expect(replace).not.toHaveBeenCalled();
         });
 
+        test('bot with a signing secret shows it with a copy button', () => {
+            renderConfirm(`${botSearch()}&secret=whsec_abc%2B123`);
+
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(screen.getByText('whsec_abc+123')).toBeInTheDocument();
+            expect(screen.getByLabelText('Copy Secret')).toBeInTheDocument();
+        });
+
+        test('bot without a token still shows the secret', () => {
+            renderConfirm(`?type=bots&id=${userId}&secret=whsec_abc`);
+
+            expect(screen.getByText('whsec_abc')).toBeInTheDocument();
+            expect(screen.queryByLabelText('Copy Token')).not.toBeInTheDocument();
+        });
+
         test('bot with warnings shows the banner above the help text and keeps the token', () => {
             renderConfirm(botSearch({attributesFailed: true}));
 

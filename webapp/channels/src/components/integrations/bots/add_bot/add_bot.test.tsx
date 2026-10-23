@@ -19,6 +19,7 @@ describe('components/integrations/bots/AddBot', () => {
 
     const actions = {
         createBot: jest.fn(),
+        createBotWithEventSubscription: jest.fn(),
         patchBot: jest.fn(),
         uploadProfileImage: jest.fn(),
         setDefaultProfileImage: jest.fn(),
@@ -27,6 +28,9 @@ describe('components/integrations/bots/AddBot', () => {
         getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: []}),
         getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
         updateUserCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
+        getBotEventSubscription: jest.fn().mockResolvedValue({data: null}),
+        upsertBotEventSubscription: jest.fn(),
+        deleteBotEventSubscription: jest.fn(),
     };
 
     const baseProps = {
@@ -36,6 +40,7 @@ describe('components/integrations/bots/AddBot', () => {
         editingUserHasManageSystem: true,
         attributesEnabled: false,
         attributeFields: [] as UserPropertyField[],
+        eventDeliveryEnabled: false,
         canManageRoles: true,
     };
 
@@ -187,6 +192,10 @@ describe('components/integrations/bots/AddBot', () => {
             getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: FIELDS}),
             getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
             updateUserCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
+            createBotWithEventSubscription: jest.fn(),
+            getBotEventSubscription: jest.fn().mockResolvedValue({data: null}),
+            upsertBotEventSubscription: jest.fn(),
+            deleteBotEventSubscription: jest.fn(),
         });
 
         const renderAddBot = (overrides: Partial<Props> = {}, actionOverrides: Partial<ReturnType<typeof buildActions>> = {}) => {
@@ -670,6 +679,183 @@ describe('components/integrations/bots/AddBot', () => {
 
                 expect(botActions.createBot).toHaveBeenCalledTimes(1);
             });
+        });
+    });
+
+    describe('event delivery', () => {
+        const historyMock = getHistory();
+        const editBot = TestHelper.getBotMock({user_id: 'bot-user-id', username: 'testbot', owner_id: 'owner'});
+        const subscription = {bot_user_id: 'bot-user-id', mode: 'push' as const, callback_url: 'https://old.example.com/hook', ignore_bot_authors: true, enabled: true, disabled_reason: '' as const, last_delivered_at: 0};
+        const PUSH_URL = 'https://hook.example.com/events';
+
+        const renderForm = (overrides: Partial<Props> = {}, actionOverrides: Partial<Props['actions']> = {}) => {
+            const botActions = {
+                ...actions,
+                createBot: jest.fn().mockResolvedValue({data: editBot}),
+                createBotWithEventSubscription: jest.fn().mockResolvedValue({data: {bot: editBot, eventSubscription: {...subscription, secret: 'whsec_created'}}}),
+                patchBot: jest.fn().mockResolvedValue({data: editBot}),
+                createUserAccessToken: jest.fn().mockResolvedValue({data: TestHelper.getUserAccessTokenMock({token: 'default-secret'})}),
+                upsertBotEventSubscription: jest.fn().mockResolvedValue({data: {...subscription, secret: 'whsec_edit'}}),
+                deleteBotEventSubscription: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
+                setDefaultProfileImage: jest.fn().mockResolvedValue({data: true}),
+                ...actionOverrides,
+            };
+            renderWithContext(
+                <AddBot
+                    {...baseProps}
+                    eventDeliveryEnabled={true}
+                    {...overrides}
+                    actions={botActions}
+                />,
+                {plugins: {plugins: {}}},
+            );
+            return botActions;
+        };
+
+        const chooseMode = (name: 'None' | 'Push' | 'Pull') => fireEvent.click(screen.getByRole('radio', {name}));
+        const enterUrl = (url: string) => fireEvent.change(screen.getByLabelText('Callback URL'), {target: {value: url}});
+        const typeUsername = () => fireEvent.change(screen.getByLabelText('Username'), {target: {value: 'testbot'}});
+        const submit = (label: 'Create Bot Account' | 'Update') => fireEvent.click(screen.getByText(label));
+
+        beforeAll(() => {
+            jest.useRealTimers();
+        });
+
+        afterAll(() => {
+            jest.useFakeTimers().setSystemTime(FROZEN_NOW);
+        });
+
+        test('the section is hidden when event delivery is not enabled', () => {
+            renderForm({eventDeliveryEnabled: false});
+
+            expect(screen.queryByText('Event delivery')).not.toBeInTheDocument();
+        });
+
+        test('the mode decides which fields are shown', () => {
+            renderForm();
+
+            expect(screen.getByRole('radio', {name: 'None'})).toBeChecked();
+            expect(screen.queryByLabelText('Callback URL')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Ignore messages from other bots')).not.toBeInTheDocument();
+
+            chooseMode('Push');
+            expect(screen.getByLabelText('Callback URL')).toBeInTheDocument();
+            expect(screen.getByLabelText('Ignore messages from other bots')).toBeChecked();
+
+            chooseMode('Pull');
+            expect(screen.queryByLabelText('Callback URL')).not.toBeInTheDocument();
+            expect(screen.getByLabelText('Ignore messages from other bots')).toBeInTheDocument();
+        });
+
+        test('push without a callback URL is rejected before any request', async () => {
+            const botActions = renderForm();
+
+            typeUsername();
+            chooseMode('Push');
+            submit('Create Bot Account');
+
+            expect(await screen.findByText('Enter a callback URL for push delivery.')).toBeInTheDocument();
+            expect(botActions.createBotWithEventSubscription).not.toHaveBeenCalled();
+            expect(botActions.createBot).not.toHaveBeenCalled();
+        });
+
+        test('create sends the subscription and passes the secret to the confirm page', async () => {
+            const botActions = renderForm();
+
+            typeUsername();
+            chooseMode('Push');
+            enterUrl(` ${PUSH_URL} `);
+            submit('Create Bot Account');
+
+            await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(
+                `/${team.name}/integrations/confirm?type=bots&id=bot-user-id&token=default-secret&secret=whsec_created`,
+            ));
+            expect(botActions.createBotWithEventSubscription).toHaveBeenCalledWith(
+                expect.objectContaining({username: 'testbot'}),
+                {mode: 'push', callback_url: PUSH_URL, ignore_bot_authors: true},
+            );
+            expect(botActions.createBot).not.toHaveBeenCalled();
+        });
+
+        test('create with None uses the plain create action', async () => {
+            const botActions = renderForm();
+
+            typeUsername();
+            submit('Create Bot Account');
+
+            await waitFor(() => expect(botActions.createBot).toHaveBeenCalled());
+            expect(botActions.createBotWithEventSubscription).not.toHaveBeenCalled();
+        });
+
+        test('a server error on create is shown and nothing else runs', async () => {
+            const botActions = renderForm({}, {createBotWithEventSubscription: jest.fn().mockResolvedValue({error: {message: 'Callback URL did not answer the challenge.'}})});
+
+            typeUsername();
+            chooseMode('Push');
+            enterUrl(PUSH_URL);
+            submit('Create Bot Account');
+
+            expect(await screen.findByText('Callback URL did not answer the challenge.')).toBeInTheDocument();
+            expect(botActions.createUserAccessToken).not.toHaveBeenCalled();
+            expect(historyMock.push).not.toHaveBeenCalled();
+        });
+
+        test('edit shows the secret once instead of navigating when a subscription is created', async () => {
+            const botActions = renderForm({bot: editBot});
+
+            await waitFor(() => expect(screen.getByRole('radio', {name: 'None'})).toBeEnabled());
+            chooseMode('Push');
+            enterUrl(PUSH_URL);
+            submit('Update');
+
+            expect(await screen.findByText('whsec_edit')).toBeInTheDocument();
+            expect(screen.getByRole('link', {name: 'Done'})).toBeInTheDocument();
+            expect(botActions.upsertBotEventSubscription).toHaveBeenCalledWith('bot-user-id', {mode: 'push', callback_url: PUSH_URL, ignore_bot_authors: true});
+            expect(historyMock.push).not.toHaveBeenCalled();
+        });
+
+        test('edit loads the existing subscription and an unchanged form saves nothing', async () => {
+            const botActions = renderForm({bot: editBot}, {getBotEventSubscription: jest.fn().mockResolvedValue({data: subscription})});
+
+            await waitFor(() => expect(screen.getByLabelText('Callback URL')).toHaveValue(subscription.callback_url));
+            submit('Update');
+
+            await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(`/${team.name}/integrations/bots`));
+            expect(botActions.upsertBotEventSubscription).not.toHaveBeenCalled();
+            expect(botActions.deleteBotEventSubscription).not.toHaveBeenCalled();
+        });
+
+        test('edit switching to None deletes the subscription', async () => {
+            const botActions = renderForm({bot: editBot}, {getBotEventSubscription: jest.fn().mockResolvedValue({data: subscription})});
+
+            await waitFor(() => expect(screen.getByLabelText('Callback URL')).toBeInTheDocument());
+            chooseMode('None');
+            submit('Update');
+
+            await waitFor(() => expect(botActions.deleteBotEventSubscription).toHaveBeenCalledWith('bot-user-id'));
+        });
+
+        test('a server error on edit says the bot was updated but delivery was not saved', async () => {
+            renderForm({bot: editBot}, {upsertBotEventSubscription: jest.fn().mockResolvedValue({error: {message: 'Callback URL did not answer the challenge.'}})});
+
+            await waitFor(() => expect(screen.getByRole('radio', {name: 'None'})).toBeEnabled());
+            chooseMode('Push');
+            enterUrl(PUSH_URL);
+            submit('Update');
+
+            expect(await screen.findByText('The bot was updated, but its event delivery settings could not be saved. Callback URL did not answer the challenge.')).toBeInTheDocument();
+            expect(historyMock.push).not.toHaveBeenCalled();
+        });
+
+        test('a failed subscription load hides the section and saves no change', async () => {
+            const botActions = renderForm({bot: editBot}, {getBotEventSubscription: jest.fn().mockResolvedValue({error: {message: 'boom'}})});
+
+            submit('Update');
+
+            await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(`/${team.name}/integrations/bots`));
+            expect(screen.queryByText('Event delivery')).not.toBeInTheDocument();
+            expect(botActions.upsertBotEventSubscription).not.toHaveBeenCalled();
+            expect(botActions.deleteBotEventSubscription).not.toHaveBeenCalled();
         });
     });
 });

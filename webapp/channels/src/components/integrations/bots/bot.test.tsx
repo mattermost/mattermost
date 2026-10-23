@@ -9,6 +9,11 @@ import * as Utils from 'utils/utils';
 
 import Bot from './bot';
 
+jest.mock('mattermost-redux/actions/bots', () => ({
+    ...jest.requireActual('mattermost-redux/actions/bots'),
+    getBotEventSubscription: jest.fn(() => () => Promise.resolve({data: null})),
+}));
+
 describe('components/integrations/bots/Bot', () => {
     const team = UtilsTestHelper.getTeamMock();
     const FROZEN_NOW = new Date(2026, 5, 15, 12, 0, 0).getTime();

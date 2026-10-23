@@ -18907,6 +18907,46 @@
     "defaultMessage": "(Optional) You can choose to display your bot's full name rather than its username.",
     "description": "Help text under the Display Name field on the bot create/edit form."
   },
+  "bot.add.event_delivery.callback_url": {
+    "defaultMessage": "Callback URL",
+    "description": ""
+  },
+  "bot.add.event_delivery.callback_url_required": {
+    "defaultMessage": "Enter a callback URL for push delivery.",
+    "description": ""
+  },
+  "bot.add.event_delivery.callback_url.help": {
+    "defaultMessage": "On save, Mattermost sends a verification request here. Your endpoint must echo back the challenge it receives.",
+    "description": ""
+  },
+  "bot.add.event_delivery.ignore_bot_authors": {
+    "defaultMessage": "Ignore messages from other bots",
+    "description": ""
+  },
+  "bot.add.event_delivery.mode": {
+    "defaultMessage": "Deliver events",
+    "description": ""
+  },
+  "bot.add.event_delivery.mode.help": {
+    "defaultMessage": "Send this bot's direct messages, mentions, thread replies, and reactions to an external system. Push posts each event to a callback URL; pull lets your system fetch them with the bot's access token.",
+    "description": ""
+  },
+  "bot.add.event_delivery.none": {
+    "defaultMessage": "None",
+    "description": ""
+  },
+  "bot.add.event_delivery.pull": {
+    "defaultMessage": "Pull",
+    "description": ""
+  },
+  "bot.add.event_delivery.push": {
+    "defaultMessage": "Push",
+    "description": ""
+  },
+  "bot.add.event_delivery.title": {
+    "defaultMessage": "Event delivery",
+    "description": ""
+  },
   "bot.add.post_all": {
     "defaultMessage": "post:all",
     "description": "Checkbox label on the bot create/edit form; 'post:all' is a literal permission name and should not be translated."
@@ -19059,6 +19099,62 @@
     "defaultMessage": "No bot accounts match <b>{searchTerm}</b>",
     "description": "Empty-state message in the Bot Accounts list when a search returns nothing; {searchTerm} is the user's search text, shown bold."
   },
+  "bots.event_delivery.disabled.callback_gone": {
+    "defaultMessage": "The callback URL responded with 410 Gone.",
+    "description": ""
+  },
+  "bots.event_delivery.disabled.delivery_failures": {
+    "defaultMessage": "The callback URL hasn't accepted events for more than 24 hours.",
+    "description": ""
+  },
+  "bots.event_delivery.disabled.unknown": {
+    "defaultMessage": "Delivery is turned off.",
+    "description": ""
+  },
+  "bots.event_delivery.enable": {
+    "defaultMessage": "Enable delivery",
+    "description": ""
+  },
+  "bots.event_delivery.label": {
+    "defaultMessage": "Event delivery:",
+    "description": ""
+  },
+  "bots.event_delivery.last_delivered": {
+    "defaultMessage": "Last delivered:",
+    "description": ""
+  },
+  "bots.event_delivery.never": {
+    "defaultMessage": "Never",
+    "description": ""
+  },
+  "bots.event_delivery.regenerate": {
+    "defaultMessage": "Regenerate secret",
+    "description": ""
+  },
+  "bots.event_delivery.regenerate.message": {
+    "defaultMessage": "The current secret stops working immediately.",
+    "description": ""
+  },
+  "bots.event_delivery.regenerate.title": {
+    "defaultMessage": "Regenerate Signing Secret?",
+    "description": ""
+  },
+  "bots.event_delivery.secret": {
+    "defaultMessage": "Copy this signing secret now. You won't be able to see it again! Use it to verify the X-Mattermost-Signature header on push requests.",
+    "description": ""
+  },
+  "bots.event_delivery.secret.copy": {
+    "defaultMessage": "Copy Secret",
+    "description": ""
+  },
+  "bots.event_delivery.status.active": {
+    "defaultMessage": "Active",
+    "description": ""
+  },
+  "bots.event_delivery.status.disabled": {
+    "defaultMessage": "Disabled",
+    "description": ""
+  },
   "bots.help2": {
     "defaultMessage": "Enable bot account creation in the <a>System Console</a>.",
     "description": "Help text on the Bot Accounts page for admins; <a> wraps a link to the System Console bot settings page."
@@ -19118,6 +19214,10 @@
   "bots.manage.edit.editing": {
     "defaultMessage": "Updating...",
     "description": "Submit button label while saving changes to an existing bot account; ellipsis indicates ongoing action."
+  },
+  "bots.manage.edit.event_delivery_failed": {
+    "defaultMessage": "The bot was updated, but its event delivery settings could not be saved. {error}",
+    "description": ""
   },
   "bots.manage.edit.image_failed": {
     "defaultMessage": "The bot was updated, but its profile image could not be saved. {error}",

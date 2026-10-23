@@ -29,6 +29,7 @@ import {
 import TokenExpiryPicker from 'components/common/token_expiry_picker/token_expiry_picker';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
+import BotEventSecret from 'components/integrations/bots/bot_event_secret';
 import type {UserAttributeValue} from 'components/property_fields/user_attribute_fields';
 import SpinnerButton from 'components/spinner_button';
 
@@ -50,6 +51,9 @@ import {
 } from './bot_attributes';
 import type {BotAttributesState, BotRoleUpdate} from './bot_attributes';
 import BotAttributesSection from './bot_attributes_section';
+import {eventDeliveryPatch, eventDeliveryState, planEventDeliveryChange} from './bot_event_delivery';
+import type {EventDeliveryState} from './bot_event_delivery';
+import BotEventDeliverySection from './bot_event_delivery_section';
 import {loadBotAttributeValues, saveBotCreate, saveBotEdit, validateBotForm} from './bot_save_flow';
 import type {BotEditResult, BotPictureFile, BotSaveActions, BotSaveFailure} from './bot_save_flow';
 
@@ -105,6 +109,11 @@ export type Props = {
     attributeFields: UserPropertyField[];
 
     /**
+     * May configure event delivery: always when editing (the API enforces access), manage_bots when creating
+     */
+    eventDeliveryEnabled: boolean;
+
+    /**
      * Editing user has the MANAGE_ROLES permission required to change the bot's role and post permissions
      */
     canManageRoles: boolean;
@@ -127,6 +136,10 @@ export type State = {
     expiryPreset: ExpiryPreset;
     customExpiryDate: string;
     attributes: BotAttributesState;
+    eventDelivery: EventDeliveryState;
+
+    /** Signing secret returned by saving the edit form, shown once instead of navigating away. */
+    eventSecret: string;
 };
 
 export default class AddBot extends React.PureComponent<Props, State> {
@@ -150,12 +163,15 @@ export default class AddBot extends React.PureComponent<Props, State> {
             expiryPreset: this.defaultExpiryPreset(),
             customExpiryDate: this.defaultCustomExpiryDate(),
             attributes: emptyAttributesState(this.props.attributesEnabled ? 'loading' : 'ready'),
+            eventDelivery: this.props.bot && this.props.eventDeliveryEnabled ? {...eventDeliveryState(null), status: 'loading'} : eventDeliveryState(null),
+            eventSecret: '',
         };
     }
 
     componentDidMount() {
         this.unmounted = false;
         this.loadAttributes();
+        this.loadEventDelivery();
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -179,6 +195,23 @@ export default class AddBot extends React.PureComponent<Props, State> {
         this.setState((state) => ({
             attributes: initialValues ? loadedAttributesState(initialValues) : {...state.attributes, status: 'error'},
         }));
+    };
+
+    loadEventDelivery = async () => {
+        if (!this.props.bot || !this.props.eventDeliveryEnabled) {
+            return;
+        }
+        const result = await this.props.actions.getBotEventSubscription(this.props.bot.user_id);
+        if (this.unmounted) {
+            return;
+        }
+        this.setState((state) => ({
+            eventDelivery: result?.error ? {...state.eventDelivery, status: 'error'} : eventDeliveryState(result?.data ?? null),
+        }));
+    };
+
+    updateEventDelivery = (patch: Partial<EventDeliveryState>) => {
+        this.setState((state) => ({eventDelivery: {...state.eventDelivery, ...patch}, error: ''}));
     };
 
     retryAttributes = () => {
@@ -345,6 +378,19 @@ export default class AddBot extends React.PureComponent<Props, State> {
             return;
         }
 
+        const {eventDelivery} = this.state;
+        if (this.props.eventDeliveryEnabled && eventDelivery.mode === 'push' && !eventDelivery.callbackUrl.trim()) {
+            this.setState({
+                error: (
+                    <FormattedMessage
+                        id='bot.add.event_delivery.callback_url_required'
+                        defaultMessage='Enter a callback URL for push delivery.'
+                    />
+                ),
+            });
+            return;
+        }
+
         const ready = this.attributesReady();
         const lockOptions = {canEditAdminManaged: this.props.editingUserHasManageSystem};
         const attributeErrors = ready ? validateAttributeRows(this.props.attributeFields, this.state.attributes, lockOptions) : {};
@@ -380,6 +426,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 ...input,
                 botUserId: this.props.bot.user_id,
                 patch: bot,
+                eventDelivery: this.props.eventDeliveryEnabled ? planEventDeliveryChange(eventDelivery) : {kind: 'none'},
             });
             this.handleEditResult(result);
             return;
@@ -388,6 +435,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
         const result = await saveBotCreate(this.props.actions, {
             ...input,
             bot,
+            eventSubscription: this.props.eventDeliveryEnabled ? eventDeliveryPatch(eventDelivery) : undefined,
             teamName: this.props.team.name,
             expiresAt: clampExpiresAtToMaxLifetime(this.resolveExpiresAt(), this.props.maxLifetimeDays),
         });
@@ -406,8 +454,13 @@ export default class AddBot extends React.PureComponent<Props, State> {
         if (this.unmounted) {
             return;
         }
-        const {failures, savedAttributes} = result;
+        const {failures, savedAttributes, eventSecret} = result;
         this.setState((state) => ({attributes: markAttributesSaved(state.attributes, savedAttributes)}));
+        if (failures.length === 0 && eventSecret) {
+            this.submitting = false;
+            this.setState({eventSecret, adding: false});
+            return;
+        }
         if (failures.length === 0) {
             getHistory().push(`/${this.props.team.name}/integrations/bots`);
             return;
@@ -541,6 +594,42 @@ export default class AddBot extends React.PureComponent<Props, State> {
             if (this.state.image === BotDefaultIcon) {
                 removeImageIcon = null;
             }
+        }
+
+        if (this.state.eventSecret) {
+            return (
+                <div className='backstage-content'>
+                    <BackstageHeader>
+                        <Link to={`/${this.props.team.name}/integrations/bots`}>
+                            <FormattedMessage
+                                id='bots.manage.header'
+                                defaultMessage='Bot Accounts'
+                            />
+                        </Link>
+                        {subtitle}
+                    </BackstageHeader>
+                    <div className='backstage-form backstage-form__confirmation'>
+                        <h4 className='backstage-form__title'>
+                            <FormattedMessage
+                                id='integrations.successful'
+                                defaultMessage='Setup Successful'
+                            />
+                        </h4>
+                        <BotEventSecret secret={this.state.eventSecret}/>
+                        <div className='backstage-form__footer'>
+                            <Link
+                                className={buttonClassNames({emphasis: 'primary'})}
+                                to={`/${this.props.team.name}/integrations/bots`}
+                            >
+                                <FormattedMessage
+                                    id='integrations.done'
+                                    defaultMessage='Done'
+                                />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
         return (
@@ -804,6 +893,13 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 </div>
                             </div>
                         </div>
+                        {this.props.eventDeliveryEnabled && (
+                            <BotEventDeliverySection
+                                state={this.state.eventDelivery}
+                                disabled={this.state.adding}
+                                onChange={this.updateEventDelivery}
+                            />
+                        )}
                         {this.renderDefaultTokenExpiryPicker()}
                         <div className='backstage-form__footer'>
                             <FormError

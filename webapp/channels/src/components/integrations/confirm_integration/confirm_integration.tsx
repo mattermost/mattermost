@@ -17,6 +17,7 @@ import ExternalLink from 'components/external_link';
 import type {BotCreateWarnings} from 'components/integrations/bots/bot_create_warnings';
 import {parseBotCreateWarnings, stripBotCreateWarningsParam} from 'components/integrations/bots/bot_create_warnings';
 import BotCreateWarningsBanner from 'components/integrations/bots/bot_create_warnings_banner';
+import BotEventSecret from 'components/integrations/bots/bot_event_secret';
 
 import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -418,6 +419,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
     } else if (type === Constants.Integrations.BOT && bot) {
         const botToken = (new URLSearchParams(location.search)).get('token') || '';
+        const botSecret = (new URLSearchParams(location.search)).get('secret') || '';
 
         headerText = (
             <FormattedMessage
@@ -446,36 +448,41 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             </p>
         );
         tokenText = (
-            <p className='word-break--all'>
-                <FormattedMessage
-                    id='add_outgoing_webhook.token'
-                    defaultMessage='<b>Token</b>: {token}'
-                    values={{
-                        token: <code>{botToken}</code>,
-                        b: (chunks) => <b>{chunks}</b>,
-                    }}
-                />
-                <CopyText
-                    label={messages.copyToken}
-                    value={botToken}
-                />
-                <br/>
-                <br/>
-                <FormattedMessage
-                    id='add_outgoing_webhook.token.message'
-                    defaultMessage='Make sure to add this bot account to teams and channels you want it to interact in. See <link>documentation</link> to learn more.'
-                    values={{
-                        link: (msg) => (
-                            <ExternalLink
-                                href='https://mattermost.com/pl/default-bot-accounts'
-                                location='confirm_integration'
-                            >
-                                {msg}
-                            </ExternalLink>
-                        ),
-                    }}
-                />
-            </p>
+            <>
+                {botToken && (
+                    <p className='word-break--all'>
+                        <FormattedMessage
+                            id='add_outgoing_webhook.token'
+                            defaultMessage='<b>Token</b>: {token}'
+                            values={{
+                                token: <code>{botToken}</code>,
+                                b: (chunks) => <b>{chunks}</b>,
+                            }}
+                        />
+                        <CopyText
+                            label={messages.copyToken}
+                            value={botToken}
+                        />
+                    </p>
+                )}
+                {botSecret && <BotEventSecret secret={botSecret}/>}
+                <p>
+                    <FormattedMessage
+                        id='add_outgoing_webhook.token.message'
+                        defaultMessage='Make sure to add this bot account to teams and channels you want it to interact in. See <link>documentation</link> to learn more.'
+                        values={{
+                            link: (msg) => (
+                                <ExternalLink
+                                    href='https://mattermost.com/pl/default-bot-accounts'
+                                    location='confirm_integration'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                </p>
+            </>
         );
     } else {
         history.replace(`/error?type=${ErrorPageTypes.PAGE_NOT_FOUND}`);

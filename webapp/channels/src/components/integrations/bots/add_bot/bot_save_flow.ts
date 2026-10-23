@@ -4,7 +4,7 @@
 import {defineMessages} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import type {Bot, BotPatch} from '@mattermost/types/bots';
+import type {Bot, BotEventSubscription, BotEventSubscriptionPatch, BotPatch} from '@mattermost/types/bots';
 import type {UserAccessToken} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -14,6 +14,7 @@ import * as Utils from 'utils/utils';
 
 import {computeBotRoles, getBotCreateRedirectUrl, normalizeAttributeValues, rolesChanged} from './bot_attributes';
 import type {BotAttributeValues, BotRoleUpdate} from './bot_attributes';
+import type {EventDeliveryChange} from './bot_event_delivery';
 
 export type BotSaveActions = {
 
@@ -21,6 +22,11 @@ export type BotSaveActions = {
      * Creates a new bot account.
      */
     createBot: (bot: Partial<Bot>) => Promise<ActionResult<Bot>>;
+
+    /**
+     * Creates a new bot account together with its event subscription, rolling back both on failure.
+     */
+    createBotWithEventSubscription: (bot: Partial<Bot>, eventSubscription: BotEventSubscriptionPatch) => Promise<ActionResult<{bot: Bot; eventSubscription: BotEventSubscription}>>;
 
     /**
      * Patches an existing bot account.
@@ -46,6 +52,10 @@ export type BotSaveActions = {
      * For creating setting bot to system admin or special posting permissions
      */
     updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
+
+    getBotEventSubscription: (botUserId: string) => Promise<ActionResult<BotEventSubscription | null>>;
+    upsertBotEventSubscription: (botUserId: string, patch: BotEventSubscriptionPatch) => Promise<ActionResult<BotEventSubscription>>;
+    deleteBotEventSubscription: (botUserId: string) => Promise<ActionResult>;
 
     getCustomProfileAttributeFields: () => Promise<ActionResult>;
     getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string>>>;
@@ -82,6 +92,10 @@ export const botSaveMessages = defineMessages({
     attributesFailed: {
         id: 'bots.manage.edit.attributes_failed',
         defaultMessage: 'The bot was updated, but its attributes could not be saved. {error}',
+    },
+    eventDeliveryFailed: {
+        id: 'bots.manage.edit.event_delivery_failed',
+        defaultMessage: 'The bot was updated, but its event delivery settings could not be saved. {error}',
     },
 });
 
@@ -139,10 +153,10 @@ type BotSaveInput = {
     attributeChanges: BotAttributeValues;
 };
 
-type BotSaveStep = 'image' | 'roles' | 'attributes';
+type BotSaveStep = 'image' | 'roles' | 'attributes' | 'eventDelivery';
 type BotSaveStepErrors = Partial<Record<BotSaveStep, string>>;
 
-const BOT_SAVE_STEPS: BotSaveStep[] = ['image', 'roles', 'attributes'];
+const BOT_SAVE_STEPS: BotSaveStep[] = ['image', 'roles', 'attributes', 'eventDelivery'];
 
 function stepError(result: ActionResult | undefined): string | undefined {
     if (result && !result.error) {
@@ -177,11 +191,29 @@ async function saveBotDetails(actions: BotSaveActions, userId: string, input: Bo
 
 export type BotSaveFailure = {key: BotSaveStep; message: MessageDescriptor; error: string};
 
-export type BotEditResult = {ok: false; error: string} | {ok: true; failures: BotSaveFailure[]; savedAttributes: BotAttributeValues};
+export type BotEditResult = {ok: false; error: string} | {ok: true; failures: BotSaveFailure[]; savedAttributes: BotAttributeValues; eventSecret?: string};
+
+async function saveEventDelivery(actions: BotSaveActions, userId: string, change: EventDeliveryChange): Promise<{error?: string; secret?: string}> {
+    switch (change.kind) {
+    case 'none':
+        return {};
+    case 'delete':
+        return {error: stepError(await actions.deleteBotEventSubscription(userId))};
+    case 'upsert': {
+        const result = await actions.upsertBotEventSubscription(userId, change.patch);
+        return {error: stepError(result), secret: result?.data?.secret};
+    }
+    default: {
+        const unhandled: never = change;
+        throw new Error(`Unhandled event delivery change: ${JSON.stringify(unhandled)}`);
+    }
+    }
+}
 
 export async function saveBotEdit(actions: BotSaveActions, input: BotSaveInput & {
     botUserId: string;
     patch: Partial<BotPatch>;
+    eventDelivery: EventDeliveryChange;
 }): Promise<BotEditResult> {
     const result = await actions.patchBot(input.botUserId, input.patch);
     const data = result?.data;
@@ -190,12 +222,14 @@ export async function saveBotEdit(actions: BotSaveActions, input: BotSaveInput &
     }
 
     const errors = await saveBotDetails(actions, data.user_id, input);
+    const eventDelivery = await saveEventDelivery(actions, data.user_id, input.eventDelivery);
+    errors.eventDelivery = eventDelivery.error;
     const failures = BOT_SAVE_STEPS.flatMap((key) => {
         const error = errors[key];
         return error === undefined ? [] : [{key, message: botSaveMessages[`${key}Failed` as const], error}];
     });
 
-    return {ok: true, failures, savedAttributes: errors.attributes === undefined ? input.attributeChanges : {}};
+    return {ok: true, failures, savedAttributes: errors.attributes === undefined ? input.attributeChanges : {}, eventSecret: eventDelivery.secret};
 }
 
 export type BotCreateResult = {ok: false; error: string} | {ok: true; redirectUrl: string};
@@ -204,15 +238,27 @@ export async function saveBotCreate(actions: BotSaveActions, input: BotSaveInput
     bot: Partial<Bot>;
     teamName: string;
     expiresAt: number;
+    eventSubscription?: BotEventSubscriptionPatch;
 }): Promise<BotCreateResult> {
-    const result = await actions.createBot(input.bot);
-    const data = result?.data;
-    if (!data) {
-        return {ok: false, error: result?.error?.message ?? Utils.localizeMessage({id: 'bot.create_failed', defaultMessage: 'Failed to create bot'})};
+    let created: Bot | undefined;
+    let secret: string | undefined;
+    let createError: string | undefined;
+    if (input.eventSubscription) {
+        const result = await actions.createBotWithEventSubscription(input.bot, input.eventSubscription);
+        created = result?.data?.bot;
+        secret = result?.data?.eventSubscription.secret;
+        createError = result?.error?.message;
+    } else {
+        const result = await actions.createBot(input.bot);
+        created = result?.data;
+        createError = result?.error?.message;
+    }
+    if (!created) {
+        return {ok: false, error: createError ?? Utils.localizeMessage({id: 'bot.create_failed', defaultMessage: 'Failed to create bot'})};
     }
 
     const tokenResult = await actions.createUserAccessToken(
-        data.user_id,
+        created.user_id,
         Utils.localizeMessage({id: 'bot.token.default.description', defaultMessage: 'Default Token'}),
         input.expiresAt > 0 ? input.expiresAt : undefined,
     );
@@ -220,16 +266,16 @@ export async function saveBotCreate(actions: BotSaveActions, input: BotSaveInput
 
     // Only an explicit reset to the default icon reports a failure.
     if (!input.pictureFile) {
-        await actions.setDefaultProfileImage(data.user_id);
+        await actions.setDefaultProfileImage(created.user_id);
     }
-    const errors = await saveBotDetails(actions, data.user_id, input);
+    const errors = await saveBotDetails(actions, created.user_id, input);
 
     return {
         ok: true,
-        redirectUrl: getBotCreateRedirectUrl(input.teamName, data.user_id, token, {
+        redirectUrl: getBotCreateRedirectUrl(input.teamName, created.user_id, token, {
             imageFailed: errors.image !== undefined,
             rolesFailed: errors.roles !== undefined,
             attributesFailed: errors.attributes !== undefined,
-        }),
+        }, secret),
     };
 }
