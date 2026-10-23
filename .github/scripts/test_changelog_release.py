@@ -252,6 +252,105 @@ class BenchmarkTest(unittest.TestCase):
         self.assertEqual(cr.benchmark_notes("v12.1.0", fetch=fail), [])
 
 
+def docs_file(path, status="modified", added=(), removed=0):
+    patch = "".join(f"+{line}\n" for line in added) + "-old line\n" * removed
+    return {"filename": path, "status": status, "patch": patch}
+
+
+class DocsLinkTest(unittest.TestCase):
+    PAGES = {
+        "docs/main/administration-guide/manage/admin/channel-attributes.mdx": "---\ntitle: x\n---\n## Apply an attribute to channels\n",
+        "docs/main/administration-guide/configure/site-configuration-settings.mdx": "## Enable file search\n",
+        "docs/main/end-user-guide/collaborate/format-messages.mdx": "## Phone links\n",
+        "docs/main/for/sre.mdx": "---\nslug: /for/sre\n---\n",
+        "docs/develop/integrate/plugins/interactive-dialogs/index.md": "# Dialogs\n",
+        "docs/main/product-overview/mattermost-v12-changelog.mdx": "## Release v12.0\n",
+    }
+
+    def link(self, files, prs=None, source="mattermost/mattermost#1"):
+        prs = prs or {source: {"title": "Feature", "body": "", "head_ref": "feature"}}
+        return cr.docs_link(source, prs, lambda s: files.get(s, []), self.PAGES.get)
+
+    def test_page_urls(self):
+        self.assertEqual(cr.docs_page_url("docs/main/end-user-guide/collaborate/format-messages.mdx"),
+                         "https://docs.mattermost.com/end-user-guide/collaborate/format-messages")
+        self.assertEqual(cr.docs_page_url("docs/main/for/sre.mdx", self.PAGES["docs/main/for/sre.mdx"]),
+                         "https://docs.mattermost.com/for/sre")
+        self.assertEqual(cr.docs_page_url("docs/develop/integrate/plugins/interactive-dialogs/index.md"),
+                         "https://docs.mattermost.com/developers/integrate/plugins/interactive-dialogs")
+        self.assertEqual(cr.docs_page_url("docs/main/index.mdx", "---\nslug: /\n---\n"), "https://docs.mattermost.com/")
+        self.assertIsNone(cr.docs_page_url("docs/site/docusaurus.config.ts"))
+        self.assertIsNone(cr.docs_page_url("docs/api/v4/source/posts.yaml"))
+
+    def test_anchors(self):
+        self.assertEqual(cr.heading_anchor("How should plugins handle request cancellation?"),
+                         "how-should-plugins-handle-request-cancellation")
+        self.assertEqual(cr.heading_anchor("Enable channel viewed WebSocket messages"), "enable-channel-viewed-websocket-messages")
+        self.assertEqual(cr.heading_anchor("Release v6.3 \\{#release-v6-3}"), "release-v6-3")
+        self.assertEqual(cr.heading_anchor("Use ``mmctl`` [import](x.md)"), "use-mmctl-import")
+
+    def test_own_docs_with_an_added_heading_get_an_anchor(self):
+        files = {"mattermost/mattermost#1": [
+            docs_file("docs/main/administration-guide/configure/site-configuration-settings.mdx",
+                      added=["### Enable file search", "", "Turns file search on.", "Default: true."]),
+            docs_file("docs/main/product-overview/mattermost-v12-changelog.mdx", added=["a", "b", "c", "d", "e"]),
+        ]}
+        self.assertEqual(self.link(files), {
+            "url": "https://docs.mattermost.com/administration-guide/configure/site-configuration-settings#enable-file-search",
+            "basis": "docs/main/administration-guide/configure/site-configuration-settings.mdx changed in the same PR, "
+                     "which added the heading \"Enable file search\"",
+        })
+
+    def test_feature_page_beats_reference_page_and_trims_do_not_count(self):
+        files = {"mattermost/mattermost#1": [
+            docs_file("docs/main/administration-guide/configure/site-configuration-settings.mdx", added=["a", "b", "c", "d"]),
+            docs_file("docs/main/end-user-guide/collaborate/format-messages.mdx", added=["Phone numbers.", "More.", "Even more."]),
+            docs_file("docs/main/administration-guide/manage/admin/channel-attributes.mdx", added=["x"], removed=6),
+        ]}
+        self.assertEqual(self.link(files)["url"], "https://docs.mattermost.com/end-user-guide/collaborate/format-messages")
+
+    def test_several_comparable_pages_are_left_for_a_reviewer(self):
+        files = {"mattermost/mattermost#1": [
+            docs_file("docs/main/end-user-guide/collaborate/format-messages.mdx", added=["a", "b", "c", "d"]),
+            docs_file("docs/main/administration-guide/manage/admin/channel-attributes.mdx", added=["a", "b", "c"]),
+        ]}
+        self.assertEqual(self.link(files), {"candidates": [
+            "https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes",
+            "https://docs.mattermost.com/end-user-guide/collaborate/format-messages",
+        ]})
+
+    def test_docs_pr_found_by_jira_key_or_link(self):
+        page = "docs/main/administration-guide/manage/admin/channel-attributes.mdx"
+        prs = {
+            "mattermost/enterprise#7": {"title": "Channel attributes backend", "body": "", "head_ref": "MM-70120-attrs"},
+            "mattermost/mattermost#2": {"title": "MM-70120 docs", "body": "", "head_ref": "docs"},
+            "mattermost/mattermost#3": {"title": "Unrelated docs", "body": "", "head_ref": "docs2"},
+        }
+        files = {"mattermost/mattermost#2": [docs_file(page, status="added", added=["## Apply an attribute to channels"])],
+                 "mattermost/mattermost#3": [docs_file("docs/main/end-user-guide/collaborate/format-messages.mdx", status="added")]}
+        link = self.link(files, prs, "mattermost/enterprise#7")
+        self.assertEqual(link["url"], "https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes")
+        self.assertIn("docs PR mattermost/mattermost#2, which names MM-70120", link["basis"])
+
+        prs["mattermost/mattermost#2"] = {"title": "Docs", "head_ref": "docs",
+                                          "body": "Documents https://github.com/mattermost/enterprise/pull/7."}
+        self.assertIn("which links the PR", self.link(files, prs, "mattermost/enterprise#7")["basis"])
+
+        prs["mattermost/mattermost#2"]["body"] = ""
+        self.assertEqual(self.link(files, prs, "mattermost/enterprise#7"), {})
+
+    def test_jira_keys_and_references(self):
+        body = "#### Summary\nSee MM-1.\n\n#### Ticket Link\nhttps://mattermost.atlassian.net/browse/MM-71075\n\n#### Release Note\nx"
+        self.assertEqual(cr.jira_keys("[MM-2] Fix", "mm-3-branch", body), {"MM-2", "MM-3", "MM-71075"})
+        self.assertEqual(cr.pr_references("Cherry pick of #38634, see https://github.com/mattermost/enterprise/pull/9 &#123;",
+                                          "mattermost/mattermost"),
+                         {"mattermost/mattermost#38634", "mattermost/enterprise#9"})
+
+    def test_deleted_page_is_not_linked(self):
+        files = {"mattermost/mattermost#1": [docs_file("docs/main/gone.mdx", added=["a", "b", "c", "d"])]}
+        self.assertEqual(self.link(files), {})
+
+
 class ReviewersTest(unittest.TestCase):
     SECTIONS = [
         {"section": "Upgrade Impact", "subsection": "Database Schema Changes", "items": [{"text": "x"}]},

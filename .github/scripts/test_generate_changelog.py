@@ -356,7 +356,7 @@ class MainTest(unittest.TestCase):
         self.out = self.tmp / "out"
         self.saved = {
             name: getattr(gc, name)
-            for name in ("get_milestone_number", "get_merged_prs", "polish_with_ai", "VERSION", "MILESTONE_TITLE", "REPOS")
+            for name in ("get_milestone_number", "get_merged_prs", "get_pr_details", "polish_with_ai", "VERSION", "MILESTONE_TITLE", "REPOS")
         }
         self.saved_derived = gc.changelog_release.derived_notes
         self.saved_show = gc.changelog_release.git_show
@@ -367,6 +367,8 @@ class MainTest(unittest.TestCase):
         gc.REPOS = ["mattermost/mattermost"]
         gc.get_milestone_number = lambda repo, title: 7
         gc.get_merged_prs = lambda repo, number: self.prs
+        self.details = {}
+        gc.get_pr_details = lambda repo, number: self.details.get(number, {"head_ref": f"branch-{number}", "files": []})
         gc.changelog_release.derived_notes = lambda base, head: [
             {"source": "plugin:mattermost-plugin-calls@v1.12.6", "derived": True,
              "text": "Pre-packaged Calls plugin version [v1.12.6](https://example.com).",
@@ -440,6 +442,30 @@ class MainTest(unittest.TestCase):
         self.assertIn("already has a v12.1 entry", str(caught.exception))
         os.environ["DRY_RUN"] = "true"
         gc.main()
+
+    def test_docs_link_is_sent_with_the_note_and_reported(self):
+        self.details[1] = {"head_ref": "MM-123-feature", "files": [{
+            "filename": "docs/main/administration-guide/manage/admin/feature.mdx", "status": "added",
+            "patch": "+# Feature\n+\n+Use the feature.\n",
+        }]}
+        pages = {"docs/main/administration-guide/manage/admin/feature.mdx": "---\ntitle: Feature\n---\n# Feature\n"}
+        gc.changelog_release.git_show = lambda ref, path: pages.get(path, "FROM golang:1.27.1-bookworm\n")
+        sent = []
+
+        def polish(notes):
+            sent.extend(notes)
+            url = next(n["docs_url"] for n in notes if n.get("docs_url"))
+            return (f"### Improvements\n\n#### Administration\n - Added the [feature]({url}). [[N1]]\n"
+                    " - Fixed an issue found later. [[N2]]\n - Pre-packaged Calls plugin version [v1.12.6](https://example.com). [[N3]]\n"), True
+        gc.polish_with_ai = polish
+        gc.main()
+        url = "https://docs.mattermost.com/administration-guide/manage/admin/feature"
+        self.assertEqual([n.get("docs_url") for n in sent], [url, None, None])
+        self.assertIn(f"[feature]({url})", self.changelog.read_text())
+        link = self._payload()["readiness"]["doc_links"][0]
+        self.assertEqual(link["used_in"], ["Administration"])
+        self.assertIn("changed in the same PR, which added the page", link["basis"])
+        self.assertIn(f"<{url}> (linked in Administration)", (self.out / "summary.md").read_text())
 
     def test_unreadable_repo_is_reported_as_unknown_not_missing(self):
         import requests

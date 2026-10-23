@@ -5,6 +5,12 @@ name: Generate Changelog
 # mode comes from the CHANGELOG_SCHEDULE_MODE repository variable and defaults to
 # dry_run, so it previews into the run summary until that variable is set to auto.
 #
+# Every run's summary is also the changelog-status report: preflight, merged PRs missing
+# a release note (by owner), notes that will need rewriting, and the status of the
+# sections no developer note fills (WebSocket events, schema changes, plugins, Go
+# version, benchmarking), and the docs page each feature links to, found by following
+# its PR to the docs files it, or a docs PR naming its Jira key or linking it, changed.
+#
 # Repository variables read here, all optional:
 #   CHANGELOG_SCHEDULE_MODE     — auto | dry_run (default) for scheduled runs
 #   CHANGELOG_ESR_VERSIONS      — releases that are ESRs, e.g. "v11.7, v12.4"; other
@@ -239,6 +245,9 @@ jobs:
           CHANGELOG_PATH: ${{ needs.resolve.outputs.changelog }}
           RELEASE_HEAD_REF: ${{ needs.resolve.outputs.head_ref }}
           RELEASE_BASE_REF: ${{ needs.resolve.outputs.base_ref }}
+          # Docs pages linked from the entry are read as they are in the commit this run
+          # checked out first, not on the changelog PR's older branch.
+          DOCS_REF: ${{ github.sha }}
           MODE: ${{ steps.pr.outputs.script_mode }}
           PR_BODY_FILE: ${{ steps.pr.outputs.body_file }}
           # A PR opened before changelog-sources existed has no list. The run then proposes

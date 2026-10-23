@@ -375,6 +375,172 @@ def derived_notes(base_ref: str, head_ref: str, show=git_show, added=git_added_f
     return notes
 
 
+# ── Documentation links ─────────────────────────────────────────────────────────────
+#
+# A feature's docs page is found by following the PR, not by matching its wording: the
+# docs files the feature PR changed itself (most docs land with the code), or else those
+# changed by a docs PR in the same milestone that names the same Jira key or links the
+# feature PR. The file path then maps to its page the way the Docusaurus site serves it.
+
+DOCS_SITE = "https://docs.mattermost.com"
+# docs/<root>/ -> the site path it is served under (docs/site/docusaurus.config.ts).
+DOCS_ROOTS = (("docs/main/", ""), ("docs/develop/", "/developers"))
+# Release notes and per-release upgrade lists change in every release; no feature lives there.
+NOT_A_FEATURE_PAGE = re.compile(
+    r"(?:^|/)(?:[^/]*changelog[^/]*|important-upgrade-notes|open-source-components|deprecated-configuration-settings)\.mdx?$"
+)
+# Pages listing every setting, audit event or command: used only when nothing else matched.
+REFERENCE_PAGE = re.compile(r"(?:configuration-settings|audit-log-schema|command-line-tools?)\.mdx?$")
+JIRA_KEY_RE = re.compile(r"\bMM-\d+\b", re.IGNORECASE)
+
+
+def docs_page_url(path: str, content: str | None = None) -> str | None:
+    """``docs/main/a/b.mdx`` -> ``https://docs.mattermost.com/a/b``, or None for a non-page.
+
+    A frontmatter ``slug`` replaces the path; an ``index`` or ``README`` file, or one
+    named after its folder, is served at the folder.
+    """
+    for root, base in DOCS_ROOTS:
+        if path.startswith(root):
+            rel = path[len(root):]
+            break
+    else:
+        return None
+    if not re.search(r"\.mdx?$", rel):
+        return None
+    rel = re.sub(r"\.mdx?$", "", rel)
+    folder, name = os.path.split(rel)
+    front = re.match(r"---\n(.*?)\n---", (content or "").replace("\r\n", "\n"), re.DOTALL)
+    slug = re.search(r"(?m)^slug:\s*['\"]?([^'\"\n]+?)['\"]?\s*$", front.group(1)) if front else None
+    if slug:
+        page = slug.group(1) if slug.group(1).startswith("/") else f"/{folder}/{slug.group(1)}"
+    elif name.lower() in ("index", "readme") or name == os.path.basename(folder):
+        page = f"/{folder}"
+    else:
+        page = f"/{rel}"
+    return DOCS_SITE + base + (re.sub(r"/+", "/", page).rstrip("/") or "/")
+
+
+def heading_anchor(heading: str) -> str:
+    """The id Docusaurus gives a heading: its explicit ``{#id}``, else the github-slugger slug."""
+    explicit = re.search(r"\\?\{#([^}]+)\}\s*$", heading)
+    if explicit:
+        return explicit.group(1)
+    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", heading)
+    text = re.sub(r"<[^>]+>", "", text).strip().lower()
+    return re.sub(r"\s", "-", re.sub(r"[^\w\- ]", "", text))
+
+
+def added_headings(patch: str | None) -> list[str]:
+    return [m.group(1).strip() for m in re.finditer(r"(?m)^\+#{2,6}\s+(.+)$", patch or "")]
+
+
+def jira_keys(title: str, head_ref: str, body: str) -> set[str]:
+    """The Jira keys a PR names in its title, branch or Ticket Link section."""
+    ticket = re.search(r"(?ims)^#+\s*Ticket Link\s*$(.*?)(?=^#|\Z)", re.sub(r"<!--.*?-->", "", body or "", flags=re.DOTALL))
+    text = " ".join([title or "", head_ref or "", ticket.group(1) if ticket else ""])
+    return {key.upper() for key in JIRA_KEY_RE.findall(text)}
+
+
+def pr_references(body: str, repo: str) -> set[str]:
+    """The PRs a body links to, as ``owner/repo#N``; a bare ``#N`` is in ``repo``."""
+    body = re.sub(r"<!--.*?-->", "", body or "", flags=re.DOTALL)
+    refs = {f"{owner}/{name}#{n}" for owner, name, n in re.findall(r"github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)", body)}
+    refs |= {f"{repo}#{n}" for n in re.findall(r"(?<![\w/&])#(\d+)\b", body)}
+    return refs
+
+
+def _docs_candidates(files: list[dict], via: str, read_file) -> list[dict]:
+    candidates = []
+    for f in files or []:
+        path = f["filename"]
+        if f.get("status") == "removed" or NOT_A_FEATURE_PAGE.search(path) or not docs_page_url(path):
+            continue
+        content = read_file(path)
+        url = docs_page_url(path, content) if content is not None else None
+        if url:
+            patch = f.get("patch") or ""
+            present = [h for h in added_headings(patch) if re.search(rf"(?m)^#{{2,6}}\s+{re.escape(h)}\s*$", content)]
+            candidates.append({
+                "path": path, "url": url, "added": f.get("status") == "added", "headings": present, "via": via,
+                "lines_added": len(re.findall(r"(?m)^\+(?!\+\+)\s*\S", patch)),
+                "lines_removed": len(re.findall(r"(?m)^-(?!--)\s*\S", patch)),
+            })
+    return candidates
+
+
+# A page the PR only trimmed, or touched in a line or two, is where something was
+# mentioned in passing, not where the feature is documented.
+MIN_DOCS_LINES_ADDED = 3
+
+
+def _pick(candidates: list[dict]) -> dict | None:
+    """The one page a feature is documented on, or None when the PR does not make it clear.
+
+    A page counts if the PR created it, or added at least MIN_DOCS_LINES_ADDED lines and
+    more than it removed. Feature pages beat reference pages; a new page beats an edited
+    one; otherwise the page with the most added lines wins, if by at least double.
+    """
+    eligible = [c for c in candidates
+                if c["added"] or (c["lines_added"] >= MIN_DOCS_LINES_ADDED and c["lines_added"] > c["lines_removed"])]
+    pool = [c for c in eligible if not REFERENCE_PAGE.search(c["path"])] or eligible
+    new = {c["url"] for c in pool if c["added"]}
+    chosen = None
+    if len(new) == 1:
+        chosen = next(c for c in pool if c["added"])
+    elif not new and pool:
+        by_page: dict[str, int] = {}
+        for c in pool:
+            by_page[c["url"]] = by_page.get(c["url"], 0) + c["lines_added"]
+        ranked = sorted(by_page.items(), key=lambda item: -item[1])
+        if len(ranked) == 1 or ranked[0][1] >= 2 * ranked[1][1]:
+            chosen = max((c for c in pool if c["url"] == ranked[0][0]), key=lambda c: c["lines_added"])
+    if not chosen:
+        return None
+    url = chosen["url"]
+    if not chosen["added"] and len(chosen["headings"]) == 1:
+        url += "#" + heading_anchor(chosen["headings"][0])
+    return {**chosen, "url": url}
+
+
+def docs_link(source: str, prs: dict, files_of, read_file) -> dict:
+    """Where the docs for the PR ``source`` are, and why, following the PR to its docs.
+
+    ``prs`` maps each milestone PR's ``owner/repo#N`` to its title, body and head_ref;
+    ``files_of(source)`` lists a PR's changed files (filename, status, patch);
+    ``read_file(path)`` reads a file as it is now, or None if it no longer exists.
+
+    Returns ``{"url", "basis"}`` for a clear match, ``{"candidates"}`` when several pages
+    are equally likely, or ``{}`` when nothing points at a page. The rule abstains rather
+    than guess: a missing link is visible to a reviewer, a wrong one is not.
+    """
+    own = _docs_candidates(files_of(source), "the same PR", read_file)
+    chosen = _pick(own)
+    candidates = own
+    if not own:
+        pr = prs[source]
+        keys = jira_keys(pr.get("title"), pr.get("head_ref"), pr.get("body"))
+        for other, info in prs.items():
+            if other == source or not other.startswith("mattermost/mattermost#"):
+                continue
+            shared = keys & jira_keys(info.get("title"), info.get("head_ref"), info.get("body"))
+            linked = source in pr_references(info.get("body"), other.split("#")[0])
+            if shared or linked:
+                via = f"docs PR {other}, which " + (f"names {', '.join(sorted(shared))}" if shared else "links the PR")
+                candidates += _docs_candidates(files_of(other), via, read_file)
+        chosen = _pick(candidates)
+    if chosen:
+        basis = f"{chosen['path']} changed in {chosen['via']}"
+        if "#" in chosen["url"]:
+            basis += f", which added the heading \"{chosen['headings'][0]}\""
+        elif chosen["added"]:
+            basis += ", which added the page"
+        return {"url": chosen["url"], "basis": basis}
+    if candidates:
+        return {"candidates": sorted({c["url"] for c in candidates})}
+    return {}
+
+
 # ── Reviewers ───────────────────────────────────────────────────────────────────────
 
 def reviewers_for(sections: list[dict], mapping: dict) -> list[str]:

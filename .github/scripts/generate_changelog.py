@@ -185,7 +185,9 @@ Here are your instructions:
 
 12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. End every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. If a bullet combines several notes, list every ID: `[[N3,N7]]`. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
 
-13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing."""
+13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing.
+
+14.  **Documentation links:** A note may end with a `Docs page:` line, found by following its PR to the documentation that PR changed. When that note's bullet goes under `### Improvements`, link the feature's name in the bullet to that URL, exactly as given, the way existing entries do: ` - Added [channel attributes](https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes) on Enterprise Advanced.` Link it once, and only in an `### Improvements` bullet. Never add a docs.mattermost.com link that was not given in a note."""
 
 
 def get_milestone_number(repo: str, title: str) -> int | None:
@@ -267,6 +269,53 @@ def release_note_blocks(body: str) -> list[str]:
     """
     text = re.sub(r"<!--.*?-->", "", (body or "").replace("\r\n", "\n").replace("\r", "\n"), flags=re.DOTALL)
     return [block.strip() for block in re.findall(r"```release-note[ \t]*\n(.*?)\n?```", text, re.DOTALL)]
+
+
+# Docs live in this repo; a docs PR for an enterprise feature is opened here too.
+DOCS_REPO = "mattermost/mattermost"
+DETAIL_WORKERS = 8
+
+
+def get_pr_details(repo: str, number: int) -> dict:
+    """A PR's branch name and, for DOCS_REPO, the docs files it changed with their patches."""
+    resp = SESSION.get(f"https://api.github.com/repos/{repo}/pulls/{number}", timeout=API_TIMEOUT)
+    resp.raise_for_status()
+    details = {"head_ref": resp.json().get("head", {}).get("ref", ""), "files": []}
+    page = 1
+    while repo == DOCS_REPO:
+        resp = SESSION.get(
+            f"https://api.github.com/repos/{repo}/pulls/{number}/files",
+            params={"per_page": 100, "page": page}, timeout=API_TIMEOUT,
+        )
+        resp.raise_for_status()
+        batch = resp.json()
+        details["files"] += [
+            {"filename": f["filename"], "status": f.get("status"), "patch": f.get("patch")}
+            for f in batch if f["filename"].startswith("docs/")
+        ]
+        if len(batch) < 100:
+            break
+        page += 1
+    return details
+
+
+def find_docs_links(prs: dict, sources: set, read_file) -> dict:
+    """``changelog_release.docs_link`` for each source PR, fetching PR details in parallel."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    keys = sorted(prs)
+    with ThreadPoolExecutor(DETAIL_WORKERS) as pool:
+        details = dict(zip(keys, pool.map(lambda s: get_pr_details(*_split_source(s)), keys)))
+    info = {source: {**prs[source], "head_ref": details[source]["head_ref"]} for source in keys}
+    return {
+        source: changelog_release.docs_link(source, info, lambda s: details[s]["files"], read_file)
+        for source in sorted(sources, key=_source_sort_key)
+    }
+
+
+def _split_source(source: str) -> tuple[str, int]:
+    repo, _, number = source.partition("#")
+    return repo, int(number)
 
 
 def extract_release_notes(body: str) -> list[str] | None:
@@ -414,7 +463,10 @@ def polish_with_ai(notes: list[dict]) -> tuple[str, bool]:
     print("✨ Sending notes to Claude for categorization and proofreading...")
     client = anthropic.Anthropic(api_key=api_key)
 
-    raw_text = "\n\n---\n\n".join(f"[{note['id']}] {note['text']}" for note in notes)
+    raw_text = "\n\n---\n\n".join(
+        f"[{note['id']}] {note['text']}" + (f"\nDocs page: {note['docs_url']}" if note.get("docs_url") else "")
+        for note in notes
+    )
     user_message = f"Here are the raw release notes to process:\n\n{raw_text}"
 
     response = client.messages.create(
@@ -1392,6 +1444,20 @@ def render_status(readiness: dict) -> list[str]:
             lines.append(f"- {_pr_link(note['source'])} {note['reason']}: \"{excerpt}\"")
         lines.append("")
 
+    links, unclear = readiness.get("doc_links", []), readiness.get("doc_links_unclear", [])
+    if links or unclear:
+        lines += [f"### Doc links: {len(links)} found by following the PR to the docs it changed", ""]
+        for link in links:
+            where = ""
+            if "used_in" in link:
+                where = f" (linked in {', '.join(link['used_in'])})" if link["used_in"] else " (no bullet links it)"
+            lines.append(f"- {_pr_link(link['source'])} → <{link['url']}>{where}. Basis: {link['basis']}.")
+        if unclear:
+            lines.append(f"- {len(unclear)} PR(s) changed docs, but no page clearly documents the change, so no link was proposed:")
+            for link in unclear:
+                lines.append(f"  - {_pr_link(link['source'])}: {', '.join(f'<{url}>' for url in link['candidates'])}")
+        lines.append("")
+
     blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
     lines += [f"**Generator status: {'NOT READY (preflight failing)' if blocking else 'ready to run'}**", ""]
     return lines
@@ -1531,6 +1597,7 @@ def main():
     milestones = {}
     unaudited = []
     note_quality = []
+    milestone_prs = {}
 
     for repo in REPOS:
         print(f"── {repo}")
@@ -1557,6 +1624,7 @@ def main():
         for pr in sorted(prs, key=lambda p: p["number"]):
             source = f"{repo}#{pr['number']}"
             body = pr.get("body") or ""
+            milestone_prs[source] = {"title": pr["title"], "body": body}
             notes = extract_release_notes(body)
             merged_at = (pr.get("pull_request") or {}).get("merged_at")
             if notes:
@@ -1589,6 +1657,20 @@ def main():
     flagged_prs = [pr for pr in flagged_prs if pr.pop("origin") not in noted]
     for pr in flagged_prs:
         print(f"::warning title=Release note needed::{pr['source']} {pr['title']}: {pr['reason']}")
+
+    # Docs pages are read as they are on master at the start of the run: in update mode
+    # the checkout is the changelog PR's branch, cut before later docs changes landed.
+    docs_ref = os.environ.get("DOCS_REF", "").strip() or "HEAD"
+    docs_links = find_docs_links(
+        milestone_prs, noted, lambda path: changelog_release.git_show(docs_ref, path)
+    ) if noted else {}
+    for note in all_notes:
+        note["docs_url"] = docs_links.get(note["source"], {}).get("url")
+    linked = {source: link for source, link in docs_links.items() if link.get("url")}
+    print(f"📚 Docs pages found for {len(linked)} of {len(noted)} PR(s) with release notes")
+    for source, link in linked.items():
+        print(f"   {source}: {link['url']} ({link['basis']})")
+    print()
 
     # What the release changes that developers rarely write notes for: pre-packaged
     # plugin versions, WebSocket events and schema migrations, read from the git diff
@@ -1687,6 +1769,8 @@ def main():
         },
         "missing_by_owner": missing_by_owner(flagged_prs),
         "note_quality": note_quality,
+        "doc_links": [{"source": source, **link} for source, link in docs_links.items() if link.get("url")],
+        "doc_links_unclear": [{"source": source, **link} for source, link in docs_links.items() if link.get("candidates")],
         "gaps": gap_status(derived, bool(base_ref and head_ref), go_version, go_source, previous_go),
     }
     blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
@@ -1843,6 +1927,12 @@ def main():
     # proposed_before is only left set when the run proposed a list instead of updating.
     if not proposed_before:
         pr_body = render_pr_body(pr_body, included)
+
+    for link in readiness["doc_links"] if ai_polished else []:
+        link["used_in"] = [
+            item["subsection"] or item["section"] for item in items
+            if link["source"] in item["sources"] and link["url"] in item["text"]
+        ]
 
     added_sources = set(sources_by_id.values())
     derived_sources = {note["source"] for note in derived}
