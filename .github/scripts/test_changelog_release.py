@@ -203,6 +203,55 @@ class DerivedNotesTest(unittest.TestCase):
         self.assertEqual(cr.derived_notes("", "origin/release-12.1"), [])
 
 
+BENCHMARK_REPORT = """# v12.0 Performance Comparison
+
+### Supported users in unbounded test
+
+| v11.7.0 | v12.0.0 | Change |
+|---|---|---|
+| 16533 | 15820 | \\-4.31% |
+
+### Other results
+| 1 | 2 | 100% |
+"""
+
+
+class BenchmarkTest(unittest.TestCase):
+    def test_delta_from_the_unbounded_table(self):
+        self.assertEqual(cr.benchmark_delta(BENCHMARK_REPORT), -4.31)
+
+    def test_delta_computed_when_the_change_column_is_missing(self):
+        self.assertEqual(cr.benchmark_delta(BENCHMARK_REPORT.replace("| \\-4.31% |", "| |")), -4.31)
+
+    def test_no_table_no_delta(self):
+        self.assertIsNone(cr.benchmark_delta("# Report\n\nNo results yet."))
+
+    def test_text_within_and_outside_the_interval(self):
+        within = cr.benchmark_text("v12.0.0", -4.31)
+        self.assertIn("no significant difference: a 4.31% decrease", within)
+        self.assertIn("lies within the ``[-5%, +5%]``", within)
+        self.assertIn("performance-comparisons/v12.0)", within)
+        outside = cr.benchmark_text("v12.0.0", 7.5)
+        self.assertIn("showed a 7.50% increase", outside)
+        self.assertIn("outside the ``[-5%, +5%]``", outside)
+
+    def test_notes_once_published(self):
+        urls = []
+        notes = cr.benchmark_notes("v12.0.0", fetch=lambda url: urls.append(url) or BENCHMARK_REPORT)
+        self.assertEqual(urls, [cr.BENCHMARK_REPORT_URL.format(version="v12.0")])
+        self.assertEqual(len(notes), 1)
+        self.assertEqual(notes[0]["source"], "benchmark:v12.0")
+        self.assertEqual(notes[0]["text"], notes[0]["fallback"])
+        self.assertTrue(notes[0]["derived"])
+
+    def test_no_notes_when_unpublished_or_unreachable(self):
+        self.assertEqual(cr.benchmark_notes("v12.1.0", fetch=lambda url: None), [])
+
+        def fail(url):
+            raise OSError("network down")
+        self.assertEqual(cr.benchmark_notes("v12.1.0", fetch=fail), [])
+
+
 class ReviewersTest(unittest.TestCase):
     SECTIONS = [
         {"section": "Upgrade Impact", "subsection": "Database Schema Changes", "items": [{"text": "x"}]},

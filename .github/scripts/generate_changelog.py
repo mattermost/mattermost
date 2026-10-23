@@ -184,7 +184,7 @@ Here are your instructions:
 
 12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. End every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. If a bullet combines several notes, list every ID: `[[N3,N7]]`. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
 
-13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code: pre-packaged plugin version changes, added or removed WebSocket events, and database schema migrations (given as SQL). Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing."""
+13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing."""
 
 
 def get_milestone_number(repo: str, title: str) -> int | None:
@@ -1413,9 +1413,9 @@ def main():
     # between the previous release's tag and this release's branch.
     base_ref = os.environ.get("RELEASE_BASE_REF", "").strip()
     head_ref = os.environ.get("RELEASE_HEAD_REF", "").strip()
-    derived = changelog_release.derived_notes(base_ref, head_ref)
+    derived = changelog_release.derived_notes(base_ref, head_ref) + changelog_release.benchmark_notes(VERSION)
     if derived:
-        print(f"🔧 {len(derived)} change(s) read from the {base_ref}..{head_ref} diff:")
+        print(f"🔧 {len(derived)} change(s) read from the {base_ref}..{head_ref} diff and the performance comparison:")
         for note in derived:
             print(f"   {note['source']}")
         print()

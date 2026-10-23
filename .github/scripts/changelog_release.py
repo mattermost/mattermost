@@ -275,6 +275,80 @@ def migration_note(name: str, sql: str) -> dict:
     return {"source": f"migration:{name}", "text": text, "fallback": f"Added database migration ``{name}``."}
 
 
+BENCHMARK_REPORT_URL = "https://raw.githubusercontent.com/mattermost/performance-reports/main/performance-comparisons/{version}/README.md"
+BENCHMARK_PAGE_URL = "https://github.com/mattermost/performance-reports/tree/main/performance-comparisons/{version}"
+# The range the performance team treats as usual run-to-run variance.
+BENCHMARK_VARIANCE = 5.0
+
+
+def fetch_url(url: str) -> str | None:
+    """The body at ``url``, or None for a 404 (the report is not published yet)."""
+    import urllib.error
+    import urllib.request
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:
+            return response.read().decode("utf-8")
+    except urllib.error.HTTPError as err:
+        if err.code == 404:
+            return None
+        raise
+
+
+def benchmark_delta(report: str) -> float | None:
+    """The supported-user delta from a performance comparison README, in percent.
+
+    Read from the "Supported users in unbounded test" table: ``| 16533 | 15820 | \\-4.31% |``.
+    """
+    section = re.search(r"(?ims)^#+\s*Supported users in unbounded test\s*$(.*?)(?=^#|\Z)", report or "")
+    if not section:
+        return None
+    for row in section.group(1).splitlines():
+        cells = [cell.strip().replace("\\", "") for cell in row.strip().strip("|").split("|")]
+        if len(cells) >= 3 and re.fullmatch(r"\d+", cells[0]) and re.fullmatch(r"\d+", cells[1]):
+            delta = re.fullmatch(r"([+-]?\d+(?:\.\d+)?)%", cells[2])
+            if delta:
+                return float(delta.group(1))
+            return round((int(cells[1]) - int(cells[0])) / int(cells[0]) * 100, 2)
+    return None
+
+
+def benchmark_text(version: str, delta: float) -> str:
+    """The Performance bullet every recent changelog uses, for a supported-user delta."""
+    change = "no change" if delta == 0 else f"a {abs(delta):.2f}% {'increase' if delta > 0 else 'decrease'}"
+    link = f"[Performance Reports repository]({BENCHMARK_PAGE_URL.format(version=short_version(version))})"
+    if abs(delta) <= BENCHMARK_VARIANCE:
+        return (
+            f"Benchmarking test results showed no significant difference: {change} in the number of "
+            "supported users for the new release, which lies within the ``[-5%, +5%]`` prediction "
+            f"interval. View the full raw data and methodology in our {link}."
+        )
+    return (
+        f"Benchmarking test results showed {change} in the number of supported users for the new "
+        "release, outside the ``[-5%, +5%]`` prediction interval. View the full raw data and "
+        f"methodology in our {link}."
+    )
+
+
+def benchmark_notes(version: str, fetch=fetch_url) -> list[dict]:
+    """The benchmarking bullet, once the release's performance comparison is published.
+
+    An unpublished report is picked up by the first run after it lands. The source key
+    is per release, so a later correction to the report is left to the reviewer.
+    """
+    url = BENCHMARK_REPORT_URL.format(version=short_version(version))
+    try:
+        report = fetch(url)
+    except Exception as err:  # noqa: BLE001 - a network failure must not block the changelog
+        print(f"⚠️  Could not read the performance comparison at {url}: {err}")
+        return []
+    delta = benchmark_delta(report) if report else None
+    if delta is None:
+        print(f"ℹ️  No performance comparison with a supported-user delta at {url} yet")
+        return []
+    text = benchmark_text(version, delta)
+    return [{"source": f"benchmark:{short_version(version)}", "text": text, "fallback": text, "derived": True}]
+
+
 def derived_notes(base_ref: str, head_ref: str, show=git_show, added=git_added_files) -> list[dict]:
     """Notes for what changed between two release refs, each with a stable source key.
 

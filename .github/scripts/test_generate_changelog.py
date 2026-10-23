@@ -307,6 +307,8 @@ class MainTest(unittest.TestCase):
         }
         self.saved_derived = gc.changelog_release.derived_notes
         self.saved_show = gc.changelog_release.git_show
+        self.saved_benchmark = gc.changelog_release.benchmark_notes
+        gc.changelog_release.benchmark_notes = lambda version: []
         self.saved_env = dict(os.environ)
         gc.VERSION = gc.MILESTONE_TITLE = "v12.1.0"
         gc.REPOS = ["mattermost/mattermost"]
@@ -338,6 +340,7 @@ class MainTest(unittest.TestCase):
             setattr(gc, name, value)
         gc.changelog_release.derived_notes = self.saved_derived
         gc.changelog_release.git_show = self.saved_show
+        gc.changelog_release.benchmark_notes = self.saved_benchmark
         os.environ.clear()
         os.environ.update(self.saved_env)
 
