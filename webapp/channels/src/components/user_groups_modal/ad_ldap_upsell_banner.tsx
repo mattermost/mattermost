@@ -93,7 +93,6 @@ function ADLDAPUpsellBanner() {
         <StartTrialBtn
             className='ad-ldap-banner-btn'
             emphasis='link'
-            appearance='inverted'
             onClick={() => setConfirmed(true)}
         />);
 
@@ -102,7 +101,6 @@ function ADLDAPUpsellBanner() {
             <Button
                 type='button'
                 emphasis='link'
-                appearance='inverted'
                 className='ad-ldap-banner-btn'
                 onClick={openSalesLink}
             >

@@ -62,7 +62,7 @@ describe('components/GetLinkModal', () => {
         const copyButton = screen.getByRole('button', {name: /Copy Link/});
         await user.click(copyButton);
         expect(copyButton).toHaveTextContent('Copied');
-        expect(copyButton).toHaveClass('btn-success');
+        expect(copyButton).toHaveClass('GetLinkModal__copied');
 
         // Take snapshot with copied state
         expect(baseElement).toMatchSnapshot();
@@ -77,7 +77,7 @@ describe('components/GetLinkModal', () => {
 
         // Verify copiedLink was reset (button should show Copy Link, not Copied)
         expect(copyButton).toHaveTextContent('Copy Link');
-        expect(copyButton).not.toHaveClass('btn-success');
+        expect(copyButton).not.toHaveClass('GetLinkModal__copied');
     });
 
     test('should have handle copyLink', async () => {
@@ -97,7 +97,7 @@ describe('components/GetLinkModal', () => {
 
         // Button should now show "Copied"
         expect(copyButton).toHaveTextContent('Copied');
-        expect(copyButton).toHaveClass('btn-success');
+        expect(copyButton).toHaveClass('GetLinkModal__copied');
     });
 
     test('should change button state when copying', async () => {
@@ -110,19 +110,19 @@ describe('components/GetLinkModal', () => {
 
         // Initial state
         expect(copyButton).toHaveTextContent('Copy Link');
-        expect(copyButton).not.toHaveClass('btn-success');
+        expect(copyButton).not.toHaveClass('GetLinkModal__copied');
 
         // After copying
         await user.click(copyButton);
         expect(copyButton).toHaveTextContent('Copied');
-        expect(copyButton).toHaveClass('btn-success');
+        expect(copyButton).toHaveClass('GetLinkModal__copied');
 
         // After timeout
         act(() => {
             jest.advanceTimersByTime(1000);
         });
         expect(copyButton).toHaveTextContent('Copy Link');
-        expect(copyButton).not.toHaveClass('btn-success');
+        expect(copyButton).not.toHaveClass('GetLinkModal__copied');
     });
 
     test('should cleanup timeout on unmount', async () => {

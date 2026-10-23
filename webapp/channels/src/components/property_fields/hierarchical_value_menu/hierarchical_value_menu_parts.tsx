@@ -227,7 +227,7 @@ export function HierarchicalMenuStatus({kind, onRetry}: HierarchicalMenuStatusPr
             {onRetry && (
                 <Button
                     type='button'
-                    emphasis='tertiary'
+                    emphasis='link'
                     size='x-small'
                     className='hierarchical-value-menu__retry'
                     onClick={(event) => {

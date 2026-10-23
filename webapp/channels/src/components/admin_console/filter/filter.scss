@@ -3,6 +3,11 @@
     display: inline-block;
     padding-left: 8px;
 
+    // Stronger tint than the tertiary default while the popover is open.
+    .Filter_button.Filter__active {
+        background-color: rgba(var(--link-color-rgb), 0.16);
+    }
+
     .Filter_content {
         position: absolute;
         z-index: 1;

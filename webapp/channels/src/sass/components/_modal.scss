@@ -177,6 +177,12 @@
             content: none;
         }
 
+        // Footers that still hold Bootstrap buttons (most plugin modals) would
+        // otherwise stack Bootstrap's own `.btn + .btn` margin on top of the gap.
+        .btn + .btn {
+            margin-left: 0;
+        }
+
         &.divider {
             border-top: var(--border-light);
         }

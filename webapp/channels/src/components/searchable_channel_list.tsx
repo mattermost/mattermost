@@ -314,6 +314,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         const renderWithdrawButton = () => (
             <Button
                 id='withdrawRequestButton'
+                className='withdrawButton'
                 onClick={(e) => this.handleWithdrawRequest(channel, e)}
                 emphasis='tertiary'
                 size='small'

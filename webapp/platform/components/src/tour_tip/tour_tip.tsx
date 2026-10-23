@@ -244,7 +244,6 @@ export const TourTip = ({
                         />
                         <Button
                             emphasis='link'
-                            appearance='inverted'
                             size='x-small'
                             onClick={handleSkip}
                         >

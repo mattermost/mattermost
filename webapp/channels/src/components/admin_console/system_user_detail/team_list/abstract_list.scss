@@ -52,9 +52,10 @@
         border-top: solid 1px rgba(0, 0, 0, 0.1);
         background: variables.$white;
 
+        // The Compass label reads --button-fg; a plain `color` never reaches it.
         .prev,
         .next {
-            color: variables.$dark-gray;
+            --button-fg: #{variables.$dark-gray};
         }
 
         .counter {

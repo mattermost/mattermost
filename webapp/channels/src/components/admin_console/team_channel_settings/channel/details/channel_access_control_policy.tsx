@@ -138,6 +138,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
             title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Membership policy'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.policy_following', defaultMessage: 'This channel is currently using the following membership policy.'})}
             buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove all'})}
+            destructive={true}
             onButtonClick={() => {
                 actions.onPolicyRemoveAll();
             }}

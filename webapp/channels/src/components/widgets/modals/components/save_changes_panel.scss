@@ -82,8 +82,10 @@
 
     &__cancel-btn {
         &.error {
+            // The Compass label reads --button-fg; a plain `color` never reaches it.
+            --button-fg: var(--button-color);
+
             background: rgba(var(--button-color-rgb), 0.12);
-            color: var(--button-color);
 
             &:hover {
                 background-color: rgba(var(--button-color-rgb), 0.16);
@@ -94,7 +96,6 @@
     &__save-btn {
         &.error {
             background-color: var(--button-color);
-            color: var(--dnd-indicator);
 
             &:hover {
                 background-color: rgba(var(--button-color-rgb), 0.9);

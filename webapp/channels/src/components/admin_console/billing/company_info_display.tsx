@@ -5,7 +5,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import CompanySvg from 'components/common/svg_images_components/company_svg';
@@ -20,9 +22,9 @@ const addInfoButton = (
             asChild={true}
             emphasis='primary'
             className='CompanyInfoDisplay__addInfoButton'
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
         >
             <BlockableLink to='/admin_console/billing/company_info_edit'>
-                <i className='icon icon-plus'/>
                 <FormattedMessage
                     id='admin.billing.company_info.add'
                     defaultMessage='Add Company Information'

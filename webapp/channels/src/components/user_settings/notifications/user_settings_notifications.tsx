@@ -1096,6 +1096,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                         <Button
                                             asChild={true}
                                             emphasis='link'
+                                            size='x-small'
                                         >
                                             <ExternalLink
                                                 location='user_settings_notifications'

@@ -4,7 +4,9 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {AlertOutlineIcon, DownloadOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -91,7 +93,7 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
             );
             break;
         case 'error':
-            icon = <i className='icon icon-alert-outline'/>;
+            icon = <Icon glyph={<AlertOutlineIcon/>}/>;
             label = (
                 <FormattedMessage
                     id='data_spillage_report.download_report.failed.button_text'
@@ -103,7 +105,7 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
             break;
         case 'idle':
         default:
-            icon = <i className='icon icon-download-outline'/>;
+            icon = <Icon glyph={<DownloadOutlineIcon/>}/>;
             label = (
                 <FormattedMessage
                     id='data_spillage_report.download_report.button_text'
@@ -129,8 +131,8 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
                 onClick={handleClick}
                 disabled={status === 'generating'}
                 data-testid='data-spillage-action-download-report'
+                leadingIcon={icon}
             >
-                {icon}
                 {label}
             </Button>
         </div>

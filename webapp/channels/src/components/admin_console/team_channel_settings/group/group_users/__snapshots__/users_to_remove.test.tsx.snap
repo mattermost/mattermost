@@ -39,6 +39,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
           class="Filter"
         >
           <button
+            aria-expanded="false"
             class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 Filter_button"
             type="button"
           >
@@ -335,6 +336,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
           class="Filter"
         >
           <button
+            aria-expanded="false"
             class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 Filter_button"
             type="button"
           >
@@ -767,6 +769,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
           class="Filter"
         >
           <button
+            aria-expanded="false"
             class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 Filter_button"
             type="button"
           >

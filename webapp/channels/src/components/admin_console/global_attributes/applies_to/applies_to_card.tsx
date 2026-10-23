@@ -6,6 +6,7 @@ import {defineMessages, FormattedMessage} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import Card from 'components/card/card';
 
@@ -115,8 +116,8 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResou
                             onClick={() => onChannelResourceChange({...DEFAULT_CHANNEL_RESOURCE_CONFIG})}
                             disabled={disabled}
                             data-testid='appliesToAddResource'
+                            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                         >
-                            <PlusIcon size={16}/>
                             <FormattedMessage {...messages.addResource}/>
                         </Button>
                     </div>

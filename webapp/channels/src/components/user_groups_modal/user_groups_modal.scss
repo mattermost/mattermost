@@ -47,6 +47,11 @@
             }
 
             .ad-ldap-banner-btn {
+                // Sits on the brand-coloured banner. Compass's
+                // appearance='inverted' resolves to --sidebar-text, which goes
+                // dark on Quartz, so drive the foreground from --button-color.
+                --button-fg: var(--button-color);
+
                 font-size: 14px;
                 font-weight: 600;
             }

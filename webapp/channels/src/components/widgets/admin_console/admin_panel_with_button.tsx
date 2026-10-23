@@ -19,6 +19,10 @@ type Props = {
     onButtonClick?: React.EventHandler<React.MouseEvent>;
     disabled?: boolean;
     buttonText?: MessageDescriptor;
+
+    // Renders the panel action in the danger colour, for panels whose button
+    // removes something.
+    destructive?: boolean;
 };
 
 const AdminPanelWithButton = ({
@@ -27,6 +31,7 @@ const AdminPanelWithButton = ({
     title,
     buttonText,
     children,
+    destructive,
     disabled,
     id,
     onButtonClick,
@@ -37,6 +42,7 @@ const AdminPanelWithButton = ({
         button = (
             <Button
                 emphasis='primary'
+                destructive={destructive}
                 className={classNames({disabled})}
                 onClick={disabled ? undefined : onButtonClick}
                 data-testid={buttonId}

@@ -489,13 +489,10 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                                         size='small'
                                                         className='ClassificationAttribute__markingsOpen'
                                                         data-testid='classificationAttributeMarkingsLink'
+                                                        trailingIcon={<OpenInNewIcon size={12}/>}
                                                     >
                                                         <Link to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}>
                                                             <FormattedMessage {...messages.openMarkings}/>
-                                                            <OpenInNewIcon
-                                                                size={12}
-                                                                aria-hidden={true}
-                                                            />
                                                         </Link>
                                                     </Button>
                                                 </p>

@@ -5,8 +5,9 @@ import React from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, defineMessages} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {CheckCircleOutlineIcon, FilePdfOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
@@ -347,8 +348,8 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                     emphasis='primary'
                     className='BillingSummary__lastInvoice-downloadButton'
                     onClick={openInvoicePreview}
+                    leadingIcon={<Icon glyph={<FilePdfOutlineIcon/>}/>}
                 >
-                    <i className='icon icon-file-pdf-outline'/>
                     <FormattedMessage
                         id='admin.billing.subscriptions.billing_summary.lastInvoice.viewInvoice'
                         defaultMessage='View Invoice'
