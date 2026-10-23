@@ -26,7 +26,6 @@ func TestBotEventStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("ConcurrentWritersAndReader", func(t *testing.T) { testBotEventConcurrentWritersAndReader(t, rctx, ss) })
 	t.Run("CountAfterCursor", func(t *testing.T) { testBotEventCountAfterCursor(t, rctx, ss) })
 	t.Run("DeleteUpToCursor", func(t *testing.T) { testBotEventDeleteUpToCursor(t, rctx, ss) })
-	t.Run("GetBacklogCutoff", func(t *testing.T) { testBotEventGetBacklogCutoff(t, rctx, ss) })
 	t.Run("DeleteOlderThan", func(t *testing.T) { testBotEventDeleteOlderThan(t, rctx, ss, s) })
 }
 
@@ -346,35 +345,6 @@ func testBotEventDeleteUpToCursor(t *testing.T, rctx request.CTX, ss store.Store
 	})
 }
 
-func testBotEventGetBacklogCutoff(t *testing.T, rctx request.CTX, ss store.Store) {
-	botID := model.NewId()
-	var events []*model.BotEvent
-	for i := range 5 {
-		events = append(events, newTestBotEvent(botID, int64(100+i)))
-	}
-	saveTestBotEvents(t, rctx, ss, events...)
-
-	for _, keep := range []int{5, 6, 10000} {
-		cutoff, err := ss.BotEvent().GetBacklogCutoff(rctx, botID, keep)
-		require.NoError(t, err)
-		assert.Nil(t, cutoff, "keep=%d leaves nothing to drop", keep)
-	}
-
-	cutoff, err := ss.BotEvent().GetBacklogCutoff(rctx, botID, 3)
-	require.NoError(t, err)
-	require.NotNil(t, cutoff)
-	assert.Equal(t, events[1].Cursor(), *cutoff, "the newest event to drop is the 2nd oldest")
-
-	cutoff, err = ss.BotEvent().GetBacklogCutoff(rctx, botID, 0)
-	require.NoError(t, err)
-	require.NotNil(t, cutoff)
-	assert.Equal(t, events[4].Cursor(), *cutoff)
-
-	empty, err := ss.BotEvent().GetBacklogCutoff(rctx, model.NewId(), 3)
-	require.NoError(t, err)
-	assert.Nil(t, empty)
-}
-
 func testBotEventDeleteOlderThan(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// DeleteOlderThan is global, so start from an empty table.
 	_, err := s.GetMaster().Exec("DELETE FROM BotEvents")
@@ -387,33 +357,31 @@ func testBotEventDeleteOlderThan(t *testing.T, rctx request.CTX, ss store.Store,
 	saveTestBotEvents(t, rctx, ss, a1, a2, b1, fresh)
 
 	t.Run("respects the limit", func(t *testing.T) {
-		maxCursors, deleted, err := ss.BotEvent().DeleteOlderThan(rctx, 1000, 2)
+		deleted, err := ss.BotEvent().DeleteOlderThan(rctx, 1000, 2)
 		require.NoError(t, err)
 		assert.Equal(t, int64(2), deleted)
-		assert.LessOrEqual(t, len(maxCursors), 2)
 	})
 
-	t.Run("returns the per bot maximum", func(t *testing.T) {
+	t.Run("deletes every old event of every bot", func(t *testing.T) {
 		_, err := s.GetMaster().Exec("DELETE FROM BotEvents")
 		require.NoError(t, err)
 		saveTestBotEvents(t, rctx, ss, a1, a2, b1, fresh)
 
-		maxCursors, deleted, err := ss.BotEvent().DeleteOlderThan(rctx, 1000, 100)
+		deleted, err := ss.BotEvent().DeleteOlderThan(rctx, 1000, 100)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), deleted)
-		require.Len(t, maxCursors, 2)
-		assert.Equal(t, a2.Cursor(), maxCursors[botA])
-		assert.Equal(t, b1.Cursor(), maxCursors[botB])
 
 		left, err := ss.BotEvent().GetAfterCursor(rctx, botA, model.BotEventCursor{}, 0, 100)
 		require.NoError(t, err)
 		assert.Equal(t, []string{fresh.Id}, eventIDs(left))
+		left, err = ss.BotEvent().GetAfterCursor(rctx, botB, model.BotEventCursor{}, 0, 100)
+		require.NoError(t, err)
+		assert.Empty(t, left)
 	})
 
 	t.Run("nothing to delete", func(t *testing.T) {
-		maxCursors, deleted, err := ss.BotEvent().DeleteOlderThan(rctx, 1000, 100)
+		deleted, err := ss.BotEvent().DeleteOlderThan(rctx, 1000, 100)
 		require.NoError(t, err)
 		assert.Zero(t, deleted)
-		assert.Empty(t, maxCursors)
 	})
 }

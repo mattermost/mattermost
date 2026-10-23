@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -54,9 +55,9 @@ func botEventsFor(t *testing.T, th *TestHelper, botID string) []*model.BotEvent 
 }
 
 func botEventTypes(events []*model.BotEvent) []model.BotEventType {
-	types := make([]model.BotEventType, len(events))
-	for i, e := range events {
-		types[i] = e.Type
+	var types []model.BotEventType
+	for _, e := range events {
+		types = append(types, e.Type)
 	}
 	return types
 }
@@ -146,302 +147,369 @@ func TestBotEventPostCandidates(t *testing.T) {
 	assert.ElementsMatch(t, []string{"bot2"}, botEventPostCandidates(map[string]*model.User{"human1": human, "bot1": bot1, "bot2": bot2}, "bot1"))
 }
 
+// botEventEnv is the fixture each production scenario runs against.
+type botEventEnv struct {
+	bot     *model.Bot
+	botUser *model.User
+	channel *model.Channel
+	other   *model.User // a second subscribed bot in the channel, for scenarios where it acts
+	message string
+}
+
+// newBotEventEnv sets up a subscribed bot and a channel of the given kind: "public"
+// (default, with BasicUser and BasicUser2 as members), "dm" or "gm".
+func newBotEventEnv(t *testing.T, th *TestHelper, kind string, botIsMember bool) *botEventEnv {
+	t.Helper()
+
+	env := &botEventEnv{}
+	switch kind {
+	case "dm":
+		env.bot, env.botUser = addTestBot(t, th)
+		env.channel = th.CreateDmChannel(t, env.botUser)
+	case "gm":
+		env.bot, env.botUser = addTestBot(t, th)
+		env.channel = th.CreateGroupChannel(t, env.botUser, th.BasicUser2)
+	default:
+		env.channel = th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser2, env.channel)
+		if botIsMember {
+			env.bot, env.botUser = addTestBot(t, th, env.channel)
+		} else {
+			env.bot, env.botUser = addTestBot(t, th)
+		}
+	}
+	return env
+}
+
+func (e *botEventEnv) authorID(t *testing.T, th *TestHelper, author string) string {
+	t.Helper()
+
+	switch author {
+	case "self":
+		return e.botUser.Id
+	case "other_bot":
+		if e.other == nil {
+			_, e.other = addTestBot(t, th, e.channel)
+		}
+		return e.other.Id
+	default:
+		return th.BasicUser.Id
+	}
+}
+
 func TestBotPostEvents(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	newChannel := func(t *testing.T) *model.Channel {
-		channel := th.CreateChannel(t, th.BasicTeam)
-		th.AddUserToChannel(t, th.BasicUser2, channel)
-		return channel
+	ignoreChannelMentions := func(t *testing.T, th *TestHelper, env *botEventEnv) {
+		_, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsOn}, env.channel.Id, env.botUser.Id)
+		require.Nil(t, appErr)
+		require.Nil(t, th.App.Srv().InvalidateAllCaches())
+	}
+	setSubscription := func(enabled bool, reason string) func(*testing.T, *TestHelper, *botEventEnv) {
+		return func(t *testing.T, th *TestHelper, env *botEventEnv) {
+			require.NoError(t, th.App.Srv().Store().BotEventSubscription().SetEnabled(th.Context, env.bot.UserId, enabled, reason, model.GetMillis()))
+		}
 	}
 
-	t.Run("direct message", func(t *testing.T) {
-		bot, botUser := addTestBot(t, th)
-		dm := th.CreateDmChannel(t, botUser)
+	tests := []struct {
+		name      string
+		kind      string // "public" (default), "dm" or "gm"
+		notMember bool
+		author    string // "" is a human, "self" the bot, "other_bot" a second bot
+		message   string // %s is the bot's username; defaults to a mention
+		postOpts  []PostOptions
+		prepare   func(t *testing.T, th *TestHelper, env *botEventEnv)
+		act       func(t *testing.T, th *TestHelper, env *botEventEnv)
+		want      []model.BotEventType
+	}{
+		{name: "direct message", kind: "dm", message: "hello", want: []model.BotEventType{model.BotEventTypePostDM}},
+		{name: "direct message with a mention is still a dm", kind: "dm", want: []model.BotEventType{model.BotEventTypePostDM}},
+		{name: "group message", kind: "gm", message: "hello group", want: []model.BotEventType{model.BotEventTypePostGM}},
+		{name: "group message with a mention is a mention", kind: "gm", want: []model.BotEventType{model.BotEventTypePostMention}},
+		{name: "mention by username", want: []model.BotEventType{model.BotEventTypePostMention}},
+		{name: "unmentioned bot in a channel", message: "just chatting", want: nil},
+		{name: "channel mention", message: "@channel attention", want: []model.BotEventType{model.BotEventTypePostMention}},
+		{name: "all mention", message: "@all attention", want: []model.BotEventType{model.BotEventTypePostMention}},
+		{name: "channel mention ignored by the bot", message: "@channel attention", prepare: ignoreChannelMentions, want: nil},
+		{name: "all mention ignored by the bot", message: "@all attention", prepare: ignoreChannelMentions, want: nil},
+		{
+			name: "group mention",
+			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) {
+				// The test license is dropped by earlier cache invalidations, so set it here.
+				th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+				group := th.CreateGroup(t)
+				group.AllowReference = true
+				group, appErr := th.App.UpdateGroup(group)
+				require.Nil(t, appErr)
+				_, appErr = th.App.UpsertGroupMember(group.Id, env.bot.UserId)
+				require.Nil(t, appErr)
+				env.message = "calling @" + *group.Name
+			},
+			want: []model.BotEventType{model.BotEventTypePostMention},
+		},
+		{name: "post by another bot is ignored by default", author: "other_bot", want: nil},
+		{
+			name:    "post by another bot when not ignoring bot authors",
+			author:  "other_bot",
+			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) { subscribeTestBot(t, th, env.bot, new(false)) },
+			want:    []model.BotEventType{model.BotEventTypePostMention},
+		},
+		{name: "the bot's own post", author: "self", want: nil},
+		{
+			name: "silent post",
+			act: func(t *testing.T, th *TestHelper, env *botEventEnv) {
+				// The silent marker is only kept on posts by integrations, so set it directly.
+				post := postAs(t, th, th.BasicUser.Id, env.channel, "nothing to see", "")
+				post.Message = env.message
+				post.AddProp(model.PostPropsSilentNotification, true)
+				_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, env.channel, th.BasicUser, nil, false)
+				require.NoError(t, err)
+			},
+			want: nil,
+		},
+		{name: "system message", postOpts: []PostOptions{func(p *model.Post) { p.Type = model.PostTypeJoinChannel }}, want: nil},
+		{
+			name:     "burn on read post",
+			postOpts: []PostOptions{func(p *model.Post) { p.Type = model.PostTypeBurnOnRead }},
+			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) {
+				th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
+				enableBoRFeature(th)
+			},
+			want: nil,
+		},
+		{name: "bot that is not a channel member", notMember: true, want: nil},
+		{
+			name: "deactivated bot",
+			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) {
+				_, appErr := th.App.UpdateBotActive(th.Context, env.bot.UserId, false)
+				require.Nil(t, appErr)
+			},
+			want: nil,
+		},
+		{
+			name: "bot without a subscription",
+			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) {
+				require.Nil(t, th.App.DeleteBotEventSubscription(th.Context, env.bot.UserId))
+			},
+			want: nil,
+		},
+		{name: "subscription disabled manually", prepare: setSubscription(false, model.BotEventDisabledReasonManual), want: nil},
+		{
+			name:    "subscription disabled by delivery failures keeps accumulating",
+			prepare: setSubscription(false, model.BotEventDisabledReasonDeliveryFailures),
+			want:    []model.BotEventType{model.BotEventTypePostMention},
+		},
+		{
+			name: "archived channel",
+			act: func(t *testing.T, th *TestHelper, env *botEventEnv) {
+				archived := env.channel.DeepCopy()
+				archived.DeleteAt = model.GetMillis()
+				post := &model.Post{Id: model.NewId(), UserId: th.BasicUser.Id, ChannelId: env.channel.Id, Message: env.message}
+				_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, archived, th.BasicUser, nil, false)
+				require.NoError(t, err)
+			},
+			want: nil,
+		},
+	}
 
-		post := postAs(t, th, th.BasicUser.Id, dm, "hello", "")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			env := newBotEventEnv(t, th, tc.kind, !tc.notMember)
+			message := tc.message
+			if message == "" {
+				message = "hi @%s"
+			}
+			env.message = strings.ReplaceAll(message, "%s", env.bot.Username)
 
-		events := botEventsFor(t, th, bot.UserId)
-		require.Len(t, events, 1)
-		assert.Equal(t, model.BotEventTypePostDM, events[0].Type)
+			author := env.authorID(t, th, tc.author)
+			if tc.prepare != nil {
+				tc.prepare(t, th, env)
+			}
 
-		data := botEventData(t, events[0])
-		assert.Nil(t, data.Team)
-		assert.Equal(t, dm.Id, data.Channel.Id)
-		assert.Equal(t, model.ChannelTypeDirect, data.Channel.Type)
-		assert.Equal(t, th.BasicUser.Id, data.Sender.Id)
-		assert.False(t, data.Sender.IsBot)
-		assert.Equal(t, post.Id, data.Post.Id)
-		assert.Equal(t, "hello", data.Post.Message)
-	})
+			if tc.act != nil {
+				tc.act(t, th, env)
+			} else {
+				postAs(t, th, author, env.channel, env.message, "", tc.postOpts...)
+			}
 
-	t.Run("group message", func(t *testing.T) {
-		bot, botUser := addTestBot(t, th)
-		gm := th.CreateGroupChannel(t, botUser, th.BasicUser2)
+			assert.Equal(t, tc.want, botEventTypes(botEventsFor(t, th, env.bot.UserId)))
+		})
+	}
+}
 
-		postAs(t, th, th.BasicUser.Id, gm, "hello group", "")
+func TestBotPostEventPayload(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-		events := botEventsFor(t, th, bot.UserId)
-		require.Len(t, events, 1)
-		assert.Equal(t, model.BotEventTypePostGM, events[0].Type)
-		assert.Nil(t, botEventData(t, events[0]).Team)
-	})
+	t.Run("channel post", func(t *testing.T) {
+		env := newBotEventEnv(t, th, "public", true)
 
-	t.Run("group message with a mention is a mention", func(t *testing.T) {
-		bot, botUser := addTestBot(t, th)
-		gm := th.CreateGroupChannel(t, botUser, th.BasicUser2)
-
-		postAs(t, th, th.BasicUser.Id, gm, "hey @"+bot.Username, "")
-
-		assert.Equal(t, []model.BotEventType{model.BotEventTypePostMention}, botEventTypes(botEventsFor(t, th, bot.UserId)))
-	})
-
-	t.Run("mention by username", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, _ := addTestBot(t, th, channel)
-
-		post := postAs(t, th, th.BasicUser.Id, channel, "hi @"+bot.Username, "")
-
-		events := botEventsFor(t, th, bot.UserId)
-		require.Len(t, events, 1)
-		assert.Equal(t, model.BotEventTypePostMention, events[0].Type)
-
-		data := botEventData(t, events[0])
-		require.NotNil(t, data.Team)
-		assert.Equal(t, th.BasicTeam.Id, data.Team.Id)
-		assert.Equal(t, th.BasicTeam.Name, data.Team.Name)
-		assert.Equal(t, channel.Id, data.Channel.Id)
-		assert.Equal(t, channel.DisplayName, data.Channel.DisplayName)
-		assert.Equal(t, model.ChannelTypeOpen, data.Channel.Type)
-		assert.Equal(t, post.Id, data.Post.Id)
-		assert.Equal(t, th.BasicUser.Username, data.Sender.Username)
-	})
-
-	t.Run("channel and all mentions", func(t *testing.T) {
-		for _, mention := range []string{"@channel", "@all"} {
-			channel := newChannel(t)
-			bot, botUser := addTestBot(t, th, channel)
-
-			postAs(t, th, th.BasicUser.Id, channel, mention+" attention", "")
-			assert.Equal(t, []model.BotEventType{model.BotEventTypePostMention}, botEventTypes(botEventsFor(t, th, bot.UserId)), mention)
-
-			_, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsOn}, channel.Id, botUser.Id)
-			require.Nil(t, appErr)
-			require.Nil(t, th.App.Srv().InvalidateAllCaches())
-
-			postAs(t, th, th.BasicUser.Id, channel, mention+" again", "")
-			assert.Len(t, botEventsFor(t, th, bot.UserId), 1, "%s is ignored when the bot ignores channel mentions", mention)
-		}
-	})
-
-	t.Run("group mention", func(t *testing.T) {
-		// Invalidating caches in earlier subtests drops the test license.
-		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
-		channel := newChannel(t)
-		bot, _ := addTestBot(t, th, channel)
-
-		group := th.CreateGroup(t)
-		group.AllowReference = true
-		group, appErr := th.App.UpdateGroup(group)
-		require.Nil(t, appErr)
-		_, appErr = th.App.UpsertGroupMember(group.Id, bot.UserId)
-		require.Nil(t, appErr)
-
-		postAs(t, th, th.BasicUser.Id, channel, "calling @"+*group.Name, "")
-
-		assert.Equal(t, []model.BotEventType{model.BotEventTypePostMention}, botEventTypes(botEventsFor(t, th, bot.UserId)))
-	})
-
-	t.Run("unmentioned bot in a channel gets nothing", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, _ := addTestBot(t, th, channel)
-
-		postAs(t, th, th.BasicUser.Id, channel, "just chatting", "")
-
-		assert.Empty(t, botEventsFor(t, th, bot.UserId))
-	})
-
-	t.Run("payload excludes metadata and notification policy props", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, _ := addTestBot(t, th, channel)
-
-		postAs(t, th, th.BasicUser.Id, channel, "@"+bot.Username+" props", "", func(p *model.Post) {
+		post := postAs(t, th, th.BasicUser.Id, env.channel, "@"+env.bot.Username+" props", "", func(p *model.Post) {
 			p.AddProp("custom", "kept")
 			p.AddProp(model.PostPropsForceNotification, true)
 		})
 
-		events := botEventsFor(t, th, bot.UserId)
+		events := botEventsFor(t, th, env.bot.UserId)
 		require.Len(t, events, 1)
 		assert.NotContains(t, string(events[0].Payload), "metadata")
 		assert.NotContains(t, string(events[0].Payload), model.PostPropsForceNotification)
-		assert.Equal(t, "kept", botEventData(t, events[0]).Post.Props["custom"])
+
+		data := botEventData(t, events[0])
+		require.NotNil(t, data.Team)
+		assert.Equal(t, &model.BotEventTeam{Id: th.BasicTeam.Id, Name: th.BasicTeam.Name}, data.Team)
+		assert.Equal(t, &model.BotEventChannel{Id: env.channel.Id, Type: model.ChannelTypeOpen, Name: env.channel.Name, DisplayName: env.channel.DisplayName}, data.Channel)
+		assert.Equal(t, &model.BotEventUser{Id: th.BasicUser.Id, Username: th.BasicUser.Username}, data.Sender)
+		assert.Equal(t, post.Id, data.Post.Id)
+		assert.Equal(t, "kept", data.Post.Props["custom"])
 	})
 
-	t.Run("post by another bot", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, _ := addTestBot(t, th, channel)
-		other, otherUser := addTestBot(t, th, channel)
-		_ = other
+	t.Run("direct message", func(t *testing.T) {
+		env := newBotEventEnv(t, th, "dm", true)
 
-		postAs(t, th, otherUser.Id, channel, "hi @"+bot.Username, "")
-		assert.Empty(t, botEventsFor(t, th, bot.UserId), "ignore_bot_authors defaults to true")
+		postAs(t, th, th.BasicUser.Id, env.channel, "hello", "")
 
-		subscribeTestBot(t, th, bot, new(false))
-		postAs(t, th, otherUser.Id, channel, "hi again @"+bot.Username, "")
+		events := botEventsFor(t, th, env.bot.UserId)
+		require.Len(t, events, 1)
+		data := botEventData(t, events[0])
+		assert.Nil(t, data.Team)
+		assert.Equal(t, model.ChannelTypeDirect, data.Channel.Type)
+		assert.Equal(t, "hello", data.Post.Message)
+	})
 
-		events := botEventsFor(t, th, bot.UserId)
+	t.Run("sender that is a bot", func(t *testing.T) {
+		env := newBotEventEnv(t, th, "public", true)
+		subscribeTestBot(t, th, env.bot, new(false))
+
+		postAs(t, th, env.authorID(t, th, "other_bot"), env.channel, "hi @"+env.bot.Username, "")
+
+		events := botEventsFor(t, th, env.bot.UserId)
 		require.Len(t, events, 1)
 		assert.True(t, botEventData(t, events[0]).Sender.IsBot)
 	})
+}
 
-	t.Run("exclusions", func(t *testing.T) {
-		t.Run("the bot's own post", func(t *testing.T) {
-			channel := newChannel(t)
-			bot, botUser := addTestBot(t, th, channel)
-
-			postAs(t, th, botUser.Id, channel, "@"+bot.Username+" talking to myself", "")
-
-			assert.Empty(t, botEventsFor(t, th, bot.UserId))
-		})
-
-		t.Run("silent post", func(t *testing.T) {
-			channel := newChannel(t)
-			bot, _ := addTestBot(t, th, channel)
-
-			// The silent marker is only kept on posts by integrations, so set it directly.
-			post := postAs(t, th, th.BasicUser.Id, channel, "nothing to see", "")
-			post.Message = "@" + bot.Username + " shh"
-			post.AddProp(model.PostPropsSilentNotification, true)
-			_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, channel, th.BasicUser, nil, false)
-			require.NoError(t, err)
-
-			assert.Empty(t, botEventsFor(t, th, bot.UserId))
-		})
-
-		t.Run("system message", func(t *testing.T) {
-			channel := newChannel(t)
-			bot, _ := addTestBot(t, th, channel)
-
-			postAs(t, th, th.BasicUser.Id, channel, "@"+bot.Username+" joined", "", func(p *model.Post) {
-				p.Type = model.PostTypeJoinChannel
-			})
-
-			assert.Empty(t, botEventsFor(t, th, bot.UserId))
-		})
-
-		t.Run("burn on read post", func(t *testing.T) {
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
-			enableBoRFeature(th)
-			channel := newChannel(t)
-			bot, _ := addTestBot(t, th, channel)
-
-			postAs(t, th, th.BasicUser.Id, channel, "@"+bot.Username+" secret", "", func(p *model.Post) {
-				p.Type = model.PostTypeBurnOnRead
-			})
-
-			assert.Empty(t, botEventsFor(t, th, bot.UserId))
-		})
-
-		t.Run("bot that is not a channel member", func(t *testing.T) {
-			channel := newChannel(t)
-			bot, _ := addTestBot(t, th)
-
-			postAs(t, th, th.BasicUser.Id, channel, "@"+bot.Username+" are you there", "")
-
-			assert.Empty(t, botEventsFor(t, th, bot.UserId))
-		})
-
-		t.Run("deactivated bot", func(t *testing.T) {
-			channel := newChannel(t)
-			bot, _ := addTestBot(t, th, channel)
-			_, appErr := th.App.UpdateBotActive(th.Context, bot.UserId, false)
-			require.Nil(t, appErr)
-
-			postAs(t, th, th.BasicUser.Id, channel, "@"+bot.Username+" hello", "")
-
-			assert.Empty(t, botEventsFor(t, th, bot.UserId))
-		})
-
-		t.Run("bot without a subscription", func(t *testing.T) {
-			channel := newChannel(t)
-			bot := th.CreateBot(t)
-			botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
-			require.Nil(t, appErr)
-			th.LinkUserToTeam(t, botUser, th.BasicTeam)
-			th.AddUserToChannel(t, botUser, channel)
-
-			postAs(t, th, th.BasicUser.Id, channel, "@"+bot.Username+" hello", "")
-
-			assert.Empty(t, botEventsFor(t, th, bot.UserId))
-		})
-
-		t.Run("archived channel", func(t *testing.T) {
-			channel := newChannel(t)
-			bot, _ := addTestBot(t, th, channel)
-			post := postAs(t, th, th.BasicUser.Id, channel, "@"+bot.Username+" before archive", "")
-			require.Len(t, botEventsFor(t, th, bot.UserId), 1)
-
-			archived := channel.DeepCopy()
-			archived.DeleteAt = model.GetMillis()
-			_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, archived, th.BasicUser, nil, false)
-			require.NoError(t, err)
-
-			assert.Len(t, botEventsFor(t, th, bot.UserId), 1)
-		})
-	})
-
-	t.Run("disabled subscriptions", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, _ := addTestBot(t, th, channel)
-		subs := th.App.Srv().Store().BotEventSubscription()
-
-		require.NoError(t, subs.SetEnabled(th.Context, bot.UserId, false, model.BotEventDisabledReasonManual, model.GetMillis()))
-		postAs(t, th, th.BasicUser.Id, channel, "@"+bot.Username+" manual", "")
-		assert.Empty(t, botEventsFor(t, th, bot.UserId), "manually disabled subscriptions do not accumulate events")
-
-		require.NoError(t, subs.SetEnabled(th.Context, bot.UserId, false, model.BotEventDisabledReasonDeliveryFailures, model.GetMillis()))
-		postAs(t, th, th.BasicUser.Id, channel, "@"+bot.Username+" failing", "")
-		assert.Len(t, botEventsFor(t, th, bot.UserId), 1, "events keep accumulating while delivery is failing")
-	})
+func TestBotPostEventsAcrossPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	t.Run("only subscribed bots get events", func(t *testing.T) {
-		channel := newChannel(t)
-		bot1, _ := addTestBot(t, th, channel)
-		bot2, _ := addTestBot(t, th, channel)
+		env := newBotEventEnv(t, th, "public", true)
+		_, other := addTestBot(t, th, env.channel)
+		unsubscribed := th.CreateBot(t)
+		unsubscribedUser, appErr := th.App.GetUser(th.Context, unsubscribed.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, unsubscribedUser, th.BasicTeam)
+		th.AddUserToChannel(t, unsubscribedUser, env.channel)
 
-		postAs(t, th, th.BasicUser.Id, channel, fmt.Sprintf("@%s and @%s", bot1.Username, bot2.Username), "")
+		postAs(t, th, th.BasicUser.Id, env.channel, fmt.Sprintf("@%s @%s @%s", env.bot.Username, other.Username, unsubscribed.Username), "")
 
-		assert.Len(t, botEventsFor(t, th, bot1.UserId), 1)
-		assert.Len(t, botEventsFor(t, th, bot2.UserId), 1)
+		assert.Len(t, botEventsFor(t, th, env.bot.UserId), 1)
+		assert.Len(t, botEventsFor(t, th, other.Id), 1)
+		assert.Empty(t, botEventsFor(t, th, unsubscribed.UserId))
 	})
 
-	t.Run("one event per bot and post", func(t *testing.T) {
-		bot, botUser := addTestBot(t, th)
-		dm := th.CreateDmChannel(t, botUser)
+	t.Run("one event per bot and post in a dm thread", func(t *testing.T) {
+		env := newBotEventEnv(t, th, "dm", true)
 
-		root := postAs(t, th, th.BasicUser.Id, dm, "root", "")
-		postAs(t, th, th.BasicUser.Id, dm, "reply", root.Id)
-		postAs(t, th, th.BasicUser.Id, dm, "reply @"+bot.Username, root.Id)
+		root := postAs(t, th, th.BasicUser.Id, env.channel, "root", "")
+		postAs(t, th, th.BasicUser.Id, env.channel, "reply", root.Id)
+		postAs(t, th, th.BasicUser.Id, env.channel, "reply @"+env.bot.Username, root.Id)
 
-		assert.Equal(t, []model.BotEventType{model.BotEventTypePostDM, model.BotEventTypePostDM, model.BotEventTypePostDM}, botEventTypes(botEventsFor(t, th, bot.UserId)))
+		assert.Equal(t, []model.BotEventType{model.BotEventTypePostDM, model.BotEventTypePostDM, model.BotEventTypePostDM}, botEventTypes(botEventsFor(t, th, env.bot.UserId)))
 	})
 
 	t.Run("gm reply in a followed thread is one gm event", func(t *testing.T) {
 		setThreadConfig(th, model.CollapsedThreadsDefaultOn, true)
-		bot, botUser := addTestBot(t, th)
-		gm := th.CreateGroupChannel(t, botUser, th.BasicUser2)
+		env := newBotEventEnv(t, th, "gm", true)
 
-		root := postAs(t, th, botUser.Id, gm, "root by the bot", "")
-		postAs(t, th, th.BasicUser.Id, gm, "reply", root.Id)
+		root := postAs(t, th, env.botUser.Id, env.channel, "root by the bot", "")
+		postAs(t, th, th.BasicUser.Id, env.channel, "reply", root.Id)
 
-		assert.Equal(t, []model.BotEventType{model.BotEventTypePostGM}, botEventTypes(botEventsFor(t, th, bot.UserId)))
+		assert.Equal(t, []model.BotEventType{model.BotEventTypePostGM}, botEventTypes(botEventsFor(t, th, env.bot.UserId)))
 	})
 }
 
 func TestBotPostEventsThreads(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+
+	reply := []model.BotEventType{model.BotEventTypePostThreadReply}
+	ifAutoFollow := func(autoFollow bool, types []model.BotEventType) []model.BotEventType {
+		if autoFollow {
+			return types
+		}
+		return nil
+	}
+
+	scenarios := []struct {
+		name string
+		act  func(t *testing.T, env *botEventEnv)
+		want func(autoFollow bool) []model.BotEventType
+	}{
+		{
+			name: "bot that authored the root",
+			act: func(t *testing.T, env *botEventEnv) {
+				root := postAs(t, th, env.botUser.Id, env.channel, "root", "")
+				postAs(t, th, th.BasicUser.Id, env.channel, "reply", root.Id)
+			},
+			want: func(autoFollow bool) []model.BotEventType { return ifAutoFollow(autoFollow, reply) },
+		},
+		{
+			name: "bot that replied earlier",
+			act: func(t *testing.T, env *botEventEnv) {
+				root := postAs(t, th, th.BasicUser.Id, env.channel, "root", "")
+				postAs(t, th, env.botUser.Id, env.channel, "bot reply", root.Id)
+				postAs(t, th, th.BasicUser2.Id, env.channel, "later reply", root.Id)
+			},
+			want: func(autoFollow bool) []model.BotEventType { return ifAutoFollow(autoFollow, reply) },
+		},
+		{
+			name: "bot that followed explicitly",
+			act: func(t *testing.T, env *botEventEnv) {
+				root := postAs(t, th, th.BasicUser.Id, env.channel, "root", "")
+				require.Nil(t, th.App.UpdateThreadFollowForUser(env.botUser.Id, th.BasicTeam.Id, root.Id, true))
+				postAs(t, th, th.BasicUser2.Id, env.channel, "reply", root.Id)
+			},
+			want: func(bool) []model.BotEventType { return reply },
+		},
+		{
+			name: "bot that unfollowed explicitly gets no further events",
+			act: func(t *testing.T, env *botEventEnv) {
+				root := postAs(t, th, env.botUser.Id, env.channel, "root", "")
+				postAs(t, th, th.BasicUser.Id, env.channel, "first reply", root.Id)
+				require.Nil(t, th.App.UpdateThreadFollowForUser(env.botUser.Id, th.BasicTeam.Id, root.Id, false))
+				postAs(t, th, th.BasicUser.Id, env.channel, "second reply", root.Id)
+			},
+			want: func(autoFollow bool) []model.BotEventType { return ifAutoFollow(autoFollow, reply) },
+		},
+		{
+			name: "bot mentioned in a reply",
+			act: func(t *testing.T, env *botEventEnv) {
+				root := postAs(t, th, th.BasicUser.Id, env.channel, "root", "")
+				postAs(t, th, th.BasicUser2.Id, env.channel, "@"+env.bot.Username+" look", root.Id)
+				postAs(t, th, th.BasicUser.Id, env.channel, "follow up", root.Id)
+			},
+			want: func(autoFollow bool) []model.BotEventType {
+				if autoFollow {
+					return []model.BotEventType{model.BotEventTypePostMention, model.BotEventTypePostThreadReply}
+				}
+				return []model.BotEventType{model.BotEventTypePostMention}
+			},
+		},
+		{
+			name: "channel that auto follows threads",
+			act: func(t *testing.T, env *botEventEnv) {
+				_, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.ChannelAutoFollowThreads: model.ChannelAutoFollowThreadsOn}, env.channel.Id, env.botUser.Id)
+				require.Nil(t, appErr)
+				require.Nil(t, th.App.Srv().InvalidateAllCaches())
+
+				root := postAs(t, th, th.BasicUser.Id, env.channel, "root", "")
+				postAs(t, th, th.BasicUser2.Id, env.channel, "reply", root.Id)
+			},
+			want: func(autoFollow bool) []model.BotEventType { return ifAutoFollow(autoFollow, reply) },
+		},
+	}
 
 	configs := []struct {
 		name             string
@@ -457,93 +525,15 @@ func TestBotPostEventsThreads(t *testing.T) {
 		t.Run(cfg.name, func(t *testing.T) {
 			setThreadConfig(th, cfg.collapsedThreads, cfg.autoFollow)
 
-			newThreadSetup := func(t *testing.T) (*model.Channel, *model.Bot, *model.User) {
-				channel := th.CreateChannel(t, th.BasicTeam)
-				th.AddUserToChannel(t, th.BasicUser2, channel)
-				bot, botUser := addTestBot(t, th, channel)
-				return channel, bot, botUser
+			for _, sc := range scenarios {
+				t.Run(sc.name, func(t *testing.T) {
+					env := newBotEventEnv(t, th, "public", true)
+
+					sc.act(t, env)
+
+					assert.Equal(t, sc.want(cfg.autoFollow), botEventTypes(botEventsFor(t, th, env.bot.UserId)))
+				})
 			}
-
-			t.Run("bot that authored the root", func(t *testing.T) {
-				channel, bot, botUser := newThreadSetup(t)
-
-				root := postAs(t, th, botUser.Id, channel, "root", "")
-				postAs(t, th, th.BasicUser.Id, channel, "reply", root.Id)
-
-				if cfg.autoFollow {
-					assert.Equal(t, []model.BotEventType{model.BotEventTypePostThreadReply}, botEventTypes(botEventsFor(t, th, bot.UserId)))
-				} else {
-					assert.Empty(t, botEventsFor(t, th, bot.UserId))
-				}
-			})
-
-			t.Run("bot that replied earlier", func(t *testing.T) {
-				channel, bot, botUser := newThreadSetup(t)
-
-				root := postAs(t, th, th.BasicUser.Id, channel, "root", "")
-				postAs(t, th, botUser.Id, channel, "bot reply", root.Id)
-				postAs(t, th, th.BasicUser2.Id, channel, "later reply", root.Id)
-
-				if cfg.autoFollow {
-					assert.Equal(t, []model.BotEventType{model.BotEventTypePostThreadReply}, botEventTypes(botEventsFor(t, th, bot.UserId)))
-				} else {
-					assert.Empty(t, botEventsFor(t, th, bot.UserId))
-				}
-			})
-
-			t.Run("bot that followed explicitly", func(t *testing.T) {
-				channel, bot, botUser := newThreadSetup(t)
-
-				root := postAs(t, th, th.BasicUser.Id, channel, "root", "")
-				require.Nil(t, th.App.UpdateThreadFollowForUser(botUser.Id, th.BasicTeam.Id, root.Id, true))
-				postAs(t, th, th.BasicUser2.Id, channel, "reply", root.Id)
-
-				assert.Equal(t, []model.BotEventType{model.BotEventTypePostThreadReply}, botEventTypes(botEventsFor(t, th, bot.UserId)))
-			})
-
-			t.Run("bot that unfollowed explicitly", func(t *testing.T) {
-				channel, bot, botUser := newThreadSetup(t)
-
-				root := postAs(t, th, botUser.Id, channel, "root", "")
-				postAs(t, th, th.BasicUser.Id, channel, "first reply", root.Id)
-				require.Nil(t, th.App.UpdateThreadFollowForUser(botUser.Id, th.BasicTeam.Id, root.Id, false))
-				before := len(botEventsFor(t, th, bot.UserId))
-
-				postAs(t, th, th.BasicUser.Id, channel, "second reply", root.Id)
-
-				assert.Len(t, botEventsFor(t, th, bot.UserId), before)
-			})
-
-			t.Run("bot mentioned in a reply", func(t *testing.T) {
-				channel, bot, _ := newThreadSetup(t)
-
-				root := postAs(t, th, th.BasicUser.Id, channel, "root", "")
-				postAs(t, th, th.BasicUser2.Id, channel, "@"+bot.Username+" look", root.Id)
-				postAs(t, th, th.BasicUser.Id, channel, "follow up", root.Id)
-
-				types := botEventTypes(botEventsFor(t, th, bot.UserId))
-				if cfg.autoFollow {
-					assert.Equal(t, []model.BotEventType{model.BotEventTypePostMention, model.BotEventTypePostThreadReply}, types)
-				} else {
-					assert.Equal(t, []model.BotEventType{model.BotEventTypePostMention}, types)
-				}
-			})
-
-			t.Run("channel that auto follows threads", func(t *testing.T) {
-				channel, bot, botUser := newThreadSetup(t)
-				_, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.ChannelAutoFollowThreads: model.ChannelAutoFollowThreadsOn}, channel.Id, botUser.Id)
-				require.Nil(t, appErr)
-				require.Nil(t, th.App.Srv().InvalidateAllCaches())
-
-				root := postAs(t, th, th.BasicUser.Id, channel, "root", "")
-				postAs(t, th, th.BasicUser2.Id, channel, "reply", root.Id)
-
-				if cfg.autoFollow {
-					assert.Equal(t, []model.BotEventType{model.BotEventTypePostThreadReply}, botEventTypes(botEventsFor(t, th, bot.UserId)))
-				} else {
-					assert.Empty(t, botEventsFor(t, th, bot.UserId))
-				}
-			})
 		})
 	}
 }
@@ -552,131 +542,144 @@ func TestBotReactionEvents(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	newChannel := func(t *testing.T) *model.Channel {
-		channel := th.CreateChannel(t, th.BasicTeam)
-		th.AddUserToChannel(t, th.BasicUser2, channel)
-		return channel
+	added, removed := model.BotEventTypeReactionAdded, model.BotEventTypeReactionRemoved
+
+	tests := []struct {
+		name    string
+		kind    string // "public" (default) or "dm"
+		postBy  string // "bot" or, by default, a human
+		reactor string // "" is a human, "self" the bot, "other_bot" a second bot
+		ops     []string
+		prepare func(t *testing.T, th *TestHelper, env *botEventEnv)
+		want    []model.BotEventType
+	}{
+		{name: "added on the bot's post", postBy: "bot", want: []model.BotEventType{added}},
+		{name: "added and removed", postBy: "bot", ops: []string{"add", "remove"}, want: []model.BotEventType{added, removed}},
+		{name: "removing a missing reaction still emits an event", postBy: "bot", ops: []string{"remove"}, want: []model.BotEventType{removed}},
+		{name: "reaction by the bot itself", postBy: "bot", reactor: "self", want: nil},
+		{
+			name:   "bot that left the channel",
+			postBy: "bot",
+			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) {
+				_ = th.RemoveUserFromChannel(t, env.botUser, env.channel)
+			},
+			want: nil,
+		},
+		{name: "human post in a dm with the bot", kind: "dm", want: []model.BotEventType{added}},
+		{
+			name:   "disabled subscription",
+			postBy: "bot",
+			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) {
+				require.NoError(t, th.App.Srv().Store().BotEventSubscription().SetEnabled(th.Context, env.bot.UserId, false, model.BotEventDisabledReasonManual, model.GetMillis()))
+			},
+			want: nil,
+		},
+		{name: "reaction by another bot is ignored by default", postBy: "bot", reactor: "other_bot", want: nil},
+		{
+			name:    "reaction by another bot when not ignoring bot authors",
+			postBy:  "bot",
+			reactor: "other_bot",
+			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) { subscribeTestBot(t, th, env.bot, new(false)) },
+			want:    []model.BotEventType{added},
+		},
 	}
-	react := func(t *testing.T, userID string, post *model.Post) *model.Reaction {
-		reaction, appErr := th.App.SaveReactionForPost(th.Context, &model.Reaction{UserId: userID, PostId: post.Id, EmojiName: "smile"})
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			env := newBotEventEnv(t, th, tc.kind, true)
+			authorID := th.BasicUser.Id
+			if tc.postBy == "bot" {
+				authorID = env.botUser.Id
+			}
+			post := postAs(t, th, authorID, env.channel, "a post", "")
+			reactorID := env.authorID(t, th, tc.reactor)
+			if tc.prepare != nil {
+				tc.prepare(t, th, env)
+			}
+
+			ops := tc.ops
+			if len(ops) == 0 {
+				ops = []string{"add"}
+			}
+			for _, op := range ops {
+				reaction := &model.Reaction{UserId: reactorID, PostId: post.Id, EmojiName: "smile"}
+				if op == "add" {
+					_, appErr := th.App.SaveReactionForPost(th.Context, reaction)
+					require.Nil(t, appErr)
+				} else {
+					require.Nil(t, th.App.DeleteReactionForPost(th.Context, reaction))
+				}
+			}
+
+			var got []model.BotEventType
+			for _, e := range botEventsFor(t, th, env.bot.UserId) {
+				if e.Type == added || e.Type == removed {
+					got = append(got, e.Type)
+				}
+			}
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestBotReactionEventPayload(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	env := newBotEventEnv(t, th, "public", true)
+	post := postAs(t, th, env.botUser.Id, env.channel, "bot post", "")
+
+	reaction, appErr := th.App.SaveReactionForPost(th.Context, &model.Reaction{UserId: th.BasicUser.Id, PostId: post.Id, EmojiName: "smile"})
+	require.Nil(t, appErr)
+	require.Nil(t, th.App.DeleteReactionForPost(th.Context, &model.Reaction{UserId: th.BasicUser.Id, PostId: post.Id, EmojiName: "smile"}))
+
+	events := botEventsFor(t, th, env.bot.UserId)
+	require.Len(t, events, 2)
+
+	data := botEventData(t, events[0])
+	assert.Equal(t, th.BasicUser.Id, data.Sender.Id)
+	assert.Equal(t, &model.BotEventPost{Id: post.Id, UserId: env.botUser.Id}, data.Post, "reactions carry a post summary only")
+	assert.Equal(t, &model.BotEventReaction{EmojiName: "smile", UserId: th.BasicUser.Id, PostId: post.Id, CreateAt: reaction.CreateAt}, data.Reaction)
+	assert.Equal(t, th.BasicTeam.Id, data.Team.Id)
+
+	assert.InDelta(t, model.GetMillis(), botEventData(t, events[1]).Reaction.CreateAt, 10000, "removals are stamped when processed")
+}
+
+func TestBotReactionEventsInGroupMessages(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	bot1, bot1User := addTestBot(t, th)
+	bot2, bot2User := addTestBot(t, th)
+	gm := th.CreateGroupChannel(t, bot1User, bot2User)
+	post := postAs(t, th, th.BasicUser.Id, gm, "hello", "")
+	count := func(botID string) int { return len(botEventsFor(t, th, botID)) }
+	before1, before2 := count(bot1.UserId), count(bot2.UserId)
+
+	react := func(userID string) {
+		_, appErr := th.App.SaveReactionForPost(th.Context, &model.Reaction{UserId: userID, PostId: post.Id, EmojiName: "smile"})
 		require.Nil(t, appErr)
-		return reaction
 	}
 
-	t.Run("added and removed on the bot's post", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, botUser := addTestBot(t, th, channel)
-		post := postAs(t, th, botUser.Id, channel, "bot post", "")
+	react(th.BasicUser.Id)
+	assert.Equal(t, before1+1, count(bot1.UserId), "every subscribed bot in the gm is notified")
+	assert.Equal(t, before2+1, count(bot2.UserId))
 
-		added := react(t, th.BasicUser.Id, post)
-		require.Nil(t, th.App.DeleteReactionForPost(th.Context, &model.Reaction{UserId: th.BasicUser.Id, PostId: post.Id, EmojiName: "smile"}))
+	react(bot1User.Id)
+	assert.Equal(t, before1+1, count(bot1.UserId), "no event for the bot that reacted")
+	assert.Equal(t, before2+1, count(bot2.UserId), "ignore_bot_authors skips reactions by other bots")
+}
 
-		events := botEventsFor(t, th, bot.UserId)
-		require.Len(t, events, 2)
-		assert.Equal(t, model.BotEventTypeReactionAdded, events[0].Type)
-		assert.Equal(t, model.BotEventTypeReactionRemoved, events[1].Type)
+func TestBotReactionEventsSkipBurnOnReadPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	env := newBotEventEnv(t, th, "public", true)
+	post := postAs(t, th, env.botUser.Id, env.channel, "bot post", "")
+	borPost := post.Clone()
+	borPost.Type = model.PostTypeBurnOnRead
 
-		data := botEventData(t, events[0])
-		assert.Equal(t, th.BasicUser.Id, data.Sender.Id)
-		assert.Equal(t, &model.BotEventPost{Id: post.Id, RootId: "", UserId: botUser.Id}, data.Post, "reactions carry a post summary only")
-		require.NotNil(t, data.Reaction)
-		assert.Equal(t, "smile", data.Reaction.EmojiName)
-		assert.Equal(t, added.CreateAt, data.Reaction.CreateAt)
-		assert.Equal(t, th.BasicTeam.Id, data.Team.Id)
+	th.App.enqueueBotReactionEvents(th.Context, model.BotEventTypeReactionAdded, &model.Reaction{UserId: th.BasicUser.Id, PostId: post.Id, EmojiName: "smile"}, borPost, env.channel)
 
-		removed := botEventData(t, events[1])
-		assert.InDelta(t, model.GetMillis(), removed.Reaction.CreateAt, 10000)
-	})
-
-	t.Run("reaction by the bot itself", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, botUser := addTestBot(t, th, channel)
-		post := postAs(t, th, botUser.Id, channel, "bot post", "")
-
-		react(t, botUser.Id, post)
-
-		assert.Empty(t, botEventsFor(t, th, bot.UserId))
-	})
-
-	t.Run("bot that left the channel", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, botUser := addTestBot(t, th, channel)
-		post := postAs(t, th, botUser.Id, channel, "bot post", "")
-		_ = th.RemoveUserFromChannel(t, botUser, channel)
-
-		react(t, th.BasicUser.Id, post)
-
-		assert.Empty(t, botEventsFor(t, th, bot.UserId))
-	})
-
-	t.Run("human post in a dm with the bot", func(t *testing.T) {
-		bot, botUser := addTestBot(t, th)
-		dm := th.CreateDmChannel(t, botUser)
-		post := postAs(t, th, th.BasicUser.Id, dm, "hi", "")
-
-		react(t, th.BasicUser.Id, post)
-
-		events := botEventsFor(t, th, bot.UserId)
-		require.Len(t, events, 2, "the dm message and the reaction")
-		assert.Equal(t, model.BotEventTypeReactionAdded, events[1].Type)
-		assert.Nil(t, botEventData(t, events[1]).Team)
-	})
-
-	t.Run("human post in a gm reaches every subscribed bot but the reactor", func(t *testing.T) {
-		bot1, bot1User := addTestBot(t, th)
-		bot2, bot2User := addTestBot(t, th)
-		gm := th.CreateGroupChannel(t, bot1User, bot2User)
-		post := postAs(t, th, th.BasicUser.Id, gm, "hello", "")
-		before1, before2 := len(botEventsFor(t, th, bot1.UserId)), len(botEventsFor(t, th, bot2.UserId))
-
-		react(t, th.BasicUser.Id, post)
-
-		assert.Len(t, botEventsFor(t, th, bot1.UserId), before1+1)
-		assert.Len(t, botEventsFor(t, th, bot2.UserId), before2+1)
-		assert.Equal(t, model.BotEventTypeReactionAdded, botEventsFor(t, th, bot1.UserId)[before1].Type)
-
-		react(t, bot1User.Id, post)
-		assert.Len(t, botEventsFor(t, th, bot1.UserId), before1+1, "no event for the bot that reacted")
-		assert.Len(t, botEventsFor(t, th, bot2.UserId), before2+1, "ignore_bot_authors skips reactions by other bots")
-
-		subscribeTestBot(t, th, bot2, new(false))
-		require.Nil(t, th.App.DeleteReactionForPost(th.Context, &model.Reaction{UserId: bot1User.Id, PostId: post.Id, EmojiName: "smile"}))
-		react(t, bot1User.Id, post)
-		assert.Greater(t, len(botEventsFor(t, th, bot2.UserId)), before2+1)
-	})
-
-	t.Run("disabled subscription and no subscription", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, botUser := addTestBot(t, th, channel)
-		post := postAs(t, th, botUser.Id, channel, "bot post", "")
-		require.NoError(t, th.App.Srv().Store().BotEventSubscription().SetEnabled(th.Context, bot.UserId, false, model.BotEventDisabledReasonManual, model.GetMillis()))
-
-		react(t, th.BasicUser.Id, post)
-
-		assert.Empty(t, botEventsFor(t, th, bot.UserId))
-	})
-
-	t.Run("burn on read post", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, botUser := addTestBot(t, th, channel)
-		post := postAs(t, th, botUser.Id, channel, "bot post", "")
-		borPost := post.Clone()
-		borPost.Type = model.PostTypeBurnOnRead
-
-		th.App.enqueueBotReactionEvents(th.Context, model.BotEventTypeReactionAdded, &model.Reaction{UserId: th.BasicUser.Id, PostId: post.Id, EmojiName: "smile"}, borPost, channel)
-
-		assert.Empty(t, botEventsFor(t, th, bot.UserId))
-	})
-
-	t.Run("removing a missing reaction still emits an event", func(t *testing.T) {
-		channel := newChannel(t)
-		bot, botUser := addTestBot(t, th, channel)
-		post := postAs(t, th, botUser.Id, channel, "bot post", "")
-
-		require.Nil(t, th.App.DeleteReactionForPost(th.Context, &model.Reaction{UserId: th.BasicUser.Id, PostId: post.Id, EmojiName: "smile"}))
-
-		assert.Equal(t, []model.BotEventType{model.BotEventTypeReactionRemoved}, botEventTypes(botEventsFor(t, th, bot.UserId)))
-	})
+	assert.Empty(t, botEventsFor(t, th, env.bot.UserId))
 }
 
 type failingBotEventStore struct {

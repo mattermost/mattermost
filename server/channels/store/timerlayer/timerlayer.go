@@ -1396,10 +1396,10 @@ func (s *TimerLayerBotEventStore) CountAfterCursor(rctx request.CTX, botUserID s
 	return result, err
 }
 
-func (s *TimerLayerBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (map[string]model.BotEventCursor, int64, error) {
+func (s *TimerLayerBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (int64, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.BotEventStore.DeleteOlderThan(rctx, createAtBefore, limit)
+	result, err := s.BotEventStore.DeleteOlderThan(rctx, createAtBefore, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1409,7 +1409,7 @@ func (s *TimerLayerBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefo
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.DeleteOlderThan", success, elapsed)
 	}
-	return result, resultVar1, err
+	return result, err
 }
 
 func (s *TimerLayerBotEventStore) DeleteUpToCursor(rctx request.CTX, botUserID string, upTo model.BotEventCursor, limit int) (int64, error) {
@@ -1444,22 +1444,6 @@ func (s *TimerLayerBotEventStore) GetAfterCursor(rctx request.CTX, botUserID str
 	return result, err
 }
 
-func (s *TimerLayerBotEventStore) GetBacklogCutoff(rctx request.CTX, botUserID string, keep int) (*model.BotEventCursor, error) {
-	start := time.Now()
-
-	result, err := s.BotEventStore.GetBacklogCutoff(rctx, botUserID, keep)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.GetBacklogCutoff", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerBotEventStore) Save(rctx request.CTX, events []*model.BotEvent) ([]*model.BotEvent, error) {
 	start := time.Now()
 
@@ -1488,22 +1472,6 @@ func (s *TimerLayerBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX,
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.AdvanceAckCursor", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerBotEventSubscriptionStore) AdvanceTruncatedCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor) (bool, error) {
-	start := time.Now()
-
-	result, err := s.BotEventSubscriptionStore.AdvanceTruncatedCursor(rctx, botUserID, cursor)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.AdvanceTruncatedCursor", success, elapsed)
 	}
 	return result, err
 }

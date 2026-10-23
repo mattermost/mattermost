@@ -53,26 +53,22 @@ func (a *App) GetBotEvents(rctx request.CTX, botUserID string, opts model.BotEve
 	var waiter *botEventWaiter
 	if wait > 0 {
 		// Register before the first read so a wake-up between read and wait is not lost.
-		var ok bool
-		if waiter, ok = svc.register(botUserID); !ok {
-			return nil, model.NewAppError(where, "app.bot_event.pull.too_many_waiters.app_error", nil, "", http.StatusTooManyRequests)
-		}
+		waiter = svc.register(botUserID)
 		defer svc.unregister(waiter)
 	}
 
-	events, abandoned, appErr := a.waitForBotEvents(rctx, botUserID, ack, limit, wait, waiter)
+	events, appErr := a.waitForBotEvents(rctx, botUserID, ack, limit, wait, waiter)
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	list := &model.BotEventList{Events: []*model.BotEventEnvelope{}, NextCursor: ack.Encode()}
-	if abandoned || len(events) == 0 {
+	if len(events) == 0 {
 		return list, nil
 	}
 
-	truncated := ack.Less(sub.TruncatedCursor())
-	for i, e := range events {
-		envelope, err := e.ToEnvelope(truncated && i == 0)
+	for _, e := range events {
+		envelope, err := e.ToEnvelope()
 		if err != nil {
 			return nil, model.NewAppError(where, "app.bot_event.pull.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -84,9 +80,8 @@ func (a *App) GetBotEvents(rctx request.CTX, botUserID string, opts model.BotEve
 }
 
 // waitForBotEvents reads events, and when there are none and a waiter is given, polls until
-// some settle, the wait elapses, the request ends, or the server shuts down. abandoned is
-// true when the request or server ended the wait.
-func (a *App) waitForBotEvents(rctx request.CTX, botUserID string, after model.BotEventCursor, limit int, wait time.Duration, waiter *botEventWaiter) ([]*model.BotEvent, bool, *model.AppError) {
+// some settle, the wait elapses, the request ends, or the server shuts down.
+func (a *App) waitForBotEvents(rctx request.CTX, botUserID string, after model.BotEventCursor, limit int, wait time.Duration, waiter *botEventWaiter) ([]*model.BotEvent, *model.AppError) {
 	svc := a.Srv().botEvents
 	settleMillis := svc.settleWindow.Milliseconds()
 
@@ -99,10 +94,10 @@ func (a *App) waitForBotEvents(rctx request.CTX, botUserID string, after model.B
 	for {
 		events, err := a.Srv().Store().BotEvent().GetAfterCursor(rctx, botUserID, after, settleMillis, limit)
 		if err != nil {
-			return nil, false, model.NewAppError("GetBotEvents", "app.bot_event.pull.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetBotEvents", "app.bot_event.pull.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		if len(events) > 0 || waiter == nil {
-			return events, false, nil
+			return events, nil
 		}
 
 		select {
@@ -116,11 +111,11 @@ func (a *App) waitForBotEvents(rctx request.CTX, botUserID string, after model.B
 			settlePending = false
 			recheck.Reset(svc.recheckInterval)
 		case <-deadline.C:
-			return nil, false, nil
+			return nil, nil
 		case <-rctx.Context().Done():
-			return nil, true, nil
+			return nil, nil
 		case <-svc.closed:
-			return nil, true, nil
+			return nil, nil
 		}
 	}
 }

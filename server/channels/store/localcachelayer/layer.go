@@ -35,10 +35,6 @@ const (
 	WebhookCacheSize = 25000
 	WebhookCacheSec  = 15 * 60
 
-	BotEventSubscriptionCacheSize        = 10000
-	BotEventSubscriptionCacheSec         = 30 * 60
-	BotEventSubscriptionNotFoundCacheSec = 60
-
 	EmojiCacheSize = 5000
 	EmojiCacheSec  = 30 * 60
 	// Kept short so that a lost cluster invalidation or a stale replica read
@@ -148,9 +144,6 @@ type LocalCacheStore struct {
 
 	webhook      LocalCacheWebhookStore
 	webhookCache cache.Cache
-
-	botEventSubscription      LocalCacheBotEventSubscriptionStore
-	botEventSubscriptionCache cache.Cache
 
 	post               LocalCachePostStore
 	postLastPostsCache cache.Cache
@@ -272,17 +265,6 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		return
 	}
 	localCacheStore.webhook = LocalCacheWebhookStore{WebhookStore: baseStore.Webhook(), rootStore: &localCacheStore}
-
-	// Bot event subscriptions
-	if localCacheStore.botEventSubscriptionCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   BotEventSubscriptionCacheSize,
-		Name:                   "BotEventSubscription",
-		DefaultExpiry:          BotEventSubscriptionCacheSec * time.Second,
-		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForBotEventSubscriptions,
-	}); err != nil {
-		return
-	}
-	localCacheStore.botEventSubscription = LocalCacheBotEventSubscriptionStore{BotEventSubscriptionStore: baseStore.BotEventSubscription(), rootStore: &localCacheStore}
 
 	// Emojis
 	if localCacheStore.emojiCacheById, err = cacheProvider.NewCache(&cache.CacheOptions{
@@ -596,7 +578,6 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForLastPostTime, localCacheStore.post.handleClusterInvalidateLastPostTime)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPostsUsage, localCacheStore.post.handleClusterInvalidatePostsUsage)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForWebhooks, localCacheStore.webhook.handleClusterInvalidateWebhook)
-		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForBotEventSubscriptions, localCacheStore.botEventSubscription.handleClusterInvalidateBotEventSubscription)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForEmojisById, localCacheStore.emoji.handleClusterInvalidateEmojiById)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForEmojisIdByName, localCacheStore.emoji.handleClusterInvalidateEmojiIdByName)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelPinnedpostsCounts, localCacheStore.channel.handleClusterInvalidateChannelPinnedPostCount)
@@ -645,10 +626,6 @@ func (s LocalCacheStore) FileInfo() store.FileInfoStore {
 
 func (s LocalCacheStore) Webhook() store.WebhookStore {
 	return s.webhook
-}
-
-func (s LocalCacheStore) BotEventSubscription() store.BotEventSubscriptionStore {
-	return s.botEventSubscription
 }
 
 func (s LocalCacheStore) Emoji() store.EmojiStore {
@@ -834,7 +811,6 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.roleCache)
 	s.doClearCacheCluster(s.fileInfoCache)
 	s.doClearCacheCluster(s.webhookCache)
-	s.doClearCacheCluster(s.botEventSubscriptionCache)
 	s.doClearCacheCluster(s.emojiCacheById)
 	s.doClearCacheCluster(s.emojiIdCacheByName)
 	s.doClearCacheCluster(s.channelMemberCountsCache)

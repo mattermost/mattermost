@@ -6,7 +6,6 @@ package app
 import (
 	"context"
 	"net/http"
-	"sync"
 	"testing"
 	"time"
 
@@ -151,54 +150,6 @@ func TestGetBotEventsSubscriptionState(t *testing.T) {
 	})
 }
 
-func TestGetBotEventsTruncationFlag(t *testing.T) {
-	mainHelper.Parallel(t)
-	th, bot := setupPullTest(t)
-	events := seedBotEvents(t, th, bot.UserId, 3)
-	subs := th.App.Srv().Store().BotEventSubscription()
-
-	// Events up to the first one were dropped without being acknowledged.
-	_, err := subs.AdvanceTruncatedCursor(th.Context, bot.UserId, events[0].Cursor())
-	require.NoError(t, err)
-
-	list, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{})
-	require.Nil(t, appErr)
-	require.Len(t, list.Events, 3)
-	assert.True(t, list.Events[0].BacklogTruncated)
-	assert.False(t, list.Events[1].BacklogTruncated)
-	assert.False(t, list.Events[2].BacklogTruncated)
-
-	t.Run("an empty response keeps the acknowledged cursor", func(t *testing.T) {
-		_, err := subs.AdvanceTruncatedCursor(th.Context, bot.UserId, model.BotEventCursor{CreateAt: events[2].CreateAt + 1000})
-		require.NoError(t, err)
-		last := events[2].Cursor()
-		_, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Cursor: &last})
-		require.Nil(t, appErr)
-
-		empty, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{})
-		require.Nil(t, appErr)
-		assert.Empty(t, empty.Events)
-		assert.Equal(t, last.Encode(), empty.NextCursor)
-	})
-
-	t.Run("acknowledging past the truncation clears it", func(t *testing.T) {
-		truncated := model.BotEventCursor{CreateAt: events[2].CreateAt + 1000}
-		past := model.BotEventCursor{CreateAt: truncated.CreateAt + 1}
-		_, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Cursor: &past})
-		require.Nil(t, appErr)
-
-		_, err := th.App.Srv().Store().BotEvent().Save(th.Context, []*model.BotEvent{
-			{Id: model.NewId(), BotUserId: bot.UserId, Type: model.BotEventTypePostDM, CreateAt: past.CreateAt + 1, Payload: []byte(`{}`)},
-		})
-		require.NoError(t, err)
-
-		list, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{})
-		require.Nil(t, appErr)
-		require.Len(t, list.Events, 1)
-		assert.False(t, list.Events[0].BacklogTruncated)
-	})
-}
-
 func TestGetBotEventsLongPoll(t *testing.T) {
 	mainHelper.Parallel(t)
 	th, bot := setupPullTest(t)
@@ -303,37 +254,6 @@ func TestGetBotEventsShutdownReleasesPolls(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.Fail(t, "long-poll was not released by shutdown")
 	}
-}
-
-func TestGetBotEventsWaiterCap(t *testing.T) {
-	mainHelper.Parallel(t)
-	th, bot := setupPullTest(t)
-	svc := th.App.Srv().botEvents
-
-	ctx, cancel := context.WithCancel(context.Background())
-	var wg sync.WaitGroup
-	for range svc.maxWaitersPerBot {
-		wg.Go(func() {
-			_, appErr := th.App.GetBotEvents(th.Context.WithContext(ctx), bot.UserId, model.BotEventsOptions{Wait: 30 * time.Second})
-			assert.Nil(t, appErr)
-		})
-	}
-
-	require.Eventually(t, func() bool {
-		svc.mu.Lock()
-		defer svc.mu.Unlock()
-		return len(svc.waiters[bot.UserId]) == svc.maxWaitersPerBot
-	}, 5*time.Second, 10*time.Millisecond)
-
-	_, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Wait: 30 * time.Second})
-	require.NotNil(t, appErr)
-	assert.Equal(t, http.StatusTooManyRequests, appErr.StatusCode)
-
-	_, appErr = th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{})
-	assert.Nil(t, appErr, "requests that do not wait are not capped")
-
-	cancel()
-	wg.Wait()
 }
 
 func TestEffectiveBotEventsWait(t *testing.T) {

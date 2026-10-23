@@ -10,16 +10,12 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const (
-	defaultBotEventRecheckInterval  = 2 * time.Second
-	defaultBotEventMaxWaitersPerBot = 5
-)
+const defaultBotEventRecheckInterval = 2 * time.Second
 
 // botEventService tracks in-flight long-polls so that event producers can wake them.
 type botEventService struct {
-	settleWindow     time.Duration
-	recheckInterval  time.Duration
-	maxWaitersPerBot int
+	settleWindow    time.Duration
+	recheckInterval time.Duration
 
 	mu        sync.Mutex
 	waiters   map[string]map[*botEventWaiter]struct{}
@@ -34,29 +30,23 @@ type botEventWaiter struct {
 
 func newBotEventService() *botEventService {
 	return &botEventService{
-		settleWindow:     time.Duration(model.BotEventSettleWindowMillis) * time.Millisecond,
-		recheckInterval:  defaultBotEventRecheckInterval,
-		maxWaitersPerBot: defaultBotEventMaxWaitersPerBot,
-		waiters:          map[string]map[*botEventWaiter]struct{}{},
-		closed:           make(chan struct{}),
+		settleWindow:    time.Duration(model.BotEventSettleWindowMillis) * time.Millisecond,
+		recheckInterval: defaultBotEventRecheckInterval,
+		waiters:         map[string]map[*botEventWaiter]struct{}{},
+		closed:          make(chan struct{}),
 	}
 }
 
-// register returns false once the bot already has the maximum number of waiters on this node.
-func (s *botEventService) register(botUserID string) (*botEventWaiter, bool) {
+func (s *botEventService) register(botUserID string) *botEventWaiter {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	if len(s.waiters[botUserID]) >= s.maxWaitersPerBot {
-		return nil, false
-	}
 
 	w := &botEventWaiter{botUserID: botUserID, wake: make(chan struct{}, 1)}
 	if s.waiters[botUserID] == nil {
 		s.waiters[botUserID] = map[*botEventWaiter]struct{}{}
 	}
 	s.waiters[botUserID][w] = struct{}{}
-	return w, true
+	return w
 }
 
 func (s *botEventService) unregister(w *botEventWaiter) {

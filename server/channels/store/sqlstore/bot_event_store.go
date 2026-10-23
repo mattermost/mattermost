@@ -40,12 +40,6 @@ type botEventCursorRow struct {
 	Id       string
 }
 
-type botEventDeletedRow struct {
-	BotUserId string
-	CreateAt  int64
-	Id        string
-}
-
 func newSqlBotEventStore(sqlStore *SqlStore) store.BotEventStore {
 	return &SqlBotEventStore{SqlStore: sqlStore}
 }
@@ -165,47 +159,23 @@ func (s *SqlBotEventStore) DeleteUpToCursor(rctx request.CTX, botUserID string, 
 	return deleted, nil
 }
 
-func (s *SqlBotEventStore) GetBacklogCutoff(rctx request.CTX, botUserID string, keep int) (*model.BotEventCursor, error) {
-	query := s.getQueryBuilder().
-		Select("CreateAt", "Id").
-		From("BotEvents").
-		Where(sq.Eq{"BotUserId": botUserID}).
-		OrderBy("CreateAt DESC", "Id DESC").
-		Offset(uint64(keep)).
-		Limit(1)
-
-	var rows []botEventCursorRow
-	if err := s.GetMaster().SelectBuilderCtx(rctx.Context(), &rows, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get BotEvents backlog cutoff for bot_user_id=%s", botUserID)
-	}
-	if len(rows) == 0 {
-		return nil, nil
-	}
-	return &model.BotEventCursor{CreateAt: rows[0].CreateAt, Id: rows[0].Id}, nil
-}
-
-func (s *SqlBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (map[string]model.BotEventCursor, int64, error) {
+func (s *SqlBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (int64, error) {
 	query := s.getQueryBuilder().
 		Delete("BotEvents").
 		Where(sq.Expr(
 			"(BotUserId, CreateAt, Id) IN (SELECT BotUserId, CreateAt, Id FROM BotEvents WHERE CreateAt < ? LIMIT ?)",
 			createAtBefore, limit,
-		)).
-		Suffix("RETURNING BotUserId, CreateAt, Id")
+		))
 
-	var rows []botEventDeletedRow
-	if err := s.GetMaster().SelectBuilderCtx(rctx.Context(), &rows, query); err != nil {
-		return nil, 0, errors.Wrap(err, "failed to delete old BotEvents")
+	result, err := s.execBuilder(rctx, s.GetMaster(), query)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete old BotEvents")
 	}
-
-	maxCursors := make(map[string]model.BotEventCursor)
-	for _, r := range rows {
-		c := model.BotEventCursor{CreateAt: r.CreateAt, Id: r.Id}
-		if cur, ok := maxCursors[r.BotUserId]; !ok || cur.Less(c) {
-			maxCursors[r.BotUserId] = c
-		}
+	deleted, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count deleted BotEvents")
 	}
-	return maxCursors, int64(len(rows)), nil
+	return deleted, nil
 }
 
 func (ss *SqlStore) execBuilder(rctx request.CTX, db *sqlxDBWrapper, builder Builder) (sql.Result, error) {

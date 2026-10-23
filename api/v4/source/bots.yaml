@@ -573,15 +573,12 @@
 
         Passing the `next_cursor` of a previous response as `cursor` acknowledges every event up
         to it; acknowledged events are never returned again. Without a `cursor` nothing is acknowledged
-        and the same events are returned again. The server keeps at most 10000 unacknowledged events
-        per bot, for at most 7 days. When events were dropped, the first event that follows has
-        `backlog_truncated` set to true, and the bot should resynchronize through the REST API.
-        A reverse proxy in front of the server must allow requests to last as long as `wait`.
+        and the same events are returned again. Events that are not acknowledged are deleted after
+        7 days. A reverse proxy in front of the server must allow requests to last as long as `wait`.
 
         With `wait`, the request is held until events are available or the wait elapses, whichever
         comes first, and responds with an empty list in the latter case. The wait is limited to 60 seconds
-        and to the server's write timeout minus 5 seconds. At most 5 waiting requests per bot are
-        accepted on each server.
+        and to the server's write timeout minus 5 seconds.
 
         ##### Permissions
         The request must be made with a session of the bot itself, for example one of its personal
@@ -634,5 +631,3 @@
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"

@@ -23,9 +23,8 @@ const (
 )
 
 type Result struct {
-	AckedDeleted   int64
-	BacklogDropped int64
-	AgedDeleted    int64
+	AckedDeleted int64
+	AgedDeleted  int64
 }
 
 func MakeWorker(jobServer *jobs.JobServer) *jobs.SimpleWorker {
@@ -42,10 +41,9 @@ func MakeWorker(jobServer *jobs.JobServer) *jobs.SimpleWorker {
 	return jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 }
 
-// Cleanup deletes acknowledged events, trims backlogs past the cap, and ages out old
-// events. Whenever unacknowledged events are dropped it advances the subscription's
-// truncated cursor so that the next delivery reports backlog_truncated. Failures for a
-// single bot are logged and skipped; only a failure to page subscriptions is returned.
+// Cleanup deletes acknowledged events and events older than the retention period.
+// Failures for a single bot are logged and skipped; only a failure to page
+// subscriptions is returned.
 func Cleanup(rctx request.CTX, ss store.Store, now int64) (Result, error) {
 	var result Result
 
@@ -60,11 +58,10 @@ func Cleanup(rctx request.CTX, ss store.Store, now int64) (Result, error) {
 		}
 
 		for _, sub := range subs {
-			acked, dropped, err := cleanupBot(rctx, ss, sub)
+			acked, err := deleteAcked(rctx, ss, sub)
 			result.AckedDeleted += acked
-			result.BacklogDropped += dropped
 			if err != nil {
-				rctx.Logger().Warn("Failed to clean up bot events", mlog.String("bot_user_id", sub.BotUserId), mlog.Err(err))
+				rctx.Logger().Warn("Failed to delete acknowledged bot events", mlog.String("bot_user_id", sub.BotUserId), mlog.Err(err))
 			}
 		}
 		after = subs[len(subs)-1].BotUserId
@@ -78,40 +75,16 @@ func Cleanup(rctx request.CTX, ss store.Store, now int64) (Result, error) {
 
 	rctx.Logger().Info("Cleaned up bot events",
 		mlog.Int("acked_deleted", result.AckedDeleted),
-		mlog.Int("backlog_dropped", result.BacklogDropped),
 		mlog.Int("aged_deleted", result.AgedDeleted),
 	)
 
 	return result, nil
 }
 
-func cleanupBot(rctx request.CTX, ss store.Store, sub *model.BotEventSubscription) (acked, dropped int64, err error) {
-	acked, err = deleteUpTo(rctx, ss, sub.BotUserId, sub.AckCursor())
-	if err != nil {
-		return acked, 0, err
-	}
-
-	cutoff, err := ss.BotEvent().GetBacklogCutoff(rctx, sub.BotUserId, model.BotEventMaxBacklog)
-	if err != nil || cutoff == nil {
-		return acked, 0, err
-	}
-
-	dropped, err = deleteUpTo(rctx, ss, sub.BotUserId, *cutoff)
-	if err != nil {
-		return acked, dropped, err
-	}
-	if _, err = ss.BotEventSubscription().AdvanceTruncatedCursor(rctx, sub.BotUserId, *cutoff); err != nil {
-		return acked, dropped, err
-	}
-	rctx.Logger().Info("Bot event backlog truncated", mlog.String("bot_user_id", sub.BotUserId), mlog.Int("dropped", dropped))
-
-	return acked, dropped, nil
-}
-
-func deleteUpTo(rctx request.CTX, ss store.Store, botUserID string, cursor model.BotEventCursor) (int64, error) {
+func deleteAcked(rctx request.CTX, ss store.Store, sub *model.BotEventSubscription) (int64, error) {
 	var total int64
 	for range maxBatchesPerBot {
-		deleted, err := ss.BotEvent().DeleteUpToCursor(rctx, botUserID, cursor, batchLimit)
+		deleted, err := ss.BotEvent().DeleteUpToCursor(rctx, sub.BotUserId, sub.AckCursor(), batchLimit)
 		total += deleted
 		if err != nil {
 			return total, err
@@ -128,23 +101,11 @@ func deleteAged(rctx request.CTX, ss store.Store, now int64) (int64, error) {
 
 	var total int64
 	for range maxAgeBatches {
-		maxCursors, deleted, err := ss.BotEvent().DeleteOlderThan(rctx, cutoff, batchLimit)
+		deleted, err := ss.BotEvent().DeleteOlderThan(rctx, cutoff, batchLimit)
 		total += deleted
 		if err != nil {
 			return total, err
 		}
-
-		for botUserID, cursor := range maxCursors {
-			advanced, err := ss.BotEventSubscription().AdvanceTruncatedCursor(rctx, botUserID, cursor)
-			if err != nil {
-				rctx.Logger().Warn("Failed to advance bot event truncated cursor", mlog.String("bot_user_id", botUserID), mlog.Err(err))
-				continue
-			}
-			if advanced {
-				rctx.Logger().Info("Bot events aged out", mlog.String("bot_user_id", botUserID))
-			}
-		}
-
 		if deleted < batchLimit {
 			break
 		}

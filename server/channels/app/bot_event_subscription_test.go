@@ -13,7 +13,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func pullPatch() *model.BotEventSubscriptionPatch {
@@ -291,33 +290,4 @@ func TestCreateBotWithEventSubscription(t *testing.T) {
 		_, err := th.App.Srv().Store().User().GetByUsername(bot.Username)
 		assert.Error(t, err)
 	})
-}
-
-func TestBotEventSubscriptionClusterInvalidation(t *testing.T) {
-	mainHelper.Parallel(t)
-	cluster := &testlib.FakeClusterInterface{}
-	th := SetupWithClusterMock(t, cluster).InitBasic(t)
-	bot := th.CreateBot(t)
-
-	invalidations := func() []string {
-		var ids []string
-		for _, msg := range cluster.SelectMessages(func(m *model.ClusterMessage) bool {
-			return m.Event == model.ClusterEventInvalidateCacheForBotEventSubscriptions
-		}) {
-			ids = append(ids, string(msg.Data))
-		}
-		return ids
-	}
-
-	cluster.ClearMessages()
-	subscribeTestBot(t, th, bot, nil)
-	assert.Equal(t, []string{bot.UserId}, invalidations(), "create")
-
-	cluster.ClearMessages()
-	subscribeTestBot(t, th, bot, new(false))
-	assert.Equal(t, []string{bot.UserId}, invalidations(), "update")
-
-	cluster.ClearMessages()
-	require.Nil(t, th.App.DeleteBotEventSubscription(th.Context, bot.UserId))
-	assert.Equal(t, []string{bot.UserId}, invalidations(), "delete")
 }

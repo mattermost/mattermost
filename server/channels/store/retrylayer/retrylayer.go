@@ -1498,21 +1498,21 @@ func (s *RetryLayerBotEventStore) CountAfterCursor(rctx request.CTX, botUserID s
 
 }
 
-func (s *RetryLayerBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (map[string]model.BotEventCursor, int64, error) {
+func (s *RetryLayerBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (int64, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.BotEventStore.DeleteOlderThan(rctx, createAtBefore, limit)
+		result, err := s.BotEventStore.DeleteOlderThan(rctx, createAtBefore, limit)
 		if err == nil {
-			return result, resultVar1, nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return result, resultVar1, err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, resultVar1, err
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -1561,27 +1561,6 @@ func (s *RetryLayerBotEventStore) GetAfterCursor(rctx request.CTX, botUserID str
 
 }
 
-func (s *RetryLayerBotEventStore) GetBacklogCutoff(rctx request.CTX, botUserID string, keep int) (*model.BotEventCursor, error) {
-
-	tries := 0
-	for {
-		result, err := s.BotEventStore.GetBacklogCutoff(rctx, botUserID, keep)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerBotEventStore) Save(rctx request.CTX, events []*model.BotEvent) ([]*model.BotEvent, error) {
 
 	tries := 0
@@ -1608,27 +1587,6 @@ func (s *RetryLayerBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX,
 	tries := 0
 	for {
 		result, err := s.BotEventSubscriptionStore.AdvanceAckCursor(rctx, botUserID, cursor, deliveredAt)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerBotEventSubscriptionStore) AdvanceTruncatedCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor) (bool, error) {
-
-	tries := 0
-	for {
-		result, err := s.BotEventSubscriptionStore.AdvanceTruncatedCursor(rctx, botUserID, cursor)
 		if err == nil {
 			return result, nil
 		}

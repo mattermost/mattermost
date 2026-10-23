@@ -42,8 +42,7 @@ func TestBotEventSubscriptionStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("GetPage", func(t *testing.T) { testBotEventSubscriptionGetPage(t, rctx, ss, s) })
 	t.Run("SetEnabled", func(t *testing.T) { testBotEventSubscriptionSetEnabled(t, rctx, ss, s) })
 	t.Run("Delete", func(t *testing.T) { testBotEventSubscriptionDelete(t, rctx, ss) })
-	t.Run("AdvanceAckCursor", func(t *testing.T) { testBotEventSubscriptionAdvanceCursor(t, rctx, ss, false) })
-	t.Run("AdvanceTruncatedCursor", func(t *testing.T) { testBotEventSubscriptionAdvanceCursor(t, rctx, ss, true) })
+	t.Run("AdvanceAckCursor", func(t *testing.T) { testBotEventSubscriptionAdvanceCursor(t, rctx, ss) })
 	t.Run("AdvanceAckCursorConcurrently", func(t *testing.T) { testBotEventSubscriptionAdvanceCursorConcurrently(t, rctx, ss) })
 }
 
@@ -271,7 +270,7 @@ func testBotEventSubscriptionDelete(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NoError(t, err)
 }
 
-func testBotEventSubscriptionAdvanceCursor(t *testing.T, rctx request.CTX, ss store.Store, truncated bool) {
+func testBotEventSubscriptionAdvanceCursor(t *testing.T, rctx request.CTX, ss store.Store) {
 	saved := saveTestBotEventSubscription(t, rctx, ss)
 	idLow, idHigh := model.NewId(), model.NewId()
 	if idHigh < idLow {
@@ -279,56 +278,36 @@ func testBotEventSubscriptionAdvanceCursor(t *testing.T, rctx request.CTX, ss st
 	}
 
 	advance := func(c model.BotEventCursor) bool {
-		var ok bool
-		var err error
-		if truncated {
-			ok, err = ss.BotEventSubscription().AdvanceTruncatedCursor(rctx, saved.BotUserId, c)
-		} else {
-			ok, err = ss.BotEventSubscription().AdvanceAckCursor(rctx, saved.BotUserId, c, 12345)
-		}
+		ok, err := ss.BotEventSubscription().AdvanceAckCursor(rctx, saved.BotUserId, c, 12345)
 		require.NoError(t, err)
 		return ok
 	}
-	current := func() (*model.BotEventSubscription, model.BotEventCursor) {
+	current := func() *model.BotEventSubscription {
 		sub, err := ss.BotEventSubscription().Get(rctx, saved.BotUserId)
 		require.NoError(t, err)
-		if truncated {
-			return sub, sub.TruncatedCursor()
-		}
-		return sub, sub.AckCursor()
+		return sub
 	}
 
 	base := model.BotEventCursor{CreateAt: 100, Id: idLow}
-
 	assert.True(t, advance(base))
-	_, cur := current()
-	assert.Equal(t, base, cur)
+	assert.Equal(t, base, current().AckCursor())
 
 	assert.False(t, advance(base), "equal cursor")
 	assert.False(t, advance(model.BotEventCursor{CreateAt: 99, Id: idHigh}), "older create_at")
 	assert.False(t, advance(model.BotEventCursor{}), "zero cursor")
-	_, cur = current()
-	assert.Equal(t, base, cur)
+	assert.Equal(t, base, current().AckCursor())
 
-	sameTime := model.BotEventCursor{CreateAt: 100, Id: idHigh}
 	if idLow != idHigh {
-		assert.True(t, advance(sameTime), "same create_at, larger id")
+		assert.True(t, advance(model.BotEventCursor{CreateAt: 100, Id: idHigh}), "same create_at, larger id")
 		assert.False(t, advance(base), "same create_at, smaller id")
 	}
 
 	newer := model.BotEventCursor{CreateAt: 101}
 	assert.True(t, advance(newer))
-	sub, cur := current()
-	assert.Equal(t, newer, cur)
-
-	if truncated {
-		assert.Zero(t, sub.LastDeliveredAt)
-		assert.Equal(t, model.BotEventCursor{}, sub.AckCursor())
-	} else {
-		assert.Equal(t, int64(12345), sub.LastDeliveredAt)
-		assert.Equal(t, saved.UpdateAt, sub.UpdateAt, "ack must not touch UpdateAt")
-		assert.Equal(t, model.BotEventCursor{}, sub.TruncatedCursor())
-	}
+	sub := current()
+	assert.Equal(t, newer, sub.AckCursor())
+	assert.Equal(t, int64(12345), sub.LastDeliveredAt)
+	assert.Equal(t, saved.UpdateAt, sub.UpdateAt, "ack must not touch UpdateAt")
 }
 
 func testBotEventSubscriptionAdvanceCursorConcurrently(t *testing.T, rctx request.CTX, ss store.Store) {

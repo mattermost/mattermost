@@ -7075,11 +7075,6 @@
     "description": "Server error when loading the pending events of a bot fails; 'bot' is a bot account and events are the notifications of posts and reactions it subscribed to."
   },
   {
-    "id": "app.bot_event.pull.too_many_waiters.app_error",
-    "translation": "Too many pending requests for this bot's events. Try again later.",
-    "description": "API error when a bot already has the maximum number of long-polling requests waiting for its events; 'bot' is a bot account."
-  },
-  {
     "id": "app.bot_event.pull.wrong_mode.app_error",
     "translation": "The event subscription of this bot does not use pull delivery.",
     "description": "API error when a bot pulls its events but its event subscription delivers them by push instead; 'bot' is a bot account."

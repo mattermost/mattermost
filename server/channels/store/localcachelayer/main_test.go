@@ -219,9 +219,6 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockDeliveryTrackingStore := mocks.DeliveryTrackingStore{}
 	mockStore.On("DeliveryTracking").Return(&mockDeliveryTrackingStore)
 
-	mockBotEventSubscriptionStore := mocks.BotEventSubscriptionStore{}
-	mockStore.On("BotEventSubscription").Return(&mockBotEventSubscriptionStore)
-
 	mockSessionAttributeStore := mocks.SessionAttributeStore{}
 	mockStore.On("SessionAttribute").Return(&mockSessionAttributeStore)
 

@@ -8,8 +8,6 @@ CREATE TABLE IF NOT EXISTS BotEventSubscriptions (
     DisabledReason          varchar(64) NOT NULL DEFAULT '',
     AckCursorCreateAt       bigint      NOT NULL DEFAULT 0,
     AckCursorId             varchar(26) NOT NULL DEFAULT '',
-    TruncatedCursorCreateAt bigint      NOT NULL DEFAULT 0,
-    TruncatedCursorId       varchar(26) NOT NULL DEFAULT '',
     ConsecutiveFailures     integer     NOT NULL DEFAULT 0,
     FirstFailureAt          bigint      NOT NULL DEFAULT 0,
     NextAttemptAt           bigint      NOT NULL DEFAULT 0,

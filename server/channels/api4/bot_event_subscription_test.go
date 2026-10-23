@@ -118,48 +118,59 @@ func TestBotEventSubscriptionLifecycleAPI(t *testing.T) {
 func TestBotEventSubscriptionValidationAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupBotEventTest(t)
-	ctx := context.Background()
 	bot := th.CreateBotWithClient(t, th.Client)
+	systemBot, appErr := th.App.GetSystemBot(th.Context)
+	require.Nil(t, appErr)
 
-	t.Run("push is not available", func(t *testing.T) {
-		_, resp, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, &model.BotEventSubscriptionPatch{
-			Mode:        new(model.BotEventSubscriptionModePush),
-			CallbackURL: new("https://example.com/hook"),
+	tests := []struct {
+		name      string
+		client    *model.Client4
+		botID     string
+		patch     *model.BotEventSubscriptionPatch
+		wantErrID string
+		wantCode  int
+	}{
+		{
+			name: "push is not available", client: th.Client, botID: bot.UserId,
+			patch:     &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePush), CallbackURL: new("https://example.com/hook")},
+			wantErrID: "app.bot_event_subscription.push_unavailable.app_error", wantCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid mode", client: th.Client, botID: bot.UserId,
+			patch:    &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionMode("webhook"))},
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name: "mode is required to create", client: th.Client, botID: bot.UserId,
+			patch:    &model.BotEventSubscriptionPatch{IgnoreBotAuthors: new(true)},
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name: "pull with a callback url", client: th.Client, botID: bot.UserId,
+			patch:    &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePull), CallbackURL: new("https://example.com/hook")},
+			wantCode: http.StatusBadRequest,
+		},
+		{name: "unknown bot", client: th.SystemAdminClient, botID: model.NewId(), patch: pullSubscription(), wantCode: http.StatusNotFound},
+		{
+			name: "system owned bot", client: th.SystemAdminClient, botID: systemBot.UserId, patch: pullSubscription(),
+			wantErrID: "app.bot_event_subscription.system_owned.app_error", wantCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, resp, err := tc.client.UpsertBotEventSubscription(context.Background(), tc.botID, tc.patch)
+			require.Error(t, err)
+			assert.Equal(t, tc.wantCode, resp.StatusCode)
+			if tc.wantErrID != "" {
+				CheckErrorID(t, err, tc.wantErrID)
+			}
 		})
-		CheckErrorID(t, err, "app.bot_event_subscription.push_unavailable.app_error")
-		CheckBadRequestStatus(t, resp)
-	})
+	}
 
-	t.Run("invalid mode", func(t *testing.T) {
-		_, resp, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionMode("webhook"))})
+	t.Run("malformed body", func(t *testing.T) {
+		_, err := th.Client.DoAPIPut(context.Background(), "/bots/"+bot.UserId+"/event_subscription", "{not json")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
-	t.Run("mode is required to create", func(t *testing.T) {
-		_, resp, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, &model.BotEventSubscriptionPatch{IgnoreBotAuthors: new(true)})
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
-	t.Run("invalid body", func(t *testing.T) {
-		_, err := th.Client.DoAPIPut(ctx, "/bots/"+bot.UserId+"/event_subscription", "{not json")
-		require.Error(t, err)
-	})
-
-	t.Run("unknown bot", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.UpsertBotEventSubscription(ctx, model.NewId(), pullSubscription())
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
-	})
-
-	t.Run("system owned bot", func(t *testing.T) {
-		systemBot, appErr := th.App.GetSystemBot(th.Context)
-		require.Nil(t, appErr)
-
-		_, resp, err := th.SystemAdminClient.UpsertBotEventSubscription(ctx, systemBot.UserId, pullSubscription())
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
 	})
 }
 
@@ -171,8 +182,7 @@ func TestBotEventSubscriptionPermissionsAPI(t *testing.T) {
 	_, _, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pullSubscription())
 	require.NoError(t, err)
 
-	type call func(client *model.Client4) (*model.Response, error)
-	calls := map[string]call{
+	calls := map[string]func(c *model.Client4) (*model.Response, error){
 		"upsert": func(c *model.Client4) (*model.Response, error) {
 			_, resp, err := c.UpsertBotEventSubscription(ctx, bot.UserId, pullSubscription())
 			return resp, err
@@ -181,9 +191,7 @@ func TestBotEventSubscriptionPermissionsAPI(t *testing.T) {
 			_, resp, err := c.GetBotEventSubscription(ctx, bot.UserId)
 			return resp, err
 		},
-		"delete": func(c *model.Client4) (*model.Response, error) {
-			return c.DeleteBotEventSubscription(ctx, bot.UserId)
-		},
+		"delete": func(c *model.Client4) (*model.Response, error) { return c.DeleteBotEventSubscription(ctx, bot.UserId) },
 		"regenerate": func(c *model.Client4) (*model.Response, error) {
 			_, resp, err := c.RegenerateBotEventSubscriptionSecret(ctx, bot.UserId)
 			return resp, err
@@ -194,57 +202,62 @@ func TestBotEventSubscriptionPermissionsAPI(t *testing.T) {
 		},
 	}
 
-	requireDenied := func(t *testing.T, name string, resp *model.Response, err error) {
-		t.Helper()
-		require.Error(t, err, name)
-		require.NotNil(t, resp, name)
-		assert.Contains(t, []int{http.StatusForbidden, http.StatusNotFound}, resp.StatusCode, name)
+	denied := []int{http.StatusForbidden, http.StatusNotFound}
+	actors := []struct {
+		name    string
+		client  func(t *testing.T) *model.Client4
+		prepare func(t *testing.T) (restore func())
+		// wantStatuses is nil when the actor is allowed.
+		wantStatuses []int
+		skip         map[string]bool
+	}{
+		{name: "no session", client: func(*testing.T) *model.Client4 { return th.CreateClient() }, wantStatuses: []int{http.StatusUnauthorized}},
+		{
+			name: "another user",
+			client: func(t *testing.T) *model.Client4 {
+				client := th.CreateClient()
+				th.LoginBasic2WithClient(t, client)
+				return client
+			},
+			wantStatuses: denied,
+		},
+		{name: "the bot itself", client: func(t *testing.T) *model.Client4 { return botClient(t, th, bot) }, wantStatuses: denied},
+		{
+			name:   "owner without manage_bots",
+			client: func(*testing.T) *model.Client4 { return th.Client },
+			prepare: func(t *testing.T) func() {
+				th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+				return func() { th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId) }
+			},
+			wantStatuses: denied,
+		},
+		// Allowed actors only run the calls that keep the subscription in place.
+		{name: "system admin", client: func(*testing.T) *model.Client4 { return th.SystemAdminClient }, skip: map[string]bool{"delete": true}},
+		{name: "owner", client: func(*testing.T) *model.Client4 { return th.Client }, skip: map[string]bool{"delete": true}},
 	}
 
-	t.Run("no session", func(t *testing.T) {
-		anonymous := th.CreateClient()
-		for name, c := range calls {
-			resp, err := c(anonymous)
-			require.Error(t, err, name)
-			CheckUnauthorizedStatus(t, resp)
-		}
-	})
+	for _, actor := range actors {
+		t.Run(actor.name, func(t *testing.T) {
+			if actor.prepare != nil {
+				defer actor.prepare(t)()
+			}
+			client := actor.client(t)
 
-	t.Run("another user", func(t *testing.T) {
-		client := th.CreateClient()
-		th.LoginBasic2WithClient(t, client)
-		for name, c := range calls {
-			resp, err := c(client)
-			requireDenied(t, name, resp, err)
-		}
-	})
-
-	t.Run("the bot itself", func(t *testing.T) {
-		client := botClient(t, th, bot)
-		for name, c := range calls {
-			resp, err := c(client)
-			requireDenied(t, name, resp, err)
-		}
-	})
-
-	t.Run("system admin", func(t *testing.T) {
-		_, err := calls["get"](th.SystemAdminClient)
-		require.NoError(t, err)
-		_, err = calls["upsert"](th.SystemAdminClient)
-		require.NoError(t, err)
-		_, err = calls["enable"](th.SystemAdminClient)
-		require.NoError(t, err)
-	})
-
-	t.Run("owner without manage_bots", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
-
-		for name, c := range calls {
-			resp, err := c(th.Client)
-			requireDenied(t, name, resp, err)
-		}
-	})
+			for name, call := range calls {
+				if actor.skip[name] {
+					continue
+				}
+				resp, err := call(client)
+				if actor.wantStatuses == nil {
+					require.NoError(t, err, name)
+					continue
+				}
+				require.Error(t, err, name)
+				require.NotNil(t, resp, name)
+				assert.Contains(t, actor.wantStatuses, resp.StatusCode, name)
+			}
+		})
+	}
 }
 
 func TestBotEventSubscriptionSecretExposureAPI(t *testing.T) {
@@ -320,44 +333,37 @@ func TestCreateBotWithEventSubscriptionAPI(t *testing.T) {
 		assert.Equal(t, model.BotEventSubscriptionModePull, stored.Mode)
 	})
 
-	t.Run("push", func(t *testing.T) {
-		username := GenerateTestUsername()
-		_, resp, err := th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
-			BotPatch: model.BotPatch{Username: &username},
-			EventSubscription: &model.BotEventSubscriptionPatch{
-				Mode:        new(model.BotEventSubscriptionModePush),
-				CallbackURL: new("https://example.com/hook"),
-			},
-		})
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-		assert.False(t, userExists(username), "no bot is created")
-	})
+	rejected := []struct {
+		name         string
+		subscription *model.BotEventSubscriptionPatch
+		withoutPerm  bool
+		wantStatus   int
+	}{
+		{
+			name:         "push",
+			subscription: &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePush), CallbackURL: new("https://example.com/hook")},
+			wantStatus:   http.StatusBadRequest,
+		},
+		{name: "subscription without a mode", subscription: &model.BotEventSubscriptionPatch{}, wantStatus: http.StatusBadRequest},
+		{name: "without manage_bots", subscription: pullSubscription(), withoutPerm: true, wantStatus: http.StatusForbidden},
+	}
+	for _, tc := range rejected {
+		t.Run(tc.name+" creates no bot", func(t *testing.T) {
+			if tc.withoutPerm {
+				th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+				defer th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+			}
 
-	t.Run("invalid subscription", func(t *testing.T) {
-		username := GenerateTestUsername()
-		_, resp, err := th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
-			BotPatch:          model.BotPatch{Username: &username},
-			EventSubscription: &model.BotEventSubscriptionPatch{},
+			username := GenerateTestUsername()
+			_, resp, err := th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
+				BotPatch:          model.BotPatch{Username: &username},
+				EventSubscription: tc.subscription,
+			})
+			require.Error(t, err)
+			assert.Equal(t, tc.wantStatus, resp.StatusCode)
+			assert.False(t, userExists(username))
 		})
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-		assert.False(t, userExists(username))
-	})
-
-	t.Run("without manage_bots", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
-
-		username := GenerateTestUsername()
-		_, resp, err := th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
-			BotPatch:          model.BotPatch{Username: &username},
-			EventSubscription: pullSubscription(),
-		})
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-		assert.False(t, userExists(username))
-	})
+	}
 
 	t.Run("without a subscription the response is the plain bot", func(t *testing.T) {
 		username := GenerateTestUsername()
@@ -398,19 +404,23 @@ func TestGetBotEventsAPI(t *testing.T) {
 	}
 
 	t.Run("only the bot itself may pull", func(t *testing.T) {
-		_, resp, err := th.Client.GetBotEvents(ctx, bot.UserId, "", 0, 0)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-		CheckErrorID(t, err, "api.bot_event.pull.not_bot_session.app_error")
-
-		_, resp, err = th.SystemAdminClient.GetBotEvents(ctx, bot.UserId, "", 0, 0)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-
 		other := th.CreateBotWithClient(t, th.Client)
-		_, resp, err = botClient(t, th, other).GetBotEvents(ctx, bot.UserId, "", 0, 0)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		clients := map[string]*model.Client4{
+			"owner":      th.Client,
+			"admin":      th.SystemAdminClient,
+			"other bot":  botClient(t, th, other),
+			"no session": th.CreateClient(),
+		}
+		for name, c := range clients {
+			_, resp, err := c.GetBotEvents(ctx, bot.UserId, "", 0, 0)
+			require.Error(t, err, name)
+			if name == "no session" {
+				CheckUnauthorizedStatus(t, resp)
+				continue
+			}
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.bot_event.pull.not_bot_session.app_error")
+		}
 	})
 
 	t.Run("empty", func(t *testing.T) {
@@ -491,7 +501,6 @@ func TestGetBotEventsRoundTripAPI(t *testing.T) {
 	assert.Equal(t, model.BotEventTypePostMention, event.Type)
 	assert.Equal(t, post.Id, event.Post.Id)
 	assert.Equal(t, th.BasicUser.Id, event.Sender.Id)
-	assert.False(t, event.BacklogTruncated)
 
 	sub, _, err := th.Client.GetBotEventSubscription(ctx, bot.UserId)
 	require.NoError(t, err)
@@ -515,32 +524,47 @@ func TestGetBotEventsWrongStateAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupBotEventTest(t)
 	ctx := context.Background()
-
-	bot := th.CreateBotWithClient(t, th.Client)
-	client := botClient(t, th, bot)
-
-	_, resp, err := client.GetBotEvents(ctx, bot.UserId, "", 0, 0)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	_, _, err = th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pullSubscription())
-	require.NoError(t, err)
-
 	subs := th.App.Srv().Store().BotEventSubscription()
-	require.NoError(t, subs.SetEnabled(th.Context, bot.UserId, false, model.BotEventDisabledReasonManual, model.GetMillis()))
-	_, resp, err = client.GetBotEvents(ctx, bot.UserId, "", 0, 0)
-	require.Error(t, err)
-	assert.Equal(t, http.StatusConflict, resp.StatusCode)
-	require.NoError(t, subs.SetEnabled(th.Context, bot.UserId, true, "", model.GetMillis()))
 
-	sub, err := subs.Get(th.Context, bot.UserId)
-	require.NoError(t, err)
-	sub.Mode = model.BotEventSubscriptionModePush
-	sub.CallbackURL = "https://example.com/hook"
-	_, err = subs.Update(th.Context, sub)
-	require.NoError(t, err)
+	tests := []struct {
+		name     string
+		prepare  func(t *testing.T, bot *model.Bot)
+		wantCode int
+	}{
+		{name: "no subscription", prepare: func(*testing.T, *model.Bot) {}, wantCode: http.StatusNotFound},
+		{
+			name: "disabled",
+			prepare: func(t *testing.T, bot *model.Bot) {
+				_, _, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pullSubscription())
+				require.NoError(t, err)
+				require.NoError(t, subs.SetEnabled(th.Context, bot.UserId, false, model.BotEventDisabledReasonManual, model.GetMillis()))
+			},
+			wantCode: http.StatusConflict,
+		},
+		{
+			name: "push mode",
+			prepare: func(t *testing.T, bot *model.Bot) {
+				_, _, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pullSubscription())
+				require.NoError(t, err)
+				sub, err := subs.Get(th.Context, bot.UserId)
+				require.NoError(t, err)
+				sub.Mode = model.BotEventSubscriptionModePush
+				sub.CallbackURL = "https://example.com/hook"
+				_, err = subs.Update(th.Context, sub)
+				require.NoError(t, err)
+			},
+			wantCode: http.StatusConflict,
+		},
+	}
 
-	_, resp, err = client.GetBotEvents(ctx, bot.UserId, "", 0, 0)
-	require.Error(t, err)
-	assert.Equal(t, http.StatusConflict, resp.StatusCode)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			bot := th.CreateBotWithClient(t, th.Client)
+			tc.prepare(t, bot)
+
+			_, resp, err := botClient(t, th, bot).GetBotEvents(ctx, bot.UserId, "", 0, 0)
+			require.Error(t, err)
+			assert.Equal(t, tc.wantCode, resp.StatusCode)
+		})
+	}
 }

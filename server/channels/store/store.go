@@ -121,7 +121,6 @@ type BotEventSubscriptionStore interface {
 	UpdateSecret(rctx request.CTX, botUserID, secret string, updateAt int64) error
 	SetEnabled(rctx request.CTX, botUserID string, enabled bool, reason string, updateAt int64) error
 	AdvanceAckCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) (bool, error)
-	AdvanceTruncatedCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor) (bool, error)
 	Delete(rctx request.CTX, botUserID string) error
 }
 
@@ -130,8 +129,7 @@ type BotEventStore interface {
 	GetAfterCursor(rctx request.CTX, botUserID string, after model.BotEventCursor, settleWindowMillis int64, limit int) ([]*model.BotEvent, error)
 	CountAfterCursor(rctx request.CTX, botUserID string, after model.BotEventCursor) (int64, error)
 	DeleteUpToCursor(rctx request.CTX, botUserID string, upTo model.BotEventCursor, limit int) (int64, error)
-	GetBacklogCutoff(rctx request.CTX, botUserID string, keep int) (*model.BotEventCursor, error)
-	DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (map[string]model.BotEventCursor, int64, error)
+	DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (int64, error)
 }
 
 type HealthFindingStore interface {

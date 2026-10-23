@@ -43,34 +43,6 @@ func (_m *BotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX, botUserI
 	return r0, r1
 }
 
-// AdvanceTruncatedCursor provides a mock function with given fields: rctx, botUserID, cursor
-func (_m *BotEventSubscriptionStore) AdvanceTruncatedCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor) (bool, error) {
-	ret := _m.Called(rctx, botUserID, cursor)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AdvanceTruncatedCursor")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, model.BotEventCursor) (bool, error)); ok {
-		return rf(rctx, botUserID, cursor)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, model.BotEventCursor) bool); ok {
-		r0 = rf(rctx, botUserID, cursor)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, model.BotEventCursor) error); ok {
-		r1 = rf(rctx, botUserID, cursor)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Delete provides a mock function with given fields: rctx, botUserID
 func (_m *BotEventSubscriptionStore) Delete(rctx request.CTX, botUserID string) error {
 	ret := _m.Called(rctx, botUserID)

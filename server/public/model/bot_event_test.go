@@ -301,13 +301,12 @@ func TestBotEventToEnvelope(t *testing.T) {
 
 	e := &BotEvent{Id: NewId(), BotUserId: NewId(), Type: BotEventTypePostDM, CreateAt: 99, Payload: payload}
 
-	env, err := e.ToEnvelope(true)
+	env, err := e.ToEnvelope()
 	require.NoError(t, err)
 	assert.Equal(t, e.Id, env.EventId)
 	assert.Equal(t, e.BotUserId, env.BotUserId)
 	assert.Equal(t, BotEventTypePostDM, env.Type)
 	assert.Equal(t, int64(99), env.CreatedAt)
-	assert.True(t, env.BacklogTruncated)
 	assert.Nil(t, env.Team)
 	assert.Equal(t, "alice", env.Sender.Username)
 	assert.Equal(t, "héllo 👋", env.Post.Message)
@@ -316,14 +315,14 @@ func TestBotEventToEnvelope(t *testing.T) {
 	require.NoError(t, err)
 	var flat map[string]json.RawMessage
 	require.NoError(t, json.Unmarshal(raw, &flat))
-	for _, key := range []string{"event_id", "type", "created_at", "bot_user_id", "team", "channel", "sender", "post", "backlog_truncated"} {
+	for _, key := range []string{"event_id", "type", "created_at", "bot_user_id", "team", "channel", "sender", "post"} {
 		assert.Contains(t, flat, key)
 	}
 	assert.NotContains(t, flat, "reaction")
 	assert.JSONEq(t, "null", string(flat["team"]))
 
 	t.Run("invalid payload", func(t *testing.T) {
-		_, err := (&BotEvent{Payload: json.RawMessage("not json")}).ToEnvelope(false)
+		_, err := (&BotEvent{Payload: json.RawMessage("not json")}).ToEnvelope()
 		assert.Error(t, err)
 	})
 }

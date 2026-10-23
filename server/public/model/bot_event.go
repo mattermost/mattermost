@@ -36,7 +36,6 @@ const (
 	BotEventDisabledReasonManual           = "manual"
 
 	BotEventMaxEventAge          = 7 * 24 * time.Hour
-	BotEventMaxBacklog           = 10000
 	BotEventSettleWindowMillis   = 1000
 	BotEventsDefaultLimit        = 100
 	BotEventsMaxLimit            = 500
@@ -59,14 +58,12 @@ type BotEventSubscription struct {
 	UpdateAt            int64                    `json:"update_at"`
 	BacklogSize         *int64                   `json:"backlog_size,omitempty" db:"-"`
 
-	AckCursorCreateAt       int64  `json:"-"`
-	AckCursorId             string `json:"-"`
-	TruncatedCursorCreateAt int64  `json:"-"`
-	TruncatedCursorId       string `json:"-"`
-	FirstFailureAt          int64  `json:"-"`
-	NextAttemptAt           int64  `json:"-"`
-	LeaseNode               string `json:"-"`
-	LeaseExpiresAt          int64  `json:"-"`
+	AckCursorCreateAt int64  `json:"-"`
+	AckCursorId       string `json:"-"`
+	FirstFailureAt    int64  `json:"-"`
+	NextAttemptAt     int64  `json:"-"`
+	LeaseNode         string `json:"-"`
+	LeaseExpiresAt    int64  `json:"-"`
 }
 
 func (s *BotEventSubscription) PreSave() {
@@ -129,10 +126,6 @@ func (s *BotEventSubscription) Sanitize() {
 
 func (s *BotEventSubscription) AckCursor() BotEventCursor {
 	return BotEventCursor{CreateAt: s.AckCursorCreateAt, Id: s.AckCursorId}
-}
-
-func (s *BotEventSubscription) TruncatedCursor() BotEventCursor {
-	return BotEventCursor{CreateAt: s.TruncatedCursorCreateAt, Id: s.TruncatedCursorId}
 }
 
 // ShouldProduce reports whether new events are written to the outbox. Events keep
@@ -299,7 +292,6 @@ type BotEventEnvelope struct {
 	CreatedAt int64        `json:"created_at"`
 	BotUserId string       `json:"bot_user_id"`
 	BotEventData
-	BacklogTruncated bool `json:"backlog_truncated"`
 }
 
 type BotEventList struct {
@@ -330,18 +322,17 @@ func NewBotEventPost(p *Post) *BotEventPost {
 	}
 }
 
-func (e *BotEvent) ToEnvelope(truncated bool) (*BotEventEnvelope, error) {
+func (e *BotEvent) ToEnvelope() (*BotEventEnvelope, error) {
 	var data BotEventData
 	if err := json.Unmarshal(e.Payload, &data); err != nil {
 		return nil, fmt.Errorf("failed to decode bot event payload: %w", err)
 	}
 	return &BotEventEnvelope{
-		EventId:          e.Id,
-		Type:             e.Type,
-		CreatedAt:        e.CreateAt,
-		BotUserId:        e.BotUserId,
-		BotEventData:     data,
-		BacklogTruncated: truncated,
+		EventId:      e.Id,
+		Type:         e.Type,
+		CreatedAt:    e.CreateAt,
+		BotUserId:    e.BotUserId,
+		BotEventData: data,
 	}, nil
 }
 

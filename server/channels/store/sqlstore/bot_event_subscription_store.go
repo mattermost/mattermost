@@ -16,7 +16,7 @@ const botEventSubscriptionTable = "BotEventSubscriptions"
 
 var botEventSubscriptionColumns = []string{
 	"BotUserId", "Mode", "CallbackURL", "Secret", "IgnoreBotAuthors", "Enabled", "DisabledReason",
-	"AckCursorCreateAt", "AckCursorId", "TruncatedCursorCreateAt", "TruncatedCursorId",
+	"AckCursorCreateAt", "AckCursorId",
 	"ConsecutiveFailures", "FirstFailureAt", "NextAttemptAt", "LeaseNode", "LeaseExpiresAt",
 	"CreateAt", "UpdateAt", "LastDeliveredAt",
 }
@@ -40,7 +40,7 @@ func (s *SqlBotEventSubscriptionStore) Save(rctx request.CTX, sub *model.BotEven
 		Columns(botEventSubscriptionColumns...).
 		Values(
 			sub.BotUserId, sub.Mode, sub.CallbackURL, sub.Secret, sub.IgnoreBotAuthors, sub.Enabled, sub.DisabledReason,
-			sub.AckCursorCreateAt, sub.AckCursorId, sub.TruncatedCursorCreateAt, sub.TruncatedCursorId,
+			sub.AckCursorCreateAt, sub.AckCursorId,
 			sub.ConsecutiveFailures, sub.FirstFailureAt, sub.NextAttemptAt, sub.LeaseNode, sub.LeaseExpiresAt,
 			sub.CreateAt, sub.UpdateAt, sub.LastDeliveredAt,
 		)
@@ -72,15 +72,14 @@ func (s *SqlBotEventSubscriptionStore) Get(rctx request.CTX, botUserID string) (
 }
 
 func (s *SqlBotEventSubscriptionStore) GetForBots(rctx request.CTX, botUserIDs []string) ([]*model.BotEventSubscription, error) {
-	unique := dedupeStrings(botUserIDs)
-	if len(unique) == 0 {
+	if len(botUserIDs) == 0 {
 		return []*model.BotEventSubscription{}, nil
 	}
 
 	query := s.getQueryBuilder().
 		Select("BotUserId", "Mode", "IgnoreBotAuthors", "Enabled", "DisabledReason").
 		From(botEventSubscriptionTable).
-		Where(sq.Eq{"BotUserId": unique})
+		Where(sq.Eq{"BotUserId": botUserIDs})
 
 	subs := []*model.BotEventSubscription{}
 	if err := s.GetReplica().SelectBuilderCtx(rctx.Context(), &subs, query); err != nil {
@@ -91,7 +90,7 @@ func (s *SqlBotEventSubscriptionStore) GetForBots(rctx request.CTX, botUserIDs [
 
 func (s *SqlBotEventSubscriptionStore) GetPage(rctx request.CTX, afterBotUserID string, limit int) ([]*model.BotEventSubscription, error) {
 	query := s.getQueryBuilder().
-		Select("BotUserId", "AckCursorCreateAt", "AckCursorId", "TruncatedCursorCreateAt", "TruncatedCursorId").
+		Select("BotUserId", "AckCursorCreateAt", "AckCursorId").
 		From(botEventSubscriptionTable).
 		Where(sq.Gt{"BotUserId": afterBotUserID}).
 		OrderBy("BotUserId").
@@ -164,18 +163,15 @@ func (s *SqlBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX, botUse
 		Where(sq.Eq{"BotUserId": botUserID}).
 		Where(sq.Expr("(AckCursorCreateAt, AckCursorId) < (?, ?)", cursor.CreateAt, cursor.Id))
 
-	return s.advanceCursor(rctx, query, botUserID)
-}
-
-func (s *SqlBotEventSubscriptionStore) AdvanceTruncatedCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor) (bool, error) {
-	query := s.getQueryBuilder().
-		Update(botEventSubscriptionTable).
-		Set("TruncatedCursorCreateAt", cursor.CreateAt).
-		Set("TruncatedCursorId", cursor.Id).
-		Where(sq.Eq{"BotUserId": botUserID}).
-		Where(sq.Expr("(TruncatedCursorCreateAt, TruncatedCursorId) < (?, ?)", cursor.CreateAt, cursor.Id))
-
-	return s.advanceCursor(rctx, query, botUserID)
+	result, err := s.execBuilder(rctx, s.GetMaster(), query)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to advance ack cursor for bot_user_id=%s", botUserID)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to count advanced ack cursors for bot_user_id=%s", botUserID)
+	}
+	return rows == 1, nil
 }
 
 func (s *SqlBotEventSubscriptionStore) Delete(rctx request.CTX, botUserID string) (err error) {
@@ -225,29 +221,4 @@ func (s *SqlBotEventSubscriptionStore) updateExpectingRow(rctx request.CTX, quer
 		return store.NewErrNotFound("BotEventSubscription", botUserID)
 	}
 	return nil
-}
-
-func (s *SqlBotEventSubscriptionStore) advanceCursor(rctx request.CTX, query sq.UpdateBuilder, botUserID string) (bool, error) {
-	result, err := s.execBuilder(rctx, s.GetMaster(), query)
-	if err != nil {
-		return false, errors.Wrapf(err, "failed to advance cursor for bot_user_id=%s", botUserID)
-	}
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return false, errors.Wrapf(err, "failed to count advanced cursors for bot_user_id=%s", botUserID)
-	}
-	return rows == 1, nil
-}
-
-func dedupeStrings(in []string) []string {
-	seen := make(map[string]struct{}, len(in))
-	out := make([]string, 0, len(in))
-	for _, v := range in {
-		if _, ok := seen[v]; ok {
-			continue
-		}
-		seen[v] = struct{}{}
-		out = append(out, v)
-	}
-	return out
 }

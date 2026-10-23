@@ -44,40 +44,31 @@ func (_m *BotEventStore) CountAfterCursor(rctx request.CTX, botUserID string, af
 }
 
 // DeleteOlderThan provides a mock function with given fields: rctx, createAtBefore, limit
-func (_m *BotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (map[string]model.BotEventCursor, int64, error) {
+func (_m *BotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (int64, error) {
 	ret := _m.Called(rctx, createAtBefore, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteOlderThan")
 	}
 
-	var r0 map[string]model.BotEventCursor
-	var r1 int64
-	var r2 error
-	if rf, ok := ret.Get(0).(func(request.CTX, int64, int) (map[string]model.BotEventCursor, int64, error)); ok {
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, int64, int) (int64, error)); ok {
 		return rf(rctx, createAtBefore, limit)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, int64, int) map[string]model.BotEventCursor); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, int64, int) int64); ok {
 		r0 = rf(rctx, createAtBefore, limit)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]model.BotEventCursor)
-		}
+		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, int64, int) int64); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, int64, int) error); ok {
 		r1 = rf(rctx, createAtBefore, limit)
 	} else {
-		r1 = ret.Get(1).(int64)
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(request.CTX, int64, int) error); ok {
-		r2 = rf(rctx, createAtBefore, limit)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
 // DeleteUpToCursor provides a mock function with given fields: rctx, botUserID, upTo, limit
@@ -131,36 +122,6 @@ func (_m *BotEventStore) GetAfterCursor(rctx request.CTX, botUserID string, afte
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, model.BotEventCursor, int64, int) error); ok {
 		r1 = rf(rctx, botUserID, after, settleWindowMillis, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetBacklogCutoff provides a mock function with given fields: rctx, botUserID, keep
-func (_m *BotEventStore) GetBacklogCutoff(rctx request.CTX, botUserID string, keep int) (*model.BotEventCursor, error) {
-	ret := _m.Called(rctx, botUserID, keep)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetBacklogCutoff")
-	}
-
-	var r0 *model.BotEventCursor
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, int) (*model.BotEventCursor, error)); ok {
-		return rf(rctx, botUserID, keep)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, int) *model.BotEventCursor); ok {
-		r0 = rf(rctx, botUserID, keep)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.BotEventCursor)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, int) error); ok {
-		r1 = rf(rctx, botUserID, keep)
 	} else {
 		r1 = ret.Error(1)
 	}
