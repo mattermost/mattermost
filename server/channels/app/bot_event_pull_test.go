@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // setupPullTest returns a helper whose long-poll timings are shortened.
@@ -29,6 +30,14 @@ func setupPullTest(t *testing.T) (*TestHelper, *model.Bot) {
 	return th, bot
 }
 
+// getBotEvents applies the default limit that the API parser sets.
+func getBotEvents(th *TestHelper, rctx request.CTX, botID string, opts model.BotEventsOptions) (*model.BotEventList, *model.AppError) {
+	if opts.Limit == 0 {
+		opts.Limit = model.BotEventsDefaultLimit
+	}
+	return th.App.GetBotEvents(rctx, botID, opts)
+}
+
 // seedBotEvents stores n settled events, oldest first.
 func seedBotEvents(t *testing.T, th *TestHelper, botID string, n int) []*model.BotEvent {
 	t.Helper()
@@ -38,8 +47,7 @@ func seedBotEvents(t *testing.T, th *TestHelper, botID string, n int) []*model.B
 	for i := range events {
 		events[i] = &model.BotEvent{Id: model.NewId(), BotUserId: botID, Type: model.BotEventTypePostDM, CreateAt: base + int64(i), Payload: []byte(`{"post":{"id":"p"}}`)}
 	}
-	_, err := th.App.Srv().Store().BotEvent().Save(th.Context, events)
-	require.NoError(t, err)
+	require.NoError(t, th.App.Srv().Store().BotEvent().Save(th.Context, events))
 	return events
 }
 
@@ -63,9 +71,9 @@ func TestGetBotEvents(t *testing.T) {
 	}
 
 	t.Run("without a cursor nothing is acknowledged", func(t *testing.T) {
-		first, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{})
+		first, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{})
 		require.Nil(t, appErr)
-		second, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{})
+		second, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{})
 		require.Nil(t, appErr)
 
 		assert.Len(t, first.Events, 5)
@@ -75,13 +83,13 @@ func TestGetBotEvents(t *testing.T) {
 	})
 
 	t.Run("pagination acknowledges with the cursor", func(t *testing.T) {
-		page1, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Limit: 2})
+		page1, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{Limit: 2})
 		require.Nil(t, appErr)
 		assert.Equal(t, []string{events[0].Id, events[1].Id}, eventIDsOf(page1))
 
 		cursor, err := model.DecodeBotEventCursor(page1.NextCursor)
 		require.NoError(t, err)
-		page2, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Cursor: &cursor, Limit: 2})
+		page2, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{Cursor: &cursor, Limit: 2})
 		require.Nil(t, appErr)
 		assert.Equal(t, []string{events[2].Id, events[3].Id}, eventIDsOf(page2))
 		assert.Equal(t, events[1].Cursor(), ackOf(t))
@@ -93,11 +101,11 @@ func TestGetBotEvents(t *testing.T) {
 
 	t.Run("an older cursor does not move the acknowledgement back", func(t *testing.T) {
 		newer := events[3].Cursor()
-		_, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Cursor: &newer})
+		_, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{Cursor: &newer})
 		require.Nil(t, appErr)
 
 		older := events[0].Cursor()
-		list, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Cursor: &older})
+		list, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{Cursor: &older})
 		require.Nil(t, appErr)
 
 		assert.Equal(t, events[3].Cursor(), ackOf(t))
@@ -106,7 +114,7 @@ func TestGetBotEvents(t *testing.T) {
 
 	t.Run("nothing left", func(t *testing.T) {
 		last := events[4].Cursor()
-		list, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Cursor: &last})
+		list, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{Cursor: &last})
 		require.Nil(t, appErr)
 
 		assert.NotNil(t, list.Events)
@@ -121,14 +129,14 @@ func TestGetBotEventsSubscriptionState(t *testing.T) {
 	subs := th.App.Srv().Store().BotEventSubscription()
 
 	t.Run("unknown bot or subscription", func(t *testing.T) {
-		_, appErr := th.App.GetBotEvents(th.Context, model.NewId(), model.BotEventsOptions{})
+		_, appErr := getBotEvents(th, th.Context, model.NewId(), model.BotEventsOptions{})
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 
 	t.Run("disabled", func(t *testing.T) {
 		require.NoError(t, subs.SetEnabled(th.Context, bot.UserId, false, model.BotEventDisabledReasonManual, model.GetMillis()))
-		_, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{})
+		_, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{})
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
 		assert.Equal(t, "app.bot_event.pull.disabled.app_error", appErr.Id)
@@ -143,7 +151,7 @@ func TestGetBotEventsSubscriptionState(t *testing.T) {
 		_, err = subs.Update(th.Context, sub)
 		require.NoError(t, err)
 
-		_, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{})
+		_, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{})
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
 		assert.Equal(t, "app.bot_event.pull.wrong_mode.app_error", appErr.Id)
@@ -152,23 +160,45 @@ func TestGetBotEventsSubscriptionState(t *testing.T) {
 
 func TestGetBotEventsLongPoll(t *testing.T) {
 	mainHelper.Parallel(t)
-	th, bot := setupPullTest(t)
+	th, _ := setupPullTest(t)
 	svc := th.App.Srv().botEvents
 
 	t.Run("a produced event wakes the poll once it has settled", func(t *testing.T) {
+		// With a long recheck interval only the wake-up can make this poll return in time.
+		svc.recheckInterval = 10 * time.Second
+		defer func() { svc.recheckInterval = 50 * time.Millisecond }()
+		other := th.CreateBot(t)
+		subscribeTestBot(t, th, other, nil)
+
+		const produceAfter = 300 * time.Millisecond // after the poll's first look
 		start := time.Now()
 		go func() {
-			time.Sleep(50 * time.Millisecond)
-			th.App.saveBotEvents(th.Context, []*model.BotEvent{{BotUserId: bot.UserId, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)}})
+			time.Sleep(produceAfter)
+			th.App.saveBotEvents(th.Context, []*model.BotEvent{{BotUserId: other.UserId, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)}})
 		}()
 
-		list, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Wait: 5 * time.Second})
+		list, appErr := getBotEvents(th, th.Context, other.UserId, model.BotEventsOptions{Wait: 5 * time.Second})
 		require.Nil(t, appErr)
 
 		require.Len(t, list.Events, 1)
 		elapsed := time.Since(start)
-		assert.GreaterOrEqual(t, elapsed, svc.settleWindow, "the event is not readable before it settles")
-		assert.Less(t, elapsed, 2*time.Second)
+		assert.GreaterOrEqual(t, elapsed, produceAfter+svc.settleWindow, "the event is not readable before it settles")
+		assert.Less(t, elapsed, produceAfter+svc.settleDelay()+time.Second)
+	})
+
+	t.Run("an event written just before the poll starts is found after the settle delay", func(t *testing.T) {
+		svc.recheckInterval = 10 * time.Second
+		defer func() { svc.recheckInterval = 50 * time.Millisecond }()
+		other := th.CreateBot(t)
+		subscribeTestBot(t, th, other, nil)
+		require.NoError(t, th.App.Srv().Store().BotEvent().Save(th.Context, []*model.BotEvent{{Id: model.NewId(), BotUserId: other.UserId, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)}}))
+
+		start := time.Now()
+		list, appErr := getBotEvents(th, th.Context, other.UserId, model.BotEventsOptions{Wait: 5 * time.Second})
+		require.Nil(t, appErr)
+
+		assert.Len(t, list.Events, 1)
+		assert.Less(t, time.Since(start), svc.settleDelay()+time.Second)
 	})
 
 	t.Run("an event written without a wake-up is found by the recheck", func(t *testing.T) {
@@ -177,12 +207,11 @@ func TestGetBotEventsLongPoll(t *testing.T) {
 
 		start := time.Now()
 		go func() {
-			time.Sleep(50 * time.Millisecond)
-			_, err := th.App.Srv().Store().BotEvent().Save(th.Context, []*model.BotEvent{{Id: model.NewId(), BotUserId: other.UserId, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)}})
-			assert.NoError(t, err)
+			time.Sleep(300 * time.Millisecond)
+			assert.NoError(t, th.App.Srv().Store().BotEvent().Save(th.Context, []*model.BotEvent{{Id: model.NewId(), BotUserId: other.UserId, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)}}))
 		}()
 
-		list, appErr := th.App.GetBotEvents(th.Context, other.UserId, model.BotEventsOptions{Wait: 5 * time.Second})
+		list, appErr := getBotEvents(th, th.Context, other.UserId, model.BotEventsOptions{Wait: 5 * time.Second})
 		require.Nil(t, appErr)
 
 		assert.Len(t, list.Events, 1)
@@ -194,7 +223,7 @@ func TestGetBotEventsLongPoll(t *testing.T) {
 		subscribeTestBot(t, th, other, nil)
 
 		start := time.Now()
-		list, appErr := th.App.GetBotEvents(th.Context, other.UserId, model.BotEventsOptions{Wait: 300 * time.Millisecond})
+		list, appErr := getBotEvents(th, th.Context, other.UserId, model.BotEventsOptions{Wait: 300 * time.Millisecond})
 		require.Nil(t, appErr)
 
 		elapsed := time.Since(start)
@@ -211,7 +240,7 @@ func TestGetBotEventsLongPoll(t *testing.T) {
 		time.AfterFunc(100*time.Millisecond, cancel)
 
 		start := time.Now()
-		list, appErr := th.App.GetBotEvents(th.Context.WithContext(ctx), other.UserId, model.BotEventsOptions{Wait: 30 * time.Second})
+		list, appErr := getBotEvents(th, th.Context.WithContext(ctx), other.UserId, model.BotEventsOptions{Wait: 30 * time.Second})
 		require.Nil(t, appErr)
 
 		assert.Empty(t, list.Events)
@@ -233,7 +262,7 @@ func TestGetBotEventsShutdownReleasesPolls(t *testing.T) {
 
 	done := make(chan *model.BotEventList, 1)
 	go func() {
-		list, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Wait: 30 * time.Second})
+		list, appErr := getBotEvents(th, th.Context, bot.UserId, model.BotEventsOptions{Wait: 30 * time.Second})
 		assert.Nil(t, appErr)
 		done <- list
 	}()
@@ -266,10 +295,9 @@ func TestEffectiveBotEventsWait(t *testing.T) {
 		requested    time.Duration
 		want         time.Duration
 	}{
-		{"default write timeout caps at the maximum wait", 300, time.Hour, 60 * time.Second},
 		{"short request is kept", 300, 10 * time.Second, 10 * time.Second},
+		{"default write timeout leaves room for the margin", 300, time.Hour, 295 * time.Second},
 		{"write timeout lowers the cap", 8, 60 * time.Second, 3 * time.Second},
-		{"write timeout above the maximum", 100, 60 * time.Second, 60 * time.Second},
 		{"write timeout below the margin disables waiting", 5, 60 * time.Second, 0},
 		{"zero", 300, 0, 0},
 		{"negative", 300, -time.Second, 0},

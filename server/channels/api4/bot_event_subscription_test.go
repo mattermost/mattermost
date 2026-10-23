@@ -52,6 +52,19 @@ func botClient(t *testing.T, th *TestHelper, bot *model.Bot) *model.Client4 {
 	return client
 }
 
+// oauthClient returns a client for BasicUser whose session is marked as an OAuth session.
+func oauthClient(t *testing.T, th *TestHelper) *model.Client4 {
+	t.Helper()
+
+	client := th.CreateClient()
+	th.LoginBasicWithClient(t, client)
+	session, appErr := th.App.GetSession(client.AuthToken)
+	require.Nil(t, appErr)
+	session.IsOAuth = true
+	th.App.AddSessionToCache(session)
+	return client
+}
+
 func pullSubscription() *model.BotEventSubscriptionPatch {
 	return &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePull)}
 }
@@ -169,8 +182,9 @@ func TestBotEventSubscriptionValidationAPI(t *testing.T) {
 	}
 
 	t.Run("malformed body", func(t *testing.T) {
-		_, err := th.Client.DoAPIPut(context.Background(), "/bots/"+bot.UserId+"/event_subscription", "{not json")
+		resp, err := th.Client.DoAPIPut(context.Background(), "/bots/"+bot.UserId+"/event_subscription", "{not json")
 		require.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
 
@@ -207,8 +221,10 @@ func TestBotEventSubscriptionPermissionsAPI(t *testing.T) {
 		name    string
 		client  func(t *testing.T) *model.Client4
 		prepare func(t *testing.T) (restore func())
-		// wantStatuses is nil when the actor is allowed.
+		// wantStatuses is nil when the actor is allowed. When deniedOnly is set, only those
+		// calls are denied and the rest succeed.
 		wantStatuses []int
+		deniedOnly   map[string]bool
 		skip         map[string]bool
 	}{
 		{name: "no session", client: func(*testing.T) *model.Client4 { return th.CreateClient() }, wantStatuses: []int{http.StatusUnauthorized}},
@@ -220,6 +236,13 @@ func TestBotEventSubscriptionPermissionsAPI(t *testing.T) {
 				return client
 			},
 			wantStatuses: denied,
+		},
+		{
+			name:         "oauth session",
+			client:       func(t *testing.T) *model.Client4 { return oauthClient(t, th) },
+			wantStatuses: []int{http.StatusForbidden},
+			deniedOnly:   map[string]bool{"upsert": true, "regenerate": true},
+			skip:         map[string]bool{"delete": true},
 		},
 		{name: "the bot itself", client: func(t *testing.T) *model.Client4 { return botClient(t, th, bot) }, wantStatuses: denied},
 		{
@@ -248,7 +271,7 @@ func TestBotEventSubscriptionPermissionsAPI(t *testing.T) {
 					continue
 				}
 				resp, err := call(client)
-				if actor.wantStatuses == nil {
+				if actor.wantStatuses == nil || (actor.deniedOnly != nil && !actor.deniedOnly[name]) {
 					require.NoError(t, err, name)
 					continue
 				}
@@ -337,6 +360,7 @@ func TestCreateBotWithEventSubscriptionAPI(t *testing.T) {
 		name         string
 		subscription *model.BotEventSubscriptionPatch
 		withoutPerm  bool
+		oauth        bool
 		wantStatus   int
 	}{
 		{
@@ -346,6 +370,7 @@ func TestCreateBotWithEventSubscriptionAPI(t *testing.T) {
 		},
 		{name: "subscription without a mode", subscription: &model.BotEventSubscriptionPatch{}, wantStatus: http.StatusBadRequest},
 		{name: "without manage_bots", subscription: pullSubscription(), withoutPerm: true, wantStatus: http.StatusForbidden},
+		{name: "oauth session", subscription: pullSubscription(), oauth: true, wantStatus: http.StatusForbidden},
 	}
 	for _, tc := range rejected {
 		t.Run(tc.name+" creates no bot", func(t *testing.T) {
@@ -354,8 +379,13 @@ func TestCreateBotWithEventSubscriptionAPI(t *testing.T) {
 				defer th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 			}
 
+			client := th.Client
+			if tc.oauth {
+				client = oauthClient(t, th)
+			}
+
 			username := GenerateTestUsername()
-			_, resp, err := th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
+			_, resp, err := client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
 				BotPatch:          model.BotPatch{Username: &username},
 				EventSubscription: tc.subscription,
 			})
@@ -398,8 +428,7 @@ func TestGetBotEventsAPI(t *testing.T) {
 			events[i] = &model.BotEvent{Id: model.NewId(), BotUserId: bot.UserId, Type: model.BotEventTypePostDM, CreateAt: base + int64(i), Payload: []byte(`{"post":{"id":"p"}}`)}
 		}
 		for start := 0; start < n; start += 1000 {
-			_, err := th.App.Srv().Store().BotEvent().Save(th.Context, events[start:min(start+1000, n)])
-			require.NoError(t, err)
+			require.NoError(t, th.App.Srv().Store().BotEvent().Save(th.Context, events[start:min(start+1000, n)]))
 		}
 	}
 

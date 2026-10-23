@@ -34,6 +34,7 @@ const (
 const (
 	BotEventDisabledReasonDeliveryFailures = "delivery_failures"
 	BotEventDisabledReasonManual           = "manual"
+	BotEventDisabledReasonMaxLength        = 64
 
 	BotEventMaxEventAge          = 7 * 24 * time.Hour
 	BotEventSettleWindowMillis   = 1000
@@ -89,7 +90,7 @@ func (s *BotEventSubscription) IsValid() *AppError {
 
 	switch s.Mode {
 	case BotEventSubscriptionModePush:
-		if s.CallbackURL == "" || !IsValidHTTPURL(s.CallbackURL) || len(s.CallbackURL) > BotEventCallbackURLMaxLength {
+		if !IsValidHTTPURL(s.CallbackURL) || len(s.CallbackURL) > BotEventCallbackURLMaxLength {
 			return NewAppError(where, "model.bot_event_subscription.is_valid.callback_url.app_error", nil, "bot_user_id="+s.BotUserId, http.StatusBadRequest)
 		}
 	case BotEventSubscriptionModePull:
@@ -104,7 +105,7 @@ func (s *BotEventSubscription) IsValid() *AppError {
 		return NewAppError(where, "model.bot_event_subscription.is_valid.secret.app_error", nil, "bot_user_id="+s.BotUserId, http.StatusBadRequest)
 	}
 
-	if len(s.DisabledReason) > 64 {
+	if len(s.DisabledReason) > BotEventDisabledReasonMaxLength {
 		return NewAppError(where, "model.bot_event_subscription.is_valid.disabled_reason.app_error", nil, "bot_user_id="+s.BotUserId, http.StatusBadRequest)
 	}
 
@@ -285,7 +286,7 @@ type BotEventReaction struct {
 	CreateAt  int64  `json:"create_at"`
 }
 
-// BotEventEnvelope is the receiver-facing event, for pull now and as the push body in Phase 2.
+// BotEventEnvelope is the receiver-facing event, for pull and, later, as the push body.
 type BotEventEnvelope struct {
 	EventId   string       `json:"event_id"`
 	Type      BotEventType `json:"type"`
@@ -367,28 +368,4 @@ func (b *BotWithEventSubscription) MarshalJSON() ([]byte, error) {
 		fields["event_subscription"] = raw
 	}
 	return json.Marshal(fields)
-}
-
-func (b *BotWithEventSubscription) UnmarshalJSON(data []byte) error {
-	fields := map[string]json.RawMessage{}
-	if err := json.Unmarshal(data, &fields); err != nil {
-		return err
-	}
-
-	b.Bot = nil
-	b.EventSubscription = nil
-
-	if raw, ok := fields["event_subscription"]; ok {
-		delete(fields, "event_subscription")
-		if err := json.Unmarshal(raw, &b.EventSubscription); err != nil {
-			return err
-		}
-	}
-
-	rest, err := json.Marshal(fields)
-	if err != nil {
-		return err
-	}
-	b.Bot = &Bot{}
-	return json.Unmarshal(rest, b.Bot)
 }

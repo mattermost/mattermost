@@ -235,6 +235,15 @@ func (w *sqlxDBWrapper) ExecBuilder(builder Builder) (sql.Result, error) {
 	return w.Exec(query, args...)
 }
 
+func (w *sqlxDBWrapper) ExecBuilderCtx(ctx context.Context, builder Builder) (sql.Result, error) {
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	return w.ExecContext(ctx, query, args...)
+}
+
 func (w *sqlxDBWrapper) ExecNoTimeout(query string, args ...any) (sql.Result, error) {
 	query = w.db.Rebind(query)
 

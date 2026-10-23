@@ -333,7 +333,7 @@ func TestBotEventListEncodesEmptyEvents(t *testing.T) {
 	assert.Contains(t, string(raw), `"events":[]`)
 }
 
-func TestBotWithEventSubscription(t *testing.T) {
+func TestBotWithEventSubscriptionMarshal(t *testing.T) {
 	bot := &Bot{UserId: NewId(), Username: "system-bot", OwnerId: NewId(), DisplayName: "Sys"}
 	sub := validBotEventSubscription()
 	sub.BotUserId = bot.UserId
@@ -347,12 +347,10 @@ func TestBotWithEventSubscription(t *testing.T) {
 	assert.JSONEq(t, "true", string(flat["system_owned"]))
 	assert.JSONEq(t, `"`+bot.UserId+`"`, string(flat["user_id"]))
 
-	var got BotWithEventSubscription
-	require.NoError(t, json.Unmarshal(raw, &got))
-	assert.Equal(t, bot, got.Bot)
-	require.NotNil(t, got.EventSubscription)
-	assert.Equal(t, sub.Secret, got.EventSubscription.Secret)
-	assert.Equal(t, sub.BotUserId, got.EventSubscription.BotUserId)
+	var subscription BotEventSubscription
+	require.NoError(t, json.Unmarshal(flat["event_subscription"], &subscription))
+	assert.Equal(t, sub.Secret, subscription.Secret)
+	assert.Equal(t, sub.BotUserId, subscription.BotUserId)
 
 	t.Run("without subscription", func(t *testing.T) {
 		raw, err := json.Marshal(&BotWithEventSubscription{Bot: bot})

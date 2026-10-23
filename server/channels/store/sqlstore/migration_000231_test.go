@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-func healthFindingsTableExists(t *testing.T, store *SqlStore, tableName string) bool {
+func migrationTableExists(t *testing.T, store *SqlStore, tableName string) bool {
 	t.Helper()
 
 	var exists bool
@@ -22,7 +22,7 @@ func healthFindingsTableExists(t *testing.T, store *SqlStore, tableName string) 
 	return exists
 }
 
-func healthFindingsIndexExists(t *testing.T, store *SqlStore, indexName string) bool {
+func migrationIndexExists(t *testing.T, store *SqlStore, indexName string) bool {
 	t.Helper()
 
 	var exists bool
@@ -31,7 +31,7 @@ func healthFindingsIndexExists(t *testing.T, store *SqlStore, indexName string) 
 	return exists
 }
 
-func newHealthFindingsMigrationStore(t *testing.T) *SqlStore {
+func newMigrationTestStore(t *testing.T) *SqlStore {
 	t.Helper()
 
 	logger := mlog.CreateTestLogger(t)
@@ -49,35 +49,35 @@ func newHealthFindingsMigrationStore(t *testing.T) *SqlStore {
 }
 
 func TestMigration000231(t *testing.T) {
-	store := newHealthFindingsMigrationStore(t)
+	store := newMigrationTestStore(t)
 
-	require.True(t, healthFindingsTableExists(t, store, "healthfindings"))
+	require.True(t, migrationTableExists(t, store, "healthfindings"))
 
 	_, err := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000231_create_health_findings.down.sql"))
 	require.NoError(t, err)
-	assert.False(t, healthFindingsTableExists(t, store, "healthfindings"))
+	assert.False(t, migrationTableExists(t, store, "healthfindings"))
 
 	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000231_create_health_findings.up.sql"))
 	require.NoError(t, err)
-	assert.True(t, healthFindingsTableExists(t, store, "healthfindings"))
+	assert.True(t, migrationTableExists(t, store, "healthfindings"))
 }
 
 func TestMigration000232(t *testing.T) {
-	store := newHealthFindingsMigrationStore(t)
+	store := newMigrationTestStore(t)
 
-	require.True(t, healthFindingsIndexExists(t, store, "idx_healthfindings_lastseenat"))
+	require.True(t, migrationIndexExists(t, store, "idx_healthfindings_lastseenat"))
 
 	// CONCURRENTLY cannot run inside a transaction; ExecNoTimeout runs unwrapped.
 	_, err := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000232_create_healthfindings_lastseenat_index.down.sql"))
 	require.NoError(t, err)
-	assert.False(t, healthFindingsIndexExists(t, store, "idx_healthfindings_lastseenat"))
+	assert.False(t, migrationIndexExists(t, store, "idx_healthfindings_lastseenat"))
 
 	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000232_create_healthfindings_lastseenat_index.up.sql"))
 	require.NoError(t, err)
-	assert.True(t, healthFindingsIndexExists(t, store, "idx_healthfindings_lastseenat"))
+	assert.True(t, migrationIndexExists(t, store, "idx_healthfindings_lastseenat"))
 
 	// IF NOT EXISTS makes a second up a safe no-op.
 	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000232_create_healthfindings_lastseenat_index.up.sql"))
 	require.NoError(t, err)
-	assert.True(t, healthFindingsIndexExists(t, store, "idx_healthfindings_lastseenat"))
+	assert.True(t, migrationIndexExists(t, store, "idx_healthfindings_lastseenat"))
 }

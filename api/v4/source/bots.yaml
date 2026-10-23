@@ -597,7 +597,7 @@
           in: query
           description: >
             The `next_cursor` of a previous response. Acknowledges all events up to it.
-            Must not be in the future.
+            A cursor more than 60 seconds ahead of the server clock is rejected.
           schema:
             type: string
         - name: limit

@@ -52,8 +52,7 @@ func TestBotEventSubscriptionLifecycle(t *testing.T) {
 		{Id: model.NewId(), BotUserId: bot.UserId, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)},
 		{Id: model.NewId(), BotUserId: bot.UserId, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)},
 	}
-	_, err = th.App.Srv().Store().BotEvent().Save(th.Context, events)
-	require.NoError(t, err)
+	require.NoError(t, th.App.Srv().Store().BotEvent().Save(th.Context, events))
 
 	got, appErr := th.App.GetBotEventSubscription(th.Context, bot.UserId)
 	require.Nil(t, appErr)
@@ -203,10 +202,9 @@ func TestBotEventSubscriptionRemovedWithBot(t *testing.T) {
 	newSubscribedBot := func(t *testing.T) *model.Bot {
 		bot := th.CreateBot(t)
 		subscribeTestBot(t, th, bot, nil)
-		_, err := th.App.Srv().Store().BotEvent().Save(th.Context, []*model.BotEvent{
+		require.NoError(t, th.App.Srv().Store().BotEvent().Save(th.Context, []*model.BotEvent{
 			{Id: model.NewId(), BotUserId: bot.UserId, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)},
-		})
-		require.NoError(t, err)
+		}))
 		return bot
 	}
 

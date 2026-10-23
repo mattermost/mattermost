@@ -200,11 +200,11 @@ func (e *botEventEnv) authorID(t *testing.T, th *TestHelper, author string) stri
 func TestBotPostEvents(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
 	ignoreChannelMentions := func(t *testing.T, th *TestHelper, env *botEventEnv) {
 		_, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsOn}, env.channel.Id, env.botUser.Id)
 		require.Nil(t, appErr)
-		require.Nil(t, th.App.Srv().InvalidateAllCaches())
 	}
 	setSubscription := func(enabled bool, reason string) func(*testing.T, *TestHelper, *botEventEnv) {
 		return func(t *testing.T, th *TestHelper, env *botEventEnv) {
@@ -236,8 +236,6 @@ func TestBotPostEvents(t *testing.T) {
 		{
 			name: "group mention",
 			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) {
-				// The test license is dropped by earlier cache invalidations, so set it here.
-				th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 				group := th.CreateGroup(t)
 				group.AllowReference = true
 				group, appErr := th.App.UpdateGroup(group)
@@ -377,6 +375,18 @@ func TestBotPostEventPayload(t *testing.T) {
 		assert.Equal(t, "hello", data.Post.Message)
 	})
 
+	t.Run("group message", func(t *testing.T) {
+		env := newBotEventEnv(t, th, "gm", true)
+
+		postAs(t, th, th.BasicUser.Id, env.channel, "hello group", "")
+
+		events := botEventsFor(t, th, env.bot.UserId)
+		require.Len(t, events, 1)
+		data := botEventData(t, events[0])
+		assert.Nil(t, data.Team)
+		assert.Equal(t, model.ChannelTypeGroup, data.Channel.Type)
+	})
+
 	t.Run("sender that is a bot", func(t *testing.T) {
 		env := newBotEventEnv(t, th, "public", true)
 		subscribeTestBot(t, th, env.bot, new(false))
@@ -502,7 +512,6 @@ func TestBotPostEventsThreads(t *testing.T) {
 			act: func(t *testing.T, env *botEventEnv) {
 				_, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.ChannelAutoFollowThreads: model.ChannelAutoFollowThreadsOn}, env.channel.Id, env.botUser.Id)
 				require.Nil(t, appErr)
-				require.Nil(t, th.App.Srv().InvalidateAllCaches())
 
 				root := postAs(t, th, th.BasicUser.Id, env.channel, "root", "")
 				postAs(t, th, th.BasicUser2.Id, env.channel, "reply", root.Id)
@@ -561,7 +570,7 @@ func TestBotReactionEvents(t *testing.T) {
 			name:   "bot that left the channel",
 			postBy: "bot",
 			prepare: func(t *testing.T, th *TestHelper, env *botEventEnv) {
-				_ = th.RemoveUserFromChannel(t, env.botUser, env.channel)
+				require.Nil(t, th.App.RemoveUserFromChannel(th.Context, env.botUser.Id, env.botUser.Id, env.channel))
 			},
 			want: nil,
 		},
@@ -686,8 +695,8 @@ type failingBotEventStore struct {
 	store.BotEventStore
 }
 
-func (failingBotEventStore) Save(request.CTX, []*model.BotEvent) ([]*model.BotEvent, error) {
-	return nil, errors.New("boom")
+func (failingBotEventStore) Save(request.CTX, []*model.BotEvent) error {
+	return errors.New("boom")
 }
 
 type failingBotEventsStore struct {

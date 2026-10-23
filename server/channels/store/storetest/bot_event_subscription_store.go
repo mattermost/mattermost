@@ -6,7 +6,6 @@ package storetest
 import (
 	"fmt"
 	"math/rand/v2"
-	"slices"
 	"sync"
 	"testing"
 
@@ -39,7 +38,6 @@ func TestBotEventSubscriptionStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("SaveGetUpdateDelete", func(t *testing.T) { testBotEventSubscriptionCRUD(t, rctx, ss) })
 	t.Run("MissingSubscription", func(t *testing.T) { testBotEventSubscriptionMissing(t, rctx, ss) })
 	t.Run("GetForBots", func(t *testing.T) { testBotEventSubscriptionGetForBots(t, rctx, ss) })
-	t.Run("GetPage", func(t *testing.T) { testBotEventSubscriptionGetPage(t, rctx, ss, s) })
 	t.Run("SetEnabled", func(t *testing.T) { testBotEventSubscriptionSetEnabled(t, rctx, ss, s) })
 	t.Run("Delete", func(t *testing.T) { testBotEventSubscriptionDelete(t, rctx, ss) })
 	t.Run("AdvanceAckCursor", func(t *testing.T) { testBotEventSubscriptionAdvanceCursor(t, rctx, ss) })
@@ -132,8 +130,7 @@ func testBotEventSubscriptionMissing(t *testing.T, rctx request.CTX, ss store.St
 	err = ss.BotEventSubscription().SetEnabled(rctx, id, true, "", model.GetMillis())
 	require.ErrorAs(t, err, &nfErr)
 
-	err = ss.BotEventSubscription().Delete(rctx, id)
-	require.ErrorAs(t, err, &nfErr)
+	require.NoError(t, ss.BotEventSubscription().Delete(rctx, id), "deleting a missing subscription is a no-op")
 
 	advanced, err := ss.BotEventSubscription().AdvanceAckCursor(rctx, id, model.BotEventCursor{CreateAt: 5, Id: model.NewId()}, 1)
 	require.NoError(t, err)
@@ -156,7 +153,7 @@ func testBotEventSubscriptionGetForBots(t *testing.T, rctx request.CTX, ss store
 		assert.Empty(t, subs)
 	})
 
-	t.Run("dedupes input and omits missing ids", func(t *testing.T) {
+	t.Run("omits missing ids", func(t *testing.T) {
 		subs, err := ss.BotEventSubscription().GetForBots(rctx, []string{a.BotUserId, b.BotUserId, a.BotUserId, missing})
 		require.NoError(t, err)
 		require.Len(t, subs, 2)
@@ -182,42 +179,6 @@ func testBotEventSubscriptionGetForBots(t *testing.T, rctx request.CTX, ss store
 		require.Len(t, subs, 1)
 		assert.Empty(t, subs[0].Secret)
 	})
-}
-
-func testBotEventSubscriptionGetPage(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	_, err := s.GetMaster().Exec("DELETE FROM BotEventSubscriptions")
-	require.NoError(t, err)
-
-	var ids []string
-	for range 5 {
-		sub := saveTestBotEventSubscription(t, rctx, ss)
-		ids = append(ids, sub.BotUserId)
-	}
-	slices.Sort(ids)
-
-	cursor := model.BotEventCursor{CreateAt: 7, Id: model.NewId()}
-	_, err = ss.BotEventSubscription().AdvanceAckCursor(rctx, ids[0], cursor, 1)
-	require.NoError(t, err)
-
-	var seen []string
-	after := ""
-	for {
-		page, err := ss.BotEventSubscription().GetPage(rctx, after, 2)
-		require.NoError(t, err)
-		if len(page) == 0 {
-			break
-		}
-		assert.LessOrEqual(t, len(page), 2)
-		for _, sub := range page {
-			seen = append(seen, sub.BotUserId)
-			if sub.BotUserId == ids[0] {
-				assert.Equal(t, cursor, sub.AckCursor())
-			}
-			assert.Empty(t, sub.Secret)
-		}
-		after = page[len(page)-1].BotUserId
-	}
-	assert.Equal(t, ids, seen)
 }
 
 func testBotEventSubscriptionSetEnabled(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -249,11 +210,10 @@ func testBotEventSubscriptionDelete(t *testing.T, rctx request.CTX, ss store.Sto
 	b := saveTestBotEventSubscription(t, rctx, ss)
 
 	for _, botID := range []string{a.BotUserId, b.BotUserId} {
-		_, err := ss.BotEvent().Save(rctx, []*model.BotEvent{
+		require.NoError(t, ss.BotEvent().Save(rctx, []*model.BotEvent{
 			{Id: model.NewId(), BotUserId: botID, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)},
 			{Id: model.NewId(), BotUserId: botID, Type: model.BotEventTypePostDM, Payload: []byte(`{}`)},
-		})
-		require.NoError(t, err)
+		}))
 	}
 
 	require.NoError(t, ss.BotEventSubscription().Delete(rctx, a.BotUserId))

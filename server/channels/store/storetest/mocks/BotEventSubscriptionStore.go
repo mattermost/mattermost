@@ -121,36 +121,6 @@ func (_m *BotEventSubscriptionStore) GetForBots(rctx request.CTX, botUserIDs []s
 	return r0, r1
 }
 
-// GetPage provides a mock function with given fields: rctx, afterBotUserID, limit
-func (_m *BotEventSubscriptionStore) GetPage(rctx request.CTX, afterBotUserID string, limit int) ([]*model.BotEventSubscription, error) {
-	ret := _m.Called(rctx, afterBotUserID, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPage")
-	}
-
-	var r0 []*model.BotEventSubscription
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, int) ([]*model.BotEventSubscription, error)); ok {
-		return rf(rctx, afterBotUserID, limit)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, int) []*model.BotEventSubscription); ok {
-		r0 = rf(rctx, afterBotUserID, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.BotEventSubscription)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, int) error); ok {
-		r1 = rf(rctx, afterBotUserID, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Save provides a mock function with given fields: rctx, sub
 func (_m *BotEventSubscriptionStore) Save(rctx request.CTX, sub *model.BotEventSubscription) (*model.BotEventSubscription, error) {
 	ret := _m.Called(rctx, sub)

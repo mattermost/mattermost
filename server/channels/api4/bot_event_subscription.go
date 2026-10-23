@@ -200,11 +200,6 @@ func getBotEvents(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, appErr := c.App.GetBot(c.AppContext, botUserId, false); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
 	opts, ok := parseBotEventsOptions(c, r)
 	if !ok {
 		return

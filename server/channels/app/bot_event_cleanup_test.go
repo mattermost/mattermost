@@ -21,8 +21,7 @@ func saveEventsAt(t *testing.T, th *TestHelper, botID string, createAts ...int64
 		events[i] = &model.BotEvent{Id: model.NewId(), BotUserId: botID, Type: model.BotEventTypePostDM, CreateAt: createAt, Payload: []byte(`{}`)}
 	}
 	for start := 0; start < len(events); start += 1000 {
-		_, err := th.App.Srv().Store().BotEvent().Save(th.Context, events[start:min(start+1000, len(events))])
-		require.NoError(t, err)
+		require.NoError(t, th.App.Srv().Store().BotEvent().Save(th.Context, events[start:min(start+1000, len(events))]))
 	}
 	return events
 }

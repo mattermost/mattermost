@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
-
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -27,36 +25,22 @@ type SqlBotEventStore struct {
 	*SqlStore
 }
 
-type botEventRow struct {
-	Id        string
-	BotUserId string
-	Type      string
-	CreateAt  int64
-	Payload   []byte
-}
-
-type botEventCursorRow struct {
-	CreateAt int64
-	Id       string
-}
-
 func newSqlBotEventStore(sqlStore *SqlStore) store.BotEventStore {
 	return &SqlBotEventStore{SqlStore: sqlStore}
 }
 
-func (s *SqlBotEventStore) Save(rctx request.CTX, events []*model.BotEvent) ([]*model.BotEvent, error) {
+func (s *SqlBotEventStore) Save(rctx request.CTX, events []*model.BotEvent) error {
 	if len(events) == 0 {
-		return events, nil
+		return nil
 	}
 
 	query := s.getQueryBuilder().
 		Insert("BotEvents").
 		Columns("Id", "BotUserId", "Type", "CreateAt", "Payload")
 
-	byId := make(map[string]*model.BotEvent, len(events))
 	for _, e := range events {
 		if !model.IsValidId(e.Id) {
-			return nil, store.NewErrInvalidInput("BotEvent", "Id", e.Id)
+			return store.NewErrInvalidInput("BotEvent", "Id", e.Id)
 		}
 
 		payload := []byte(e.Payload)
@@ -70,28 +54,17 @@ func (s *SqlBotEventStore) Save(rctx request.CTX, events []*model.BotEvent) ([]*
 		}
 
 		query = query.Values(e.Id, e.BotUserId, string(e.Type), createAt, payload)
-		byId[e.Id] = e
-	}
-	query = query.Suffix("RETURNING Id, CreateAt")
-
-	var rows []botEventCursorRow
-	if err := s.GetMaster().SelectBuilderCtx(rctx.Context(), &rows, query); err != nil {
-		return nil, errors.Wrap(err, "failed to save BotEvents")
 	}
 
-	for _, r := range rows {
-		if e, ok := byId[r.Id]; ok {
-			e.CreateAt = r.CreateAt
-		}
+	if _, err := s.GetMaster().ExecBuilderCtx(rctx.Context(), query); err != nil {
+		return errors.Wrap(err, "failed to save BotEvents")
 	}
-	return events, nil
+	return nil
 }
 
 // GetAfterCursor always reads the master: a lagging replica could show a
 // later-committed event and hide an earlier one, which the settle window cannot fix.
 func (s *SqlBotEventStore) GetAfterCursor(rctx request.CTX, botUserID string, after model.BotEventCursor, settleWindowMillis int64, limit int) ([]*model.BotEvent, error) {
-	limit = min(max(limit, 1), model.BotEventsMaxLimit)
-
 	query := s.getQueryBuilder().
 		Select("Id", "BotUserId", "Type", "CreateAt", "Payload").
 		From("BotEvents").
@@ -101,20 +74,9 @@ func (s *SqlBotEventStore) GetAfterCursor(rctx request.CTX, botUserID string, af
 		OrderBy("CreateAt", "Id").
 		Limit(uint64(limit))
 
-	var rows []botEventRow
-	if err := s.GetMaster().SelectBuilderCtx(rctx.Context(), &rows, query); err != nil {
+	var events []*model.BotEvent
+	if err := s.GetMaster().SelectBuilderCtx(rctx.Context(), &events, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to get BotEvents for bot_user_id=%s", botUserID)
-	}
-
-	events := make([]*model.BotEvent, len(rows))
-	for i, r := range rows {
-		events[i] = &model.BotEvent{
-			Id:        r.Id,
-			BotUserId: r.BotUserId,
-			Type:      model.BotEventType(r.Type),
-			CreateAt:  r.CreateAt,
-			Payload:   r.Payload,
-		}
 	}
 	return events, nil
 }
@@ -126,62 +88,33 @@ func (s *SqlBotEventStore) CountAfterCursor(rctx request.CTX, botUserID string, 
 		Where(sq.Eq{"BotUserId": botUserID}).
 		Where(sq.Expr("(CreateAt, Id) > (?, ?)", after.CreateAt, after.Id))
 
-	sqlStr, args, err := query.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to build BotEvents count query")
-	}
-
 	var count int64
-	if err := s.GetReplica().QueryRowContext(rctx.Context(), sqlStr, args...).Scan(&count); err != nil {
+	if err := s.GetReplica().GetBuilder(&count, query); err != nil {
 		return 0, errors.Wrapf(err, "failed to count BotEvents for bot_user_id=%s", botUserID)
 	}
 	return count, nil
 }
 
-// DeleteUpToCursor and DeleteOlderThan select by the full primary key tuple so the
-// primary key index is used; matching on Id alone would scan the table.
-func (s *SqlBotEventStore) DeleteUpToCursor(rctx request.CTX, botUserID string, upTo model.BotEventCursor, limit int) (int64, error) {
-	query := s.getQueryBuilder().
-		Delete("BotEvents").
-		Where(sq.Expr(
-			"(BotUserId, CreateAt, Id) IN (SELECT BotUserId, CreateAt, Id FROM BotEvents WHERE BotUserId = ? AND (CreateAt, Id) <= (?, ?) ORDER BY CreateAt, Id LIMIT ?)",
-			botUserID, upTo.CreateAt, upTo.Id, limit,
-		))
-
-	result, err := s.execBuilder(rctx, s.GetMaster(), query)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to delete BotEvents up to cursor for bot_user_id=%s", botUserID)
-	}
-	deleted, err := result.RowsAffected()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to count deleted BotEvents")
-	}
-	return deleted, nil
+// DeleteAcked and DeleteOlderThan select by the full primary key tuple so the primary
+// key index is used; matching on Id alone would scan the table. DeleteAcked only
+// considers subscriptions that acknowledged something, which keeps the planner on a
+// nested loop over those few subscriptions instead of a scan of the whole table.
+func (s *SqlBotEventStore) DeleteAcked(rctx request.CTX, limit int) (int64, error) {
+	return s.deleteBatch(rctx, `(BotUserId, CreateAt, Id) IN (
+		SELECT e.BotUserId, e.CreateAt, e.Id FROM BotEvents e
+		JOIN BotEventSubscriptions s ON s.BotUserId = e.BotUserId
+		WHERE s.AckCursorCreateAt > 0 AND (e.CreateAt, e.Id) <= (s.AckCursorCreateAt, s.AckCursorId)
+		LIMIT ?)`, limit)
 }
 
 func (s *SqlBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (int64, error) {
-	query := s.getQueryBuilder().
-		Delete("BotEvents").
-		Where(sq.Expr(
-			"(BotUserId, CreateAt, Id) IN (SELECT BotUserId, CreateAt, Id FROM BotEvents WHERE CreateAt < ? LIMIT ?)",
-			createAtBefore, limit,
-		))
-
-	result, err := s.execBuilder(rctx, s.GetMaster(), query)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete old BotEvents")
-	}
-	deleted, err := result.RowsAffected()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to count deleted BotEvents")
-	}
-	return deleted, nil
+	return s.deleteBatch(rctx, "(BotUserId, CreateAt, Id) IN (SELECT BotUserId, CreateAt, Id FROM BotEvents WHERE CreateAt < ? LIMIT ?)", createAtBefore, limit)
 }
 
-func (ss *SqlStore) execBuilder(rctx request.CTX, db *sqlxDBWrapper, builder Builder) (sql.Result, error) {
-	query, args, err := builder.ToSql()
+func (s *SqlBotEventStore) deleteBatch(rctx request.CTX, where string, args ...any) (int64, error) {
+	result, err := s.GetMaster().ExecBuilderCtx(rctx.Context(), s.getQueryBuilder().Delete("BotEvents").Where(sq.Expr(where, args...)))
 	if err != nil {
-		return nil, err
+		return 0, errors.Wrap(err, "failed to delete BotEvents")
 	}
-	return db.ExecContext(rctx.Context(), query, args...)
+	return result.RowsAffected()
 }

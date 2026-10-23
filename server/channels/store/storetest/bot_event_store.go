@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand/v2"
 	"sync"
 	"testing"
@@ -25,7 +26,7 @@ func TestBotEventStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("LateCommitOrdering", func(t *testing.T) { testBotEventLateCommitOrdering(t, rctx, ss, s) })
 	t.Run("ConcurrentWritersAndReader", func(t *testing.T) { testBotEventConcurrentWritersAndReader(t, rctx, ss) })
 	t.Run("CountAfterCursor", func(t *testing.T) { testBotEventCountAfterCursor(t, rctx, ss) })
-	t.Run("DeleteUpToCursor", func(t *testing.T) { testBotEventDeleteUpToCursor(t, rctx, ss) })
+	t.Run("DeleteAcked", func(t *testing.T) { testBotEventDeleteAcked(t, rctx, ss, s) })
 	t.Run("DeleteOlderThan", func(t *testing.T) { testBotEventDeleteOlderThan(t, rctx, ss, s) })
 }
 
@@ -48,9 +49,7 @@ func newTestBotEvent(botID string, createAt int64) *model.BotEvent {
 
 func saveTestBotEvents(t *testing.T, rctx request.CTX, ss store.Store, events ...*model.BotEvent) {
 	t.Helper()
-	saved, err := ss.BotEvent().Save(rctx, events)
-	require.NoError(t, err)
-	require.Len(t, saved, len(events))
+	require.NoError(t, ss.BotEvent().Save(rctx, events))
 }
 
 func eventIDs(events []*model.BotEvent) []string {
@@ -65,33 +64,26 @@ func testBotEventSave(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	botID := model.NewId()
 
 	t.Run("empty input is a no-op", func(t *testing.T) {
-		saved, err := ss.BotEvent().Save(rctx, nil)
-		require.NoError(t, err)
-		assert.Empty(t, saved)
+		require.NoError(t, ss.BotEvent().Save(rctx, nil))
 	})
 
-	t.Run("database clock is written back", func(t *testing.T) {
+	t.Run("create at defaults to the database clock", func(t *testing.T) {
 		before := botEventDBNow(t, s)
-		e1, e2 := newTestBotEvent(botID, 0), newTestBotEvent(botID, 0)
-		saveTestBotEvents(t, rctx, ss, e1, e2)
-
-		for _, e := range []*model.BotEvent{e1, e2} {
-			assert.GreaterOrEqual(t, e.CreateAt, before)
-			assert.InDelta(t, model.GetMillis(), e.CreateAt, 5000)
-		}
+		saveTestBotEvents(t, rctx, ss, newTestBotEvent(botID, 0), newTestBotEvent(botID, 0))
+		after := botEventDBNow(t, s)
 
 		got, err := ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, 0, 10)
 		require.NoError(t, err)
 		require.Len(t, got, 2)
-		byID := map[string]*model.BotEvent{got[0].Id: got[0], got[1].Id: got[1]}
-		assert.Equal(t, e1.CreateAt, byID[e1.Id].CreateAt)
-		assert.Equal(t, e2.CreateAt, byID[e2.Id].CreateAt)
+		for _, e := range got {
+			assert.GreaterOrEqual(t, e.CreateAt, before-1)
+			assert.LessOrEqual(t, e.CreateAt, after+1)
+		}
 	})
 
 	t.Run("explicit create at is honoured", func(t *testing.T) {
 		e := newTestBotEvent(botID, 1234)
 		saveTestBotEvents(t, rctx, ss, e)
-		assert.Equal(t, int64(1234), e.CreateAt)
 
 		got, err := ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{CreateAt: 1233}, 0, 1)
 		require.NoError(t, err)
@@ -103,7 +95,7 @@ func testBotEventSave(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("invalid id is rejected", func(t *testing.T) {
 		e := newTestBotEvent(botID, 0)
 		e.Id = "bad"
-		_, err := ss.BotEvent().Save(rctx, []*model.BotEvent{e})
+		err := ss.BotEvent().Save(rctx, []*model.BotEvent{e})
 		var invalid *store.ErrInvalidInput
 		require.ErrorAs(t, err, &invalid)
 	})
@@ -167,16 +159,6 @@ func testBotEventGetAfterCursor(t *testing.T, rctx request.CTX, ss store.Store) 
 		require.NoError(t, err)
 		assert.Equal(t, eventIDs(expected[2:4]), eventIDs(next))
 	})
-
-	t.Run("limit is clamped", func(t *testing.T) {
-		got, err := ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, 0, 0)
-		require.NoError(t, err)
-		assert.Len(t, got, 1)
-
-		got, err = ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, 0, -5)
-		require.NoError(t, err)
-		assert.Len(t, got, 1)
-	})
 }
 
 func testBotEventSettleWindow(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -200,33 +182,46 @@ func testBotEventSettleWindow(t *testing.T, rctx request.CTX, ss store.Store, s 
 	}, 5*time.Second, 50*time.Millisecond)
 }
 
-// A writer that committed late must not be skipped: events become readable in
-// CreateAt order only after the settle window, so a reader that advanced past B
-// can never miss an A with an earlier CreateAt that committed afterwards.
+// A writer whose transaction commits late must not be skipped. Row A gets its CreateAt
+// first but commits after row B; a reader without a settle window would see B alone and
+// move past A, while the settle window keeps both hidden until A is visible.
 func testBotEventLateCommitOrdering(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	const settle = 400
 	botID := model.NewId()
+	a := newTestBotEvent(botID, 0)
+	b := newTestBotEvent(botID, 0)
 
-	now := botEventDBNow(t, s)
-	b := newTestBotEvent(botID, now)
+	// A DO block inserts, then holds its transaction open before committing.
+	committed := make(chan error, 1)
+	go func() {
+		_, err := s.GetMaster().Exec(fmt.Sprintf(
+			`DO $$ BEGIN
+				INSERT INTO BotEvents (Id, BotUserId, Type, CreateAt, Payload) VALUES ('%s', '%s', 'post_dm', (EXTRACT(EPOCH FROM clock_timestamp()) * 1000)::bigint, '{}');
+				PERFORM pg_sleep(0.5);
+			END $$`, a.Id, botID))
+		committed <- err
+	}()
+	time.Sleep(100 * time.Millisecond)
 	saveTestBotEvents(t, rctx, ss, b)
-	a := newTestBotEvent(botID, now-50)
-	saveTestBotEvents(t, rctx, ss, a)
 
-	first, err := ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, settle, 10)
+	onlyB, err := ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, 0, 10)
 	require.NoError(t, err)
-	assert.Empty(t, first, "neither event is readable inside the window")
+	require.Equal(t, []string{b.Id}, eventIDs(onlyB), "without a settle window B is visible while A is still uncommitted")
+
+	settled, err := ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, model.BotEventSettleWindowMillis, 10)
+	require.NoError(t, err)
+	assert.Empty(t, settled, "inside the settle window nothing is readable")
+
+	require.NoError(t, <-committed)
 
 	var got []*model.BotEvent
 	require.Eventually(t, func() bool {
-		got, err = ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, settle, 10)
-		return err == nil && len(got) > 0
-	}, 5*time.Second, 10*time.Millisecond)
-
-	assert.Equal(t, a.Id, got[0].Id, "the earlier CreateAt is delivered first even though it committed later")
-	if len(got) == 2 {
-		assert.Equal(t, b.Id, got[1].Id)
-	}
+		got, err = ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, model.BotEventSettleWindowMillis, 10)
+		if len(got) > 0 {
+			assert.Equal(t, a.Id, got[0].Id, "A is delivered before B even though B committed first")
+		}
+		return err == nil && len(got) == 2
+	}, 5*time.Second, 20*time.Millisecond)
+	assert.Equal(t, []string{a.Id, b.Id}, eventIDs(got))
 }
 
 func testBotEventConcurrentWritersAndReader(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -240,8 +235,7 @@ func testBotEventConcurrentWritersAndReader(t *testing.T, rctx request.CTX, ss s
 		wg.Go(func() {
 			for range perWriter {
 				time.Sleep(time.Duration(rand.IntN(5)) * time.Millisecond)
-				_, err := ss.BotEvent().Save(rctx, []*model.BotEvent{newTestBotEvent(botID, 0)})
-				assert.NoError(t, err)
+				assert.NoError(t, ss.BotEvent().Save(rctx, []*model.BotEvent{newTestBotEvent(botID, 0)}))
 			}
 		})
 	}
@@ -301,48 +295,47 @@ func testBotEventCountAfterCursor(t *testing.T, rctx request.CTX, ss store.Store
 	assert.Zero(t, count)
 }
 
-func testBotEventDeleteUpToCursor(t *testing.T, rctx request.CTX, ss store.Store) {
-	botID := model.NewId()
-	otherBot := model.NewId()
+func testBotEventDeleteAcked(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	// DeleteAcked is global, so start from an empty table.
+	_, execErr := s.GetMaster().Exec("DELETE FROM BotEvents")
+	require.NoError(t, execErr)
 
-	var events []*model.BotEvent
-	for i := range 5 {
-		events = append(events, newTestBotEvent(botID, int64(100+i)))
-	}
-	other := newTestBotEvent(otherBot, 100)
-	saveTestBotEvents(t, rctx, ss, append(events, other)...)
-
-	upTo := events[4].Cursor()
-	for _, want := range []int64{2, 2, 1, 0} {
-		deleted, err := ss.BotEvent().DeleteUpToCursor(rctx, botID, upTo, 2)
-		require.NoError(t, err)
-		assert.Equal(t, want, deleted)
-	}
-
-	remaining, err := ss.BotEvent().GetAfterCursor(rctx, botID, model.BotEventCursor{}, 0, 100)
-	require.NoError(t, err)
-	assert.Empty(t, remaining)
-
-	otherRemaining, err := ss.BotEvent().GetAfterCursor(rctx, otherBot, model.BotEventCursor{}, 0, 100)
-	require.NoError(t, err)
-	assert.Equal(t, []string{other.Id}, eventIDs(otherRemaining))
-
-	t.Run("cursor bounds the delete inclusively", func(t *testing.T) {
-		bot := model.NewId()
-		var evs []*model.BotEvent
-		for i := range 4 {
-			evs = append(evs, newTestBotEvent(bot, int64(10+i)))
+	seed := func(n int, ackIndex int) (*model.BotEventSubscription, []*model.BotEvent) {
+		sub := saveTestBotEventSubscription(t, rctx, ss)
+		events := make([]*model.BotEvent, n)
+		for i := range events {
+			events[i] = newTestBotEvent(sub.BotUserId, int64(100+i))
 		}
-		saveTestBotEvents(t, rctx, ss, evs...)
+		saveTestBotEvents(t, rctx, ss, events...)
+		if ackIndex >= 0 {
+			_, ackErr := ss.BotEventSubscription().AdvanceAckCursor(rctx, sub.BotUserId, events[ackIndex].Cursor(), 1)
+			require.NoError(t, ackErr)
+		}
+		return sub, events
+	}
 
-		deleted, err := ss.BotEvent().DeleteUpToCursor(rctx, bot, evs[1].Cursor(), 100)
-		require.NoError(t, err)
-		assert.Equal(t, int64(2), deleted)
+	acked, ackedEvents := seed(5, 3)
+	unacked, unackedEvents := seed(3, -1)
+	orphan := newTestBotEvent(model.NewId(), 100)
+	saveTestBotEvents(t, rctx, ss, orphan)
 
-		left, err := ss.BotEvent().GetAfterCursor(rctx, bot, model.BotEventCursor{}, 0, 100)
+	for _, want := range []int64{2, 2, 0} {
+		deleted, err := ss.BotEvent().DeleteAcked(rctx, 2)
 		require.NoError(t, err)
-		assert.Equal(t, eventIDs(evs[2:]), eventIDs(left))
-	})
+		assert.Equal(t, want, deleted, "batches of at most the limit")
+	}
+
+	left, err := ss.BotEvent().GetAfterCursor(rctx, acked.BotUserId, model.BotEventCursor{}, 0, 100)
+	require.NoError(t, err)
+	assert.Equal(t, []string{ackedEvents[4].Id}, eventIDs(left), "events up to and including the ack cursor are deleted")
+
+	left, err = ss.BotEvent().GetAfterCursor(rctx, unacked.BotUserId, model.BotEventCursor{}, 0, 100)
+	require.NoError(t, err)
+	assert.Equal(t, eventIDs(unackedEvents), eventIDs(left), "nothing is deleted without an acknowledgement")
+
+	left, err = ss.BotEvent().GetAfterCursor(rctx, orphan.BotUserId, model.BotEventCursor{}, 0, 100)
+	require.NoError(t, err)
+	assert.Equal(t, []string{orphan.Id}, eventIDs(left), "events without a subscription are left to the age sweep")
 }
 
 func testBotEventDeleteOlderThan(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {

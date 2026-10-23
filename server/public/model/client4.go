@@ -2326,7 +2326,17 @@ func (c *Client4) CreateBotWithEventSubscription(ctx context.Context, patch *Bot
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*BotWithEventSubscription](r)
+
+	// BotWithEventSubscription only marshals; the bot fields are flat next to event_subscription.
+	type botWithSubscription struct {
+		Bot
+		EventSubscription *BotEventSubscription `json:"event_subscription"`
+	}
+	decoded, resp, err := DecodeJSONFromResponse[*botWithSubscription](r)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &BotWithEventSubscription{Bot: &decoded.Bot, EventSubscription: decoded.EventSubscription}, resp, nil
 }
 
 // Team Section

@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"database/sql"
+
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -45,8 +47,8 @@ func (s *SqlBotEventSubscriptionStore) Save(rctx request.CTX, sub *model.BotEven
 			sub.CreateAt, sub.UpdateAt, sub.LastDeliveredAt,
 		)
 
-	if _, err := s.execBuilder(rctx, s.GetMaster(), query); err != nil {
-		if IsUniqueConstraintError(err, []string{"PRIMARY", "boteventsubscriptions_pkey"}) {
+	if _, err := s.GetMaster().ExecBuilderCtx(rctx.Context(), query); err != nil {
+		if IsUniqueConstraintError(err, []string{"boteventsubscriptions_pkey"}) {
 			return nil, store.NewErrConflict("BotEventSubscription", err, "bot_user_id="+sub.BotUserId)
 		}
 		return nil, errors.Wrapf(err, "failed to save BotEventSubscription with bot_user_id=%s", sub.BotUserId)
@@ -61,14 +63,14 @@ func (s *SqlBotEventSubscriptionStore) Get(rctx request.CTX, botUserID string) (
 		From(botEventSubscriptionTable).
 		Where(sq.Eq{"BotUserId": botUserID})
 
-	var subs []*model.BotEventSubscription
-	if err := s.DBXFromContext(rctx.Context()).SelectBuilderCtx(rctx.Context(), &subs, query); err != nil {
+	var sub model.BotEventSubscription
+	if err := s.DBXFromContext(rctx.Context()).GetBuilder(&sub, query); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("BotEventSubscription", botUserID)
+		}
 		return nil, errors.Wrapf(err, "failed to get BotEventSubscription with bot_user_id=%s", botUserID)
 	}
-	if len(subs) == 0 {
-		return nil, store.NewErrNotFound("BotEventSubscription", botUserID)
-	}
-	return subs[0], nil
+	return &sub, nil
 }
 
 func (s *SqlBotEventSubscriptionStore) GetForBots(rctx request.CTX, botUserIDs []string) ([]*model.BotEventSubscription, error) {
@@ -84,21 +86,6 @@ func (s *SqlBotEventSubscriptionStore) GetForBots(rctx request.CTX, botUserIDs [
 	subs := []*model.BotEventSubscription{}
 	if err := s.GetReplica().SelectBuilderCtx(rctx.Context(), &subs, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get BotEventSubscriptions for bots")
-	}
-	return subs, nil
-}
-
-func (s *SqlBotEventSubscriptionStore) GetPage(rctx request.CTX, afterBotUserID string, limit int) ([]*model.BotEventSubscription, error) {
-	query := s.getQueryBuilder().
-		Select("BotUserId", "AckCursorCreateAt", "AckCursorId").
-		From(botEventSubscriptionTable).
-		Where(sq.Gt{"BotUserId": afterBotUserID}).
-		OrderBy("BotUserId").
-		Limit(uint64(limit))
-
-	subs := []*model.BotEventSubscription{}
-	if err := s.GetReplica().SelectBuilderCtx(rctx.Context(), &subs, query); err != nil {
-		return nil, errors.Wrap(err, "failed to get a page of BotEventSubscriptions")
 	}
 	return subs, nil
 }
@@ -163,7 +150,7 @@ func (s *SqlBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX, botUse
 		Where(sq.Eq{"BotUserId": botUserID}).
 		Where(sq.Expr("(AckCursorCreateAt, AckCursorId) < (?, ?)", cursor.CreateAt, cursor.Id))
 
-	result, err := s.execBuilder(rctx, s.GetMaster(), query)
+	result, err := s.GetMaster().ExecBuilderCtx(rctx.Context(), query)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to advance ack cursor for bot_user_id=%s", botUserID)
 	}
@@ -174,6 +161,8 @@ func (s *SqlBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX, botUse
 	return rows == 1, nil
 }
 
+// Delete removes the subscription together with its events. Deleting a missing
+// subscription is not an error.
 func (s *SqlBotEventSubscriptionStore) Delete(rctx request.CTX, botUserID string) (err error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -181,35 +170,20 @@ func (s *SqlBotEventSubscriptionStore) Delete(rctx request.CTX, botUserID string
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	eventsQuery := s.getQueryBuilder().Delete("BotEvents").Where(sq.Eq{"BotUserId": botUserID})
-	if _, err = transaction.ExecBuilder(eventsQuery); err != nil {
-		return errors.Wrapf(err, "failed to delete BotEvents for bot_user_id=%s", botUserID)
-	}
-
-	subQuery := s.getQueryBuilder().Delete(botEventSubscriptionTable).Where(sq.Eq{"BotUserId": botUserID})
-	result, err := transaction.ExecBuilder(subQuery)
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete BotEventSubscription with bot_user_id=%s", botUserID)
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to count deleted BotEventSubscriptions")
+	for _, table := range []string{"BotEvents", botEventSubscriptionTable} {
+		if _, err = transaction.ExecBuilder(s.getQueryBuilder().Delete(table).Where(sq.Eq{"BotUserId": botUserID})); err != nil {
+			return errors.Wrapf(err, "failed to delete from %s for bot_user_id=%s", table, botUserID)
+		}
 	}
 
 	if err = transaction.Commit(); err != nil {
 		return errors.Wrap(err, "commit_transaction")
 	}
-
-	// The events delete commits even on a miss; orphaned events are harmless.
-	if rows == 0 {
-		return store.NewErrNotFound("BotEventSubscription", botUserID)
-	}
 	return nil
 }
 
 func (s *SqlBotEventSubscriptionStore) updateExpectingRow(rctx request.CTX, query sq.UpdateBuilder, botUserID string) error {
-	result, err := s.execBuilder(rctx, s.GetMaster(), query)
+	result, err := s.GetMaster().ExecBuilderCtx(rctx.Context(), query)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update BotEventSubscription with bot_user_id=%s", botUserID)
 	}

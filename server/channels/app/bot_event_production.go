@@ -63,34 +63,35 @@ func (a *App) enqueueBotPostEvents(rctx request.CTX, post *model.Post, team *mod
 		return
 	}
 
-	types := make(map[string]model.BotEventType, len(subs))
-	var lookup []string
+	var eligible []string
 	for _, sub := range subs {
-		if !sub.ShouldProduce() || (sub.IgnoreBotAuthors && sender.IsBot) {
-			continue
+		if sub.ShouldProduce() && !(sub.IgnoreBotAuthors && sender.IsBot) {
+			eligible = append(eligible, sub.BotUserId)
 		}
-
-		mt, mentioned := mentions.Mentions[sub.BotUserId]
-		isFollower := post.RootId != "" && followers.Has(sub.BotUserId)
-		if t, ok := classifyBotPostEvent(channel.Type, mt, mentioned, isFollower); ok {
-			types[sub.BotUserId] = t
-		} else if post.RootId != "" && !followersLoaded {
-			lookup = append(lookup, sub.BotUserId)
-		}
+	}
+	if len(eligible) == 0 {
+		return
 	}
 
 	// Without collapsed threads the follower set holds only the users that were just
-	// auto-followed, so earlier followers have to be looked up one by one.
-	for _, botID := range lookup {
-		membership, memberErr := a.Srv().Store().Thread().GetMembershipForUser(botID, post.RootId)
-		if memberErr != nil {
-			if !store.IsErrNotFound(memberErr) {
-				rctx.Logger().Warn("Failed to load thread membership for bot event", mlog.String("post_id", post.Id), mlog.String("bot_user_id", botID), mlog.Err(memberErr))
-			}
-			continue
+	// auto-followed, so add the earlier followers. Nothing reads the set afterwards in
+	// that configuration.
+	if post.RootId != "" && !followersLoaded {
+		ids, followersErr := a.Srv().Store().Thread().GetThreadFollowers(post.RootId, true)
+		if followersErr != nil {
+			rctx.Logger().Warn("Failed to load thread followers for bot events", mlog.String("post_id", post.Id), mlog.Err(followersErr))
 		}
-		if membership.Following {
-			types[botID] = model.BotEventTypePostThreadReply
+		for _, id := range ids {
+			followers.Add(id)
+		}
+	}
+
+	types := make(map[string]model.BotEventType, len(eligible))
+	for _, botID := range eligible {
+		mt, mentioned := mentions.Mentions[botID]
+		isFollower := post.RootId != "" && followers.Has(botID)
+		if t, ok := classifyBotPostEvent(channel.Type, mt, mentioned, isFollower); ok {
+			types[botID] = t
 		}
 	}
 
@@ -99,7 +100,7 @@ func (a *App) enqueueBotPostEvents(rctx request.CTX, post *model.Post, team *mod
 	}
 
 	payload, err := json.Marshal(&model.BotEventData{
-		Team:    botEventTeam(team, channel),
+		Team:    botEventTeam(team),
 		Channel: botEventChannel(channel),
 		Sender:  botEventUser(sender),
 		Post:    model.NewBotEventPost(post),
@@ -151,7 +152,6 @@ func (a *App) enqueueBotReactionEvents(rctx request.CTX, eventType model.BotEven
 		for id := range members {
 			add(id, true)
 		}
-	default:
 	}
 	if len(candidates) == 0 {
 		return
@@ -222,7 +222,6 @@ func (a *App) enqueueBotReactionEvents(rctx request.CTX, eventType model.BotEven
 	if channel.TeamId != "" {
 		if team, err = a.Srv().Store().Team().Get(channel.TeamId); err != nil {
 			rctx.Logger().Warn("Failed to load team for bot reaction event", mlog.String("team_id", channel.TeamId), mlog.Err(err))
-			team = nil
 		}
 	}
 
@@ -232,7 +231,7 @@ func (a *App) enqueueBotReactionEvents(rctx request.CTX, eventType model.BotEven
 	}
 
 	payload, err := json.Marshal(&model.BotEventData{
-		Team:    botEventTeam(team, channel),
+		Team:    botEventTeam(team),
 		Channel: botEventChannel(channel),
 		Sender:  botEventUser(reactor),
 		Post:    &model.BotEventPost{Id: post.Id, RootId: post.RootId, UserId: post.UserId},
@@ -264,7 +263,7 @@ func (a *App) saveBotEvents(rctx request.CTX, events []*model.BotEvent) {
 		botIDs = append(botIDs, e.BotUserId)
 	}
 
-	if _, err := a.Srv().Store().BotEvent().Save(rctx, events); err != nil {
+	if err := a.Srv().Store().BotEvent().Save(rctx, events); err != nil {
 		rctx.Logger().Warn("Failed to save bot events", mlog.Int("count", len(events)), mlog.Err(err))
 		return
 	}
@@ -272,8 +271,9 @@ func (a *App) saveBotEvents(rctx request.CTX, events []*model.BotEvent) {
 	a.notifyBotEventsAvailable(botIDs)
 }
 
-func botEventTeam(team *model.Team, channel *model.Channel) *model.BotEventTeam {
-	if team == nil || team.Id == "" || channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+// botEventTeam is nil for direct and group messages, which have no team.
+func botEventTeam(team *model.Team) *model.BotEventTeam {
+	if team == nil || team.Id == "" {
 		return nil
 	}
 	return &model.BotEventTeam{Id: team.Id, Name: team.Name}

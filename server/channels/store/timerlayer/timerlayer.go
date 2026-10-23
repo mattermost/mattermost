@@ -1396,6 +1396,22 @@ func (s *TimerLayerBotEventStore) CountAfterCursor(rctx request.CTX, botUserID s
 	return result, err
 }
 
+func (s *TimerLayerBotEventStore) DeleteAcked(rctx request.CTX, limit int) (int64, error) {
+	start := time.Now()
+
+	result, err := s.BotEventStore.DeleteAcked(rctx, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.DeleteAcked", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (int64, error) {
 	start := time.Now()
 
@@ -1408,22 +1424,6 @@ func (s *TimerLayerBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefo
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.DeleteOlderThan", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerBotEventStore) DeleteUpToCursor(rctx request.CTX, botUserID string, upTo model.BotEventCursor, limit int) (int64, error) {
-	start := time.Now()
-
-	result, err := s.BotEventStore.DeleteUpToCursor(rctx, botUserID, upTo, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.DeleteUpToCursor", success, elapsed)
 	}
 	return result, err
 }
@@ -1444,10 +1444,10 @@ func (s *TimerLayerBotEventStore) GetAfterCursor(rctx request.CTX, botUserID str
 	return result, err
 }
 
-func (s *TimerLayerBotEventStore) Save(rctx request.CTX, events []*model.BotEvent) ([]*model.BotEvent, error) {
+func (s *TimerLayerBotEventStore) Save(rctx request.CTX, events []*model.BotEvent) error {
 	start := time.Now()
 
-	result, err := s.BotEventStore.Save(rctx, events)
+	err := s.BotEventStore.Save(rctx, events)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1457,7 +1457,7 @@ func (s *TimerLayerBotEventStore) Save(rctx request.CTX, events []*model.BotEven
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.Save", success, elapsed)
 	}
-	return result, err
+	return err
 }
 
 func (s *TimerLayerBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) (bool, error) {
@@ -1520,22 +1520,6 @@ func (s *TimerLayerBotEventSubscriptionStore) GetForBots(rctx request.CTX, botUs
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.GetForBots", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerBotEventSubscriptionStore) GetPage(rctx request.CTX, afterBotUserID string, limit int) ([]*model.BotEventSubscription, error) {
-	start := time.Now()
-
-	result, err := s.BotEventSubscriptionStore.GetPage(rctx, afterBotUserID, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.GetPage", success, elapsed)
 	}
 	return result, err
 }

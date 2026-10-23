@@ -41,12 +41,6 @@ func (a *App) GetBotEvents(rctx request.CTX, botUserID string, opts model.BotEve
 		ack = *opts.Cursor
 	}
 
-	limit := opts.Limit
-	if limit <= 0 {
-		limit = model.BotEventsDefaultLimit
-	}
-	limit = min(limit, model.BotEventsMaxLimit)
-
 	svc := a.Srv().botEvents
 	wait := a.effectiveBotEventsWait(opts.Wait)
 
@@ -57,7 +51,7 @@ func (a *App) GetBotEvents(rctx request.CTX, botUserID string, opts model.BotEve
 		defer svc.unregister(waiter)
 	}
 
-	events, appErr := a.waitForBotEvents(rctx, botUserID, ack, limit, wait, waiter)
+	events, appErr := a.waitForBotEvents(rctx, botUserID, ack, opts.Limit, wait, waiter)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -87,13 +81,17 @@ func (a *App) waitForBotEvents(rctx request.CTX, botUserID string, after model.B
 
 	deadline := time.NewTimer(wait)
 	defer deadline.Stop()
-	recheck := time.NewTimer(svc.recheckInterval)
+	// The first look is after the settle delay, for events written just before this poll started.
+	recheck := time.NewTimer(svc.settleDelay())
 	defer recheck.Stop()
 	settlePending := false
 
 	for {
 		events, err := a.Srv().Store().BotEvent().GetAfterCursor(rctx, botUserID, after, settleMillis, limit)
 		if err != nil {
+			if rctx.Context().Err() != nil {
+				return nil, nil
+			}
 			return nil, model.NewAppError("GetBotEvents", "app.bot_event.pull.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		if len(events) > 0 || waiter == nil {
@@ -105,7 +103,7 @@ func (a *App) waitForBotEvents(rctx request.CTX, botUserID string, after model.B
 			// A new event is not readable until it has settled, so look again then.
 			if !settlePending {
 				settlePending = true
-				recheck.Reset(svc.settleWindow)
+				recheck.Reset(svc.settleDelay())
 			}
 		case <-recheck.C:
 			settlePending = false
@@ -120,9 +118,9 @@ func (a *App) waitForBotEvents(rctx request.CTX, botUserID string, after model.B
 	}
 }
 
-// effectiveBotEventsWait caps the requested wait by the global maximum and by the
-// server write timeout, which would otherwise swallow the response silently.
+// effectiveBotEventsWait caps the requested wait by the server write timeout, which
+// would otherwise swallow the response silently. The API caps it by the maximum wait.
 func (a *App) effectiveBotEventsWait(requested time.Duration) time.Duration {
 	writeTimeout := time.Duration(*a.Config().ServiceSettings.WriteTimeout) * time.Second
-	return max(min(requested, model.BotEventsMaxWait, writeTimeout-botEventsWriteTimeoutMargin), 0)
+	return max(min(requested, writeTimeout-botEventsWriteTimeoutMargin), 0)
 }

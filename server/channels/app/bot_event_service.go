@@ -10,7 +10,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const defaultBotEventRecheckInterval = 2 * time.Second
+const (
+	defaultBotEventRecheckInterval = 2 * time.Second
+
+	// botEventSettleMargin is added to the settle window before a poll looks again. The
+	// database clock is rounded to milliseconds, so a read exactly one window after the
+	// write can miss the event by a millisecond and would then wait for the next recheck.
+	botEventSettleMargin = 50 * time.Millisecond
+)
 
 // botEventService tracks in-flight long-polls so that event producers can wake them.
 type botEventService struct {
@@ -57,6 +64,10 @@ func (s *botEventService) unregister(w *botEventWaiter) {
 	if len(s.waiters[w.botUserID]) == 0 {
 		delete(s.waiters, w.botUserID)
 	}
+}
+
+func (s *botEventService) settleDelay() time.Duration {
+	return s.settleWindow + botEventSettleMargin
 }
 
 func (s *botEventService) notify(botUserIDs ...string) {

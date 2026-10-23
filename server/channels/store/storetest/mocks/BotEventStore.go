@@ -43,6 +43,34 @@ func (_m *BotEventStore) CountAfterCursor(rctx request.CTX, botUserID string, af
 	return r0, r1
 }
 
+// DeleteAcked provides a mock function with given fields: rctx, limit
+func (_m *BotEventStore) DeleteAcked(rctx request.CTX, limit int) (int64, error) {
+	ret := _m.Called(rctx, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAcked")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, int) (int64, error)); ok {
+		return rf(rctx, limit)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, int) int64); ok {
+		r0 = rf(rctx, limit)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, int) error); ok {
+		r1 = rf(rctx, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteOlderThan provides a mock function with given fields: rctx, createAtBefore, limit
 func (_m *BotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (int64, error) {
 	ret := _m.Called(rctx, createAtBefore, limit)
@@ -64,34 +92,6 @@ func (_m *BotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64,
 
 	if rf, ok := ret.Get(1).(func(request.CTX, int64, int) error); ok {
 		r1 = rf(rctx, createAtBefore, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// DeleteUpToCursor provides a mock function with given fields: rctx, botUserID, upTo, limit
-func (_m *BotEventStore) DeleteUpToCursor(rctx request.CTX, botUserID string, upTo model.BotEventCursor, limit int) (int64, error) {
-	ret := _m.Called(rctx, botUserID, upTo, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteUpToCursor")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, model.BotEventCursor, int) (int64, error)); ok {
-		return rf(rctx, botUserID, upTo, limit)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, model.BotEventCursor, int) int64); ok {
-		r0 = rf(rctx, botUserID, upTo, limit)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, model.BotEventCursor, int) error); ok {
-		r1 = rf(rctx, botUserID, upTo, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -130,33 +130,21 @@ func (_m *BotEventStore) GetAfterCursor(rctx request.CTX, botUserID string, afte
 }
 
 // Save provides a mock function with given fields: rctx, events
-func (_m *BotEventStore) Save(rctx request.CTX, events []*model.BotEvent) ([]*model.BotEvent, error) {
+func (_m *BotEventStore) Save(rctx request.CTX, events []*model.BotEvent) error {
 	ret := _m.Called(rctx, events)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
 	}
 
-	var r0 []*model.BotEvent
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, []*model.BotEvent) ([]*model.BotEvent, error)); ok {
-		return rf(rctx, events)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, []*model.BotEvent) []*model.BotEvent); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.BotEvent) error); ok {
 		r0 = rf(rctx, events)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.BotEvent)
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, []*model.BotEvent) error); ok {
-		r1 = rf(rctx, events)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // NewBotEventStore creates a new instance of BotEventStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
