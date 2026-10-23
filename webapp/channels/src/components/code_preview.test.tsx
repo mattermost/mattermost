@@ -30,7 +30,10 @@ describe('components/CodePreview', () => {
         await waitFor(() => expect(container.querySelector('.hljs code')).toBeInTheDocument());
         expect(screen.queryByRole('heading', {name: 'Title'})).not.toBeInTheDocument();
         expect(container.querySelector('.code-preview')).toHaveClass('code-preview--wrap');
+
+        // One numbered row per source line, so numbers stay with their line when it wraps
         expect(container.querySelector('.post-code__line-numbers')).not.toBeInTheDocument();
+        expect(Array.from(container.querySelectorAll('.post-code__line-number')).map((n) => n.textContent)).toEqual(['1', '2', '3']);
         expect(getContent).toHaveBeenCalledWith(source);
     });
 

@@ -132,7 +132,7 @@ it shouldn't highlight, it's just garbage`;
             expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'false');
             expect(container.querySelector('.hljs code')).toBeInTheDocument();
             expect(container.querySelector('.post-code')).toHaveClass('post-code--wrap');
-            expect(container.querySelector('.post-code__line-numbers')).not.toBeInTheDocument();
+            expect(container.querySelectorAll('.post-code__line-number')).toHaveLength(3);
             expect(screen.queryByRole('heading', {name: 'Heading'})).not.toBeInTheDocument();
         });
 

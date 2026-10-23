@@ -456,13 +456,32 @@
                 background: transparent;
 
                 .post-code__line-numbers {
-                    padding: 5px 0;
+                    padding: 5px 8px 5px 0;
                 }
 
                 code {
                     width: 100%;
                     padding: 5px 0;
                     margin: 0;
+                }
+
+                // Keeps the divider beside the numbers as tall as it is beside the numbers column of other files
+                .post-code__wrapped-lines {
+                    padding: 0;
+                }
+
+                .post-code__line:first-child {
+                    .post-code__line-number,
+                    .post-code__line-text {
+                        padding-top: 5px;
+                    }
+                }
+
+                .post-code__line:last-child {
+                    .post-code__line-number,
+                    .post-code__line-text {
+                        padding-bottom: 5px;
+                    }
                 }
             }
 
@@ -495,16 +514,18 @@
                         width: min(90vw, 960px);
                         height: calc(100vh - 168px);
 
-                        > .hljs {
+                        // Both Markdown views fill the same box with the same corner radius
+                        > .hljs,
+                        > .code-preview__markdown {
                             overflow: auto;
                             min-height: 0;
                             flex: 1;
+                            border-radius: 8px;
                         }
                     }
                 }
 
-                &.code-preview--markdown {
-                    display: block;
+                .code-preview__markdown {
                     padding: var(--spacing-xxxxl);
                     background: var(--center-channel-bg);
                     color: var(--center-channel-color);
@@ -532,7 +553,7 @@
                         }
 
                         .post-code__line-numbers {
-                            padding: 0 4px 4px;
+                            padding: 0 8px 4px 4px;
                         }
 
                         code {

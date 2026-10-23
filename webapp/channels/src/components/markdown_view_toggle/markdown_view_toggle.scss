@@ -26,9 +26,9 @@
     &.onDark {
         --sidebar-text: white;
         --sidebar-text-rgb: 255, 255, 255;
-        --markdown-view-toggle-track: rgba(255, 255, 255, 0.12);
-        --markdown-view-toggle-thumb: rgba(255, 255, 255, 0.16);
-        --markdown-view-toggle-thumb-border: rgba(255, 255, 255, 0.12);
+        --markdown-view-toggle-track: rgba(255, 255, 255, 0.08);
+        --markdown-view-toggle-thumb: rgba(255, 255, 255, 0.08);
+        --markdown-view-toggle-thumb-border: transparent;
         --markdown-view-toggle-active-icon: white;
     }
 
@@ -39,11 +39,11 @@
         left: 0;
         width: var(--markdown-view-toggle-segment);
         height: var(--markdown-view-toggle-segment);
-        box-sizing: border-box;
-        border: 1px solid var(--markdown-view-toggle-thumb-border);
         border-radius: var(--radius-s);
         background: var(--markdown-view-toggle-thumb);
         box-shadow: var(--elevation-1);
+        outline: 1px solid var(--markdown-view-toggle-thumb-border);
+        outline-offset: -1px;
         pointer-events: none;
         transition: transform var(--duration-moderate) var(--ease-transition);
 
@@ -62,15 +62,23 @@
     }
 }
 
-// The sliding thumb is the selected background, so cancel the hover/pressed backgrounds IconButton paints
-.MarkdownViewToggle .MarkdownViewToggle__option.MarkdownViewToggle__option[aria-pressed='true'] {
+// The sliding thumb is the selected background, so cancel the hover/pressed backgrounds IconButton paints. The class is
+// repeated to outrank IconButton's own hover rule, which carries several :not() selectors, whatever order the CSS loads in.
+.MarkdownViewToggle .MarkdownViewToggle__option.MarkdownViewToggle__option.MarkdownViewToggle__option {
     &,
     &:hover:not(:disabled):not(:active),
     &:active:not(:disabled) {
-        --icon-button-fg: var(--markdown-view-toggle-active-icon);
-
         background-color: transparent;
-        color: var(--markdown-view-toggle-active-icon);
-        cursor: default;
+    }
+
+    &[aria-pressed='true'] {
+        &,
+        &:hover:not(:disabled):not(:active),
+        &:active:not(:disabled) {
+            --icon-button-fg: var(--markdown-view-toggle-active-icon);
+
+            color: var(--markdown-view-toggle-active-icon);
+            cursor: default;
+        }
     }
 }

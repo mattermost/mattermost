@@ -7,7 +7,7 @@ import plaintext from 'highlight.js/lib/languages/plaintext';
 import swift from 'highlight.js/lib/languages/swift';
 
 import Constants from './constants';
-import {getLanguageFromDisplayName, getLanguageName, highlight} from './syntax_highlighting';
+import {getLanguageFromDisplayName, getLanguageName, highlight, splitHighlightedLines} from './syntax_highlighting';
 
 jest.mock('highlight.js/lib/core');
 
@@ -34,6 +34,31 @@ describe('utils/syntax_highlighting.tsx', () => {
         await highlight('vtt', '');
 
         expect(hlJS.registerLanguage).toHaveBeenCalledWith('vtt', plaintext);
+    });
+
+    describe('splitHighlightedLines', () => {
+        it('should split plain text on any line ending', () => {
+            expect(splitHighlightedLines('a\nb\r\nc\rd')).toEqual(['a', 'b', 'c', 'd']);
+        });
+
+        it('should keep a trailing empty line like renderLineNumbers does', () => {
+            expect(splitHighlightedLines('a\n')).toEqual(['a', '']);
+        });
+
+        it('should close and reopen spans that run across lines', () => {
+            expect(splitHighlightedLines('<span class="hljs-code">a\nb</span>\nc')).toEqual([
+                '<span class="hljs-code">a</span>',
+                '<span class="hljs-code">b</span>',
+                'c',
+            ]);
+        });
+
+        it('should handle nested spans', () => {
+            expect(splitHighlightedLines('<span class="x"><span class="y">a\nb</span> c</span>')).toEqual([
+                '<span class="x"><span class="y">a</span></span>',
+                '<span class="x"><span class="y">b</span> c</span>',
+            ]);
+        });
     });
 
     describe('getLanguageFromDisplayName', () => {

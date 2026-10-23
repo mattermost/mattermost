@@ -189,12 +189,41 @@ h6.markdown__heading {
 
     .post-code__line-numbers {
         min-width: 36px;
-        padding: 0 4px 4px;
-        border-right: 1px solid #ccc;
+        padding: 0 8px 4px 4px;
+        border-right: 1px solid rgba(204, 204, 204, 0.24);
         margin-right: 12px;
         color: #ccc;
         font-family: Menlo, Monaco, Consolas, "Courier New", monospace; // Match the fonts that code elements use
+        text-align: right;
         user-select: none;
+    }
+
+    // Markdown source wraps, so each line is its own row with its number on the first row it takes up
+    .post-code__wrapped-lines {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .post-code__line {
+        display: flex;
+    }
+
+    .post-code__line-number {
+        min-width: 36px;
+        flex-shrink: 0;
+        padding: 0 8px 0 4px;
+        border-right: 1px solid rgba(204, 204, 204, 0.24);
+        margin-right: 12px;
+        color: #ccc;
+        font-family: Menlo, Monaco, Consolas, "Courier New", monospace; // Match the fonts that code elements use
+        text-align: right;
+        user-select: none;
+    }
+
+    .post-code__line-text {
+        min-width: 0;
+        flex: 1;
+        white-space: pre-wrap;
     }
 
     .hljs {
@@ -213,7 +242,7 @@ h6.markdown__heading {
     }
 
     .post-code__rendered {
-        padding: 8.5px 12px;
+        padding: 20px 24px;
         border: 1px solid rgba(functions.v(center-channel-color-rgb), 0.2);
         border-radius: 0.25em;
         margin: 5px 0;

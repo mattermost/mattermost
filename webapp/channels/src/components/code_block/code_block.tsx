@@ -11,6 +11,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 import CopyButton from 'components/copy_button';
 import Markdown from 'components/markdown';
 import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_toggle';
+import WrappedCodeLines from 'components/wrapped_code_lines';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import {MarkdownViews} from 'utils/constants';
@@ -69,8 +70,11 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
         setChosenMarkdownView(view);
     };
 
-    // Markdown is prose, so wrap it; the separate line number column can't follow wrapped lines
-    const wrapLines = !usedLanguage || SyntaxHighlighting.isMarkdownLanguage(usedLanguage);
+    // Markdown is prose, so wrap it, with a number on each line rather than one column that wrapped lines would knock out of step.
+    // Search highlighting is a second copy of the code laid over the first, so searched blocks keep the plain layout.
+    const isMarkdownSource = SyntaxHighlighting.isMarkdownLanguage(usedLanguage);
+    const numberWrappedLines = isMarkdownSource && !searchedContent;
+    const wrapLines = !usedLanguage || numberWrappedLines;
 
     let className = 'post-code';
     if (wrapLines) {
@@ -85,13 +89,11 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
                 {SyntaxHighlighting.getLanguageName(usedLanguage)}
             </span>
         );
-        if (!SyntaxHighlighting.isMarkdownLanguage(usedLanguage)) {
-            lineNumbers = (
-                <div className='post-code__line-numbers'>
-                    {SyntaxHighlighting.renderLineNumbers(code)}
-                </div>
-            );
-        }
+        lineNumbers = (
+            <div className='post-code__line-numbers'>
+                {SyntaxHighlighting.renderLineNumbers(code)}
+            </div>
+        );
     }
 
     // If we have to apply syntax highlighting AND highlighting of search terms, create two copies
@@ -165,8 +167,14 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
                 </div>
             ) : (
                 <div className='hljs'>
-                    {lineNumbers}
-                    <code dangerouslySetInnerHTML={{__html: htmlContent}}/>
+                    {numberWrappedLines ? (
+                        <WrappedCodeLines html={htmlContent}/>
+                    ) : (
+                        <>
+                            {lineNumbers}
+                            <code dangerouslySetInnerHTML={{__html: htmlContent}}/>
+                        </>
+                    )}
                 </div>
             )}
         </div>
