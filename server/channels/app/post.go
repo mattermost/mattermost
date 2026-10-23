@@ -944,7 +944,14 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	receivedUpdatedPost.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store().Post().Get(rctx, receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+	// Read the row we are about to mutate from master. The post may have been written
+	// milliseconds ago, so a replica that has not caught up yet would report it missing
+	// and callers would surface that as a spurious failure. DeletePost and
+	// PermanentDeletePost already pin their equivalent lookup (MM-70867).
+	//
+	// GetSingle rather than Get: only this row is needed, and Get additionally fetches
+	// every reply in the thread just for them to be discarded here.
+	oldPost, nErr := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), receivedUpdatedPost.Id, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -957,13 +964,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			return nil, false, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
-	oldPost := postLists.Posts[receivedUpdatedPost.Id]
 
 	var appErr *model.AppError
-	if oldPost == nil {
-		appErr = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
-		return nil, false, appErr
-	}
 
 	if oldPost.DeleteAt != 0 {
 		appErr = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": receivedUpdatedPost.Id}, "", http.StatusBadRequest)
@@ -1416,7 +1418,9 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		patchPostOptions = model.DefaultUpdatePostOptions()
 	}
 
-	post, err := a.GetSinglePost(rctx, postID, false)
+	// Read the row we are about to mutate from master; see the note in UpdatePost
+	// (MM-70867).
+	post, err := a.GetSinglePost(sqlstore.RequestContextWithMaster(rctx), postID, false)
 	if err != nil {
 		return nil, false, err
 	}
@@ -2485,8 +2489,7 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 
 	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(limit)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("ComputeLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}

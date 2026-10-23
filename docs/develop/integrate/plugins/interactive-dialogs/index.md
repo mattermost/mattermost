@@ -28,7 +28,7 @@ Interactive dialogs support the following parameters:
 
 | Parameter           | Type    | Description                                                                                                                                                                        |
 |---------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `title`             | String  | Title of the dialog. Maximum 24 characters.                                                                                                                                        |
+| `title`             | String  | Title of the dialog. Maximum 80 characters (24 characters prior to Mattermost v12.0).                                                                                                                                        |
 | `introduction_text` | String  | Markdown-formatted introduction text which is displayed above the dialog `elements`.                                                                                               |
 | `elements`          | Array   | See below for more details on elements. If none are supplied the dialog box acts as a simple confirmation.                                    |
 | `url`               | String  | The URL to send the submitted dialog payload to.                                                                                                                                   |
@@ -37,6 +37,7 @@ Interactive dialogs support the following parameters:
 | `notify_on_cancel`  | Boolean | (Optional) When `true`, sends an event back to the integration whenever there's a user-induced dialog cancellation. No other data is sent back with the event. Default is `false`. |
 | `state`             | String  | (Optional) String provided by the integration that will be echoed back with dialog submission. Default is the empty string.                                                        |
 | `source_url`        | String  | (Optional) URL for field refresh requests. When a select element with `refresh: true` changes value, Mattermost sends a refresh request to this URL. Also used as the endpoint for multi-step form responses. |
+| `size`              | String  | (Optional) Width tier of the dialog: `small`, `medium`, or `large`. Default is `small`. (Minimum server version 12.1.) See [Dialog width](#dialog-width). |
 
 Sample JSON is given below. Form submissions are sent back to the URL defined by the integration. You must also include the trigger ID you received from the slash command or interactive message.
 
@@ -52,7 +53,8 @@ Sample JSON is given below. Form submissions are sent back to the URL defined by
         "submit_label": "<label of the button to complete the dialog>",
         "notify_on_cancel": false,
         "state": "<string provided by the integration that will be echoed back with dialog submission>",
-        "source_url": "<optional URL for field refresh and multi-step form handling>"
+        "source_url": "<optional URL for field refresh and multi-step form handling>",
+        "size": "<optional width tier of the dialog: small, medium, or large>"
     }
 }
 ```
@@ -66,10 +68,13 @@ Each dialog supports elements for users to enter information.
 - `select`: Message menu. Use this for pre-selected choices. Can either be static menus or dynamic menus generated from users and Public channels of the system. For more information on message menus, see [the documentation](/developers/integrate/plugins/interactive-messages).
 - `bool`: Checkbox option. Use this for binary selection.
 - `radio`: Radio button option. Use this to quickly select an option from pre-selected choices.
+- `checkbox_group`: List of checkboxes. Use this to select any number of options from pre-selected choices. (Minimum server version 12.0.)
+- `checkbox_matrix`: Grid of checkboxes with configurable rows and columns. Use this to select one or more columns for each row. (Minimum server version 12.0.)
 - `date`: Date picker field. Use this for selecting dates without time information.
 - `datetime`: Date and time picker field. Use this for selecting both date and time with timezone support.
 - `file`: File upload field. Use this to allow users to attach one or more files as part of a dialog submission.
 - `action_button`: Clickable button that opens a child (stacked) dialog. Use this to branch into a follow-up dialog without submitting the current one. (Minimum server version 11.10.)
+- `collapsible`: Container that groups other elements under a heading, either stacked vertically or laid out as a table. Use this to break a long form into sections, or to let users fill in a set of similar records as a grid.
 
 Each element is required by default, otherwise the client will return an error as shown below. Note that the error message will appear below the help text, if one is specified. To make an element optional, set the field `"optional": "true"`.
 
@@ -367,6 +372,7 @@ The full list of supported fields is included below:
 | `help_text`    | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
 | `default`      | String  | (Optional) Set a default value for this form element. `true` or `false`.                                                           |
 | `placeholder`  | String  | (Optional) A string displayed to include a label besides the checkbox. Maximum 150 characters.                                     |
+| `label_position` | String | (Optional) Set to `before` to render the label before the checkbox, or `after` to render it after. Default is `after`. Minimum server version 12.0. |
 
 ### Radio element
 
@@ -408,6 +414,119 @@ The full list of supported fields are included below:
 | `options`      | Array  | (Optional) An array of options for the radio element.                                                                              |
 | `help_text`    | String | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
 | `default`      | String | (Optional) Set a default value for this form element.                                                                              |
+| `label_position` | String | (Optional) Set to `before` to render each option's label before its radio button, or `after` to render it after. Default is `after`. Minimum server version 12.0. |
+
+### Checkbox group elements
+#### Minimum Server Version: 12.0
+
+Checkbox group elements render a list of checkboxes, letting users select any number of options. Below is an example of a `checkbox_group` element that asks which platforms a user works on.
+
+```json
+{
+    "display_name": "Platforms",
+    "name": "platforms",
+    "type": "checkbox_group",
+    "options": [
+        {
+            "text": "Web",
+            "value": "web"
+        },
+        {
+            "text": "Desktop",
+            "value": "desktop"
+        },
+        {
+            "text": "Mobile",
+            "value": "mobile"
+        }
+    ],
+    "default": "web,mobile"
+}
+```
+
+The full list of supported fields is included below:
+
+| Field            | Type    | Description                                                                                                                        |
+|------------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`   | String  | Display name of the field shown to the user in the dialog. Maximum 24 characters.                                                  |
+| `name`           | String  | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog. |
+| `type`           | String  | Set this value to `checkbox_group` for a checkbox group element.                                                                   |
+| `options`        | Array   | An array of options, each with `text` and `value`. Requires between 1 and 50 options. Option values must be unique and can't contain `,`. |
+| `optional`       | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
+| `help_text`      | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
+| `default`        | String  | (Optional) Comma-separated list of option values to select by default. Each value must exist in `options`.                         |
+| `label_position` | String  | (Optional) Set to `before` to render each option's label before its checkbox, or `after` to render it after. Default is `after`.   |
+
+Checkbox group elements don't support `placeholder`, `data_source`, or `multiselect`.
+
+When the dialog is submitted, the element's value is an array of the selected option values, for example `["web", "mobile"]`. A required checkbox group must have at least one option selected.
+
+### Checkbox matrix elements
+#### Minimum Server Version: 12.0
+
+Checkbox matrix elements render a grid of checkboxes. Each row is a question and each column is an answer that can be selected for that row. Instead of `options`, a checkbox matrix is configured with a `matrix_config` object. Below is an example of a `checkbox_matrix` element that asks which days each team member is available.
+
+```json
+{
+    "display_name": "Availability",
+    "name": "availability",
+    "type": "checkbox_matrix",
+    "matrix_config": {
+        "rows": [
+            {
+                "text": "Alice",
+                "value": "alice"
+            },
+            {
+                "text": "Bob",
+                "value": "bob"
+            }
+        ],
+        "columns": [
+            {
+                "text": "Mon",
+                "value": "mon"
+            },
+            {
+                "text": "Tue",
+                "value": "tue"
+            },
+            {
+                "text": "Wed",
+                "value": "wed"
+            }
+        ],
+        "row_selection": "multiple"
+    },
+    "default": "alice:mon,tue;bob:wed"
+}
+```
+
+The full list of supported fields is included below:
+
+| Field           | Type    | Description                                                                                                                        |
+|-----------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`  | String  | Display name of the field shown to the user in the dialog. Maximum 24 characters.                                                  |
+| `name`          | String  | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog. |
+| `type`          | String  | Set this value to `checkbox_matrix` for a checkbox matrix element.                                                                 |
+| `matrix_config` | Object  | Matrix configuration. Required for this element type. See the fields below.                                                        |
+| `optional`      | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
+| `help_text`     | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
+| `default`       | String  | (Optional) Selections to make by default, as a `;`-separated list of `row:column1,column2` entries using row and column values. For example, `alice:mon,tue;bob:wed`. Each row may appear only once. |
+
+The `matrix_config` object supports:
+
+| Field           | Type   | Description                                                                                                                         |
+|-----------------|--------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `rows`          | Array  | An array of rows, each with `text` and `value`. Requires between 1 and 30 rows.                                                     |
+| `columns`       | Array  | An array of columns, each with `text` and `value`. Requires between 1 and 10 columns.                                               |
+| `row_selection` | String | (Optional) Set to `multiple` to allow any number of columns to be selected in each row, or `single` to allow at most one column per row. Default is `multiple`. |
+
+Row values and column values must be unique within `rows` and `columns` respectively, and can't contain `:`, `,`, or `;`, as these characters are used to encode the element's value.
+
+Checkbox matrix elements don't support `options`, `placeholder`, `data_source`, or `multiselect`.
+
+When the dialog is submitted, the element's value is an array with one `row:column1,column2` entry for each row that has at least one column selected, for example `["alice:mon,tue", "bob:wed"]`. Rows with no selection are omitted. A required checkbox matrix must have at least one checkbox selected.
 
 ### Date elements
 ##### Minimum Server Version: 11.1
@@ -730,6 +849,124 @@ Use the `trigger_id` from this payload to [open a child dialog](#open-a-dialog) 
 :::note
 Up to three dialogs may be open at once. If three dialogs are already open, the request to open a further child dialog is silently ignored by the client, so design your workflows to stay within this limit.
 :::
+
+### Collapsible elements
+#### Minimum Server Version: 12.0
+
+Collapsible elements are containers rather than inputs. They group other elements under a heading, which lets you break a long dialog into sections the user can expand and collapse.
+
+```json
+{
+    "display_name": "Shipping details",
+    "name": "shipping",
+    "type": "collapsible",
+    "optional": true,
+    "collapsible_config": {
+        "collapsed": false,
+        "borderless": false,
+        "elements": [
+            {"display_name": "Address", "name": "address", "type": "text"},
+            {"display_name": "Notes", "name": "notes", "type": "textarea", "optional": true}
+        ]
+    }
+}
+```
+
+The full list of supported fields is included below:
+
+| Field                | Type   | Description                                                                                                                       |
+|----------------------|--------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`       | String | Heading shown for the section. Maximum 24 characters.                                                                             |
+| `name`               | String | Name of the container element. Maximum 300 characters. You should use unique `name` fields in the same dialog.                    |
+| `type`               | String | Set this value to `collapsible` for a container element.                                                                          |
+| `subtype`            | String | (Optional) Set to `grid` to lay the container's children out as a table. See [Grid layout](#grid-layout). Omit it to stack them. Any other value is reported in the server log and the container falls back to stacking, so check the log if a grid renders as a stacked section. |
+| `collapsible_config` | Object | Container configuration. Required for this element type. See the fields below.                                                    |
+
+The `collapsible_config` object supports:
+
+| Field        | Type    | Description                                                                                                 |
+|--------------|---------|-------------------------------------------------------------------------------------------------------------|
+| `elements`   | Array   | The elements grouped inside this container. Containers may be nested.                                        |
+| `collapsed`  | Boolean | (Optional) When `true`, the section starts collapsed. Default is `false`.                                     |
+| `borderless` | Boolean | (Optional) When `true`, the section renders without a border. Default is `false`.                             |
+
+A container holds no value of its own, so set `"optional": true` on it. Its children are ordinary elements: their values arrive in the submission payload as **top-level fields keyed by their own names**, not nested under the container. The same is true of errors — a validation error you return for a child element is keyed by that child's name.
+
+### Grid layout
+#### Minimum Server Version: 12.1
+
+Setting `"subtype": "grid"` on a collapsible lays its children out as a table instead of stacking them. Each child container becomes a **row**, and that row's own children become the **cells** of that row.
+
+Use this when a user has to fill in several records with the same fields — a set of line items, a status for each of a list of services — where a stacked form would mean scrolling through the same labels over and over.
+
+```json
+{
+    "display_name": "Orders",
+    "name": "order_grid",
+    "type": "collapsible",
+    "subtype": "grid",
+    "optional": true,
+    "collapsible_config": {
+        "borderless": true,
+        "elements": [
+            {
+                "display_name": "SO-1042",
+                "name": "row_r1",
+                "type": "collapsible",
+                "optional": true,
+                "collapsible_config": {
+                    "borderless": true,
+                    "elements": [
+                        {"display_name": "Order #", "name": "cell_r1_order", "type": "text", "default": "SO-1042"},
+                        {"display_name": "Weight (kg)", "name": "cell_r1_weight", "type": "text", "subtype": "number"},
+                        {"display_name": "Status", "name": "cell_r1_status", "type": "select", "options": [
+                            {"text": "New", "value": "New"},
+                            {"text": "Shipped", "value": "Shipped"}
+                        ]}
+                    ]
+                }
+            }
+        ]
+    }
+}
+```
+
+Because a grid is a layout over ordinary elements, everything else works unchanged: each cell is a real element with its own `type`, `subtype`, `default`, `optional`, and `max_length`, its value arrives in the submission as a top-level field keyed by its name, and an error you return for one cell is rendered under that one cell.
+
+Give every cell a **unique name** across the whole grid — synthesizing it from the row, as `cell_<row>_<column>` above, is the simplest way — since that uniqueness is what lets a per-cell error address exactly one input.
+
+Note the following when laying out a grid:
+
+- **Column headers come from the first row, and cells are matched to columns by position.** A cell's name is unique to its row, so order is the only thing there is to line rows up on. Give every row the same elements in the same order: a row that *omits* an element shifts every element after it one column to the left, under the wrong heading. A row that is simply shorter than the first is padded on the right, and a row with more elements than the first widens the table rather than losing them, taking the extra heading from the first row that has an element in that position.
+- **The first element of each row is the row header.** It renders in a sticky column that stays visible while the rest of the row scrolls sideways, and it remains editable — a record's identifier is usually something the user is filling in too. Each row's own `display_name` is not drawn (the header cell below it usually carries the same identifier) but is kept as the row's accessible name, so set it to something that identifies the record.
+- **Cell labels are hidden visually, not removed.** The column heading carries the visible text, and each cell keeps its own label for screen readers. Headings are capped at 24 characters like any other `display_name`.
+- **Keep `optional` the same down a column.** A heading carries the required marker for the whole column, so it is only marked when every cell in that column is required. If rows disagree, the marker moves to the individual cells that are required, which is correct but looks ragged.
+- **The container is still an ordinary collapsible.** Its `display_name` is the section heading above the table, and `collapsed` and `borderless` work exactly as they do for a stacked section, so a grid can start collapsed or render without a border. Only the arrangement of the children changes.
+- **Grids are usually too wide for the default dialog.** Set `size` to `medium` or `large` on the dialog; see [Dialog width](#dialog-width). A grid that still does not fit scrolls sideways under its sticky first column.
+- **Non-container children render under the table.** Anything in the grid container that is not itself a container cannot be a row, so it is rendered below the table rather than dropped.
+
+To let users add rows, pair the grid with a [field refresh](#dynamic-field-refresh): when the refresh request arrives, append a row to the grid you return and echo the submitted cell values back as each element's `default`, so half-finished input stays on screen. Carry the grid itself in the dialog's `state`.
+
+## Dialog width
+### Minimum Server Version: 12.1
+
+By default a dialog is 600px wide. Set `size` on the dialog to widen it:
+
+| `size`   | Width | Notes                                      |
+|----------|-------|--------------------------------------------|
+| `small`  | 600px | The default, and the width used when `size` is omitted. |
+| `medium` | 700px |                                            |
+| `large`  | 900px |                                            |
+
+These are the widths on a window wide enough to hold them. Every dialog is capped at 95% of the window, and below 768px all three tiers are the fluid width Mattermost has always used for a dialog on a narrow window, so a wide tier degrades instead of forcing the page sideways.
+
+Width is a property of the dialog rather than a server setting, because your integration is the party that knows how much content the form holds — one global width cannot suit both a two-field confirmation and a nine-column grid.
+
+Widths are named tiers rather than pixel values, so a dialog asks for a size rather than pinning itself to a number the client is then stuck with.
+
+Because a form returned from a [field refresh](#dynamic-field-refresh) or a [multi-step dialog](#multi-step-dialogs) replaces the contents of the dialog that is already open, returning a different `size` resizes that dialog in place. The replacement form's values win, so echo each field's submitted value back as its `default` — as the [grid refresh](#grid-layout) does — or a resize may not preserve what the user has typed (an ordinary field is emptied; a `bool` falls back to `false`, a required `datetime` to the current time).
+
+An unrecognised `size` is reported in the server log and the dialog opens at the default width, so use only the three tiers above.
 
 ## Dialog submission
 

@@ -100,6 +100,12 @@
             font-weight: 600;
         }
 
+        .FilterList_items {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
         .filterListSelect {
             &__control {
                 min-height: 32px;
@@ -151,22 +157,6 @@
 
         .FilterList_checkbox {
             color: rgba(var(--sys-center-channel-color-rgb), 0.8);
-
-            input {
-                position: relative;
-                top: -4px;
-                margin: 0 8px 0 2px;
-                opacity: 0.73;
-                vertical-align: bottom;
-
-                &:checked {
-                    opacity: 1;
-                }
-            }
-
-            label {
-                font-weight: normal;
-            }
         }
     }
 }

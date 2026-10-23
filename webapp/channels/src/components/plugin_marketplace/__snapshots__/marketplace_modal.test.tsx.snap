@@ -382,17 +382,17 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
             </div>
           </div>
           <section
-            class="WebMarketplaceBannerRoot-gZFWXe gSAhuj WebMarketplaceBanner"
+            class="WebMarketplaceBannerRoot-ektZdd gggodZ WebMarketplaceBanner"
           >
             <a
-              class="ExternalBannerLink-iPYFKS jAjFfs"
+              class="ExternalBannerLink-izIpgZ dMHrkG"
               href="https://mattermost.com/marketplace?utm_source=mattermost&utm_medium=in-product&utm_content=marketplace_modal&uid=user1&sid=&edition=team&server_version="
               location="marketplace_modal"
               rel="noopener noreferrer"
               target="_blank"
             >
               <div
-                class="Title-gYlSGh tzosk"
+                class="Title-eDLfMi kpTJrG"
               >
                 Discover community integrations
                 <svg
@@ -409,23 +409,23 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                 </svg>
               </div>
               <p
-                class="Description-dTdaMR jbWmtW"
+                class="Description-dhNAnW hZjrWB"
               >
                 Connect the tools you use most to Mattermost
               </p>
               <div
-                class="IconsContainer-cRyaKQ kUEHJS"
+                class="IconsContainer-cZghmT iZRtJI"
               >
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
               </div>
@@ -535,17 +535,17 @@ exports[`components/marketplace/ should render default 1`] = `
             </div>
           </div>
           <section
-            class="WebMarketplaceBannerRoot-gZFWXe gSAhuj WebMarketplaceBanner"
+            class="WebMarketplaceBannerRoot-ektZdd gggodZ WebMarketplaceBanner"
           >
             <a
-              class="ExternalBannerLink-iPYFKS jAjFfs"
+              class="ExternalBannerLink-izIpgZ dMHrkG"
               href="https://mattermost.com/marketplace?utm_source=mattermost&utm_medium=in-product&utm_content=marketplace_modal&uid=user1&sid=&edition=team&server_version="
               location="marketplace_modal"
               rel="noopener noreferrer"
               target="_blank"
             >
               <div
-                class="Title-gYlSGh tzosk"
+                class="Title-eDLfMi kpTJrG"
               >
                 Discover community integrations
                 <svg
@@ -562,23 +562,23 @@ exports[`components/marketplace/ should render default 1`] = `
                 </svg>
               </div>
               <p
-                class="Description-dTdaMR jbWmtW"
+                class="Description-dhNAnW hZjrWB"
               >
                 Connect the tools you use most to Mattermost
               </p>
               <div
-                class="IconsContainer-cRyaKQ kUEHJS"
+                class="IconsContainer-cZghmT iZRtJI"
               >
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
               </div>
@@ -729,17 +729,17 @@ exports[`components/marketplace/ should render with error banner 1`] = `
             </div>
           </div>
           <section
-            class="WebMarketplaceBannerRoot-gZFWXe gSAhuj WebMarketplaceBanner"
+            class="WebMarketplaceBannerRoot-ektZdd gggodZ WebMarketplaceBanner"
           >
             <a
-              class="ExternalBannerLink-iPYFKS jAjFfs"
+              class="ExternalBannerLink-izIpgZ dMHrkG"
               href="https://mattermost.com/marketplace?utm_source=mattermost&utm_medium=in-product&utm_content=marketplace_modal&uid=user1&sid=&edition=team&server_version="
               location="marketplace_modal"
               rel="noopener noreferrer"
               target="_blank"
             >
               <div
-                class="Title-gYlSGh tzosk"
+                class="Title-eDLfMi kpTJrG"
               >
                 Discover community integrations
                 <svg
@@ -756,23 +756,23 @@ exports[`components/marketplace/ should render with error banner 1`] = `
                 </svg>
               </div>
               <p
-                class="Description-dTdaMR jbWmtW"
+                class="Description-dhNAnW hZjrWB"
               >
                 Connect the tools you use most to Mattermost
               </p>
               <div
-                class="IconsContainer-cRyaKQ kUEHJS"
+                class="IconsContainer-cZghmT iZRtJI"
               >
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
               </div>
@@ -907,17 +907,17 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
             </div>
           </div>
           <section
-            class="WebMarketplaceBannerRoot-gZFWXe gSAhuj WebMarketplaceBanner"
+            class="WebMarketplaceBannerRoot-ektZdd gggodZ WebMarketplaceBanner"
           >
             <a
-              class="ExternalBannerLink-iPYFKS jAjFfs"
+              class="ExternalBannerLink-izIpgZ dMHrkG"
               href="https://mattermost.com/marketplace?utm_source=mattermost&utm_medium=in-product&utm_content=marketplace_modal&uid=user1&sid=&edition=team&server_version="
               location="marketplace_modal"
               rel="noopener noreferrer"
               target="_blank"
             >
               <div
-                class="Title-gYlSGh tzosk"
+                class="Title-eDLfMi kpTJrG"
               >
                 Discover community integrations
                 <svg
@@ -934,23 +934,23 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
                 </svg>
               </div>
               <p
-                class="Description-dTdaMR jbWmtW"
+                class="Description-dhNAnW hZjrWB"
               >
                 Connect the tools you use most to Mattermost
               </p>
               <div
-                class="IconsContainer-cRyaKQ kUEHJS"
+                class="IconsContainer-cZghmT iZRtJI"
               >
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
               </div>
@@ -1127,17 +1127,17 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
             </div>
           </div>
           <section
-            class="WebMarketplaceBannerRoot-gZFWXe gSAhuj WebMarketplaceBanner"
+            class="WebMarketplaceBannerRoot-ektZdd gggodZ WebMarketplaceBanner"
           >
             <a
-              class="ExternalBannerLink-iPYFKS jAjFfs"
+              class="ExternalBannerLink-izIpgZ dMHrkG"
               href="https://mattermost.com/marketplace?utm_source=mattermost&utm_medium=in-product&utm_content=marketplace_modal&uid=user1&sid=&edition=team&server_version="
               location="marketplace_modal"
               rel="noopener noreferrer"
               target="_blank"
             >
               <div
-                class="Title-gYlSGh tzosk"
+                class="Title-eDLfMi kpTJrG"
               >
                 Discover community integrations
                 <svg
@@ -1154,23 +1154,23 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
                 </svg>
               </div>
               <p
-                class="Description-dTdaMR jbWmtW"
+                class="Description-dhNAnW hZjrWB"
               >
                 Connect the tools you use most to Mattermost
               </p>
               <div
-                class="IconsContainer-cRyaKQ kUEHJS"
+                class="IconsContainer-cZghmT iZRtJI"
               >
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
               </div>
@@ -1437,17 +1437,17 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
             </div>
           </div>
           <section
-            class="WebMarketplaceBannerRoot-gZFWXe gSAhuj WebMarketplaceBanner"
+            class="WebMarketplaceBannerRoot-ektZdd gggodZ WebMarketplaceBanner"
           >
             <a
-              class="ExternalBannerLink-iPYFKS jAjFfs"
+              class="ExternalBannerLink-izIpgZ dMHrkG"
               href="https://mattermost.com/marketplace?utm_source=mattermost&utm_medium=in-product&utm_content=marketplace_modal&uid=user1&sid=&edition=team&server_version="
               location="marketplace_modal"
               rel="noopener noreferrer"
               target="_blank"
             >
               <div
-                class="Title-gYlSGh tzosk"
+                class="Title-eDLfMi kpTJrG"
               >
                 Discover community integrations
                 <svg
@@ -1464,23 +1464,23 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                 </svg>
               </div>
               <p
-                class="Description-dTdaMR jbWmtW"
+                class="Description-dhNAnW hZjrWB"
               >
                 Connect the tools you use most to Mattermost
               </p>
               <div
-                class="IconsContainer-cRyaKQ kUEHJS"
+                class="IconsContainer-cZghmT iZRtJI"
               >
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
                 <img
-                  class="PluginIcon-gwsFHd eGJjnp"
+                  class="PluginIcon-jylAKa jyoEIH"
                   src="test-file-stub"
                 />
               </div>

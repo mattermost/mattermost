@@ -39,7 +39,7 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	// URL Parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
-		c.Err = model.NewAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("/manual", "manualtesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -174,7 +174,7 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	// Grab the test ID and pick the test
 	testname, ok := params["test"]
 	if !ok {
-		c.Err = model.NewAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("/manual", "manualtesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 

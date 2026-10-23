@@ -31,7 +31,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
-import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {canSearchFiles} from 'utils/file_utils';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 
 import type {RhsState, SearchType} from 'types/store/rhs';
@@ -417,7 +417,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 <MessageOrFileSelector
                     selected={searchType}
                     selectedFilter={searchFilterType}
-                    isFileAttachmentsEnabled={isFileAttachmentsEnabled(config)}
+                    isFilesTabEnabled={canSearchFiles(config)}
                     messagesCounter={isSearchAtEnd || props.searchPage === 0 ? `${messagesCount}` : `${messagesCount}+`}
                     filesCounter={isSearchFilesAtEnd || props.searchPage === 0 ? `${fileResults.length}` : `${fileResults.length}+`}
                     onChange={setSearchType}
