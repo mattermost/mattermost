@@ -2,15 +2,18 @@ name: Generate Changelog
 
 # Runs on its own every weekday between the release branch cut and the changelog being
 # merged on release day, and on demand. The scheduled run works out the release itself
-# (see the resolve job); its
-# mode comes from the CHANGELOG_SCHEDULE_MODE repository variable and defaults to
-# dry_run, so it previews into the run summary until that variable is set to auto.
+# (see the resolve job); its mode comes from the CHANGELOG_SCHEDULE_MODE repository
+# variable and defaults to dry_run, so it previews into the run summary until that
+# variable is set to auto.
 #
 # Every run's summary is also the changelog-status report: preflight, merged PRs missing
-# a release note (by owner), notes that will need rewriting, and the status of the
-# sections no developer note fills (WebSocket events, schema changes, plugins, Go
-# version, benchmarking), and the docs page each feature links to, found by following
-# its PR to the docs files it, or a docs PR naming its Jira key or linking it, changed.
+# a release note (by owner), notes that will need rewriting, the status of the sections
+# no developer note fills (WebSocket events, schema changes, plugins, Go version,
+# benchmarking), bullets the release branch has moved past, and the docs page each
+# feature links to: the one its release note names on a Docs: line, else the one found
+# by following its PR to the docs files it, or a docs PR naming its Jira key or linking
+# it, changed. Every docs link in the generated text is checked against the docs
+# sources; changelog-link-check.yml does the same for each changelog PR.
 #
 # Repository variables read here, all optional:
 #   CHANGELOG_SCHEDULE_MODE     — auto | dry_run (default) for scheduled runs
