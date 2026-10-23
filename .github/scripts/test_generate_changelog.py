@@ -307,6 +307,14 @@ class ReleaseNoteFlagTest(unittest.TestCase):
         unchecked = {g["section"]: g["status"] for g in gc.gap_status([], False, "", None, None)}
         self.assertEqual(set(unchecked.values()), {"not_yet_checked"})
 
+    def test_private_repo_links_say_so(self):
+        private = ["mattermost/enterprise"]
+        self.assertEqual(gc._pr_link("mattermost/enterprise#7", private),
+                         "[mattermost/enterprise#7](https://github.com/mattermost/enterprise/pull/7) (private repo)")
+        self.assertEqual(gc._pr_link("mattermost/mattermost#7", private),
+                         "[mattermost/mattermost#7](https://github.com/mattermost/mattermost/pull/7)")
+        self.assertEqual(gc._pr_link("plugin:mattermost-plugin-calls@v1.12.6", private), "`plugin:mattermost-plugin-calls@v1.12.6`")
+
     def test_cherry_pick_origin(self):
         self.assertEqual(gc.cherry_picked_from("Automated cherry pick of #39121"), 39121)
         self.assertEqual(gc.cherry_picked_from("Cherry pick #38833 to release-12.1"), 38833)
@@ -356,7 +364,7 @@ class MainTest(unittest.TestCase):
         self.out = self.tmp / "out"
         self.saved = {
             name: getattr(gc, name)
-            for name in ("get_milestone_number", "get_merged_prs", "get_pr_details", "polish_with_ai", "VERSION", "MILESTONE_TITLE", "REPOS")
+            for name in ("get_milestone_number", "repo_is_private", "get_merged_prs", "get_pr_details", "polish_with_ai", "VERSION", "MILESTONE_TITLE", "REPOS")
         }
         self.saved_derived = gc.changelog_release.derived_notes
         self.saved_show = gc.changelog_release.git_show
@@ -366,6 +374,7 @@ class MainTest(unittest.TestCase):
         gc.VERSION = gc.MILESTONE_TITLE = "v12.1.0"
         gc.REPOS = ["mattermost/mattermost"]
         gc.get_milestone_number = lambda repo, title: 7
+        gc.repo_is_private = lambda repo: repo == "mattermost/enterprise"
         gc.get_merged_prs = lambda repo, number: self.prs
         self.details = {}
         gc.get_pr_details = lambda repo, number: self.details.get(number, {"head_ref": f"branch-{number}", "files": []})
@@ -427,13 +436,13 @@ class MainTest(unittest.TestCase):
         self.assertIn("plugin:mattermost-plugin-calls@v1.12.6", (self.out / "pr_body.md").read_text())
         summary = (self.out / "summary.md").read_text()
         self.assertIn("### Release notes: 2 of 5 merged PRs have one (40%)", summary)
-        self.assertIn("1 missing, by owner", summary)
+        self.assertIn("⏳ Missing: 1, by owner", summary)
         self.assertIn("@dev4 (1): [mattermost/mattermost#4](https://github.com/mattermost/mattermost/pull/4)", summary)
         self.assertIn("2 PR(s) intentionally have no note.", summary)
-        self.assertIn("✅ **Go version**: v1.27.1 from origin/release-12.1", summary)
-        self.assertIn("✅ **Pre-packaged plugins**: 1 plugin(s) bumped or removed", summary)
-        self.assertIn("➖ **WebSocket events**: none in the release diff", summary)
-        self.assertIn("⏳ **Benchmarking**", summary)
+        self.assertIn("✅ **Go version** (ready): v1.27.1 from origin/release-12.1", summary)
+        self.assertIn("✅ **Pre-packaged plugins** (ready): 1 plugin(s) bumped or removed", summary)
+        self.assertIn("➖ **WebSocket events** (no changes this release): none in the release diff", summary)
+        self.assertIn("⏳ **Benchmarking** (not yet checked)", summary)
         self.assertIn("Generator status: ready to run", summary)
         self.assertEqual(payload["readiness"]["missing_by_owner"], [{"owner": "dev4", "sources": ["mattermost/mattermost#4"]}])
 
@@ -465,7 +474,7 @@ class MainTest(unittest.TestCase):
         link = self._payload()["readiness"]["doc_links"][0]
         self.assertEqual(link["used_in"], ["Administration"])
         self.assertIn("changed in the same PR, which added the page", link["basis"])
-        self.assertIn(f"<{url}> (linked in Administration)", (self.out / "summary.md").read_text())
+        self.assertIn(f"is documented in [Feature]({url}) (`/administration-guide/manage/admin/feature`) (linked in Administration)", (self.out / "summary.md").read_text())
 
     def test_unreadable_repo_is_reported_as_unknown_not_missing(self):
         import requests
@@ -484,8 +493,8 @@ class MainTest(unittest.TestCase):
         self.assertEqual(payload["readiness"]["repos_unaudited"],
                          [{"repo": "mattermost/enterprise", "reason": "HTTP 404 for the workflow token"}])
         summary = (self.out / "summary.md").read_text()
-        self.assertIn("❔ **milestone in mattermost/enterprise**", summary)
-        self.assertIn("`mattermost/enterprise` was not audited", summary)
+        self.assertIn("❔ **milestone in mattermost/enterprise** (unknown)", summary)
+        self.assertIn("❔ Not audited: `mattermost/enterprise`", summary)
 
         gc.REPOS = ["mattermost/enterprise"]
         with self.assertRaises(RuntimeError):
@@ -498,8 +507,8 @@ class MainTest(unittest.TestCase):
             gc.main()
         self.assertIn("Preflight failed", str(caught.exception))
         summary = (self.out / "summary.md").read_text()
-        self.assertIn("❌ **mattermost-v12-changelog.mdx**: neither the header marker", summary)
-        self.assertIn("❌ **milestone in mattermost/mattermost**: no v12.1.0 milestone", summary)
+        self.assertIn("❌ **mattermost-v12-changelog.mdx** (fail): neither the header marker", summary)
+        self.assertIn("❌ **milestone in mattermost/mattermost** (fail): no v12.1.0 milestone", summary)
         self.assertIn("Generator status: NOT READY (preflight failing)", summary)
         self.assertFalse((self.out / "sections.json").exists())
 
@@ -608,7 +617,7 @@ class MainTest(unittest.TestCase):
         self.assertFalse(payload["changed"])
         gap = next(g for g in payload["readiness"]["gaps"] if g["section"] == "Go version")
         self.assertEqual(gap["status"], "needs_review")
-        self.assertIn("⚠️ **Go version**", (self.out / "summary.md").read_text())
+        self.assertIn("⚠️ **Go version** (needs a reviewer)", (self.out / "summary.md").read_text())
 
     def test_update_replaces_a_plugin_version_bumped_again_since_the_last_run(self):
         old = "[v1.12.5](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.5)"

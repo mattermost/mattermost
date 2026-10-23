@@ -436,6 +436,25 @@ def docs_page_url(path: str, content: str | None = None) -> str | None:
     return DOCS_SITE + base + (re.sub(r"/+", "/", page).rstrip("/") or "/")
 
 
+def _plain_heading(heading: str) -> str:
+    text = re.sub(r"\s*\\?\{#[^}]+\}\s*$", "", heading)
+    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
+    return re.sub(r"<[^>]+>|[*_`]", "", text).strip()
+
+
+def page_title(path: str, content: str | None) -> str:
+    """A page's title: its frontmatter ``title``, else its first ``#`` heading, else its file name."""
+    content = (content or "").replace("\r\n", "\n")
+    front = re.match(r"---\n(.*?)\n---", content, re.DOTALL)
+    title = re.search(r"(?m)^title:\s*['\"]?(.+?)['\"]?\s*$", front.group(1)) if front else None
+    if title:
+        return title.group(1).strip()
+    heading = re.search(r"(?m)^#\s+(.+)$", content)
+    if heading:
+        return _plain_heading(heading.group(1))
+    return re.sub(r"\.mdx?$", "", os.path.basename(path)).replace("-", " ").capitalize()
+
+
 def heading_anchor(heading: str) -> str:
     """The id Docusaurus gives a heading: its explicit ``{#id}``, else the github-slugger slug."""
     explicit = re.search(r"\\?\{#([^}]+)\}\s*$", heading)
@@ -477,7 +496,8 @@ def _docs_candidates(files: list[dict], via: str, read_file) -> list[dict]:
             patch = f.get("patch") or ""
             present = [h for h in added_headings(patch) if re.search(rf"(?m)^#{{2,6}}\s+{re.escape(h)}\s*$", content)]
             candidates.append({
-                "path": path, "url": url, "added": f.get("status") == "added", "headings": present, "via": via,
+                "path": path, "url": url, "title": page_title(path, content),
+                "added": f.get("status") == "added", "headings": present, "via": via,
                 "lines_added": len(re.findall(r"(?m)^\+(?!\+\+)\s*\S", patch)),
                 "lines_removed": len(re.findall(r"(?m)^-(?!--)\s*\S", patch)),
             })
@@ -512,10 +532,11 @@ def _pick(candidates: list[dict]) -> dict | None:
             chosen = max((c for c in pool if c["url"] == ranked[0][0]), key=lambda c: c["lines_added"])
     if not chosen:
         return None
-    url = chosen["url"]
+    url, title = chosen["url"], chosen["title"]
     if not chosen["added"] and len(chosen["headings"]) == 1:
         url += "#" + heading_anchor(chosen["headings"][0])
-    return {**chosen, "url": url}
+        title += ": " + _plain_heading(chosen["headings"][0])
+    return {**chosen, "url": url, "title": title}
 
 
 def docs_link(source: str, prs: dict, files_of, read_file) -> dict:
@@ -525,7 +546,7 @@ def docs_link(source: str, prs: dict, files_of, read_file) -> dict:
     ``files_of(source)`` lists a PR's changed files (filename, status, patch);
     ``read_file(path)`` reads a file as it is now, or None if it no longer exists.
 
-    Returns ``{"url", "basis"}`` for a clear match, ``{"candidates"}`` when several pages
+    Returns ``{"url", "title", "basis"}`` for a clear match, ``{"candidates", "titles"}`` when several pages
     are equally likely, or ``{}`` when nothing points at a page. The rule abstains rather
     than guess: a missing link is visible to a reviewer, a wrong one is not.
     """
@@ -550,9 +571,10 @@ def docs_link(source: str, prs: dict, files_of, read_file) -> dict:
             basis += f", which added the heading \"{chosen['headings'][0]}\""
         elif chosen["added"]:
             basis += ", which added the page"
-        return {"url": chosen["url"], "basis": basis}
+        return {"url": chosen["url"], "title": chosen["title"], "basis": basis}
     if candidates:
-        return {"candidates": sorted({c["url"] for c in candidates})}
+        return {"candidates": sorted({c["url"] for c in candidates}),
+                "titles": {c["url"]: c["title"] for c in candidates}}
     return {}
 
 

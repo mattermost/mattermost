@@ -317,6 +317,7 @@ class DocsLinkTest(unittest.TestCase):
         ]}
         self.assertEqual(self.link(files), {
             "url": "https://docs.mattermost.com/administration-guide/configure/site-configuration-settings#enable-file-search",
+            "title": "Site configuration settings: Enable file search",
             "basis": "docs/main/administration-guide/configure/site-configuration-settings.mdx changed in the same PR, "
                      "which added the heading \"Enable file search\"",
         })
@@ -337,7 +338,15 @@ class DocsLinkTest(unittest.TestCase):
         self.assertEqual(self.link(files), {"candidates": [
             "https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes",
             "https://docs.mattermost.com/end-user-guide/collaborate/format-messages",
-        ]})
+        ], "titles": {
+            "https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes": "x",
+            "https://docs.mattermost.com/end-user-guide/collaborate/format-messages": "Format messages",
+        }})
+
+    def test_page_title(self):
+        self.assertEqual(cr.page_title("a/b.mdx", '---\ntitle: "Channel attributes"\n---\n# Other\n'), "Channel attributes")
+        self.assertEqual(cr.page_title("a/b.mdx", "# Use [Boards](x) \\{#boards}\n"), "Use Boards")
+        self.assertEqual(cr.page_title("a/self-hosted-sso.mdx", "text"), "Self hosted sso")
 
     def test_docs_pr_found_by_jira_key_or_link(self):
         page = "docs/main/administration-guide/manage/admin/channel-attributes.mdx"

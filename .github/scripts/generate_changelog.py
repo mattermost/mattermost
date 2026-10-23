@@ -220,6 +220,12 @@ def get_milestone_number(repo: str, title: str) -> int | None:
     return None
 
 
+def repo_is_private(repo: str) -> bool:
+    resp = SESSION.get(f"https://api.github.com/repos/{repo}", timeout=API_TIMEOUT)
+    resp.raise_for_status()
+    return bool(resp.json().get("private"))
+
+
 def get_merged_prs(repo: str, milestone_number: int) -> list:
     """Fetch all merged PRs belonging to the given milestone in the given repo."""
     prs = []
@@ -1517,16 +1523,31 @@ def missing_by_owner(flagged: list[dict]) -> list[dict]:
             for owner, sources in sorted(groups.items(), key=lambda item: (-len(item[1]), item[0] == "", item[0]))]
 
 
-_STATUS_ICONS = {"pass": "✅", "fail": "❌", "unknown": "❔", "ready": "✅",
-                 "no_changes_this_release": "➖", "not_yet_checked": "⏳", "needs_review": "⚠️",
-                 "replaced": "🔁"}
+# Every icon is followed by its meaning in words, so the status is not carried by the
+# emoji alone (screen readers announce emoji by their Unicode name, e.g. "hourglass").
+_STATUS = {
+    "pass": ("✅", "pass"), "fail": ("❌", "fail"), "unknown": ("❔", "unknown"),
+    "ready": ("✅", "ready"), "no_changes_this_release": ("➖", "no changes this release"),
+    "not_yet_checked": ("⏳", "not yet checked"), "needs_review": ("⚠️", "needs a reviewer"),
+    "replaced": ("🔁", "updated"),
+}
+
+
+def _status_item(status: str, name: str, detail: str) -> str:
+    icon, label = _STATUS[status]
+    return f"- {icon} **{name}** ({label}): {detail}"
 
 
 def render_status(readiness: dict) -> list[str]:
     """The changelog-status digest: preflight, release-note coverage, gaps, note quality."""
+    private = readiness.get("repos_private", [])
+
+    def pr(source):
+        return _pr_link(source, private)
+
     lines = ["### Preflight", ""]
     for check in readiness["preflight"]:
-        line = f"- {_STATUS_ICONS[check['status']]} **{check['check']}**: {check['detail']}"
+        line = _status_item(check["status"], check["check"], check["detail"])
         if check["status"] != "pass" and check["remedy"]:
             line += f". {check['remedy']}"
         lines.append(line)
@@ -1537,12 +1558,12 @@ def render_status(readiness: dict) -> list[str]:
     share = f" ({round(100 * notes['with_notes'] / merged)}%)" if merged else ""
     lines += [f"### Release notes: {notes['with_notes']} of {merged} merged PRs have one{share}", ""]
     for repo in readiness["repos_unaudited"]:
-        lines.append(f"- ❔ `{repo['repo']}` was not audited ({repo['reason']}), so its PRs are unknown, not missing.")
+        lines.append(f"- ❔ Not audited: `{repo['repo']}` ({repo['reason']}), so its PRs are unknown, not missing.")
     if notes["missing"]:
-        lines.append(f"- ⏳ {notes['missing']} missing, by owner. Add a release note, or the `release-note-none` label, then re-run:")
+        lines.append(f"- ⏳ Missing: {notes['missing']}, by owner. Add a release note, or the `release-note-none` label, then re-run:")
         for group in readiness["missing_by_owner"]:
             owner = f"@{group['owner']}" if group["owner"] else "bot-authored, no assignee"
-            lines.append(f"  - {owner} ({len(group['sources'])}): {' '.join(_pr_link(s) for s in group['sources'])}")
+            lines.append(f"  - {owner} ({len(group['sources'])}): {', '.join(pr(s) for s in group['sources'])}")
     else:
         lines.append("- ✅ None missing.")
     lines += [f"- {notes['intentional']} PR(s) intentionally have no note.", ""]
@@ -1550,22 +1571,22 @@ def render_status(readiness: dict) -> list[str]:
     lines += ["### Sections no developer note fills", ""]
     for gap in readiness["gaps"]:
         blocks = " (blocks publish)" if gap.get("blocks_publish") else ""
-        lines.append(f"- {_STATUS_ICONS[gap['status']]} **{gap['section']}**: {gap['detail']}{blocks}")
+        lines.append(_status_item(gap["status"], gap["section"], gap["detail"] + blocks))
     lines.append("")
 
     reconciled = readiness.get("reconciled", [])
     if reconciled:
         lines += ["### Bullets from an earlier release diff that no longer match it", ""]
         for item in reconciled:
-            line = f"- {_STATUS_ICONS[item['status']]} `{item['source']}`: {item['detail']}"
-            lines.append(line + (f". {item['remedy']}" if item["status"] == "needs_review" else "."))
+            remedy = f". {item['remedy']}" if item["status"] == "needs_review" else "."
+            lines.append(_status_item(item["status"], f"`{item['source']}`", item["detail"]) + remedy)
         lines.append("")
 
     if readiness["note_quality"]:
         lines += [f"### Note quality: {len(readiness['note_quality'])} note(s) will need rewriting", ""]
         for note in readiness["note_quality"]:
             excerpt = note["excerpt"].replace("`", "'")
-            lines.append(f"- {_pr_link(note['source'])} {note['reason']}: \"{excerpt}\"")
+            lines.append(f"- {pr(note['source'])} {note['reason']}: \"{excerpt}\"")
         lines.append("")
 
     links, unclear = readiness.get("doc_links", []), readiness.get("doc_links_unclear", [])
@@ -1575,16 +1596,24 @@ def render_status(readiness: dict) -> list[str]:
             where = ""
             if "used_in" in link:
                 where = f" (linked in {', '.join(link['used_in'])})" if link["used_in"] else " (no bullet links it)"
-            lines.append(f"- {_pr_link(link['source'])} → <{link['url']}>{where}. Basis: {link['basis']}.")
+            lines.append(f"- {pr(link['source'])} is documented in {_docs_link(link['url'], link.get('title'))}{where}. "
+                         f"Basis: {link['basis']}.")
         if unclear:
             lines.append(f"- {len(unclear)} PR(s) changed docs, but no page clearly documents the change, so no link was proposed:")
             for link in unclear:
-                lines.append(f"  - {_pr_link(link['source'])}: {', '.join(f'<{url}>' for url in link['candidates'])}")
+                titles = link.get("titles", {})
+                pages = ", ".join(_docs_link(url, titles.get(url)) for url in link["candidates"])
+                lines.append(f"  - {pr(link['source'])}: {pages}")
         lines.append("")
 
     blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
     lines += [f"**Generator status: {'NOT READY (preflight failing)' if blocking else 'ready to run'}**", ""]
     return lines
+
+
+def _docs_link(url: str, title: str | None) -> str:
+    path = url.removeprefix(changelog_release.DOCS_SITE) or "/"
+    return f"[{title or path}]({url}) (`{path}`)"
 
 
 def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> None:
@@ -1603,14 +1632,18 @@ def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> N
         f.write(render_summary(payload, entry))
 
 
-def _pr_link(source: str) -> str:
+def _pr_link(source: str, private=()) -> str:
+    """A link to a PR, saying when only people with access to its private repo can open it."""
     repo, _, number = source.partition("#")
-    return f"[{source}](https://github.com/{repo}/pull/{number})" if number else f"`{source}`"
+    if not number:
+        return f"`{source}`"
+    return f"[{source}](https://github.com/{repo}/pull/{number})" + (" (private repo)" if repo in private else "")
 
 
 def render_summary(payload: dict, entry: str) -> str:
     """The run summary: what was generated, the run's metrics, and the PRs that need a look."""
     metrics = payload["metrics"]
+    private = payload["readiness"].get("repos_private", [])
     lines = [f"## {payload['version']} changelog ({payload['mode']})", ""]
     if payload.get("proposed_before"):
         proposed = payload["proposed_sources"]
@@ -1625,7 +1658,7 @@ def render_summary(payload: dict, entry: str) -> str:
             "<details><summary>Proposed sources</summary>",
             "",
         ]
-        lines += [f"- {_pr_link(source)}" for source in proposed]
+        lines += [f"- {_pr_link(source, private)}" for source in proposed]
         lines += [
             "",
             "</details>",
@@ -1646,7 +1679,7 @@ def render_summary(payload: dict, entry: str) -> str:
 
     if payload["sources_unattributed"]:
         lines += ["### Notes no bullet was attributed to", ""]
-        lines += [f"- {_pr_link(source)}" for source in payload["sources_unattributed"]]
+        lines += [f"- {_pr_link(source, private)}" for source in payload["sources_unattributed"]]
         lines.append("")
 
     if entry.strip():
@@ -1671,8 +1704,9 @@ def default_pr_body() -> str:
         f"Auto-generated changelog for milestone `{MILESTONE_TITLE}` from `{', '.join(REPOS)}`.\n\n"
         "Re-running the **Generate Changelog** workflow in `auto` mode adds release notes "
         "from newly merged PRs to this PR and leaves every existing line, including edits "
-        "made here, untouched. `regenerate` mode rebuilds the entry from scratch and "
-        "discards those edits.\n"
+        "made here, untouched, except that the Go version and pre-packaged plugin version "
+        "links are kept in step with the release branch. `regenerate` mode rebuilds the "
+        "entry from scratch and discards those edits.\n"
     )
 
 
@@ -1722,12 +1756,15 @@ def main():
     unaudited = []
     note_quality = []
     milestone_prs = {}
+    private_repos = []
 
     for repo in REPOS:
         print(f"── {repo}")
         try:
             milestone_number = get_milestone_number(repo, MILESTONE_TITLE)
             milestones[repo] = milestone_number
+            if repo_is_private(repo):
+                private_repos.append(repo)
             prs = get_merged_prs(repo, milestone_number) if milestone_number is not None else []
         except requests.HTTPError as err:
             status = err.response.status_code if err.response is not None else None
@@ -1911,6 +1948,7 @@ def main():
     readiness = {
         "preflight": preflight_checks(changelog_path, mode, milestones, go_source),
         "repos_unaudited": unaudited,
+        "repos_private": private_repos,
         "notes": {
             "prs_merged": total_prs,
             "with_notes": total_prs - len(no_notes_prs),
