@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -1911,6 +1912,115 @@ func TestDoActionRequest(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Nil(t, resp)
 	})
+
+	t.Run("plugin path redirects", func(t *testing.T) {
+		type redirectCase struct {
+			name          string
+			expectReached bool
+			setup         func(t *testing.T) (siteURL, actionURL string, destReached *atomic.Bool, cleanup func())
+		}
+
+		cases := []redirectCase{
+			{
+				name:          "different origin is not followed",
+				expectReached: false,
+				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
+					var destReached atomic.Bool
+					dest := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						destReached.Store(true)
+						w.WriteHeader(http.StatusOK)
+						_, _ = w.Write([]byte(`{"ok":true}`))
+					}))
+					origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						http.Redirect(w, r, dest.URL+"/plugins/myplugin/action", http.StatusFound)
+					}))
+					return origin.URL, origin.URL + "/plugins/myplugin/action", &destReached, func() {
+						dest.Close()
+						origin.Close()
+					}
+				},
+			},
+			{
+				name:          "same host outside the plugin path is not followed",
+				expectReached: false,
+				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
+					var destReached atomic.Bool
+					origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if strings.HasPrefix(r.URL.Path, "/plugins/") {
+							http.Redirect(w, r, "/api/v4/users/me", http.StatusFound)
+							return
+						}
+						destReached.Store(true)
+						w.WriteHeader(http.StatusOK)
+						_, _ = w.Write([]byte(`{"ok":true}`))
+					}))
+					return origin.URL, origin.URL + "/plugins/myplugin/action", &destReached, origin.Close
+				},
+			},
+			{
+				name:          "same host different port is not followed",
+				expectReached: false,
+				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
+					var destReached atomic.Bool
+					dest := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						destReached.Store(true)
+						w.WriteHeader(http.StatusOK)
+						_, _ = w.Write([]byte(`{"ok":true}`))
+					}))
+					origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						http.Redirect(w, r, dest.URL+"/plugins/myplugin/action", http.StatusFound)
+					}))
+					return origin.URL, origin.URL + "/plugins/myplugin/action", &destReached, func() {
+						dest.Close()
+						origin.Close()
+					}
+				},
+			},
+			{
+				name:          "same host remaining on the plugin path is followed",
+				expectReached: true,
+				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
+					var destReached atomic.Bool
+					origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if r.URL.Path == "/plugins/myplugin/action" {
+							http.Redirect(w, r, "/plugins/myplugin/other", http.StatusFound)
+							return
+						}
+						destReached.Store(true)
+						w.WriteHeader(http.StatusOK)
+						_, _ = w.Write([]byte(`{"ok":true}`))
+					}))
+					return origin.URL, origin.URL + "/plugins/myplugin/action", &destReached, origin.Close
+				},
+			},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				siteURL, actionURL, destReached, cleanup := tc.setup(t)
+				defer cleanup()
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.SiteURL = siteURL
+				})
+
+				inURL, err := url.Parse(actionURL)
+				require.NoError(t, err)
+				probeReq, err := http.NewRequest("POST", actionURL, nil)
+				require.NoError(t, err)
+				rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Token: model.NewId()})
+				_ = th.App.getPostActionClient(rctx, inURL, probeReq)
+				require.NotEmpty(t, probeReq.Header.Get(model.HeaderAuth), "same-origin plugin path should attach the session token")
+
+				resp, _ := th.App.DoActionRequest(rctx, actionURL, []byte(`{}`))
+				if resp != nil {
+					resp.Body.Close()
+				}
+
+				assert.Equal(t, tc.expectReached, destReached.Load())
+			})
+		}
+	})
 }
 
 func TestGetPostActionClient(t *testing.T) {
@@ -1984,6 +2094,158 @@ func TestGetPostActionClient(t *testing.T) {
 			name:       "plugins as query param does not get auth",
 			siteURL:    "http://localhost:8065",
 			requestURL: "http://localhost:8065/api?path=plugins/myplugin",
+			expectAuth: false,
+		},
+		{
+			name:       "same host different port does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:9999/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "same host different scheme does not get auth",
+			siteURL:    "https://localhost:8065",
+			requestURL: "http://localhost:8065/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "plugin path prefix without separator does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/pluginsX/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "empty site URL does not get auth",
+			siteURL:    "",
+			requestURL: "http:///plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "same IPv6 host and port with plugin path gets auth",
+			siteURL:    "http://[::1]:8065",
+			requestURL: "http://[::1]:8065/plugins/myplugin/action",
+			expectAuth: true,
+		},
+		{
+			name:       "same IPv6 host different port does not get auth",
+			siteURL:    "http://[::1]:8065",
+			requestURL: "http://[::1]:9999/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "http implicit and explicit default port with plugin path gets auth",
+			siteURL:    "http://localhost",
+			requestURL: "http://localhost:80/plugins/myplugin/action",
+			expectAuth: true,
+		},
+		{
+			name:       "http explicit default port and implicit with plugin path gets auth",
+			siteURL:    "http://localhost:80",
+			requestURL: "http://localhost/plugins/myplugin/action",
+			expectAuth: true,
+		},
+		{
+			name:       "http host with non-default port 443 does not get auth",
+			siteURL:    "http://localhost",
+			requestURL: "http://localhost:443/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "https implicit and explicit default port with plugin path gets auth",
+			siteURL:    "https://localhost",
+			requestURL: "https://localhost:443/plugins/myplugin/action",
+			expectAuth: true,
+		},
+		{
+			name:       "https host with non-default port 80 does not get auth",
+			siteURL:    "https://localhost",
+			requestURL: "https://localhost:80/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "same host differing by case with plugin path gets auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://LocalHost:8065/plugins/myplugin/action",
+			expectAuth: true,
+		},
+		{
+			name:       "subpath plugin path prefix without separator does not get auth",
+			siteURL:    "http://localhost:8065/mattermost",
+			subpath:    "/mattermost",
+			requestURL: "http://localhost:8065/mattermost/pluginsX/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "path sharing only the subpath name prefix does not get auth",
+			siteURL:    "http://localhost:8065/mattermost",
+			subpath:    "/mattermost",
+			requestURL: "http://localhost:8065/mattermostplugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "exact plugin path without extra segment gets auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/plugins",
+			expectAuth: true,
+		},
+		{
+			name:       "exact plugin path with trailing slash gets auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/plugins/",
+			expectAuth: true,
+		},
+		{
+			name:       "userinfo on the site host with plugin path gets auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://user@localhost:8065/plugins/myplugin/action",
+			expectAuth: true,
+		},
+		{
+			name:       "userinfo host differing from the site host does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost@evil.com/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "hostname with a trailing dot does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost.:8065/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "IPv6 host in a different textual form does not get auth",
+			siteURL:    "http://[::1]:8065",
+			requestURL: "http://[0:0:0:0:0:0:0:1]:8065/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "percent-encoded parent segment leaving the plugin path does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/plugins/%2e%2e/api",
+			expectAuth: false,
+		},
+		{
+			name:       "double-percent-encoded path separator does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/plugins%252fmyplugin",
+			expectAuth: false,
+		},
+		{
+			name:       "plugin path differing by case does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/Plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "site URL without a host does not get auth",
+			siteURL:    "localhost:8065",
+			requestURL: "http://localhost:8065/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "request with empty scheme does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "//localhost:8065/plugins/myplugin/action",
 			expectAuth: false,
 		},
 	}
