@@ -370,8 +370,52 @@
         replies in threads it follows) and reactions on those posts. A bot has at most one
         subscription.
 
-        Only `pull` mode is currently available: the bot fetches its events with
-        `GET /api/v4/bots/{bot_user_id}/events`. Requesting `push` mode returns a 400 error.
+        In `pull` mode the bot fetches its events with `GET /api/v4/bots/{bot_user_id}/events`.
+
+        In `push` mode the server sends each event to `callback_url` as an HTTP POST with the event
+        as the JSON body. Plain HTTP and URLs on internal networks are only accepted when the
+        `ServiceSettings.AllowedUntrustedInternalConnections` setting allows the address.
+
+        ##### Push mode: URL verification
+        When a push subscription is created, or its `mode` or `callback_url` changes, the server first
+        posts `{"type": "url_verification", "challenge": "...", "bot_user_id": "..."}` to the URL and
+        expects a 2xx response with the JSON body `{"challenge": "..."}` carrying the same value, within
+        10 seconds. Nothing is stored when verification fails, and the response is a 400 error. The
+        verification request is signed like an event, but on creation the receiver has not seen the
+        secret yet, so it only needs to echo the challenge. The same verification applies when
+        creating the bot with `POST /api/v4/bots`, which then does not create the bot.
+
+        ##### Push mode: requests
+        Every request carries these headers:
+
+        - `X-Mattermost-Event-Id`: the event id, the same on every attempt
+        - `X-Mattermost-Bot-Id`: the bot user id
+        - `X-Mattermost-Timestamp`: the send time in unix seconds
+        - `X-Mattermost-Signature`: `v1=` followed by the hex HMAC-SHA256, keyed with the subscription
+          `secret` (the 64 characters as returned), of `v1:<timestamp>:<raw request body>`
+
+        Receivers should verify the signature over the raw body with a constant-time comparison and
+        reject timestamps more than 5 minutes from the current time. The header may hold several
+        comma-separated `v1=` signatures, and any one that matches is valid. After the secret is
+        regenerated, the next request is signed with the new secret.
+
+        ##### Push mode: delivery guarantees
+        - Events are delivered strictly in order for each bot: the next event is sent only after the
+          previous one was acknowledged with a 2xx response.
+        - Delivery is at least once. If an acknowledgement is lost, the same `event_id` is sent again, so
+          receivers must deduplicate by `event_id`.
+        - Respond with a 2xx status quickly: a request times out after at most 10 seconds.
+          Redirects are not followed and count as failures.
+
+        ##### Push mode: failures
+        Any other response, a timeout, or a connection error is retried after 5 seconds, 30 seconds,
+        2 minutes, 10 minutes, 30 minutes, and then every hour. Retries can start up to 10 seconds late.
+        A 2xx response resets the failure window. After 24 hours of continuous failure the subscription
+        is disabled with `disabled_reason` `delivery_failures`. A `410 Gone` response disables it at once
+        with `disabled_reason` `callback_gone`. In both cases the bot owner receives a direct message from
+        the system bot. Events keep accumulating, for up to 7 days, until the subscription is re-enabled
+        with `POST /api/v4/bots/{bot_user_id}/event_subscription/enable`, and delivery resumes with the
+        first event that was not delivered.
 
         When the subscription is created, the response has status 201 and contains the `secret`. The secret
         is not returned again, except by the regenerate secret endpoint. Updating returns status 200
@@ -529,7 +573,8 @@
       summary: Enable a bot event subscription
       description: |
         Re-enable a disabled event subscription and reset its delivery failure state. Enabling a
-        subscription that is already enabled has no effect.
+        subscription that is already enabled has no effect. In `push` mode, delivery resumes from the
+        first event that was not acknowledged.
 
         ##### Permissions
         Must have `manage_bots` permission for bots you own, and `manage_others_bots` permission for bots

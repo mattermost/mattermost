@@ -259,10 +259,10 @@ func (s *SqlBotEventSubscriptionStore) RecordDeliveryFailure(rctx request.CTX, b
 func (s *SqlBotEventSubscriptionStore) GetPushDeliveryCandidates(rctx request.CTX, now, settleWindowMillis int64, limit int) ([]string, error) {
 	query := s.getQueryBuilder().
 		Select("s.BotUserId").
-		From(botEventSubscriptionTable + " s").
+		From(botEventSubscriptionTable+" s").
 		Where(sq.Eq{"s.Mode": model.BotEventSubscriptionModePush, "s.Enabled": true}).
 		Where(sq.LtOrEq{"s.NextAttemptAt": now}).
-		Where(sq.Expr("s.LeaseExpiresAt < " + dbWriteMillis)).
+		Where(sq.Expr("s.LeaseExpiresAt < "+dbWriteMillis)).
 		Where(sq.Expr("EXISTS (SELECT 1 FROM Users u WHERE u.Id = s.BotUserId AND u.DeleteAt = 0)")).
 		Where(sq.Expr(`EXISTS (SELECT 1 FROM BotEvents e WHERE e.BotUserId = s.BotUserId
 			AND (e.CreateAt, e.Id) > (s.AckCursorCreateAt, s.AckCursorId)

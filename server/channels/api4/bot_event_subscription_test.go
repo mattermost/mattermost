@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 // setupBotEventTest lets regular users create and manage their own bots.
@@ -144,9 +146,14 @@ func TestBotEventSubscriptionValidationAPI(t *testing.T) {
 		wantCode  int
 	}{
 		{
-			name: "push is not available", client: th.Client, botID: bot.UserId,
-			patch:     &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePush), CallbackURL: new("https://example.com/hook")},
-			wantErrID: "app.bot_event_subscription.push_unavailable.app_error", wantCode: http.StatusBadRequest,
+			name: "push to a restricted address", client: th.Client, botID: bot.UserId,
+			patch:     &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePush), CallbackURL: new("http://127.0.0.1:1/hook")},
+			wantErrID: "app.bot_event_subscription.url_verification.address_forbidden.app_error", wantCode: http.StatusBadRequest,
+		},
+		{
+			name: "push without a callback url", client: th.Client, botID: bot.UserId,
+			patch:    &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePush)},
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name: "invalid mode", client: th.Client, botID: bot.UserId,
@@ -185,6 +192,69 @@ func TestBotEventSubscriptionValidationAPI(t *testing.T) {
 		resp, err := th.Client.DoAPIPut(context.Background(), "/bots/"+bot.UserId+"/event_subscription", "{not json")
 		require.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+}
+
+func TestBotEventSubscriptionPushAPI(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupBotEventTest(t)
+	ctx := context.Background()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1" })
+
+	broken := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusInternalServerError) }))
+	t.Cleanup(broken.Close)
+	pushTo := func(url string) *model.BotEventSubscriptionPatch {
+		return &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePush), CallbackURL: &url}
+	}
+
+	t.Run("a verified receiver creates the subscription", func(t *testing.T) {
+		rcv := testlib.NewBotEventReceiver(t, nil)
+		bot := th.CreateBotWithClient(t, th.Client)
+
+		sub, resp, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pushTo(rcv.URL()))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Len(t, sub.Secret, model.BotEventSecretLength)
+
+		verifications := rcv.Verifications()
+		require.Len(t, verifications, 1)
+		assert.NoError(t, model.VerifyBotEventSignature(sub.Secret, verifications[0].Header.Get(model.BotEventHeaderTimestamp), verifications[0].Body, verifications[0].Header.Get(model.BotEventHeaderSignature), time.Now()))
+	})
+
+	t.Run("a failing receiver is rejected and nothing is stored", func(t *testing.T) {
+		bot := th.CreateBotWithClient(t, th.Client)
+
+		_, resp, err := th.Client.UpsertBotEventSubscription(ctx, bot.UserId, pushTo(broken.URL))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.bot_event_subscription.url_verification.bad_status.app_error")
+
+		_, resp, err = th.Client.GetBotEventSubscription(ctx, bot.UserId)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("creating a bot verifies the receiver", func(t *testing.T) {
+		username := GenerateTestUsername()
+		_, resp, err := th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
+			BotPatch:          model.BotPatch{Username: &username},
+			EventSubscription: pushTo(broken.URL),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		_, err = th.App.Srv().Store().User().GetByUsername(username)
+		assert.Error(t, err, "no bot is left behind")
+
+		rcv := testlib.NewBotEventReceiver(t, nil)
+		username = GenerateTestUsername()
+		created, resp, err := th.Client.CreateBotWithEventSubscription(ctx, &model.BotPatchWithEventSubscription{
+			BotPatch:          model.BotPatch{Username: &username},
+			EventSubscription: pushTo(rcv.URL()),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Len(t, created.EventSubscription.Secret, model.BotEventSecretLength)
+		assert.Len(t, rcv.Verifications(), 1)
 	})
 }
 
@@ -364,8 +434,8 @@ func TestCreateBotWithEventSubscriptionAPI(t *testing.T) {
 		wantStatus   int
 	}{
 		{
-			name:         "push",
-			subscription: &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePush), CallbackURL: new("https://example.com/hook")},
+			name:         "push to a restricted address",
+			subscription: &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePush), CallbackURL: new("http://127.0.0.1:1/hook")},
 			wantStatus:   http.StatusBadRequest,
 		},
 		{name: "subscription without a mode", subscription: &model.BotEventSubscriptionPatch{}, wantStatus: http.StatusBadRequest},

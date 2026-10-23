@@ -93,32 +93,6 @@ func TestBotEventSubscriptionErrors(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	bot := th.CreateBot(t)
 
-	t.Run("push is not available yet", func(t *testing.T) {
-		_, _, appErr := th.App.CreateOrUpdateBotEventSubscription(th.Context, bot.UserId, &model.BotEventSubscriptionPatch{
-			Mode:        new(model.BotEventSubscriptionModePush),
-			CallbackURL: new("https://example.com/hook"),
-		})
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.bot_event_subscription.push_unavailable.app_error", appErr.Id)
-		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-
-		_, err := th.App.Srv().Store().BotEventSubscription().Get(th.Context, bot.UserId)
-		assert.Error(t, err)
-	})
-
-	t.Run("switching an existing subscription to push is rejected", func(t *testing.T) {
-		other := th.CreateBot(t)
-		_, _, appErr := th.App.CreateOrUpdateBotEventSubscription(th.Context, other.UserId, pullPatch())
-		require.Nil(t, appErr)
-
-		_, _, appErr = th.App.CreateOrUpdateBotEventSubscription(th.Context, other.UserId, &model.BotEventSubscriptionPatch{
-			Mode:        new(model.BotEventSubscriptionModePush),
-			CallbackURL: new("https://example.com/hook"),
-		})
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.bot_event_subscription.push_unavailable.app_error", appErr.Id)
-	})
-
 	t.Run("mode is required to create", func(t *testing.T) {
 		_, _, appErr := th.App.CreateOrUpdateBotEventSubscription(th.Context, bot.UserId, &model.BotEventSubscriptionPatch{IgnoreBotAuthors: new(true)})
 		require.NotNil(t, appErr)
@@ -273,17 +247,10 @@ func TestCreateBotWithEventSubscription(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("invalid patches are rejected before the bot is created", func(t *testing.T) {
+	t.Run("a patch without a mode is rejected before the bot is created", func(t *testing.T) {
 		bot := newBot()
 		_, _, appErr := th.App.CreateBotWithEventSubscription(th.Context, bot, &model.BotEventSubscriptionPatch{})
 		require.NotNil(t, appErr)
-
-		_, _, appErr = th.App.CreateBotWithEventSubscription(th.Context, bot, &model.BotEventSubscriptionPatch{
-			Mode:        new(model.BotEventSubscriptionModePush),
-			CallbackURL: new("https://example.com/hook"),
-		})
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.bot_event_subscription.push_unavailable.app_error", appErr.Id)
 
 		_, err := th.App.Srv().Store().User().GetByUsername(bot.Username)
 		assert.Error(t, err)

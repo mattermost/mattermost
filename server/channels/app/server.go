@@ -117,13 +117,15 @@ type Server struct {
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
 	outgoingWebhookClient  *http.Client
+	botEventClient         *http.Client
 
 	runEssentialJobs bool
 	Jobs             *jobs.JobServer
 
 	timezones *timezones.Timezones
 
-	botEvents *botEventService
+	botEvents          *botEventService
+	botEventDispatcher *botEventDispatcher
 
 	htmlTemplates           *templates.Container
 	seenPendingPostIdsCache cache.Cache
@@ -463,6 +465,13 @@ func NewServer(options ...Option) (*Server, error) {
 	// timeout of its own that would cap a configured value above httpservice.RequestTimeout.
 	s.outgoingWebhookClient = s.httpService.MakeClient(false)
 	s.outgoingWebhookClient.Timeout = 0
+
+	// Bot event pushes carry a signature and must not follow redirects, which would turn
+	// the POST into a GET and forward the signature to another host.
+	s.botEventClient = s.httpService.MakeClient(false)
+	s.botEventClient.Timeout = 0
+	s.botEventClient.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	s.botEventDispatcher = newBotEventDispatcher(s)
 
 	if err2 := utils.TranslationsPreInit(); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
@@ -858,6 +867,7 @@ func (s *Server) Shutdown() {
 	s.serviceMux.RUnlock()
 
 	// Release long-polls first: StopHTTPServer only waits a second before force-closing connections.
+	s.botEventDispatcher.stop()
 	s.botEvents.shutdown()
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
@@ -1083,6 +1093,11 @@ func (s *Server) Start() error {
 	s.syncPushNotificationServerWithLicense()
 
 	s.checkPushNotificationServerURL()
+
+	// Tests start dispatchers explicitly; only a real server pushes events on its own.
+	if s.runEssentialJobs {
+		s.botEventDispatcher.start()
+	}
 
 	if err = s.platform.ReloadConfig(); err != nil {
 		mlog.Error("Failed to reload config on server start", mlog.Err(err))

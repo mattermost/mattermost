@@ -7085,6 +7085,16 @@
     "description": "Server error when deleting the event subscription of a bot fails; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
   },
   {
+    "id": "app.bot_event_subscription.disabled_callback_gone.dm",
+    "translation": "Event delivery for bot account @{{.BotUsername}} has been turned off because its callback URL on {{.CallbackHost}} responded \"410 Gone\". New events are kept for up to 7 days. When the receiver is ready, turn delivery back on in **Integrations > Bot Accounts**.",
+    "description": "Direct message from the system bot to a bot's owner saying event delivery to the bot's callback URL was turned off because the URL answered with HTTP status 410 Gone. {{.BotUsername}} is the bot's username, {{.CallbackHost}} the host and port of the callback URL. 'Integrations > Bot Accounts' is a menu path; match the translated UI labels. Keep the Markdown ** markers."
+  },
+  {
+    "id": "app.bot_event_subscription.disabled_delivery_failures.dm",
+    "translation": "Event delivery for bot account @{{.BotUsername}} has been turned off because its callback URL on {{.CallbackHost}} has not accepted an event for more than 24 hours. New events are kept for up to 7 days. Fix the receiver, then turn delivery back on in **Integrations > Bot Accounts**. Delivery resumes from the first event that was not delivered.",
+    "description": "Direct message from the system bot to a bot's owner saying event delivery to the bot's callback URL was turned off after more than 24 hours of failures. {{.BotUsername}} is the bot's username, {{.CallbackHost}} the host and port of the callback URL. 'Integrations > Bot Accounts' is a menu path; match the translated UI labels. Keep the Markdown ** markers."
+  },
+  {
     "id": "app.bot_event_subscription.get.app_error",
     "translation": "Unable to get the bot event subscription.",
     "description": "Server error when loading the event subscription of a bot fails; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
@@ -7093,11 +7103,6 @@
     "id": "app.bot_event_subscription.not_found.app_error",
     "translation": "The bot does not have an event subscription.",
     "description": "API error when the event subscription of a bot is requested but none exists; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
-  },
-  {
-    "id": "app.bot_event_subscription.push_unavailable.app_error",
-    "translation": "Push delivery of bot events is not available. Use pull delivery.",
-    "description": "API error when an event subscription is set to push delivery, which is not supported yet; 'bot' is a bot account and push means events are sent to a callback URL."
   },
   {
     "id": "app.bot_event_subscription.save.app_error",
@@ -7113,6 +7118,26 @@
     "id": "app.bot_event_subscription.update.app_error",
     "translation": "Unable to update the bot event subscription.",
     "description": "Server error when updating the event subscription of a bot fails; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
+  },
+  {
+    "id": "app.bot_event_subscription.url_verification.address_forbidden.app_error",
+    "translation": "The callback URL resolves to a restricted internal network address. A System Admin must add it to ServiceSettings.AllowedUntrustedInternalConnections before it can be used.",
+    "description": "API error when setting a bot's push callback URL that points to a restricted internal network address; ServiceSettings.AllowedUntrustedInternalConnections is a System Console configuration setting name and must not be translated."
+  },
+  {
+    "id": "app.bot_event_subscription.url_verification.bad_challenge.app_error",
+    "translation": "The callback URL did not return the verification challenge. Respond with JSON containing the same \"challenge\" value that was sent.",
+    "description": "API error when a bot's push callback URL does not echo back the verification challenge. 'challenge' is a JSON field name in the request and must not be translated."
+  },
+  {
+    "id": "app.bot_event_subscription.url_verification.bad_status.app_error",
+    "translation": "The callback URL responded with HTTP status {{.StatusCode}}. It must respond with a 2xx status.",
+    "description": "API error when a bot's push callback URL answers the verification request with a non-2xx HTTP status. {{.StatusCode}} is the numeric HTTP status code returned by that URL."
+  },
+  {
+    "id": "app.bot_event_subscription.url_verification.request_failed.app_error",
+    "translation": "Unable to connect to the callback URL, or it did not respond in time.",
+    "description": "API error when the server cannot reach a bot's push callback URL while verifying it; 'callback URL' is the address that receives the bot's events."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",

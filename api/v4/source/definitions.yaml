@@ -4010,7 +4010,7 @@ components:
       properties:
         mode:
           description: >
-            How events are delivered. Required when creating. Only `pull` is currently available.
+            How events are delivered. Required when creating.
           type: string
           enum:
             - push
@@ -4042,6 +4042,7 @@ components:
         enabled:
           type: boolean
         disabled_reason:
+          description: Why the subscription is disabled, empty while it is enabled. `delivery_failures` and `callback_gone` are set by the server in push mode.
           type: string
         consecutive_failures:
           type: integer

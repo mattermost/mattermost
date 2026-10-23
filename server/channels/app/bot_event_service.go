@@ -4,10 +4,12 @@
 package app
 
 import (
+	"encoding/json"
 	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -88,7 +90,49 @@ func (s *botEventService) shutdown() {
 	s.closeOnce.Do(func() { close(s.closed) })
 }
 
-// notifyBotEventsAvailable is the single place that announces newly written events.
+// notifyBotEventsAvailable is the single place that announces newly written events: it
+// wakes long-polls and the push dispatcher here and on the other nodes.
 func (a *App) notifyBotEventsAvailable(botUserIDs []string) {
+	if len(botUserIDs) == 0 {
+		return
+	}
 	a.Srv().botEvents.notify(botUserIDs...)
+	a.Srv().botEventDispatcher.Wake(botUserIDs...)
+	a.Srv().publishBotEventsAvailable(botUserIDs)
+}
+
+// publishBotEventsAvailable is best effort: a lost message is covered by the long-poll
+// recheck and the dispatcher sweep.
+func (s *Server) publishBotEventsAvailable(botUserIDs []string) {
+	cluster := s.platform.Cluster()
+	if cluster == nil {
+		return
+	}
+	data, err := json.Marshal(botUserIDs)
+	if err != nil {
+		s.Log().Warn("Failed to encode bot events available message", mlog.Err(err))
+		return
+	}
+	cluster.SendClusterMessage(&model.ClusterMessage{
+		Event:    model.ClusterEventBotEventsAvailable,
+		SendType: model.ClusterSendBestEffort,
+		Data:     data,
+	})
+}
+
+func (s *Server) clusterBotEventsAvailableHandler(msg *model.ClusterMessage) {
+	var botUserIDs []string
+	if err := json.Unmarshal(msg.Data, &botUserIDs); err != nil {
+		s.Log().Warn("Failed to decode bot events available message", mlog.Err(err))
+		return
+	}
+
+	valid := botUserIDs[:0]
+	for _, id := range botUserIDs {
+		if model.IsValidId(id) {
+			valid = append(valid, id)
+		}
+	}
+	s.botEvents.notify(valid...)
+	s.botEventDispatcher.Wake(valid...)
 }
