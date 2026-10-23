@@ -167,7 +167,7 @@ describe('getQuotableSelection', () => {
         });
 
         test('should quote part of a code block as a code block', () => {
-            renderMessage('<div class="post-code" data-language="javascript"><div class="post-code__overlay"><span class="post-code__language">JavaScript</span></div><div class="hljs"><div class="post-code__line-numbers">1\n2</div><code id="code">const a = 1;\nconst b = 2;</code></div></div>');
+            renderMessage('<div class="post-code"><div class="post-code__overlay"><span class="post-code__language">JavaScript</span></div><div class="hljs"><div class="post-code__line-numbers">1\n2</div><code id="code">const a = 1;\nconst b = 2;</code></div></div>');
             const selection = select(textOf('code'), 0, textOf('code'), 12);
 
             expect(getQuotableSelection(selection)?.text).toBe('```javascript\nconst a = 1;\n```');
