@@ -117,18 +117,9 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
+	body, err := rcs.sendRemoteRequest(req.WithContext(ctx), true)
 	if err != nil {
 		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, readErr := readRemoteResponse(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
-	}
-	if readErr != nil {
-		return nil, readErr
 	}
 
 	// body should be a FileInfo

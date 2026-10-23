@@ -23,6 +23,7 @@ import (
 	"github.com/wiggin77/merror"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
@@ -282,11 +283,169 @@ func TestService_sendFrameToRemote_ResponseHandling(t *testing.T) {
 		reply:   replyBody{prefix: reply, padLen: paddingBeyondRead, pause: time.Minute},
 		timeout: time.Millisecond * 250,
 		wantErr: true,
+		errIs:   errRemoteUnreachable,
 	})
 
 	assertReplyCases(t, rs, call, cases)
 
+	t.Run("error status with a complete reply returns the reply to the caller", func(t *testing.T) {
+		rs.setReply(replyBody{prefix: reply, status: http.StatusInternalServerError})
+		defer rs.awaitIdle(t)
+
+		respJSON, err := service.sendFrameToRemote(defaultCallTimeout, rc, frame, url)
+		require.Error(t, err)
+		assert.Equal(t, reply, respJSON, "callers read the remote's error from the reply")
+	})
+
 	assertReplyBytesServedStaysBounded(t, rs, reply, call)
+}
+
+// TestService_confirmInviteSendError_ReplyHandling covers the error an admin accepting an invitation
+// is shown for each way the remote's reply to the confirmation can fail.
+func TestService_confirmInviteSendError_ReplyHandling(t *testing.T) {
+	rs := newResponseServer()
+	defer rs.Close()
+
+	rc := makeRemoteCluster("remote_test_confirm_invite", rs.URL, TestTopics)
+
+	service, err := NewRemoteClusterService(newMockServer(t, nil), newMockApp(t, nil))
+	require.NoError(t, err)
+	service.disablePing = true
+
+	require.NoError(t, service.Start())
+	defer service.Shutdown()
+
+	frame := &model.RemoteClusterFrame{
+		RemoteId: rc.RemoteId,
+		Msg:      makeRemoteClusterMsg(model.NewId(), NoteContent),
+	}
+	url := fmt.Sprintf("%s/%s", rs.URL, ConfirmInviteURL)
+
+	reply, err := json.Marshal(&Response{Status: ResponseStatusOK})
+	require.NoError(t, err)
+	refusal, err := json.Marshal(model.NewAppError("test", "api.remote_cluster.invalid_token", nil, "", http.StatusUnauthorized))
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		name   string
+		reply  replyBody
+		wantId string
+	}{
+		{
+			name:   "reply longer than the caller reads",
+			reply:  replyBody{prefix: reply, padLen: paddingBeyondRead},
+			wantId: "api.remote_cluster.accept_invitation.invalid_response.app_error",
+		},
+		{
+			name:   "error status with a reply longer than the caller reads",
+			reply:  replyBody{prefix: refusal, padLen: paddingBeyondRead, status: http.StatusBadGateway},
+			wantId: "api.remote_cluster.accept_invitation.invalid_response.app_error",
+		},
+		{
+			name:   "reply cut off partway",
+			reply:  replyBody{prefix: reply, declaredLength: len(reply) + 1024},
+			wantId: "api.remote_cluster.accept_invitation.unreachable.app_error",
+		},
+		{
+			name:   "error status with a reply cut off partway",
+			reply:  replyBody{prefix: refusal, status: http.StatusBadGateway, declaredLength: len(refusal) + 1024},
+			wantId: "api.remote_cluster.accept_invitation.unreachable.app_error",
+		},
+		{
+			name:   "error status with a complete refusal",
+			reply:  replyBody{prefix: refusal, status: http.StatusUnauthorized},
+			wantId: "api.remote_cluster.accept_invitation.rejected.app_error",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			rs.setReply(tc.reply)
+			defer rs.awaitIdle(t)
+
+			resp, err := service.sendFrameToRemote(defaultCallTimeout, rc, frame, url)
+			require.Error(t, err)
+
+			appErr := service.confirmInviteSendError(rc.RemoteId, url, resp, err)
+			require.NotNil(t, appErr)
+			assert.Equal(t, tc.wantId, appErr.Id)
+		})
+	}
+}
+
+// TestService_sendFrameToRemote_Metrics covers which counter a send is recorded under, which
+// depends on the whole reply having been read rather than only on its status.
+func TestService_sendFrameToRemote_Metrics(t *testing.T) {
+	rs := newResponseServer()
+	defer rs.Close()
+
+	rc := makeRemoteCluster("remote_test_frame_metrics", rs.URL, TestTopics)
+
+	metrics := einterfacesmocks.NewMetricsInterface(t)
+	mockServer := newMockServer(t, nil)
+	mockServer.metrics = metrics
+
+	service, err := NewRemoteClusterService(mockServer, newMockApp(t, nil))
+	require.NoError(t, err)
+	service.disablePing = true
+
+	require.NoError(t, service.Start())
+	defer service.Shutdown()
+
+	frame := &model.RemoteClusterFrame{
+		RemoteId: rc.RemoteId,
+		Msg:      makeRemoteClusterMsg(model.NewId(), NoteContent),
+	}
+	url := fmt.Sprintf("%s/%s", rs.URL, SendMsgURL)
+
+	reply, err := json.Marshal(&Response{Status: ResponseStatusOK})
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		name        string
+		reply       replyBody
+		timeout     time.Duration
+		wantSent    bool
+		wantTimeout bool
+	}{
+		{
+			name:     "complete reply",
+			reply:    replyBody{prefix: reply},
+			wantSent: true,
+		},
+		{
+			name:  "reply longer than the caller reads",
+			reply: replyBody{prefix: reply, padLen: paddingBeyondRead},
+		},
+		{
+			name:  "error status",
+			reply: replyBody{prefix: reply, status: http.StatusInternalServerError},
+		},
+		{
+			name:        "reply the remote stops sending partway through",
+			reply:       replyBody{prefix: reply, padLen: paddingBeyondRead, pause: time.Minute},
+			timeout:     time.Millisecond * 250,
+			wantTimeout: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.wantSent {
+				metrics.On("IncrementRemoteClusterMsgSentCounter", rc.RemoteId).Once()
+			} else {
+				metrics.On("IncrementRemoteClusterMsgErrorsCounter", rc.RemoteId, tc.wantTimeout).Once()
+			}
+
+			timeout := tc.timeout
+			if timeout == 0 {
+				timeout = defaultCallTimeout
+			}
+
+			rs.setReply(tc.reply)
+			defer rs.awaitIdle(t)
+
+			_, err := service.sendFrameToRemote(timeout, rc, frame, url)
+			assert.Equal(t, tc.wantSent, err == nil)
+			metrics.AssertExpectations(t)
+		})
+	}
 }
 
 func makeRemoteClusters(num int, siteURL string, isPlugin bool) []*model.RemoteCluster {
@@ -368,11 +527,13 @@ const (
 // replyCase is one reply a remote can answer an outbound request with, and what the caller should
 // make of it.
 type replyCase struct {
-	name    string
-	reply   replyBody
-	timeout time.Duration // call timeout; zero uses defaultCallTimeout
-	wantErr bool
-	errText string // substring the error must contain, when the case is specific about it
+	name     string
+	reply    replyBody
+	timeout  time.Duration // call timeout; zero uses defaultCallTimeout
+	wantErr  bool
+	errText  string // substring the error must contain, when the case is specific about it
+	errIs    error  // sentinel the error must wrap, when the case is specific about it
+	errIsNot error  // sentinel the error must not wrap, when the case is specific about it
 }
 
 // decodedReplyCases returns the cases shared by the call sites that read a remote's reply and go on
@@ -388,31 +549,47 @@ func decodedReplyCases(prefix []byte, emptyReplyIsOK bool) []replyCase {
 			reply: replyBody{prefix: prefix, padLen: upToRead},
 		},
 		{
-			name:    "reply one byte longer than the caller reads",
-			reply:   replyBody{prefix: prefix, padLen: upToRead + 1},
-			wantErr: true,
-			errText: "longer than",
+			name:     "reply one byte longer than the caller reads",
+			reply:    replyBody{prefix: prefix, padLen: upToRead + 1},
+			wantErr:  true,
+			errText:  "longer than",
+			errIs:    errRemoteResponseTooLarge,
+			errIsNot: errRemoteUnreachable,
 		},
 		{
 			// The same length, sent with the remote declaring it up front rather than in chunks.
-			name:    "reply one byte longer than the caller reads, with its length declared",
-			reply:   replyBody{prefix: prefix, padLen: upToRead + 1, declaredLength: MaxRemoteResponseSize + 1},
-			wantErr: true,
-			errText: "longer than",
+			name:     "reply one byte longer than the caller reads, with its length declared",
+			reply:    replyBody{prefix: prefix, padLen: upToRead + 1, declaredLength: MaxRemoteResponseSize + 1},
+			wantErr:  true,
+			errText:  "longer than",
+			errIs:    errRemoteResponseTooLarge,
+			errIsNot: errRemoteUnreachable,
 		},
 		{
-			name:    "reply far longer than the caller reads",
-			reply:   replyBody{prefix: prefix, padLen: paddingBeyondRead},
-			wantErr: true,
-			errText: "longer than",
+			name:     "reply far longer than the caller reads",
+			reply:    replyBody{prefix: prefix, padLen: paddingBeyondRead},
+			wantErr:  true,
+			errText:  "longer than",
+			errIs:    errRemoteResponseTooLarge,
+			errIsNot: errRemoteUnreachable,
 		},
 		{
 			// The transport decompresses this before the caller sees it, so what the caller reads
 			// is the decompressed length rather than the handful of bytes that arrived.
-			name:    "compressed reply longer than the caller reads once decompressed",
-			reply:   replyBody{prefix: prefix, padLen: paddingBeyondRead, gzipped: true},
-			wantErr: true,
-			errText: "longer than",
+			name:     "compressed reply longer than the caller reads once decompressed",
+			reply:    replyBody{prefix: prefix, padLen: paddingBeyondRead, gzipped: true},
+			wantErr:  true,
+			errText:  "longer than",
+			errIs:    errRemoteResponseTooLarge,
+			errIsNot: errRemoteUnreachable,
+		},
+		{
+			// The remote declares more than it sends and then closes the connection.
+			name:     "reply cut off partway",
+			reply:    replyBody{prefix: prefix, declaredLength: len(prefix) + 1024},
+			wantErr:  true,
+			errIs:    errRemoteUnreachable,
+			errIsNot: errRemoteResponseTooLarge,
 		},
 		{
 			// The caller reads up to the length the remote declared, so what the remote tries to
@@ -421,16 +598,25 @@ func decodedReplyCases(prefix []byte, emptyReplyIsOK bool) []replyCase {
 			reply: replyBody{prefix: prefix, padLen: paddingBeyondRead, declaredLength: len(prefix)},
 		},
 		{
-			name:    "error status with a complete reply",
-			reply:   replyBody{prefix: prefix, status: http.StatusInternalServerError},
-			wantErr: true,
-			errText: "500",
+			name:     "error status with a complete reply",
+			reply:    replyBody{prefix: prefix, status: http.StatusInternalServerError},
+			wantErr:  true,
+			errText:  "500",
+			errIsNot: errRemoteUnreachable,
 		},
 		{
-			name:    "error status with a reply far longer than the caller reads",
-			reply:   replyBody{prefix: prefix, padLen: paddingBeyondRead, status: http.StatusInternalServerError},
+			name:     "error status with a reply far longer than the caller reads",
+			reply:    replyBody{prefix: prefix, padLen: paddingBeyondRead, status: http.StatusInternalServerError},
+			wantErr:  true,
+			errText:  "500",
+			errIs:    errRemoteResponseTooLarge,
+			errIsNot: errRemoteUnreachable,
+		},
+		{
+			name:    "error status with a reply cut off partway",
+			reply:   replyBody{prefix: prefix, status: http.StatusBadGateway, declaredLength: len(prefix) + 1024},
 			wantErr: true,
-			errText: "500",
+			errIs:   errRemoteUnreachable,
 		},
 		{
 			name:    "empty reply",
@@ -469,6 +655,12 @@ func assertReplyCases(t *testing.T, rs *responseServer, call func(time.Duration)
 			require.Error(t, err)
 			if tc.errText != "" {
 				assert.Contains(t, err.Error(), tc.errText)
+			}
+			if tc.errIs != nil {
+				assert.ErrorIs(t, err, tc.errIs)
+			}
+			if tc.errIsNot != nil {
+				assert.NotErrorIs(t, err, tc.errIsNot)
 			}
 		})
 	}

@@ -213,6 +213,21 @@ func TestService_sendProfileImageToRemote_ResponseHandling(t *testing.T) {
 			wantErr: true,
 			errText: "500",
 		},
+		{
+			// The remote declares more than it sends and then closes the connection.
+			name:    "reply cut off partway",
+			reply:   replyBody{prefix: reply, declaredLength: len(reply) + 1024},
+			wantErr: true,
+			errIs:   errRemoteUnreachable,
+		},
+		{
+			// The body is of no use to this call site, so failing to read it does not hide the status.
+			name:     "error status with a reply cut off partway",
+			reply:    replyBody{prefix: reply, status: http.StatusRequestEntityTooLarge, declaredLength: len(reply) + 1024},
+			wantErr:  true,
+			errText:  "413",
+			errIsNot: errRemoteUnreachable,
+		},
 	})
 
 	t.Run("connection is available to the calls that follow", func(t *testing.T) {
