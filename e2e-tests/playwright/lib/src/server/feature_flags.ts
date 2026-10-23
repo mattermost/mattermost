@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@playwright/test';
+import type {Client4} from '@mattermost/client';
 
 import {logTestcontainers} from '../containers/log';
 
@@ -197,4 +198,22 @@ function expectedFlagValue(
 /** Defines the segments that feature flag rules can refer to, with the keys in each. */
 export async function setFeatureFlagSegments(segments: Record<string, string[]>): Promise<void> {
     await setSplitMockSegments(segments);
+}
+
+/**
+ * Changes a subset of FeatureFlags via the config API, for helpers that cannot use
+ * ensureFeatureFlag() (e.g. they only have a Client4, not the pw fixture).
+ *
+ * Unlike most config structs, FeatureFlags fields are plain bool/string, not pointers, so
+ * `patchConfig({FeatureFlags: {...}})` can't tell "flag omitted from the patch" from "flag
+ * explicitly false" — the server's generic config merge takes the zero value for every flag
+ * not named, silently turning every other flag off. Round-trip the full FeatureFlags object
+ * instead, changing only the named flags.
+ */
+export async function patchFeatureFlags(client: Client4, flags: Record<string, FeatureFlagValue>): Promise<void> {
+    const config = await client.getConfig();
+    await client.updateConfig({
+        ...config,
+        FeatureFlags: {...config.FeatureFlags, ...flags},
+    } as typeof config);
 }

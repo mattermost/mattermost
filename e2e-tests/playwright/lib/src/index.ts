@@ -62,6 +62,7 @@ export {
     flagPropagationTimeoutMs,
     defineFeatureFlags,
     getFeatureFlagKey,
+    patchFeatureFlags,
     setFeatureFlagSegments,
     runMmctl,
     ensureMmctl,
