@@ -8,3 +8,28 @@
     height: 100%;
     flex-direction: column;
 }
+
+// Body-only AdminPanel around the log viewer. The viewer owns its own toolbar
+// and scrolling, so the panel only supplies the surface and must not cap the
+// width (Compass AdminPanel defaults to 920px) or pad the body.
+.admin-console .admin-console__container.ServerLogs > .ServerLogs__panel {
+    display: flex;
+    overflow: hidden;
+    max-width: none;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+
+    [class*='admin-panel__collapse'],
+    [class*='admin-panel__collapse-inner'],
+    [class*='admin-panel__body'] {
+        display: flex;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
+    }
+
+    [class*='admin-panel__body'] {
+        padding: 0;
+    }
+}

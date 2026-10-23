@@ -14,6 +14,7 @@ import type {
 import {Client4} from 'mattermost-redux/client';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import LogFormatMenu from './log_format_menu';
 import LogList, {loadPrefs} from './log_list';
@@ -238,7 +239,12 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__container ServerLogs'>
-                    {list}
+                    <AdminPanel
+                        id='server_logs'
+                        className='ServerLogs__panel'
+                    >
+                        {list}
+                    </AdminPanel>
                 </div>
             </div>
         </div>
