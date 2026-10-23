@@ -147,6 +147,7 @@ describe('SidebarList', () => {
         markAllAsReadWithoutConfirm: false,
         markAllAsReadShortcutEnabled: false,
         isProductRailEnabled: false,
+        showNoBoards: false,
         currentStaticPageId: '',
         staticPages: [],
         actions: {

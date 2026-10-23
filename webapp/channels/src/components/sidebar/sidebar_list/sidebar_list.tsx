@@ -64,6 +64,9 @@ type Props = WrappedComponentProps & {
     // When the product rail is on it shows Threads, so the list doesn't repeat it.
     isProductRailEnabled: boolean;
 
+    // The product rail is showing Boards and the team has none the user can see.
+    showNoBoards: boolean;
+
     actions: {
         moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string) => void;
         moveCategory: (teamId: string, categoryId: string, newIndex: number) => void;
@@ -510,6 +513,15 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
             channelList = (
                 <>
+                    {this.props.showNoBoards && (
+                        <div className='SidebarProductRailEmpty'>
+                            <FormattedMessage
+                                id='sidebar.productRail.noBoards'
+                                defaultMessage='No boards in this team yet.'
+                                description='Shown in the left sidebar when the Boards item of the product navigation rail is selected but the team has no boards the user is a member of.'
+                            />
+                        </div>
+                    )}
                     {unreadsCategory}
                     {renderedManagedCategories}
                     <DragDropContext

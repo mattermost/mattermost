@@ -9,10 +9,12 @@ import type {ChannelCategory} from '@mattermost/types/channel_categories';
 
 import {setCategoryCollapsed, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {makeGetChannelIdsForCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
+import {getProductRailFilter} from 'selectors/views/product_rail';
 
 import type {GlobalState} from 'types/store';
 
@@ -24,10 +26,22 @@ type OwnProps = {
 
 function makeMapStateToProps() {
     const getChannelIdsForCategory = makeGetFilteredChannelIdsForCategory();
+    const getAllChannelIdsForCategory = makeGetChannelIdsForCategory();
 
     return (state: GlobalState, ownProps: OwnProps) => {
+        const channelIds = getChannelIdsForCategory(state, ownProps.category);
+
+        // While the product rail splits channels from boards, a category with nothing in the shown
+        // section is hidden: in Boards, any category without boards; in Channels, one holding only boards.
+        const railSection = getProductRailFilter(state);
+        const hiddenByProductRail = channelIds.length === 0 && (
+            railSection === 'boards' ||
+            (railSection === 'channels' && getAllChannelIdsForCategory(state, ownProps.category).length > 0)
+        );
+
         return {
-            channelIds: getChannelIdsForCategory(state, ownProps.category),
+            channelIds,
+            hiddenByProductRail,
             draggingState: getDraggingState(state),
             currentUserId: getCurrentUserId(state),
             isAdmin: isAdmin(getCurrentUser(state).roles),
