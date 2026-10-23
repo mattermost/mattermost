@@ -737,6 +737,22 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 	return NewPluginAPI(th.App, th.Context, manifest)
 }
 
+// SetupPluginAPIWithPluginContext is SetupPluginAPI as a real plugin gets it:
+// on the untagged request.EmptyContext that Channels.Start hands to
+// initPlugins rather than th.Context's local-admin tag, and with the plugin
+// registered as installed, which the property access control hook checks
+// before it treats the caller as a plugin. Use it to test that a plugin API
+// method tags the plugin as the caller itself before reaching the property
+// service.
+func (th *TestHelper) SetupPluginAPIWithPluginContext(tb testing.TB) *PluginAPI {
+	manifest := &model.Manifest{
+		Id: "pluginid",
+	}
+	registerTestPlugin(tb, th, manifest.Id)
+
+	return NewPluginAPI(th.App, request.EmptyContext(th.App.Log()), manifest)
+}
+
 func (th *TestHelper) RemovePermissionFromRole(tb testing.TB, permission string, roleName string) {
 	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, err1)

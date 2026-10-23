@@ -5278,7 +5278,9 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 	t.Cleanup(func() {
 		th.ConfigStore.SetReadOnlyFF(true)
 	})
-	api := th.SetupPluginAPI()
+	// The untagged context a real plugin gets, so the managed category write
+	// only succeeds if CreateChannel tags the plugin as the caller itself.
+	api := th.SetupPluginAPIWithPluginContext(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	defer func() {

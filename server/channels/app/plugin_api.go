@@ -474,7 +474,10 @@ func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *mo
 		channel.Name = model.NewId()
 	}
 
-	return api.app.CreateChannel(api.ctx, channel, false)
+	// Tagged with the plugin's ID so the managed category and attribute value
+	// writes CreateChannel makes are attributed to the plugin; api.ctx carries
+	// no caller, which the property access control hook refuses.
+	return api.app.CreateChannel(api.psaPluginContext(), channel, false)
 }
 
 func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {

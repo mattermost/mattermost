@@ -340,13 +340,13 @@ func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *m
 }
 
 // rctxWithSessionCallerID tags rctx with the property-service caller ID the
-// access control hook needs, taken from the request's session. Both managed
+// access control hook needs, taken from the request's session. The managed
 // category entry points and channel creation's attribute values reach here
-// through a session-backed context (the channel-patch handler and channel
-// creation), so the session's user ID is always the right caller to attribute
-// the write to; a local-mode session
-// (empty UserId, full privileges) is tagged CallerIDLocalAdmin instead,
-// matching how api4's sessionCallerID does it for other property writes.
+// from the channel handlers, where the session's user ID is the right caller
+// to attribute the write to, and from PluginAPI.CreateChannel, which has no
+// session. A local-mode session (empty UserId, full privileges) is tagged
+// CallerIDLocalAdmin instead, matching how api4's sessionCallerID does it for
+// other property writes.
 func rctxWithSessionCallerID(rctx request.CTX) request.CTX {
 	session := rctx.Session()
 	if session.IsUnrestricted() {
@@ -355,11 +355,12 @@ func rctxWithSessionCallerID(rctx request.CTX) request.CTX {
 	if session.UserId != "" {
 		return RequestContextWithCallerID(rctx, session.UserId)
 	}
-	// No session means the caller is not an HTTP request: the plugin API has
-	// already tagged the plugin's manifest ID on the context it hands in.
-	// Overwriting that with an empty caller would have the hook refuse the
-	// write, and CreateChannel logs and drops that error, so the channel would
-	// quietly come back with no managed category at all.
+	// No session user means the caller is not an HTTP request, so keep
+	// whatever caller the context already carries: PluginAPI.CreateChannel
+	// tags the plugin's manifest ID before it calls in. Overwriting that with
+	// an empty caller would have the hook refuse the write, and CreateChannel
+	// logs and drops that error, so the channel would quietly come back with
+	// no managed category at all.
 	return rctx
 }
 
