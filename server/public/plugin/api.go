@@ -794,18 +794,20 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
-	// UpdatePostWithFileCreator updates a post the same way UpdatePost does.
-	// fileCreatorID is used only for FileIds that were not already on the post.
-	// A new file is attached when its creator is fileCreatorID, or when it was
-	// uploaded with UploadFile (creator "nouser"). The same call may change the
-	// message and props. Permissions, hooks, the stored post, and the post
-	// returned to the plugin match UpdatePost. The plugin authorizes the edit.
-	// A new file that cannot be attached is omitted and the rest of the edit is
-	// saved.
+	// UpdatePostWithOptions updates a post using the supplied options.
+	// UpdatePost is the same edit with SafeUpdate false, no file creator, and
+	// AllowMmBlocksActionsUpdate set only when the post carries a valid
+	// mm_blocks_actions value. This method uses the options as given.
+	// FileCreatorID selects newly added files: a file attaches when its
+	// creator is that id, or when it was uploaded with UploadFile (creator
+	// "nouser"). A file that cannot be attached is omitted and the rest of
+	// the edit is saved. Nil options match the zero value. The plugin
+	// authorizes the edit. Permissions, hooks, and the returned post match
+	// UpdatePost: no session is created.
 	//
 	// @tag Post
 	// Minimum server version: 12.1
-	UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) (*model.Post, *model.AppError)
+	UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError)
 
 	// GetProfileImage gets user's profile image.
 	//

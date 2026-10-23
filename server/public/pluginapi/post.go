@@ -70,12 +70,12 @@ func (p *PostService) UpdatePost(post *model.Post) error {
 	return nil
 }
 
-// UpdatePostWithFileCreator updates a post the same way UpdatePost does.
-// fileCreatorID selects newly added files and is not an acting user.
+// UpdatePostWithOptions updates a post using the supplied options.
+// Nil options match the zero value.
 //
 // Minimum server version: 12.1
-func (p *PostService) UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) error {
-	updatedPost, appErr := p.api.UpdatePostWithFileCreator(post, fileCreatorID)
+func (p *PostService) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) error {
+	updatedPost, appErr := p.api.UpdatePostWithOptions(post, options)
 	if appErr != nil {
 		return normalizeAppErr(appErr)
 	}

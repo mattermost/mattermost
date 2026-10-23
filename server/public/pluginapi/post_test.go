@@ -116,22 +116,22 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
-func TestUpdatePostWithFileCreator(t *testing.T) {
+func TestUpdatePostWithOptions(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		now := model.GetMillis()
-		fileCreatorID := "userID"
+		options := &model.UpdatePostOptions{FileCreatorID: "userID"}
 		in := &model.Post{
 			Id: "postID",
 		}
 		out := in.Clone()
 		out.UpdateAt = now
-		api.On("UpdatePostWithFileCreator", in, fileCreatorID).Return(out, nil)
+		api.On("UpdatePostWithOptions", in, options).Return(out, nil)
 
-		err := client.Post.UpdatePostWithFileCreator(in, fileCreatorID)
+		err := client.Post.UpdatePostWithOptions(in, options)
 		require.NoError(t, err)
 		require.Equal(t, out, in)
 	})
@@ -141,14 +141,14 @@ func TestUpdatePostWithFileCreator(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-		fileCreatorID := "userID"
+		options := &model.UpdatePostOptions{FileCreatorID: "userID"}
 		in := &model.Post{
 			Id: "postID",
 		}
 		out := in.Clone()
-		api.On("UpdatePostWithFileCreator", in, fileCreatorID).Return(nil, newAppError())
+		api.On("UpdatePostWithOptions", in, options).Return(nil, newAppError())
 
-		err := client.Post.UpdatePostWithFileCreator(in, fileCreatorID)
+		err := client.Post.UpdatePostWithOptions(in, options)
 		require.EqualError(t, err, "here: id, an error occurred")
 		assert.Equal(t, out, in)
 	})

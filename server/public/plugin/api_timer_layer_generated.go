@@ -853,10 +853,10 @@ func (api *apiTimerLayer) UpdatePost(post *model.Post) (*model.Post, *model.AppE
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) (*model.Post, *model.AppError) {
+func (api *apiTimerLayer) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UpdatePostWithFileCreator(post, fileCreatorID)
-	api.recordTime(startTime, "UpdatePostWithFileCreator", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.UpdatePostWithOptions(post, options)
+	api.recordTime(startTime, "UpdatePostWithOptions", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

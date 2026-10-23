@@ -5765,32 +5765,32 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 	return nil
 }
 
-type Z_UpdatePostWithFileCreatorArgs struct {
+type Z_UpdatePostWithOptionsArgs struct {
 	A *model.Post
-	B string
+	B *model.UpdatePostOptions
 }
 
-type Z_UpdatePostWithFileCreatorReturns struct {
+type Z_UpdatePostWithOptionsReturns struct {
 	A *model.Post
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) (*model.Post, *model.AppError) {
-	_args := &Z_UpdatePostWithFileCreatorArgs{post, fileCreatorID}
-	_returns := &Z_UpdatePostWithFileCreatorReturns{}
-	if err := g.client.Call("Plugin.UpdatePostWithFileCreator", _args, _returns); err != nil {
-		log.Printf("RPC call to UpdatePostWithFileCreator API failed: %s", err.Error())
+func (g *apiRPCClient) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	_args := &Z_UpdatePostWithOptionsArgs{post, options}
+	_returns := &Z_UpdatePostWithOptionsReturns{}
+	if err := g.client.Call("Plugin.UpdatePostWithOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdatePostWithOptions API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) UpdatePostWithFileCreator(args *Z_UpdatePostWithFileCreatorArgs, returns *Z_UpdatePostWithFileCreatorReturns) error {
+func (s *apiRPCServer) UpdatePostWithOptions(args *Z_UpdatePostWithOptionsArgs, returns *Z_UpdatePostWithOptionsReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) (*model.Post, *model.AppError)
+		UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.UpdatePostWithFileCreator(args.A, args.B)
+		returns.A, returns.B = hook.UpdatePostWithOptions(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdatePostWithFileCreator called but not implemented."))
+		return encodableError(fmt.Errorf("API UpdatePostWithOptions called but not implemented."))
 	}
 	return nil
 }

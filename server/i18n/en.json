@@ -19037,9 +19037,9 @@
     "description": "Error returned to plugins when a post update contains invalid 'mm_blocks_actions' data (interactive blocks); developer-facing, keep the property name untranslated."
   },
   {
-    "id": "plugin.api.update_post_with_file_creator.invalid_user.app_error",
-    "translation": "Invalid user.",
-    "description": "Error returned to plugins when UpdatePostWithFileCreator is called with a file creator id that is not a valid Mattermost user id; developer-facing."
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Invalid file creator.",
+    "description": "Error returned to plugins when UpdatePostWithOptions is called with a FileCreatorID that is not a valid Mattermost user id; developer-facing."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",

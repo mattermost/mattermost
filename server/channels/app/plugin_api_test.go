@@ -1927,7 +1927,7 @@ func TestPluginUpdatePostAlwaysStripsUsernameIconOverride(t *testing.T) {
 	assert.Nil(t, updated.GetProp(model.PostPropsOverrideIconURL))
 }
 
-func TestPluginUpdatePostWithFileCreator(t *testing.T) {
+func TestPluginUpdatePostWithOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	api := th.SetupPluginAPI()
@@ -1958,7 +1958,7 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 
 		edit := post.Clone()
 		edit.FileIds = model.StringArray{file.Id}
-		updated, appErr := api.UpdatePostWithFileCreator(edit, th.BasicUser.Id)
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
 		require.Nil(t, appErr)
 		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
 
@@ -1979,7 +1979,7 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 
 		edit := post.Clone()
 		edit.FileIds = model.StringArray{file.Id}
-		updated, appErr := api.UpdatePostWithFileCreator(edit, th.BasicUser.Id)
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
 		require.Nil(t, appErr)
 		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
 		assert.Equal(t, th.BasicUser2.Id, updated.UserId)
@@ -2013,7 +2013,7 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 		edit := post.Clone()
 		edit.Message = "edited"
 		edit.FileIds = model.StringArray{file.Id}
-		updated, appErr := api.UpdatePostWithFileCreator(edit, th.BasicUser.Id)
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
 		require.Nil(t, appErr)
 		assert.Equal(t, "edited", updated.Message)
 		assert.Empty(t, updated.FileIds)
@@ -2036,7 +2036,7 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 
 		edit := post.Clone()
 		edit.FileIds = model.StringArray{}
-		updated, appErr := api.UpdatePostWithFileCreator(edit, th.BasicUser.Id)
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
 		require.Nil(t, appErr)
 		assert.Empty(t, updated.FileIds)
 
@@ -2049,11 +2049,11 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 		post := createPost(t, th.BasicUser.Id, "stay")
 		edit := post.Clone()
 		edit.Message = "should not land"
-		updated, appErr := api.UpdatePostWithFileCreator(edit, "not-a-valid-id")
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: "not-a-valid-id"})
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		assert.Equal(t, "plugin.api.update_post_with_file_creator.invalid_user.app_error", appErr.Id)
+		assert.Equal(t, "plugin.api.update_post_with_options.invalid_file_creator.app_error", appErr.Id)
 		requireUnchanged(t, post)
 	})
 
@@ -2061,7 +2061,7 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 		post := createPost(t, th.BasicUser.Id, "stay")
 		edit := post.Clone()
 		edit.Message = "should not land"
-		updated, appErr := api.UpdatePostWithFileCreator(edit, model.NewId())
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: model.NewId()})
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
@@ -2079,7 +2079,7 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 		edit := post.Clone()
 		edit.Message = "edited"
 		edit.FileIds = model.StringArray{file.Id}
-		updated, appErr := api.UpdatePostWithFileCreator(edit, deactivated.Id)
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: deactivated.Id})
 		require.Nil(t, appErr)
 		assert.Equal(t, "edited", updated.Message)
 		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
@@ -2095,7 +2095,7 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 
 		edit := post.Clone()
 		edit.FileIds = model.StringArray{file.Id}
-		updated, appErr := api.UpdatePostWithFileCreator(edit, th.BasicUser.Id)
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
 		require.Nil(t, appErr)
 		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
 
@@ -2112,7 +2112,7 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 		edit.AddProp("card_id", "card-1")
 		edit.AddProp(model.PostPropsOverrideUsername, "spoofed")
 
-		updated, appErr := api.UpdatePostWithFileCreator(edit, th.BasicUser.Id)
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
 		require.Nil(t, appErr)
 		assert.Equal(t, "edited message", updated.Message)
 		assert.Equal(t, "card-1", updated.GetProp("card_id"))
@@ -2132,16 +2132,41 @@ func TestPluginUpdatePostWithFileCreator(t *testing.T) {
 		edit.Message = "should not land"
 		edit.AddProp(model.PostPropsMmBlocksActions, "nope")
 
-		updated, appErr := api.UpdatePostWithFileCreator(edit, th.BasicUser.Id)
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{
+			FileCreatorID:              th.BasicUser.Id,
+			AllowMmBlocksActionsUpdate: true,
+		})
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		assert.Equal(t, "plugin.api.update_post.mm_blocks_actions.app_error", appErr.Id)
 		requireUnchanged(t, post)
 	})
+
+	t.Run("safe update changes the message and leaves files", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "original")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.Message = "edited safely"
+		edit.FileIds = model.StringArray{file.Id}
+		edit.AddProp("card_id", "should-not-land")
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{
+			SafeUpdate:    true,
+			FileCreatorID: th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited safely", updated.Message)
+		assert.Empty(t, updated.FileIds)
+		assert.Nil(t, updated.GetProp("card_id"))
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.PostId)
+	})
 }
 
-func TestPluginUpdatePostWithFileCreatorRunsMessageWillBeUpdated(t *testing.T) {
+func TestPluginUpdatePostWithOptionsRunsMessageWillBeUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2181,7 +2206,7 @@ func TestPluginUpdatePostWithFileCreatorRunsMessageWillBeUpdated(t *testing.T) {
 
 	edit := created.Clone()
 	edit.Message = "edited_"
-	updated, appErr := api.UpdatePostWithFileCreator(edit, th.BasicUser.Id)
+	updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
 	require.Nil(t, appErr)
 	assert.Equal(t, "edited_|session=", updated.Message)
 }
