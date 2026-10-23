@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mattermost/mattermost/.github/release-agent/rules.schema.json",
+  "title": "Release agent rules",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "calendar", "naming", "rules"],
+  "properties": {
+    "version": {"const": 1},
+    "calendar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["milestones", "active_days_after_release"],
+      "properties": {
+        "milestones": {
+          "description": "Milestone key to the substring that identifies its calendar event title.",
+          "type": "object",
+          "required": ["branch_cut", "release_day"],
+          "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
+          "additionalProperties": {"type": "string", "minLength": 1}
+        },
+        "holiday_markers": {
+          "description": "Substrings that mark a calendar event as a non-working day.",
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "active_days_after_release": {"type": "integer", "minimum": 0}
+      }
+    },
+    "holidays": {
+      "description": "Extra non-working days, as YYYY-MM-DD.",
+      "type": "array",
+      "items": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}
+    },
+    "naming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["milestone", "fix_version", "playbook_run"],
+      "properties": {
+        "milestone": {"type": "string", "minLength": 1},
+        "fix_version": {"type": "string", "minLength": 1},
+        "playbook_run": {"type": "string", "minLength": 1}
+      }
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/rule"}
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task", "playbook_item", "due", "type", "source", "query", "pass_when", "on_fail"],
+      "properties": {
+        "task": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+        "playbook_item": {
+          "description": "The checklist item title in the Cloud & Self-Hosted playbook, or null for report-only tasks.",
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "due": {
+          "description": "T-N / T+N in working days from Release Day, or a calendar milestone key with an optional working-day offset.",
+          "type": "string",
+          "pattern": "^(T[-+]\\d+|[a-z][a-z0-9_]*([-+]\\d+)?)$"
+        },
+        "type": {
+          "enum": [
+            "open_release_items",
+            "new_regressions",
+            "hub_release_branch",
+            "notice_txt",
+            "cherry_picks",
+            "e2e_results",
+            "release_tags",
+            "version_go_prs",
+            "changelog_labels"
+          ]
+        },
+        "source": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["jira", "github", "hub"]}
+        },
+        "query": {"type": "object"},
+        "pass_when": {
+          "enum": [
+            "report_only",
+            "all_have_fix_version",
+            "versions_match",
+            "merged_and_on_release_branch",
+            "all_on_release_branch",
+            "found",
+            "present",
+            "merged",
+            "none_missing"
+          ]
+        },
+        "on_fail": {"enum": ["needs_attention", "log_only", "report"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"pass_when": {"const": "report_only"}}},
+          "then": {"properties": {"playbook_item": {"type": "null"}, "on_fail": {"const": "report"}}}
+        }
+      ]
+    }
+  }
+}

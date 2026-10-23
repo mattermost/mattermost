@@ -1,0 +1,158 @@
+# Rules for the release agent (.github/workflows/release-agent.yml).
+#
+# One entry per release task the agent checks. Validated against rules.schema.json, and
+# every playbook_item must be a checklist item title in playbook-template.yml (see
+# test_rules.py).
+#
+#   task           stable id, used in run.json and the post
+#   playbook_item  checklist item title ticked when the check passes, or null for report-only
+#   due            T-N in working days from Release Day, or a calendar milestone key below
+#                  with an optional working-day offset (code_freeze+1). A failing check only
+#                  needs attention, and a passing one is only ticked, from this day on.
+#   type           the check function (release_agent/checks.py)
+#   source         where the check reads from: jira, github, hub
+#   query          check-specific parameters; strings are formatted with {version} (v12.2.0),
+#                  {short_version} (v12.2), {major}, {minor}, {branch} (release-12.2),
+#                  {milestone}, {fix_version} and {branch_cut} (YYYY-MM-DD)
+#   pass_when      what passing means, as the post describes it
+#   on_fail        needs_attention: listed in the post; log_only: run.json and the log only;
+#                  report: report-only tasks, which never fail
+version: 1
+
+calendar:
+  # Calendar event titles are trimmed and matched on these substrings, case-insensitively.
+  # The title must also carry the release version (v12.2 or 12.2); dot-release events
+  # (v12.2.1) are ignored.
+  milestones:
+    branch_cut: Release Branch Cut
+    feature_complete: Feature Complete
+    code_freeze: Code Freeze
+    final_build: Final Build
+    release_day: Release Day
+  holiday_markers:
+    - Holiday
+  # A release stays active from its first milestone until this many days after Release Day.
+  active_days_after_release: 1
+
+# Non-working days that are not on the calendar, as YYYY-MM-DD.
+holidays: []
+
+naming:
+  milestone: "v{major}.{minor}.0"
+  fix_version: "v{major}.{minor}"
+  # The release's Cloud & Self-Hosted playbook run is the in-progress run whose name
+  # contains this (as a whole word), from the RELEASE_AGENT_PLAYBOOK_ID playbook when set.
+  playbook_run: "{short_version}"
+
+rules:
+  - task: open-release-items
+    playbook_item: null
+    due: branch_cut
+    type: open_release_items
+    source: [jira, github]
+    query:
+      jql: 'project = MM AND fixVersion = "{fix_version}" AND status != Closed'
+      repos: [mattermost/mattermost, mattermost/enterprise]
+    pass_when: report_only
+    on_fail: report
+
+  - task: new-regressions
+    playbook_item: Triage new regressions
+    due: branch_cut
+    type: new_regressions
+    source: [jira]
+    query:
+      jql: 'project = MM AND (labels in (rc1, rc2, rc3, rc4, rc5, regression) OR summary ~ "Regression") AND created >= "{branch_cut}"'
+      labels: [rc1, rc2, rc3, rc4, rc5, regression]
+      title_prefix: "Regression:"
+    pass_when: all_have_fix_version
+    on_fail: needs_attention
+
+  - task: hub-on-release-branch
+    playbook_item: Update Hub to the release branch
+    due: code_freeze
+    type: hub_release_branch
+    source: [hub, github]
+    query:
+      repo: mattermost/mattermost
+    pass_when: versions_match
+    on_fail: needs_attention
+
+  - task: notice-txt
+    playbook_item: Update NOTICE.txt on the release branch
+    due: code_freeze
+    type: notice_txt
+    source: [github]
+    query:
+      repo: mattermost/mattermost
+      author: app/unified-ci-app
+      title: "Update NOTICE.txt file with updated dependencies"
+    pass_when: merged_and_on_release_branch
+    on_fail: needs_attention
+
+  - task: cherry-picks
+    playbook_item: Confirm approved cherry-picks are on the release branch
+    due: final_build
+    type: cherry_picks
+    source: [github]
+    query:
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      # The bot swaps Approved for Done once it opens the cherry-pick, so both are checked.
+      labels: [CherryPick/Approved, CherryPick/Done]
+    pass_when: all_on_release_branch
+    on_fail: needs_attention
+
+  - task: e2e-results
+    playbook_item: Confirm E2E results are posted for the latest RC
+    due: code_freeze+1
+    type: e2e_results
+    source: [hub]
+    query:
+      # Any one of these, in a post or its attachments, since the latest RC was tagged.
+      match_any: ["{rc_tag}", "{branch}"]
+    pass_when: found
+    on_fail: needs_attention
+
+  - task: rc-tags
+    playbook_item: Confirm RC tags exist in mattermost and enterprise
+    due: code_freeze
+    type: release_tags
+    source: [github]
+    query:
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      tag_prefix: "{version}-rc"
+    pass_when: present
+    on_fail: needs_attention
+
+  - task: final-tags
+    playbook_item: Confirm final tags exist in mattermost and enterprise
+    due: final_build
+    type: release_tags
+    source: [github]
+    query:
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      tag: "{version}"
+    pass_when: present
+    on_fail: needs_attention
+
+  - task: version-go-prs
+    playbook_item: Merge the version.go PRs
+    due: branch_cut+1
+    type: version_go_prs
+    source: [github]
+    query:
+      repo: mattermost/mattermost
+      author: app/unified-ci-app
+    pass_when: merged
+    on_fail: needs_attention
+
+  - task: changelog-labels
+    playbook_item: Confirm every merged PR has a changelog label
+    due: code_freeze
+    type: changelog_labels
+    source: [github]
+    query:
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      labels: [Changelog/Done, Changelog/Not Needed]
+    pass_when: none_missing
+    on_fail: needs_attention
