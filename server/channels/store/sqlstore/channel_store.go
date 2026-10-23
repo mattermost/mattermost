@@ -1430,7 +1430,12 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 		From("Channels AS c").
 		Where(sq.Eq{"c.Type": []model.ChannelType{model.ChannelTypePrivate, model.ChannelTypeOpen}})
 
-	if !forCount {
+	missingPropertyValueFilter := opts.MissingPropertyValueFieldID != "" && opts.MissingPropertyValueGroupID != ""
+
+	// The count skips the Teams join for every other caller; the missing-value
+	// filter keeps it so its count agrees with the list it paginates and with
+	// the other missing-value queries.
+	if !forCount || missingPropertyValueFilter {
 		query = query.Join("Teams ON Teams.Id = c.TeamId")
 	}
 
@@ -1448,7 +1453,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 			})
 	}
 
-	if opts.MissingPropertyValueFieldID != "" && opts.MissingPropertyValueGroupID != "" {
+	if missingPropertyValueFilter {
 		query = channelMissingPropertyValueFilter(query, opts.MissingPropertyValueGroupID, opts.MissingPropertyValueFieldID)
 	}
 
@@ -4220,6 +4225,7 @@ func (s SqlChannelStore) CountChannelAdminAssignmentsForChannelsMissingPropertyV
 		From("Channels AS c").
 		Join("ChannelMembers AS cm ON cm.ChannelId = c.Id AND cm.SchemeAdmin = true").
 		Join("Users AS u ON u.Id = cm.UserId AND u.DeleteAt = 0").
+		Join("Teams AS t ON t.Id = c.TeamId").
 		LeftJoin("Bots AS b ON b.UserId = u.Id").
 		LeftJoin("SharedChannels ON c.Id = SharedChannels.ChannelId").
 		Where(sq.Eq{"c.DeleteAt": 0}).
@@ -4260,6 +4266,7 @@ func (s SqlChannelStore) ExistsChannelMissingPropertyValue(groupID, fieldID stri
 	inner := s.getQueryBuilder().
 		Select("1").
 		From("Channels AS c").
+		Join("Teams ON Teams.Id = c.TeamId").
 		LeftJoin("SharedChannels ON c.Id = SharedChannels.ChannelId").
 		Where(sq.Eq{"c.DeleteAt": 0}).
 		Where(sq.Eq{"c.Type": []model.ChannelType{model.ChannelTypePrivate, model.ChannelTypeOpen}}).
