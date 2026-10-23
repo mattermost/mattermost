@@ -1,33 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.AppliesToCard {
-    margin-top: 16px;
-}
-
-.AppliesToCard__header {
-    display: flex;
-    align-items: flex-start;
-}
-
-// Matches Compass AdminPanel title tokens: a card-level title sitting under the
-// page's own h1, so it is styled as a block title rather than a heading.
-.AppliesToCard__title {
-    color: var(--center-channel-color);
-    font-family: Metropolis, sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
-}
-
-.AppliesToCard__subtitle {
-    margin: 4px 0 0;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 20px;
-}
-
 .AppliesToCard__rows {
     display: flex;
     overflow: hidden;
