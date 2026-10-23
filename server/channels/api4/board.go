@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func (api *API) InitBoard() {
@@ -53,7 +54,15 @@ func createBoard(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", &channel)
 
-	board, appErr := c.App.CreateBoardChannel(c.AppContext, &channel)
+	// CreateBoardChannel reads the boards group's status and assignee fields to
+	// build the channel's kanban view, and the access control hook gates that
+	// group now. An untagged context names nobody, which hides the status
+	// field's options and leaves buildBoardKanbanView with nothing to build
+	// from. Tagged with the session's user, not a system identity: a person
+	// creating a board channel is a human caller and is judged as one.
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+
+	board, appErr := c.App.CreateBoardChannel(rctx, &channel)
 	if appErr != nil {
 		c.Err = appErr
 		return
