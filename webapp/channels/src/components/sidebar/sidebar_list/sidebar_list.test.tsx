@@ -146,6 +146,7 @@ describe('SidebarList', () => {
         hasUnreadThreads: false,
         markAllAsReadWithoutConfirm: false,
         markAllAsReadShortcutEnabled: false,
+        isProductRailEnabled: false,
         currentStaticPageId: '',
         staticPages: [],
         actions: {

@@ -28319,6 +28319,18 @@
     "defaultMessage": "Open in new tab",
     "description": "Tooltip/accessibility label on external product links in the product switcher menu indicating they open in a new browser tab."
   },
+  "product_rail.ariaLabel": {
+    "defaultMessage": "Product navigation",
+    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards."
+  },
+  "product_rail.channels": {
+    "defaultMessage": "Channels",
+    "description": "Label under the Channels icon in the product navigation rail. Clicking it shows the channel sidebar."
+  },
+  "product_rail.threads": {
+    "defaultMessage": "Threads",
+    "description": "Label under the Threads icon in the product navigation rail. Clicking it opens the list of followed threads."
+  },
   "profile_popover.aria_label.with_username": {
     "defaultMessage": "{userName}'s profile popover",
     "description": "Accessible label of the profile popover dialog; {userName} is the viewed user's username."

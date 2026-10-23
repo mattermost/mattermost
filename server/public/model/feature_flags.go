@@ -99,6 +99,10 @@ type FeatureFlags struct {
 	// Enable the Docs (spaces and pages) feature within Mattermost channels
 	EnableDocs bool
 
+	// FEATURE_FLAG_REMOVAL: ProductRail - Remove this when GA is released
+	// Show a navigation rail beside the team sidebar for switching between Channels, Threads and products
+	ProductRail bool
+
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
 
@@ -239,6 +243,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.IntegratedBoards = false
 
 	f.EnableDocs = false
+
+	f.ProductRail = false
 
 	f.CJKSearch = true
 

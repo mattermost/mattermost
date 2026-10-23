@@ -61,6 +61,9 @@ type Props = WrappedComponentProps & {
     markAllAsReadWithoutConfirm: boolean;
     markAllAsReadShortcutEnabled: boolean;
 
+    // When the product rail is on it shows Threads, so the list doesn't repeat it.
+    isProductRailEnabled: boolean;
+
     actions: {
         moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string) => void;
         moveCategory: (teamId: string, categoryId: string, newIndex: number) => void;
@@ -557,7 +560,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
             // NOTE: id attribute added to temporarily support the desktop app's at-mention DOM scraping of the old sidebar
             <>
-                <GlobalThreadsLink/>
+                {!this.props.isProductRailEnabled && <GlobalThreadsLink/>}
                 <DraftsLink/>
                 <RecapsLink/>
                 <div
