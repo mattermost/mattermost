@@ -11,7 +11,8 @@ import {Combobox} from '@mattermost/compass-ui/components/combobox';
 import type {ComboboxOption} from '@mattermost/compass-ui/components/combobox';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 
-import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {get, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {getCurrentLocale} from 'selectors/i18n';
@@ -34,6 +35,13 @@ type Props = {
     onClose: () => void;
 };
 
+// Group mentions need a license, either for LDAP groups or for custom groups, so without one there are
+// no group mention keys and the option would only ever narrow the results to nothing.
+function areGroupMentionsAvailable(state: GlobalState) {
+    const license = getLicense(state);
+    return isCustomGroupsEnabled(state) || (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true');
+}
+
 // Combobox rejects empty option values, so All teams needs a sentinel mapped to null.
 const ALL_TEAMS_VALUE = 'all_teams';
 
@@ -47,6 +55,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
     const myTeams = useSelector(getMyTeams);
     const locale = useSelector(getCurrentLocale);
     const teamsOrder = useSelector((state: GlobalState) => get(state, Preferences.TEAMS_ORDER, '', ''));
+    const groupMentionsAvailable = useSelector(areGroupMentionsAvailable);
     const channels = useFilterableChannels(draftTeamId);
     const teamNames = useTeamNames();
 
@@ -175,7 +184,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                     />
                 </legend>
                 <div className='MentionFilters__choices'>
-                    {mentionTypeOrder.map((type) => (
+                    {mentionTypeOrder.filter((type) => type !== 'group' || groupMentionsAvailable).map((type) => (
                         <Checkbox
                             key={type}
                             className='MentionFilters__choice'

@@ -32,7 +32,7 @@ const state = {
     },
 };
 
-function setup(props: Partial<React.ComponentProps<typeof MentionFiltersPopover>> = {}) {
+function setup(props: Partial<React.ComponentProps<typeof MentionFiltersPopover>> = {}, general = {}) {
     const onApply = jest.fn();
     const onClose = jest.fn();
 
@@ -45,7 +45,7 @@ function setup(props: Partial<React.ComponentProps<typeof MentionFiltersPopover>
             onClose={onClose}
             {...props}
         />,
-        state,
+        {...state, entities: {...state.entities, general}},
     );
 
     return {onApply, onClose};
@@ -131,5 +131,24 @@ describe('MentionFiltersPopover', () => {
 
         expect(screen.queryByTestId('mentionFiltersTeamSelector')).not.toBeInTheDocument();
         expect(screen.getByRole('combobox', {name: 'Channel or Direct Messages'})).toBeInTheDocument();
+    });
+
+    test('hides the group mentions option without a license for groups', () => {
+        setup();
+
+        expect(screen.getByLabelText('Directly mentioning you')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Group mentions')).not.toBeInTheDocument();
+    });
+
+    test('shows the group mentions option when custom groups are enabled', () => {
+        setup({}, {config: {EnableCustomGroups: 'true'}});
+
+        expect(screen.getByLabelText('Group mentions')).toBeInTheDocument();
+    });
+
+    test('shows the group mentions option when licensed for LDAP groups', () => {
+        setup({}, {license: {IsLicensed: 'true', LDAPGroups: 'true'}});
+
+        expect(screen.getByLabelText('Group mentions')).toBeInTheDocument();
     });
 });
