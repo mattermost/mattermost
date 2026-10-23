@@ -847,6 +847,22 @@ describe('components/integrations/bots/AddBot', () => {
             expect(historyMock.push).not.toHaveBeenCalled();
         });
 
+        test('a retry after a partial failure does not repeat the saved subscription change', async () => {
+            const updateUserRoles = jest.fn().mockResolvedValue({error: {message: 'Denied'}});
+            const botActions = renderForm({bot: editBot, roles: 'system_user'}, {updateUserRoles, getBotEventSubscription: jest.fn().mockResolvedValue({data: subscription})});
+
+            await waitFor(() => expect(screen.getByLabelText('Callback URL')).toBeInTheDocument());
+            chooseMode('None');
+            fireEvent.change(document.querySelector('select')!, {target: {value: 'System Admin'}});
+            submit('Update');
+            expect(await screen.findByText(/its role and post permissions could not be saved/)).toBeInTheDocument();
+            submit('Update');
+
+            await waitFor(() => expect(updateUserRoles).toHaveBeenCalledTimes(2));
+            expect(botActions.deleteBotEventSubscription).toHaveBeenCalledTimes(1);
+            expect(screen.queryByText(/event delivery settings could not be saved/)).not.toBeInTheDocument();
+        });
+
         test('a failed subscription load hides the section and saves no change', async () => {
             const botActions = renderForm({bot: editBot}, {getBotEventSubscription: jest.fn().mockResolvedValue({error: {message: 'boom'}})});
 

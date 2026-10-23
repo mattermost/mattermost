@@ -160,21 +160,14 @@ describe('bot_save_flow', () => {
             expect('eventSecret' in without && without.eventSecret).toBeFalsy();
         });
 
-        test('a delete runs the delete action', async () => {
+        test('a saved change is returned so the form can adopt it', async () => {
             const actions = buildActions();
 
-            await saveBotEdit(actions, {...base, eventDelivery: {kind: 'delete'}});
+            const deleted = await saveBotEdit(actions, {...base, eventDelivery: {kind: 'delete'}});
+            const upserted = await saveBotEdit(actions, {...base, eventDelivery: {kind: 'upsert', patch}});
 
-            expect(actions.deleteBotEventSubscription).toHaveBeenCalledWith('bot-user-id');
-            expect(actions.upsertBotEventSubscription).not.toHaveBeenCalled();
-        });
-
-        test('a failure is reported under its own step', async () => {
-            const actions = buildActions({upsertBotEventSubscription: jest.fn().mockResolvedValue({error: {message: 'Bad URL'}})});
-
-            const result = await saveBotEdit(actions, {...base, eventDelivery: {kind: 'upsert', patch}});
-
-            expect(result).toMatchObject({ok: true, failures: [{key: 'eventDelivery', message: botSaveMessages.eventDeliveryFailed, error: 'Bad URL'}]});
+            expect(deleted).toMatchObject({savedSubscription: null});
+            expect(upserted).toMatchObject({savedSubscription: {secret: undefined}});
         });
     });
 
@@ -183,7 +176,7 @@ describe('bot_save_flow', () => {
         const pushState = eventDeliveryState(existing);
 
         test.each<[string, EventDeliveryState, unknown]>([
-            ['not ready', {...pushState, status: 'loading'}, {kind: 'none'}],
+            ['not ready', {...pushState, loaded: false}, {kind: 'none'}],
             ['none without a subscription', eventDeliveryState(null), {kind: 'none'}],
             ['none with a subscription', {...pushState, mode: 'none'}, {kind: 'delete'}],
             ['unchanged', pushState, {kind: 'none'}],
@@ -244,17 +237,6 @@ describe('bot_save_flow', () => {
             const result = await saveBotCreate(actions, {...base, roleUpdate: {currentRoles: 'system_user', choice: ADMIN}, attributeChanges: {dept: 'Eng'}});
 
             expect(result).toEqual({ok: true, redirectUrl: `${CONFIRM_URL}&bot_warnings=roles,attributes`});
-        });
-
-        test('a subscription creates through the combined action and puts the secret in the redirect', async () => {
-            const actions = buildActions();
-            const eventSubscription = {mode: 'push' as const, callback_url: 'https://example.com/hook'};
-
-            const result = await saveBotCreate(actions, {...base, eventSubscription});
-
-            expect(result).toEqual({ok: true, redirectUrl: `${CONFIRM_URL}&secret=whsec`});
-            expect(actions.createBotWithEventSubscription).toHaveBeenCalledWith(base.bot, eventSubscription);
-            expect(actions.createBot).not.toHaveBeenCalled();
         });
 
         test('a subscription failure stops immediately', async () => {

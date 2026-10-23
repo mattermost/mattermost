@@ -1,12 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessages} from 'react-intl';
+
 import type {BotEventSubscription, BotEventSubscriptionMode, BotEventSubscriptionPatch} from '@mattermost/types/bots';
 
 export type EventDeliveryMode = 'none' | BotEventSubscriptionMode;
 
+export const eventDeliveryModeMessages = defineMessages<EventDeliveryMode>({
+    none: {id: 'bot.add.event_delivery.none', defaultMessage: 'None'},
+    push: {id: 'bot.add.event_delivery.push', defaultMessage: 'Push'},
+    pull: {id: 'bot.add.event_delivery.pull', defaultMessage: 'Pull'},
+});
+
 export type EventDeliveryState = {
-    status: 'loading' | 'ready' | 'error';
+    loaded: boolean;
     existing: BotEventSubscription | null;
     mode: EventDeliveryMode;
     callbackUrl: string;
@@ -17,7 +25,7 @@ export type EventDeliveryChange = {kind: 'none'} | {kind: 'delete'} | {kind: 'up
 
 export function eventDeliveryState(sub: BotEventSubscription | null): EventDeliveryState {
     return {
-        status: 'ready',
+        loaded: true,
         existing: sub,
         mode: sub?.mode ?? 'none',
         callbackUrl: sub?.callback_url ?? '',
@@ -42,7 +50,7 @@ export function eventDeliveryPatch(state: EventDeliveryState): BotEventSubscript
 }
 
 export function planEventDeliveryChange(state: EventDeliveryState): EventDeliveryChange {
-    if (state.status !== 'ready') {
+    if (!state.loaded) {
         return {kind: 'none'};
     }
     const patch = eventDeliveryPatch(state);

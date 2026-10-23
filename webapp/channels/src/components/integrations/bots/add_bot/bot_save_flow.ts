@@ -191,17 +191,23 @@ async function saveBotDetails(actions: BotSaveActions, userId: string, input: Bo
 
 export type BotSaveFailure = {key: BotSaveStep; message: MessageDescriptor; error: string};
 
-export type BotEditResult = {ok: false; error: string} | {ok: true; failures: BotSaveFailure[]; savedAttributes: BotAttributeValues; eventSecret?: string};
+export type BotEditResult = {ok: false; error: string} | {ok: true; failures: BotSaveFailure[]; savedAttributes: BotAttributeValues; eventSecret?: string; savedSubscription?: BotEventSubscription | null};
 
-async function saveEventDelivery(actions: BotSaveActions, userId: string, change: EventDeliveryChange): Promise<{error?: string; secret?: string}> {
+type EventDeliveryOutcome = {error?: string; secret?: string; saved?: BotEventSubscription | null};
+
+async function saveEventDelivery(actions: BotSaveActions, userId: string, change: EventDeliveryChange): Promise<EventDeliveryOutcome> {
     switch (change.kind) {
     case 'none':
         return {};
-    case 'delete':
-        return {error: stepError(await actions.deleteBotEventSubscription(userId))};
+    case 'delete': {
+        const error = stepError(await actions.deleteBotEventSubscription(userId));
+        return error === undefined ? {saved: null} : {error};
+    }
     case 'upsert': {
         const result = await actions.upsertBotEventSubscription(userId, change.patch);
-        return {error: stepError(result), secret: result?.data?.secret};
+        const error = stepError(result);
+        const data = result?.data;
+        return error === undefined && data ? {saved: {...data, secret: undefined}, secret: data.secret} : {error};
     }
     default: {
         const unhandled: never = change;
@@ -229,7 +235,7 @@ export async function saveBotEdit(actions: BotSaveActions, input: BotSaveInput &
         return error === undefined ? [] : [{key, message: botSaveMessages[`${key}Failed` as const], error}];
     });
 
-    return {ok: true, failures, savedAttributes: errors.attributes === undefined ? input.attributeChanges : {}, eventSecret: eventDelivery.secret};
+    return {ok: true, failures, savedAttributes: errors.attributes === undefined ? input.attributeChanges : {}, eventSecret: eventDelivery.secret, savedSubscription: eventDelivery.saved};
 }
 
 export type BotCreateResult = {ok: false; error: string} | {ok: true; redirectUrl: string};

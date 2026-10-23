@@ -58,6 +58,7 @@ func newBotEventReceiver(secret string, events chan<- *model.BotEventEnvelope) h
 		seen[event.EventId] = true
 		mut.Unlock()
 
+		// A production receiver should hand the event to durable storage and expire old event ids.
 		if !duplicate {
 			events <- &event
 		}

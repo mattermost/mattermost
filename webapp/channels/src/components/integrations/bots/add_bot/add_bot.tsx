@@ -163,7 +163,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
             expiryPreset: this.defaultExpiryPreset(),
             customExpiryDate: this.defaultCustomExpiryDate(),
             attributes: emptyAttributesState(this.props.attributesEnabled ? 'loading' : 'ready'),
-            eventDelivery: this.props.bot && this.props.eventDeliveryEnabled ? {...eventDeliveryState(null), status: 'loading'} : eventDeliveryState(null),
+            eventDelivery: this.props.bot && this.props.eventDeliveryEnabled ? {...eventDeliveryState(null), loaded: false} : eventDeliveryState(null),
             eventSecret: '',
         };
     }
@@ -202,12 +202,9 @@ export default class AddBot extends React.PureComponent<Props, State> {
             return;
         }
         const result = await this.props.actions.getBotEventSubscription(this.props.bot.user_id);
-        if (this.unmounted) {
-            return;
+        if (!this.unmounted && !result?.error) {
+            this.setState({eventDelivery: eventDeliveryState(result?.data ?? null)});
         }
-        this.setState((state) => ({
-            eventDelivery: result?.error ? {...state.eventDelivery, status: 'error'} : eventDeliveryState(result?.data ?? null),
-        }));
     };
 
     updateEventDelivery = (patch: Partial<EventDeliveryState>) => {
@@ -454,8 +451,11 @@ export default class AddBot extends React.PureComponent<Props, State> {
         if (this.unmounted) {
             return;
         }
-        const {failures, savedAttributes, eventSecret} = result;
-        this.setState((state) => ({attributes: markAttributesSaved(state.attributes, savedAttributes)}));
+        const {failures, savedAttributes, eventSecret, savedSubscription} = result;
+        this.setState((state) => ({
+            attributes: markAttributesSaved(state.attributes, savedAttributes),
+            eventDelivery: savedSubscription === undefined ? state.eventDelivery : eventDeliveryState(savedSubscription),
+        }));
         if (failures.length === 0 && eventSecret) {
             this.submitting = false;
             this.setState({eventSecret, adding: false});
@@ -596,18 +596,22 @@ export default class AddBot extends React.PureComponent<Props, State> {
             }
         }
 
+        const header = (
+            <BackstageHeader>
+                <Link to={`/${this.props.team.name}/integrations/bots`}>
+                    <FormattedMessage
+                        id='bots.manage.header'
+                        defaultMessage='Bot Accounts'
+                    />
+                </Link>
+                {subtitle}
+            </BackstageHeader>
+        );
+
         if (this.state.eventSecret) {
             return (
                 <div className='backstage-content'>
-                    <BackstageHeader>
-                        <Link to={`/${this.props.team.name}/integrations/bots`}>
-                            <FormattedMessage
-                                id='bots.manage.header'
-                                defaultMessage='Bot Accounts'
-                            />
-                        </Link>
-                        {subtitle}
-                    </BackstageHeader>
+                    {header}
                     <div className='backstage-form backstage-form__confirmation'>
                         <h4 className='backstage-form__title'>
                             <FormattedMessage
@@ -615,18 +619,19 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 defaultMessage='Setup Successful'
                             />
                         </h4>
-                        <BotEventSecret secret={this.state.eventSecret}/>
-                        <div className='backstage-form__footer'>
-                            <Link
-                                className={buttonClassNames({emphasis: 'primary'})}
-                                to={`/${this.props.team.name}/integrations/bots`}
-                            >
-                                <FormattedMessage
-                                    id='integrations.done'
-                                    defaultMessage='Done'
-                                />
-                            </Link>
-                        </div>
+                        <BotEventSecret secret={this.state.eventSecret}>
+                            <div className='mt-2'>
+                                <Link
+                                    className={buttonClassNames({emphasis: 'primary'})}
+                                    to={`/${this.props.team.name}/integrations/bots`}
+                                >
+                                    <FormattedMessage
+                                        id='integrations.done'
+                                        defaultMessage='Done'
+                                    />
+                                </Link>
+                            </div>
+                        </BotEventSecret>
                     </div>
                 </div>
             );
@@ -634,15 +639,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
 
         return (
             <div className='backstage-content'>
-                <BackstageHeader>
-                    <Link to={`/${this.props.team.name}/integrations/bots`}>
-                        <FormattedMessage
-                            id='bots.manage.header'
-                            defaultMessage='Bot Accounts'
-                        />
-                    </Link>
-                    {subtitle}
-                </BackstageHeader>
+                {header}
                 <div className='backstage-form'>
                     <form
                         className='form-horizontal'

@@ -2,18 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 
+import {eventDeliveryModeMessages} from './bot_event_delivery';
 import type {EventDeliveryMode, EventDeliveryState} from './bot_event_delivery';
 
-export const eventDeliveryModeMessages = defineMessages<EventDeliveryMode>({
-    none: {id: 'bot.add.event_delivery.none', defaultMessage: 'None'},
-    push: {id: 'bot.add.event_delivery.push', defaultMessage: 'Push'},
-    pull: {id: 'bot.add.event_delivery.pull', defaultMessage: 'Pull'},
-});
 const MODES = Object.keys(eventDeliveryModeMessages) as EventDeliveryMode[];
 
 type Props = {
@@ -23,7 +19,7 @@ type Props = {
 };
 
 export default function BotEventDeliverySection({state, disabled, onChange}: Props) {
-    if (state.status !== 'ready') {
+    if (!state.loaded) {
         return null;
     }
 

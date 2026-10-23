@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {defineMessages, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -11,8 +12,9 @@ import type {BotEventDisabledReason, BotEventSubscription} from '@mattermost/typ
 import {enableBotEventSubscription, getBotEventSubscription, regenerateBotEventSubscriptionSecret} from 'mattermost-redux/actions/bots';
 
 import ConfirmModal from 'components/confirm_modal';
+import Timestamp from 'components/timestamp';
 
-import {eventDeliveryModeMessages} from './add_bot/bot_event_delivery_section';
+import {eventDeliveryModeMessages} from './add_bot/bot_event_delivery';
 import BotEventSecret from './bot_event_secret';
 
 const messages = defineMessages({
@@ -32,21 +34,12 @@ const messages = defineMessages({
     close: {id: 'bot.create_token.close', defaultMessage: 'Close'},
 });
 
-function disabledReasonMessage(reason: BotEventDisabledReason) {
-    switch (reason) {
-    case 'delivery_failures':
-        return messages.deliveryFailures;
-    case 'callback_gone':
-        return messages.callbackGone;
-    case '':
-        return messages.unknownReason;
-    default: {
-        // Newer servers may send reasons this client doesn't know.
-        const unhandled: never = reason;
-        return unhandled && messages.unknownReason;
-    }
-    }
-}
+// A Record keeps this exhaustive over known reasons; newer servers may send others, hence the fallback at the use site.
+const disabledReasonMessages: Record<BotEventDisabledReason, MessageDescriptor> = {
+    '': messages.unknownReason,
+    delivery_failures: messages.deliveryFailures,
+    callback_gone: messages.callbackGone,
+};
 
 type Props = {
     botUserId: string;
@@ -89,7 +82,6 @@ export default function BotEventSubscriptionStatus({botUserId}: Props) {
         const result = await dispatch(regenerateBotEventSubscriptionSecret(botUserId));
         setError(result.error ? result.error.message : '');
         if (result.data) {
-            setSubscription(result.data);
             setSecret(result.data.secret ?? '');
         }
     };
@@ -106,28 +98,17 @@ export default function BotEventSubscriptionStatus({botUserId}: Props) {
                     <FormattedMessage {...(enabled ? messages.active : messages.disabled)}/>
                 </span>
                 {!enabled && (
-                    <span>{' '}<FormattedMessage {...disabledReasonMessage(subscription.disabled_reason)}/></span>
+                    <span>{' '}<FormattedMessage {...(disabledReasonMessages[subscription.disabled_reason] ?? messages.unknownReason)}/></span>
                 )}
             </div>
             <div className='light small'>
                 <FormattedMessage {...messages.lastDelivered}/>
                 {' '}
-                {lastDeliveredAt ? (
-                    <>
-                        <FormattedDate
-                            value={lastDeliveredAt}
-                            year='numeric'
-                            month='short'
-                            day='2-digit'
-                        />
-                        {' '}
-                        <FormattedTime value={lastDeliveredAt}/>
-                    </>
-                ) : (
+                {lastDeliveredAt ? <Timestamp value={lastDeliveredAt}/> : (
                     <FormattedMessage {...messages.never}/>
                 )}
             </div>
-            <div className='item-actions'>
+            <div className='mt-1'>
                 {!enabled && (
                     <button
                         className='style--none color--link'
@@ -136,6 +117,7 @@ export default function BotEventSubscriptionStatus({botUserId}: Props) {
                         <FormattedMessage {...messages.enable}/>
                     </button>
                 )}
+                {!enabled && mode === 'push' && ' - '}
                 {mode === 'push' && (
                     <button
                         className='style--none color--link'

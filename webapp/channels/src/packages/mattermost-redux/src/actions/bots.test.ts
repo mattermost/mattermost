@@ -174,6 +174,7 @@ describe('Actions.Bots', () => {
             const result = await store.dispatch(BotActions.getBotEventSubscription('bot1'));
 
             expect(result).toEqual({data: null});
+            expect(store.getState().errors).toEqual([]);
         });
     });
 });

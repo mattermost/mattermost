@@ -86,11 +86,11 @@ func withClock(c *fakeBotEventClock) func(*botEventDispatcher) {
 	return func(d *botEventDispatcher) { d.now = c.Now }
 }
 
-// seedPushSubscription stores a push subscription directly, skipping URL verification.
 func withMetrics(m einterfaces.MetricsInterface) func(*botEventDispatcher) {
 	return func(d *botEventDispatcher) { d.metrics = func() einterfaces.MetricsInterface { return m } }
 }
 
+// seedPushSubscription stores a push subscription directly, skipping URL verification.
 func seedPushSubscription(t *testing.T, th *TestHelper, botID, callbackURL string) *model.BotEventSubscription {
 	t.Helper()
 
