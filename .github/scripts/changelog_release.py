@@ -651,15 +651,19 @@ class DocsSite:
         self._anchors[path] = anchors
         return anchors
 
-    def check(self, url: str) -> str | None:
-        """Why ``url`` does not resolve, or None when it does (or is not checked)."""
-        match = DOCS_URL_RE.match(url)
+    def resolve(self, url: str) -> tuple[str | None, str | None]:
+        """(the docs file ``url`` is served from, why it does not resolve).
+
+        Both are None for a link that is not checked: another site, or the API
+        reference, which is generated at build time.
+        """
+        match = DOCS_URL_RE.fullmatch(url)
         if not match:
-            return None
+            return None, None
         path, anchor = _site_path(match.group("path")), match.group("anchor") or ""
         anchor = re.sub(r"\.html$", "", anchor)
         if path == "/api" or path.startswith("/api/"):
-            return None
+            return None, None
         for _ in range(5):
             if path in self.pages or path not in self.redirects:
                 break
@@ -667,10 +671,18 @@ class DocsSite:
             path, anchor = _site_path(target), anchor or re.sub(r"\.html$", "", redirect_anchor)
         page = self.pages.get(path)
         if page is None:
-            return f"no docs page is served at {path}"
+            return None, f"no docs page is served at {path}"
         if anchor and anchor not in self.anchors(page):
-            return f"{page} has no heading or id that gives #{anchor}"
-        return None
+            return page, f"{page} has no heading or id that gives #{anchor}"
+        return page, None
+
+    def check(self, url: str) -> str | None:
+        """Why ``url`` does not resolve, or None when it does (or is not checked)."""
+        return self.resolve(url)[1]
+
+    def title(self, url: str) -> str | None:
+        page, _ = self.resolve(url)
+        return page_title(page, self.read(page)) if page else None
 
 
 def docs_urls(text: str) -> list[str]:

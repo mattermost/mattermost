@@ -21,10 +21,12 @@ Write a release note if this PR includes any of:
 * Deprecations, breaking changes, or compatibility notes.
 
 The release-note block must always be present. Use past tense. Write NONE if none of the above apply. Newlines are stripped.
+If a docs page documents the change, add it on its own line starting with "Docs:" so the changelog links it.
 
 Example:
 ```release-note
 Added new API endpoints POST /api/v4/foo and GET /api/v4/foo/:foo_id.
+Docs: https://docs.mattermost.com/administration-guide/manage/admin/foo
 ```
 
 ```release-note

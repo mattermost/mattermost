@@ -328,6 +328,25 @@ def _split_source(source: str) -> tuple[str, int]:
     return repo, int(number)
 
 
+_DOCS_LINE_RE = re.compile(r"(?im)^[ \t]*Docs:[ \t]*(.*?)[ \t]*$\n?")
+
+
+def split_docs_line(note: str) -> tuple[str, str | None]:
+    """A release note without its ``Docs: <url>`` line, and the docs URL that line names.
+
+    The author knows which page documents the change, so it outranks the docs page
+    found by following the PR. A path is taken as relative to docs.mattermost.com.
+    """
+    url = None
+    for value in _DOCS_LINE_RE.findall(note):
+        value = re.sub(r"^\[[^\]]*\]\((.*)\)$|^<(.*)>$", lambda m: m.group(1) or m.group(2), value.strip())
+        if value.startswith("/"):
+            value = changelog_release.DOCS_SITE + value
+        if url is None and changelog_release.DOCS_URL_RE.fullmatch(value):
+            url = value
+    return _DOCS_LINE_RE.sub("", note).strip(), url
+
+
 def extract_release_notes(body: str) -> list[str] | None:
     """The release notes in a PR body, or None when it has none (missing, NONE, N/A, empty)."""
     notes = [block for block in release_note_blocks(body) if block.upper() not in NO_NOTE_CONTENT]
@@ -1594,8 +1613,12 @@ def render_status(readiness: dict) -> list[str]:
         lines.append("")
 
     links, unclear = readiness.get("doc_links", []), readiness.get("doc_links_unclear", [])
-    if links or unclear:
-        lines += [f"### Doc links: {len(links)} found by following the PR to the docs it changed", ""]
+    named_broken = readiness.get("doc_links_named_broken", [])
+    if links or unclear or named_broken:
+        lines += [f"### Doc links: {len(links)} named on a Docs: line or found by following the PR to the docs it changed", ""]
+        for link in named_broken:
+            lines.append(_status_item("fail", f"Docs: line of {pr(link['source'])}", f"{link['url']}: {link['problem']}. "
+                                      "Fix the line in the PR's release note, then re-run."))
         for link in links:
             where = ""
             if "used_in" in link:
@@ -1772,6 +1795,7 @@ def main():
     note_quality = []
     milestone_prs = {}
     private_repos = []
+    named_docs = {}
 
     for repo in REPOS:
         print(f"── {repo}")
@@ -1805,6 +1829,11 @@ def main():
             merged_at = (pr.get("pull_request") or {}).get("merged_at")
             if notes:
                 for note in notes:
+                    note, named_url = split_docs_line(note)
+                    if named_url:
+                        named_docs.setdefault(source, named_url)
+                    if not note:
+                        continue
                     all_notes.append({"source": source, "text": note, "merged_at": merged_at})
                     issue = note_quality_issue(note)
                     if issue:
@@ -1840,6 +1869,29 @@ def main():
     docs_links = find_docs_links(
         milestone_prs, noted, lambda path: changelog_release.git_show(docs_ref, path)
     ) if noted else {}
+    site_cache = {}
+
+    def site():
+        if "site" not in site_cache:
+            site_cache["site"] = docs_site(docs_ref)
+        return site_cache["site"]
+
+    # The Docs: line outranks the page found by following the PR, if it reaches one.
+    named_broken = []
+    for source, url in sorted(named_docs.items()):
+        if source not in noted:
+            continue
+        basis = "named on the Docs: line of the PR's release note"
+        try:
+            problem, title = site().check(url), site().title(url)
+        except RuntimeError as err:
+            problem, title = None, None
+            basis += f" (not checked: {err})"
+        if problem:
+            named_broken.append({"source": source, "url": url, "problem": problem})
+            print(f"::warning title=Docs line link is broken::{source} names {url}: {problem}")
+        else:
+            docs_links[source] = {"url": url, "title": title, "basis": basis}
     for note in all_notes:
         note["docs_url"] = docs_links.get(note["source"], {}).get("url")
     linked = {source: link for source, link in docs_links.items() if link.get("url")}
@@ -1974,6 +2026,7 @@ def main():
         "note_quality": note_quality,
         "doc_links": [{"source": source, **link} for source, link in docs_links.items() if link.get("url")],
         "doc_links_unclear": [{"source": source, **link} for source, link in docs_links.items() if link.get("candidates")],
+        "doc_links_named_broken": named_broken,
         "gaps": gap_status(derived, bool(base_ref and head_ref), go_version, go_source, previous_go, entry_go),
         "reconciled": reconciled,
     }
@@ -2141,9 +2194,8 @@ def main():
     readiness["broken_links"] = []
     if urls:
         try:
-            site = docs_site(docs_ref)
             readiness["broken_links"] = changelog_release.broken_links(
-                [("entry.mdx", number, line) for number, line in enumerate(entry.split("\n"), start=1)], site)
+                [("entry.mdx", number, line) for number, line in enumerate(entry.split("\n"), start=1)], site())
         except RuntimeError as err:
             readiness["broken_links"] = None
             print(f"::warning title=Docs links not checked::{err}")

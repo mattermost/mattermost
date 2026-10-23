@@ -307,6 +307,16 @@ class ReleaseNoteFlagTest(unittest.TestCase):
         unchecked = {g["section"]: g["status"] for g in gc.gap_status([], False, "", None, None)}
         self.assertEqual(set(unchecked.values()), {"not_yet_checked"})
 
+    def test_docs_line_is_split_from_the_note(self):
+        site = "https://docs.mattermost.com"
+        self.assertEqual(gc.split_docs_line("Added a thing.\nDocs: https://docs.mattermost.com/a/b#c"),
+                         ("Added a thing.", f"{site}/a/b#c"))
+        self.assertEqual(gc.split_docs_line("Added a thing.\n  docs: /a/b  "), ("Added a thing.", f"{site}/a/b"))
+        self.assertEqual(gc.split_docs_line("Added a thing.\nDocs: [page](https://docs.mattermost.com/a)"),
+                         ("Added a thing.", f"{site}/a"))
+        self.assertEqual(gc.split_docs_line("Added a thing.\nDocs: N/A"), ("Added a thing.", None))
+        self.assertEqual(gc.split_docs_line("Added a thing."), ("Added a thing.", None))
+
     def test_private_repo_links_say_so(self):
         private = ["mattermost/enterprise"]
         self.assertEqual(gc._pr_link("mattermost/enterprise#7", private),
@@ -479,6 +489,39 @@ class MainTest(unittest.TestCase):
         self.assertEqual(link["used_in"], ["Administration"])
         self.assertIn("changed in the same PR, which added the page", link["basis"])
         self.assertIn(f"is documented in [Feature]({url}) (`/administration-guide/manage/admin/feature`) (linked in Administration)", (self.out / "summary.md").read_text())
+
+    def test_docs_line_outranks_the_followed_page_and_is_checked(self):
+        self.details[1] = {"head_ref": "MM-123-feature", "files": [{
+            "filename": "docs/main/administration-guide/manage/admin/feature.mdx", "status": "added",
+            "patch": "+# Feature\n+\n+Use the feature.\n",
+        }]}
+        pages = {
+            "docs/main/administration-guide/manage/admin/feature.mdx": "---\ntitle: Feature\n---\n# Feature\n",
+            "docs/main/end-user-guide/named.mdx": "---\ntitle: Named page\n---\n## Turn it on\n",
+        }
+        gc.changelog_release.git_show = lambda ref, path: pages.get(path, "FROM golang:1.27.1-bookworm\n")
+        self.site_pages.update(pages)
+        self.prs[0]["body"] = NOTE_BODY.replace("Added a thing.", "Added the first thing.\nDocs: /end-user-guide/named#turn-it-on")
+        self.prs[1]["body"] = NOTE_BODY.replace("Added a thing.", "Fixed an issue found later.\nDocs: /end-user-guide/named#gone")
+        sent = []
+
+        def polish(notes):
+            sent.extend(notes)
+            return "### Improvements\n\n#### Administration\n" + "".join(f" - {n['text']} [[{n['id']}]]\n" for n in notes), True
+        gc.polish_with_ai = polish
+        gc.main()
+        named = "https://docs.mattermost.com/end-user-guide/named#turn-it-on"
+        self.assertEqual([n["text"] for n in sent][:2], ["Added the first thing.", "Fixed an issue found later."])
+        self.assertEqual([n.get("docs_url") for n in sent][:2], [named, None])
+        readiness = self._payload()["readiness"]
+        self.assertEqual(readiness["doc_links"], [{
+            "source": "mattermost/mattermost#1", "url": named, "title": "Named page",
+            "basis": "named on the Docs: line of the PR's release note", "used_in": [],
+        }])
+        self.assertEqual(readiness["doc_links_named_broken"][0]["source"], "mattermost/mattermost#2")
+        self.assertNotIn("Docs:", self.changelog.read_text())
+        summary = (self.out / "summary.md").read_text()
+        self.assertIn("❌ **Docs: line of [mattermost/mattermost#2](https://github.com/mattermost/mattermost/pull/2)** (fail)", summary)
 
     def test_broken_docs_link_in_the_generated_text_is_reported(self):
         gc.polish_with_ai = lambda notes: ((
