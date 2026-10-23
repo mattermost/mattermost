@@ -4675,7 +4675,7 @@ func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetMaxPostSize(t *testing.T, _ request.CTX, ss store.Store) {
-	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
+	assert.Equal(t, model.PostMessageMaxRunesV3, ss.Post().GetMaxPostSize())
 }
 
 func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss store.Store) {
