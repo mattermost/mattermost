@@ -41,12 +41,16 @@ const (
 
 // Bots
 const (
-	AuditEventAssignBot        = "assignBot"        // assign bot to user
-	AuditEventConvertBotToUser = "convertBotToUser" // convert bot account to regular user account
-	AuditEventConvertUserToBot = "convertUserToBot" // convert regular user account to bot account
-	AuditEventCreateBot        = "createBot"        // create bot account
-	AuditEventPatchBot         = "patchBot"         // update bot properties
-	AuditEventUpdateBotActive  = "updateBotActive"  // enable or disable bot account
+	AuditEventAssignBot                            = "assignBot"                            // assign bot to user
+	AuditEventConvertBotToUser                     = "convertBotToUser"                     // convert bot account to regular user account
+	AuditEventConvertUserToBot                     = "convertUserToBot"                     // convert regular user account to bot account
+	AuditEventCreateBot                            = "createBot"                            // create bot account
+	AuditEventDeleteBotEventSubscription           = "deleteBotEventSubscription"           // delete bot event subscription
+	AuditEventEnableBotEventSubscription           = "enableBotEventSubscription"           // re-enable bot event subscription
+	AuditEventPatchBot                             = "patchBot"                             // update bot properties
+	AuditEventRegenerateBotEventSubscriptionSecret = "regenerateBotEventSubscriptionSecret" // regenerate bot event subscription secret
+	AuditEventUpdateBotActive                      = "updateBotActive"                      // enable or disable bot account
+	AuditEventUpdateBotEventSubscription           = "updateBotEventSubscription"           // create or update bot event subscription
 )
 
 // Branding

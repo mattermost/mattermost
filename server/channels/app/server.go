@@ -40,6 +40,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/bot_events_cleanup"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_expired_access_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_dms_preferences_migration"
@@ -122,6 +123,8 @@ type Server struct {
 
 	timezones *timezones.Timezones
 
+	botEvents *botEventService
+
 	htmlTemplates           *templates.Container
 	seenPendingPostIdsCache cache.Cache
 	openGraphDataCache      cache.Cache
@@ -202,6 +205,7 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:  rootRouter,
 		LocalRouter: localRouter,
 		timezones:   timezones.New(),
+		botEvents:   newBotEventService(),
 	}
 
 	for _, option := range options {
@@ -853,6 +857,8 @@ func (s *Server) Shutdown() {
 	}
 	s.serviceMux.RUnlock()
 
+	// Release long-polls first: StopHTTPServer only waits a second before force-closing connections.
+	s.botEvents.shutdown()
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
 	// Push notification hub needs to be shutdown after HTTP server
@@ -1834,6 +1840,12 @@ func (s *Server) initJobs() {
 		model.JobTypeCleanupExpiredAccessTokens,
 		cleanup_expired_access_tokens.MakeWorker(s.Jobs, s.platform.ClearUserSessionCache, New(ServerConnector(s.Channels())).NotifyExpiredAccessTokensDeleted),
 		cleanup_expired_access_tokens.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeBotEventsCleanup,
+		bot_events_cleanup.MakeWorker(s.Jobs),
+		bot_events_cleanup.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(

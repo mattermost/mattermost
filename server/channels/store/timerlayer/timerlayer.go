@@ -23,6 +23,8 @@ type TimerLayer struct {
 	AuditStore                      store.AuditStore
 	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
+	BotEventStore                   store.BotEventStore
+	BotEventSubscriptionStore       store.BotEventSubscriptionStore
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
 	ChannelGuardStore               store.ChannelGuardStore
@@ -101,6 +103,14 @@ func (s *TimerLayer) AutoTranslation() store.AutoTranslationStore {
 
 func (s *TimerLayer) Bot() store.BotStore {
 	return s.BotStore
+}
+
+func (s *TimerLayer) BotEvent() store.BotEventStore {
+	return s.BotEventStore
+}
+
+func (s *TimerLayer) BotEventSubscription() store.BotEventSubscriptionStore {
+	return s.BotEventSubscriptionStore
 }
 
 func (s *TimerLayer) Channel() store.ChannelStore {
@@ -357,6 +367,16 @@ type TimerLayerAutoTranslationStore struct {
 
 type TimerLayerBotStore struct {
 	store.BotStore
+	Root *TimerLayer
+}
+
+type TimerLayerBotEventStore struct {
+	store.BotEventStore
+	Root *TimerLayer
+}
+
+type TimerLayerBotEventSubscriptionStore struct {
+	store.BotEventSubscriptionStore
 	Root *TimerLayer
 }
 
@@ -1358,6 +1378,262 @@ func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.Update", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerBotEventStore) CountAfterCursor(rctx request.CTX, botUserID string, after model.BotEventCursor) (int64, error) {
+	start := time.Now()
+
+	result, err := s.BotEventStore.CountAfterCursor(rctx, botUserID, after)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.CountAfterCursor", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventStore) DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (map[string]model.BotEventCursor, int64, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.BotEventStore.DeleteOlderThan(rctx, createAtBefore, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.DeleteOlderThan", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
+func (s *TimerLayerBotEventStore) DeleteUpToCursor(rctx request.CTX, botUserID string, upTo model.BotEventCursor, limit int) (int64, error) {
+	start := time.Now()
+
+	result, err := s.BotEventStore.DeleteUpToCursor(rctx, botUserID, upTo, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.DeleteUpToCursor", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventStore) GetAfterCursor(rctx request.CTX, botUserID string, after model.BotEventCursor, settleWindowMillis int64, limit int) ([]*model.BotEvent, error) {
+	start := time.Now()
+
+	result, err := s.BotEventStore.GetAfterCursor(rctx, botUserID, after, settleWindowMillis, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.GetAfterCursor", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventStore) GetBacklogCutoff(rctx request.CTX, botUserID string, keep int) (*model.BotEventCursor, error) {
+	start := time.Now()
+
+	result, err := s.BotEventStore.GetBacklogCutoff(rctx, botUserID, keep)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.GetBacklogCutoff", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventStore) Save(rctx request.CTX, events []*model.BotEvent) ([]*model.BotEvent, error) {
+	start := time.Now()
+
+	result, err := s.BotEventStore.Save(rctx, events)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) AdvanceAckCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) (bool, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.AdvanceAckCursor(rctx, botUserID, cursor, deliveredAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.AdvanceAckCursor", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) AdvanceTruncatedCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor) (bool, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.AdvanceTruncatedCursor(rctx, botUserID, cursor)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.AdvanceTruncatedCursor", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) Delete(rctx request.CTX, botUserID string) error {
+	start := time.Now()
+
+	err := s.BotEventSubscriptionStore.Delete(rctx, botUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) Get(rctx request.CTX, botUserID string) (*model.BotEventSubscription, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.Get(rctx, botUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) GetForBots(rctx request.CTX, botUserIDs []string) ([]*model.BotEventSubscription, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.GetForBots(rctx, botUserIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.GetForBots", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) GetPage(rctx request.CTX, afterBotUserID string, limit int) ([]*model.BotEventSubscription, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.GetPage(rctx, afterBotUserID, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.GetPage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) Save(rctx request.CTX, sub *model.BotEventSubscription) (*model.BotEventSubscription, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.Save(rctx, sub)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) SetEnabled(rctx request.CTX, botUserID string, enabled bool, reason string, updateAt int64) error {
+	start := time.Now()
+
+	err := s.BotEventSubscriptionStore.SetEnabled(rctx, botUserID, enabled, reason, updateAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.SetEnabled", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) Update(rctx request.CTX, sub *model.BotEventSubscription) (*model.BotEventSubscription, error) {
+	start := time.Now()
+
+	result, err := s.BotEventSubscriptionStore.Update(rctx, sub)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotEventSubscriptionStore) UpdateSecret(rctx request.CTX, botUserID string, secret string, updateAt int64) error {
+	start := time.Now()
+
+	err := s.BotEventSubscriptionStore.UpdateSecret(rctx, botUserID, secret, updateAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotEventSubscriptionStore.UpdateSecret", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerChannelStore) AnalyticsCountAll(teamID string) (map[model.ChannelType]int64, error) {
@@ -16464,6 +16740,8 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.AuditStore = &TimerLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.AutoTranslationStore = &TimerLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
+	newStore.BotEventStore = &TimerLayerBotEventStore{BotEventStore: childStore.BotEvent(), Root: &newStore}
+	newStore.BotEventSubscriptionStore = &TimerLayerBotEventSubscriptionStore{BotEventSubscriptionStore: childStore.BotEventSubscription(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &TimerLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
 	newStore.ChannelGuardStore = &TimerLayerChannelGuardStore{ChannelGuardStore: childStore.ChannelGuard(), Root: &newStore}

@@ -5,6 +5,11 @@
       summary: Create a bot
       description: |
         Create a new bot account on the system. Username is required.
+
+        An `event_subscription` can be provided to create the bot together with its event
+        subscription. In that case the session must also have the `manage_bots` permission and
+        must not be an OAuth session, because the response contains the subscription secret.
+
         ##### Permissions
         Must have `create_bot` permission.
         __Minimum server version__: 5.10
@@ -25,9 +30,14 @@
                     type: string
                   description:
                     type: string
+                  event_subscription:
+                    $ref: "#/components/schemas/BotEventSubscriptionPatch"
       responses:
         "201":
-          description: Bot creation successful
+          description: >
+            Bot creation successful. When `event_subscription` was provided, the response also
+            contains the created `event_subscription`, including its `secret`, which cannot be
+            retrieved again.
           content:
             application/json:
               schema:
@@ -349,3 +359,280 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/bots/{bot_user_id}/event_subscription":
+    put:
+      tags:
+        - bots
+      summary: Create or update the event subscription of a bot
+      description: |
+        Create the event subscription of a bot, or update it when one exists. A subscription lets
+        the bot receive the posts it is a recipient of (direct messages, group messages, mentions and
+        replies in threads it follows) and reactions on those posts. A bot has at most one
+        subscription.
+
+        Only `pull` mode is currently available: the bot fetches its events with
+        `GET /api/v4/bots/{bot_user_id}/events`. Requesting `push` mode returns a 400 error.
+
+        When the subscription is created, the response has status 201 and contains the `secret`. The secret
+        is not returned again, except by the regenerate secret endpoint. Updating returns status 200
+        without the secret.
+
+        System-owned bots cannot have an event subscription.
+
+        ##### Permissions
+        Must have `manage_bots` permission for bots you own, and `manage_others_bots` permission for bots
+        others own. OAuth sessions are not allowed.
+
+        __Minimum server version__: 12.2
+      operationId: UpsertBotEventSubscription
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Event subscription to create or change. `mode` is required when creating.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotEventSubscriptionPatch"
+      responses:
+        "200":
+          description: Event subscription updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotEventSubscription"
+        "201":
+          description: Event subscription created. Includes the secret.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotEventSubscription"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    get:
+      tags:
+        - bots
+      summary: Get the event subscription of a bot
+      description: |
+        Get the event subscription of a bot, including the number of events waiting to be received
+        (`backlog_size`). The secret is not included.
+
+        ##### Permissions
+        Must have `manage_bots` permission for bots you own, and `manage_others_bots` permission for bots
+        others own.
+
+        __Minimum server version__: 12.2
+      operationId: GetBotEventSubscription
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event subscription retrieval successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotEventSubscription"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - bots
+      summary: Delete the event subscription of a bot
+      description: |
+        Delete the event subscription of a bot together with all of its pending events.
+
+        ##### Permissions
+        Must have `manage_bots` permission for bots you own, and `manage_others_bots` permission for bots
+        others own.
+
+        __Minimum server version__: 12.2
+      operationId: DeleteBotEventSubscription
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event subscription deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/bots/{bot_user_id}/event_subscription/regenerate_secret":
+    post:
+      tags:
+        - bots
+      summary: Regenerate the secret of a bot event subscription
+      description: |
+        Replace the secret of the event subscription with a new one and return it. The previous
+        secret stops being valid immediately.
+
+        ##### Permissions
+        Must have `manage_bots` permission for bots you own, and `manage_others_bots` permission for bots
+        others own. OAuth sessions are not allowed.
+
+        __Minimum server version__: 12.2
+      operationId: RegenerateBotEventSubscriptionSecret
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Secret regenerated. The response includes the new secret.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotEventSubscription"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/bots/{bot_user_id}/event_subscription/enable":
+    post:
+      tags:
+        - bots
+      summary: Enable a bot event subscription
+      description: |
+        Re-enable a disabled event subscription and reset its delivery failure state. Enabling a
+        subscription that is already enabled has no effect.
+
+        ##### Permissions
+        Must have `manage_bots` permission for bots you own, and `manage_others_bots` permission for bots
+        others own.
+
+        __Minimum server version__: 12.2
+      operationId: EnableBotEventSubscription
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event subscription enabled.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotEventSubscription"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/bots/{bot_user_id}/events":
+    get:
+      tags:
+        - bots
+      summary: Pull the events of a bot
+      description: |
+        Get the events waiting for a bot with a `pull` event subscription, oldest first.
+
+        Delivery is at-least-once. Events are ordered by `(created_at, event_id)`, and an event only
+        becomes readable about one second after it was created, so that events from concurrently
+        running servers are never skipped. Expect a latency of roughly one second. This relies on
+        every event being committed within one second of its creation, which holds under normal
+        database load.
+
+        Passing the `next_cursor` of a previous response as `cursor` acknowledges every event up
+        to it; acknowledged events are never returned again. Without a `cursor` nothing is acknowledged
+        and the same events are returned again. The server keeps at most 10000 unacknowledged events
+        per bot, for at most 7 days. When events were dropped, the first event that follows has
+        `backlog_truncated` set to true, and the bot should resynchronize through the REST API.
+        A reverse proxy in front of the server must allow requests to last as long as `wait`.
+
+        With `wait`, the request is held until events are available or the wait elapses, whichever
+        comes first, and responds with an empty list in the latter case. The wait is limited to 60 seconds
+        and to the server's write timeout minus 5 seconds. At most 5 waiting requests per bot are
+        accepted on each server.
+
+        ##### Permissions
+        The request must be made with a session of the bot itself, for example one of its personal
+        access tokens.
+
+        __Minimum server version__: 12.2
+      operationId: GetBotEvents
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          description: >
+            The `next_cursor` of a previous response. Acknowledges all events up to it.
+            Must not be in the future.
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: The maximum number of events to return. Values above 500 are reduced to 500.
+          schema:
+            type: integer
+            default: 100
+        - name: wait
+          in: query
+          description: >
+            The number of seconds to wait for events when there are none. Values above 60 are
+            reduced to 60.
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Events retrieval successful. The list is empty when there are none.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotEventList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"

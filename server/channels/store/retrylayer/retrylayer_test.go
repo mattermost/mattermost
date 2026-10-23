@@ -32,6 +32,8 @@ func genStore() *mocks.Store {
 	mock.On("UploadSession").Return(&mocks.UploadSessionStore{})
 	mock.On("Group").Return(&mocks.GroupStore{})
 	mock.On("HealthFinding").Return(&mocks.HealthFindingStore{})
+	mock.On("BotEvent").Return(&mocks.BotEventStore{})
+	mock.On("BotEventSubscription").Return(&mocks.BotEventSubscriptionStore{})
 	mock.On("Job").Return(&mocks.JobStore{})
 	mock.On("License").Return(&mocks.LicenseStore{})
 	mock.On("LinkMetadata").Return(&mocks.LinkMetadataStore{})

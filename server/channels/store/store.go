@@ -108,6 +108,30 @@ type Store interface {
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
 	HealthFinding() HealthFindingStore
+	BotEvent() BotEventStore
+	BotEventSubscription() BotEventSubscriptionStore
+}
+
+type BotEventSubscriptionStore interface {
+	Save(rctx request.CTX, sub *model.BotEventSubscription) (*model.BotEventSubscription, error)
+	Get(rctx request.CTX, botUserID string) (*model.BotEventSubscription, error)
+	GetForBots(rctx request.CTX, botUserIDs []string) ([]*model.BotEventSubscription, error)
+	GetPage(rctx request.CTX, afterBotUserID string, limit int) ([]*model.BotEventSubscription, error)
+	Update(rctx request.CTX, sub *model.BotEventSubscription) (*model.BotEventSubscription, error)
+	UpdateSecret(rctx request.CTX, botUserID, secret string, updateAt int64) error
+	SetEnabled(rctx request.CTX, botUserID string, enabled bool, reason string, updateAt int64) error
+	AdvanceAckCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor, deliveredAt int64) (bool, error)
+	AdvanceTruncatedCursor(rctx request.CTX, botUserID string, cursor model.BotEventCursor) (bool, error)
+	Delete(rctx request.CTX, botUserID string) error
+}
+
+type BotEventStore interface {
+	Save(rctx request.CTX, events []*model.BotEvent) ([]*model.BotEvent, error)
+	GetAfterCursor(rctx request.CTX, botUserID string, after model.BotEventCursor, settleWindowMillis int64, limit int) ([]*model.BotEvent, error)
+	CountAfterCursor(rctx request.CTX, botUserID string, after model.BotEventCursor) (int64, error)
+	DeleteUpToCursor(rctx request.CTX, botUserID string, upTo model.BotEventCursor, limit int) (int64, error)
+	GetBacklogCutoff(rctx request.CTX, botUserID string, keep int) (*model.BotEventCursor, error)
+	DeleteOlderThan(rctx request.CTX, createAtBefore int64, limit int) (map[string]model.BotEventCursor, int64, error)
 }
 
 type HealthFindingStore interface {
