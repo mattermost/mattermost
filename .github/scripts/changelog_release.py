@@ -7,9 +7,9 @@ anything. Three entry points:
 
   resolve    - Work out which release a run is for (version, milestone, release type,
                mode, and the git refs to diff) and whether it should run at all.
-               Scheduled runs pass no inputs: the release is the oldest X.Y whose
-               release-X.Y branch has been cut but whose vX.Y.0 tag has not been
-               pushed, i.e. the window between branch cut and release day.
+               Scheduled runs pass no inputs: the release is the one between its
+               release-X.Y branch cut and its changelog entry being merged to master
+               (the vX.Y.0 tag is pushed about five working days before that).
   reviewers  - Print the reviewers to request for the sections a run touched.
 
 and, imported by generate_changelog.py, ``derived_notes()``: the changes a release
@@ -69,13 +69,19 @@ def parse_ls_remote(output: str) -> tuple[set, set]:
     return branches, tags
 
 
-def pending_release(branches: set, tags: set) -> tuple[int, int] | None:
-    """The next release: cut (branch exists) but not shipped (no vX.Y.0 tag).
+def pending_release(branches: set, tags: set, published=lambda release: False) -> tuple[int, int] | None:
+    """The release the changelog is being written for, or None.
 
-    A branch older than the newest shipped release is ignored, so an abandoned branch
-    left behind by a cancelled release cannot be picked up forever.
+    That is the newest tagged release while its entry is not on master yet (the final
+    build is tagged about five working days before the changelog is merged on release
+    day), else the oldest cut branch with no vX.Y.0 tag. ``published((major, minor))``
+    says whether the entry is on master. A branch older than the newest tagged release
+    is ignored, so an abandoned branch left behind by a cancelled release cannot be
+    picked up forever.
     """
     newest_shipped = max(tags) if tags else (0, 0)
+    if newest_shipped in branches and not published(newest_shipped):
+        return newest_shipped
     candidates = sorted(b for b in branches if b not in tags and b > newest_shipped)
     return candidates[0] if candidates else None
 
@@ -126,14 +132,20 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
     scheduled = env.get("EVENT_NAME") == "schedule"
 
     if scheduled:
-        pending = pending_release(branches, tags)
+        def published(release):
+            version = f"v{release[0]}.{release[1]}.0"
+            return has_entry(read_file(changelog_path(version)), version)
+
+        pending = pending_release(branches, tags, published)
         if not pending:
-            return {"run": "false", "reason": "No release branch is waiting for its vX.Y.0 tag."}
+            return {"run": "false", "reason": "No release is between its branch cut and its changelog being merged."}
         version = f"v{pending[0]}.{pending[1]}.0"
         milestone = version
         mode = (env.get("SCHEDULE_MODE") or "dry_run").strip()
     else:
-        version = (env.get("INPUT_VERSION") or "").strip()
+        # Normalized so "v13.0" cannot produce a "## Release v13" heading that also
+        # slips past the duplicate-entry check.
+        version = "v{}.{}.{}".format(*parse_version(env.get("INPUT_VERSION") or ""))
         milestone = (env.get("INPUT_MILESTONE") or "").strip() or version
         mode = (env.get("INPUT_MODE") or "auto").strip()
 
@@ -232,14 +244,17 @@ def plugin_packages(makefile: str) -> dict[str, str]:
     return packages
 
 
+def plugin_version_link(package: str, version: str) -> str:
+    return f"[{version}](https://github.com/mattermost/{package}/releases/tag/{version})"
+
+
 def plugin_notes(old: dict, new: dict) -> list[dict]:
     notes = []
     for package in sorted(new):
         version = new[package]
         if old.get(package) == version:
             continue
-        url = f"https://github.com/mattermost/{package}/releases/tag/{version}"
-        text = f"Pre-packaged {plugin_display_name(package)} plugin version [{version}]({url})."
+        text = f"Pre-packaged {plugin_display_name(package)} plugin version {plugin_version_link(package, version)}."
         notes.append({"source": f"plugin:{package}@{version}", "text": text, "fallback": text})
     for package in sorted(set(old) - set(new)):
         text = f"Removed the pre-packaged {plugin_display_name(package)} plugin; it is no longer included with the server."

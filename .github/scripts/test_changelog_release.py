@@ -30,9 +30,12 @@ def files(mapping):
     return lambda path: mapping.get(path)
 
 
+V12_PUBLISHED = files({"docs/main/product-overview/mattermost-v12-changelog.mdx": V12_ENTRY})
+
+
 class ResolveTest(unittest.TestCase):
     def test_schedule_picks_the_cut_but_unreleased_branch(self):
-        out = cr.resolve({"EVENT_NAME": "schedule"}, LS_REMOTE, files({}))
+        out = cr.resolve({"EVENT_NAME": "schedule"}, LS_REMOTE, V12_PUBLISHED)
         self.assertEqual(out["run"], "true")
         self.assertEqual(out["version"], "v12.1.0")
         self.assertEqual(out["milestone"], "v12.1.0")
@@ -44,23 +47,40 @@ class ResolveTest(unittest.TestCase):
         self.assertEqual(out["changelog"], "docs/main/product-overview/mattermost-v12-changelog.mdx")
 
     def test_schedule_mode_variable_enables_auto(self):
-        out = cr.resolve({"EVENT_NAME": "schedule", "SCHEDULE_MODE": "auto"}, LS_REMOTE, files({}))
+        out = cr.resolve({"EVENT_NAME": "schedule", "SCHEDULE_MODE": "auto"}, LS_REMOTE, V12_PUBLISHED)
         self.assertEqual(out["mode"], "auto")
 
     def test_schedule_stops_once_the_entry_is_on_master(self):
-        published = files({cr.changelog_path("v12.1.0"): "## Release v12.1 - [Feature Release](x)\n"})
+        published = files({cr.changelog_path("v12.1.0"): "## Release v12.1 - [Feature Release](x)\n" + V12_ENTRY})
         out = cr.resolve({"EVENT_NAME": "schedule", "SCHEDULE_MODE": "auto"}, LS_REMOTE, published)
         self.assertEqual(out["run"], "false")
         self.assertIn("already has the v12.1 entry", out["reason"])
 
-    def test_schedule_skips_when_nothing_is_pending(self):
+    def test_schedule_stays_on_a_tagged_release_until_its_entry_is_merged(self):
+        tagged = LS_REMOTE + f"\n{'0' * 40}\trefs/tags/v12.1.0\n{'0' * 40}\trefs/heads/release-12.2"
+        path = cr.changelog_path("v12.1.0")
+        out = cr.resolve({"EVENT_NAME": "schedule"}, tagged, files({path: V12_ENTRY}))
+        self.assertEqual((out["run"], out["version"], out["base_ref"]), ("true", "v12.1.0", "v12.0.0"))
+
+        merged = files({path: V12_ENTRY + "\n## Release v12.1 - [Feature Release](x)\n"})
+        self.assertEqual(cr.resolve({"EVENT_NAME": "schedule"}, tagged, merged)["version"], "v12.2.0")
+
         shipped = LS_REMOTE + f"\n{'0' * 40}\trefs/tags/v12.1.0"
-        out = cr.resolve({"EVENT_NAME": "schedule"}, shipped, files({}))
-        self.assertEqual(out["run"], "false")
+        self.assertEqual(cr.resolve({"EVENT_NAME": "schedule"}, shipped, merged)["run"], "false")
 
     def test_stale_branch_older_than_the_newest_release_is_ignored(self):
         branches, tags = cr.parse_ls_remote(LS_REMOTE + f"\n{'0' * 40}\trefs/heads/release-11.11")
-        self.assertEqual(cr.pending_release(branches, tags), (12, 1))
+        self.assertEqual(cr.pending_release(branches, tags, lambda release: True), (12, 1))
+        self.assertEqual(cr.pending_release(branches, tags), (12, 0))
+
+    def test_dispatched_shorthand_version_is_normalized(self):
+        out = cr.resolve({"INPUT_VERSION": "v13.0", "INPUT_MODE": "dry_run"}, LS_REMOTE, files({}))
+        self.assertEqual((out["version"], out["milestone"]), ("v13.0.0", "v13.0.0"))
+        published = files({cr.changelog_path("v12.0.0"): V12_ENTRY})
+        with self.assertRaises(ValueError):
+            cr.resolve({"INPUT_VERSION": "12.0"}, LS_REMOTE, published)
+        with self.assertRaises(ValueError):
+            cr.resolve({"INPUT_VERSION": ""}, LS_REMOTE, files({}))
 
     def test_dispatch_defaults_and_validation(self):
         out = cr.resolve({"EVENT_NAME": "workflow_dispatch", "INPUT_VERSION": "v12.2.0"}, LS_REMOTE, files({}))
