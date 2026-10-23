@@ -11,7 +11,7 @@
 # Must be space separated names.
 #
 # Example: postgres elasticsearch
-ENABLED_DOCKER_SERVICES ?= postgres inbucket redis prometheus grafana loki otel-collector
+ENABLED_DOCKER_SERVICES ?= postgres inbucket prometheus grafana loki otel-collector
 
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false
