@@ -498,11 +498,21 @@ export type ChannelViewPluginComponentProps = {
      * removed from the URL, until the user switches channels. The component shows that post.
      */
     focusedPostId?: string;
+
+    /**
+     * URL remainder after the channel, without a leading slash (e.g. `pages/abc123` for
+     * `/:team/channels/:channel/pages/abc123`). Only ever set for registrations with
+     * `handlesSubpaths: true`.
+     */
+    subpath?: string;
 };
 
 export type ChannelViewRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     component: React.ComponentType<ChannelViewPluginComponentProps>;
+
+    /** When true, channel URLs with a trailing sub-path render the component with `subpath`. */
+    handlesSubpaths?: boolean;
 };
 
 export type PostHeaderComponent = PluginComponent & {

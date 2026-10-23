@@ -77,6 +77,7 @@ beforeEach(() => {
 describe('components/channel_view', () => {
     const baseProps: Props = {
         channelId: 'channelId',
+        channelName: 'channel',
         deactivatedChannel: false,
         history: {} as Props['history'],
         location: {} as Props['location'],
@@ -174,7 +175,7 @@ describe('components/channel_view', () => {
 
         const otherChannel = TestHelper.getChannelMock({id: 'otherChannelId', team_id: 'teamId'});
 
-        function PluginView({channel: pluginChannel, channelId, teamId, focusedPostId}: ChannelViewPluginComponentProps) {
+        function PluginView({channel: pluginChannel, channelId, teamId, focusedPostId, subpath}: ChannelViewPluginComponentProps) {
             return (
                 <div
                     data-testid='plugin-channel-view'
@@ -182,6 +183,7 @@ describe('components/channel_view', () => {
                     data-channel-id={channelId}
                     data-team-id={teamId}
                     {...(focusedPostId ? {'data-focused-post-id': focusedPostId} : {})}
+                    {...(subpath ? {'data-subpath': subpath} : {})}
                 />
             );
         }
@@ -332,6 +334,148 @@ describe('components/channel_view', () => {
             );
 
             expect(screen.getByTestId('plugin-channel-view')).not.toHaveAttribute('data-focused-post-id');
+        });
+
+        describe('sub-paths', () => {
+            const subpathMatch = {
+                url: '/team/channels/channel/pages/abc123',
+                params: {team: 'team', identifier: 'channel', subpath: 'pages/abc123'},
+            } as Props['match'];
+
+            function makeHistory() {
+                return {replace: jest.fn()} as unknown as Props['history'];
+            }
+
+            it('passes the sub-path to the plugin component when the registration handles sub-paths', () => {
+                const history = makeHistory();
+                renderWithContext(
+                    <ChannelView
+                        {...baseProps}
+                        history={history}
+                        match={subpathMatch}
+                        channelViewPluginComponent={{...registration, handlesSubpaths: true}}
+                    />,
+                    state,
+                );
+
+                expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-subpath', 'pages/abc123');
+                expect(history.replace).not.toHaveBeenCalled();
+            });
+
+            it('passes the updated sub-path when it changes within the channel', () => {
+                const reg = {...registration, handlesSubpaths: true};
+                const {rerender} = renderWithContext(
+                    <ChannelView
+                        {...baseProps}
+                        history={makeHistory()}
+                        match={subpathMatch}
+                        channelViewPluginComponent={reg}
+                    />,
+                    state,
+                );
+
+                rerender(
+                    <ChannelView
+                        {...baseProps}
+                        history={makeHistory()}
+                        match={{url: '/team/channels/channel/pages/def456', params: {team: 'team', identifier: 'channel', subpath: 'pages/def456'}} as Props['match']}
+                        channelViewPluginComponent={reg}
+                    />,
+                );
+                expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-subpath', 'pages/def456');
+
+                rerender(
+                    <ChannelView
+                        {...baseProps}
+                        history={makeHistory()}
+                        match={{url: '/team/channels/channel', params: {team: 'team', identifier: 'channel'}} as Props['match']}
+                        channelViewPluginComponent={reg}
+                    />,
+                );
+                expect(screen.getByTestId('plugin-channel-view')).not.toHaveAttribute('data-subpath');
+            });
+
+            it('accepts the channel id as the route identifier', () => {
+                renderWithContext(
+                    <ChannelView
+                        {...baseProps}
+                        history={makeHistory()}
+                        match={{...subpathMatch, params: {...subpathMatch.params, identifier: 'channelId'}}}
+                        channelViewPluginComponent={{...registration, handlesSubpaths: true}}
+                    />,
+                    state,
+                );
+
+                expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-subpath', 'pages/abc123');
+            });
+
+            it('redirects to the channel root when the registration does not handle sub-paths', () => {
+                const history = makeHistory();
+                renderWithContext(
+                    <ChannelView
+                        {...baseProps}
+                        history={history}
+                        match={subpathMatch}
+                        channelViewPluginComponent={registration}
+                    />,
+                    state,
+                );
+
+                expect(history.replace).toHaveBeenCalledWith('/team/channels/channel');
+                expect(screen.getByTestId('plugin-channel-view')).not.toHaveAttribute('data-subpath');
+            });
+
+            it('redirects to the channel root when there is no plugin view', () => {
+                const history = makeHistory();
+                renderWithContext(
+                    <ChannelView
+                        {...baseProps}
+                        history={history}
+                        match={subpathMatch}
+                    />,
+                    state,
+                );
+
+                expect(history.replace).toHaveBeenCalledWith('/team/channels/channel');
+                expect(screen.getByTestId('deferred-post-view')).toBeInTheDocument();
+            });
+
+            it('waits for the route channel to become current before deciding', () => {
+                const history = makeHistory();
+                const reg = {...registration, handlesSubpaths: true};
+                const {rerender} = renderWithContext(
+                    <ChannelView
+                        {...baseProps}
+                        channelId='otherChannelId'
+                        channelName='other'
+                        history={history}
+                        match={subpathMatch}
+                    />,
+                    state,
+                );
+                expect(history.replace).not.toHaveBeenCalled();
+
+                rerender(
+                    <ChannelView
+                        {...baseProps}
+                        teamUrl='/other-team'
+                        history={history}
+                        match={subpathMatch}
+                    />,
+                );
+                expect(history.replace).not.toHaveBeenCalled();
+
+                rerender(
+                    <ChannelView
+                        {...baseProps}
+                        history={history}
+                        match={subpathMatch}
+                        channelViewPluginComponent={reg}
+                    />,
+                );
+                expect(history.replace).not.toHaveBeenCalled();
+                expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-subpath', 'pages/abc123');
+            });
         });
 
         it('renders the plugin component instead of the post list and composer, keeping the header', () => {
