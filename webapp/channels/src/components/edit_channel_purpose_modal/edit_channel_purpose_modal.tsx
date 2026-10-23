@@ -28,6 +28,7 @@ type Props = {
     onExited: () => void;
     channel?: Channel;
     ctrlSend: boolean;
+    isBoard?: boolean;
     actions: Actions;
     intl: IntlShape;
 };
@@ -141,14 +142,24 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
             );
         }
 
-        let channelPurposeModal = (
+        let channelPurposeModal = this.props.isBoard ? (
+            <FormattedMessage
+                id='edit_channel_purpose_modal.body.board'
+                defaultMessage='Describe how this board should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
+            />
+        ) : (
             <FormattedMessage
                 id='edit_channel_purpose_modal.body'
                 defaultMessage='Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
             />
         );
         if (this.props.channel?.type === 'P') {
-            channelPurposeModal = (
+            channelPurposeModal = this.props.isBoard ? (
+                <FormattedMessage
+                    id='edit_channel_private_purpose_modal.body.board'
+                    defaultMessage='This text appears in the "View Info" modal of the private board.'
+                />
+            ) : (
                 <FormattedMessage
                     id='edit_channel_private_purpose_modal.body'
                     defaultMessage='This text appears in the "View Info" modal of the private channel.'

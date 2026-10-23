@@ -27,6 +27,9 @@ type ChannelAccessRulesConfirmModalProps = {
     autoSyncEnabled?: boolean;
     isStacked?: boolean;
     willShowActivityWarning?: boolean;
+
+    /** Whether the channel is a board, so the message says "board" rather than "channel". */
+    isBoard?: boolean;
 };
 
 const USERS_PER_PAGE = 50;
@@ -42,6 +45,7 @@ function ChannelAccessRulesConfirmModal({
     autoSyncEnabled = false,
     isStacked = false,
     willShowActivityWarning = false,
+    isBoard = false,
 }: ChannelAccessRulesConfirmModalProps) {
     const dispatch = useDispatch();
 
@@ -151,6 +155,28 @@ function ChannelAccessRulesConfirmModal({
 
     const modalSubtitle = channelName;
 
+    const membershipChangeMessage = isBoard ? (
+        <FormattedMessage
+            id='channel_settings.access_rules.confirm_modal.message.board'
+            defaultMessage='Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the board and remove <strong>{removeCount, number} current board {removeCount, plural, one {member} other {members}}</strong>.'
+            values={{
+                addCount: usersToAdd.length,
+                removeCount: usersToRemove.length,
+                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+            }}
+        />
+    ) : (
+        <FormattedMessage
+            id='channel_settings.access_rules.confirm_modal.message'
+            defaultMessage='Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.'
+            values={{
+                addCount: usersToAdd.length,
+                removeCount: usersToRemove.length,
+                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+            }}
+        />
+    );
+
     const currentUsers = activeTab === 'allowed' ? filteredAllowedUsers : filteredRestrictedUsers;
     const totalCount = activeTab === 'allowed' ? usersToAdd.length : usersToRemove.length;
 
@@ -233,15 +259,7 @@ function ChannelAccessRulesConfirmModal({
                 // Detailed user list view
                 <div className='ChannelAccessRulesConfirmModal__details'>
                     <div className='ChannelAccessRulesConfirmModal__message'>
-                        <FormattedMessage
-                            id='channel_settings.access_rules.confirm_modal.message'
-                            defaultMessage='Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.'
-                            values={{
-                                addCount: usersToAdd.length,
-                                removeCount: usersToRemove.length,
-                                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-                            }}
-                        />
+                        {membershipChangeMessage}
                     </div>
                     <div className='ChannelAccessRulesConfirmModal__tabs'>
                         <button
@@ -305,15 +323,7 @@ function ChannelAccessRulesConfirmModal({
                 // Summary view
                 <div className='ChannelAccessRulesConfirmModal__summary'>
                     <div className='ChannelAccessRulesConfirmModal__message'>
-                        <FormattedMessage
-                            id='channel_settings.access_rules.confirm_modal.message'
-                            defaultMessage='Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.'
-                            values={{
-                                addCount: usersToAdd.length,
-                                removeCount: usersToRemove.length,
-                                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-                            }}
-                        />
+                        {membershipChangeMessage}
                     </div>
                     <div className='ChannelAccessRulesConfirmModal__question'>
                         <FormattedMessage

@@ -6,7 +6,8 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -50,6 +51,7 @@ describe('components/ChannelHeader', () => {
 
         isChannelAutotranslated: false,
         hasPendingJoinRequests: false,
+        isBoard: false,
     };
 
     const populatedProps = {
@@ -375,5 +377,24 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should call a board a board', () => {
+        const props = {
+            ...populatedProps,
+            hasGuests: true,
+            isBoard: true,
+        };
+
+        const boardState = boardChannelsState('channel_id');
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+            {plugins: {components: {CallButton: [], ...boardState.plugins?.components}}},
+        );
+
+        expect(screen.getByText('Board has guests')).toBeInTheDocument();
+        expect(screen.queryByText('Channel has guests')).not.toBeInTheDocument();
+        expect(container.querySelector('[aria-label="board header region"]')).not.toBeNull();
+        expect(container.querySelector('[aria-label="channel header region"]')).toBeNull();
     });
 });

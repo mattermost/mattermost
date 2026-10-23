@@ -211,6 +211,10 @@
     "defaultMessage": "channel header region",
     "description": "Aria-label of the channel header landmark region, used for screen-reader navigation; lowercase by convention."
   },
+  "accessibility.sections.channelHeader.board": {
+    "defaultMessage": "board header region",
+    "description": "Aria-label of the channel header landmark region, used for screen-reader navigation; lowercase by convention. This is the wording used when the channel is a board."
+  },
   "accessibility.sections.lhsList": {
     "defaultMessage": "channel sidebar region",
     "description": "Screen-reader aria-label for the scrollable channel list region of the left-hand sidebar."
@@ -243,9 +247,17 @@
     "defaultMessage": "private channel",
     "description": "Screen-reader suffix appended to a private channel's name in the sidebar; lowercase, part of a composed aria-label."
   },
+  "accessibility.sidebar.types.private.board": {
+    "defaultMessage": "private board",
+    "description": "Screen-reader suffix appended to a private channel's name in the sidebar; lowercase, part of a composed aria-label. This is the wording used when the channel is a board."
+  },
   "accessibility.sidebar.types.public": {
     "defaultMessage": "public channel",
     "description": "Screen-reader suffix appended to a public channel's name in the sidebar; lowercase, part of a composed aria-label."
+  },
+  "accessibility.sidebar.types.public.board": {
+    "defaultMessage": "public board",
+    "description": "Screen-reader suffix appended to a public channel's name in the sidebar; lowercase, part of a composed aria-label. This is the wording used when the channel is a board."
   },
   "accessibility.sidebar.types.unread": {
     "defaultMessage": "unread",
@@ -18207,21 +18219,41 @@
     "defaultMessage": "{addedUsername} added to the channel as a guest by {username}.",
     "description": "System message posted in a channel when a guest user is added; {addedUsername} is the guest added and {username} is the member who added them."
   },
+  "api.channel.add_guest.added.board": {
+    "defaultMessage": "{addedUsername} added to the board as a guest by {username}.",
+    "description": "System message posted in a channel when a guest user is added; {addedUsername} is the guest added and {username} is the member who added them. This is the wording used when the channel is a board."
+  },
   "api.channel.add_member.added": {
     "defaultMessage": "{addedUsername} added to the channel by {username}.",
     "description": "System message posted in a channel when a user is added; {addedUsername} is the user added and {username} is the member who added them."
+  },
+  "api.channel.add_member.added.board": {
+    "defaultMessage": "{addedUsername} added to the board by {username}.",
+    "description": "System message posted in a channel when a user is added; {addedUsername} is the user added and {username} is the member who added them. This is the wording used when the channel is a board."
   },
   "api.channel.auto_translation_change.message.disabled": {
     "defaultMessage": "{username} disabled Auto-translation for this channel. All messages will appear in the original language.",
     "description": "System message posted when a member turns off automatic translation for the channel; {username} is that member."
   },
+  "api.channel.auto_translation_change.message.disabled.board": {
+    "defaultMessage": "{username} disabled Auto-translation for this board. All messages will appear in the original language.",
+    "description": "System message posted when a member turns off automatic translation for the channel; {username} is that member. This is the wording used when the channel is a board."
+  },
   "api.channel.auto_translation_change.message.enabled": {
     "defaultMessage": "{username} enabled Auto-translation for this channel. All new messages will appear in your preferred language.",
     "description": "System message posted when a member turns on automatic translation for the channel; {username} is that member."
   },
+  "api.channel.auto_translation_change.message.enabled.board": {
+    "defaultMessage": "{username} enabled Auto-translation for this board. All new messages will appear in your preferred language.",
+    "description": "System message posted when a member turns on automatic translation for the channel; {username} is that member. This is the wording used when the channel is a board."
+  },
   "api.channel.delete_channel.archived": {
     "defaultMessage": "{username} archived the channel.",
     "description": "System message posted when a member archives the channel; {username} is that member."
+  },
+  "api.channel.delete_channel.archived.board": {
+    "defaultMessage": "{username} archived the board.",
+    "description": "System message posted when a member archives the channel; {username} is that member. This is the wording used when the channel is a board."
   },
   "api.channel.group_message_converted_to.private_channel": {
     "defaultMessage": "{convertedBy} created this channel from a group message with {gmMembers}.",
@@ -18235,41 +18267,81 @@
     "defaultMessage": "{username} joined the channel as a guest.",
     "description": "System message posted when a guest user joins the channel; {username} is the guest's name."
   },
+  "api.channel.guest_join_channel.post_and_forget.board": {
+    "defaultMessage": "{username} joined the board as a guest.",
+    "description": "System message posted when a guest user joins the channel; {username} is the guest's name. This is the wording used when the channel is a board."
+  },
   "api.channel.join_channel.post_and_forget": {
     "defaultMessage": "{username} joined the channel.",
     "description": "System message posted when a user joins the channel; {username} is that user's name."
+  },
+  "api.channel.join_channel.post_and_forget.board": {
+    "defaultMessage": "{username} joined the board.",
+    "description": "System message posted when a user joins the channel; {username} is that user's name. This is the wording used when the channel is a board."
   },
   "api.channel.leave.left": {
     "defaultMessage": "{username} left the channel.",
     "description": "System message posted when a user leaves the channel; {username} is that user's name."
   },
+  "api.channel.leave.left.board": {
+    "defaultMessage": "{username} left the board.",
+    "description": "System message posted when a user leaves the channel; {username} is that user's name. This is the wording used when the channel is a board."
+  },
   "api.channel.post_convert_channel_to_private.updated_from": {
     "defaultMessage": "{username} converted the channel from public to private",
     "description": "System message posted when a member converts a public channel to private; {username} is that member."
+  },
+  "api.channel.post_convert_channel_to_private.updated_from.board": {
+    "defaultMessage": "{username} converted the board from public to private",
+    "description": "System message posted when a member converts a public channel to private; {username} is that member. This is the wording used when the channel is a board."
   },
   "api.channel.post_update_channel_displayname_message_and_forget.updated_from": {
     "defaultMessage": "{username} updated the channel display name from: {old} to: {new}",
     "description": "System message posted when the channel's display name changes; {username} is who changed it, {old} and {new} are the previous and new names."
   },
+  "api.channel.post_update_channel_displayname_message_and_forget.updated_from.board": {
+    "defaultMessage": "{username} updated the board display name from: {old} to: {new}",
+    "description": "System message posted when the channel's display name changes; {username} is who changed it, {old} and {new} are the previous and new names. This is the wording used when the channel is a board."
+  },
   "api.channel.post_update_channel_header_message_and_forget.removed": {
     "defaultMessage": "{username} removed the channel header (was: {old})",
     "description": "System message posted when the channel header text is removed; {username} is who removed it and {old} is the previous header text."
+  },
+  "api.channel.post_update_channel_header_message_and_forget.removed.board": {
+    "defaultMessage": "{username} removed the board header (was: {old})",
+    "description": "System message posted when the channel header text is removed; {username} is who removed it and {old} is the previous header text. This is the wording used when the channel is a board."
   },
   "api.channel.post_update_channel_header_message_and_forget.updated_from": {
     "defaultMessage": "{username} updated the channel header <br></br><strong>From:</strong> {old} <br></br><strong>To:</strong> {new}",
     "description": "System message posted when the channel header changes; {username} is who changed it, {old} and {new} are the previous and new header texts, <br> and <strong> are formatting tags to keep."
   },
+  "api.channel.post_update_channel_header_message_and_forget.updated_from.board": {
+    "defaultMessage": "{username} updated the board header <br></br><strong>From:</strong> {old} <br></br><strong>To:</strong> {new}",
+    "description": "System message posted when the channel header changes; {username} is who changed it, {old} and {new} are the previous and new header texts, <br> and <strong> are formatting tags to keep. This is the wording used when the channel is a board."
+  },
   "api.channel.post_update_channel_header_message_and_forget.updated_to": {
     "defaultMessage": "{username} updated the channel header to: {new}",
     "description": "System message posted when a channel header is set for the first time; {username} is who set it and {new} is the new header text."
+  },
+  "api.channel.post_update_channel_header_message_and_forget.updated_to.board": {
+    "defaultMessage": "{username} updated the board header to: {new}",
+    "description": "System message posted when a channel header is set for the first time; {username} is who set it and {new} is the new header text. This is the wording used when the channel is a board."
   },
   "api.channel.remove_member.removed": {
     "defaultMessage": "{removedUsername} was removed from the channel",
     "description": "System message posted when a user is removed from the channel; {removedUsername} is the removed user's name."
   },
+  "api.channel.remove_member.removed.board": {
+    "defaultMessage": "{removedUsername} was removed from the board",
+    "description": "System message posted when a user is removed from the channel; {removedUsername} is the removed user's name. This is the wording used when the channel is a board."
+  },
   "api.channel.restore_channel.unarchived": {
     "defaultMessage": "{username} unarchived the channel.",
     "description": "System message posted when a member restores (unarchives) the channel; {username} is that member."
+  },
+  "api.channel.restore_channel.unarchived.board": {
+    "defaultMessage": "{username} unarchived the board.",
+    "description": "System message posted when a member restores (unarchives) the channel; {username} is that member. This is the wording used when the channel is a board."
   },
   "api.team.add_member.added": {
     "defaultMessage": "{addedUsername} added to the team by {username}",
@@ -18319,13 +18391,25 @@
     "defaultMessage": "{username} removed the channel purpose (was: {old})",
     "description": "System message posted when the channel purpose is removed; {username} is who removed it and {old} is the previous purpose text."
   },
+  "app.channel.post_update_channel_purpose_message.removed.board": {
+    "defaultMessage": "{username} removed the board purpose (was: {old})",
+    "description": "System message posted when the channel purpose is removed; {username} is who removed it and {old} is the previous purpose text. This is the wording used when the channel is a board."
+  },
   "app.channel.post_update_channel_purpose_message.updated_from": {
     "defaultMessage": "{username} updated the channel purpose from: {old} to: {new}",
     "description": "System message posted when the channel purpose changes; {username} is who changed it, {old} and {new} are the previous and new purpose texts."
   },
+  "app.channel.post_update_channel_purpose_message.updated_from.board": {
+    "defaultMessage": "{username} updated the board purpose from: {old} to: {new}",
+    "description": "System message posted when the channel purpose changes; {username} is who changed it, {old} and {new} are the previous and new purpose texts. This is the wording used when the channel is a board."
+  },
   "app.channel.post_update_channel_purpose_message.updated_to": {
     "defaultMessage": "{username} updated the channel purpose to: {new}",
     "description": "System message posted when a channel purpose is set for the first time; {username} is who set it and {new} is the new purpose text."
+  },
+  "app.channel.post_update_channel_purpose_message.updated_to.board": {
+    "defaultMessage": "{username} updated the board purpose to: {new}",
+    "description": "System message posted when a channel purpose is set for the first time; {username} is who set it and {new} is the new purpose text. This is the wording used when the channel is a board."
   },
   "app.post.move_thread_command.channel.multiple_messages": {
     "defaultMessage": "A thread with {numMessages, number} messages has been moved: {link}\n",
@@ -19323,6 +19407,10 @@
     "defaultMessage": "Close Channel",
     "description": "Button shown at the bottom of an archived channel (and as a channel menu item) to close/leave the archived channel view."
   },
+  "center_panel.archived.closeChannel.board": {
+    "defaultMessage": "Close Board",
+    "description": "Button shown at the bottom of an archived channel (and as a channel menu item) to close/leave the archived channel view. This is the wording used when the channel is a board."
+  },
   "center_panel.direct.closeDirectMessage": {
     "defaultMessage": "Close Direct Message",
     "description": "Menu item in a direct message header dropdown; removes the DM conversation from the sidebar."
@@ -19399,6 +19487,10 @@
     "defaultMessage": "Channel attributes",
     "description": "Screen-reader label for the menu that lists the channel attributes available for the banner text, in Channel Settings > Configuration."
   },
+  "channel_attributes.banner.insert_attribute_menu.board": {
+    "defaultMessage": "Board attributes",
+    "description": "Screen-reader label for the menu that lists the channel attributes available for the banner text, in Channel Settings > Configuration. This is the wording used when the channel is a board."
+  },
   "channel_attributes.banner.remove_attribute": {
     "defaultMessage": "Remove {label}",
     "description": "Screen-reader label for the small X on an attribute chip inside the Banner text editor in Channel Settings > Configuration. {label} is the attribute's display name, as defined by an admin."
@@ -19406,6 +19498,10 @@
   "channel_attributes.banner.token_value_set": {
     "defaultMessage": "Value on this channel: {value}",
     "description": "Channel Settings > Configuration > banner text editor. Secondary line of a menu item in the \"insert attribute\" picker, showing the attribute's current value on this channel. {value} is that value as entered by a user."
+  },
+  "channel_attributes.banner.token_value_set.board": {
+    "defaultMessage": "Value on this board: {value}",
+    "description": "Channel Settings > Configuration > banner text editor. Secondary line of a menu item in the \"insert attribute\" picker, showing the attribute's current value on this channel. {value} is that value as entered by a user. This is the wording used when the channel is a board."
   },
   "channel_attributes.banner.token_value_unset": {
     "defaultMessage": "The attribute has no value set and won't render in the banner, but will appear automatically the moment a value is set.",
@@ -19434,6 +19530,10 @@
   "channel_attributes.info.heading": {
     "defaultMessage": "Channel Attributes",
     "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification."
+  },
+  "channel_attributes.info.heading.board": {
+    "defaultMessage": "Board Attributes",
+    "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification. This is the wording used when the channel is a board."
   },
   "channel_attributes.info.locked": {
     "defaultMessage": "This attribute cannot be changed after it is set",
@@ -19499,6 +19599,10 @@
     "defaultMessage": "Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.",
     "description": "Channel Settings > Configuration > channel banner. Help text under the banner text field when attribute tokens can be inserted into the banner. The symbols in parentheses (· . / ?) are literal examples of separator characters and should be kept as they are."
   },
+  "channel_banner.banner_text.help.board": {
+    "defaultMessage": "Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the board. The banner is hidden if there is no text available.",
+    "description": "Channel Settings > Configuration > channel banner. Help text under the banner text field when attribute tokens can be inserted into the banner. The symbols in parentheses (· . / ?) are literal examples of separator characters and should be kept as they are. This is the wording used when the channel is a board."
+  },
   "channel_banner.banner_text.label": {
     "defaultMessage": "Banner text",
     "description": "Label of the text field for the channel banner content on the Configuration tab of Channel Settings."
@@ -19507,13 +19611,25 @@
     "defaultMessage": "Channel banner text",
     "description": "Placeholder of the channel banner text field on the Configuration tab of Channel Settings."
   },
+  "channel_banner.banner_text.placeholder.board": {
+    "defaultMessage": "Board banner text",
+    "description": "Placeholder of the channel banner text field on the Configuration tab of Channel Settings. This is the wording used when the channel is a board."
+  },
   "channel_banner.label.name": {
     "defaultMessage": "Channel Banner",
     "description": "Title of the Channel Banner toggle section on the Configuration tab of Channel Settings; feature name."
   },
+  "channel_banner.label.name.board": {
+    "defaultMessage": "Board Banner",
+    "description": "Title of the Channel Banner toggle section on the Configuration tab of Channel Settings; feature name. This is the wording used when the channel is a board."
+  },
   "channel_banner.label.subtext": {
     "defaultMessage": "When enabled, a customized banner will display at the top of the channel.",
     "description": "Help text under the Channel Banner toggle explaining the banner shows at the top of the channel."
+  },
+  "channel_banner.label.subtext.board": {
+    "defaultMessage": "When enabled, a customized banner will display at the top of the board.",
+    "description": "Help text under the Channel Banner toggle explaining the banner shows at the top of the channel. This is the wording used when the channel is a board."
   },
   "channel_bookmarks.addBookmark": {
     "defaultMessage": "Add a bookmark",
@@ -19695,6 +19811,10 @@
     "defaultMessage": "This channel is being automatically translated to your language",
     "description": "Tooltip body on the auto-translation indicator in the channel header, explaining messages are translated into the user's language."
   },
+  "channel_header.autotranslationMessage.tooltip.hint.board": {
+    "defaultMessage": "This board is being automatically translated to your language",
+    "description": "Tooltip body on the auto-translation indicator in the channel header, explaining messages are translated into the user's language. This is the wording used when the channel is a board."
+  },
   "channel_header.autotranslationMessage.tooltip.title": {
     "defaultMessage": "Auto-translation is enabled",
     "description": "Tooltip title on the auto-translation indicator in the channel header."
@@ -19707,13 +19827,25 @@
     "defaultMessage": "Channel Settings",
     "description": "Menu item in the channel dropdown menu and channel info sidebar; opens the Channel Settings modal."
   },
+  "channel_header.channel_settings.board": {
+    "defaultMessage": "Board Settings",
+    "description": "Menu item in the channel dropdown menu and channel info sidebar; opens the Channel Settings modal. This is the wording used when the channel is a board."
+  },
   "channel_header.channelFiles": {
     "defaultMessage": "Channel files",
     "description": "Tooltip of the file icon button in the channel header; opens the list of files shared in the channel."
   },
+  "channel_header.channelFiles.board": {
+    "defaultMessage": "Board files",
+    "description": "Tooltip of the file icon button in the channel header; opens the list of files shared in the channel. This is the wording used when the channel is a board."
+  },
   "channel_header.channelHasGuests": {
     "defaultMessage": "Channel has guests",
     "description": "Indicator text in the channel header shown when guest users are members of the channel."
+  },
+  "channel_header.channelHasGuests.board": {
+    "defaultMessage": "Board has guests",
+    "description": "Indicator text in the channel header shown when guest users are members of the channel. This is the wording used when the channel is a board."
   },
   "channel_header.channelMembers": {
     "defaultMessage": "Members",
@@ -19730,6 +19862,10 @@
   "channel_header.delete": {
     "defaultMessage": "Archive Channel",
     "description": "Menu item in the channel name dropdown menu; archives the channel ('Archive' as a verb)."
+  },
+  "channel_header.delete.board": {
+    "defaultMessage": "Archive Board",
+    "description": "Menu item in the channel name dropdown menu; archives the channel ('Archive' as a verb). This is the wording used when the channel is a board."
   },
   "channel_header.directchannel": {
     "defaultMessage": "{displayName} (you) Channel Menu",
@@ -19751,6 +19887,10 @@
     "defaultMessage": "Add a channel header",
     "description": "Placeholder button text in the channel header description area when no header text is set; opens the edit-header dialog."
   },
+  "channel_header.headerText.addNewButton.board": {
+    "defaultMessage": "Add a board header",
+    "description": "Placeholder button text in the channel header description area when no header text is set; opens the edit-header dialog. This is the wording used when the channel is a board."
+  },
   "channel_header.lastActive": {
     "defaultMessage": "Last online {timestamp}",
     "description": "Status text in a direct message channel header; {timestamp} is a relative time like '2 days ago' showing when the other user was last online."
@@ -19763,6 +19903,10 @@
     "defaultMessage": "Leave Channel",
     "description": "Menu item in the channel dropdown menu (and members list, for yourself); removes the current user from the channel."
   },
+  "channel_header.leave.board": {
+    "defaultMessage": "Leave Board",
+    "description": "Menu item in the channel dropdown menu (and members list, for yourself); removes the current user from the channel. This is the wording used when the channel is a board."
+  },
   "channel_header.members": {
     "defaultMessage": "Members",
     "description": "Menu item in the channel name dropdown menu; opens the channel members panel."
@@ -19770,6 +19914,10 @@
   "channel_header.mute": {
     "defaultMessage": "Mute Channel",
     "description": "Menu item in the channel dropdown menu; mutes notifications for the channel ('Mute' as a verb)."
+  },
+  "channel_header.mute.board": {
+    "defaultMessage": "Mute Board",
+    "description": "Menu item in the channel dropdown menu; mutes notifications for the channel ('Mute' as a verb). This is the wording used when the channel is a board."
   },
   "channel_header.muteConversation": {
     "defaultMessage": "Mute",
@@ -19782,6 +19930,10 @@
   "channel_header.otherchannel": {
     "defaultMessage": "{displayName} Channel Menu",
     "description": "Aria-label of the channel name dropdown menu button in the channel header; {displayName} is the channel's display name."
+  },
+  "channel_header.otherchannel.board": {
+    "defaultMessage": "{displayName} Board Menu",
+    "description": "Aria-label of the channel name dropdown menu button in the channel header; {displayName} is the channel's display name. This is the wording used when the channel is a board."
   },
   "channel_header.pinnedPosts": {
     "defaultMessage": "Pinned messages",
@@ -19811,6 +19963,10 @@
     "defaultMessage": "Unmute Channel",
     "description": "Menu item in the channel dropdown menu; unmutes notifications for the channel ('Unmute' as a verb)."
   },
+  "channel_header.unmute.board": {
+    "defaultMessage": "Unmute Board",
+    "description": "Menu item in the channel dropdown menu; unmutes notifications for the channel ('Unmute' as a verb). This is the wording used when the channel is a board."
+  },
   "channel_header.unmuteConversation": {
     "defaultMessage": "Unmute",
     "description": "Menu item/button (verb) in the channel header menu that unmutes the channel; compact space."
@@ -19827,6 +19983,10 @@
     "defaultMessage": "Channel handle:",
     "description": "Label prefix in the channel info sidebar shown before the channel's URL handle (slug); the handle follows after the colon."
   },
+  "channel_info_rhs.about_area_handle.board": {
+    "defaultMessage": "Board handle:",
+    "description": "Label prefix in the channel info sidebar shown before the channel's URL handle (slug); the handle follows after the colon. This is the wording used when the channel is a board."
+  },
   "channel_info_rhs.about_area_id": {
     "defaultMessage": "ID:",
     "description": "Label prefix in the channel info sidebar shown before the channel's internal ID string; the ID follows after the colon."
@@ -19835,13 +19995,25 @@
     "defaultMessage": "Add a channel header",
     "description": "Placeholder link in the channel info sidebar shown when no channel header text is set; opens the header editor."
   },
+  "channel_info_rhs.about_area.add_channel_header.board": {
+    "defaultMessage": "Add a board header",
+    "description": "Placeholder link in the channel info sidebar shown when no channel header text is set; opens the header editor. This is the wording used when the channel is a board."
+  },
   "channel_info_rhs.about_area.add_channel_purpose": {
     "defaultMessage": "Add a channel purpose",
     "description": "Placeholder link in the channel info sidebar shown when no channel purpose is set; opens the purpose editor."
   },
+  "channel_info_rhs.about_area.add_channel_purpose.board": {
+    "defaultMessage": "Add a board purpose",
+    "description": "Placeholder link in the channel info sidebar shown when no channel purpose is set; opens the purpose editor. This is the wording used when the channel is a board."
+  },
   "channel_info_rhs.about_area.channel_header.heading": {
     "defaultMessage": "Channel Header",
     "description": "Section heading in the channel info sidebar above the channel's header text."
+  },
+  "channel_info_rhs.about_area.channel_header.heading.board": {
+    "defaultMessage": "Board Header",
+    "description": "Section heading in the channel info sidebar above the channel's header text. This is the wording used when the channel is a board."
   },
   "channel_info_rhs.about_area.channel_header.line_limiter.less": {
     "defaultMessage": "less",
@@ -19855,6 +20027,10 @@
     "defaultMessage": "Channel Purpose",
     "description": "Section heading in the channel info sidebar above the channel's purpose text."
   },
+  "channel_info_rhs.about_area.channel_purpose.heading.board": {
+    "defaultMessage": "Board Purpose",
+    "description": "Section heading in the channel info sidebar above the channel's purpose text. This is the wording used when the channel is a board."
+  },
   "channel_info_rhs.about_area.channel_purpose.line_limiter.less": {
     "defaultMessage": "less",
     "description": "Inline link that collapses the truncated channel purpose text in the channel info sidebar; lowercase, very short."
@@ -19867,17 +20043,33 @@
     "defaultMessage": "Edit channel header",
     "description": "Tooltip of the pencil edit button next to the channel header text in the channel info sidebar."
   },
+  "channel_info_rhs.about_area.edit_channel_header.board": {
+    "defaultMessage": "Edit board header",
+    "description": "Tooltip of the pencil edit button next to the channel header text in the channel info sidebar. This is the wording used when the channel is a board."
+  },
   "channel_info_rhs.about_area.edit_channel_name": {
     "defaultMessage": "Rename channel",
     "description": "Tooltip of the pencil edit button next to the channel name in the channel info sidebar; opens the rename dialog."
+  },
+  "channel_info_rhs.about_area.edit_channel_name.board": {
+    "defaultMessage": "Rename board",
+    "description": "Tooltip of the pencil edit button next to the channel name in the channel info sidebar; opens the rename dialog. This is the wording used when the channel is a board."
   },
   "channel_info_rhs.about_area.edit_channel_purpose": {
     "defaultMessage": "Edit channel purpose",
     "description": "Tooltip of the pencil edit button next to the channel purpose text in the channel info sidebar."
   },
+  "channel_info_rhs.about_area.edit_channel_purpose.board": {
+    "defaultMessage": "Edit board purpose",
+    "description": "Tooltip of the pencil edit button next to the channel purpose text in the channel info sidebar. This is the wording used when the channel is a board."
+  },
   "channel_info_rhs.archived.title": {
     "defaultMessage": "This channel is archived.",
     "description": "Notice text in the channel info sidebar indicating the channel has been archived."
+  },
+  "channel_info_rhs.archived.title.board": {
+    "defaultMessage": "This board is archived.",
+    "description": "Notice text in the channel info sidebar indicating the channel has been archived. This is the wording used when the channel is a board."
   },
   "channel_info_rhs.archived.unarchive": {
     "defaultMessage": "Unarchive",
@@ -19951,6 +20143,10 @@
     "defaultMessage": "Channel Info Actions",
     "description": "Aria-label of the actions list (Files, Members, Pinned, etc.) in the channel info sidebar."
   },
+  "channel_info_rhs.menu.title.board": {
+    "defaultMessage": "Board Info Actions",
+    "description": "Aria-label of the actions list (Files, Members, Pinned, etc.) in the channel info sidebar. This is the wording used when the channel is a board."
+  },
   "channel_info_rhs.top_buttons.add_people": {
     "defaultMessage": "Add People",
     "description": "Label of a button at the top of the channel info sidebar; opens the dialog to add members to the channel."
@@ -19958,6 +20154,10 @@
   "channel_info_rhs.top_buttons.add_people.tooltip": {
     "defaultMessage": "Add team members to this channel",
     "description": "Tooltip on the add-people button at the top of the channel info right-hand sidebar; opens the add members dialog."
+  },
+  "channel_info_rhs.top_buttons.add_people.tooltip.board": {
+    "defaultMessage": "Add team members to this board",
+    "description": "Tooltip on the add-people button at the top of the channel info right-hand sidebar; opens the add members dialog. This is the wording used when the channel is a board."
   },
   "channel_info_rhs.top_buttons.copied": {
     "defaultMessage": "Copied",
@@ -19971,6 +20171,10 @@
     "defaultMessage": "Copy link to this channel",
     "description": "Tooltip on the copy-link button at the top of the channel info right-hand sidebar; copies the channel's URL."
   },
+  "channel_info_rhs.top_buttons.copy_link.tooltip.board": {
+    "defaultMessage": "Copy link to this board",
+    "description": "Tooltip on the copy-link button at the top of the channel info right-hand sidebar; copies the channel's URL. This is the wording used when the channel is a board."
+  },
   "channel_info_rhs.top_buttons.favorite": {
     "defaultMessage": "Favorite",
     "description": "Label of the favorite toggle button at the top of the channel info sidebar; stays the same whether or not the channel is favorited ('Favorite' as a verb); also used in the channel intro."
@@ -19979,6 +20183,10 @@
     "defaultMessage": "Add this channel to favorites",
     "description": "Tooltip on the favorite button at the top of the channel info right-hand sidebar; adds the channel to the Favorites sidebar category."
   },
+  "channel_info_rhs.top_buttons.favorite.tooltip.board": {
+    "defaultMessage": "Add this board to favorites",
+    "description": "Tooltip on the favorite button at the top of the channel info right-hand sidebar; adds the channel to the Favorites sidebar category. This is the wording used when the channel is a board."
+  },
   "channel_info_rhs.top_buttons.mute": {
     "defaultMessage": "Mute",
     "description": "Label of the mute toggle button at the top of the channel info sidebar; stays the same whether or not the channel is muted ('Mute' as a verb)."
@@ -19986,6 +20194,10 @@
   "channel_info_rhs.top_buttons.mute.tooltip": {
     "defaultMessage": "Mute notifications for this channel",
     "description": "Tooltip on the mute button at the top of the channel info right-hand sidebar; mutes channel notifications."
+  },
+  "channel_info_rhs.top_buttons.mute.tooltip.board": {
+    "defaultMessage": "Mute notifications for this board",
+    "description": "Tooltip on the mute button at the top of the channel info right-hand sidebar; mutes channel notifications. This is the wording used when the channel is a board."
   },
   "channel_invite.addNewMembers": {
     "defaultMessage": "Add people to {channel}",
@@ -19999,13 +20211,25 @@
     "defaultMessage": "{count, plural, =1 {{firstUser} is a guest user and needs} other {{users} are guest users and need}} to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.",
     "description": "Warning banner body in the add-people modal when selected guests are not on the team; plural branches on the number of guests, {firstUser} is one guest's name, {users} a name list."
   },
+  "channel_invite.invite_team_members.guests.message.board": {
+    "defaultMessage": "{count, plural, =1 {{firstUser} is a guest user and needs} other {{users} are guest users and need}} to first be invited to the team before you can add them to the board. Once they've joined the team, you can add them to this board.",
+    "description": "Warning banner body in the add-people modal when selected guests are not on the team; plural branches on the number of guests, {firstUser} is one guest's name, {users} a name list. This is the wording used when the channel is a board."
+  },
   "channel_invite.invite_team_members.guests.messageOverflow": {
     "defaultMessage": "{firstUser} and {others} are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.",
     "description": "Warning banner in the add-members-to-channel dialog when several selected guests are not on the team; {firstUser} is a username and {others} is a link reading 'N others'."
   },
+  "channel_invite.invite_team_members.guests.messageOverflow.board": {
+    "defaultMessage": "{firstUser} and {others} are guest users and need to first be invited to the team before you can add them to the board. Once they've joined the team, you can add them to this board.",
+    "description": "Warning banner in the add-members-to-channel dialog when several selected guests are not on the team; {firstUser} is a username and {others} is a link reading 'N others'. This is the wording used when the channel is a board."
+  },
   "channel_invite.invite_team_members.message": {
     "defaultMessage": "You can add {count, plural, =1 {{firstUser}} other {{users}}} to this channel once they are members of the {team} team.",
     "description": "Warning banner body in the add-people modal for users not on the team; {firstUser} is one user's name, {users} a name list, {team} the team name."
+  },
+  "channel_invite.invite_team_members.message.board": {
+    "defaultMessage": "You can add {count, plural, =1 {{firstUser}} other {{users}}} to this board once they are members of the {team} team.",
+    "description": "Warning banner body in the add-people modal for users not on the team; {firstUser} is one user's name, {users} a name list, {team} the team name. This is the wording used when the channel is a board."
   },
   "channel_invite.invite_team_members.messageOthers": {
     "defaultMessage": "{count} others",
@@ -20014,6 +20238,10 @@
   "channel_invite.invite_team_members.messageOverflow": {
     "defaultMessage": "You can add {firstUser} and {others} to this channel once they are members of the {team} team.",
     "description": "Warning banner in the add-members-to-channel dialog when several selected users are not on the team; {firstUser} is a username, {others} a 'N others' link, and {team} the team name."
+  },
+  "channel_invite.invite_team_members.messageOverflow.board": {
+    "defaultMessage": "You can add {firstUser} and {others} to this board once they are members of the {team} team.",
+    "description": "Warning banner in the add-members-to-channel dialog when several selected users are not on the team; {firstUser} is a username, {others} a 'N others' link, and {team} the team name. This is the wording used when the channel is a board."
   },
   "channel_invite.invite_team_members.title": {
     "defaultMessage": "{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team",
@@ -20027,17 +20255,33 @@
     "defaultMessage": "Only people who match the specified access rules can be selected and added to this channel.",
     "description": "Body of the info banner in the add-people modal for channels with attribute-based access control; explains only matching users can be added."
   },
+  "channel_invite.policy_enforced.description.board": {
+    "defaultMessage": "Only people who match the specified access rules can be selected and added to this board.",
+    "description": "Body of the info banner in the add-people modal for channels with attribute-based access control; explains only matching users can be added. This is the wording used when the channel is a board."
+  },
   "channel_invite.policy_enforced.title": {
     "defaultMessage": "Channel access is restricted by user attributes",
     "description": "Title of the info banner in the add-people modal when channel membership is restricted by attribute-based access rules."
+  },
+  "channel_invite.policy_enforced.title.board": {
+    "defaultMessage": "Board access is restricted by user attributes",
+    "description": "Title of the info banner in the add-people modal when channel membership is restricted by attribute-based access rules. This is the wording used when the channel is a board."
   },
   "channel_invite.policy_recommended.description": {
     "defaultMessage": "A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.",
     "description": "Body of the info banner in the add-people modal for public channels with a recommended-membership policy; anyone can still be added."
   },
+  "channel_invite.policy_recommended.description.board": {
+    "defaultMessage": "A membership policy suggests who should be members of this board. You can still add anyone who can join a public board.",
+    "description": "Body of the info banner in the add-people modal for public channels with a recommended-membership policy; anyone can still be added. This is the wording used when the channel is a board."
+  },
   "channel_invite.policy_recommended.title": {
     "defaultMessage": "This channel has recommended members based on user attributes",
     "description": "Title of the info banner in the add-people modal when a membership policy recommends (but does not enforce) members."
+  },
+  "channel_invite.policy_recommended.title.board": {
+    "defaultMessage": "This board has recommended members based on user attributes",
+    "description": "Title of the info banner in the add-people modal when a membership policy recommends (but does not enforce) members. This is the wording used when the channel is a board."
   },
   "channel_invite.recommended_tag": {
     "defaultMessage": "Recommended",
@@ -20046,6 +20290,10 @@
   "channel_invite.recommended_tag.tooltip": {
     "defaultMessage": "Matches the suggested membership for this channel",
     "description": "Tooltip on the 'Recommended' tag next to a user in the add-members-to-channel dialog, indicating the user matches the channel's access rules / suggested membership."
+  },
+  "channel_invite.recommended_tag.tooltip.board": {
+    "defaultMessage": "Matches the suggested membership for this board",
+    "description": "Tooltip on the 'Recommended' tag next to a user in the add-members-to-channel dialog, indicating the user matches the channel's access rules / suggested membership. This is the wording used when the channel is a board."
   },
   "channel_join_request.approve": {
     "defaultMessage": "Approve",
@@ -20203,6 +20451,10 @@
     "defaultMessage": "CHANNEL ADMINS",
     "description": "All-caps group heading in the channel members panel above the list of channel admins."
   },
+  "channel_members_rhs.list.channel_admin_title.board": {
+    "defaultMessage": "BOARD ADMINS",
+    "description": "All-caps group heading in the channel members panel above the list of channel admins. This is the wording used when the channel is a board."
+  },
   "channel_members_rhs.list.channel_members_title": {
     "defaultMessage": "MEMBERS",
     "description": "All-caps group heading in the channel members panel above the list of ordinary members."
@@ -20227,9 +20479,17 @@
     "defaultMessage": "Channel access is restricted by user attributes",
     "description": "Notice in the channel members panel when membership is restricted by attribute-based access rules."
   },
+  "channel_members_rhs.policy_enforced_restrictions.board": {
+    "defaultMessage": "Board access is restricted by user attributes",
+    "description": "Notice in the channel members panel when membership is restricted by attribute-based access rules. This is the wording used when the channel is a board."
+  },
   "channel_members_rhs.policy_recommended_description": {
     "defaultMessage": "This channel has recommended members based on user attributes",
     "description": "Notice in the channel members panel when a membership policy recommends members based on user attributes."
+  },
+  "channel_members_rhs.policy_recommended_description.board": {
+    "defaultMessage": "This board has recommended members based on user attributes",
+    "description": "Notice in the channel members panel when a membership policy recommends members based on user attributes. This is the wording used when the channel is a board."
   },
   "channel_members_rhs.search_bar.aria.cancel_search_button": {
     "defaultMessage": "cancel members search",
@@ -20315,6 +20575,10 @@
     "defaultMessage": "Channel name",
     "description": "Label of the channel name text field in the create-channel and channel settings forms."
   },
+  "channel_modal.name.label.board": {
+    "defaultMessage": "Board name",
+    "description": "Label of the channel name text field in the create-channel and channel settings forms. This is the wording used when the channel is a board."
+  },
   "channel_modal.name.longer": {
     "defaultMessage": "Channel names must have at least 1 character.",
     "description": "Validation error under the channel name field when the name is empty/too short."
@@ -20351,6 +20615,10 @@
     "defaultMessage": "Private Channel",
     "description": "Option title in the channel type selector for a private (invite-only) channel."
   },
+  "channel_modal.type.private.title.board": {
+    "defaultMessage": "Private Board",
+    "description": "Option title in the channel type selector for a private (invite-only) channel. This is the wording used when the channel is a board."
+  },
   "channel_modal.type.public.description": {
     "defaultMessage": "Anyone can join",
     "description": "Short description under the Public Channel option in the channel type selector."
@@ -20358,6 +20626,10 @@
   "channel_modal.type.public.title": {
     "defaultMessage": "Public Channel",
     "description": "Option title in the channel type selector for a public channel."
+  },
+  "channel_modal.type.public.title.board": {
+    "defaultMessage": "Public Board",
+    "description": "Option title in the channel type selector for a public channel. This is the wording used when the channel is a board."
   },
   "channel_name_form_field.default_channel_url": {
     "defaultMessage": "The URL of the default channel cannot be changed.",
@@ -20367,21 +20639,41 @@
     "defaultMessage": "All other notification preferences for this channel are disabled",
     "description": "Body of the banner at the top of the channel notification preferences modal when the channel is muted."
   },
+  "channel_notifications.alertBanner.description.board": {
+    "defaultMessage": "All other notification preferences for this board are disabled",
+    "description": "Body of the banner at the top of the channel notification preferences modal when the channel is muted. This is the wording used when the channel is a board."
+  },
   "channel_notifications.alertBanner.title": {
     "defaultMessage": "This channel is muted",
     "description": "Title of the banner in the channel notification preferences modal indicating the channel is currently muted."
+  },
+  "channel_notifications.alertBanner.title.board": {
+    "defaultMessage": "This board is muted",
+    "description": "Title of the banner in the channel notification preferences modal indicating the channel is currently muted. This is the wording used when the channel is a board."
   },
   "channel_notifications.autoFollowThreadsDesc": {
     "defaultMessage": "When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.",
     "description": "Help text under the follow-all-threads setting in the channel notification preferences modal; 'Threads' refers to the Threads view feature."
   },
+  "channel_notifications.autoFollowThreadsDesc.board": {
+    "defaultMessage": "When enabled, all new replies in this board will be automatically followed and will appear in your Threads view.",
+    "description": "Help text under the follow-all-threads setting in the channel notification preferences modal; 'Threads' refers to the Threads view feature. This is the wording used when the channel is a board."
+  },
   "channel_notifications.autoFollowThreadsTitle": {
     "defaultMessage": "Follow all threads in this channel",
     "description": "Setting title in the channel notification preferences modal for automatically following every thread in the channel."
   },
+  "channel_notifications.autoFollowThreadsTitle.board": {
+    "defaultMessage": "Follow all threads in this board",
+    "description": "Setting title in the channel notification preferences modal for automatically following every thread in the channel. This is the wording used when the channel is a board."
+  },
   "channel_notifications.checkbox.autoFollowThreadsTitle": {
     "defaultMessage": "Automatically follow threads in this channel",
     "description": "Checkbox label in the channel notification preferences modal that enables automatically following threads in this channel."
+  },
+  "channel_notifications.checkbox.autoFollowThreadsTitle.board": {
+    "defaultMessage": "Automatically follow threads in this board",
+    "description": "Checkbox label in the channel notification preferences modal that enables automatically following threads in this channel. This is the wording used when the channel is a board."
   },
   "channel_notifications.checkbox.sameMobileSettingsDesktop": {
     "defaultMessage": "Use the same notification settings as desktop",
@@ -20419,6 +20711,10 @@
     "defaultMessage": "When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel",
     "description": "Help text for the ignore-mentions setting in the channel notification preferences modal; @channel, @here and @all are literal mention keywords, do not translate."
   },
+  "channel_notifications.ignoreMentionsDesc.board": {
+    "defaultMessage": "When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this board",
+    "description": "Help text for the ignore-mentions setting in the channel notification preferences modal; @channel, @here and @all are literal mention keywords, do not translate. This is the wording used when the channel is a board."
+  },
   "channel_notifications.ignoreMentionsTitle": {
     "defaultMessage": "Ignore mentions for @channel, @here and @all",
     "description": "Setting title in the channel notification preferences modal; @channel, @here and @all are literal mention keywords, do not translate."
@@ -20443,9 +20739,17 @@
     "defaultMessage": "Turns off notifications for this channel. You’ll still see badges if you’re mentioned.",
     "description": "Help text for the mute-channel toggle in the channel notification preferences modal; 'badges' are the unread mention indicators."
   },
+  "channel_notifications.muteChannelDesc.board": {
+    "defaultMessage": "Turns off notifications for this board. You’ll still see badges if you’re mentioned.",
+    "description": "Help text for the mute-channel toggle in the channel notification preferences modal; 'badges' are the unread mention indicators. This is the wording used when the channel is a board."
+  },
   "channel_notifications.muteChannelTitle": {
     "defaultMessage": "Mute channel",
     "description": "Toggle title in the channel notification preferences modal that mutes the channel ('Mute' as a verb)."
+  },
+  "channel_notifications.muteChannelTitle.board": {
+    "defaultMessage": "Mute board",
+    "description": "Toggle title in the channel notification preferences modal that mutes the channel ('Mute' as a verb). This is the wording used when the channel is a board."
   },
   "channel_notifications.NotifyMeTitle": {
     "defaultMessage": "Notify me about…",
@@ -20471,13 +20775,25 @@
     "defaultMessage": "Enter a header for this channel",
     "description": "Placeholder of the channel header text area on the Info tab of Channel Settings."
   },
+  "channel_settings_modal.header.placeholder.board": {
+    "defaultMessage": "Enter a header for this board",
+    "description": "Placeholder of the channel header text area on the Info tab of Channel Settings. This is the wording used when the channel is a board."
+  },
   "channel_settings_modal.name.placeholder": {
     "defaultMessage": "Enter a name for your channel",
     "description": "Placeholder of the channel name input on the Info tab of Channel Settings."
   },
+  "channel_settings_modal.name.placeholder.board": {
+    "defaultMessage": "Enter a name for your board",
+    "description": "Placeholder of the channel name input on the Info tab of Channel Settings. This is the wording used when the channel is a board."
+  },
   "channel_settings_modal.purpose.placeholder": {
     "defaultMessage": "Enter a purpose for this channel (optional)",
     "description": "Placeholder of the channel purpose text area on the Info tab of Channel Settings."
+  },
+  "channel_settings_modal.purpose.placeholder.board": {
+    "defaultMessage": "Enter a purpose for this board (optional)",
+    "description": "Placeholder of the channel purpose text area on the Info tab of Channel Settings. This is the wording used when the channel is a board."
   },
   "channel_settings.access_rules.auto_sync": {
     "defaultMessage": "Auto-add members based on access rules",
@@ -20495,6 +20811,10 @@
     "defaultMessage": "This channel will appear under \"Recommended channels\" for users who match the rules. Anyone can still join freely.",
     "description": "Description on the Access Rules tab for a public channel with auto-sync off; 'Recommended channels' is a UI section name and should match its translation."
   },
+  "channel_settings.access_rules.auto_sync_disabled_public_description.board": {
+    "defaultMessage": "This board will appear under \"Recommended channels\" for users who match the rules. Anyone can still join freely.",
+    "description": "Description on the Access Rules tab for a public channel with auto-sync off; 'Recommended channels' is a UI section name and should match its translation. This is the wording used when the channel is a board."
+  },
   "channel_settings.access_rules.auto_sync_enabled_description": {
     "defaultMessage": "Qualifying users are automatically added as members, and members who no longer match will be removed.",
     "description": "Description on the Access Rules tab of the channel settings modal when automatic member sync is on; members are added and removed based on attribute rules."
@@ -20502,6 +20822,10 @@
   "channel_settings.access_rules.auto_sync_enabled_public_description": {
     "defaultMessage": "Users who match these rules will be added to this channel. They can leave anytime and won't be re-added.",
     "description": "Description on the Access Rules tab for a public channel with auto-sync on; matching users are auto-added but may leave permanently."
+  },
+  "channel_settings.access_rules.auto_sync_enabled_public_description.board": {
+    "defaultMessage": "Users who match these rules will be added to this board. They can leave anytime and won't be re-added.",
+    "description": "Description on the Access Rules tab for a public channel with auto-sync on; matching users are auto-added but may leave permanently. This is the wording used when the channel is a board."
   },
   "channel_settings.access_rules.auto_sync_requires_expression": {
     "defaultMessage": "Define access rules to enable auto-add members",
@@ -20526,6 +20850,10 @@
   "channel_settings.access_rules.confirm_modal.message": {
     "defaultMessage": "Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.",
     "description": "Summary in the access-rules confirmation modal; {addCount}/{removeCount} are numbers of users who will be added/removed, with plural branches; <strong> renders bold."
+  },
+  "channel_settings.access_rules.confirm_modal.message.board": {
+    "defaultMessage": "Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the board and remove <strong>{removeCount, number} current board {removeCount, plural, one {member} other {members}}</strong>.",
+    "description": "Summary in the access-rules confirmation modal; {addCount}/{removeCount} are numbers of users who will be added/removed, with plural branches; <strong> renders bold. This is the wording used when the channel is a board."
   },
   "channel_settings.access_rules.confirm_modal.no_users": {
     "defaultMessage": "No users in this category",
@@ -20575,6 +20903,10 @@
     "defaultMessage": "You cannot set this rule because it would remove you from the channel. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues.",
     "description": "Error body on the Access Rules tab when the proposed rules would remove the editing user from the channel."
   },
+  "channel_settings.access_rules.error.self_exclusion_message.board": {
+    "defaultMessage": "You cannot set this rule because it would remove you from the board. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues.",
+    "description": "Error body on the Access Rules tab when the proposed rules would remove the editing user from the channel. This is the wording used when the channel is a board."
+  },
   "channel_settings.access_rules.error.self_exclusion_title": {
     "defaultMessage": "Cannot save access rules",
     "description": "Error title on the Access Rules tab when the rules cannot be saved because they would exclude the editing user."
@@ -20607,6 +20939,14 @@
     "defaultMessage": "Define who this channel is recommended for. The channel stays open to everyone.",
     "description": "Subtitle under the 'Membership Rules' heading in the Channel Settings Access Rules tab for public channels, where rules only produce recommendations and never restrict access."
   },
+  "channel_settings.access_rules.subtitle_public.board": {
+    "defaultMessage": "Define who this board is recommended for. The board stays open to everyone.",
+    "description": "Subtitle under the 'Membership Rules' heading in the Channel Settings Access Rules tab for public channels, where rules only produce recommendations and never restrict access. This is the wording used when the channel is a board."
+  },
+  "channel_settings.access_rules.subtitle.board": {
+    "defaultMessage": "Select user attributes and values as rules to restrict board membership",
+    "description": "Subtitle under the Access Rules tab title in channel settings, explaining that attribute rules restrict membership. This is the wording used when the channel is a board."
+  },
   "channel_settings.access_rules.title": {
     "defaultMessage": "Access Rules",
     "description": "Heading of the Access Rules tab in the Channel Settings modal."
@@ -20619,6 +20959,10 @@
     "defaultMessage": "I acknowledge this change will expose all historical channel messages to more users",
     "description": "Checkbox label the user must tick in the warning modal before applying access-rule changes that expose past channel messages to new members."
   },
+  "channel_settings.activity_warning.acknowledge_expose_history.board": {
+    "defaultMessage": "I acknowledge this change will expose all historical board messages to more users",
+    "description": "Checkbox label the user must tick in the warning modal before applying access-rule changes that expose past channel messages to new members. This is the wording used when the channel is a board."
+  },
   "channel_settings.activity_warning.exposing_history_description": {
     "defaultMessage": "Modifying access rules may allow new users to view the entire message history, including messages sent before this change.",
     "description": "Body of the warning modal shown when changing channel access rules would let new members read the channel's past messages."
@@ -20626,6 +20970,10 @@
   "channel_settings.activity_warning.exposing_history_title": {
     "defaultMessage": "Exposing channel history",
     "description": "Title of the warning modal about channel access-rule changes exposing message history."
+  },
+  "channel_settings.activity_warning.exposing_history_title.board": {
+    "defaultMessage": "Exposing board history",
+    "description": "Title of the warning modal about channel access-rule changes exposing message history. This is the wording used when the channel is a board."
   },
   "channel_settings.activity_warning.save_and_apply": {
     "defaultMessage": "Save and apply",
@@ -20635,17 +20983,33 @@
     "defaultMessage": "Archive this channel",
     "description": "Destructive button on the Archive tab of the Channel Settings modal that starts archiving the channel."
   },
+  "channel_settings.archive.button.board": {
+    "defaultMessage": "Archive this board",
+    "description": "Destructive button on the Archive tab of the Channel Settings modal that starts archiving the channel. This is the wording used when the channel is a board."
+  },
   "channel_settings.archive.warning": {
     "defaultMessage": "Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels.",
     "description": "Explanatory text on the Archive tab of the Channel Settings modal describing what archiving does."
+  },
+  "channel_settings.archive.warning.board": {
+    "defaultMessage": "Archiving a board removes it from the user interface, but doesn't permanently delete the board. New messages can't be posted to archived boards.",
+    "description": "Explanatory text on the Archive tab of the Channel Settings modal describing what archiving does. This is the wording used when the channel is a board."
   },
   "channel_settings.channel_info_tab.name": {
     "defaultMessage": "Channel Info",
     "description": "Heading of the Info tab content in the Channel Settings modal (name, purpose, header fields)."
   },
+  "channel_settings.channel_info_tab.name.board": {
+    "defaultMessage": "Board Info",
+    "description": "Heading of the Info tab content in the Channel Settings modal (name, purpose, header fields). This is the wording used when the channel is a board."
+  },
   "channel_settings.classification.description": {
     "defaultMessage": "When enabled, a classification level can be set for the channel with configurable indicators.",
     "description": "Help text under the Classification toggle on the Configuration tab of Channel Settings (security classification levels)."
+  },
+  "channel_settings.classification.description.board": {
+    "defaultMessage": "When enabled, a classification level can be set for the board with configurable indicators.",
+    "description": "Help text under the Classification toggle on the Configuration tab of Channel Settings (security classification levels). This is the wording used when the channel is a board."
   },
   "channel_settings.classification.level_label": {
     "defaultMessage": "Classification level",
@@ -20659,6 +21023,10 @@
     "defaultMessage": "Non-members can see this channel in Browse Channels, the channel switcher, and shared permalinks. Message contents stay hidden until they join.",
     "description": "Help text under the Discoverable toggle for private channels; 'Browse Channels' and 'channel switcher' are UI feature names."
   },
+  "channel_settings.discoverable.description.board": {
+    "defaultMessage": "Non-members can see this board in Browse Channels, the channel switcher, and shared permalinks. Message contents stay hidden until they join.",
+    "description": "Help text under the Discoverable toggle for private channels; 'Browse Channels' and 'channel switcher' are UI feature names. This is the wording used when the channel is a board."
+  },
   "channel_settings.discoverable.read_only": {
     "defaultMessage": "Only channel admins can change this.",
     "description": "Note under the Discoverable toggle in Channel Settings shown when the viewer lacks permission to change it."
@@ -20670,6 +21038,10 @@
   "channel_settings.error_attributes_save_failed": {
     "defaultMessage": "Couldn't save one or more channel attributes. Try again.",
     "description": "Channel Settings > Info tab. Error shown at the bottom of the modal when saving the channel's attribute values failed on the server."
+  },
+  "channel_settings.error_attributes_save_failed.board": {
+    "defaultMessage": "Couldn't save one or more board attributes. Try again.",
+    "description": "Channel Settings > Info tab. Error shown at the bottom of the modal when saving the channel's attribute values failed on the server. This is the wording used when the channel is a board."
   },
   "channel_settings.error_banner_color_required": {
     "defaultMessage": "Banner color is required",
@@ -20683,13 +21055,25 @@
     "defaultMessage": "Channel name is required",
     "description": "Validation error on the Info tab of Channel Settings when the channel name field is empty."
   },
+  "channel_settings.error_display_name_required.board": {
+    "defaultMessage": "Board name is required",
+    "description": "Validation error on the Info tab of Channel Settings when the channel name field is empty. This is the wording used when the channel is a board."
+  },
   "channel_settings.error_purpose_length": {
     "defaultMessage": "The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.",
     "description": "Validation error when the channel purpose exceeds the limit; {maxLength} is the maximum character count."
   },
+  "channel_settings.error_purpose_length.board": {
+    "defaultMessage": "The text entered exceeds the character limit. The board purpose is limited to {maxLength} characters.",
+    "description": "Validation error when the channel purpose exceeds the limit; {maxLength} is the maximum character count. This is the wording used when the channel is a board."
+  },
   "channel_settings.header.label": {
     "defaultMessage": "Channel Header",
     "description": "Field label for the channel header text area on the Info tab of Channel Settings."
+  },
+  "channel_settings.header.label.board": {
+    "defaultMessage": "Board Header",
+    "description": "Field label for the channel header text area on the Info tab of Channel Settings. This is the wording used when the channel is a board."
   },
   "channel_settings.join_leave_messages.label.name": {
     "defaultMessage": "Join/Leave System Messages",
@@ -20699,9 +21083,17 @@
     "defaultMessage": "When enabled, join and leave system messages are shown in this channel for all users. When disabled, they are hidden regardless of account-wide Advanced settings. Stored messages reappear if you turn this back on.",
     "description": "Help text for the join/leave messages toggle in Channel Settings > Configuration. 'Advanced settings' refers to the Advanced tab of the user's Settings dialog, where each user has their own join/leave preference."
   },
+  "channel_settings.join_leave_messages.label.subtext.board": {
+    "defaultMessage": "When enabled, join and leave system messages are shown in this board for all users. When disabled, they are hidden regardless of account-wide Advanced settings. Stored messages reappear if you turn this back on.",
+    "description": "Help text for the join/leave messages toggle in Channel Settings > Configuration. 'Advanced settings' refers to the Advanced tab of the user's Settings dialog, where each user has their own join/leave preference. This is the wording used when the channel is a board."
+  },
   "channel_settings.modal.archiveTitle": {
     "defaultMessage": "Archive channel?",
     "description": "Title of the confirmation dialog shown before archiving a channel from Channel Settings."
+  },
+  "channel_settings.modal.archiveTitle.board": {
+    "defaultMessage": "Archive board?",
+    "description": "Title of the confirmation dialog shown before archiving a channel from Channel Settings. This is the wording used when the channel is a board."
   },
   "channel_settings.modal.confirmArchive": {
     "defaultMessage": "Confirm",
@@ -20711,6 +21103,10 @@
     "defaultMessage": "Channel Settings",
     "description": "Title of the Channel Settings modal."
   },
+  "channel_settings.modal.title.board": {
+    "defaultMessage": "Board Settings",
+    "description": "Title of the Channel Settings modal. This is the wording used when the channel is a board."
+  },
   "channel_settings.permissions_policy.action.create_bor": {
     "defaultMessage": "Create burn-on-read message",
     "description": "Permission action in the channel Permissions Policy rule editor; allows sending burn-on-read messages."
@@ -20718,6 +21114,10 @@
   "channel_settings.permissions_policy.action.create_bor.description": {
     "defaultMessage": "Allow users to send burn-on-read messages in this channel",
     "description": "Description shown under the `Create burn-on-read message` option in the permission picker of the channel permission rule editor."
+  },
+  "channel_settings.permissions_policy.action.create_bor.description.board": {
+    "defaultMessage": "Allow users to send burn-on-read messages in this board",
+    "description": "Description shown under the `Create burn-on-read message` option in the permission picker of the channel permission rule editor. This is the wording used when the channel is a board."
   },
   "channel_settings.permissions_policy.action.download": {
     "defaultMessage": "Download files",
@@ -20727,6 +21127,10 @@
     "defaultMessage": "Allow users to download attached files from this channel",
     "description": "Description shown under the 'Download files' option in the permission picker of the channel permission rule editor."
   },
+  "channel_settings.permissions_policy.action.download.description.board": {
+    "defaultMessage": "Allow users to download attached files from this board",
+    "description": "Description shown under the 'Download files' option in the permission picker of the channel permission rule editor. This is the wording used when the channel is a board."
+  },
   "channel_settings.permissions_policy.action.upload": {
     "defaultMessage": "Upload files",
     "description": "Permission action name in the channel Permissions Policy rule editor; allows uploading files ('Upload' as a verb)."
@@ -20734,6 +21138,10 @@
   "channel_settings.permissions_policy.action.upload.description": {
     "defaultMessage": "Allow users to attach files to messages in this channel",
     "description": "Description shown under the 'Upload files' option in the permission picker of the channel permission rule editor."
+  },
+  "channel_settings.permissions_policy.action.upload.description.board": {
+    "defaultMessage": "Allow users to attach files to messages in this board",
+    "description": "Description shown under the 'Upload files' option in the permission picker of the channel permission rule editor. This is the wording used when the channel is a board."
   },
   "channel_settings.permissions_policy.add_rule": {
     "defaultMessage": "Add rule",
@@ -20795,6 +21203,10 @@
     "defaultMessage": "Rule name \"{name}\" is used more than once. Names must be unique within this channel.",
     "description": "Validation error on the Permissions Policy tab for duplicate rule names; {name} is the duplicated rule name."
   },
+  "channel_settings.permissions_policy.error.name_unique.board": {
+    "defaultMessage": "Rule name \"{name}\" is used more than once. Names must be unique within this board.",
+    "description": "Validation error on the Permissions Policy tab for duplicate rule names; {name} is the duplicated rule name. This is the wording used when the channel is a board."
+  },
   "channel_settings.permissions_policy.field.actions": {
     "defaultMessage": "Permissions",
     "description": "Field label in the permission rule editor for the set of permissions the rule grants."
@@ -20855,9 +21267,17 @@
     "defaultMessage": "Failed to load this channel's permission policy. Try closing and reopening the channel settings.",
     "description": "Error on the Permissions Policy tab when the channel's permission policy could not be fetched from the server."
   },
+  "channel_settings.permissions_policy.load_error.board": {
+    "defaultMessage": "Failed to load this board's permission policy. Try closing and reopening the board settings.",
+    "description": "Error on the Permissions Policy tab when the channel's permission policy could not be fetched from the server. This is the wording used when the channel is a board."
+  },
   "channel_settings.permissions_policy.or_hint": {
     "defaultMessage": "When several rules apply to the same role and action, a user is allowed if any one of them allows them. A system-level policy may still deny the permission even when this channel policy allows it.",
     "description": "Explanatory note on the Permissions Policy tab describing how multiple rules combine (any allowing rule wins) and that system policies can still deny."
+  },
+  "channel_settings.permissions_policy.or_hint.board": {
+    "defaultMessage": "When several rules apply to the same role and action, a user is allowed if any one of them allows them. A system-level policy may still deny the permission even when this board policy allows it.",
+    "description": "Explanatory note on the Permissions Policy tab describing how multiple rules combine (any allowing rule wins) and that system policies can still deny. This is the wording used when the channel is a board."
   },
   "channel_settings.permissions_policy.pagination.next": {
     "defaultMessage": "Next page",
@@ -20886,6 +21306,10 @@
   "channel_settings.permissions_policy.role.channel_guest.description": {
     "defaultMessage": "Applies only to guest accounts in this channel",
     "description": "Description shown under the 'Channel guest' option in the role dropdown of the channel permission rule editor."
+  },
+  "channel_settings.permissions_policy.role.channel_guest.description.board": {
+    "defaultMessage": "Applies only to guest accounts in this board",
+    "description": "Description shown under the 'Channel guest' option in the role dropdown of the channel permission rule editor. This is the wording used when the channel is a board."
   },
   "channel_settings.permissions_policy.role.channel_user": {
     "defaultMessage": "Channel member",
@@ -20935,9 +21359,17 @@
     "defaultMessage": "Channel permission rules",
     "description": "Section heading in the Channel Settings modal's permissions tab, above the list of access-control rules for the channel."
   },
+  "channel_settings.permissions_policy.section_title.board": {
+    "defaultMessage": "Board permission rules",
+    "description": "Section heading in the Channel Settings modal's permissions tab, above the list of access-control rules for the channel. This is the wording used when the channel is a board."
+  },
   "channel_settings.permissions_policy.system_banner": {
     "defaultMessage": "System-wide permission policies may also influence access decisions for this channel.",
     "description": "Informational banner in the Channel Settings modal's permissions tab, reminding channel admins that global policies also apply."
+  },
+  "channel_settings.permissions_policy.system_banner.board": {
+    "defaultMessage": "System-wide permission policies may also influence access decisions for this board.",
+    "description": "Informational banner in the Channel Settings modal's permissions tab, reminding channel admins that global policies also apply. This is the wording used when the channel is a board."
   },
   "channel_settings.plugin_schema_tab.loading": {
     "defaultMessage": "Loading…",
@@ -20947,17 +21379,33 @@
     "defaultMessage": "This channel has a membership policy applied. Remove the policy before changing between public and private.",
     "description": "Explanation shown on the Info tab when the public/private selector is disabled because a membership policy is applied to the channel."
   },
+  "channel_settings.policy_enforced.cannot_change_channel_type.board": {
+    "defaultMessage": "This board has a membership policy applied. Remove the policy before changing between public and private.",
+    "description": "Explanation shown on the Info tab when the public/private selector is disabled because a membership policy is applied to the channel. This is the wording used when the channel is a board."
+  },
   "channel_settings.purpose.description": {
     "defaultMessage": "Describe how this channel should be used.",
     "description": "Help text under the channel purpose field on the Info tab of Channel Settings."
+  },
+  "channel_settings.purpose.description.board": {
+    "defaultMessage": "Describe how this board should be used.",
+    "description": "Help text under the channel purpose field on the Info tab of Channel Settings. This is the wording used when the channel is a board."
   },
   "channel_settings.purpose.header": {
     "defaultMessage": "This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).",
     "description": "Help text under the channel header field explaining where the header appears; the markdown link syntax example should be kept literal."
   },
+  "channel_settings.purpose.header.board": {
+    "defaultMessage": "This is the text that will appear in the header of the board beside the board name. You can use markdown to include links by typing [Link Title](http://example.com).",
+    "description": "Help text under the channel header field explaining where the header appears; the markdown link syntax example should be kept literal. This is the wording used when the channel is a board."
+  },
   "channel_settings.purpose.label": {
     "defaultMessage": "Channel Purpose",
     "description": "Field label for the channel purpose text area on the Info tab of Channel Settings."
+  },
+  "channel_settings.purpose.label.board": {
+    "defaultMessage": "Board Purpose",
+    "description": "Field label for the channel purpose text area on the Info tab of Channel Settings. This is the wording used when the channel is a board."
   },
   "channel_settings.remove_sharing_confirm.cancel": {
     "defaultMessage": "Cancel",
@@ -20971,6 +21419,10 @@
     "defaultMessage": "This will unshare the channel <b>{channelName}</b> with the <b>{workspaceNames}</b> connected {count, plural, one {workspace} other {workspaces}}. Are you sure you want to unshare?",
     "description": "Body of the unshare-channel confirmation dialog; {channelName} is the channel, {workspaceNames} lists remote workspaces, plural on {count} workspaces; <b> renders bold."
   },
+  "channel_settings.remove_sharing_confirm.message.board": {
+    "defaultMessage": "This will unshare the board <b>{channelName}</b> with the <b>{workspaceNames}</b> connected {count, plural, one {workspace} other {workspaces}}. Are you sure you want to unshare?",
+    "description": "Body of the unshare-channel confirmation dialog; {channelName} is the channel, {workspaceNames} lists remote workspaces, plural on {count} workspaces; <b> renders bold. This is the wording used when the channel is a board."
+  },
   "channel_settings.remove_sharing_confirm.title": {
     "defaultMessage": "Remove sharing from {count, plural, one {this connection} other {these connections}}?",
     "description": "Title of the confirmation dialog for removing a shared channel from connected workspaces; plural branches on the number of connections."
@@ -20979,9 +21431,17 @@
     "defaultMessage": "Add banner text, or turn off the channel banner.",
     "description": "Channel Settings > Configuration. Error shown in the save-changes panel when the channel banner is turned on but the banner text is empty, and the user is allowed to turn the banner off instead."
   },
+  "channel_settings.save_changes_panel.banner_text.empty_error.board": {
+    "defaultMessage": "Add banner text, or turn off the board banner.",
+    "description": "Channel Settings > Configuration. Error shown in the save-changes panel when the channel banner is turned on but the banner text is empty, and the user is allowed to turn the banner off instead. This is the wording used when the channel is a board."
+  },
   "channel_settings.save_changes_panel.banner_text.required_error": {
     "defaultMessage": "Channel banner text cannot be empty when enabled",
     "description": "Error in the unsaved-changes panel when the channel banner is enabled but its text is empty."
+  },
+  "channel_settings.save_changes_panel.banner_text.required_error.board": {
+    "defaultMessage": "Board banner text cannot be empty when enabled",
+    "description": "Error in the unsaved-changes panel when the channel banner is enabled but its text is empty. This is the wording used when the channel is a board."
   },
   "channel_settings.save_changes_panel.reset": {
     "defaultMessage": "Reset",
@@ -21002,6 +21462,10 @@
   "channel_settings.share_channel_with_workspaces.description": {
     "defaultMessage": "Collaborate with trusted organizations in this channel.",
     "description": "Subheading under the 'Share with connected workspaces' section title in the Channel Settings modal, describing the shared-channels feature."
+  },
+  "channel_settings.share_channel_with_workspaces.description.board": {
+    "defaultMessage": "Collaborate with trusted organizations in this board.",
+    "description": "Subheading under the 'Share with connected workspaces' section title in the Channel Settings modal, describing the shared-channels feature. This is the wording used when the channel is a board."
   },
   "channel_settings.share_channel_with_workspaces.disable_toggle_tooltip": {
     "defaultMessage": "No connected workspaces are available",
@@ -21035,13 +21499,29 @@
     "defaultMessage": "This channel is not shared with any connected workspaces yet.",
     "description": "Label in the Channel Settings sharing section when the channel is not shared with any connected workspaces; 'workspaces' are other Mattermost servers connected via shared channels."
   },
+  "channel_settings.share_channel_with_workspaces.workspaces_label_empty.board": {
+    "defaultMessage": "This board is not shared with any connected workspaces yet.",
+    "description": "Label in the Channel Settings sharing section when the channel is not shared with any connected workspaces; 'workspaces' are other Mattermost servers connected via shared channels. This is the wording used when the channel is a board."
+  },
+  "channel_settings.share_channel_with_workspaces.workspaces_label.board": {
+    "defaultMessage": "Workspaces this board is shared with",
+    "description": "List header above the connected workspaces the channel is currently shared with, in the Channel Settings modal. This is the wording used when the channel is a board."
+  },
   "channel_settings.sharing_errors": {
     "defaultMessage": "There have been errors while sharing the channel with some workspaces. Please try again.",
     "description": "Error on the Configuration tab when sharing the channel with some remote workspaces failed."
   },
+  "channel_settings.sharing_errors.board": {
+    "defaultMessage": "There have been errors while sharing the board with some workspaces. Please try again.",
+    "description": "Error on the Configuration tab when sharing the channel with some remote workspaces failed. This is the wording used when the channel is a board."
+  },
   "channel_settings.tab.archive": {
     "defaultMessage": "Archive Channel",
     "description": "Tab name in the Channel Settings modal sidebar for archiving the channel; compact."
+  },
+  "channel_settings.tab.archive.board": {
+    "defaultMessage": "Archive Board",
+    "description": "Tab name in the Channel Settings modal sidebar for archiving the channel; compact. This is the wording used when the channel is a board."
   },
   "channel_settings.tab.configuration": {
     "defaultMessage": "Configuration",
@@ -21090,6 +21570,10 @@
   "channel_translation.label.subtext": {
     "defaultMessage": "When enabled, messages in this channel will be translated to members' own languages. Members can opt-out of this from the channel menu to view the original message instead.",
     "description": "Help text under the auto-translation toggle explaining messages will be translated into each member's language."
+  },
+  "channel_translation.label.subtext.board": {
+    "defaultMessage": "When enabled, messages in this board will be translated to members' own languages. Members can opt-out of this from the board menu to view the original message instead.",
+    "description": "Help text under the auto-translation toggle explaining messages will be translated into each member's language. This is the wording used when the channel is a board."
   },
   "channelHeader.addToFavorites": {
     "defaultMessage": "Add to Favorites",
@@ -21146,6 +21630,10 @@
   "channelView.archivedChannel": {
     "defaultMessage": "You are viewing an <b>archived channel</b>. New messages cannot be posted.",
     "description": "Notice replacing the message input when viewing an archived channel; <b> tags render bold text and must be kept around the equivalent phrase."
+  },
+  "channelView.archivedChannel.board": {
+    "defaultMessage": "You are viewing an <b>archived board</b>. New messages cannot be posted.",
+    "description": "Notice replacing the message input when viewing an archived channel; <b> tags render bold text and must be kept around the equivalent phrase. This is the wording used when the channel is a board."
   },
   "channelView.archivedChannelWithDeactivatedUser": {
     "defaultMessage": "You are viewing an archived channel with a <b>deactivated user</b>. New messages cannot be posted.",
@@ -21599,6 +22087,10 @@
     "defaultMessage": "{users} and {lastUser} were **added to the channel** by {actor}.",
     "description": "System message in the channel when several users were added; {users} is a comma-separated list of usernames, {lastUser} the final username, {actor} the username of who added them; ** renders bold markdown."
   },
+  "combined_system_message.added_to_channel.many_expanded.board": {
+    "defaultMessage": "{users} and {lastUser} were **added to the board** by {actor}.",
+    "description": "System message in the channel when several users were added; {users} is a comma-separated list of usernames, {lastUser} the final username, {actor} the username of who added them; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.added_to_channel.one": {
     "defaultMessage": "{firstUser} **added to the channel** by {actor}.",
     "description": "System message in the channel when one user was added; {firstUser} is the added user's username and {actor} who added them; ** renders bold markdown."
@@ -21607,9 +22099,21 @@
     "defaultMessage": "You were **added to the channel** by {actor}.",
     "description": "System message shown in the channel when the current user was added to it; {actor} is the name of the user who added them; ** ** is markdown bold and must be kept."
   },
+  "combined_system_message.added_to_channel.one_you.board": {
+    "defaultMessage": "You were **added to the board** by {actor}.",
+    "description": "System message shown in the channel when the current user was added to it; {actor} is the name of the user who added them; ** ** is markdown bold and must be kept. This is the wording used when the channel is a board."
+  },
+  "combined_system_message.added_to_channel.one.board": {
+    "defaultMessage": "{firstUser} **added to the board** by {actor}.",
+    "description": "System message in the channel when one user was added; {firstUser} is the added user's username and {actor} who added them; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.added_to_channel.two": {
     "defaultMessage": "{firstUser} and {secondUser} **added to the channel** by {actor}.",
     "description": "System message in the channel when two users were added; {firstUser} and {secondUser} are usernames, {actor} is who added them; ** renders bold markdown."
+  },
+  "combined_system_message.added_to_channel.two.board": {
+    "defaultMessage": "{firstUser} and {secondUser} **added to the board** by {actor}.",
+    "description": "System message in the channel when two users were added; {firstUser} and {secondUser} are usernames, {actor} is who added them; ** renders bold markdown. This is the wording used when the channel is a board."
   },
   "combined_system_message.added_to_team.many_expanded": {
     "defaultMessage": "{users} and {lastUser} were **added to the team** by {actor}.",
@@ -21631,6 +22135,10 @@
     "defaultMessage": "{users} and {lastUser} **joined and left the channel**.",
     "description": "System message shown when several users joined and then left the channel; {users} is a comma-separated list of usernames and {lastUser} the final username; ** renders bold markdown."
   },
+  "combined_system_message.join_left_channel.many_expanded.board": {
+    "defaultMessage": "{users} and {lastUser} **joined and left the board**.",
+    "description": "System message shown when several users joined and then left the channel; {users} is a comma-separated list of usernames and {lastUser} the final username; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.join_left_channel.one": {
     "defaultMessage": "{firstUser} **joined and left the channel**.",
     "description": "System message shown when one user joined and then left the channel; {firstUser} is their username; ** renders bold markdown."
@@ -21639,13 +22147,29 @@
     "defaultMessage": "You **joined and left the channel**.",
     "description": "Combined system message when the current user both joined and left the channel; ** ** is markdown bold."
   },
+  "combined_system_message.join_left_channel.one_you.board": {
+    "defaultMessage": "You **joined and left the board**.",
+    "description": "Combined system message when the current user both joined and left the channel; ** ** is markdown bold. This is the wording used when the channel is a board."
+  },
+  "combined_system_message.join_left_channel.one.board": {
+    "defaultMessage": "{firstUser} **joined and left the board**.",
+    "description": "System message shown when one user joined and then left the channel; {firstUser} is their username; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.join_left_channel.two": {
     "defaultMessage": "{firstUser} and {secondUser} **joined and left the channel**.",
     "description": "System message shown when two users joined and then left the channel; {firstUser} and {secondUser} are usernames; ** renders bold markdown."
   },
+  "combined_system_message.join_left_channel.two.board": {
+    "defaultMessage": "{firstUser} and {secondUser} **joined and left the board**.",
+    "description": "System message shown when two users joined and then left the channel; {firstUser} and {secondUser} are usernames; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.joined_channel.many_expanded": {
     "defaultMessage": "{users} and {lastUser} **joined the channel**.",
     "description": "System message shown when several users joined the channel; {users} is a comma-separated list of usernames and {lastUser} the final username; ** renders bold markdown."
+  },
+  "combined_system_message.joined_channel.many_expanded.board": {
+    "defaultMessage": "{users} and {lastUser} **joined the board**.",
+    "description": "System message shown when several users joined the channel; {users} is a comma-separated list of usernames and {lastUser} the final username; ** renders bold markdown. This is the wording used when the channel is a board."
   },
   "combined_system_message.joined_channel.one": {
     "defaultMessage": "{firstUser} **joined the channel**.",
@@ -21655,9 +22179,21 @@
     "defaultMessage": "You **joined the channel**.",
     "description": "System message shown when the current user joined the channel; ** ** is markdown bold."
   },
+  "combined_system_message.joined_channel.one_you.board": {
+    "defaultMessage": "You **joined the board**.",
+    "description": "System message shown when the current user joined the channel; ** ** is markdown bold. This is the wording used when the channel is a board."
+  },
+  "combined_system_message.joined_channel.one.board": {
+    "defaultMessage": "{firstUser} **joined the board**.",
+    "description": "System message shown when one user joined the channel; {firstUser} is their username; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.joined_channel.two": {
     "defaultMessage": "{firstUser} and {secondUser} **joined the channel**.",
     "description": "System message shown when two users joined the channel; {firstUser} and {secondUser} are usernames; ** renders bold markdown."
+  },
+  "combined_system_message.joined_channel.two.board": {
+    "defaultMessage": "{firstUser} and {secondUser} **joined the board**.",
+    "description": "System message shown when two users joined the channel; {firstUser} and {secondUser} are usernames; ** renders bold markdown. This is the wording used when the channel is a board."
   },
   "combined_system_message.joined_team.many_expanded": {
     "defaultMessage": "{users} and {lastUser} **joined the team**.",
@@ -21679,6 +22215,10 @@
     "defaultMessage": "{users} and {lastUser} **left the channel**.",
     "description": "System message shown when several users left the channel; {users} is a comma-separated list of usernames and {lastUser} the final username; ** renders bold markdown."
   },
+  "combined_system_message.left_channel.many_expanded.board": {
+    "defaultMessage": "{users} and {lastUser} **left the board**.",
+    "description": "System message shown when several users left the channel; {users} is a comma-separated list of usernames and {lastUser} the final username; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.left_channel.one": {
     "defaultMessage": "{firstUser} **left the channel**.",
     "description": "System message shown when one user left the channel; {firstUser} is their username; ** renders bold markdown."
@@ -21687,9 +22227,21 @@
     "defaultMessage": "You **left the channel**.",
     "description": "System message shown when the current user left the channel; ** ** is markdown bold."
   },
+  "combined_system_message.left_channel.one_you.board": {
+    "defaultMessage": "You **left the board**.",
+    "description": "System message shown when the current user left the channel; ** ** is markdown bold. This is the wording used when the channel is a board."
+  },
+  "combined_system_message.left_channel.one.board": {
+    "defaultMessage": "{firstUser} **left the board**.",
+    "description": "System message shown when one user left the channel; {firstUser} is their username; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.left_channel.two": {
     "defaultMessage": "{firstUser} and {secondUser} **left the channel**.",
     "description": "System message shown when two users left the channel; {firstUser} and {secondUser} are usernames; ** renders bold markdown."
+  },
+  "combined_system_message.left_channel.two.board": {
+    "defaultMessage": "{firstUser} and {secondUser} **left the board**.",
+    "description": "System message shown when two users left the channel; {firstUser} and {secondUser} are usernames; ** renders bold markdown. This is the wording used when the channel is a board."
   },
   "combined_system_message.left_team.many_expanded": {
     "defaultMessage": "{users} and {lastUser} **left the team**.",
@@ -21711,6 +22263,10 @@
     "defaultMessage": "{users} and {lastUser} were **removed from the channel**.",
     "description": "System message shown when several users were removed from the channel; {users} is a comma-separated list of usernames and {lastUser} the final username; ** renders bold markdown."
   },
+  "combined_system_message.removed_from_channel.many_expanded.board": {
+    "defaultMessage": "{users} and {lastUser} were **removed from the board**.",
+    "description": "System message shown when several users were removed from the channel; {users} is a comma-separated list of usernames and {lastUser} the final username; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.removed_from_channel.one": {
     "defaultMessage": "{firstUser} was **removed from the channel**.",
     "description": "System message shown when one user was removed from the channel; {firstUser} is their username; ** renders bold markdown."
@@ -21719,9 +22275,21 @@
     "defaultMessage": "You were **removed from the channel**.",
     "description": "System message shown when the current user was removed from the channel; ** ** is markdown bold."
   },
+  "combined_system_message.removed_from_channel.one_you.board": {
+    "defaultMessage": "You were **removed from the board**.",
+    "description": "System message shown when the current user was removed from the channel; ** ** is markdown bold. This is the wording used when the channel is a board."
+  },
+  "combined_system_message.removed_from_channel.one.board": {
+    "defaultMessage": "{firstUser} was **removed from the board**.",
+    "description": "System message shown when one user was removed from the channel; {firstUser} is their username; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "combined_system_message.removed_from_channel.two": {
     "defaultMessage": "{firstUser} and {secondUser} were **removed from the channel**.",
     "description": "System message shown when two users were removed from the channel; {firstUser} and {secondUser} are usernames; ** renders bold markdown."
+  },
+  "combined_system_message.removed_from_channel.two.board": {
+    "defaultMessage": "{firstUser} and {secondUser} were **removed from the board**.",
+    "description": "System message shown when two users were removed from the channel; {firstUser} and {secondUser} are usernames; ** renders bold markdown. This is the wording used when the channel is a board."
   },
   "combined_system_message.removed_from_team.many_expanded": {
     "defaultMessage": "{users} and {lastUser} were **removed from the team**.",
@@ -21811,17 +22379,33 @@
     "defaultMessage": "Yes, convert to private channel",
     "description": "Confirm button in the convert-to-private-channel modal; phrased as answering the confirmation question."
   },
+  "convert_channel.confirm.board": {
+    "defaultMessage": "Yes, convert to private board",
+    "description": "Confirm button in the convert-to-private-channel modal; phrased as answering the confirmation question. This is the wording used when the channel is a board."
+  },
   "convert_channel.title": {
     "defaultMessage": "Convert {display_name} to a Private Channel?",
     "description": "Title of the confirmation modal asking whether to convert a public channel to private; {display_name} is the channel name."
+  },
+  "convert_channel.title.board": {
+    "defaultMessage": "Convert {display_name} to a Private Board?",
+    "description": "Title of the confirmation modal asking whether to convert a public channel to private; {display_name} is the channel name. This is the wording used when the channel is a board."
   },
   "convertChannel.question1": {
     "defaultMessage": "When you convert <b>{display_name}</b> to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.",
     "description": "First paragraph in the confirmation modal for converting a public channel to private; {display_name} is the channel name, <b> tags render it bold."
   },
+  "convertChannel.question1.board": {
+    "defaultMessage": "When you convert <b>{display_name}</b> to a private board, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private board is by invitation only.",
+    "description": "First paragraph in the confirmation modal for converting a public channel to private; {display_name} is the channel name, <b> tags render it bold. This is the wording used when the channel is a board."
+  },
   "convertChannel.question3": {
     "defaultMessage": "Are you sure you want to convert <b>{display_name}</b> to a private channel?",
     "description": "Final confirmation question in the convert-to-private-channel modal; {display_name} is the channel name, <b> tags render it bold."
+  },
+  "convertChannel.question3.board": {
+    "defaultMessage": "Are you sure you want to convert <b>{display_name}</b> to a private board?",
+    "description": "Final confirmation question in the convert-to-private-channel modal; {display_name} is the channel name, <b> tags render it bold. This is the wording used when the channel is a board."
   },
   "copied.message": {
     "defaultMessage": "Copied",
@@ -22315,6 +22899,10 @@
     "defaultMessage": "Sets the default sidebar category for users when they join the channel.",
     "description": "Help text under the default sidebar category selector in channel creation/settings; the category is applied for users when they join."
   },
+  "default_category.help_text.board": {
+    "defaultMessage": "Sets the default sidebar category for users when they join the board.",
+    "description": "Help text under the default sidebar category selector in channel creation/settings; the category is applied for users when they join. This is the wording used when the channel is a board."
+  },
   "default_category.label": {
     "defaultMessage": "Default category (optional)",
     "description": "Field label for the default sidebar category selector in channel creation/settings; 'optional' means the field may be left empty."
@@ -22346,6 +22934,10 @@
   "delete_channel.confirm": {
     "defaultMessage": "Confirm ARCHIVE Channel",
     "description": "Title of the confirmation modal for archiving a channel; 'ARCHIVE' is deliberately capitalized for emphasis."
+  },
+  "delete_channel.confirm.board": {
+    "defaultMessage": "Confirm ARCHIVE Board",
+    "description": "Title of the confirmation modal for archiving a channel; 'ARCHIVE' is deliberately capitalized for emphasis. This is the wording used when the channel is a board."
   },
   "delete_channel.del": {
     "defaultMessage": "Archive",
@@ -22399,9 +22991,17 @@
     "defaultMessage": "This will archive the channel from the team. Channel contents will still be accessible by channel members.",
     "description": "Body text of the archive-channel confirmation dialog when archived channels remain viewable by members."
   },
+  "deleteChannelModal.canViewArchivedChannelsWarning.board": {
+    "defaultMessage": "This will archive the board from the team. Board contents will still be accessible by board members.",
+    "description": "Body text of the archive-channel confirmation dialog when archived channels remain viewable by members. This is the wording used when the channel is a board."
+  },
   "deleteChannelModal.confirmArchive": {
     "defaultMessage": "Are you sure you wish to archive the <strong>{display_name}</strong> channel?",
     "description": "Confirmation question in the archive-channel dialog; {display_name} is the channel's name, <strong> renders bold text."
+  },
+  "deleteChannelModal.confirmArchive.board": {
+    "defaultMessage": "Are you sure you wish to archive the <strong>{display_name}</strong> board?",
+    "description": "Confirmation question in the archive-channel dialog; {display_name} is the channel's name, <strong> renders bold text. This is the wording used when the channel is a board."
   },
   "demote_to_user_modal.demote": {
     "defaultMessage": "Demote",
@@ -22607,13 +23207,25 @@
     "defaultMessage": "Edit the text appearing next to the channel name in the header.",
     "description": "Label above the text box in the Edit Channel Header modal; 'header' is the channel's description text shown beside its name."
   },
+  "edit_channel_header_modal.description.board": {
+    "defaultMessage": "Edit the text appearing next to the board name in the header.",
+    "description": "Label above the text box in the Edit Channel Header modal; 'header' is the channel's description text shown beside its name. This is the wording used when the channel is a board."
+  },
   "edit_channel_header_modal.error": {
     "defaultMessage": "The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.",
     "description": "Validation error when the channel header text exceeds the limit; {maxLength} is the maximum character count."
   },
+  "edit_channel_header_modal.error.board": {
+    "defaultMessage": "The text entered exceeds the character limit. The board header is limited to {maxLength} characters.",
+    "description": "Validation error when the channel header text exceeds the limit; {maxLength} is the maximum character count. This is the wording used when the channel is a board."
+  },
   "edit_channel_header_modal.placeholder": {
     "defaultMessage": "Enter the Channel Header",
     "description": "Placeholder text of the text box in the Edit Channel Header modal."
+  },
+  "edit_channel_header_modal.placeholder.board": {
+    "defaultMessage": "Enter the Board Header",
+    "description": "Placeholder text of the text box in the Edit Channel Header modal. This is the wording used when the channel is a board."
   },
   "edit_channel_header_modal.previewHeader": {
     "defaultMessage": "Edit",
@@ -22635,9 +23247,17 @@
     "defaultMessage": "This text appears in the \"View Info\" modal of the private channel.",
     "description": "Explanatory text in the Edit Purpose modal shown for private channels; 'View Info' is the name of another modal."
   },
+  "edit_channel_private_purpose_modal.body.board": {
+    "defaultMessage": "This text appears in the \"View Info\" modal of the private board.",
+    "description": "Explanatory text in the Edit Purpose modal shown for private channels; 'View Info' is the name of another modal. This is the wording used when the channel is a board."
+  },
   "edit_channel_purpose_modal.body": {
     "defaultMessage": "Describe how this channel should be used. This text appears in the channel list in the \"More...\" menu and helps others decide whether to join.",
     "description": "Explanatory text in the Edit Purpose modal for public channels; 'More...' is a menu name in the channel list."
+  },
+  "edit_channel_purpose_modal.body.board": {
+    "defaultMessage": "Describe how this board should be used. This text appears in the channel list in the \"More...\" menu and helps others decide whether to join.",
+    "description": "Explanatory text in the Edit Purpose modal for public channels; 'More...' is a menu name in the channel list. This is the wording used when the channel is a board."
   },
   "edit_channel_purpose_modal.cancel": {
     "defaultMessage": "Cancel",
@@ -25263,13 +25883,25 @@
     "defaultMessage": "This is the start of {display_name}. Any team member can join and read this channel.",
     "description": "Channel intro text at the top of a public channel; {display_name} is the channel's display name."
   },
+  "intro_messages.anyMember.board": {
+    "defaultMessage": "This is the start of {display_name}. Any team member can join and read this board.",
+    "description": "Channel intro text at the top of a public channel; {display_name} is the channel's display name. This is the wording used when the channel is a board."
+  },
   "intro_messages.creator": {
     "defaultMessage": "Public channel created by {creator} on {date}.",
     "description": "Line in the channel intro area of a public channel showing creation info; {creator} is a username and {date} a formatted date."
   },
+  "intro_messages.creator.board": {
+    "defaultMessage": "Public board created by {creator} on {date}.",
+    "description": "Line in the channel intro area of a public channel showing creation info; {creator} is a username and {date} a formatted date. This is the wording used when the channel is a board."
+  },
   "intro_messages.creatorPrivate": {
     "defaultMessage": "Private channel created by {creator} on {date}.",
     "description": "Line in the channel intro (top of a private channel) stating who created it; {creator} is a username and {date} a formatted date."
+  },
+  "intro_messages.creatorPrivate.board": {
+    "defaultMessage": "Private board created by {creator} on {date}.",
+    "description": "Line in the channel intro (top of a private channel) stating who created it; {creator} is a username and {date} a formatted date. This is the wording used when the channel is a board."
   },
   "intro_messages.default": {
     "defaultMessage": "Welcome to {display_name}. Post messages here that you want everyone to see. Everyone automatically becomes a member of this channel when they join the team.",
@@ -25315,9 +25947,17 @@
     "defaultMessage": "Public channel created on {date}.",
     "description": "Line in the channel intro area of a public channel whose creator is unknown; {date} is a formatted creation date."
   },
+  "intro_messages.noCreator.board": {
+    "defaultMessage": "Public board created on {date}.",
+    "description": "Line in the channel intro area of a public channel whose creator is unknown; {date} is a formatted creation date. This is the wording used when the channel is a board."
+  },
   "intro_messages.noCreatorPrivate": {
     "defaultMessage": "Private channel created on {date}.",
     "description": "Line in the channel intro of a private channel when the creator is unknown; {date} is a formatted creation date."
+  },
+  "intro_messages.noCreatorPrivate.board": {
+    "defaultMessage": "Private board created on {date}.",
+    "description": "Line in the channel intro of a private channel when the creator is unknown; {date} is a formatted creation date. This is the wording used when the channel is a board."
   },
   "intro_messages.notificationPreferences": {
     "defaultMessage": "Notifications",
@@ -25331,9 +25971,17 @@
     "defaultMessage": "This is the start of {display_name}. Only invited members can see this private channel.",
     "description": "Channel intro text at the top of a private channel; {display_name} is the channel's display name."
   },
+  "intro_messages.onlyInvited.board": {
+    "defaultMessage": "This is the start of {display_name}. Only invited members can see this private board.",
+    "description": "Channel intro text at the top of a private channel; {display_name} is the channel's display name. This is the wording used when the channel is a board."
+  },
   "intro_messages.purpose": {
     "defaultMessage": " This channel's purpose is: {purpose}",
     "description": "Sentence appended directly after the channel intro text when the channel has a purpose set; {purpose} is the admin-entered purpose text; keep the leading space."
+  },
+  "intro_messages.purpose.board": {
+    "defaultMessage": " This board's purpose is: {purpose}",
+    "description": "Sentence appended directly after the channel intro text when the channel has a purpose set; {purpose} is the admin-entered purpose text; keep the leading space. This is the wording used when the channel is a board."
   },
   "intro_messages.readonly.default": {
     "defaultMessage": "Welcome to {display_name}. Messages can only be posted by admins. Everyone automatically becomes a permanent member of this channel when they join the team.",
@@ -25779,6 +26427,10 @@
     "defaultMessage": "were **added to the channel** by {actor}.",
     "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; describes users added to the channel; {actor} is the username of who added them; ** renders bold markdown."
   },
+  "last_users_message.added_to_channel.type.board": {
+    "defaultMessage": "were **added to the board** by {actor}.",
+    "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; describes users added to the channel; {actor} is the username of who added them; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "last_users_message.added_to_team.type": {
     "defaultMessage": "were **added to the team** by {actor}.",
     "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; describes users added to the team; {actor} is the username of who added them; ** renders bold markdown."
@@ -25791,9 +26443,17 @@
     "defaultMessage": "**joined the channel**.",
     "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown."
   },
+  "last_users_message.joined_channel.type.board": {
+    "defaultMessage": "**joined the board**.",
+    "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
   "last_users_message.joined_left_channel.type": {
     "defaultMessage": "**joined and left the channel**.",
     "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown."
+  },
+  "last_users_message.joined_left_channel.type.board": {
+    "defaultMessage": "**joined and left the board**.",
+    "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown. This is the wording used when the channel is a board."
   },
   "last_users_message.joined_team.type": {
     "defaultMessage": "**joined the team**.",
@@ -25802,6 +26462,10 @@
   "last_users_message.left_channel.type": {
     "defaultMessage": "**left the channel**.",
     "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown."
+  },
+  "last_users_message.left_channel.type.board": {
+    "defaultMessage": "**left the board**.",
+    "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown. This is the wording used when the channel is a board."
   },
   "last_users_message.left_team.type": {
     "defaultMessage": "**left the team**.",
@@ -25814,6 +26478,10 @@
   "last_users_message.removed_from_channel.type": {
     "defaultMessage": "were **removed from the channel**.",
     "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown."
+  },
+  "last_users_message.removed_from_channel.type.board": {
+    "defaultMessage": "were **removed from the board**.",
+    "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown. This is the wording used when the channel is a board."
   },
   "last_users_message.removed_from_team.type": {
     "defaultMessage": "were **removed from the team**.",
@@ -25859,13 +26527,25 @@
     "defaultMessage": "Leave channel",
     "description": "Confirm button label in the modal shown when leaving a channel whose membership is managed by an access policy."
   },
+  "leave_policy_channel_modal.leave.board": {
+    "defaultMessage": "Leave board",
+    "description": "Confirm button label in the modal shown when leaving a channel whose membership is managed by an access policy. This is the wording used when the channel is a board."
+  },
   "leave_policy_channel_modal.message": {
     "defaultMessage": "You're part of this channel's membership policy. If you leave, you will not be automatically re-added.",
     "description": "Body text of the confirmation modal shown when a user tries to leave a channel whose membership is managed by an access policy (they were auto-added and won't be re-added)."
   },
+  "leave_policy_channel_modal.message.board": {
+    "defaultMessage": "You're part of this board's membership policy. If you leave, you will not be automatically re-added.",
+    "description": "Body text of the confirmation modal shown when a user tries to leave a channel whose membership is managed by an access policy (they were auto-added and won't be re-added). This is the wording used when the channel is a board."
+  },
   "leave_policy_channel_modal.mute_hint": {
     "defaultMessage": "To stay a member without notifications, you can mute this channel instead.",
     "description": "Additional hint paragraph in the leave-channel confirmation modal for policy-managed channels, suggesting muting as an alternative to leaving."
+  },
+  "leave_policy_channel_modal.mute_hint.board": {
+    "defaultMessage": "To stay a member without notifications, you can mute this board instead.",
+    "description": "Additional hint paragraph in the leave-channel confirmation modal for policy-managed channels, suggesting muting as an alternative to leaving. This is the wording used when the channel is a board."
   },
   "leave_policy_channel_modal.mute_instead": {
     "defaultMessage": "Mute instead",
@@ -25875,25 +26555,49 @@
     "defaultMessage": "Leave {channel} channel",
     "description": "Title of the confirmation modal for leaving a policy-managed channel; {channel} is the channel's display name."
   },
+  "leave_policy_channel_modal.title.board": {
+    "defaultMessage": "Leave {channel} board",
+    "description": "Title of the confirmation modal for leaving a policy-managed channel; {channel} is the channel's display name. This is the wording used when the channel is a board."
+  },
   "leave_private_channel_modal.leave": {
     "defaultMessage": "Yes, leave channel",
     "description": "Confirm button label in the leave-channel confirmation modal (used for both public and private channels)."
+  },
+  "leave_private_channel_modal.leave.board": {
+    "defaultMessage": "Yes, leave board",
+    "description": "Confirm button label in the leave-channel confirmation modal (used for both public and private channels). This is the wording used when the channel is a board."
   },
   "leave_private_channel_modal.message": {
     "defaultMessage": "Are you sure you wish to leave the private channel {channel}? You must be re-invited in order to re-join this channel in the future.",
     "description": "Body text of the confirmation modal when leaving a private channel; {channel} is the channel's display name (rendered in bold)."
   },
+  "leave_private_channel_modal.message.board": {
+    "defaultMessage": "Are you sure you wish to leave the private board {channel}? You must be re-invited in order to re-join this board in the future.",
+    "description": "Body text of the confirmation modal when leaving a private channel; {channel} is the channel's display name (rendered in bold). This is the wording used when the channel is a board."
+  },
   "leave_private_channel_modal.title": {
     "defaultMessage": "Leave Private Channel {channel}",
     "description": "Title of the confirmation modal when leaving a private channel; {channel} is the channel's display name (rendered in bold)."
+  },
+  "leave_private_channel_modal.title.board": {
+    "defaultMessage": "Leave Private Board {channel}",
+    "description": "Title of the confirmation modal when leaving a private channel; {channel} is the channel's display name (rendered in bold). This is the wording used when the channel is a board."
   },
   "leave_public_channel_modal.message": {
     "defaultMessage": "Are you sure you wish to leave the channel {channel}? You can re-join this channel in the future if you change your mind.",
     "description": "Body text of the confirmation modal when leaving a public channel; {channel} is the channel's display name (rendered in bold)."
   },
+  "leave_public_channel_modal.message.board": {
+    "defaultMessage": "Are you sure you wish to leave the board {channel}? You can re-join this board in the future if you change your mind.",
+    "description": "Body text of the confirmation modal when leaving a public channel; {channel} is the channel's display name (rendered in bold). This is the wording used when the channel is a board."
+  },
   "leave_public_channel_modal.title": {
     "defaultMessage": "Leave Channel {channel}",
     "description": "Title of the confirmation modal when leaving a public channel; {channel} is the channel's display name (rendered in bold)."
+  },
+  "leave_public_channel_modal.title.board": {
+    "defaultMessage": "Leave Board {channel}",
+    "description": "Title of the confirmation modal when leaving a public channel; {channel} is the channel's display name (rendered in bold). This is the wording used when the channel is a board."
   },
   "leave_team_modal_guest_only_private.description": {
     "defaultMessage": "<strong>You will be removed from {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> You won't be able to rejoin it without an invitation from another team member. Are you sure?",
@@ -26567,6 +27271,10 @@
     "defaultMessage": "Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}",
     "description": "Screen-reader description of a channel row in the Browse Channels modal; {memberCount} is the number of members and {channelPurpose} is the channel's purpose text."
   },
+  "more_channels.channel_purpose.board": {
+    "defaultMessage": "Board Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}",
+    "description": "Screen-reader description of a channel row in the Browse Channels modal; {memberCount} is the number of members and {channelPurpose} is the channel's purpose text. This is the wording used when the channel is a board."
+  },
   "more_channels.channel_type_filter": {
     "defaultMessage": "Channel type filter",
     "description": "Accessibility label for the channel-type filter dropdown in the Browse Channels modal."
@@ -26599,6 +27307,10 @@
     "defaultMessage": "Discoverable private channel",
     "description": "Accessibility label for the indicator on a private channel in Browse Channels that is discoverable (users can request to join)."
   },
+  "more_channels.discoverable.aria.board": {
+    "defaultMessage": "Discoverable private board",
+    "description": "Accessibility label for the indicator on a private channel in Browse Channels that is discoverable (users can request to join). This is the wording used when the channel is a board."
+  },
   "more_channels.hide_archived": {
     "defaultMessage": "Hide Archived",
     "description": "Visible text of the checkbox in the Browse Channels dialog that hides archived channels from the results list. Verb phrase; \"Archived\" here modifies channels."
@@ -26622,6 +27334,10 @@
   "more_channels.joinedChannel": {
     "defaultMessage": "Joined channel {channelName}",
     "description": "Screen-reader-only announcement after the user successfully joins a channel from Browse Channels; {channelName} is the channel's name."
+  },
+  "more_channels.joinedChannel.board": {
+    "defaultMessage": "Joined board {channelName}",
+    "description": "Screen-reader-only announcement after the user successfully joins a channel from Browse Channels; {channelName} is the channel's name. This is the wording used when the channel is a board."
   },
   "more_channels.membership_indicator": {
     "defaultMessage": "Membership Indicator: Joined",
@@ -27731,6 +28447,10 @@
     "defaultMessage": "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.",
     "description": "Ephemeral notice shown after mentioning group members who are not in the channel; concatenated after the list of mentioned usernames (e.g. '@user did not get notified...'); channel membership is controlled by linked LDAP groups."
   },
+  "post_body.check_for_out_of_channel_groups_mentions.message.board": {
+    "defaultMessage": "did not get notified by this mention because they are not in the board. They cannot be added to the board because they are not a member of the linked groups. To add them to this board, they must be added to the linked groups.",
+    "description": "Ephemeral notice shown after mentioning group members who are not in the channel; concatenated after the list of mentioned usernames (e.g. '@user did not get notified...'); channel membership is controlled by linked LDAP groups. This is the wording used when the channel is a board."
+  },
   "post_body.check_for_out_of_channel_mentions.link.and": {
     "defaultMessage": " and ",
     "description": "Conjunction joining two 'add them to the channel' links in the out-of-channel mention notice; concatenated between links, keep surrounding spaces."
@@ -27739,9 +28459,17 @@
     "defaultMessage": "add them to this private channel",
     "description": "Clickable link text inside the out-of-channel mention notice; adds the mentioned users to the current private channel; embedded mid-sentence."
   },
+  "post_body.check_for_out_of_channel_mentions.link.private.board": {
+    "defaultMessage": "add them to this private board",
+    "description": "Clickable link text inside the out-of-channel mention notice; adds the mentioned users to the current private channel; embedded mid-sentence. This is the wording used when the channel is a board."
+  },
   "post_body.check_for_out_of_channel_mentions.link.public": {
     "defaultMessage": "add them to the channel",
     "description": "Clickable link text inside the out-of-channel mention notice; adds the mentioned users to the current public channel; embedded mid-sentence."
+  },
+  "post_body.check_for_out_of_channel_mentions.link.public.board": {
+    "defaultMessage": "add them to the board",
+    "description": "Clickable link text inside the out-of-channel mention notice; adds the mentioned users to the current public channel; embedded mid-sentence. This is the wording used when the channel is a board."
   },
   "post_body.check_for_out_of_channel_mentions.message_last": {
     "defaultMessage": "? They will have access to all message history.",
@@ -27751,9 +28479,17 @@
     "defaultMessage": "did not get notified by this mention because they are not in the channel. Would you like to ",
     "description": "Middle fragment of the ephemeral notice shown after mentioning multiple users not in the channel; preceded by the list of usernames and followed by an 'add them to the channel' link, so keep the trailing space."
   },
+  "post_body.check_for_out_of_channel_mentions.message.multiple.board": {
+    "defaultMessage": "did not get notified by this mention because they are not in the board. Would you like to ",
+    "description": "Middle fragment of the ephemeral notice shown after mentioning multiple users not in the channel; preceded by the list of usernames and followed by an 'add them to the channel' link, so keep the trailing space. This is the wording used when the channel is a board."
+  },
   "post_body.check_for_out_of_channel_mentions.message.one": {
     "defaultMessage": "did not get notified by this mention because they are not in the channel. Would you like to ",
     "description": "Middle fragment of the ephemeral notice shown after mentioning one user not in the channel; preceded by the username and followed by an 'add them to the channel' link, so keep the trailing space."
+  },
+  "post_body.check_for_out_of_channel_mentions.message.one.board": {
+    "defaultMessage": "did not get notified by this mention because they are not in the board. Would you like to ",
+    "description": "Middle fragment of the ephemeral notice shown after mentioning one user not in the channel; preceded by the username and followed by an 'add them to the channel' link, so keep the trailing space. This is the wording used when the channel is a board."
   },
   "post_body.check_for_out_of_channel_mentions.others": {
     "defaultMessage": "{numOthers} others",
@@ -29223,6 +29959,10 @@
     "defaultMessage": "Rename Channel",
     "description": "Title of the modal for renaming a channel."
   },
+  "rename_channel.title.board": {
+    "defaultMessage": "Rename Board",
+    "description": "Title of the modal for renaming a channel. This is the wording used when the channel is a board."
+  },
   "request_join_channel.body": {
     "defaultMessage": "A channel admin will review your request. Track updates in Browse Channels under My pending requests. You can withdraw your request at any time.",
     "description": "Body of the modal for requesting to join a private channel, explaining the admin review process; 'Browse Channels' and 'My pending requests' are UI screen names."
@@ -30023,9 +30763,21 @@
     "defaultMessage": "This channel is no longer shared with another workspace.",
     "description": "System message posted in a channel when it stops being shared with a remote workspace whose name is unknown; 'workspace' is another connected Mattermost server."
   },
+  "shared_channel.system_message.no_longer_shared_unknown.board": {
+    "defaultMessage": "This board is no longer shared with another workspace.",
+    "description": "System message posted in a channel when it stops being shared with a remote workspace whose name is unknown; 'workspace' is another connected Mattermost server. This is the wording used when the channel is a board."
+  },
+  "shared_channel.system_message.no_longer_shared.board": {
+    "defaultMessage": "This board is no longer shared with {workspaceName}.",
+    "description": "System message posted when a channel stops being shared with a remote workspace; {workspaceName} is the remote workspace's name. This is the wording used when the channel is a board."
+  },
   "shared_channel.system_message.now_shared": {
     "defaultMessage": "This channel is now shared with {workspaceName}.",
     "description": "System message posted when a channel starts being shared with a remote workspace; {workspaceName} is the remote workspace's name."
+  },
+  "shared_channel.system_message.now_shared.board": {
+    "defaultMessage": "This board is now shared with {workspaceName}.",
+    "description": "System message posted when a channel starts being shared with a remote workspace; {workspaceName} is the remote workspace's name. This is the wording used when the channel is a board."
   },
   "shared_user_indicator.aria_label": {
     "defaultMessage": "shared user",
@@ -30647,6 +31399,10 @@
     "defaultMessage": "Edit channel menu",
     "description": "Accessible label for the dropdown menu of options on a sidebar channel."
   },
+  "sidebar_left.sidebar_channel_menu.dropdownAriaLabel.board": {
+    "defaultMessage": "Edit board menu",
+    "description": "Accessible label for the dropdown menu of options on a sidebar channel. This is the wording used when the channel is a board."
+  },
   "sidebar_left.sidebar_channel_menu.editChannel": {
     "defaultMessage": "Channel options",
     "description": "Tooltip on the '...' button that opens a sidebar channel's options menu."
@@ -30654,6 +31410,14 @@
   "sidebar_left.sidebar_channel_menu.editChannel.ariaLabel": {
     "defaultMessage": "Channel options for {channelName}",
     "description": "Accessibility label for the channel options menu button next to a channel in the left sidebar; {channelName} is the channel's name."
+  },
+  "sidebar_left.sidebar_channel_menu.editChannel.ariaLabel.board": {
+    "defaultMessage": "Board options for {channelName}",
+    "description": "Accessibility label for the channel options menu button next to a channel in the left sidebar; {channelName} is the channel's name. This is the wording used when the channel is a board."
+  },
+  "sidebar_left.sidebar_channel_menu.editChannel.board": {
+    "defaultMessage": "Board options",
+    "description": "Tooltip on the '...' button that opens a sidebar channel's options menu. This is the wording used when the channel is a board."
   },
   "sidebar_left.sidebar_channel_menu.favoriteChannel": {
     "defaultMessage": "Favorite",
@@ -30666,6 +31430,10 @@
   "sidebar_left.sidebar_channel_menu.leaveChannel": {
     "defaultMessage": "Leave Channel",
     "description": "Menu item in a sidebar channel's options menu to leave the channel."
+  },
+  "sidebar_left.sidebar_channel_menu.leaveChannel.board": {
+    "defaultMessage": "Leave Board",
+    "description": "Menu item in a sidebar channel's options menu to leave the channel. This is the wording used when the channel is a board."
   },
   "sidebar_left.sidebar_channel_menu.leaveConversation": {
     "defaultMessage": "Close Conversation",
@@ -30703,6 +31471,10 @@
     "defaultMessage": "Mute Channel",
     "description": "Menu item in the sidebar channel menu that mutes the channel; 'Mute' is a verb."
   },
+  "sidebar_left.sidebar_channel_menu.muteChannel.board": {
+    "defaultMessage": "Mute Board",
+    "description": "Menu item in the sidebar channel menu that mutes the channel; 'Mute' is a verb. This is the wording used when the channel is a board."
+  },
   "sidebar_left.sidebar_channel_menu.unfavoriteChannel": {
     "defaultMessage": "Unfavorite",
     "description": "Menu item in a sidebar channel's options menu that removes the channel from Favorites; 'Unfavorite' is a verb."
@@ -30714,6 +31486,10 @@
   "sidebar_left.sidebar_channel_menu.unmuteChannel": {
     "defaultMessage": "Unmute Channel",
     "description": "Menu item in the sidebar channel menu that unmutes a muted channel; 'Unmute' is a verb."
+  },
+  "sidebar_left.sidebar_channel_menu.unmuteChannel.board": {
+    "defaultMessage": "Unmute Board",
+    "description": "Menu item in the sidebar channel menu that unmutes a muted channel; 'Unmute' is a verb. This is the wording used when the channel is a board."
   },
   "sidebar_left.sidebar_channel_modal.channel_name_placeholder": {
     "defaultMessage": "Enter a name for the channel",
@@ -32283,6 +33059,10 @@
     "defaultMessage": "Confirm UNARCHIVE Channel",
     "description": "Title of the confirmation modal for unarchiving a channel; UNARCHIVE is deliberately capitalized for emphasis."
   },
+  "unarchive_channel.confirm.board": {
+    "defaultMessage": "Confirm UNARCHIVE Board",
+    "description": "Title of the confirmation modal for unarchiving a channel; UNARCHIVE is deliberately capitalized for emphasis. This is the wording used when the channel is a board."
+  },
   "unarchive_channel.del": {
     "defaultMessage": "Unarchive",
     "description": "Confirm button (verb) of the unarchive channel modal; restores an archived channel."
@@ -32290,6 +33070,10 @@
   "unarchiveChannelModal.viewArchived.question": {
     "defaultMessage": "Are you sure you wish to unarchive the <b>{display_name}</b> channel?",
     "description": "Confirmation question in the unarchive channel modal; {display_name} is the channel name and <b> tags render bold."
+  },
+  "unarchiveChannelModal.viewArchived.question.board": {
+    "defaultMessage": "Are you sure you wish to unarchive the <b>{display_name}</b> board?",
+    "description": "Confirmation question in the unarchive channel modal; {display_name} is the channel name and <b> tags render bold. This is the wording used when the channel is a board."
   },
   "unified_labels.remove_all": {
     "defaultMessage": "Remove all labels",

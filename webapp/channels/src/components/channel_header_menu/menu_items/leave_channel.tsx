@@ -14,6 +14,7 @@ import {openModal} from 'actions/views/modals';
 import LeaveChannelModal from 'components/leave_channel_modal';
 import * as Menu from 'components/menu';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
 // import type {PropsFromRedux} from './index';
@@ -28,6 +29,7 @@ const LeaveChannel = ({
     id,
 }: Props) => {
     const dispatch = useDispatch();
+    const isBoard = useIsBoardChannel(channel);
     const handleLeave = () => {
         if (channel.type === Constants.PRIVATE_CHANNEL || channel.policy_enforced) {
             dispatch(
@@ -49,12 +51,17 @@ const LeaveChannel = ({
             id={id}
             leadingElement={<LogoutVariantIcon size='18px'/>}
             onClick={handleLeave}
-            labels={
+            labels={isBoard ? (
+                <FormattedMessage
+                    id='channel_header.leave.board'
+                    defaultMessage='Leave Board'
+                />
+            ) : (
                 <FormattedMessage
                     id='channel_header.leave'
                     defaultMessage='Leave Channel'
                 />
-            }
+            )}
             isDestructive={true}
         />
     );

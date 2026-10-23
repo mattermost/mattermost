@@ -22,6 +22,7 @@ import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
@@ -91,6 +92,7 @@ export default function ChannelMembersRHS({
     const [page, setPage] = useState(0);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
+    const isBoard = useIsBoardChannel(channel);
 
     // Only channels whose policy controls membership surface attribute
     // tags in the RHS — a permission-only policy (e.g. file upload) has
@@ -156,7 +158,14 @@ export default function ChannelMembersRHS({
             const member = channelMembers[i];
             if (listcp.length === 0) {
                 let text = null;
-                if (member.membership?.scheme_admin === true) {
+                if (member.membership?.scheme_admin === true && isBoard) {
+                    text = (
+                        <FormattedMessage
+                            id='channel_members_rhs.list.channel_admin_title.board'
+                            defaultMessage='BOARD ADMINS'
+                        />
+                    );
+                } else if (member.membership?.scheme_admin === true) {
                     text = (
                         <FormattedMessage
                             id='channel_members_rhs.list.channel_admin_title'
@@ -195,7 +204,7 @@ export default function ChannelMembersRHS({
         if (JSON.stringify(list) !== JSON.stringify(listcp)) {
             setList(listcp);
         }
-    }, [channelMembers]);
+    }, [channelMembers, isBoard]);
 
     useEffect(() => {
         if (channel.type === Constants.DM_CHANNEL) {
@@ -294,13 +303,24 @@ export default function ChannelMembersRHS({
                     <AlertBanner
                         mode='info'
                         variant='app'
-                        title={channel.type === Constants.OPEN_CHANNEL ? formatMessage({
-                            id: 'channel_members_rhs.policy_recommended_description',
-                            defaultMessage: 'This channel has recommended members based on user attributes',
-                        }) : formatMessage({
-                            id: 'channel_members_rhs.policy_enforced_restrictions',
-                            defaultMessage: 'Channel access is restricted by user attributes',
-                        })}
+                        title={(() => {
+                            if (channel.type === Constants.OPEN_CHANNEL) {
+                                return isBoard ? formatMessage({
+                                    id: 'channel_members_rhs.policy_recommended_description.board',
+                                    defaultMessage: 'This board has recommended members based on user attributes',
+                                }) : formatMessage({
+                                    id: 'channel_members_rhs.policy_recommended_description',
+                                    defaultMessage: 'This channel has recommended members based on user attributes',
+                                });
+                            }
+                            return isBoard ? formatMessage({
+                                id: 'channel_members_rhs.policy_enforced_restrictions.board',
+                                defaultMessage: 'Board access is restricted by user attributes',
+                            }) : formatMessage({
+                                id: 'channel_members_rhs.policy_enforced_restrictions',
+                                defaultMessage: 'Channel access is restricted by user attributes',
+                            });
+                        })()}
                     >
                         {accessControlTags}
                         {loading && <span className='loading-indicator'>{'Loading...'}</span>}

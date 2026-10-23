@@ -3920,3 +3920,42 @@ func TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassificati
 		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
 	})
 }
+
+func TestAccessControlAttributeValidationHookRefusesNumberAndCheckbox(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_number_checkbox", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID))
+
+	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeNumber, model.PropertyFieldTypeCheckbox} {
+		t.Run("refuses creating a "+string(fieldType)+" field", func(t *testing.T) {
+			_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "field_" + model.NewId(),
+				Type:       fieldType,
+				TargetType: "system",
+				ObjectType: "user",
+			})
+			require.Error(t, createErr)
+			assert.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+			assert.Contains(t, createErr.Error(), "cannot be an access control attribute")
+		})
+
+		t.Run("refuses changing a field to "+string(fieldType), func(t *testing.T) {
+			created, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "field_" + model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				TargetType: "system",
+				ObjectType: "user",
+			})
+			require.NoError(t, createErr)
+
+			created.Type = fieldType
+			_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, created)
+			require.Error(t, updateErr)
+			assert.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
+		})
+	}
+}

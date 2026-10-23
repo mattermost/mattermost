@@ -24,6 +24,7 @@ type Props = {
     channel: Channel;
     teamName: string;
     onExited: () => void;
+    isBoard?: boolean;
     actions: Actions;
     intl: IntlShape;
 };
@@ -100,10 +101,17 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='renameChannelModalLabel'
                     >
-                        <FormattedMessage
-                            id='rename_channel.title'
-                            defaultMessage='Rename Channel'
-                        />
+                        {this.props.isBoard ? (
+                            <FormattedMessage
+                                id='rename_channel.title.board'
+                                defaultMessage='Rename Board'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='rename_channel.title'
+                                defaultMessage='Rename Channel'
+                            />
+                        )}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>

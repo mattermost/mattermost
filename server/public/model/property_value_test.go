@@ -410,3 +410,30 @@ func TestBroadcastValue(t *testing.T) {
 		assert.NotNil(t, obj)
 	})
 }
+
+func TestValidatePropertyValueForFieldType(t *testing.T) {
+	t.Run("number", func(t *testing.T) {
+		for _, raw := range []string{``, `null`, ` null `, `0`, `-3`, `2.5`, `1e3`, `-0.000001`, `1.7976931348623157e308`} {
+			assert.NoError(t, ValidatePropertyValueForFieldType(PropertyFieldTypeNumber, json.RawMessage(raw)), "value %q", raw)
+		}
+		for _, raw := range []string{`"3"`, `""`, `"NaN"`, `"Infinity"`, `NaN`, `Infinity`, `true`, `[]`, `[1]`, `{}`, `1e400`, `-1e400`, `1 2`, `01x`} {
+			assert.Error(t, ValidatePropertyValueForFieldType(PropertyFieldTypeNumber, json.RawMessage(raw)), "value %q", raw)
+		}
+	})
+
+	t.Run("checkbox", func(t *testing.T) {
+		for _, raw := range []string{``, `null`, `true`, `false`, ` true `} {
+			assert.NoError(t, ValidatePropertyValueForFieldType(PropertyFieldTypeCheckbox, json.RawMessage(raw)), "value %q", raw)
+		}
+		for _, raw := range []string{`"true"`, `""`, `1`, `0`, `[]`, `{}`, `[true]`, `truefalse`} {
+			assert.Error(t, ValidatePropertyValueForFieldType(PropertyFieldTypeCheckbox, json.RawMessage(raw)), "value %q", raw)
+		}
+	})
+
+	t.Run("other types are not checked", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeText, PropertyFieldTypeSelect, PropertyFieldTypeDate, PropertyFieldType("bogus")} {
+			assert.NoError(t, ValidatePropertyValueForFieldType(fieldType, json.RawMessage(`12`)), "type %q", fieldType)
+			assert.NoError(t, ValidatePropertyValueForFieldType(fieldType, json.RawMessage(`true`)), "type %q", fieldType)
+		}
+	})
+}

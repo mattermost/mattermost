@@ -28,6 +28,7 @@ import {openModal} from 'actions/views/modals';
 import {compassIconForName} from 'components/channel_type_icon';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -72,6 +73,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         stats: {},
         usersLimit: 10,
         isMobileView: false,
+        isBoard: false,
         actions: {
             getTotalUsersStats: jest.fn().mockResolvedValue([]),
             favoriteChannel: jest.fn().mockResolvedValue([]),
@@ -123,6 +125,24 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(beginningHeading).toHaveClass('channel-intro__title');
 
             expect(screen.getByText('This is the start of test channel. Any team member can join and read this channel.')).toBeInTheDocument();
+        });
+
+        test('should call a board a board', () => {
+            const boardState = boardChannelsState('channel_id');
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    isBoard={true}
+                />,
+                {...initialState, plugins: {...initialState.plugins, ...boardState.plugins}},
+            );
+
+            expect(screen.getByText('This is the start of test channel. Any team member can join and read this board.')).toBeInTheDocument();
+            expect(screen.queryByText(/read this channel/)).not.toBeInTheDocument();
+            expect(screen.getByText(/Public board created by creatorName on/)).toBeInTheDocument();
+            expect(screen.queryByText(/Public channel created/)).not.toBeInTheDocument();
+            expect(screen.getByText(/This board's purpose is: test/)).toBeInTheDocument();
+            expect(screen.queryByText(/This channel's purpose/)).not.toBeInTheDocument();
         });
     });
 

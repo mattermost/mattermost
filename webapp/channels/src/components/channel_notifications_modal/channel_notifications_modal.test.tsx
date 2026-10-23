@@ -10,6 +10,7 @@ import ChannelNotificationsModal, {createChannelNotifyPropsFromSelectedSettings,
 import type {Props} from 'components/channel_notifications_modal/channel_notifications_modal';
 
 import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {DesktopSound, IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
 import {DesktopNotificationSounds, convertDesktopSoundNotifyPropFromUserToDesktop} from 'utils/notification_sounds';
 import {TestHelper} from 'utils/test_helper';
@@ -87,6 +88,32 @@ describe('ChannelNotificationsModal', () => {
                 },
             ),
         );
+    });
+
+    test('should say board for a board', async () => {
+        renderWithContext(
+            <ChannelNotificationsModal {...baseProps}/>,
+            boardChannelsState('channel_id'),
+        );
+
+        expect(screen.getByText('Mute board')).toBeInTheDocument();
+        expect(screen.getByText('Turns off notifications for this board. You’ll still see badges if you’re mentioned.')).toBeInTheDocument();
+        expect(screen.getByText('Ignore mentions for @channel, @here and @all')).toBeInTheDocument();
+        expect(screen.getByText('When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this board')).toBeInTheDocument();
+        expect(screen.getByText('Follow all threads in this board')).toBeInTheDocument();
+        expect(screen.getByText('When enabled, all new replies in this board will be automatically followed and will appear in your Threads view.')).toBeInTheDocument();
+        expect(screen.getByText('Automatically follow threads in this board')).toBeInTheDocument();
+
+        expect(screen.queryByText('Mute channel')).not.toBeInTheDocument();
+        expect(screen.queryByText('Follow all threads in this channel')).not.toBeInTheDocument();
+        expect(screen.queryByText('Automatically follow threads in this channel')).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByTestId('muteChannel'));
+
+        expect(screen.getByText('This board is muted')).toBeInTheDocument();
+        expect(screen.getByText('All other notification preferences for this board are disabled')).toBeInTheDocument();
+        expect(screen.queryByText('This channel is muted')).not.toBeInTheDocument();
+        expect(screen.queryByText('All other notification preferences for this channel are disabled')).not.toBeInTheDocument();
     });
 
     test('should save correctly for \'Ignore mentions for @channel, @here and @all\'', async () => {

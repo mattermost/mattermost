@@ -19,6 +19,8 @@ import useIsChannelAttributeAdmin from 'components/common/hooks/useIsChannelAttr
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
 import * as Menu from 'components/menu';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+
 import AttributeChip from './attribute_chip';
 import ChannelAttributeRowEditor from './channel_attribute_row_editor';
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
@@ -103,6 +105,7 @@ function withPendingValue(attribute: ResolvedChannelAttribute, raw: ChannelAttri
  */
 const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({channelId, deferred, onPendingChange}, ref) => {
     const {formatMessage} = useIntl();
+    const isBoard = useIsBoardChannel({id: channelId});
     const dispatch = useDispatch();
 
     // One resolved list, two views: a second hook would duplicate the fetch.
@@ -295,10 +298,17 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
             data-testid='channelInfoAttributes'
         >
             <div className='ChannelInfoAttributes__heading'>
-                <FormattedMessage
-                    id='channel_attributes.info.heading'
-                    defaultMessage='Channel Attributes'
-                />
+                {isBoard ? (
+                    <FormattedMessage
+                        id='channel_attributes.info.heading.board'
+                        defaultMessage='Board Attributes'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='channel_attributes.info.heading'
+                        defaultMessage='Channel Attributes'
+                    />
+                )}
             </div>
 
             <div className='ChannelInfoAttributes__body'>

@@ -23,12 +23,15 @@ type Props = {
     onInsertToken: (token: string) => void;
 
     disabled?: boolean;
+
+    // The channel is a board, so the menu says board rather than channel.
+    isBoard?: boolean;
 };
 
 /**
  * The "+ Attributes" menu inside the banner text field.
  */
-const BannerTokenControls = ({attributes, onInsertToken, disabled}: Props) => {
+const BannerTokenControls = ({attributes, onInsertToken, disabled, isBoard = false}: Props) => {
     const {formatMessage} = useIntl();
 
     const suggestions = useMemo(() => tokenSuggestions(attributes), [attributes]);
@@ -61,7 +64,10 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled}: Props) => {
                 }}
                 menu={{
                     id: 'bannerAttributeTokenMenu',
-                    'aria-label': formatMessage({
+                    'aria-label': isBoard ? formatMessage({
+                        id: 'channel_attributes.banner.insert_attribute_menu.board',
+                        defaultMessage: 'Board attributes',
+                    }) : formatMessage({
                         id: 'channel_attributes.banner.insert_attribute_menu',
                         defaultMessage: 'Channel attributes',
                     }),
@@ -70,10 +76,18 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled}: Props) => {
                 {suggestions.map((suggestion) => {
                     // An unset attribute inserts a token that renders nothing, so it is
                     // flagged before the author picks it.
-                    const valueStatus = suggestion.value ? formatMessage(
-                        {id: 'channel_attributes.banner.token_value_set', defaultMessage: 'Value on this channel: {value}'},
-                        {value: suggestion.value},
-                    ) : formatMessage(unsetValueMessage);
+                    let valueStatus = formatMessage(unsetValueMessage);
+                    if (suggestion.value && isBoard) {
+                        valueStatus = formatMessage(
+                            {id: 'channel_attributes.banner.token_value_set.board', defaultMessage: 'Value on this board: {value}'},
+                            {value: suggestion.value},
+                        );
+                    } else if (suggestion.value) {
+                        valueStatus = formatMessage(
+                            {id: 'channel_attributes.banner.token_value_set', defaultMessage: 'Value on this channel: {value}'},
+                            {value: suggestion.value},
+                        );
+                    }
 
                     return (
                         <Menu.Item

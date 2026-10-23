@@ -20,6 +20,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import useCopyText from 'components/common/hooks/useCopyText';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import Constants from 'utils/constants';
 
 const ChannelInfoRhsTopButtons = styled.div`
@@ -38,6 +39,7 @@ const ChannelInfoRhsTopButtons = styled.div`
 `;
 
 export interface Props {
+    channelId?: string;
     channelType: string;
     channelURL?: string;
 
@@ -56,6 +58,7 @@ export interface Props {
 }
 
 export default function TopButtons({
+    channelId,
     channelType,
     channelURL,
     isFavorite,
@@ -66,6 +69,7 @@ export default function TopButtons({
     actions,
 }: Props) {
     const {formatMessage} = useIntl();
+    const isBoard = useIsBoardChannel(channelId ? {id: channelId} : undefined);
 
     const copyLink = useCopyText({
         text: channelURL || '',
@@ -87,22 +91,34 @@ export default function TopButtons({
     const copyIcon = copyLink.copiedRecently ? <CheckIcon/> : <LinkVariantIcon/>;
     const copyText = copyLink.copiedRecently ? formatMessage({id: 'channel_info_rhs.top_buttons.copied', defaultMessage: 'Copied'}) : formatMessage({id: 'channel_info_rhs.top_buttons.copy', defaultMessage: 'Copy Link'});
 
+    let favoriteTooltip;
+    if (isInManagedCategory) {
+        favoriteTooltip = (
+            <FormattedMessage
+                id='channelHeader.managedCategoryFavoriteDisabled'
+                defaultMessage='Channels in managed categories cannot be favorited.'
+            />
+        );
+    } else if (isBoard) {
+        favoriteTooltip = (
+            <FormattedMessage
+                id='channel_info_rhs.top_buttons.favorite.tooltip.board'
+                defaultMessage='Add this board to favorites'
+            />
+        );
+    } else {
+        favoriteTooltip = (
+            <FormattedMessage
+                id='channel_info_rhs.top_buttons.favorite.tooltip'
+                defaultMessage='Add this channel to favorites'
+            />
+        );
+    }
+
     return (
         <ChannelInfoRhsTopButtons>
             <WithTooltip
-                title={
-                    isInManagedCategory ? (
-                        <FormattedMessage
-                            id='channelHeader.managedCategoryFavoriteDisabled'
-                            defaultMessage='Channels in managed categories cannot be favorited.'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.favorite.tooltip'
-                            defaultMessage='Add this channel to favorites'
-                        />
-                    )
-                }
+                title={favoriteTooltip}
             >
                 <TileButton
                     onClick={actions.toggleFavorite}
@@ -115,12 +131,17 @@ export default function TopButtons({
                 />
             </WithTooltip>
             <WithTooltip
-                title={
+                title={isBoard ? (
+                    <FormattedMessage
+                        id='channel_info_rhs.top_buttons.mute.tooltip.board'
+                        defaultMessage='Mute notifications for this board'
+                    />
+                ) : (
                     <FormattedMessage
                         id='channel_info_rhs.top_buttons.mute.tooltip'
                         defaultMessage='Mute notifications for this channel'
                     />
-                }
+                )}
             >
                 <TileButton
                     onClick={actions.toggleMute}
@@ -133,12 +154,17 @@ export default function TopButtons({
             </WithTooltip>
             {canAddPeople && (
                 <WithTooltip
-                    title={
+                    title={isBoard ? (
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.add_people.tooltip.board'
+                            defaultMessage='Add team members to this board'
+                        />
+                    ) : (
                         <FormattedMessage
                             id='channel_info_rhs.top_buttons.add_people.tooltip'
                             defaultMessage='Add team members to this channel'
                         />
-                    }
+                    )}
                 >
                     <TileButton
                         onClick={actions.addPeople}
@@ -157,12 +183,17 @@ export default function TopButtons({
             )}
             {canCopyLink && (
                 <WithTooltip
-                    title={
+                    title={isBoard ? (
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.copy_link.tooltip.board'
+                            defaultMessage='Copy link to this board'
+                        />
+                    ) : (
                         <FormattedMessage
                             id='channel_info_rhs.top_buttons.copy_link.tooltip'
                             defaultMessage='Copy link to this channel'
                         />
-                    }
+                    )}
                 >
                     <TileButton
                         onClick={copyLink.onClick}

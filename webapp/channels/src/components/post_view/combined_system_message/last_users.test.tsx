@@ -95,6 +95,18 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
         expect(screen.getByText(`by ${baseProps.actor}`, {exact: false})).toBeInTheDocument();
     });
 
+    test('says board in the collapsed message for a board', () => {
+        renderWithContext(
+            <LastUsers
+                {...baseProps}
+                isBoard={true}
+            />, initialState,
+        );
+
+        expect(screen.getByText('added to the board')).toBeInTheDocument();
+        expect(screen.queryByText('added to the channel')).not.toBeInTheDocument();
+    });
+
     function getMentionKeyAt(index: number) {
         return baseProps.formatOptions.mentionKeys[index].key;
     }

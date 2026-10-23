@@ -17,7 +17,9 @@ import TableEditor from 'components/admin_console/access_control/editors/table_e
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {act, renderWithContext, screen, waitFor, within, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsPermissionsPolicyTab from './channel_settings_permissions_policy_tab';
@@ -32,7 +34,7 @@ jest.mock('hooks/useEnabledSessionAttributeFields', () => ({
 // exposes the current `value` so the test can assert the expression survives a
 // failed save, and the `onChange` prop is used (via mock.calls) to populate it.
 jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
-    const React = require('react'); // eslint-disable-line @typescript-eslint/no-shadow, global-require
+    const React = require('react');
     return jest.fn((props: {value: string}) => React.createElement(
         'div',
         {'data-testid': 'table-editor'},
@@ -42,7 +44,7 @@ jest.mock('components/admin_console/access_control/editors/table_editor/table_ed
 
 // Render the dropdown menus inline so their items can be clicked directly.
 jest.mock('components/menu', () => {
-    const React = require('react'); // eslint-disable-line @typescript-eslint/no-shadow, global-require
+    const React = require('react');
     return {
         Container: ({children, menuButton}: any) => {
             const {class: className, dataTestId, children: btnChildren, ...rest} = menuButton || {};
@@ -220,6 +222,28 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`));
         await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_DOWNLOAD_FILE}`));
     };
+
+    test('says board rather than channel for a board', async () => {
+        renderWithContext(
+            <ChannelSettingsPermissionsPolicyTab {...baseProps}/>,
+            mergeObjects(initialState, boardChannelsState(baseProps.channel.id)),
+        );
+
+        expect(await screen.findByText('Board permission rules')).toBeInTheDocument();
+        expect(screen.queryByText('Channel permission rules')).not.toBeInTheDocument();
+
+        const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
+        await waitFor(() => expect(addRuleButton).toBeEnabled());
+        await userEvent.click(addRuleButton);
+        await screen.findByTestId('permissions-policy-editor');
+
+        expect(screen.getByText('Applies only to guest accounts in this board')).toBeInTheDocument();
+        expect(screen.getByText('Allow users to attach files to messages in this board')).toBeInTheDocument();
+        expect(screen.getByText('Allow users to download attached files from this board')).toBeInTheDocument();
+        expect(screen.queryByText('Applies only to guest accounts in this channel')).not.toBeInTheDocument();
+        expect(screen.queryByText('Allow users to attach files to messages in this channel')).not.toBeInTheDocument();
+        expect(screen.queryByText('Allow users to download attached files from this channel')).not.toBeInTheDocument();
+    });
 
     test('merges the fetched enabled session attributes into the rule editor picker', async () => {
         mockActions.getAccessControlFields.mockResolvedValue({

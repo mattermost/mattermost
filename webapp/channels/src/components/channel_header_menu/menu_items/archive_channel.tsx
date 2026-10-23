@@ -12,6 +12,7 @@ import {openModal} from 'actions/views/modals';
 import DeleteChannelModal from 'components/delete_channel_modal';
 import * as Menu from 'components/menu';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import {getArchiveIconComponent} from 'utils/channel_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -22,6 +23,7 @@ type Props = {
 const ArchiveChannel = ({
     channel,
 }: Props) => {
+    const isBoard = useIsBoardChannel(channel);
     const dispatch = useDispatch();
 
     const handleArchiveChannel = () => {
@@ -43,12 +45,17 @@ const ArchiveChannel = ({
             id='channelArchiveChannel'
             leadingElement={<ArchiveIcon size={18}/>}
             onClick={handleArchiveChannel}
-            labels={
+            labels={isBoard ? (
+                <FormattedMessage
+                    id='channel_header.delete.board'
+                    defaultMessage='Archive Board'
+                />
+            ) : (
                 <FormattedMessage
                     id='channel_header.delete'
                     defaultMessage='Archive Channel'
                 />
-            }
+            )}
             isDestructive={true}
         />
     );

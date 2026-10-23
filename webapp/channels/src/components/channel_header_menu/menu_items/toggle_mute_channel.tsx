@@ -12,6 +12,7 @@ import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
 
 import * as Menu from 'components/menu';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import {Constants, NotificationLevels} from 'utils/constants';
 
 type Props = {
@@ -26,6 +27,7 @@ export default function ToggleMuteChannel({
     userID,
 }: Props) {
     const dispatch = useDispatch();
+    const isBoard = useIsBoardChannel(channel);
 
     const handleClick = () => {
         dispatch(updateChannelNotifyProps(
@@ -54,6 +56,20 @@ export default function ToggleMuteChannel({
                 />
             );
         }
+    } else if (isBoard && isMuted) {
+        text = (
+            <FormattedMessage
+                id='channel_header.unmute.board'
+                defaultMessage='Unmute Board'
+            />
+        );
+    } else if (isBoard) {
+        text = (
+            <FormattedMessage
+                id='channel_header.mute.board'
+                defaultMessage='Mute Board'
+            />
+        );
     } else if (isMuted) {
         text = (
             <FormattedMessage

@@ -163,22 +163,39 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         id='channelArchivedMessage'
                         className='channel-archived__message'
                     >
-                        <FormattedMessage
-                            id='channelView.archivedChannel'
-                            defaultMessage='You are viewing an <b>archived channel</b>. New messages cannot be posted.'
-                            values={{
-                                b: (chunks) => <b>{chunks}</b>,
-                            }}
-                        />
+                        {this.props.isBoard ? (
+                            <FormattedMessage
+                                id='channelView.archivedChannel.board'
+                                defaultMessage='You are viewing an <b>archived board</b>. New messages cannot be posted.'
+                                values={{
+                                    b: (chunks) => <b>{chunks}</b>,
+                                }}
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='channelView.archivedChannel'
+                                defaultMessage='You are viewing an <b>archived channel</b>. New messages cannot be posted.'
+                                values={{
+                                    b: (chunks) => <b>{chunks}</b>,
+                                }}
+                            />
+                        )}
                         <Button
                             emphasis='primary'
                             className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
-                            <FormattedMessage
-                                id='center_panel.archived.closeChannel'
-                                defaultMessage='Close Channel'
-                            />
+                            {this.props.isBoard ? (
+                                <FormattedMessage
+                                    id='center_panel.archived.closeChannel.board'
+                                    defaultMessage='Close Board'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='center_panel.archived.closeChannel'
+                                    defaultMessage='Close Channel'
+                                />
+                            )}
                         </Button>
                     </div>
                 </div>
