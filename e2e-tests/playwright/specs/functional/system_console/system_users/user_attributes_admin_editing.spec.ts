@@ -155,11 +155,9 @@ test.describe('System Console - Admin User Profile Editing', () => {
         testUser = await pw.createNewUserProfile(adminClient, {prefix: 'admin-edit-target-'});
         await adminClient.addToTeam(team.id, testUser.id);
 
-        // Pre-cleanup: delete any stale UAAE-prefixed fields from previous runs that
-        // may have leaked past afterEach (e.g. from a crashed test). The server enforces
-        // a 20-field limit; stale fields silently block creation of our fresh ones.
-        // The 'UAAE_' prefix is unique to this suite so deleting them is safe even when
-        // other test suites run concurrently on the same server.
+        // Pre-cleanup: delete stale UAAE-prefixed fields from previous runs of
+        // this suite. The prefix is unique to these tests; do not delete other
+        // suites' fields. attribute_order_and_popover now cleans up its own.
         try {
             const existingFields = await adminClient.getCustomProfileAttributeFields();
             const staleUaaeFields = existingFields.filter((f) => f.name.startsWith('UAAE_'));

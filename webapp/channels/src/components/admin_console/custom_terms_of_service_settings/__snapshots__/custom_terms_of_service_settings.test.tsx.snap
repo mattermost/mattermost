@@ -34,31 +34,63 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
-                <input
-                  checked=""
-                  data-testid="SupportSettings.CustomTermsOfServiceEnabledtrue"
-                  id="SupportSettings.CustomTermsOfServiceEnabledtrue"
-                  name="SupportSettings.CustomTermsOfServiceEnabled"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="SupportSettings.CustomTermsOfServiceEnabledfalse"
-                  id="SupportSettings.CustomTermsOfServiceEnabledfalse"
-                  name="SupportSettings.CustomTermsOfServiceEnabled"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                  for="SupportSettings.CustomTermsOfServiceEnabledtrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_h0rbb_17"
+                    data-testid="SupportSettings.CustomTermsOfServiceEnabledtrue"
+                    id="SupportSettings.CustomTermsOfServiceEnabledtrue"
+                    name="SupportSettings.CustomTermsOfServiceEnabled"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_h0rbb_36"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_h0rbb_62"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_h0rbb_119"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                  for="SupportSettings.CustomTermsOfServiceEnabledfalse"
+                >
+                  <input
+                    class="_radio__input_h0rbb_17"
+                    data-testid="SupportSettings.CustomTermsOfServiceEnabledfalse"
+                    id="SupportSettings.CustomTermsOfServiceEnabledfalse"
+                    name="SupportSettings.CustomTermsOfServiceEnabled"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_h0rbb_36"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_h0rbb_62"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_h0rbb_119"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="SupportSettings.CustomTermsOfServiceEnabledhelp-text"

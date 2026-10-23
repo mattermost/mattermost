@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {Button} from '@mattermost/shared/components/button';
 import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
 
@@ -13,7 +14,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isTeamMembershipAccessControlEnabled} from 'selectors/general';
 
 import JobsTable from 'components/admin_console/jobs';
-import SectionNotice from 'components/section_notice';
+import Markdown from 'components/markdown';
 
 import {JobTypes} from 'utils/constants';
 
@@ -147,10 +148,14 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                             id: 'admin.access_control.sync_jobs.team_sync_note.title',
                             defaultMessage: 'This syncs channel membership only',
                         })}
-                        text={formatMessage({
-                            id: 'admin.access_control.sync_jobs.team_sync_note',
-                            defaultMessage: 'To re-sync team membership, use **Sync now** in Team Settings → Team Membership or the team’s page in the System Console.',
-                        })}
+                        description={
+                            <Markdown
+                                message={formatMessage({
+                                    id: 'admin.access_control.sync_jobs.team_sync_note',
+                                    defaultMessage: 'To re-sync team membership, use **Sync now** in Team Settings → Team Membership or the team’s page in the System Console.',
+                                })}
+                            />
+                        }
                     />
                 </div>
             )}

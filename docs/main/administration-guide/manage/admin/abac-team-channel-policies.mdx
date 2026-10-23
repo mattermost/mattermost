@@ -114,7 +114,7 @@ If a System Admin adds a channel from another team to a policy that was previous
 
 ## Synchronization
 
-When you save a policy or modify channel assignments, Mattermost creates a membership synchronization job. Changes are applied as soon as the job completes. Synchronization also runs automatically on a schedule to handle attribute changes from external systems such as LDAP or SAML. The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes).
+When you save a policy or modify channel assignments, Mattermost creates a membership synchronization job. Changes are applied as soon as the job completes. Synchronization also runs automatically on a schedule to handle attribute changes from external systems such as LDAP or SAML. The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). User attributes used for access control evaluation are refreshed on a separate schedule controlled by `AccessControlSettings.AttributeRefreshIntervalSeconds`, which defaults to 30 seconds.
 
 ## Troubleshooting and FAQs
 
@@ -143,6 +143,10 @@ Yes. A private channel can be assigned to multiple membership policies. Each pol
 ### Can Team Admins override system-wide policies?
 
 No. Team-level policies are always additive. Users must satisfy both the system-wide policy and the team-level policy to access a channel. Team Admins cannot weaken or bypass restrictions set by System Admins.
+
+### Do team-level policies apply to bot accounts?
+
+Yes. Bot accounts are evaluated against team-level channel membership policies exactly like members. A bot that doesn't have the attribute values a policy requires can't be added to the policy's private channels and is removed during synchronization. Set the bot's attributes before adding it to those channels. See [Bot attributes](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes).
 
 ### How are membership changes communicated to users?
 

@@ -28,22 +28,29 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
       <div
         class="ChannelSettingsModal__autoSyncCheckboxContainer"
       >
-        <input
-          class="ChannelSettingsModal__autoSyncCheckbox"
-          disabled=""
-          id="autoSyncMembersCheckbox"
-          name="autoSyncMembers"
-          type="checkbox"
-        />
         <label
-          class="ChannelSettingsModal__autoSyncLabel"
+          class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 ChannelSettingsModal__autoSyncCheckbox"
           for="autoSyncMembersCheckbox"
-          title="Auto-add is disabled because no access rules are defined"
         >
+          <input
+            class="_checkbox__input_18swc_25"
+            disabled=""
+            id="autoSyncMembersCheckbox"
+            name="autoSyncMembers"
+            title="Auto-add is disabled because no access rules are defined"
+            type="checkbox"
+          />
           <span
-            class="ChannelSettingsModal__autoSyncText disabled"
+            class="_checkbox__box_18swc_44"
+          />
+          <span
+            class="_checkbox__label_18swc_120"
           >
-            Auto-add members based on access rules
+            <span
+              class="ChannelSettingsModal__autoSyncText disabled"
+            >
+              Auto-add members based on access rules
+            </span>
           </span>
         </label>
       </div>

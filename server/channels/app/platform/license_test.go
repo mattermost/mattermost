@@ -5,6 +5,7 @@ package platform
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"testing"
 
@@ -13,6 +14,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	mocks2 "github.com/mattermost/mattermost/server/v8/channels/utils/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -24,6 +27,54 @@ func TestLoadLicense(t *testing.T) {
 
 	th.Service.LoadLicense()
 	require.Nil(t, th.Service.License(), "shouldn't have a valid license")
+}
+
+func TestLoadLicenseStoreFailure(t *testing.T) {
+	licenseID := model.NewId()
+
+	setup := func(t *testing.T, getErr error) (*TestHelper, *mocks.LicenseStore) {
+		t.Helper()
+		t.Setenv(LicenseEnv, "")
+
+		th := SetupWithStoreMock(t)
+		mockStore := th.Service.Store.(*mocks.Store)
+
+		systemMock := &mocks.SystemStore{}
+		systemMock.On("GetByNameWithContext", mock.Anything, model.SystemActiveLicenseId).
+			Return(&model.System{Name: model.SystemActiveLicenseId, Value: licenseID}, nil)
+		mockStore.On("System").Return(systemMock)
+
+		licenseMock := &mocks.LicenseStore{}
+		licenseMock.On("Get", mock.Anything, licenseID).Return(nil, getErr)
+		mockStore.On("License").Return(licenseMock)
+
+		return th, licenseMock
+	}
+
+	t.Run("keeps the current license when the read fails", func(t *testing.T) {
+		th, licenseMock := setup(t, errors.New("connection refused"))
+
+		current := model.NewTestLicense()
+		th.Service.SetLicense(current)
+
+		th.Service.LoadLicense()
+
+		// LoadLicense reruns on a 24h timer, so clearing here would drop every
+		// entitlement until the next successful read.
+		require.Equal(t, current, th.Service.License())
+		licenseMock.AssertExpectations(t)
+	})
+
+	t.Run("clears the license when the record is genuinely absent", func(t *testing.T) {
+		th, licenseMock := setup(t, store.NewErrNotFound("License", licenseID))
+
+		th.Service.SetLicense(model.NewTestLicense())
+
+		th.Service.LoadLicense()
+
+		require.Nil(t, th.Service.License())
+		licenseMock.AssertExpectations(t)
+	})
 }
 
 func TestSaveLicense(t *testing.T) {

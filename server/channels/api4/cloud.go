@@ -32,7 +32,7 @@ func (api *API) InitCloud() {
 	// GET /api/v4/cloud/subscription
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods(http.MethodGet)
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods(http.MethodGet)
-	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:[_A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods(http.MethodGet)
+	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:[_A-Za-z0-9]+}/pdf", api.APISessionRequiredGzip(getSubscriptionInvoicePDF)).Methods(http.MethodGet)
 
 	// GET /api/v4/cloud/validate-business-email
 	api.BaseRoutes.Cloud.Handle("/validate-business-email", api.APISessionRequired(validateBusinessEmail)).Methods(http.MethodPost)
@@ -157,7 +157,7 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
+	user, appErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusForbidden).Wrap(appErr)
 		return
@@ -207,7 +207,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	user, userErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if userErr != nil {
 		c.Err = userErr
 		return

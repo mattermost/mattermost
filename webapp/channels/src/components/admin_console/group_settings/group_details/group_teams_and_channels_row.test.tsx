@@ -8,7 +8,7 @@ import GroupTeamsAndChannelsRow from 'components/admin_console/group_settings/gr
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/admin_console/group_settings/group_details/GroupTeamsAndChannelsRow', () => {
-    const renderInTable = (ui: React.ReactElement) => {
+    const renderInTable = (ui: React.ReactElement<any>) => {
         return renderWithContext(
             <table>
                 <tbody>

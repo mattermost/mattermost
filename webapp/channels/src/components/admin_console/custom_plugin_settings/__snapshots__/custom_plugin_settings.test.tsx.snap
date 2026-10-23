@@ -10,7 +10,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console__header"
       data-testid="admin-console-header"
     >
-      testplugin
+      <div
+        class="admin-console__header-left"
+      >
+        testplugin
+      </div>
     </div>
     <div
       class="admin-console__wrapper"
@@ -94,31 +98,63 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 <div
                   class="col-sm-8"
                 >
-                  <label
-                    class="Label-eJcoMl iShgPr"
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
                   >
-                    <input
-                      checked=""
-                      data-testid="settingbtrue"
-                      id="settingbtrue"
-                      name="settingb"
-                      type="radio"
-                      value="true"
-                    />
-                    True
-                  </label>
-                  <label
-                    class="Label-eJcoMl iShgPr"
-                  >
-                    <input
-                      data-testid="settingbfalse"
-                      id="settingbfalse"
-                      name="settingb"
-                      type="radio"
-                      value="false"
-                    />
-                    False
-                  </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="settingbtrue"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="settingbtrue"
+                        id="settingbtrue"
+                        name="settingb"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="settingbfalse"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="settingbfalse"
+                        id="settingbfalse"
+                        name="settingb"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="settingbhelp-text"
@@ -187,49 +223,91 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   class="col-sm-8"
                 >
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                    for="_r_b_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_h0rbb_17"
+                      id="_r_b_"
                       name="settingd"
                       type="radio"
                       value="option1"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_h0rbb_36"
                     >
-                      Option 1
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_h0rbb_62"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_h0rbb_119"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        Option 1
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                    for="_r_c_"
                   >
                     <input
                       checked=""
-                      class="RadioSetting__input"
+                      class="_radio__input_h0rbb_17"
+                      id="_r_c_"
                       name="settingd"
                       type="radio"
                       value="option2"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_h0rbb_36"
                     >
-                      Option 2
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_h0rbb_62"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_h0rbb_119"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        Option 2
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                    for="_r_d_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_h0rbb_17"
+                      id="_r_d_"
                       name="settingd"
                       type="radio"
                       value="option3"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_h0rbb_36"
                     >
-                      Option 3
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_h0rbb_62"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_h0rbb_119"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        Option 3
+                      </span>
                     </span>
                   </label>
                   <div
@@ -388,7 +466,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console__header"
       data-testid="admin-console-header"
     >
-      testplugin
+      <div
+        class="admin-console__header-left"
+      >
+        testplugin
+      </div>
     </div>
     <div
       class="admin-console__wrapper"
@@ -435,7 +517,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console__header"
       data-testid="admin-console-header"
     >
-      testplugin
+      <div
+        class="admin-console__header-left"
+      >
+        testplugin
+      </div>
     </div>
     <div
       class="admin-console__wrapper"
@@ -519,31 +605,63 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 <div
                   class="col-sm-8"
                 >
-                  <label
-                    class="Label-eJcoMl iShgPr"
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
                   >
-                    <input
-                      data-testid="PluginSettings.Plugins.testplugin.settingbtrue"
-                      id="PluginSettings.Plugins.testplugin.settingbtrue"
-                      name="PluginSettings.Plugins.testplugin.settingb"
-                      type="radio"
-                      value="true"
-                    />
-                    True
-                  </label>
-                  <label
-                    class="Label-eJcoMl iShgPr"
-                  >
-                    <input
-                      checked=""
-                      data-testid="PluginSettings.Plugins.testplugin.settingbfalse"
-                      id="PluginSettings.Plugins.testplugin.settingbfalse"
-                      name="PluginSettings.Plugins.testplugin.settingb"
-                      type="radio"
-                      value="false"
-                    />
-                    False
-                  </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="PluginSettings.Plugins.testplugin.settingbtrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="PluginSettings.Plugins.testplugin.settingbtrue"
+                        id="PluginSettings.Plugins.testplugin.settingbtrue"
+                        name="PluginSettings.Plugins.testplugin.settingb"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="PluginSettings.Plugins.testplugin.settingbfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="PluginSettings.Plugins.testplugin.settingbfalse"
+                        id="PluginSettings.Plugins.testplugin.settingbfalse"
+                        name="PluginSettings.Plugins.testplugin.settingb"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="PluginSettings.Plugins.testplugin.settingbhelp-text"
@@ -612,49 +730,91 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   class="col-sm-8"
                 >
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                    for="_r_2_"
                   >
                     <input
                       checked=""
-                      class="RadioSetting__input"
+                      class="_radio__input_h0rbb_17"
+                      id="_r_2_"
                       name="PluginSettings.Plugins.testplugin.settingd"
                       type="radio"
                       value="option1"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_h0rbb_36"
                     >
-                      Option 1
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_h0rbb_62"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_h0rbb_119"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        Option 1
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                    for="_r_3_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_h0rbb_17"
+                      id="_r_3_"
                       name="PluginSettings.Plugins.testplugin.settingd"
                       type="radio"
                       value="option2"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_h0rbb_36"
                     >
-                      Option 2
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_h0rbb_62"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_h0rbb_119"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        Option 2
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                    for="_r_4_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_h0rbb_17"
+                      id="_r_4_"
                       name="PluginSettings.Plugins.testplugin.settingd"
                       type="radio"
                       value="option3"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_h0rbb_36"
                     >
-                      Option 3
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_h0rbb_62"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_h0rbb_119"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        Option 3
+                      </span>
                     </span>
                   </label>
                   <div

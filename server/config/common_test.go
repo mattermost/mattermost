@@ -27,9 +27,6 @@ func init() {
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: new("http://minimal"),
 		},
-		SqlSettings: model.SqlSettings{
-			AtRestEncryptKey: new("abcdefghijklmnopqrstuvwxyz0123456789"),
-		},
 		FileSettings: model.FileSettings{
 			PublicLinkSalt: new("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
@@ -52,9 +49,6 @@ func init() {
 	fixesRequiredConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: new("http://trailingslash/"),
-		},
-		SqlSettings: model.SqlSettings{
-			AtRestEncryptKey: new("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		FileSettings: model.FileSettings{
 			DriverName:     model.NewPointer(model.ImageDriverLocal),

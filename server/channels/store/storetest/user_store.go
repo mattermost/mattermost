@@ -4,9 +4,10 @@
 package storetest
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -6741,8 +6742,8 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 		users[i] = user
 	}
 
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].Username < users[j].Username
+	slices.SortFunc(users, func(a, b *model.User) int {
+		return cmp.Compare(a.Username, b.Username)
 	})
 
 	// cleanup users after the test

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import type {IntlShape} from 'react-intl';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -33,6 +33,9 @@ export type Props = {
     urlError?: string;
     readOnly?: boolean;
     isEditingExistingChannel?: boolean;
+
+    // The server rejects URL changes on the default channel, so it is shown read-only.
+    isDefaultChannel?: boolean;
 };
 
 import './channel_name_form_field.scss';
@@ -214,6 +217,11 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                     limit={Constants.MAX_CHANNELNAME_LENGTH}
                     shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
                     error={urlError || props.urlError}
+                    readOnly={props.readOnly || props.isDefaultChannel}
+                    helpText={props.isDefaultChannel ? formatMessage({
+                        id: 'channel_name_form_field.default_channel_url',
+                        defaultMessage: 'The URL of the default channel cannot be changed.',
+                    }) : undefined}
                     onChange={handleOnURLChange}
                     onBlur={handleOnURLBlur}
                 />

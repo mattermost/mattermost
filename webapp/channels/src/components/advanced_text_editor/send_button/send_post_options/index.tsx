@@ -15,6 +15,7 @@ import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_po
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
+import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
@@ -24,16 +25,17 @@ type Props = {
     channelId: string;
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => void;
-    allowRecurring: boolean;
+    repeatDisabledReason?: RepeatDisabledReason;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
+        // Not stopping propagation is load-bearing: in mobile view the menu is a modal that
+        // only dismisses once the click reaches the list wrapping the menu items.
         e.preventDefault();
-        e.stopPropagation();
 
         const schedulingInfo: SchedulingInfo = {
             scheduled_at: scheduledAt,
@@ -54,10 +56,10 @@ export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}:
             dialogProps: {
                 channelId,
                 onConfirm: handleSelectCustomTime,
-                allowRecurring,
+                repeatDisabledReason,
             },
         }));
-    }, [allowRecurring, channelId, dispatch, handleSelectCustomTime]);
+    }, [repeatDisabledReason, channelId, dispatch, handleSelectCustomTime]);
 
     return (
         <Menu.Container

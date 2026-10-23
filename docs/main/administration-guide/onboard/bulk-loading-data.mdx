@@ -1,9 +1,9 @@
 ---
-title: "Bulk loading data"
+title: "Bulk import data"
 ---
 <PlanAvailability slug="all-commercial" />
 
-Large quantities of data can be imported from a [JSONL](https://jsonlines.org) file into Mattermost at the command line using the bulk loading feature. This feature is most suitable for migrating data from an existing system, or for pre-populating a new installation with data.
+Large quantities of data can be imported from a [JSONL](https://jsonlines.org) file into Mattermost at the command line using the bulk import feature. This feature is most suitable for migrating data from an existing system, or for pre-populating a new installation with data.
 
 You can import the following data types:
 
@@ -29,13 +29,13 @@ You can import the following data types:
 
 Importing additional types of posts is not yet supported.
 
-## About the bulk loading command
+## About the bulk import command
 
-**The bulk loading command is interruptible and idempotent**
+**The bulk import command is interruptible and idempotent**
 
 If the import is interrupted for any reason, it continues from where it left off the next time you run it. You can run the command repeatedly with the same data file, and the data is imported only once. Posts with matching timestamps to incoming posts will have their attachments replaced by the incoming data. Prior to v5.20 any updates to posts with matching timestamps were appended to older posts.
 
-**You can run the bulk loading command on a live system**
+**You can run the bulk import command on a live system**
 
 Although you don't need to shut down Mattermost to run the command, changes made by users of the system between runs can be overwritten if the corresponding fields exist in the data file.
 
@@ -43,19 +43,19 @@ Although you don't need to shut down Mattermost to run the command, changes made
 
 Not all fields are mandatory. If an optional field is missing from the object that is being imported, the field's current value in the database is not changed.
 
-**The bulk loading command is not a synchronization tool**
+**The bulk import command is not a synchronization tool**
 
-You cannot use the bulk loading command to remove any objects or their fields from the Mattermost database. The command only creates or overwrites fields.
+You cannot use the bulk import command to remove any objects or their fields from the Mattermost database. The command only creates or overwrites fields.
 
 <Important>
 
-The bulk loading command runs in the mmctl and operates in the security context of the mmctl. This means it has full permissions to access and alter everything in the Mattermost database.
+The bulk import command runs in the mmctl and operates in the security context of the mmctl. This means it has full permissions to access and alter everything in the Mattermost database.
 
 </Important>
 
-## Bulk load data
+## Bulk import data
 
-Before running the bulk loading command, you must first create a [JSONL](https://jsonlines.org) file that contains the data that you want to import in your Mattermost directory. The file can have any name, but in this example it's called `data.jsonl`. The format of the file is described in the [data-format](/administration-guide/onboard/bulk-loading-data#data-format) section.
+Before running the bulk import command, you must first create a [JSONL](https://jsonlines.org) file that contains the data that you want to import in your Mattermost directory. The file can have any name, but in this example it's called `data.jsonl`. The format of the file is described in the [data-format](/administration-guide/onboard/bulk-loading-data#data-format) section.
 
 Next, zip it by running the `zip -r data.zip data.jsonl` command.
 
@@ -63,7 +63,7 @@ Next, zip it by running the `zip -r data.zip data.jsonl` command.
 
 From Mattermost v9.5, the mmctl bulk import process command in [local mode](/administration-guide/manage/mmctl-command-line-tool#local-mode) supports processing an import file without uploading it to the server.
 
-Run `mmctl import process --bypass-upload &lt;file&gt;.zip --local` to start your import and enable the Mattermost server to read from the file directly.
+Run `mmctl import process --bypass-upload <file>.zip --local` to start your import and enable the Mattermost server to read from the file directly.
 
 ### Not using mmctl local mode
 
@@ -78,7 +78,7 @@ If you're not running mmctl commands in local mode:
 The input data file must be a valid [JSONL](https://jsonlines.org) file with the following objects, each on its own line in the file. The objects must occur in the file in the order listed.
 
 Version  
-Mandatory. The Version object must be the first line in the file, and must occur only once. The version is the version of the bulk importer tool, which is currently `1`.
+Mandatory. The Version object must be the first line in the file, and must occur only once. The version is the version of the bulk import tool, which is currently `1`.
 
 Scheme  
 Optional. If present, Scheme objects must occur after the Version object but before any Team objects.
@@ -104,7 +104,7 @@ Optional. If present, DirectChannel objects must occur after all Post objects in
 DirectPost  
 Optional. If present, DirectPost objects must occur after all other objects in the file. Each DirectPost object defines the usernames of the channel members and the username of the user who posted the message. If the corresponding usernames are not in the data file, then they must exist in the Mattermost database.
 
-With the exception of the Version object, each object has a field or a combination of fields that is used as the unique identifier of that object. The bulk loader uses the unique identifier to determine if the object being imported is a new object or an update to an existing object.
+With the exception of the Version object, each object has a field or a combination of fields that is used as the unique identifier of that object. The bulk import command uses the unique identifier to determine if the object being imported is a new object or an update to an existing object.
 
 The identifiers for each object are listed in the following table:
 
@@ -724,7 +724,7 @@ For clarity, the object is shown using regular JSON formatting, but in the data 
   <tr class="row-odd">
     <td valign="middle">password</td>
     <td valign="middle">string</td>
-    <td>A password for the user. Can be present only when password-based authentication is used. When password-based authentication is used and the password is not present, the bulk loader generates a password.</td>
+    <td>A password for the user. Can be present only when password-based authentication is used. When password-based authentication is used and the password is not present, the bulk import command generates a password.</td>
     <td align="center" valign="middle">Yes</td>
     <td align="center" valign="middle">No</td>
   </tr>
@@ -1514,8 +1514,8 @@ Disable anti-virus or any other plugins that might interfere with attachment upl
 
 ## Troubleshooting
 
-### Running bulk loading tool hangs and doesn't complete
+### Running the bulk import tool hangs and doesn't complete
 
 If you have Bleve search indexing enabled, temporarily disable it in **System Console \> Experimental \> Bleve** and run the command again.
 
-Bleve does not support multiple processes opening and manipulating the same index. Therefore, if the Mattermost server is running, an attempt to run the bulk loading tool will lock when trying to open the indeces.
+Bleve does not support multiple processes opening and manipulating the same index. Therefore, if the Mattermost server is running, an attempt to run the bulk import tool will lock when trying to open the indeces.

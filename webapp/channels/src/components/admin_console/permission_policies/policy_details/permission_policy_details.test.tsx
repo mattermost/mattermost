@@ -83,6 +83,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
         EnableAccessControlAuditLogging: false,
+        SyncJobIntervalSeconds: 3600,
+        AttributeRefreshIntervalSeconds: 30,
     };
 
     const baseProps = {
@@ -143,7 +145,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         // no-attributes gate.
         mockGetAccessControlFields.mockResolvedValue({
             data: [
-                {id: 'u1', name: 'teams', attrs: {ldap: true}},
+                {id: 'u1', name: 'teams', attrs: {ldap: 'teams'}},
                 {id: 'u2', name: 'department', group_id: 'custom_profile_attributes', object_type: 'user', attrs: {managed: 'admin'}},
             ],
         });

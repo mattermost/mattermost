@@ -62,7 +62,7 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	return nil
 }
 
-func (a *App) checkUserPassword(user *model.User, password string) *model.AppError {
+func (a *App) checkUserPassword(user *model.User, password string) error {
 	if user.Password == "" || password == "" {
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -83,7 +83,9 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 
 	// Migrate the password if needed
 	if !hashers.IsLatestHasher(hasher) {
-		return a.migratePassword(user, password)
+		if err := a.migratePassword(user, password); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -91,7 +93,7 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 
 // migratePassword updates the database with the user's password hashed with the
 // latest hashing method. It assumes that the password has been already validated.
-func (a *App) migratePassword(user *model.User, password string) *model.AppError {
+func (a *App) migratePassword(user *model.User, password string) error {
 	// Compute the new hash with the latest hashing method
 	newHash, err := hashers.Hash(password)
 	if err != nil {
@@ -108,7 +110,7 @@ func (a *App) migratePassword(user *model.User, password string) *model.AppError
 }
 
 func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		if err.Id != MissingAccountError {
 			err.StatusCode = http.StatusInternalServerError
@@ -136,12 +138,13 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 		// credential mismatch; backend errors (hasher failures, migration
 		// failures, malformed stored hash) must not consume a slot or a
 		// transient infra issue could lock out a user with valid creds.
-		if err.Id != "api.user.check_user_password.invalid.app_error" {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) && appErr.Id != "api.user.check_user_password.invalid.app_error" {
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
 				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
 		}
-		return err
+		return model.AsAppError(err)
 	}
 
 	if err := a.CheckUserMfa(rctx, user, mfaToken); err != nil {
@@ -170,7 +173,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 }
 
 // This to be used for places we check the users password when they are already logged in
-func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError {
+func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password string) error {
 	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
 	claimed, claimErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(user.Id, maxAttempts)
 	if claimErr != nil {
@@ -181,7 +184,8 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
-		if err.Id != "api.user.check_user_password.invalid.app_error" {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) && appErr.Id != "api.user.check_user_password.invalid.app_error" {
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
 				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
@@ -202,7 +206,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 	// We need to get the latest value of the user from the database. user.Id is empty for first-time LDAP users.
 	if user.Id != "" {
 		var err *model.AppError
-		user, err = a.GetUser(user.Id)
+		user, err = a.GetUser(rctx, user.Id)
 		if err != nil {
 			if err.Id != MissingAccountError {
 				err.StatusCode = http.StatusInternalServerError
@@ -375,7 +379,7 @@ func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *mo
 	return nil
 }
 
-func (a *App) MFARequired(rctx request.CTX) *model.AppError {
+func (a *App) MFARequired(rctx request.CTX, method string) *model.AppError {
 	if license := a.Channels().License(); license == nil || !*license.Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication || !*a.Config().ServiceSettings.EnforceMultifactorAuthentication {
 		return nil
 	}
@@ -391,7 +395,7 @@ func (a *App) MFARequired(rctx request.CTX) *model.AppError {
 		return nil
 	}
 
-	user, err := a.GetUser(session.UserId)
+	user, err := a.GetUser(rctx, session.UserId)
 	if err != nil {
 		return model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -406,9 +410,9 @@ func (a *App) MFARequired(rctx request.CTX) *model.AppError {
 		return nil
 	}
 
-	// Special case to let user get themself
+	// Special case to let user get (but not modify or delete) themself
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	if rctx.Path() == path.Join(subpath, "/api/v4/users/me") {
+	if method == http.MethodGet && rctx.Path() == path.Join(subpath, "/api/v4/users/me") {
 		return nil
 	}
 

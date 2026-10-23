@@ -1354,6 +1354,18 @@ func (a *App) getAddDiscoverableChannelPermissionsMigration() (permissionsMap, e
 	}, nil
 }
 
+func (a *App) getAddAIRecapsPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: isExactRole(model.SystemAdminRoleId),
+			Add: []string{
+				model.PermissionSysconsoleReadAiRecaps.Id,
+				model.PermissionSysconsoleWriteAiRecaps.Id,
+			},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1418,6 +1430,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
 		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
 		{Key: model.MigrationRemoveImportTeamPermission, Migration: a.removeImportTeamPermissionMigration},
+		{Key: model.MigrationKeyAddAIRecapsPermissions, Migration: a.getAddAIRecapsPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

@@ -108,7 +108,7 @@ func (a *App) FilterDiscoverableChannelsByPolicy(rctx request.CTX, channels []*m
 		}
 
 		userOnce.Do(func() {
-			user, userErr = a.GetUser(userID)
+			user, userErr = a.GetUser(rctx, userID)
 		})
 		if userErr != nil {
 			return nil, userErr
@@ -211,7 +211,7 @@ func (a *App) FilterChannelListWithTeamDataForUserVisibility(rctx request.CTX, c
 		}
 
 		userOnce.Do(func() {
-			user, userErr = a.GetUser(userID)
+			user, userErr = a.GetUser(rctx, userID)
 		})
 		if userErr != nil {
 			return nil, 0, userErr

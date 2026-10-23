@@ -45,8 +45,8 @@ type expiredTokenStore interface {
 // at-deletion notice — so a future reader shouldn't be surprised to find an
 // expiry DM originating from the cleanup job.
 func MakeWorker(jobServer *jobs.JobServer, clearSessionCache func(userID string), notifyExpired func(rctx request.CTX, tokens []*model.UserAccessToken)) *jobs.SimpleWorker {
-	isEnabled := func(cfg *model.Config) bool {
-		return *cfg.ServiceSettings.EnableUserAccessTokens
+	isEnabled := func(_ *model.Config) bool {
+		return true
 	}
 
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {

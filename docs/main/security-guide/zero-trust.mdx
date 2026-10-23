@@ -72,20 +72,20 @@ Zero Trust treats every network as hostile. Mattermost supports deployment model
 
 ### Advanced: resilient, distributed, and isolated deployment
 
-- [High Availability Cluster-Based Deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) [Enterprise] — Multiple redundant application servers, database servers, and load balancers ensure no single point of failure. Supports inter-node state synchronization and HA for WebSocket connections.
-- [Horizontal Scalability Architecture](/deployment-guide/reference-architecture/scale/scaling-for-enterprise) [Enterprise] — Stateless application nodes scale horizontally. Reference architectures support 5K, 10K, 25K, and 50K+ concurrent users. Load balancer distributes traffic across nodes transparently.
+- [High Availability Cluster-Based Deployment](/deployment-guide/server/high-availability-cluster-based-deployment) [Enterprise] — Multiple redundant application servers, database servers, and load balancers ensure no single point of failure. Supports inter-node state synchronization and HA for WebSocket connections.
+- [Horizontal Scalability Architecture](/deployment-guide/scale/scaling-for-enterprise) [Enterprise] — Stateless application nodes scale horizontally. Reference architectures support 5K, 10K, 25K, and 50K+ concurrent users. Load balancer distributes traffic across nodes transparently.
 - [Supported Kubernetes Deployment](/deployment-guide/server/deploy-kubernetes) [Enterprise] — Production deployments on EKS, AKS, GKE, and DigitalOcean Kubernetes using the Mattermost Kubernetes Operator and Helm. Enables declarative, auditable infrastructure configuration.
-- [Air-Gapped & DDIL/CDO-L Environments](/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment) [Enterprise] — Offline installation packages, private container registries, and Kubernetes-based orchestration for fully disconnected or intermittent-connectivity environments. Integrates with on-premises LDAP, PostgreSQL, and Elasticsearch with no internet dependency.
-- [Air-Gapped Deployment](/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment) [Enterprise] — Engineered for Amazon GovCloud, Azure Government Cloud (including IL5), and Oracle AGC. Supports classified government networks and U.S. federal defense agency requirements.
-- [Offline Operation and Smart Resync](/deployment-guide/reference-architecture/deployment-scenarios/deploy-ddil-operations) [Enterprise] — Local collaboration continues when network connectivity is unavailable. All messages and updates are automatically synchronized once connectivity is restored, with zero data loss.
+- [Air-Gapped & DDIL/CDO-L Environments](/deployment-guide/deployment-scenarios/air-gapped-deployment) [Enterprise] — Offline installation packages, private container registries, and Kubernetes-based orchestration for fully disconnected or intermittent-connectivity environments. Integrates with on-premises LDAP, PostgreSQL, and Elasticsearch with no internet dependency.
+- [Air-Gapped Deployment](/deployment-guide/deployment-scenarios/air-gapped-deployment) [Enterprise] — Engineered for Amazon GovCloud, Azure Government Cloud (including IL5), and Oracle AGC. Supports classified government networks and U.S. federal defense agency requirements.
+- [Offline Operation and Smart Resync](/deployment-guide/deployment-scenarios/deploy-ddil-operations) [Enterprise] — Local collaboration continues when network connectivity is unavailable. All messages and updates are automatically synchronized once connectivity is restored, with zero data loss.
 - [Shared Channels (Federated)](/administration-guide/onboard/connected-workspaces) [Enterprise] — Real-time message and file synchronization across separate Mattermost servers over HTTPS/VPN. Enables controlled inter-organizational information flow without merging identity namespaces.
 - [Federated Communications](/administration-guide/onboard/connected-workspaces) [Enterprise] — Cross-organizational workflows via connected workspaces and Matrix/XMPP bridge support for legacy system integration.
 
 ### Optimal: micro-segmented access with dynamic policy enforcement
 
 - [Zero Trust Channel Access](/administration-guide/manage/admin/abac-channel-access-rules) [Enterprise Advanced] — Administrators configure channel-level access policies using Common Expression Language (CEL) or a graphical interface. Access decisions evaluate credentials, clearances, device posture, network attributes, and environmental data at entry time.
-- [Mission Partner Environments](/deployment-guide/reference-architecture/deployment-scenarios/deploy-mission-partner) [Enterprise Advanced] — Designed for multi-national and multi-domain operations. External partner users receive guest accounts with least-privilege access. DMZ deployment topology supports external federation with defense-in-depth architecture.
-- [Ultra-High Resiliency](/deployment-guide/reference-architecture/scale/scale-to-200000-users) [Enterprise Advanced] — Supports up to 200,000 concurrent users via high-availability cluster architecture with dedicated Redis write-through caching and zero-downtime upgrades. Designed for operational continuity in DDIL and mission partner environments.
+- [Mission Partner Environments](/deployment-guide/deployment-scenarios/deploy-mission-partner) [Enterprise Advanced] — Designed for multi-national and multi-domain operations. External partner users receive guest accounts with least-privilege access. DMZ deployment topology supports external federation with defense-in-depth architecture.
+- [Ultra-High Resiliency](/deployment-guide/scale/scale-to-200000-users) [Enterprise Advanced] — Supports up to 200,000 concurrent users via high-availability cluster architecture with dedicated Redis write-through caching and zero-downtime upgrades. Designed for operational continuity in DDIL and mission partner environments.
 - [DDIL Microsoft Teams App](/integrations-guide/mattermost-mission-collaboration-for-m365) [Enterprise] — When Microsoft Teams is inaccessible in a DDIL environment, the embedded Mattermost experience within Teams and Outlook clients maintains workflow continuity independently.
 
 ## Applications and Workloads
@@ -177,11 +177,11 @@ No organization starts at Optimal maturity, and no single product delivers Zero 
 
 - [Set up attribute-based access controls](/administration-guide/manage/admin/attribute-based-access-control)
 - [Mobile security features](/deployment-guide/mobile/mobile-security-features)
-- [Air-gapped deployment](/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment)
+- [Air-gapped deployment](/deployment-guide/deployment-scenarios/air-gapped-deployment)
 - [Compliance export](/administration-guide/comply/compliance-export)
 - [FIPS 140-3 and encryption options](/deployment-guide/server/containers/fips-stig)
 - [STIG-hardened image and DoD IA standards](/deployment-guide/server/deploy-containers)
-- [High availability cluster deployment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment)
+- [High availability cluster deployment](/deployment-guide/server/high-availability-cluster-based-deployment)
 - [Sovereign AI implementation](/agents/docs/sovereign_ai)
 - [Content flagging and data spillage](/administration-guide/manage/admin/content-flagging)
 - [CMMC Compliance](/security-guide/cmmc-compliance)

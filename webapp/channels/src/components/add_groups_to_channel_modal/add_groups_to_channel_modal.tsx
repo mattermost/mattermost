@@ -57,7 +57,7 @@ type State = {
 
 export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
-    private selectedItemRef: React.RefObject<HTMLDivElement>;
+    private selectedItemRef: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -188,7 +188,7 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
         return (
             <div
                 key={option.id}
-                ref={isSelected ? this.selectedItemRef : option.id}
+                ref={isSelected ? this.selectedItemRef : undefined}
                 className={'more-modal__row clickable ' + rowSelected}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => (onMouseMove ? onMouseMove(option) : undefined)}
@@ -218,7 +218,7 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
                 <div className='more-modal__actions'>
                     <button
                         className='more-modal__actions--round'
-                        aria-label='Add groups to channel'
+                        aria-label={this.props.intl.formatMessage({id: 'accessibility.add_groups_to_channel', defaultMessage: 'Add groups to channel'})}
                     >
                         <i className='icon icon-plus'/>
                     </button>

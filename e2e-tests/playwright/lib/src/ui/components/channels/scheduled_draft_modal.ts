@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {getDayPickerDayCell, goToDisplayedMonth} from '../day_picker';
+
 export default class ScheduledDraftModal {
     readonly container: Locator;
 
@@ -25,49 +27,22 @@ export default class ScheduledDraftModal {
         await expect(this.container).toBeVisible();
     }
 
-    getDaySuffix(day: number): string {
-        if (day > 3 && day < 21) {
-            return 'th';
-        }
-        switch (day % 10) {
-            case 1:
-                return 'st';
-            case 2:
-                return 'nd';
-            case 3:
-                return 'rd';
-            default:
-                return 'th';
-        }
-    }
-
-    dateLocator(day: number, month: string, dayOfWeek: string) {
-        const daySuffix = this.getDaySuffix(day);
-        return this.container.locator(`button[aria-label*='${day}${daySuffix} ${month} (${dayOfWeek})']`);
+    dateLocator(day: number) {
+        return getDayPickerDayCell(this.container, day);
     }
 
     async selectDay(dayFromToday: number = 0) {
         await this.dateInput.click();
 
         const pacificDate = this.getPacificDate();
-        const originDate = new Date(pacificDate.getTime());
 
         // If dayFromToday is provided, add days to the current date
         if (dayFromToday) {
             pacificDate.setDate(pacificDate.getDate() + dayFromToday);
         }
 
-        const day = pacificDate.getDate();
-        const month = pacificDate.toLocaleString('default', {month: 'long'});
-        const dayOfWeek = pacificDate.toLocaleDateString('en-US', {weekday: 'long'});
-
-        const dl = this.dateLocator(day, month, dayOfWeek);
-
-        // If the date is not visible and the month has changed, click the next month button
-        if (!(await dl.isVisible()) && pacificDate.getMonth() !== originDate.getMonth()) {
-            this.container.locator('button[aria-label="Go to next month"]').click();
-        }
-        await dl.click();
+        await goToDisplayedMonth(this.container, pacificDate);
+        await this.dateLocator(pacificDate.getDate()).click();
     }
 
     async confirm() {

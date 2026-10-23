@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import PluginState from 'mattermost-redux/constants/plugins';
 
 import {PluginManagement} from 'components/admin_console/plugin_management/plugin_management';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
@@ -104,6 +103,46 @@ describe('components/PluginManagement', () => {
             enablePlugin: jest.fn(),
             disablePlugin: jest.fn(),
         },
+    };
+
+    const makeConflictProps = (versionDirection: string, existingVersion = '1.0.0', uploadedVersion = '2.0.0'): Record<string, string> => ({
+        plugin_id: 'com.mattermost.test-plugin',
+        plugin_name: 'Test Plugin',
+        existing_version: existingVersion,
+        uploaded_version: uploadedVersion,
+        version_direction: versionDirection,
+    });
+
+    const renderWithUploadConflict = async (conflictProps: Record<string, string>) => {
+        const uploadPlugin = jest.fn().mockResolvedValueOnce({
+            error: {
+                server_error_id: 'app.plugin.install_id.app_error',
+                props: conflictProps,
+                message: 'A plugin with this ID already exists.',
+            },
+        });
+        const file = new File(['plugin'], 'plugin.tar.gz', {type: 'application/gzip'});
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+
+        renderWithContext(
+            <PluginManagement
+                {...defaultProps}
+                ref={ref}
+                actions={{
+                    ...defaultProps.actions,
+                    uploadPlugin,
+                }}
+            />,
+        );
+
+        act(() => {
+            ref.current!.setState({file, fileSelected: true} as any);
+        });
+        await act(async () => {
+            await ref.current!.helpSubmitUpload(file, false);
+        });
+
+        return {file, ref, uploadPlugin};
     };
 
     test('should match snapshot', () => {
@@ -577,6 +616,71 @@ describe('components/PluginManagement', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test.each([
+        ['upgrade', '1.0.0', '2.0.0', 'This upload upgrades the existing plugin.'],
+        ['same', '1.0.0', '1.0.0', 'This upload has the same version as the existing plugin.'],
+        ['downgrade', '2.0.0', '1.0.0', 'This upload downgrades the existing plugin. Downgrades can remove fixes or features.'],
+        ['unknown', '1.0.0', 'not-semver', 'Review the uploaded plugin before overwriting the existing installation. The server could not compare these plugin versions.'],
+    ])('should render overwrite review panel for %s uploads', async (direction, existingVersion, uploadedVersion, message) => {
+        await renderWithUploadConflict(makeConflictProps(direction, existingVersion, uploadedVersion));
+
+        expect(screen.getByTestId('plugin-upload-overwrite-review')).toHaveClass(`PluginUploadOverwriteReview--${direction}`);
+        expect(screen.getByText('Review plugin overwrite')).toBeInTheDocument();
+        expect(screen.getByText(message)).toBeInTheDocument();
+        expect(screen.getByText(`${existingVersion.startsWith('v') ? existingVersion : `v${existingVersion}`} \u2192 ${uploadedVersion.startsWith('v') ? uploadedVersion : `v${uploadedVersion}`}`)).toBeInTheDocument();
+        expect(screen.getByText('com.mattermost.test-plugin')).toBeInTheDocument();
+        expect(document.getElementById('confirmModalButton')).toBeInTheDocument();
+    });
+
+    test('should retry upload with force when overwrite is confirmed', async () => {
+        const uploadPlugin = jest.fn().
+            mockResolvedValueOnce({
+                error: {
+                    server_error_id: 'app.plugin.install_id.app_error',
+                    props: makeConflictProps('upgrade'),
+                    message: 'A plugin with this ID already exists.',
+                },
+            }).
+            mockResolvedValueOnce({data: {}});
+        const getPlugins = jest.fn().mockResolvedValue([]);
+        const file = new File(['plugin'], 'plugin.tar.gz', {type: 'application/gzip'});
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+
+        renderWithContext(
+            <PluginManagement
+                {...defaultProps}
+                ref={ref}
+                actions={{
+                    ...defaultProps.actions,
+                    getPlugins,
+                    uploadPlugin,
+                }}
+            />,
+        );
+
+        act(() => {
+            ref.current!.setState({file, fileSelected: true} as any);
+        });
+        await act(async () => {
+            await ref.current!.helpSubmitUpload(file, false);
+        });
+
+        await userEvent.click(document.getElementById('confirmModalButton')!);
+
+        await waitFor(() => expect(uploadPlugin).toHaveBeenLastCalledWith(file, true));
+        await waitFor(() => expect(getPlugins).toHaveBeenCalled());
+        expect(screen.queryByTestId('plugin-upload-overwrite-review')).not.toBeInTheDocument();
+    });
+
+    test('should clear overwrite review when upload overwrite is cancelled', async () => {
+        const {uploadPlugin} = await renderWithUploadConflict(makeConflictProps('downgrade', '2.0.0', '1.0.0'));
+
+        await userEvent.click(document.getElementById('cancelModalButton')!);
+
+        expect(screen.queryByTestId('plugin-upload-overwrite-review')).not.toBeInTheDocument();
+        expect(uploadPlugin).toHaveBeenCalledTimes(1);
+    });
+
     test('uploads the selected plugin bundle immediately', async () => {
         const uploadPlugin = jest.fn().mockResolvedValue({data: {}});
         const getPlugins = jest.fn().mockResolvedValue({data: {}});
@@ -814,5 +918,89 @@ describe('components/PluginManagement', () => {
         });
 
         expect(screen.getByText('Settings')).toBeInTheDocument();
+    });
+
+    describe('plugins forced off by a state override', () => {
+        // getPluginStateOverride holds a plugin at NotRunning with Enable still
+        // true in config.
+        const renderWithPluginState = (configEnabled: boolean) => {
+            const props = {
+                ...defaultProps,
+                config: {
+                    ...defaultProps.config,
+                    PluginSettings: {
+                        ...defaultProps.config.PluginSettings,
+                        PluginStates: configEnabled ? {plugin_0: {Enable: true}} : {},
+                    },
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('offers Disable when config says enabled but the plugin is not running', () => {
+            renderWithPluginState(true);
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Disable');
+            expect(row).not.toHaveTextContent('Enable');
+        });
+
+        test('still offers Enable when config says disabled and the plugin is not running', () => {
+            renderWithPluginState(false);
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Enable');
+            expect(row).not.toHaveTextContent('Disable');
+        });
+    });
+
+    describe('unlicensed add-on plugins', () => {
+        const renderAddOn = (license: Record<string, string>) => {
+            const props = {
+                ...defaultProps,
+                license,
+                plugins: {
+                    plugin_0: {
+                        ...defaultProps.plugins.plugin_0,
+                        required_add_on: 'crossguard',
+                    },
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('replaces the Enable link with an explanation when the license lacks the add-on', () => {
+            renderAddOn({IsLicensed: 'true'});
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Not included in your license');
+            expect(row).not.toHaveTextContent('Enable');
+        });
+
+        test('offers Enable when the license grants the add-on', () => {
+            renderAddOn({IsLicensed: 'true', AddOns: 'crossguard'});
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Enable');
+            expect(row).not.toHaveTextContent('Not included in your license');
+        });
     });
 });

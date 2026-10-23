@@ -3,19 +3,39 @@
 
 import {Client4} from '@mattermost/client';
 import type {PluginManifest} from '@mattermost/types/plugins';
-import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {createNewTeam, getAdminClient, getDefaultAdminUser, makeClient} from './server';
+import type {PlaywrightClient4} from './server';
+import {
+    clearAdminLockout,
+    clearAdminLoginLockout,
+    createNewTeam,
+    disableUnexpectedPlugins,
+    getAdminClient,
+    defaultFeatureFlags,
+    getDefaultAdminUser,
+    makeClient,
+    resetConfig,
+    runMmctlLocal,
+    setDefaultOnboardingPreferences,
+} from './server';
 import {testConfig} from './test_config';
+import {isUpgradePathProjectSelected} from './upgrade_env';
 import {defaultTeam} from './util';
 
 export async function baseGlobalSetup() {
-    let adminClient: Client4;
+    let adminClient: PlaywrightClient4;
     let adminUser: UserProfile | null;
     ({adminClient, adminUser} = await getAdminClient({skipLog: true}));
 
+    // Clear a leftover admin lockout before concluding there is no admin.
+    if (!adminUser && (await clearAdminLoginLockout())) {
+        ({adminClient, adminUser} = await getAdminClient({skipLog: true}));
+    }
+
     if (!adminUser) {
+        await enableEmailNotifications();
+
         const firstClient = new Client4();
         firstClient.setUrl(testConfig.baseURL);
         const defaultAdmin = getDefaultAdminUser();
@@ -30,10 +50,36 @@ export async function baseGlobalSetup() {
     await sysadminSetup(adminClient, adminUser);
 }
 
-async function sysadminSetup(client: Client4, user: UserProfile | null) {
-    // Ensure admin's email is verified.
-    if (!user) {
-        await client.verifyUserEmail(client.token);
+// SendEmailNotifications is off in the server's own defaults, so creating the very first sysadmin
+// logs "Failed to send welcome email on create user from signup". No admin exists yet to
+// authenticate patchConfig with, so this goes through mmctl's --local socket rather than boot env —
+// the server's env surface stays the same as any other run.
+async function enableEmailNotifications(): Promise<void> {
+    if (!testConfig.useTestContainers) {
+        return;
+    }
+
+    try {
+        const {exitCode, output} = await runMmctlLocal([
+            'config',
+            'set',
+            'EmailSettings.SendEmailNotifications',
+            'true',
+        ]);
+        if (exitCode !== 0) {
+            throw new Error(`mmctl exited with code ${exitCode}: ${output}`);
+        }
+    } catch (error) {
+        // Costs only a warn-level log line during first-user creation — never worth failing setup over.
+        // eslint-disable-next-line no-console
+        console.log('Could not enable email notifications before creating the first user', error);
+    }
+}
+
+async function sysadminSetup(client: PlaywrightClient4, user: UserProfile | null) {
+    // Verify the admin email so RequireEmailVerification cannot lock it out.
+    if (user) {
+        await client.verifyUserEmailById(user.id);
     }
 
     // Log license and config info
@@ -45,7 +91,7 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     const myTeams = await client.getMyTeams();
     const myDefaultTeam = myTeams && myTeams.length > 0 && myTeams.find((team) => team.name === defaultTeam.name);
     if (!myDefaultTeam) {
-        await createNewTeam(client, {name: defaultTeam.name, displayName: defaultTeam.displayName});
+        await createDefaultTeam(client);
     } else if (myDefaultTeam && testConfig.resetBeforeTest) {
         await Promise.all(
             myTeams.filter((team) => team.name !== defaultTeam.name).map((team) => client.deleteTeam(team.id)),
@@ -68,8 +114,65 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     // Set default preferences
     await savePreferences(client, user?.id ?? '');
 
-    // Log plugin details
+    await resetPluginState(client);
     await printPluginDetails(client);
+}
+
+/**
+ * Creates the baseline team. An earlier spec leased by this worker can leave a server-wide
+ * setting -- e.g. a domain restriction -- patched directly (bypassing patchConfig()'s restore) on
+ * this worker's reused server, so the very next spec's global setup hits it here before that spec
+ * even starts; clears the lockout that causes and retries once, rather than failing every
+ * subsequent spec this worker leases.
+ */
+async function createDefaultTeam(client: PlaywrightClient4): Promise<void> {
+    try {
+        await createNewTeam(client, {name: defaultTeam.name, displayName: defaultTeam.displayName});
+    } catch (error) {
+        if (!(await clearAdminLockout(error))) {
+            throw error;
+        }
+        await createNewTeam(client, {name: defaultTeam.name, displayName: defaultTeam.displayName});
+
+        // clearAdminLockout() only overwrites the one setting that caused the lockout, leaving the
+        // rest of whatever the leaked patch changed in place. Restore the full on-prem baseline
+        // right away instead of leaving that to the first test's resetConfigAndRoles fixture, so a
+        // fatal error anywhere between here and that fixture can't strand the server mid-fix. The
+        // team is already created at this point, so a failure here is a best-effort safety net, not
+        // a reason to fail the whole spec file loudly: resetConfigAndRoles calls resetConfig() again
+        // with a fresh client before the first test anyway, and will retry it there.
+        try {
+            await resetConfig(client);
+        } catch (resetError) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                'Global setup: full config reset after lockout recovery failed; the per-test fixture will retry.',
+                resetError,
+            );
+        }
+    }
+}
+
+/**
+ * Deactivates plugins a previous run left enabled, so they cannot alter the webapp for the specs
+ * that follow. Skipped for the upgrade-path projects, where surviving plugin state is under test.
+ */
+async function resetPluginState(client: Client4) {
+    if (isUpgradePathProjectSelected()) {
+        return;
+    }
+
+    try {
+        const disabled = await disableUnexpectedPlugins(client, testConfig.ensurePluginsInstalled);
+        if (disabled.length) {
+            // eslint-disable-next-line no-console
+            console.log(`Disabled plugins left active by an earlier run: ${disabled.join(', ')}`);
+        }
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log('Could not reset plugin state', error);
+        throw error;
+    }
 }
 
 function printPlaywrightTestConfig() {
@@ -116,7 +219,10 @@ async function printClientInfo(client: Client4) {
     // eslint-disable-next-line no-console
     console.log(
         Object.entries(FeatureFlags)
-            .map(([key, value]) => `  - ${key} = ${value}`)
+            .map(([key, value]) => {
+                const isOverridden = key in defaultFeatureFlags && defaultFeatureFlags[key] !== String(value);
+                return `  - ${key} = ${value}${isOverridden ? ` (default - ${defaultFeatureFlags[key]})` : ''}`;
+            })
             .join('\n'),
     );
 
@@ -160,14 +266,7 @@ async function savePreferences(client: Client4, userId: UserProfile['id']) {
             throw new Error('userId is not defined');
         }
 
-        const preferences: PreferenceType[] = [
-            {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
-            {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
-            {user_id: userId, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
-            {user_id: userId, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
-        ];
-
-        await client.savePreferences(userId, preferences);
+        await setDefaultOnboardingPreferences(client, userId);
     } catch (error) {
         // eslint-disable-next-line no-console
         console.log('Error saving preferences', error);

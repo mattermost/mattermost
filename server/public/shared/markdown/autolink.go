@@ -184,7 +184,7 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 
 	numClosing := 0
 	numOpening := 0
-	for i := 0; i < linkEnd; i++ {
+	for i := range linkEnd {
 		if runes[i] == '(' {
 			numOpening += 1
 		} else if runes[i] == ')' {

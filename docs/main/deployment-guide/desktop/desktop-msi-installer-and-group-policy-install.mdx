@@ -43,9 +43,9 @@ If a user reports a broken shortcut after upgrading to v6.1.0, the user should:
 
     ![Go to the mattermost/desktop repository on GitHub.](/images/desktop/msi_gpo/msi_gpo_installation_test_00002.png)
 
-3.  Navigate to the release page for [version v6.3.0](https://github.com/mattermost/desktop/releases/tag/v6.3.0) and download the appropriate installer for your version of Windows (32-bit vs. 64-bit).
+3.  Navigate to the release page for [version v6.3.1](https://github.com/mattermost/desktop/releases/tag/v6.3.1) and download the appropriate installer for your version of Windows (32-bit vs. 64-bit).
 
-4.  Download the [source.zip](https://github.com/mattermost/desktop/archive/v6.3.0.zip) file as well to extract group policy files.
+4.  Download the [source.zip](https://github.com/mattermost/desktop/archive/v6.3.1.zip) file as well to extract group policy files.
 
     ![In the mattermost/desktop repository on GitHub, go to the release page for the latest desktop release, then download the installer for your version of Windows. Download the source.zip file as well to extract group policy files.](/images/desktop/msi_gpo/msi_gpo_installation_test_00003.png)
 
@@ -85,16 +85,16 @@ The following group policies are available supporting a state option of Not Conf
 > <td>Update Notifications</td>
 > <td>If disabled, in-app update notifications are not shown.</td>
 > <td>v5.1 or later</td>
-> <td><code>EnableAutoUpdates</code></td>
+> <td><code>EnableAutoUpdater</code></td>
 > </tr>
 > </tbody>
 > </table>
 
-1.  Browse to the folder the above files were downloaded to and unzip the `desktop-6.3.0.zip` file in place.
+1.  Browse to the folder the above files were downloaded to and unzip the `desktop-6.3.1.zip` file in place.
 
     ![Go to the install download directory on your machine and unzip the ZIP file.](/images/desktop/msi_gpo/msi_gpo_installation_test_00004.png)
 
-2.  Navigate to the unzipped `desktop-6.3.0\resources\windows\gpo` folder and copy the contents.
+2.  Navigate to the unzipped `desktop-6.3.1\resources\windows\gpo` folder and copy the contents.
 
     ![Go to the \resources\windows\gpo directory and copy its contents.](/images/desktop/msi_gpo/msi_gpo_installation_test_00005.png)
 
@@ -125,7 +125,7 @@ Update notifications can be disabled by configuring the supported group policy. 
 
 1.  Run the `Edit group policy` application by selecting **Start**, typing `gpedit` into the search field, then selecting the resulting **Edit group policy** search option.
 
-    ![When configuring Mattermost using group policy settings, run the Edit group policy application by going to Start, typing gpedit into the search field, then selecting the resulting Edit group policy search option.](/images/desktop/msi_gpo/msi_gpo_installation_test_00009.png)
+    ![When configuring Mattermost using group policy settings, run the Edit group policy application by going to Start, typing gpedit into the search field, then selecting the resulting Edit group policy search option.](/images/desktop/msi_gpo/msi_gpo_installation_test_00009.webp)
 
 2.  In the **Edit group policy** window, navigate to `Local Computer Policy\Computer Configuration\Administrative Templates\Mattermost`. In this example, double-click on `DefaultServerList` to set one or more default servers that will appear on app launch.
 
@@ -154,13 +154,13 @@ From desktop v6.0, users can run multiple Mattermost workspaces at the same time
 - On Windows, seed the approved list using the `DefaultServerList` Group Policy.
 - For scripted installs, seed `config.json` on first run to include multiple entries in the `teams` array. See the [Silent Windows desktop distribution](/deployment-guide/desktop/silent-windows-desktop-distribution) documentation for details.
 - To prevent users from adding or removing workspaces, use the existing `EnableServerManagement` Group Policy.
-- Disable `EnableAutoUpdates` to turn off update notifications.
+- Disable `EnableAutoUpdater` to turn off update notifications.
 
 ### Verify group policy settings have been applied
 
 1.  Open up the Registry Editor by selecting **Start**, typing `Registry Editor` in the search field, then selecting the **Registry Editor** option in the search results.
 
-    ![When verifying group policy settings, open the Registery Editor by going to Start, typing Registry Editor into the search field, then selecting the resulting Registry Editor search option.](/images/desktop/msi_gpo/msi_gpo_installation_test_00013.png)
+    ![When verifying group policy settings, open the Registery Editor by going to Start, typing Registry Editor into the search field, then selecting the resulting Registry Editor search option.](/images/desktop/msi_gpo/msi_gpo_installation_test_00013.webp)
 
 2.  In the **Registry Editor** window, navigate to `Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Mattermost\DefaultServerList` and verify the servers you added using the **Edit group policy** app are listed.
 
@@ -195,7 +195,7 @@ From desktop v6.0, users can run multiple Mattermost workspaces at the same time
 
 2.  Verify the app loads the first server you defined in the **Edit group policy** app.
 
-    ![Verify group policy settings in the Mattermost Desktop App by opening the app from the Start menu, and verifying that the app loads the first server you defined in the Edit group policy.](/images/desktop/msi_gpo/msi_gpo_installation_test_00018.png)
+    ![Verify group policy settings in the Mattermost Desktop App by opening the app from the Start menu, and verifying that the app loads the first server you defined in the Edit group policy.](/images/desktop/msi_gpo/msi_gpo_installation_test_00018.webp)
 
 ## Advanced MSI options
 
@@ -215,13 +215,13 @@ Ensure the desktop app is closed before proceeding with a silent installation. B
 
 </Important>
 
-**Command Prompt:** `msiexec /i mattermost-desktop-v6.3.0-x64.msi /qn`
+**Command Prompt:** `msiexec /i mattermost-desktop-v6.3.1-x64.msi /qn`
 
-**PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.3.0-x64.msi /qn'`
+**PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.3.1-x64.msi /qn'`
 
 <Note>
 
-\- Replace `&lt;version&gt;` with the actual version number (e.g., `v6.3.0`). - From v6.1.0, the MSI installs per-machine by default, requiring administrator privileges.
+\- Replace `<version>` with the actual version number (e.g., `v6.3.1`). - From v6.1.0, the MSI installs per-machine by default, requiring administrator privileges.
 
 </Note>
 
@@ -231,8 +231,8 @@ From version v5.9.0 of the Mattermost desktop app, the following silent MSI inst
 
 Use the `APPLICATIONFOLDER` parameter to specify an installation directory for the MSI installation:
 
-- **Command Prompt:** `msiexec /i mattermost-desktop-v6.3.0-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"`
-- **PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.3.0-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"'`
+- **Command Prompt:** `msiexec /i mattermost-desktop-v6.3.1-x64.msi APPLICATIONFOLDER="<install directory>"`
+- **PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.3.1-x64.msi APPLICATIONFOLDER="<install directory>"'`
 
 Change this command as new versions of the Mattermost Desktop App are released.
 

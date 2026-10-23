@@ -1,9 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChannelTypes, TeamTypes, UserTypes} from 'mattermost-redux/action_types';
+
 import {ActionTypes} from 'utils/constants';
 
 import * as Reducers from './channel_sidebar';
+
+describe('sidebar data load state', () => {
+    test('tracks completion of the bulk channel and membership requests', () => {
+        expect(Reducers.initChannelsLoaded(false, {type: ChannelTypes.INIT_CHANNELS_LOADED})).toBe(true);
+        expect(Reducers.initChannelMembershipsLoaded(false, {type: ChannelTypes.INIT_CHANNEL_MEMBERSHIPS_LOADED})).toBe(true);
+    });
+
+    test('ignores unrelated channel and membership responses', () => {
+        expect(Reducers.initChannelsLoaded(false, {type: ChannelTypes.RECEIVED_CHANNELS})).toBe(false);
+        expect(Reducers.initChannelMembershipsLoaded(false, {type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS})).toBe(false);
+    });
+
+    test('resets completion state when switching teams or logging out', () => {
+        expect(Reducers.initChannelsLoaded(true, {type: TeamTypes.SELECT_TEAM})).toBe(false);
+        expect(Reducers.initChannelMembershipsLoaded(true, {type: TeamTypes.SELECT_TEAM})).toBe(false);
+        expect(Reducers.initChannelsLoaded(true, {type: UserTypes.LOGOUT_SUCCESS})).toBe(false);
+        expect(Reducers.initChannelMembershipsLoaded(true, {type: UserTypes.LOGOUT_SUCCESS})).toBe(false);
+    });
+});
 
 describe('multiSelectedChannelIds', () => {
     test('should select single channel when it does not exist in the list', () => {

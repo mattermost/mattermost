@@ -15,6 +15,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -34,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 )
 
@@ -48,7 +50,7 @@ func TestPreparePostListForClient(t *testing.T) {
 		postList.AddPost(&model.Post{})
 	}
 
-	clientPostList := th.App.PreparePostListForClient(th.Context, postList)
+	clientPostList := th.App.PreparePostListForClient(th.Context, postList, nil)
 
 	t.Run("doesn't mutate provided post list", func(t *testing.T) {
 		assert.NotEqual(t, clientPostList, postList, "should've returned a new post list")
@@ -66,6 +68,67 @@ func TestPreparePostListForClient(t *testing.T) {
 			assert.NotNil(t, clientPost.Metadata, "should've populated metadata for each post")
 		}
 	})
+}
+
+func TestPreparePostListForClientDeletedPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = true
+	})
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	createAcknowledgedUrgentPost := func() *model.Post {
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "urgent",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		return post
+	}
+	live := createAcknowledgedUrgentPost()
+	deleted := createAcknowledgedUrgentPost()
+	deleted.DeleteAt = model.GetMillis()
+
+	mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+	mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+	mockAutoTranslation.On("GetUserLanguage", th.BasicUser.Id, th.BasicChannel.Id).Return("es", nil)
+	mockAutoTranslation.On("GetBatch", model.TranslationObjectTypePost, []string{live.Id}, "es").Return(map[string]*model.Translation{
+		live.Id: {ObjectID: live.Id, ObjectType: model.TranslationObjectTypePost, Lang: "es", Text: "urgente", State: model.TranslationStateReady},
+	}, nil)
+	originalAutoTranslation := th.Server.AutoTranslation
+	th.Server.AutoTranslation = mockAutoTranslation
+	t.Cleanup(func() { th.Server.AutoTranslation = originalAutoTranslation })
+
+	postList := model.NewPostList()
+	for _, post := range []*model.Post{live, deleted} {
+		postList.AddPost(post)
+		postList.AddOrder(post.Id)
+	}
+
+	clientPostList := th.App.PreparePostListForClient(th.Context, postList, nil)
+
+	livePost := clientPostList.Posts[live.Id]
+	assert.NotNil(t, livePost.Metadata.Priority)
+	assert.NotEmpty(t, livePost.Metadata.Acknowledgements)
+	assert.Contains(t, livePost.Metadata.Translations, "es")
+
+	deletedPost := clientPostList.Posts[deleted.Id]
+	assert.Empty(t, deletedPost.Message)
+	assert.Nil(t, deletedPost.Metadata.Priority)
+	assert.Empty(t, deletedPost.Metadata.Acknowledgements)
+	assert.Empty(t, deletedPost.Metadata.Translations)
+	mockAutoTranslation.AssertExpectations(t)
 }
 
 func TestPreparePostForClient(t *testing.T) {
@@ -2263,7 +2326,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1,::1"
 		})
 
 		err := platform.PurgeLinkCache()
@@ -2272,6 +2335,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		return th
 	}
 
+	var opengraphRequests atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
 
@@ -2304,6 +2368,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			writeImage(int(height), int(width))
 		} else if strings.HasPrefix(r.URL.Path, "/opengraph") {
+			opengraphRequests.Add(1)
 			writeHTML(params["title"][0])
 		} else if strings.HasPrefix(r.URL.Path, "/json") {
 			w.Header().Set("Content-Type", "application/json")
@@ -2329,6 +2394,8 @@ func TestGetLinkMetadata(t *testing.T) {
 					writeHTML("mixed")
 				}
 			}
+		} else if strings.HasPrefix(r.URL.Path, "/redirect") {
+			http.Redirect(w, r, params.Get("target"), http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -2508,6 +2575,42 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.NotNil(t, og)
 		assert.Nil(t, img)
 		assert.NoError(t, err)
+	})
+
+	t.Run("should not get data when redirect target is restricted", func(t *testing.T) {
+		th := setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.RestrictLinkPreviews = "127.0.0.1"
+		})
+
+		require.Contains(t, server.URL, "127.0.0.1")
+		targetURL := strings.Replace(server.URL, "http://127.0.0.1", "http://@127.0.0.1", 1) + "/opengraph?title=RestrictedRedirect&name=" + t.Name()
+		requestURL := strings.Replace(server.URL, "127.0.0.1", "localhost", 1) + "/redirect?target=" + url.QueryEscape(targetURL)
+		timestamp := int64(1547510400000)
+		opengraphRequestsBefore := opengraphRequests.Load()
+
+		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, "")
+
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "disabled for link previews")
+		assert.Equal(t, opengraphRequestsBefore, opengraphRequests.Load())
+	})
+
+	t.Run("should get data when redirect target is allowed", func(t *testing.T) {
+		th := setup(t)
+
+		targetURL := server.URL + "/opengraph?title=AllowedRedirect&name=" + t.Name()
+		requestURL := strings.Replace(server.URL, "127.0.0.1", "localhost", 1) + "/redirect?target=" + url.QueryEscape(targetURL)
+		timestamp := int64(1547510400000)
+
+		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, "")
+
+		require.NotNil(t, og)
+		assert.Nil(t, img)
+		assert.NoError(t, err)
+		assert.Equal(t, "AllowedRedirect", og.Title)
 	})
 
 	t.Run("should cache OpenGraph results", func(t *testing.T) {
@@ -3505,6 +3608,153 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
 		require.True(t, ok)
 		assert.NotNil(t, previewData.Post.Metadata.Files, "embed files should not be stripped without ABAC")
+	})
+
+	// newPostWithPreview builds a post whose permalink embed previews a post in BasicChannel
+	// carrying the given channel mentions.
+	newPostWithPreview := func(mentions map[string]any) (*model.Post, *model.PreviewPost) {
+		previewedPost := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+		}
+		previewedPost.AddProp(model.PostPropsChannelMentions, mentions)
+
+		previewPost := model.NewPreviewPost(previewedPost, th.BasicTeam, th.BasicChannel)
+
+		return &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{Type: model.PostEmbedPermalink, Data: previewPost},
+				},
+			},
+		}, previewPost
+	}
+
+	t.Run("strips private channel mention from a permalink preview for a non-member", func(t *testing.T) {
+		// BasicUser2 is not a member of a channel created by BasicUser.
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+		post, previewPost := newPostWithPreview(map[string]any{
+			privateChannel.Name: map[string]any{
+				"display_name": privateChannel.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		sanitizedPost, _, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+
+		sanitizedPreview, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		assert.Nil(t, sanitizedPreview.Post.GetProp(model.PostPropsChannelMentions), "private channel mention should not leak through the preview")
+
+		// The preview post is shared through the link metadata cache, so it must not be mutated.
+		assert.NotNil(t, previewPost.Post.GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("keeps resolvable channel mention in a permalink preview", func(t *testing.T) {
+		post, _ := newPostWithPreview(map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": "Stale Display Name",
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		sanitizedPost, _, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+
+		sanitizedPreview, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+
+		mentions, ok := sanitizedPreview.Post.GetProp(model.PostPropsChannelMentions).(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentions, th.BasicChannel.Name)
+
+		channelData, ok := mentions[th.BasicChannel.Name].(map[string]any)
+		require.True(t, ok)
+		assert.Equal(t, th.BasicChannel.DisplayName, channelData["display_name"])
+	})
+
+	t.Run("strips public permalink embed for non-member when compliance is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		})
+
+		ch := th.CreateChannel(t, th.BasicTeam)
+		post := &model.Post{
+			Id:     model.NewId(),
+			UserId: th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "secret permalink message",
+								ChannelId: ch.Id,
+							},
+						},
+					},
+					{
+						Type: model.PostEmbedLink,
+						URL:  "https://mattermost.com",
+					},
+				},
+			},
+		}
+
+		sanitizedPost, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, sanitizedPost)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+		require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
+	})
+
+	t.Run("keeps public permalink embed for non-member when compliance is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(false)
+		})
+
+		ch := th.CreateChannel(t, th.BasicTeam)
+		post := &model.Post{
+			Id:     model.NewId(),
+			UserId: th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "secret permalink message",
+								ChannelId: ch.Id,
+							},
+						},
+					},
+					{
+						Type: model.PostEmbedLink,
+						URL:  "https://mattermost.com",
+					},
+				},
+			},
+		}
+
+		sanitizedPost, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, sanitizedPost)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 2)
+		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
 	})
 }
 

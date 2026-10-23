@@ -76,6 +76,8 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
             EnableAccessControlAuditLogging: false,
+            SyncJobIntervalSeconds: 3600,
+            AttributeRefreshIntervalSeconds: 30,
         },
         channels: [
             {id: 'channel1', name: 'Channel 1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
@@ -359,7 +361,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         // The mode-toggle button is disabled while no usable attributes are
         // available, so the test needs at least one to actually exercise the
         // Simple → Advanced → Simple round-trip.
-        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'program', attrs: {ldap: true}}]});
+        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'program', attrs: {ldap: 'program'}}]});
 
         const props = {
             ...defaultProps,
@@ -518,7 +520,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         });
 
         // The has-resources subtitle is shown instead of the deletable subtitle.
-        expect(screen.getByText(/Remove all assigned resources/)).toBeInTheDocument();
+        // The Delete policy card renders before fetchPolicy resolves, so the subtitle
+        // has to be awaited rather than read off the first commit.
+        expect(await screen.findByText(/Remove all assigned resources/)).toBeInTheDocument();
 
         // The linked-teams warning lists each team, linking to its System Console page.
         await waitFor(() => {
@@ -556,7 +560,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         const renderWithLoadedExpression = (expression: string, attributeName: string) => {
             // A single usable (LDAP-synced) attribute clears the no-usable-attributes
             // gate so the toggle reflects the expression, not the attributes state.
-            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: true}}]});
+            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: 'program'}}]});
             const props = {
                 ...defaultProps,
                 actions: {

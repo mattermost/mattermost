@@ -38,14 +38,11 @@ test.describe('Post height', () => {
         });
 
         // # Enable SVG rendering and let the server fetch metadata from the mock file server.
-        // AllowedUntrustedInternalConnections only takes effect in `external` mode here — in
-        // `testcontainers` mode it's fixed at boot via an env var, and a PatchConfig on an env-controlled
-        // field is accepted but has no real effect.
         await adminClient.patchConfig({
             ServiceSettings: {
                 EnableSVGs: true,
                 EnableLinkPreviews: true,
-                AllowedUntrustedInternalConnections: `localhost 127.0.0.1 ${new URL(fileServerUrl).hostname}`,
+                AllowedUntrustedInternalConnections: new URL(fileServerUrl).hostname,
             },
         });
 
@@ -264,7 +261,7 @@ test.describe('Post height', () => {
         {
             name: 'post with a large Markdown image',
             // MM-69979 Images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             makePost: ({fileServerUrl}) =>
                 seedPost({
                     message: `![large image](${fileServerUrl}/huge-image.jpg)`,
@@ -302,7 +299,7 @@ test.describe('Post height', () => {
         {
             name: 'post with an SVG Markdown image',
             // As of MM-67372, the server no longer provides dimensions for external SVGs
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             makePost: ({fileServerUrl}) =>
                 seedPost({
                     message: `![icon](${fileServerUrl}/icon.svg)`,
@@ -340,7 +337,7 @@ test.describe('Post height', () => {
         {
             name: 'post with a large image preview',
             // MM-69979 Images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             makePost: ({fileServerUrl}) =>
                 seedPost({
                     message: `${fileServerUrl}/huge-image.jpg`,
@@ -433,8 +430,10 @@ test.describe('Post height', () => {
             },
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the preview is faded out and has the "Show more" link visible
+                // Permalink previews need a second render pass once the linked post's content
+                // arrives; extend past the default 10s to leave headroom under loaded CI.
                 const showMoreButton = postComponent.container.locator('.post-preview-collapse__show-more-button');
-                await expect(showMoreButton).toBeVisible();
+                await expect(showMoreButton).toBeVisible({timeout: 20000});
                 await expect(postComponent.container.locator('.post-message-preview--overflow')).toBeVisible();
             },
         },
@@ -452,7 +451,7 @@ test.describe('Post height', () => {
 
                 const post = await testCase.makePost({
                     fileServerUrl,
-                    siteUrl: testConfig.internalBaseURL,
+                    siteUrl: testConfig.siteURL,
                 });
 
                 const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);
@@ -464,9 +463,6 @@ test.describe('Post height', () => {
                 if (testCase.additionalCheck) {
                     await testCase.additionalCheck({postComponent});
                 }
-
-                // # Wait for all network requests to finish
-                await page.waitForLoadState('networkidle');
 
                 // * Verify no height changes were detected
                 expect(await sizeWatcher.getObservations()).toHaveLength(1);

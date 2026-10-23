@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, type JSX} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
-import {components} from 'react-select';
 
-import {PencilOutlineIcon, RefreshIcon, SyncIcon} from '@mattermost/compass-icons/components';
+import {CloseCircleIcon, PencilOutlineIcon, RefreshIcon, SyncIcon} from '@mattermost/compass-icons/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {openModal} from 'actions/views/modals';
 
@@ -18,56 +19,73 @@ import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import type {AttributeFieldType} from '../utils';
+import type {ExternalSource, ExternalSourceLinks} from './external_source';
+import {ALL_EXTERNAL_SOURCES, conflictingExternalSources, externalSourceMessages as sourceMessages, linkedExternalSources} from './external_source';
+import useExternalSourceAvailability from './use_external_source_availability';
+import type {ExternalSourceUnavailableReason} from './use_external_source_availability';
+
+import {toServerFieldType} from '../attribute_type';
+import type {AttributeTypeId} from '../utils';
 
 import './attribute_external_source.scss';
 
-export type ExternalSource = 'ldap' | 'saml';
-
-const ALL_SOURCES: ExternalSource[] = ['ldap', 'saml'];
-
 const TRIGGER_ID = 'attribute-external-source-trigger';
 
-type Props = {
-    ldapAttr: string;
-    samlAttr: string;
-    fieldType: AttributeFieldType;
-    onLink: (source: ExternalSource, value: string) => void;
-    disabled?: boolean;
+const LINK_MODAL_IDS: Record<ExternalSource, string> = {
+    ldap: ModalIdentifiers.ATTRIBUTE_MODAL_LDAP,
+    saml: ModalIdentifiers.ATTRIBUTE_MODAL_SAML,
+    openid: ModalIdentifiers.ATTRIBUTE_MODAL_OPENID,
 };
 
-function sourceValue(source: ExternalSource, ldapAttr: string, samlAttr: string): string {
-    return source === 'ldap' ? ldapAttr : samlAttr;
-}
+type Props = {
+    links: ExternalSourceLinks;
+    fieldType: AttributeTypeId;
+    onLink: (source: ExternalSource, value: string) => void;
+    disabled?: boolean;
 
-function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disabled = false}: Props): JSX.Element {
-    const {formatMessage} = useIntl();
+    // Linking a new source to an attribute whose type cannot be synced forces
+    // fieldType to 'text' (see attribute_details.tsx's handleLink) -- while this
+    // attribute is applied to a resource, that would change its type out from
+    // under the server's type_change_with_dependents guard the same way the Type
+    // menu itself is locked for. Only gates the "add" trigger below: editing or
+    // removing an already-linked source never touches fieldType, so those stay
+    // enabled.
+    disableAdding?: boolean;
+};
+
+function AttributeExternalSource({links, fieldType, onLink, disabled = false, disableAdding = false}: Props): JSX.Element {
+    const {formatMessage, formatList} = useIntl();
     const dispatch = useDispatch();
+    const unavailable = useExternalSourceAvailability();
 
     const [statusMessage, setStatusMessage] = useState('');
 
-    const linkedCount = (ldapAttr ? 1 : 0) + (samlAttr ? 1 : 0);
+    const linkedSources = linkedExternalSources(links);
+    const unlinkedSources = ALL_EXTERNAL_SOURCES.filter((source) => !links[source]);
+    const linkedCount = linkedSources.length;
 
     // Distinguishes a Type switch clearing link(s) from an admin-driven chip
     // removal -- NOT by how many links were cleared (a Type switch can clear
-    // just one, if only one was ever set), but by `fieldType`: linking always
-    // forces it to 'text' (see attribute_details.tsx's handleLink), and a
-    // chip's own remove action never touches it, so fieldType stays 'text'
-    // through any chip-driven removal; a Type switch always changes it in the
-    // same batch as clearing the link(s). The switch case needs an explicit
-    // announcement (aria-live on a region whose content is merely removed,
-    // with nothing left behind, is not reliably announced by screen readers);
-    // the chip-removal case needs focus moved to the trigger instead, since
-    // the admin's own click already tells them what happened -- moving focus
-    // there too would instead steal it from the Type menu they just used.
+    // just one, if only one was ever set), but by whether `fieldType` changed
+    // along with them: a chip's own remove action never touches it, while a
+    // Type switch to a type that cannot be synced changes it in the same batch
+    // as clearing the link(s). The switch case needs an explicit announcement
+    // (aria-live on a region whose content is merely removed, with nothing
+    // left behind, is not reliably announced by screen readers); the
+    // chip-removal case needs focus moved to the trigger instead, since the
+    // admin's own click already tells them what happened -- moving focus there
+    // too would instead steal it from the Type menu they just used.
     const prevCountRef = useRef(linkedCount);
+    const prevFieldTypeRef = useRef(fieldType);
     useEffect(() => {
         const prevCount = prevCountRef.current;
+        const fieldTypeChanged = fieldType !== prevFieldTypeRef.current;
+        prevFieldTypeRef.current = fieldType;
         if (linkedCount < prevCount) {
-            if (fieldType === 'text') {
-                document.getElementById(TRIGGER_ID)?.focus();
-            } else {
+            if (fieldTypeChanged) {
                 setStatusMessage(formatMessage(messages.linksRemoved, {count: prevCount}));
+            } else {
+                document.getElementById(TRIGGER_ID)?.focus();
             }
         } else if (linkedCount > 0) {
             // Reset so a later, semantically-identical announcement (link
@@ -81,11 +99,11 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
 
     const openLinkModal = useCallback((source: ExternalSource) => {
         dispatch(openModal({
-            modalId: source === 'ldap' ? ModalIdentifiers.ATTRIBUTE_MODAL_LDAP : ModalIdentifiers.ATTRIBUTE_MODAL_SAML,
+            modalId: LINK_MODAL_IDS[source],
             dialogType: AttributeModal,
             dialogProps: {
-                initialValue: sourceValue(source, ldapAttr, samlAttr),
-                fieldType,
+                initialValue: links[source],
+                fieldType: toServerFieldType(fieldType),
                 onExited: () => {},
                 onSave: async (value: string) => {
                     onLink(source, value);
@@ -95,7 +113,7 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
                 modalHeaderText: <FormattedMessage {...sourceMessages[source].modalTitle}/>,
             },
         }));
-    }, [dispatch, fieldType, ldapAttr, samlAttr, onLink]);
+    }, [dispatch, fieldType, links, onLink]);
 
     // Closing the link modal restores focus to the trigger programmatically,
     // and it comes from a keyboard-focused control (a text input always matches
@@ -122,8 +140,60 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
         }
     }, []);
 
-    const linkedSources = ALL_SOURCES.filter((source) => sourceValue(source, ldapAttr, samlAttr));
-    const unlinkedSources = ALL_SOURCES.filter((source) => !sourceValue(source, ldapAttr, samlAttr));
+    // A source that cannot be linked right now stays listed, disabled, with the
+    // reason as its second line -- so it reads without hovering -- and spelled
+    // out in a tooltip.
+    const renderSourceItem = (source: ExternalSource) => {
+        const conflicts = conflictingExternalSources(source, links);
+        const reason = unavailable[source];
+        const blocked = conflicts.length > 0 || Boolean(reason);
+        const sourceTitle = formatMessage(sourceMessages[source].title);
+
+        let blockedLabel = '';
+        let blockedTooltip = '';
+        if (conflicts.length > 0) {
+            const linkedTitles = formatList(conflicts.map((other) => formatMessage(sourceMessages[other].title)), {type: 'conjunction'});
+            blockedLabel = formatMessage(messages.conflictLabel, {sources: linkedTitles});
+            blockedTooltip = formatMessage(messages.conflictTooltip, {source: sourceTitle, sources: linkedTitles, count: conflicts.length});
+        } else if (reason) {
+            blockedLabel = formatMessage(UNAVAILABLE_MESSAGES[reason].label, {source: sourceTitle});
+            blockedTooltip = formatMessage(UNAVAILABLE_MESSAGES[reason].tooltip, {source: sourceTitle});
+        }
+
+        const item = (
+            <Menu.Item
+                id={`attribute-external-source-${source}`}
+                key={source}
+                leadingElement={<SyncIcon size={18}/>}
+                onClick={() => openLinkModal(source)}
+                disabled={blocked}
+                labels={(
+                    <>
+                        <FormattedMessage {...sourceMessages[source].title}/>
+                        {blocked ? <span>{blockedLabel}</span> : <FormattedMessage {...sourceMessages[source].subtitle}/>}
+                    </>
+                )}
+            />
+        );
+
+        if (!blocked) {
+            return item;
+        }
+
+        // Beside the item rather than above or below it, so the tooltip never
+        // covers a neighbouring entry the admin may want next.
+        return (
+            <WithTooltip
+                key={source}
+                title={blockedTooltip}
+                isVertical={false}
+            >
+                <div data-testid={`attributeExternalSourceBlocked-${source}`}>
+                    {item}
+                </div>
+            </WithTooltip>
+        );
+    };
 
     return (
         <div
@@ -146,7 +216,7 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
                             <ExternalSourceChip
                                 key={source}
                                 source={source}
-                                value={sourceValue(source, ldapAttr, samlAttr)}
+                                value={links[source]}
                                 onEdit={() => openLinkModal(source)}
                                 onRemove={() => onLink(source, '')}
                                 disabled={disabled}
@@ -156,41 +226,44 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
                 </div>
             )}
             {unlinkedSources.length > 0 && (
-                <Menu.Container
-                    menuButton={{
-                        id: TRIGGER_ID,
-                        class: classNames(buttonClassNames({emphasis: 'quaternary'}), 'AttributeExternalSource__trigger'),
-                        disabled,
-                        onMouseDown: handleTriggerMouseDown,
-                        children: (
-                            <>
-                                <RefreshIcon size={16}/>
-                                <FormattedMessage {...messages.triggerLabel}/>
-                                <i className='icon icon-chevron-down'/>
-                            </>
-                        ),
-                        dataTestId: 'attributeExternalSourceTrigger',
-                    }}
-                    menu={{
-                        id: 'attribute-external-source-menu',
-                        'aria-label': formatMessage(messages.triggerLabel),
-                    }}
-                >
-                    {unlinkedSources.map((source) => (
-                        <Menu.Item
-                            id={`attribute-external-source-${source}`}
-                            key={source}
-                            leadingElement={<SyncIcon size={18}/>}
-                            onClick={() => openLinkModal(source)}
-                            labels={(
-                                <>
-                                    <FormattedMessage {...sourceMessages[source].title}/>
-                                    <FormattedMessage {...sourceMessages[source].subtitle}/>
-                                </>
-                            )}
-                        />
-                    ))}
-                </Menu.Container>
+                (() => {
+                    const trigger = (
+                        <Menu.Container
+                            menuButton={{
+                                id: TRIGGER_ID,
+                                class: classNames(buttonClassNames({emphasis: 'quaternary'}), 'AttributeExternalSource__trigger'),
+                                disabled: disabled || disableAdding,
+                                onMouseDown: handleTriggerMouseDown,
+                                children: (
+                                    <>
+                                        <RefreshIcon size={16}/>
+                                        <FormattedMessage {...messages.triggerLabel}/>
+                                        <i className='icon icon-chevron-down'/>
+                                    </>
+                                ),
+                                dataTestId: 'attributeExternalSourceTrigger',
+                            }}
+                            menu={{
+                                id: 'attribute-external-source-menu',
+                                'aria-label': formatMessage(messages.triggerLabel),
+                            }}
+                        >
+                            {unlinkedSources.map(renderSourceItem)}
+                        </Menu.Container>
+                    );
+                    return disableAdding ? (
+                        <WithTooltip title={formatMessage(messages.disabledWhileAppliesToTooltip)}>
+                            <span
+                                // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled trigger is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                tabIndex={0}
+                                className='AttributeExternalSource__triggerLockWrap'
+                                data-testid='attributeExternalSourceTriggerLockWrap'
+                            >
+                                {trigger}
+                            </span>
+                        </WithTooltip>
+                    ) : trigger;
+                })()
             )}
             <span
                 role='status'
@@ -245,7 +318,10 @@ function ExternalSourceChip({source, value, onEdit, onRemove, disabled = false}:
                 disabled={disabled}
                 aria-label={removeLabel}
             >
-                <components.CrossIcon size={14}/>
+                <CloseCircleIcon
+                    size={12}
+                    aria-hidden={true}
+                />
             </button>
         </span>
     );
@@ -263,19 +339,47 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.external_source.links_removed',
         defaultMessage: '{count, plural, one {External source link removed} other {External source links removed}}',
     },
+    disabledWhileAppliesToTooltip: {
+        id: 'admin.global_attributes.attribute_details.external_source.disabled_applies_to_tooltip',
+        defaultMessage: 'Cannot link an external source while this attribute applies to a resource.',
+    },
+    conflictLabel: {
+        id: 'admin.global_attributes.attribute_details.external_source.conflict_label',
+        defaultMessage: 'Can\'t be combined with {sources}',
+    },
+    conflictTooltip: {
+        id: 'admin.global_attributes.attribute_details.external_source.conflict_tooltip',
+        defaultMessage: 'An attribute synced from OpenID Connect can\'t also sync from AD/LDAP or SAML. Remove the {sources} {count, plural, one {link} other {links}} to link {source}.',
+    },
+    flagOffLabel: {
+        id: 'admin.global_attributes.attribute_details.external_source.unavailable.flag_off.label',
+        defaultMessage: 'Turned off on this server',
+    },
+    flagOffTooltip: {
+        id: 'admin.global_attributes.attribute_details.external_source.unavailable.flag_off.tooltip',
+        defaultMessage: 'Syncing attributes from {source} is turned off on this server.',
+    },
+    unlicensedLabel: {
+        id: 'admin.global_attributes.attribute_details.external_source.unavailable.unlicensed.label',
+        defaultMessage: 'Not included in your license',
+    },
+    unlicensedTooltip: {
+        id: 'admin.global_attributes.attribute_details.external_source.unavailable.unlicensed.tooltip',
+        defaultMessage: 'Your license doesn\'t include {source}.',
+    },
+    notEnabledLabel: {
+        id: 'admin.global_attributes.attribute_details.external_source.unavailable.not_enabled.label',
+        defaultMessage: 'Set up {source} first',
+    },
+    notEnabledTooltip: {
+        id: 'admin.global_attributes.attribute_details.external_source.unavailable.not_enabled.tooltip',
+        defaultMessage: 'Turn on {source} in System Console > Authentication > {source} to link attributes to its claims.',
+    },
 });
 
-const sourceMessages = {
-    ldap: defineMessages({
-        title: {id: 'admin.global_attributes.attribute_details.external_source.ldap.title', defaultMessage: 'AD/LDAP'},
-        subtitle: {id: 'admin.global_attributes.attribute_details.external_source.ldap.subtitle', defaultMessage: 'Sync with your directory of record'},
-        modalTitle: {id: 'admin.global_attributes.attribute_details.external_source.ldap.modal_title', defaultMessage: 'Link to AD/LDAP'},
-        helpText: {id: 'admin.global_attributes.attribute_details.external_source.ldap.help_text', defaultMessage: 'The attribute in your AD/LDAP directory to sync this value from.'},
-    }),
-    saml: defineMessages({
-        title: {id: 'admin.global_attributes.attribute_details.external_source.saml.title', defaultMessage: 'SAML'},
-        subtitle: {id: 'admin.global_attributes.attribute_details.external_source.saml.subtitle', defaultMessage: 'Map values from SAML at sign-in'},
-        modalTitle: {id: 'admin.global_attributes.attribute_details.external_source.saml.modal_title', defaultMessage: 'Link to SAML'},
-        helpText: {id: 'admin.global_attributes.attribute_details.external_source.saml.help_text', defaultMessage: 'The attribute in your SAML response to sync this value from.'},
-    }),
-} as const;
+const UNAVAILABLE_MESSAGES: Record<ExternalSourceUnavailableReason, {label: MessageDescriptor; tooltip: MessageDescriptor}> = {
+    flag_off: {label: messages.flagOffLabel, tooltip: messages.flagOffTooltip},
+    unlicensed: {label: messages.unlicensedLabel, tooltip: messages.unlicensedTooltip},
+    not_enabled: {label: messages.notEnabledLabel, tooltip: messages.notEnabledTooltip},
+};
+

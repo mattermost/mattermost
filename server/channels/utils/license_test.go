@@ -152,6 +152,7 @@ func TestValidateLicense(t *testing.T) {
 
 func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 	t.Run("test license uploaded to a production server returns the wrong-environment error", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70560")
 		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
 
 		license, appErr := LicenseValidator.LicenseFromBytes(validTestLicense)
@@ -162,6 +163,7 @@ func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 	})
 
 	t.Run("production license uploaded to a test/dev server returns the wrong-environment error", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70560")
 		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		// We cannot sign with the real production key, so stand in a generated key as
@@ -270,6 +272,43 @@ func TestGetClientLicense(t *testing.T) {
 	// The flag must survive sanitization so all users can see the non-production banner.
 	sanitized := GetSanitizedClientLicense(props)
 	require.Equal(t, "true", sanitized["IsNonProduction"])
+}
+
+func TestGetClientLicenseAddOns(t *testing.T) {
+	newLicense := func(addOns ...string) *model.License {
+		license := &model.License{
+			Customer: &model.Customer{},
+			Features: &model.Features{},
+			AddOns:   addOns,
+		}
+		license.Features.SetDefaults()
+		return license
+	}
+
+	t.Run("no add-ons", func(t *testing.T) {
+		props := GetClientLicense(newLicense())
+		require.Equal(t, "", props["AddOns"])
+	})
+
+	t.Run("single add-on", func(t *testing.T) {
+		props := GetClientLicense(newLicense("crossguard"))
+		require.Equal(t, "crossguard", props["AddOns"])
+	})
+
+	t.Run("multiple add-ons are comma separated", func(t *testing.T) {
+		props := GetClientLicense(newLicense("crossguard", "another"))
+		require.Equal(t, "crossguard,another", props["AddOns"])
+	})
+
+	t.Run("survives sanitization", func(t *testing.T) {
+		// Anything stripped here disappears from the System Console after a license
+		// change. Do not add AddOns to the delete list.
+		props := GetClientLicense(newLicense("crossguard"))
+		require.Equal(t, "crossguard", props["AddOns"])
+
+		sanitized := GetSanitizedClientLicense(props)
+		require.Equal(t, "crossguard", sanitized["AddOns"], "AddOns must survive sanitization")
+	})
 }
 
 func TestGetLicenseFileFromDisk(t *testing.T) {

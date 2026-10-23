@@ -8,7 +8,7 @@ import React, {
     useRef,
 } from 'react';
 import {useIntl} from 'react-intl';
-import {shallowEqual, useSelector, useDispatch} from 'react-redux';
+import {shallowEqual, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -18,10 +18,6 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense, isChannelPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import {
-    setShowPreviewOnChannelSettingsHeaderModal,
-    setShowPreviewOnChannelSettingsPurposeModal,
-} from 'actions/views/textbox';
 import {getBasePath, isChannelAccessControlEnabled} from 'selectors/general';
 import {getChannelSettingsTabs} from 'selectors/plugins';
 
@@ -95,7 +91,6 @@ function getPreferredActiveTab(activeTab: string, visibleBuiltInTabs: SidebarTab
 
 function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
     const visiblePluginTabRegistrations = useSelector((state: GlobalState) => {
         const currentChannel = getChannel(state, channelId);
@@ -136,6 +131,13 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     });
 
     const canManageBanner = channelBannerEnabled && hasManageChannelBannerPermission;
+    const canManageChannelProperties = useSelector((state: GlobalState) => {
+        if (isDMorGM) {
+            return true;
+        }
+        const permission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
+        return haveIChannelPermission(state, channel.team_id, channel.id, permission);
+    });
     const canManageSharedChannels = useSelector((state: GlobalState) => {
         const config = getConfig(state);
         const connectedWorkspacesEnabled = config?.ExperimentalSharedChannels === 'true';
@@ -144,15 +146,8 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         }
         return haveISystemPermission(state, {permission: Permissions.MANAGE_SHARED_CHANNELS});
     });
-    const shouldShowConfigurationTab = canManageBanner || canManageChannelTranslation || canManageSharedChannels;
-
-    const canManageChannelProperties = useSelector((state: GlobalState) => {
-        if (isDMorGM) {
-            return true;
-        }
-        const permission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
-        return haveIChannelPermission(state, channel.team_id, channel.id, permission);
-    });
+    const canManageJoinLeaveMessages = !isDMorGM && canManageChannelProperties;
+    const shouldShowConfigurationTab = canManageBanner || canManageChannelTranslation || canManageSharedChannels || canManageJoinLeaveMessages;
     const shouldShowInfoTab = canManageChannelProperties;
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
@@ -341,9 +336,6 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     };
 
     const handleHideConfirm = () => {
-        // Reset preview states to false when closing the modal
-        dispatch(setShowPreviewOnChannelSettingsHeaderModal(false));
-        dispatch(setShowPreviewOnChannelSettingsPurposeModal(false));
         setShow(false);
     };
 
@@ -377,6 +369,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
                 canManageChannelTranslation={canManageChannelTranslation}
                 canManageBanner={canManageBanner}
                 canManageSharedChannels={canManageSharedChannels}
+                canManageJoinLeaveMessages={canManageJoinLeaveMessages}
             />
         );
     };
