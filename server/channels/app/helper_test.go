@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -51,6 +53,13 @@ type TestHelper struct {
 	ConfigStore       *config.Store
 
 	tempWorkspace string
+
+	// untaggedPropertyCalls records the calls the property access control
+	// hook refused for want of a caller ID (observeUntaggedPropertyCalls);
+	// allowUntaggedPropertyCaller opts a test out of failing on them.
+	untaggedPropertyCallsMut    sync.Mutex
+	untaggedPropertyCalls       []string
+	allowUntaggedPropertyCaller atomic.Bool
 }
 
 type PostOptions func(*model.Post)
@@ -176,6 +185,8 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
+	th.observeUntaggedPropertyCalls()
+
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
 			// Clean all the caches
@@ -184,6 +195,8 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 		}
 
 		th.ShutdownApp()
+
+		th.checkNoUntaggedPropertyCaller(tb)
 
 		if th.tempWorkspace != "" {
 			err := os.RemoveAll(th.tempWorkspace)
@@ -648,6 +661,44 @@ func (th *TestHelper) ShutdownApp() {
 		// still running App could spuriously fail subsequent tests.
 		panic("failed to shutdown App within 30 seconds")
 	}
+}
+
+// observeUntaggedPropertyCalls has the property access control hook report
+// every call it refuses, or hides options or values from, for want of a
+// caller ID, whatever logger the call's context carries. Each TestHelper has
+// its own server and so its own hook, so one test never sees another's calls.
+func (th *TestHelper) observeUntaggedPropertyCalls() {
+	th.Server.propertyAccessControlHook.SetNoCallerObserverForTests(func(operation, groupID string, fieldIDs []string) {
+		th.untaggedPropertyCallsMut.Lock()
+		defer th.untaggedPropertyCallsMut.Unlock()
+		th.untaggedPropertyCalls = append(th.untaggedPropertyCalls, fmt.Sprintf("%s group_id=%s field_ids=%v", operation, groupID, fieldIDs))
+	})
+}
+
+// checkNoUntaggedPropertyCaller fails the test if the property access control
+// hook refused a call, or hid options or values from it, for want of a caller
+// ID, unless the test opted out with AllowUntaggedPropertyCaller. th.Context
+// is tagged as the local admin, so a test passing it never sees the refusal a
+// real untagged caller gets; this catches an internal call that builds or is
+// handed an untagged context instead.
+func (th *TestHelper) checkNoUntaggedPropertyCaller(tb testing.TB) {
+	th.Server.propertyAccessControlHook.SetNoCallerObserverForTests(nil)
+	if th.allowUntaggedPropertyCaller.Load() {
+		return
+	}
+	th.untaggedPropertyCallsMut.Lock()
+	defer th.untaggedPropertyCallsMut.Unlock()
+	if len(th.untaggedPropertyCalls) > 0 {
+		tb.Errorf("the property access control hook refused calls with no caller ID; tag the caller (RequestContextWithCallerID), or call th.AllowUntaggedPropertyCaller() if the test means it:\n%s", strings.Join(th.untaggedPropertyCalls, "\n"))
+	}
+}
+
+// AllowUntaggedPropertyCaller stops the test failing when the property access
+// control hook refuses a call for want of a caller ID. Only for a test that
+// calls the property service with no caller ID on purpose: anywhere else it
+// means an internal call forgot to tag its caller.
+func (th *TestHelper) AllowUntaggedPropertyCaller() {
+	th.allowUntaggedPropertyCaller.Store(true)
 }
 
 func (th *TestHelper) GetSqlStore() *sqlstore.SqlStore {

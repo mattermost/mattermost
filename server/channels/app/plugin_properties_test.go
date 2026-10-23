@@ -1180,7 +1180,7 @@ func TestPluginProperties(t *testing.T) {
 		require.NoError(t, activationErrors[1])
 
 		// Verify the field was actually updated
-		updatedFields, appErr := th.App.SearchPropertyFields(request.TestContext(t), cpaID, model.PropertyFieldSearchOpts{
+		updatedFields, appErr := th.App.SearchPropertyFields(th.Context, cpaID, model.PropertyFieldSearchOpts{
 			GroupID:    cpaID,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			PerPage:    model.AccessControlGroupFieldLimit + 5,

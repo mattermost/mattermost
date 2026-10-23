@@ -9,12 +9,16 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 )
 
 // registerTestPlugin writes a minimal manifest into the test server's plugin
@@ -1089,5 +1093,135 @@ func TestLocalModeValueWrite(t *testing.T) {
 		require.Equal(t, model.PermissionLevelNone, field.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite))
 
 		require.Nil(t, upsertAs(model.CallerIDLocalAdmin, field))
+	})
+}
+
+// TestAccessControlHookWarnsOnNoCaller checks that the access control hook
+// logs properties.NoCallerIDWarning, once per hook call, when a call with no
+// caller ID loses data: a write it refuses, or a value read it empties. It
+// names the operation and the group and field IDs. A field read, which only
+// hides options, logs nothing, and a tagged caller logs nothing. One app
+// operation can make more than one hook call: a value write reads its fields
+// first.
+func TestAccessControlHookWarnsOnNoCaller(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	// This test calls the property service untagged on purpose.
+	th.AllowUntaggedPropertyCaller()
+
+	groupID := registerTestPropertyGroup(t, th)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "no_caller_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	upsert := func(rctx request.CTX, user *model.User) *model.AppError {
+		_, appErr := th.App.UpsertPropertyValues(rctx, []*model.PropertyValue{{
+			GroupID:    groupID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			TargetID:   user.Id,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"value"`),
+		}}, model.PropertyFieldObjectTypeUser, user.Id, "")
+		return appErr
+	}
+	require.Nil(t, upsert(th.Context, th.BasicUser))
+	require.Nil(t, upsert(th.Context, th.BasicUser2))
+
+	// warnings returns the warnings logged so far, by operation, each with
+	// the field IDs it named. The logger is flushed first, so a warning
+	// logged by the call just made is in the buffer.
+	warnings := func(t *testing.T) map[string][][]any {
+		t.Helper()
+		require.NoError(t, th.TestLogger.Flush())
+		byOperation := map[string][][]any{}
+		for line := range strings.Lines(th.LogBuffer.String()) {
+			var entry map[string]any
+			if json.Unmarshal([]byte(line), &entry) != nil || entry["msg"] != properties.NoCallerIDWarning {
+				continue
+			}
+			assert.Equal(t, "warn", entry["level"])
+			assert.Equal(t, groupID, entry["group_id"])
+			operation, _ := entry["operation"].(string)
+			fieldIDs, _ := entry["field_ids"].([]any)
+			byOperation[operation] = append(byOperation[operation], fieldIDs)
+		}
+		return byOperation
+	}
+	require.Empty(t, warnings(t), "tagged calls must not warn")
+
+	untagged := request.EmptyContext(th.App.Log())
+
+	t.Run("a refused value write warns once", func(t *testing.T) {
+		require.NotNil(t, upsert(untagged, th.BasicUser))
+
+		assert.Equal(t, [][]any{{field.ID}}, warnings(t)["PreUpsertPropertyValues"])
+	})
+
+	t.Run("a refused field create warns without an empty field ID", func(t *testing.T) {
+		_, appErr := th.App.CreatePropertyField(untagged, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "no_caller_protected_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{model.PropertyAttrsProtected: true},
+		}, false, "")
+		require.NotNil(t, appErr)
+
+		assert.Equal(t, [][]any{{}}, warnings(t)["PreCreatePropertyField"])
+	})
+
+	t.Run("an allowed field create does not warn", func(t *testing.T) {
+		before := len(warnings(t)["PreCreatePropertyField"])
+
+		_, appErr := th.App.CreatePropertyField(untagged, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "no_caller_allowed_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+
+		assert.Len(t, warnings(t)["PreCreatePropertyField"], before)
+	})
+
+	t.Run("an emptied read of several values warns once", func(t *testing.T) {
+		values, appErr := th.App.SearchPropertyValues(untagged, groupID, model.PropertyValueSearchOpts{FieldID: field.ID, PerPage: 10})
+		require.Nil(t, appErr)
+		assert.Empty(t, values)
+
+		assert.Equal(t, [][]any{{field.ID}}, warnings(t)["PostGetPropertyValues"])
+	})
+
+	t.Run("a field read does not warn, but the test observer sees it", func(t *testing.T) {
+		_, appErr := th.App.GetPropertyField(untagged, groupID, field.ID)
+		require.Nil(t, appErr)
+		_, appErr = th.App.SearchPropertyFields(untagged, groupID, model.PropertyFieldSearchOpts{PerPage: 10})
+		require.Nil(t, appErr)
+
+		logged := warnings(t)
+		assert.Empty(t, logged["PostGetPropertyField"])
+		assert.Empty(t, logged["PostGetPropertyFields"])
+
+		th.untaggedPropertyCallsMut.Lock()
+		observed := slices.Clone(th.untaggedPropertyCalls)
+		th.untaggedPropertyCallsMut.Unlock()
+		assert.Contains(t, observed, fmt.Sprintf("PostGetPropertyField group_id=%s field_ids=[%s]", groupID, field.ID))
+	})
+
+	t.Run("a tagged read does not warn", func(t *testing.T) {
+		before := warnings(t)
+
+		values, appErr := th.App.SearchPropertyValues(th.Context, groupID, model.PropertyValueSearchOpts{FieldID: field.ID, PerPage: 10})
+		require.Nil(t, appErr)
+		assert.Len(t, values, 2)
+
+		assert.Equal(t, before, warnings(t))
 	})
 }

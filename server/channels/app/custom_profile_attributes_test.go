@@ -16,6 +16,8 @@ import (
 func TestGetCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	// Calls the property service with an anonymous caller on purpose.
+	th.AllowUntaggedPropertyCaller()
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
@@ -124,6 +126,8 @@ func TestGetCPAValue(t *testing.T) {
 func TestDeleteCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	// Calls the property service with an anonymous caller on purpose.
+	th.AllowUntaggedPropertyCaller()
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)

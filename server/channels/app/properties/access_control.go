@@ -10,6 +10,7 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"sync/atomic"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -28,6 +29,11 @@ const (
 	propertyAccessPaginationPageSize      = 100
 	propertyAccessMaxPaginationIterations = 10
 )
+
+// NoCallerIDWarning is the message the hook logs when a call on an enforced
+// group carries no caller ID and has a write refused or values hidden (see
+// reportNoCaller).
+const NoCallerIDWarning = "Property access control refused a write or hid values for a call with no caller ID"
 
 // PluginChecker is a function type that checks if a plugin is installed.
 // Returns true if the plugin exists and is installed, false otherwise.
@@ -64,6 +70,9 @@ type AccessControlHook struct {
 	pluginChecker   PluginChecker
 	ladderChecker   PropertyLadderChecker
 	roleLister      PropertyRoleLister
+
+	// noCallerObserver is set only by tests (SetNoCallerObserverForTests).
+	noCallerObserver atomic.Pointer[NoCallerObserver]
 }
 
 // Compile-time check that AccessControlHook implements PropertyHook.
@@ -113,7 +122,7 @@ func (h *AccessControlHook) isGroupEnforced(groupID string) (bool, error) {
 // When the caller is not a plugin, source_plugin_id and protected are rejected.
 // When linking to a source template, security attributes are validated and
 // inherited from the source.
-func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (_ *model.PropertyField, err error) {
 	enforced, err := h.isGroupEnforced(field.GroupID)
 	if err != nil {
 		return nil, err
@@ -123,6 +132,9 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreCreatePropertyField", field.GroupID, []string{field.ID}, &err)
+	}
 
 	if isCallerPlugin(h.pluginChecker, callerID) {
 		if field.Attrs == nil {
@@ -260,7 +272,7 @@ func templateReadsAreRestricted(source *model.PropertyField) bool {
 
 // PreUpdatePropertyField enforces access control on field updates.
 // Checks write access and ensures source_plugin_id is not changed.
-func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (_ *model.PropertyField, err error) {
 	enforced, err := h.isGroupEnforced(groupID)
 	if err != nil {
 		return nil, err
@@ -270,6 +282,9 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreUpdatePropertyField", groupID, []string{field.ID}, &err)
+	}
 
 	existingField, err := h.propertyService.getPropertyField(rctx, groupID, field.ID)
 	if err != nil {
@@ -307,7 +322,7 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 
 // PreUpdatePropertyFields enforces access control on batch field updates.
 // Checks write access for all fields atomically before allowing any updates.
-func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (_ []*model.PropertyField, err error) {
 	if len(fields) == 0 {
 		return fields, nil
 	}
@@ -320,6 +335,9 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreUpdatePropertyFields", groupID, propertyFieldIDs(fields), &err)
+	}
 
 	// Get field IDs
 	fieldIDs := make([]string, len(fields))
@@ -381,7 +399,7 @@ func (h *AccessControlHook) PreCountPropertyFields(_ request.CTX, _ string) erro
 }
 
 // PreDeletePropertyField enforces access control on field deletion.
-func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID string, id string) error {
+func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID string, id string) (err error) {
 	enforced, err := h.isGroupEnforced(groupID)
 	if err != nil {
 		return err
@@ -391,6 +409,9 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreDeletePropertyField", groupID, []string{id}, &err)
+	}
 
 	existingField, err := h.propertyService.getPropertyField(rctx, groupID, id)
 	if err != nil {
@@ -420,7 +441,7 @@ func (h *AccessControlHook) PostUpdatePropertyFields(_ request.CTX, _ string, _,
 // The field is the one the store has. An option change alters no attribute of
 // the field, so there is no incoming copy to judge, and in particular no owners
 // list a caller could be adding itself to.
-func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error {
+func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (err error) {
 	if field == nil {
 		return nil
 	}
@@ -432,6 +453,9 @@ func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, fiel
 		return nil
 	}
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreChangePropertyFieldOptions", field.GroupID, []string{field.ID}, &err)
+	}
 	if err := refuseSyncOptionChange(field, callerID); err != nil {
 		return err
 	}
@@ -511,6 +535,9 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 		return options, nil
 	}
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		h.reportNoCaller(rctx, noCallerOptionsHidden, "PostGetPropertyFieldOptions", field.GroupID, []string{field.ID})
+	}
 	scope := h.extractActingAsScope(rctx)
 	if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
 		return []*model.PropertyFieldOption{}, nil
@@ -557,6 +584,9 @@ func (h *AccessControlHook) PreGetPropertyFieldOptions(rctx request.CTX, field *
 		return filter, nil
 	}
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		h.reportNoCaller(rctx, noCallerOptionsHidden, "PreGetPropertyFieldOptions", field.GroupID, []string{field.ID})
+	}
 	if !h.permissionsAllows(rctx, field, callerID, h.extractActingAsScope(rctx), model.PropertyActionOptionRead, "") {
 		return &model.PropertyFieldOptionPageFilter{ShowNothing: true}, nil
 	}
@@ -594,6 +624,9 @@ func (h *AccessControlHook) PostGetPropertyField(rctx request.CTX, field *model.
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		h.reportNoCaller(rctx, noCallerOptionsHidden, "PostGetPropertyField", field.GroupID, []string{field.ID})
+	}
 	return h.applyFieldReadAccessControl(rctx, newMaskingContext(), field, callerID), nil
 }
 
@@ -613,13 +646,16 @@ func (h *AccessControlHook) PostGetPropertyFields(rctx request.CTX, fields []*mo
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		h.reportNoCaller(rctx, noCallerOptionsHidden, "PostGetPropertyFields", fields[0].GroupID, propertyFieldIDs(fields))
+	}
 	return h.applyFieldReadAccessControlToList(rctx, fields, callerID), nil
 }
 
 // Value Pre-Hooks
 
 // PreCreatePropertyValue enforces write access and sync locking on the value's field before creation.
-func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (_ *model.PropertyValue, err error) {
 	enforced, err := h.isGroupEnforced(value.GroupID)
 	if err != nil {
 		return nil, err
@@ -629,6 +665,9 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreCreatePropertyValue", value.GroupID, []string{value.FieldID}, &err)
+	}
 
 	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
@@ -644,7 +683,7 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 
 // PreCreatePropertyValues enforces write access and sync locking for all fields atomically before creation.
 // All values in a batch share the same GroupID (enforced by the public API).
-func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -657,6 +696,9 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreCreatePropertyValues", values[0].GroupID, propertyValueFieldIDs(values), &err)
+	}
 	scope := h.extractActingAsScope(rctx)
 
 	fieldMap, err := h.getFieldsForValues(rctx, values)
@@ -680,7 +722,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 }
 
 // PreUpdatePropertyValue enforces write access and sync locking on the value's field before update.
-func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (_ *model.PropertyValue, err error) {
 	enforced, err := h.isGroupEnforced(groupID)
 	if err != nil {
 		return nil, err
@@ -690,6 +732,9 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreUpdatePropertyValue", groupID, []string{value.FieldID}, &err)
+	}
 
 	field, err := h.propertyService.getPropertyField(rctx, groupID, value.FieldID)
 	if err != nil {
@@ -705,7 +750,7 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 
 // PreUpdatePropertyValues enforces write access and sync locking for all fields atomically before update.
 // All values in a batch share the same GroupID (enforced by the public API).
-func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -718,6 +763,9 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreUpdatePropertyValues", groupID, propertyValueFieldIDs(values), &err)
+	}
 	scope := h.extractActingAsScope(rctx)
 
 	fieldMap, err := h.getFieldsForValues(rctx, values)
@@ -741,7 +789,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 }
 
 // PreUpsertPropertyValue enforces write access and sync locking on the value's field before upsert.
-func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (_ *model.PropertyValue, err error) {
 	enforced, err := h.isGroupEnforced(value.GroupID)
 	if err != nil {
 		return nil, err
@@ -751,6 +799,9 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreUpsertPropertyValue", value.GroupID, []string{value.FieldID}, &err)
+	}
 
 	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
@@ -766,7 +817,7 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 
 // PreUpsertPropertyValues enforces write access and sync locking for all fields atomically before upsert.
 // All values in a batch share the same GroupID (enforced by the public API).
-func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -779,6 +830,9 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreUpsertPropertyValues", values[0].GroupID, propertyValueFieldIDs(values), &err)
+	}
 	scope := h.extractActingAsScope(rctx)
 
 	fieldMap, err := h.getFieldsForValues(rctx, values)
@@ -802,7 +856,7 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 }
 
 // PreDeletePropertyValue enforces write access before deleting a value.
-func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
+func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) (err error) {
 	enforced, err := h.isGroupEnforced(groupID)
 	if err != nil {
 		return err
@@ -812,6 +866,9 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreDeletePropertyValue", groupID, nil, &err)
+	}
 
 	value, err := h.propertyService.getPropertyValue(groupID, id)
 	if err != nil {
@@ -833,14 +890,19 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 
 // PreDeletePropertyValuesForTarget enforces write access for all affected fields
 // before deleting all values for a target.
-func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if enforced, err := h.isGroupEnforced(groupID); err != nil {
+func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) (err error) {
+	enforced, err := h.isGroupEnforced(groupID)
+	if err != nil {
 		return err
-	} else if !enforced {
+	}
+	if !enforced {
 		return nil
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreDeletePropertyValuesForTarget", groupID, nil, &err)
+	}
 
 	// Collect one value per field for targetID -- the deletion this hook is
 	// gating -- so checkValueWriteVisibility can judge each field's write
@@ -865,9 +927,9 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 			opts.Cursor = cursor
 		}
 
-		values, err := h.propertyService.searchPropertyValues(rctx, groupID, opts)
-		if err != nil {
-			return err
+		values, searchErr := h.propertyService.searchPropertyValues(rctx, groupID, opts)
+		if searchErr != nil {
+			return searchErr
 		}
 
 		for _, value := range values {
@@ -945,7 +1007,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 // directly, judged by PreDeletePropertyField's field.write check alone. A
 // field without a permissions object is refused, as every other check here
 // refuses one.
-func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
+func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) (err error) {
 	enforced, err := h.isGroupEnforced(groupID)
 	if err != nil {
 		return err
@@ -955,6 +1017,9 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 	}
 
 	callerID := h.extractCallerID(rctx)
+	if callerID == "" {
+		defer h.reportRefusedNoCallerWrite(rctx, "PreDeletePropertyValuesForField", groupID, []string{fieldID}, &err)
+	}
 	scope := h.extractActingAsScope(rctx)
 
 	field, err := h.propertyService.getPropertyField(rctx, groupID, fieldID)
@@ -1021,6 +1086,9 @@ func (h *AccessControlHook) PostGetPropertyValue(rctx request.CTX, value *model.
 	}
 
 	if len(filtered) == 0 {
+		if callerID == "" {
+			h.reportNoCaller(rctx, noCallerValuesHidden, "PostGetPropertyValue", value.GroupID, []string{value.FieldID})
+		}
 		return nil, nil
 	}
 
@@ -1044,7 +1112,11 @@ func (h *AccessControlHook) PostGetPropertyValues(rctx request.CTX, values []*mo
 
 	callerID := h.extractCallerID(rctx)
 
-	return h.applyValueReadAccessControl(rctx, values, callerID)
+	filtered, err := h.applyValueReadAccessControl(rctx, values, callerID)
+	if err == nil && callerID == "" && len(filtered) < len(values) {
+		h.reportNoCaller(rctx, noCallerValuesHidden, "PostGetPropertyValues", values[0].GroupID, propertyValueFieldIDs(values))
+	}
+	return filtered, err
 }
 
 // Access Control Helper Methods
@@ -1052,6 +1124,91 @@ func (h *AccessControlHook) PostGetPropertyValues(rctx request.CTX, values []*mo
 // extractCallerID gets the caller ID from a request context using the property service's extractor.
 func (h *AccessControlHook) extractCallerID(rctx request.CTX) string {
 	return h.propertyService.extractCallerID(rctx)
+}
+
+// noCallerOutcome is what an enforced hook call with no caller ID cost the
+// caller. permissionsAllows refuses an empty caller everything, so such a call
+// is either a genuinely anonymous caller or an internal call that forgot to
+// tag its caller, and the hook cannot tell the two apart.
+type noCallerOutcome int
+
+const (
+	// noCallerOptionsHidden is a field read that came back with its options
+	// hidden. The field itself is still returned, so it is not logged.
+	noCallerOptionsHidden noCallerOutcome = iota
+	// noCallerValuesHidden is a value read that came back missing values.
+	noCallerValuesHidden
+	// noCallerWriteRefused is a write the hook refused.
+	noCallerWriteRefused
+)
+
+// NoCallerObserver is told about every enforced hook call that carried no
+// caller ID and had a write refused, or options or values hidden, with the
+// operation and the group and field IDs it covered. Tests only; see
+// SetNoCallerObserverForTests.
+type NoCallerObserver func(operation, groupID string, fieldIDs []string)
+
+// SetNoCallerObserverForTests installs observer, replacing any previous one;
+// nil removes it. It lets a test fail on any untagged call that reached the
+// hook, whatever logger its context carries.
+func (h *AccessControlHook) SetNoCallerObserverForTests(observer NoCallerObserver) {
+	if observer == nil {
+		h.noCallerObserver.Store(nil)
+		return
+	}
+	h.noCallerObserver.Store(&observer)
+}
+
+// reportNoCaller reports a hook call that carried no caller ID, once per hook
+// call rather than once per value: to the test observer whatever it cost,
+// and as a warning when it cost data -- a write refused or values hidden. A
+// field read that only hid options logs nothing, since the field still comes
+// back. Empty IDs (a field not yet created) are left out.
+func (h *AccessControlHook) reportNoCaller(rctx request.CTX, outcome noCallerOutcome, operation, groupID string, fieldIDs []string) {
+	fieldIDs = slices.DeleteFunc(slices.Clone(fieldIDs), func(id string) bool { return id == "" })
+	if observer := h.noCallerObserver.Load(); observer != nil {
+		(*observer)(operation, groupID, fieldIDs)
+	}
+	if outcome == noCallerOptionsHidden || rctx == nil {
+		return
+	}
+	rctx.Logger().Warn(
+		NoCallerIDWarning,
+		mlog.String("operation", operation),
+		mlog.String("group_id", groupID),
+		mlog.Array("field_ids", fieldIDs),
+	)
+}
+
+// reportRefusedNoCallerWrite is reportNoCaller for a write hook called with no
+// caller ID, deferred with the hook's error result: it reports the write only
+// if the hook refused it. Such a write is not always refused -- creating an
+// unprotected field is not -- and one that goes through has lost nothing.
+func (h *AccessControlHook) reportRefusedNoCallerWrite(rctx request.CTX, operation, groupID string, fieldIDs []string, err *error) {
+	if errors.Is(*err, ErrAccessDenied) {
+		h.reportNoCaller(rctx, noCallerWriteRefused, operation, groupID, fieldIDs)
+	}
+}
+
+// propertyFieldIDs returns the IDs of fields, for logging.
+func propertyFieldIDs(fields []*model.PropertyField) []string {
+	ids := make([]string, 0, len(fields))
+	for _, field := range fields {
+		ids = append(ids, field.ID)
+	}
+	return ids
+}
+
+// propertyValueFieldIDs returns the distinct field IDs values belong to, for
+// logging.
+func propertyValueFieldIDs(values []*model.PropertyValue) []string {
+	ids := make([]string, 0, len(values))
+	for _, value := range values {
+		if !slices.Contains(ids, value.FieldID) {
+			ids = append(ids, value.FieldID)
+		}
+	}
+	return ids
 }
 
 // extractActingAsScope gets the caller's acting-as scope from a request context

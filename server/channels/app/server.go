@@ -137,6 +137,8 @@ type Server struct {
 	userService      *users.UserService
 	teamService      *teams.TeamService
 	propertyService  *properties.PropertyService
+	// propertyAccessControlHook is kept so tests can observe it.
+	propertyAccessControlHook *properties.AccessControlHook
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -353,6 +355,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
 	}, app.propertyCallerRoles)
 	s.propertyService.AddHook(accessControlHook)
+	s.propertyAccessControlHook = accessControlHook
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
 	// field-type constraints on values (options, user IDs, value_type), and

@@ -1293,13 +1293,13 @@ func canManageBotTarget(c *Context, targetID string) bool {
 // caller who holds nothing and is shown nothing. That fails closed, which is
 // correct, but it is also the exact answer a legitimate caller who shares
 // nothing with the target gets, so a handler that forgets looks like masking
-// doing its job and nothing anywhere says otherwise.
+// doing its job in the response.
 //
-// There is no structural guard, and there is deliberately no log either: the
-// property service cannot tell a request that forgot to tag itself from a
-// caller that is genuinely anonymous, so warning on the second to catch the
-// first would mean a line per anonymous read forever. Nothing will tell you.
-// Reviewing a new property handler means checking this by eye.
+// There is no structural guard. The access control hook logs a warning
+// (properties.NoCallerIDWarning) when a call with no caller ID has a write
+// refused or values hidden, but not when a field read only has its options
+// hidden. The app package's tests fail on any such call; this package's tests
+// do not check. Reviewing a new property handler means checking this by eye.
 func sessionCallerID(c *Context) string {
 	session := c.AppContext.Session()
 	if session.IsUnrestricted() {

@@ -3389,6 +3389,8 @@ func TestEnrichBlameForDraftScope(t *testing.T) {
 func TestRedactSimulationAttributesForCaller(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	// Calls the property service with an anonymous caller on purpose.
+	th.AllowUntaggedPropertyCaller()
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -4018,6 +4020,8 @@ func makeSimulationResponseForRedactionTest(protectedName, publicName, protected
 func TestRedactSimulationAttributesForCallerAccessModes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	// Calls the property service with an anonymous caller on purpose.
+	th.AllowUntaggedPropertyCaller()
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -6183,6 +6187,8 @@ func TestBuildAccessControlSubjectTeamPath(t *testing.T) {
 
 func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
 	th := Setup(t).InitBasic(t)
+	// Reads the fields as an anonymous caller on purpose.
+	th.AllowUntaggedPropertyCaller()
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	defer th.App.Srv().SetLicense(nil)
 
