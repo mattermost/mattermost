@@ -501,8 +501,9 @@ export type ChannelViewPluginComponentProps = {
 
     /**
      * URL remainder after the channel, without a leading slash (e.g. `pages/abc123` for
-     * `/:team/channels/:channel/pages/abc123`). Only ever set for registrations with
-     * `handlesSubpaths: true`.
+     * `/:team/channels/:channel/pages/abc123`), or `''` at the channel root. Always a string for
+     * registrations with `handlesSubpaths: true` and always undefined otherwise, so plugins can
+     * feature-detect sub-path support.
      */
     subpath?: string;
 };
