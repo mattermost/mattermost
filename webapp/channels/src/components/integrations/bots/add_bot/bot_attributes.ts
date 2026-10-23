@@ -203,5 +203,5 @@ export function getBotCreateRedirectUrl(
     if (!token) {
         return `/${teamName}/integrations/bots${param ? `?${param}` : ''}`;
     }
-    return `/${teamName}/integrations/confirm?type=bots&id=${botUserId}&token=${token}${param ? `&${param}` : ''}`;
+    return `/${teamName}/integrations/confirm?type=bots&id=${botUserId}${param ? `&${param}` : ''}`;
 }

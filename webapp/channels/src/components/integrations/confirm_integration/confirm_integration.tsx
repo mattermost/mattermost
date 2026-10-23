@@ -17,6 +17,7 @@ import ExternalLink from 'components/external_link';
 import type {BotCreateWarnings} from 'components/integrations/bots/bot_create_warnings';
 import {parseBotCreateWarnings, stripBotCreateWarningsParam} from 'components/integrations/bots/bot_create_warnings';
 import BotCreateWarningsBanner from 'components/integrations/bots/bot_create_warnings_banner';
+import {takePendingBotToken} from 'components/integrations/bots/bot_pending_token';
 
 import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -47,6 +48,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
     });
 
     const isBotConfirmation = type === Constants.Integrations.BOT && Boolean(bots[id]);
+    const [botToken] = useState(() => takePendingBotToken(id));
     const [botCreateWarnings, setBotCreateWarnings] = useState<BotCreateWarnings | undefined>(() => (isBotConfirmation ? parseBotCreateWarnings(location.search) : undefined));
 
     useEffect(() => {
@@ -417,7 +419,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             </>
         );
     } else if (type === Constants.Integrations.BOT && bot) {
-        const botToken = (new URLSearchParams(location.search)).get('token') || '';
+        if (!botToken) {
+            history.replace(`/${team.name}/integrations/bots`);
+            return null;
+        }
 
         headerText = (
             <FormattedMessage

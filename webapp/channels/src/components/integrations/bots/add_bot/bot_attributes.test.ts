@@ -301,16 +301,14 @@ describe('bot_attributes', () => {
     });
 
     describe('getBotCreateRedirectUrl', () => {
-        test('token and no warnings matches the original confirm URL', () => {
-            expect(getBotCreateRedirectUrl('team', 'bot-id', 'tok', {})).toBe('/team/integrations/confirm?type=bots&id=bot-id&token=tok');
-        });
-
-        test('token with an attributes failure', () => {
-            expect(getBotCreateRedirectUrl('team', 'bot-id', 'tok', {attributesFailed: true})).toBe('/team/integrations/confirm?type=bots&id=bot-id&token=tok&bot_warnings=attributes');
-        });
-
-        test('token with roles and attributes failures', () => {
-            expect(getBotCreateRedirectUrl('team', 'bot-id', 'tok', {rolesFailed: true, attributesFailed: true})).toBe('/team/integrations/confirm?type=bots&id=bot-id&token=tok&bot_warnings=roles,attributes');
+        test.each([
+            ['no warnings', {}, '/team/integrations/confirm?type=bots&id=bot-id'],
+            ['an attributes failure', {attributesFailed: true}, '/team/integrations/confirm?type=bots&id=bot-id&bot_warnings=attributes'],
+            ['roles and attributes failures', {rolesFailed: true, attributesFailed: true}, '/team/integrations/confirm?type=bots&id=bot-id&bot_warnings=roles,attributes'],
+        ])('created bot with %s lands on confirm with type and id', (_, warnings, expected) => {
+            const url = getBotCreateRedirectUrl('team', 'bot-id', 'tok', warnings);
+            expect(url).toBe(expected);
+            expect(url).not.toMatch(/[?&]token=/);
         });
 
         test('no token lands on the list', () => {
