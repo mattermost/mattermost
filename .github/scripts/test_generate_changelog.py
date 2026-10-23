@@ -561,6 +561,19 @@ class MainTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             gc.main()
 
+    def test_rate_limit_fails_the_run_instead_of_skipping_the_repo(self):
+        import requests
+        gc.REPOS = ["mattermost/mattermost", "mattermost/enterprise"]
+        for headers in ({"X-RateLimit-Remaining": "0"}, {"Retry-After": "60"}):
+            def lookup(repo, title, headers=headers):
+                response = requests.Response()
+                response.status_code = 403
+                response.headers.update(headers)
+                raise requests.HTTPError(response=response)
+            gc.get_milestone_number = lookup
+            with self.assertRaises(requests.HTTPError):
+                gc.main()
+
     def test_blocking_preflight_still_writes_the_status(self):
         self.changelog.write_text("---\ntitle: v12\n---\nSome text but no header marker and no entries.\n")
         gc.get_milestone_number = lambda repo, title: None

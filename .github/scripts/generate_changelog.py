@@ -224,6 +224,12 @@ def docs_site(ref: str) -> "changelog_release.DocsSite":
     return changelog_release.DocsSite.at(ref)
 
 
+def is_rate_limited(response) -> bool:
+    """A 403 that is GitHub's rate limit, which says nothing about the token's access."""
+    headers = response.headers if response is not None else {}
+    return headers.get("X-RateLimit-Remaining") == "0" or "Retry-After" in headers
+
+
 def repo_is_private(repo: str) -> bool:
     resp = SESSION.get(f"https://api.github.com/repos/{repo}", timeout=API_TIMEOUT)
     resp.raise_for_status()
@@ -1806,7 +1812,7 @@ def main():
             prs = get_merged_prs(repo, milestone_number) if milestone_number is not None else []
         except requests.HTTPError as err:
             status = err.response.status_code if err.response is not None else None
-            if status not in (401, 403, 404):
+            if status not in (401, 403, 404) or is_rate_limited(err.response):
                 raise
             # A repo the token cannot read is unknown, not a repo with nothing missing.
             reason = f"HTTP {status} for the workflow token"
