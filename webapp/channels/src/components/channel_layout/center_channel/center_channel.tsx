@@ -96,7 +96,11 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             )}
                         />
                         <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
+                            path={[
+                                `/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})`,
+                                `/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels)/:identifier(${IDENTIFIER_PATH_PATTERN})/:subpath(.+)`,
+                                `/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})`,
+                            ]}
                             component={ChannelIdentifierRouter}
                         />
                         <Route
