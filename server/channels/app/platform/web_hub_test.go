@@ -6,6 +6,7 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"iter"
 	"net"
@@ -575,6 +576,135 @@ func TestReliableWebSocketSend(t *testing.T) {
 		Event:    model.ClusterEventPublish,
 		Data:     ev2JSON,
 		SendType: model.ClusterSendReliable,
+	})
+}
+
+// registerResumableWebConn registers a pumped connection with its own connection ID.
+// Closing it leaves it in the hub as inactive, ready to be resumed.
+func registerResumableWebConn(t *testing.T, th *TestHelper, addr net.Addr, userID string, deadQueue ...*model.WebSocketEvent) *WebConn {
+	c, _, err := (&websocket.Dialer{}).Dial("ws://"+addr.String()+"/ws", nil)
+	require.NoError(t, err)
+
+	wc := th.Service.NewWebConn(&WebConnConfig{
+		WebSocket:    c,
+		Session:      model.Session{UserId: userID},
+		ConnectionID: model.NewId(),
+	}, th.Suite, &hookRunner{})
+	for _, ev := range deadQueue {
+		wc.addToDeadQueue(ev)
+	}
+	require.NoError(t, th.Service.HubRegister(wc))
+	go wc.Pump()
+	return wc
+}
+
+type wsQueuesCluster struct {
+	testlib.FakeClusterInterface
+	queues map[string]*model.WSQueues
+	err    error
+}
+
+func (c *wsQueuesCluster) GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
+	return c.queues, c.err
+}
+
+func TestCheckWebConn(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	t.Run("single node", func(t *testing.T) {
+		th := Setup(t)
+
+		t.Run("should resume an inactive connection", func(t *testing.T) {
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+			wc.Close()
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			require.NotNil(t, res)
+			assert.Equal(t, wc.GetConnectionID(), res.ConnectionID)
+			assert.Empty(t, reason)
+			assert.Nil(t, isRemote)
+		})
+
+		t.Run("should report a connection still active on this node", func(t *testing.T) {
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			assert.Equal(t, model.NewPointer(false), isRemote)
+		})
+
+		t.Run("should not report another user's active connection", func(t *testing.T) {
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), wc.GetConnectionID(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureConnNotFound, reason)
+			assert.Nil(t, isRemote)
+		})
+
+		t.Run("should report an unknown connection as not found", func(t *testing.T) {
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureConnNotFound, reason)
+			assert.Nil(t, isRemote)
+		})
+	})
+
+	t.Run("cluster", func(t *testing.T) {
+		cluster := &wsQueuesCluster{}
+		th := SetupWithCluster(t, cluster)
+
+		t.Run("should report a connection active on another node", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": nil,
+				"node2": {Status: model.WSQueuesStatusOldConnStillOpen},
+			}
+			cluster.err = nil
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			assert.Equal(t, model.NewPointer(true), isRemote)
+		})
+
+		t.Run("should report message loss on another node", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": {Status: model.WSQueuesStatusMissedEventsEvicted},
+			}
+			cluster.err = nil
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureMissedEventsEvicted, reason)
+			assert.Equal(t, model.NewPointer(true), isRemote)
+		})
+
+		t.Run("should prefer a connection active on this node over a remote failure", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": {Status: model.WSQueuesStatusMissedEventsEvicted},
+			}
+			cluster.err = nil
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			assert.Equal(t, model.NewPointer(false), isRemote)
+		})
+
+		t.Run("should report a cluster error", func(t *testing.T) {
+			cluster.queues = nil
+			cluster.err = errors.New("timed out")
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureClusterLookupFailed, reason)
+			assert.Nil(t, isRemote)
+		})
 	})
 }
 

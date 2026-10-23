@@ -1,0 +1,713 @@
+{
+  "uid": "websocket-resumes",
+  "title": "Websocket Resumes",
+  "description": "Whether reliable websocket reconnects resume their previous connection, and why they fail.",
+  "tags": [
+    "mattermost",
+    "websocket"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "10s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "label": "Node",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": {
+          "query": "label_values(up{job=\"mattermost\"}, instance)",
+          "refId": "instance"
+        },
+        "definition": "label_values(up{job=\"mattermost\"}, instance)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Resumed",
+      "description": "Reconnects that resumed the old connection (success or lossless). A node that restarted in the range counts from its restart.",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "sum (((mattermost_websocket_reconnects_total{type=~\"success|lossless\", instance=~\"$instance\"} - mattermost_websocket_reconnects_total{type=~\"success|lossless\", instance=~\"$instance\"} offset $__range) unless on (instance) changes(mattermost_process_start_time_seconds{instance=~\"$instance\"}[$__range]) > 0) or mattermost_websocket_reconnects_total{type=~\"success|lossless\", instance=~\"$instance\"}) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Failed",
+      "description": "Reconnects that could not resume, so the client started a new connection and resynced. A node that restarted in the range counts from its restart.",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "sum (((mattermost_websocket_reconnects_total{type=\"failure\", instance=~\"$instance\"} - mattermost_websocket_reconnects_total{type=\"failure\", instance=~\"$instance\"} offset $__range) unless on (instance) changes(mattermost_process_start_time_seconds{instance=~\"$instance\"}[$__range]) > 0) or mattermost_websocket_reconnects_total{type=\"failure\", instance=~\"$instance\"}) or vector(0)",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Failure rate",
+      "description": "Failed reconnects as a share of all reconnects.",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "(sum (((mattermost_websocket_reconnects_total{type=\"failure\", instance=~\"$instance\"} - mattermost_websocket_reconnects_total{type=\"failure\", instance=~\"$instance\"} offset $__range) unless on (instance) changes(mattermost_process_start_time_seconds{instance=~\"$instance\"}[$__range]) > 0) or mattermost_websocket_reconnects_total{type=\"failure\", instance=~\"$instance\"}) or vector(0)) / (sum (((mattermost_websocket_reconnects_total{instance=~\"$instance\"} - mattermost_websocket_reconnects_total{instance=~\"$instance\"} offset $__range) unless on (instance) changes(mattermost_process_start_time_seconds{instance=~\"$instance\"}[$__range]) > 0) or mattermost_websocket_reconnects_total{instance=~\"$instance\"}) or vector(0))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Open websockets",
+      "description": "Websockets open now, including ones whose network has vanished.",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "sum(mattermost_http_websockets_total{instance=~\"$instance\"})",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Reconnect outcomes",
+      "description": "success: missed events replayed. lossless: nothing was missed. failure: the client had to resync.",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "interval": "30s",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "sum by (type) (((mattermost_websocket_reconnects_total{instance=~\"$instance\"} - mattermost_websocket_reconnects_total{instance=~\"$instance\"} offset $__interval) unless on (instance) changes(mattermost_process_start_time_seconds{instance=~\"$instance\"}[$__interval]) > 0) or mattermost_websocket_reconnects_total{instance=~\"$instance\"})",
+          "legendFormat": "{{type}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 90,
+            "lineWidth": 0,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "success"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "lossless"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#199e70"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failure"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "sum"
+          ],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Failures by reason",
+      "description": "Why each failed reconnect could not resume. See the glossary below.",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "interval": "30s",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "sum by (reason, is_remote) (((mattermost_websocket_reconnect_failures_total{instance=~\"$instance\"} - mattermost_websocket_reconnect_failures_total{instance=~\"$instance\"} offset $__interval) unless on (instance) changes(mattermost_process_start_time_seconds{instance=~\"$instance\"}[$__interval]) > 0) or mattermost_websocket_reconnect_failures_total{instance=~\"$instance\"})",
+          "legendFormat": "{{reason}}, is_remote={{is_remote}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 90,
+            "lineWidth": 0,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "old_conn_still_open, is_remote=false"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "old_conn_still_open, is_remote=true"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "missed_events_evicted, is_remote=false"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#199e70"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "missed_events_evicted, is_remote=true"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#c98500"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "conn_not_found, is_remote="
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d55181"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cluster_lookup_failed, is_remote="
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#9085e9"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "sum"
+          ],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Failures by node",
+      "description": "Node is the one the client reconnected to.",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "sum by (reason, is_remote, instance) (((mattermost_websocket_reconnect_failures_total{instance=~\"$instance\"} - mattermost_websocket_reconnect_failures_total{instance=~\"$instance\"} offset $__range) unless on (instance) changes(mattermost_process_start_time_seconds{instance=~\"$instance\"}[$__range]) > 0) or mattermost_websocket_reconnect_failures_total{instance=~\"$instance\"})",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "reason": "Reason",
+              "is_remote": "Remote",
+              "instance": "Node",
+              "Value": "Failures"
+            },
+            "indexByName": {
+              "reason": 0,
+              "is_remote": 1,
+              "instance": 2,
+              "Value": 3
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "Failures",
+                "config": {
+                  "id": "equal",
+                  "options": {
+                    "value": 0
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Failures",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Failures by client and close code",
+      "description": "Close code is the client's report of why its previous socket closed; mobile does not send one yet.",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "sum by (reason, origin_client, disconnect_err_code) (((mattermost_websocket_reconnect_failures_total{instance=~\"$instance\"} - mattermost_websocket_reconnect_failures_total{instance=~\"$instance\"} offset $__range) unless on (instance) changes(mattermost_process_start_time_seconds{instance=~\"$instance\"}[$__range]) > 0) or mattermost_websocket_reconnect_failures_total{instance=~\"$instance\"})",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "reason": "Reason",
+              "origin_client": "Client",
+              "disconnect_err_code": "Close code",
+              "Value": "Failures"
+            },
+            "indexByName": {
+              "reason": 0,
+              "origin_client": 1,
+              "disconnect_err_code": 2,
+              "Value": 3
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "Failures",
+                "config": {
+                  "id": "equal",
+                  "options": {
+                    "value": 0
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Failures",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 9,
+      "type": "text",
+      "title": "Glossary",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "| `reason` | The resume failed because |\n|---|---|\n| `old_conn_still_open` | The old connection was still open, usually because its network vanished and the server is still waiting up to 100s for a pong. |\n| `missed_events_evicted` | The old connection was found, but more than 128 events had been sent since the client's last one. |\n| `conn_not_found` | No node had the old connection: it expired after 5 minutes, its node restarted, or its send queue filled. |\n| `cluster_lookup_failed` | The other nodes could not be asked for the old connection. |\n\n`is_remote` is `true` when the old connection was on a different node than the one the client reconnected to, and empty when no node had it."
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Open websockets by node",
+      "description": "A connection whose network vanished stays open here until its pong deadline expires.",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "sum by (instance) (mattermost_http_websockets_total{instance=~\"$instance\"})",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mattermost-0"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mattermost-1"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    }
+  ]
+}

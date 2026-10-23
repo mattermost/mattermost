@@ -4,12 +4,51 @@
 package platform
 
 import (
+	"net/http/httptest"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestGetWSQueuesStatus(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	t.Run("should report a connection that is still active", func(t *testing.T) {
+		wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+		queues, err := th.Service.GetWSQueues(wc.UserId, wc.GetConnectionID(), 5)
+		require.NoError(t, err)
+		require.NotNil(t, queues)
+		assert.Equal(t, model.WSQueuesStatusOldConnStillOpen, queues.Status)
+		assert.Nil(t, queues.ActiveQ)
+	})
+
+	t.Run("should report message loss when the sequence number is not in the dead queue", func(t *testing.T) {
+		var deadQueue []*model.WebSocketEvent
+		for i := range 3 {
+			deadQueue = append(deadQueue, model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "").SetSequence(int64(i)))
+		}
+		wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId(), deadQueue...)
+		wc.Close()
+
+		queues, err := th.Service.GetWSQueues(wc.UserId, wc.GetConnectionID(), 10)
+		require.NoError(t, err)
+		require.NotNil(t, queues)
+		assert.Equal(t, model.WSQueuesStatusMissedEventsEvicted, queues.Status)
+		assert.Nil(t, queues.ActiveQ)
+	})
+
+	t.Run("should return nothing for an unknown connection", func(t *testing.T) {
+		queues, err := th.Service.GetWSQueues(model.NewId(), model.NewId(), 5)
+		require.NoError(t, err)
+		assert.Nil(t, queues)
+	})
+}
 
 func TestMarshalAQ(t *testing.T) {
 	ps := PlatformService{}
