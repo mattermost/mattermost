@@ -32,6 +32,45 @@ Make sure you are adding `--` before the options you want to include or run the 
 npx react-native run-android --help
 ```
 
+
+<Note title="The first build takes a long time">
+The first `npm run android` compiles the app's native dependencies from scratch and can take upwards of 45 minutes before the app appears in the emulator. It looks like it has hung, but it hasn't — let it finish. Later builds reuse the Gradle cache and are far quicker.
+</Note>
+
+
+## Connect to a local Mattermost server
+
+If you're running a Mattermost server on your development machine, the address to enter on the app's server selection screen is not `http://localhost:8065`. That address means something different inside an emulator or simulator, and there's a server-side setting you'll need to change as well.
+
+<Tabs>
+<TabItem value="url-android" label="Android">
+Use `http://10.0.2.2:8065`.
+
+Inside the Android emulator, `localhost` refers to the virtual device itself, not your workstation. `10.0.2.2` is the alias the emulator provides for the host machine's loopback interface.
+</TabItem>
+
+<TabItem value="url-ios" label="iOS">
+Use `http://127.0.0.1:8065`, in that IPv4 form rather than `localhost`. The iOS simulator shares the host's network, so it reaches your server directly, but `localhost` has been observed to leave the websocket connection failing even when the app otherwise signs in successfully.
+</TabItem>
+</Tabs>
+
+### Allow the websocket connection
+
+With a stock server configuration, the app will sign in and load channels, but nothing will update live — new messages appear only when you pull to refresh. That's the websocket connection being rejected, and the app gives no direct indication of it.
+
+The server checks the `Origin` header on the websocket upgrade request. When `ServiceSettings.AllowCorsFrom` is empty, which is the default, it requires the origin's host and scheme to match `ServiceSettings.SiteURL`, which defaults to `http://localhost:8065`. The address the emulator or simulator connects from isn't that address, so the upgrade is refused while ordinary REST requests continue to work.
+
+Set one of the following in your server's `config.json`, then restart the server:
+
+- `ServiceSettings.AllowCorsFrom` to `"*"`. This covers both platforms at once and doesn't need changing when you switch between them.
+- Or `ServiceSettings.SiteURL` to the exact address the device connects to, such as `http://10.0.2.2:8065`.
+
+
+<Note title="Development servers only">
+`AllowCorsFrom` set to `"*"` removes cross-origin restrictions for the entire server. Only do this on a local development server, never on one that's reachable by anyone else.
+</Note>
+
+
 ## Run on a device
 
 By default, running the app will launch an Android emulator (if you created one) or an iOS simulator.
