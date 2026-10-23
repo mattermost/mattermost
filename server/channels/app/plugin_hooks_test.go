@@ -7114,3 +7114,125 @@ func main() {
 	assert.Equal(t, "app.channel.update_channel.plugin_type_mutation.app_error", appErr.Id)
 	assert.Equal(t, 400, appErr.StatusCode)
 }
+
+func TestUserRolesHaveBeenUpdated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"sync"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+
+			mut sync.Mutex
+		}
+
+		func (p *MyPlugin) UserRolesHaveBeenUpdated(c *plugin.Context, user *model.User, previousRoles string) {
+			// Serialize the read-modify-write, otherwise a lost update would hide a duplicate call.
+			p.mut.Lock()
+			defer p.mut.Unlock()
+
+			stored, appErr := p.API.GetUser(user.Id)
+			if appErr != nil {
+				return
+			}
+			stored.Nickname = stored.Nickname + "[" + previousRoles + ">" + user.Roles + "]"
+			p.API.UpdateUser(stored)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	// The plugin above appends to the nickname rather than overwriting it, so reading the
+	// nickname back shows what the hook was handed and how many times it fired.
+	createMarkedUser := func(t *testing.T, guest bool) *model.User {
+		t.Helper()
+		user := th.CreateUserOrGuest(t, guest)
+		user.Nickname = "marker"
+		stored, appErr := th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, appErr)
+		return stored
+	}
+
+	nickname := func(t *testing.T, userID string) string {
+		t.Helper()
+		user, appErr := th.App.GetUser(th.Context, userID)
+		require.Nil(t, appErr)
+		return user.Nickname
+	}
+
+	requireNicknameSettlesOn := func(t *testing.T, userID, expected string) {
+		t.Helper()
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			assert.Equal(c, expected, nickname(t, userID))
+		}, 5*time.Second, 100*time.Millisecond)
+
+		// EventuallyWithT stops at the first match, so a second hook call would go
+		// unnoticed without this settle window.
+		time.Sleep(2 * time.Second)
+		require.Equal(t, expected, nickname(t, userID))
+	}
+
+	t.Run("fires once when a system role is added", func(t *testing.T) {
+		user := createMarkedUser(t, false)
+		require.Equal(t, "system_user", user.Roles)
+
+		_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, "system_user system_admin", false)
+		require.Nil(t, appErr)
+
+		requireNicknameSettlesOn(t, user.Id, "marker[system_user>system_user system_admin]")
+	})
+
+	t.Run("does not fire when the roles end up unchanged", func(t *testing.T) {
+		user := createMarkedUser(t, false)
+
+		_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, "system_user", false)
+		require.Nil(t, appErr)
+
+		time.Sleep(2 * time.Second)
+		stored, appErr := th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "marker", stored.Nickname)
+
+		// A real role change on the same user proves the nickname above was not
+		// preserved simply because the plugin never ran.
+		_, appErr = th.App.UpdateUserRoles(th.Context, user.Id, "system_user system_manager", false)
+		require.Nil(t, appErr)
+
+		requireNicknameSettlesOn(t, user.Id, "marker[system_user>system_user system_manager]")
+	})
+
+	t.Run("fires once when a member is demoted to guest", func(t *testing.T) {
+		user := createMarkedUser(t, false)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+
+		appErr := th.App.DemoteUserToGuest(th.Context, user)
+		require.Nil(t, appErr)
+
+		requireNicknameSettlesOn(t, user.Id, "marker[system_user>system_guest]")
+	})
+
+	t.Run("fires once when a guest is promoted to member", func(t *testing.T) {
+		user := createMarkedUser(t, true)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+
+		appErr := th.App.PromoteGuestToUser(th.Context, user, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		requireNicknameSettlesOn(t, user.Id, "marker[system_guest>system_user]")
+	})
+}

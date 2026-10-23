@@ -377,6 +377,12 @@ func (hooks *hooksTimerLayer) DraftWillBeUpserted(c *Context, draft *model.Draft
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) UserRolesHaveBeenUpdated(c *Context, user *model.User, previousRoles string) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.UserRolesHaveBeenUpdated(c, user, previousRoles)
+	hooks.recordTime(startTime, "UserRolesHaveBeenUpdated", true)
+}
+
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
@@ -669,4 +675,11 @@ func (hooks *hooksTimerLayer) DraftWillBeUpsertedWithRPCErr(c *Context, draft *m
 	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.DraftWillBeUpsertedWithRPCErr(c, draft)
 	hooks.recordTime(startTime, "DraftWillBeUpsertedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserRolesHaveBeenUpdatedWithRPCErr(c *Context, user *model.User, previousRoles string) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.UserRolesHaveBeenUpdatedWithRPCErr(c, user, previousRoles)
+	hooks.recordTime(startTime, "UserRolesHaveBeenUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
 }

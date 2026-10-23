@@ -2240,6 +2240,59 @@ func (s *hooksRPCServer) DraftWillBeUpserted(args *Z_DraftWillBeUpsertedArgs, re
 	return nil
 }
 
+func init() {
+	hookNameToId["UserRolesHaveBeenUpdated"] = UserRolesHaveBeenUpdatedID
+}
+
+type Z_UserRolesHaveBeenUpdatedArgs struct {
+	A *Context
+	B *model.User
+	C string
+}
+
+type Z_UserRolesHaveBeenUpdatedReturns struct {
+}
+
+func (g *hooksRPCClient) UserRolesHaveBeenUpdated(c *Context, user *model.User, previousRoles string) {
+	_args := &Z_UserRolesHaveBeenUpdatedArgs{c, user, previousRoles}
+	_returns := &Z_UserRolesHaveBeenUpdatedReturns{}
+	if g.implemented[UserRolesHaveBeenUpdatedID] {
+		if err := g.client.Call("Plugin.UserRolesHaveBeenUpdated", _args, _returns); err != nil {
+			g.log.Error("RPC call UserRolesHaveBeenUpdated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// UserRolesHaveBeenUpdatedWithRPCErr returns the same values as UserRolesHaveBeenUpdated, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) UserRolesHaveBeenUpdatedWithRPCErr(c *Context, user *model.User, previousRoles string) error {
+	_args := &Z_UserRolesHaveBeenUpdatedArgs{c, user, previousRoles}
+	_returns := &Z_UserRolesHaveBeenUpdatedReturns{}
+	var _err error
+	if g.implemented[UserRolesHaveBeenUpdatedID] {
+		_err = g.client.Call("Plugin.UserRolesHaveBeenUpdated", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_UserRolesHaveBeenUpdatedReturns{}
+			g.log.Debug("RPC call UserRolesHaveBeenUpdated to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) UserRolesHaveBeenUpdated(args *Z_UserRolesHaveBeenUpdatedArgs, returns *Z_UserRolesHaveBeenUpdatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserRolesHaveBeenUpdated(c *Context, user *model.User, previousRoles string)
+	}); ok {
+		hook.UserRolesHaveBeenUpdated(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserRolesHaveBeenUpdated called but not implemented."))
+	}
+	return nil
+}
+
 // HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
@@ -2334,6 +2387,8 @@ type HooksWithRPCErrGenerated interface {
 	ScheduledPostWillBeCreatedWithRPCErr(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string, error)
 
 	DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error)
+
+	UserRolesHaveBeenUpdatedWithRPCErr(c *Context, user *model.User, previousRoles string) error
 }
 
 type Z_RegisterCommandArgs struct {
