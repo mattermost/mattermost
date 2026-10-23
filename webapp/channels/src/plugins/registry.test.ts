@@ -367,6 +367,7 @@ describe('PluginRegistry — registerChannelViewComponent', () => {
         expect(entries[0].pluginId).toBe(PLUGIN_ID);
         expect(entries[0].matcher).toBe(matcher);
         expect(entries[0].component).toBe(component);
+        expect(entries[0].handlesSubpaths).toBe(false);
     });
 
     it('(b) accepts positional arguments', () => {
@@ -374,11 +375,24 @@ describe('PluginRegistry — registerChannelViewComponent', () => {
         const matcher = () => true;
         const component = () => null;
         registry.registerChannelViewComponent(matcher, component);
+        registry.registerChannelViewComponent(matcher, component, true);
 
         const entries = getChannelViewRegs();
-        expect(entries).toHaveLength(1);
+        expect(entries).toHaveLength(2);
         expect(entries[0].matcher).toBe(matcher);
         expect(entries[0].component).toBe(component);
+        expect(entries[0].handlesSubpaths).toBe(false);
+        expect(entries[1].handlesSubpaths).toBe(true);
+    });
+
+    it('(b3) stores handlesSubpaths only when it is exactly true', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelViewComponent({matcher: () => true, component: () => null, handlesSubpaths: true});
+        registry.registerChannelViewComponent({matcher: () => true, component: () => null, handlesSubpaths: 'yes' as unknown as boolean});
+
+        const entries = getChannelViewRegs();
+        expect(entries[0].handlesSubpaths).toBe(true);
+        expect(entries[1].handlesSubpaths).toBe(false);
     });
 
     it('(c) unregisterComponent removes only that registration', () => {

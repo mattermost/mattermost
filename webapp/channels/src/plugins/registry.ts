@@ -1564,7 +1564,7 @@ export default class PluginRegistry {
      * Matcher throws are caught and treated as no-match. The first registration whose matcher
      * returns exactly `true` wins (alphabetical pluginId, then insertion order).
      *
-     * `component` receives {channel, channelId, teamId, focusedPostId}, where teamId is the current
+     * `component` receives {channel, channelId, teamId, focusedPostId, subpath}, where teamId is the current
      * team's id. Core marks the channel as read when the component mounts and whenever the channel
      * changes, as the post list would, and skips that on a permalink.
      *
@@ -1572,13 +1572,20 @@ export default class PluginRegistry {
      * linked post id as `focusedPostId` and is responsible for showing that post. `focusedPostId`
      * stays set after the post id is removed from the URL, until the user switches channels.
      *
+     * Sub-paths (`/:team/channels/:channel/<subpath>`): pass `handlesSubpaths: true` to receive the
+     * URL remainder as `subpath` (e.g. `'pages/abc123'`), so the plugin can deep link into its view.
+     * A 26-character id after the channel is always treated as a permalink. Otherwise, once the
+     * channel has loaded, core redirects a sub-path URL to the channel root, so the matcher must
+     * already return true by then (load the state it depends on in `initialize`).
+     *
      * Registrations are cleaned up automatically when the plugin is removed.
      *
      * @returns Auto-generated unique id for this registration, usable with `unregisterComponent`.
      */
-    registerChannelViewComponent = reArg(['matcher', 'component'], ({matcher, component}: {
+    registerChannelViewComponent = reArg(['matcher', 'component', 'handlesSubpaths'], ({matcher, component, handlesSubpaths = false}: {
         matcher: ChannelViewRegistration['matcher'];
         component: ChannelViewRegistration['component'];
+        handlesSubpaths?: ChannelViewRegistration['handlesSubpaths'];
     }) => {
         if (this.isActive()) {
             clearLoggedChannelViewErrors(this.id);
@@ -1589,6 +1596,7 @@ export default class PluginRegistry {
             pluginId: this.id,
             matcher,
             component,
+            handlesSubpaths: handlesSubpaths === true,
         });
         return id;
     });

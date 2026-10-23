@@ -43,6 +43,7 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         channelId: channel ? channel.id : '',
+        channelName: channel ? channel.name : '',
         deactivatedChannel: channel ? isDeactivatedDirectChannel(state, channel.id) : false,
         enableOnboardingFlow,
         channelIsArchived: channel ? channel.delete_at !== 0 : false,
