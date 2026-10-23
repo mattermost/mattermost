@@ -268,6 +268,11 @@ func (a *App) saveBotEvents(rctx request.CTX, events []*model.BotEvent) {
 		return
 	}
 
+	if m := a.Metrics(); m != nil {
+		for _, e := range events {
+			m.IncrementBotEventsEnqueued(string(e.Type))
+		}
+	}
 	a.notifyBotEventsAvailable(botIDs)
 }
 

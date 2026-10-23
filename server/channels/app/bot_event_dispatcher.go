@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 const (
@@ -38,6 +39,7 @@ type botEventDispatcher struct {
 	sem    chan struct{}
 
 	// Tests may override these before start().
+	metrics       func() einterfaces.MetricsInterface
 	now           func() time.Time
 	leaseDuration time.Duration
 	sweepInterval time.Duration
@@ -61,6 +63,7 @@ func newBotEventDispatcher(srv *Server) *botEventDispatcher {
 		logger:        srv.Log().With(mlog.String("component", "bot_event_dispatcher"), mlog.String("node_id", nodeID)),
 		client:        srv.botEventClient,
 		sem:           make(chan struct{}, botEventMaxConcurrentBots),
+		metrics:       srv.GetMetrics,
 		now:           time.Now,
 		leaseDuration: botEventLeaseDuration,
 		sweepInterval: botEventSweepInterval,
@@ -256,9 +259,15 @@ func (d *botEventDispatcher) runTurn(botUserID string) (more bool) {
 				rctx.Logger().Warn("Failed to acknowledge a delivered bot event", mlog.String("event_id", event.Id), mlog.Err(err))
 				return false
 			}
+			if m := d.metrics(); m != nil {
+				m.AddBotEventsDelivered(string(model.BotEventSubscriptionModePush), 1)
+			}
 		case botEventAborted:
 			return false
 		case botEventRetry, botEventGone:
+			if m := d.metrics(); m != nil {
+				m.IncrementBotEventsDeliveryFailures(outcome.reason)
+			}
 			d.recordFailure(rctx, sub, event.Id, outcome)
 			return false
 		}

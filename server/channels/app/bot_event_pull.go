@@ -70,6 +70,9 @@ func (a *App) GetBotEvents(rctx request.CTX, botUserID string, opts model.BotEve
 	}
 	list.NextCursor = events[len(events)-1].Cursor().Encode()
 
+	if m := a.Metrics(); m != nil {
+		m.AddBotEventsDelivered(string(model.BotEventSubscriptionModePull), len(list.Events))
+	}
 	return list, nil
 }
 

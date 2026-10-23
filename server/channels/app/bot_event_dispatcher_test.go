@@ -20,6 +20,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 // setupPushTest returns a helper that may deliver to loopback receivers.
@@ -85,6 +87,10 @@ func withClock(c *fakeBotEventClock) func(*botEventDispatcher) {
 }
 
 // seedPushSubscription stores a push subscription directly, skipping URL verification.
+func withMetrics(m einterfaces.MetricsInterface) func(*botEventDispatcher) {
+	return func(d *botEventDispatcher) { d.metrics = func() einterfaces.MetricsInterface { return m } }
+}
+
 func seedPushSubscription(t *testing.T, th *TestHelper, botID, callbackURL string) *model.BotEventSubscription {
 	t.Helper()
 
@@ -328,7 +334,11 @@ func TestBotEventDispatcherOrderingUnderFailure(t *testing.T) {
 	seedPushSubscription(t, th, bot.UserId, rcv.URL())
 	events := seedBotEvents(t, th, bot.UserId, 5)
 
-	newTestBotEventDispatcher(t, th, func(d *botEventDispatcher) { d.backoff = []time.Duration{0} })
+	metrics := mocks.NewMetricsInterface(t)
+	metrics.On("IncrementBotEventsDeliveryFailures", "status").Return().Times(5)
+	metrics.On("AddBotEventsDelivered", "push", 1).Return().Times(5)
+
+	newTestBotEventDispatcher(t, th, withMetrics(metrics), func(d *botEventDispatcher) { d.backoff = []time.Duration{0} })
 	waitForAck(t, th, bot.UserId, events[4].Cursor())
 
 	assert.Equal(t, repeatEach(storedEventIDs(events), 2), rcv.EventIDs(), "each event fails once and succeeds before its successor is sent")
@@ -413,7 +423,7 @@ func TestBotEventDispatcherShutdownMidRequest(t *testing.T) {
 	seedPushSubscription(t, th, bot.UserId, rcv.URL())
 	events := seedBotEvents(t, th, bot.UserId, 1)
 
-	d := newTestBotEventDispatcher(t, th)
+	d := newTestBotEventDispatcher(t, th, withMetrics(mocks.NewMetricsInterface(t)))
 	require.Eventually(t, func() bool { return len(rcv.Events()) == 1 }, 5*time.Second, 5*time.Millisecond)
 
 	start := time.Now()

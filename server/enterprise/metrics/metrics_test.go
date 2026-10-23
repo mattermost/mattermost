@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
@@ -349,6 +350,35 @@ func TestObserveClusterReliableFallbackLength(t *testing.T) {
 		require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
 		require.InDelta(t, float64(length), m.Histogram.GetSampleSum(), 0.001)
 	})
+}
+
+func TestBotEventMetricsCallSites(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics).InitBasic(t)
+
+	configureMetrics(th)
+	mi, ok := th.App.Metrics().(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", th.App.Metrics()))
+
+	bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: api4.GenerateTestUsername(), OwnerId: th.BasicUser.Id})
+	require.Nil(t, appErr)
+	_, _, appErr = th.App.CreateOrUpdateBotEventSubscription(th.Context, bot.UserId, &model.BotEventSubscriptionPatch{Mode: new(model.BotEventSubscriptionModePull)})
+	require.Nil(t, appErr)
+
+	channel := th.CreateDmChannel(t, &model.User{Id: bot.UserId})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: channel.Id, Message: "hello"}, channel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	list, appErr := th.App.GetBotEvents(th.Context, bot.UserId, model.BotEventsOptions{Limit: 10, Wait: 5 * time.Second})
+	require.Nil(t, appErr)
+	require.Len(t, list.Events, 1)
+
+	counterValue := func(c prometheus.Counter) float64 {
+		m := &prometheusModels.Metric{}
+		require.NoError(t, c.Write(m))
+		return m.Counter.GetValue()
+	}
+	require.Equal(t, 1.0, counterValue(mi.BotEventsEnqueuedCounter.WithLabelValues(string(model.BotEventTypePostDM))))
+	require.Equal(t, 1.0, counterValue(mi.BotEventsDeliveredCounter.WithLabelValues(string(model.BotEventSubscriptionModePull))))
 }
 
 func TestMergeLabels(t *testing.T) {
