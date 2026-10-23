@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
@@ -31,6 +32,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     return {
         canDownloadFiles: canDownloadFiles(config),
+        currentUserId: getCurrentUserId(state),
         enablePublicLink: config.EnablePublicLink === 'true',
         isMobileView: getIsMobileView(state),
         pluginFilePreviewComponents: state.plugins.components.FilePreview,

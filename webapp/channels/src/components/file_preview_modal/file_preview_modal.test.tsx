@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import LocalStorageStore from 'stores/local_storage_store';
+
 import FilePreviewModal, {computeZoomAtCursor} from 'components/file_preview_modal/file_preview_modal';
 
 import {act, render} from 'tests/react_testing_utils';
@@ -21,9 +23,13 @@ jest.mock('react-bootstrap', () => {
 
 jest.mock('components/archived_preview', () => () => <div>{'Archived Preview'}</div>);
 jest.mock('components/audio_video_preview', () => () => <div>{'Audio Video Preview'}</div>);
+const mockCodePreview = jest.fn();
 jest.mock('components/code_preview', () => ({
     __esModule: true,
-    default: () => <div>{'Code Preview'}</div>,
+    default: (props: unknown) => {
+        mockCodePreview(props);
+        return <div>{'Code Preview'}</div>;
+    },
     hasSupportedLanguage: () => true,
 }));
 jest.mock('components/file_info_preview', () => () => <div>{'File Info Preview'}</div>);
@@ -35,9 +41,11 @@ jest.mock('components/pdf_preview', () => ({
 jest.mock('components/file_preview_modal/file_preview_modal_footer/file_preview_modal_footer', () => () => (
     <div>{'File Preview Modal Footer'}</div>
 ));
-jest.mock('components/file_preview_modal/file_preview_modal_header/file_preview_modal_header', () => () => (
-    <div>{'File Preview Modal Header'}</div>
-));
+const mockHeader = jest.fn();
+jest.mock('components/file_preview_modal/file_preview_modal_header/file_preview_modal_header', () => (props: unknown) => {
+    mockHeader(props);
+    return <div>{'File Preview Modal Header'}</div>;
+});
 jest.mock('components/file_preview_modal/image_preview', () => () => <div>{'Image Preview'}</div>);
 jest.mock('components/file_preview_modal/popover_bar', () => () => <div>{'Popover Bar'}</div>);
 
@@ -46,6 +54,7 @@ describe('components/FilePreviewModal', () => {
         fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', extension: 'jpg'})],
         startIndex: 0,
         canDownloadFiles: true,
+        currentUserId: 'current_user_id',
         enablePublicLink: true,
         isMobileView: false,
         post: TestHelper.getPostMock(),
@@ -486,6 +495,7 @@ describe('FilePreviewModal instance behavior', () => {
         fileInfos: [TestHelper.getFileInfoMock({id: 'img_1', extension: 'png'})],
         startIndex: 0,
         canDownloadFiles: true,
+        currentUserId: 'current_user_id',
         enablePublicLink: true,
         isMobileView: false,
         post: TestHelper.getPostMock(),
@@ -714,6 +724,38 @@ describe('FilePreviewModal instance behavior', () => {
             expect(ref.current?.state.translate[1]).toEqual({x: 0, y: 0});
         });
 
+        test('drops the loaded content when the shown file is swapped for another, but not when another index is', () => {
+            const initial = {
+                ...imageProps,
+                fileInfos: [
+                    TestHelper.getFileInfoMock({id: 'a', extension: 'png'}),
+                    TestHelper.getFileInfoMock({id: 'b', extension: 'png'}),
+                ],
+            };
+            const {ref, rerender} = mountModal(initial);
+            act(() => {
+                ref.current?.setState({content: 'loaded'});
+            });
+
+            rerender(
+                <FilePreviewModal
+                    ref={ref}
+                    {...initial}
+                    fileInfos={[initial.fileInfos[0], TestHelper.getFileInfoMock({id: 'c', extension: 'png'})]}
+                />,
+            );
+            expect(ref.current?.state.content).toBe('loaded');
+
+            rerender(
+                <FilePreviewModal
+                    ref={ref}
+                    {...initial}
+                    fileInfos={[TestHelper.getFileInfoMock({id: 'd', extension: 'png'}), initial.fileInfos[1]]}
+                />,
+            );
+            expect(ref.current?.state.content).toBe('');
+        });
+
         test('seeds default scale/translate for brand-new indexes when the list grows', () => {
             const {ref, rerender} = mountModal();
             act(() => {
@@ -738,5 +780,130 @@ describe('FilePreviewModal instance behavior', () => {
             expect(ref.current?.state.scale[1]).toBe(1.75); // pdf default
             expect(ref.current?.state.translate[1]).toEqual({x: 0, y: 0});
         });
+    });
+});
+
+describe('FilePreviewModal markdown view', () => {
+    const mdProps = {
+        fileInfos: [TestHelper.getFileInfoMock({id: 'md_1', extension: 'md'})],
+        startIndex: 0,
+        canDownloadFiles: true,
+        currentUserId: 'current_user_id',
+        enablePublicLink: true,
+        isMobileView: false,
+        post: TestHelper.getPostMock(),
+        onExited: jest.fn(),
+    };
+
+    const lastCodePreviewProps = () => mockCodePreview.mock.calls[mockCodePreview.mock.calls.length - 1][0];
+    const lastHeaderProps = () => mockHeader.mock.calls[mockHeader.mock.calls.length - 1][0];
+
+    const mountMarkdownModal = (props = mdProps) => {
+        const ref = React.createRef<FilePreviewModal>();
+        const utils = render(
+            <FilePreviewModal
+                ref={ref}
+                {...props}
+            />,
+        );
+        act(() => {
+            ref.current?.setState({loaded: {0: true}});
+        });
+        return {ref, ...utils};
+    };
+
+    beforeEach(() => {
+        localStorage.clear();
+        mockCodePreview.mockClear();
+        mockHeader.mockClear();
+    });
+
+    test('should render markdown files as rendered by default', () => {
+        mountMarkdownModal();
+
+        expect(lastCodePreviewProps().renderMarkdown).toBe(true);
+        expect(lastHeaderProps().markdownView).toBe('rendered');
+    });
+
+    test('should only offer the toggle once the file content has loaded', () => {
+        const {ref} = mountMarkdownModal();
+        expect(lastHeaderProps().showMarkdownToggle).toBe(false);
+
+        act(() => {
+            ref.current?.getContent('# Title');
+        });
+
+        expect(lastHeaderProps().showMarkdownToggle).toBe(true);
+    });
+
+    test('should switch to raw, keep the source for copying, and remember the choice', () => {
+        const {ref} = mountMarkdownModal();
+        act(() => {
+            ref.current?.getContent('# Title');
+        });
+
+        act(() => {
+            lastHeaderProps().onMarkdownViewChange('raw');
+        });
+
+        expect(lastCodePreviewProps().renderMarkdown).toBe(false);
+        expect(lastHeaderProps().markdownView).toBe('raw');
+        expect(lastHeaderProps().content).toBe('# Title');
+        expect(LocalStorageStore.getMarkdownFilePreviewView('current_user_id')).toBe('raw');
+    });
+
+    test('should start raw when the stored choice is raw', () => {
+        LocalStorageStore.setMarkdownFilePreviewView('current_user_id', 'raw');
+
+        mountMarkdownModal();
+
+        expect(lastCodePreviewProps().renderMarkdown).toBe(false);
+    });
+
+    test('should not render markdown in the mobile view', () => {
+        mountMarkdownModal({...mdProps, isMobileView: true});
+
+        expect(lastCodePreviewProps().renderMarkdown).toBe(false);
+    });
+
+    test('should not offer the toggle for non-markdown code files', () => {
+        const {ref} = mountMarkdownModal({...mdProps, fileInfos: [TestHelper.getFileInfoMock({id: 'js_1', extension: 'js'})]});
+        act(() => {
+            ref.current?.getContent('const a = 1;');
+        });
+
+        expect(lastCodePreviewProps().renderMarkdown).toBe(false);
+        expect(lastHeaderProps().showMarkdownToggle).toBe(false);
+    });
+
+    test('should drop the previous file content when navigating', () => {
+        const files = [
+            TestHelper.getFileInfoMock({id: 'md_1', extension: 'md'}),
+            TestHelper.getFileInfoMock({id: 'md_2', extension: 'md'}),
+        ];
+        const {ref} = mountMarkdownModal({...mdProps, fileInfos: files});
+        act(() => {
+            ref.current?.getContent('# First');
+        });
+
+        act(() => {
+            ref.current?.handleNext();
+        });
+
+        expect(ref.current?.state.content).toBe('');
+    });
+
+    test('should keep the file content when the same file is shown again', () => {
+        const {ref} = mountMarkdownModal();
+        act(() => {
+            ref.current?.getContent('# Title');
+        });
+
+        act(() => {
+            ref.current?.handleNext();
+        });
+
+        expect(ref.current?.state.imageIndex).toBe(0);
+        expect(ref.current?.state.content).toBe('# Title');
     });
 });

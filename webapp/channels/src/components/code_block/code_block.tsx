@@ -1,12 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState, type JSX} from 'react';
+import React, {createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useState, type JSX} from 'react';
 import {useSelector} from 'react-redux';
 
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+
+import LocalStorageStore from 'stores/local_storage_store';
+
 import CopyButton from 'components/copy_button';
+import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_toggle';
+import WrappedCodeLines from 'components/wrapped_code_lines';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+import {MarkdownViews} from 'utils/constants';
+import type {MarkdownView} from 'utils/constants';
+import {isLikelyMarkdown} from 'utils/is_likely_markdown';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
 
@@ -18,7 +27,17 @@ type Props = {
     searchedContent?: string;
 };
 
+// Loaded lazily because Markdown reaches this file again through the LaTeX block, and a static import would make that cycle
+// fail to initialise whenever the LaTeX block is the first module loaded
+const Markdown = lazy(() => import('components/markdown'));
+
+// Markdown rendered from inside a code block must not offer its own toggle
+const CodeBlockDepthContext = createContext(0);
+
 const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
+    const currentUserId = useSelector(getCurrentUserId);
+    const depth = useContext(CodeBlockDepthContext);
+
     const getUsedLanguage = useCallback(() => {
         let usedLanguage = language || '';
         usedLanguage = usedLanguage.toLowerCase();
@@ -37,8 +56,31 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
     const usedLanguage = getUsedLanguage();
 
+    // Untagged blocks are checked too, but an explicit other language is respected
+    const detectedMarkdown = useMemo(() => !usedLanguage && isLikelyMarkdown(code), [usedLanguage, code]);
+
+    // Search results highlight matches in the source, which rendering would lose, so they stay raw
+    const canToggleMarkdown = depth === 0 && !searchedContent && (SyntaxHighlighting.isMarkdownLanguage(usedLanguage) || detectedMarkdown);
+
+    // The saved preference is read when the block becomes toggleable, and a click overrides it for this block
+    const storedMarkdownView = useMemo(() => (canToggleMarkdown ? LocalStorageStore.getMarkdownCodeBlockView(currentUserId) : MarkdownViews.RAW), [canToggleMarkdown, currentUserId]);
+    const [chosenMarkdownView, setChosenMarkdownView] = useState<MarkdownView | null>(null);
+    const markdownView = chosenMarkdownView ?? storedMarkdownView;
+    const showRendered = canToggleMarkdown && markdownView === MarkdownViews.RENDERED;
+
+    const handleMarkdownViewChange = (view: MarkdownView) => {
+        LocalStorageStore.setMarkdownCodeBlockView(currentUserId, view);
+        setChosenMarkdownView(view);
+    };
+
+    // Markdown is prose, so wrap it, with a number on each line rather than one column that wrapped lines would knock out of step.
+    // Search highlighting is a second copy of the code laid over the first, so searched blocks keep the plain layout.
+    const isMarkdownSource = SyntaxHighlighting.isMarkdownLanguage(usedLanguage);
+    const numberWrappedLines = isMarkdownSource && !searchedContent;
+    const wrapLines = !usedLanguage || numberWrappedLines;
+
     let className = 'post-code';
-    if (!usedLanguage) {
+    if (wrapLines) {
         className += ' post-code--wrap';
     }
 
@@ -103,16 +145,43 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
         });
 
     return (
-        <div className={className}>
+        <div
+            className={className}
+            data-markdown-source={showRendered ? code : undefined}
+        >
             <div className='post-code__overlay'>
+                {canToggleMarkdown && (
+                    <MarkdownViewToggle
+                        className='post-code__markdown-toggle'
+                        size='compact'
+                        view={showRendered ? MarkdownViews.RENDERED : MarkdownViews.RAW}
+                        onChange={handleMarkdownViewChange}
+                    />
+                )}
                 <CopyButton content={code}/>
                 {pluginItems}
                 {header}
             </div>
-            <div className='hljs'>
-                {lineNumbers}
-                <code dangerouslySetInnerHTML={{__html: htmlContent}}/>
-            </div>
+            {showRendered ? (
+                <div className='post-code__rendered'>
+                    <CodeBlockDepthContext.Provider value={depth + 1}>
+                        <Suspense fallback={null}>
+                            <Markdown message={code}/>
+                        </Suspense>
+                    </CodeBlockDepthContext.Provider>
+                </div>
+            ) : (
+                <div className='hljs'>
+                    {numberWrappedLines ? (
+                        <WrappedCodeLines html={htmlContent}/>
+                    ) : (
+                        <>
+                            {lineNumbers}
+                            <code dangerouslySetInnerHTML={{__html: htmlContent}}/>
+                        </>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

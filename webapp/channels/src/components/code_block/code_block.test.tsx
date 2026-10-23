@@ -3,8 +3,11 @@
 
 import React from 'react';
 
+import LocalStorageStore from 'stores/local_storage_store';
+
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import * as Utils from 'utils/utils';
 
 import CodeBlock from './code_block';
 
@@ -107,5 +110,188 @@ it shouldn't highlight, it's just garbage`;
                 },
             } as any,
         );
+    });
+
+    describe('markdown code blocks', () => {
+        const markdown = '# Heading\n\nSome **bold** text';
+
+        beforeEach(() => {
+            localStorage.clear();
+        });
+
+        test.each(['markdown', 'md', 'mkd', 'MD'])('should show the toggle and default to raw for %s', async (language) => {
+            const {container} = renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language={language}
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.getByRole('button', {name: 'Code'})).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'false');
+            expect(container.querySelector('.hljs code')).toBeInTheDocument();
+            expect(container.querySelector('.post-code')).toHaveClass('post-code--wrap');
+            expect(container.querySelectorAll('.post-code__line-number')).toHaveLength(3);
+            expect(screen.queryByRole('heading', {name: 'Heading'})).not.toBeInTheDocument();
+        });
+
+        test.each(['typescript', 'xml', 'html', 'bash'])('should not show the toggle for explicit %p blocks', async (language) => {
+            renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language={language}
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+        });
+
+        test('should offer the toggle for untagged blocks that look like markdown', async () => {
+            const {container} = renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language=''
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.getByRole('button', {name: 'Code'})).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.queryByText('Markdown')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
+
+            expect(screen.getByRole('heading', {level: 1, name: 'Heading'})).toBeInTheDocument();
+            expect(container.querySelector('.post-code__rendered')).toBeInTheDocument();
+        });
+
+        test('should not offer the toggle for untagged blocks that are not markdown', async () => {
+            renderWithContext(
+                <CodeBlock
+                    code={'# install\nnpm install\n# build\nnpm run build'}
+                    language=''
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+        });
+
+        test('should render the markdown when toggled and switch back to raw', async () => {
+            const {container} = renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language='markdown'
+                />,
+            );
+            await actImmediate();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
+
+            expect(screen.getByRole('heading', {level: 1, name: 'Heading'})).toBeInTheDocument();
+            expect(screen.getByText('bold').tagName).toBe('STRONG');
+            expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'true');
+            expect(container.querySelector('.post-code__rendered')).toBeInTheDocument();
+            expect(container.querySelector('.hljs')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Code'}));
+
+            expect(screen.queryByRole('heading', {name: 'Heading'})).not.toBeInTheDocument();
+            expect(container.querySelector('.hljs code')).toBeInTheDocument();
+            expect(container.querySelector('.post-code__rendered')).not.toBeInTheDocument();
+        });
+
+        test('should keep copying the raw source while rendered', async () => {
+            const spy = jest.spyOn(Utils, 'copyToClipboard');
+            renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language='markdown'
+                />,
+            );
+            await actImmediate();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
+            await userEvent.click(screen.getByLabelText('Copy code'));
+
+            expect(spy).toHaveBeenCalledWith(markdown);
+        });
+
+        test('should apply the remembered choice to later code blocks', async () => {
+            const first = renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language='markdown'
+                />,
+            );
+            await actImmediate();
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
+            first.unmount();
+
+            renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language='markdown'
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.getByRole('heading', {level: 1, name: 'Heading'})).toBeInTheDocument();
+        });
+
+        test('should not offer rendering for search results so highlighted matches stay visible', async () => {
+            LocalStorageStore.setMarkdownCodeBlockView('', 'rendered');
+            renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language='markdown'
+                    searchedContent='<div class="post-code__search-highlighting">x</div>'
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('heading', {name: 'Heading'})).not.toBeInTheDocument();
+        });
+
+        test('should apply the saved preference when a block becomes markdown after it was first rendered', async () => {
+            LocalStorageStore.setMarkdownCodeBlockView('', 'rendered');
+            const {rerender} = renderWithContext(
+                <CodeBlock
+                    code='plain text'
+                    language=''
+                />,
+            );
+            await actImmediate();
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+
+            rerender(
+                <CodeBlock
+                    code={markdown}
+                    language=''
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.getByRole('heading', {level: 1, name: 'Heading'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'true');
+        });
+
+        test('should not offer a second toggle for a markdown fence inside rendered markdown', async () => {
+            renderWithContext(
+                <CodeBlock
+                    code={'Outer\n\n```markdown\n# Inner\n```'}
+                    language='markdown'
+                />,
+            );
+            await actImmediate();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
+            await actImmediate();
+
+            expect(screen.getAllByRole('group', {name: 'Markdown view'})).toHaveLength(1);
+            expect(screen.queryByRole('heading', {name: 'Inner'})).not.toBeInTheDocument();
+        });
     });
 });

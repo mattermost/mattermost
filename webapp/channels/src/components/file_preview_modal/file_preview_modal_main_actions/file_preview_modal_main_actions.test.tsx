@@ -131,4 +131,60 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
         await userEvent.click(screen.getByLabelText('Copy code'));
         expect(spy).toHaveBeenCalledTimes(1);
     });
+
+    describe('markdown toggle', () => {
+        test('should not show the toggle by default', () => {
+            renderWithContext(<FilePreviewModalMainActions {...defaultProps}/>);
+
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+        });
+
+        test('should reflect the current view', () => {
+            const props = {...defaultProps, showMarkdownToggle: true, onMarkdownViewChange: jest.fn()};
+            const {rerender} = renderWithContext(
+                <FilePreviewModalMainActions
+                    {...props}
+                    markdownView='rendered'
+                />,
+            );
+            expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'true');
+
+            rerender(
+                <FilePreviewModalMainActions
+                    {...props}
+                    markdownView='raw'
+                />,
+            );
+            expect(screen.getByRole('button', {name: 'Code'})).toHaveAttribute('aria-pressed', 'true');
+        });
+
+        test('should report the selected view', async () => {
+            const onMarkdownViewChange = jest.fn();
+            renderWithContext(
+                <FilePreviewModalMainActions
+                    {...defaultProps}
+                    showMarkdownToggle={true}
+                    markdownView='rendered'
+                    onMarkdownViewChange={onMarkdownViewChange}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Code'}));
+
+            expect(onMarkdownViewChange).toHaveBeenCalledWith('raw');
+        });
+
+        test('should hide the toggle when only the close button is shown', () => {
+            renderWithContext(
+                <FilePreviewModalMainActions
+                    {...defaultProps}
+                    showOnlyClose={true}
+                    showMarkdownToggle={true}
+                    onMarkdownViewChange={jest.fn()}
+                />,
+            );
+
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+        });
+    });
 });

@@ -117,4 +117,38 @@ describe('stores/LocalStorageStore', () => {
             expect(LocalStorageStore.getItem(getPenultimateChannelNameKey(userId1, teamId1))).toEqual(null);
         });
     });
+
+    describe('markdown views', () => {
+        beforeEach(() => {
+            localStorage.clear();
+        });
+
+        test('file preview defaults to rendered and persists per user', () => {
+            expect(LocalStorageStore.getMarkdownFilePreviewView('userId1')).toEqual('rendered');
+
+            LocalStorageStore.setMarkdownFilePreviewView('userId1', 'raw');
+
+            expect(LocalStorageStore.getMarkdownFilePreviewView('userId1')).toEqual('raw');
+            expect(LocalStorageStore.getMarkdownFilePreviewView('userId2')).toEqual('rendered');
+        });
+
+        test('code block defaults to raw and persists per user', () => {
+            expect(LocalStorageStore.getMarkdownCodeBlockView('userId1')).toEqual('raw');
+
+            LocalStorageStore.setMarkdownCodeBlockView('userId1', 'rendered');
+
+            expect(LocalStorageStore.getMarkdownCodeBlockView('userId1')).toEqual('rendered');
+            expect(LocalStorageStore.getMarkdownCodeBlockView('userId2')).toEqual('raw');
+        });
+
+        test('surfaces are stored independently', () => {
+            LocalStorageStore.setMarkdownFilePreviewView('userId1', 'raw');
+
+            expect(LocalStorageStore.getMarkdownCodeBlockView('userId1')).toEqual('raw');
+
+            LocalStorageStore.setMarkdownCodeBlockView('userId1', 'rendered');
+
+            expect(LocalStorageStore.getMarkdownFilePreviewView('userId1')).toEqual('raw');
+        });
+    });
 });

@@ -1,0 +1,84 @@
+.MarkdownViewToggle {
+    --markdown-view-toggle-segment: 32px;
+    --markdown-view-toggle-track: rgba(var(--center-channel-color-rgb), 0.08);
+    --markdown-view-toggle-thumb: var(--center-channel-bg);
+    --markdown-view-toggle-thumb-border: rgba(var(--center-channel-color-rgb), 0.12);
+    --markdown-view-toggle-active-icon: var(--center-channel-color);
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-s);
+    background: var(--markdown-view-toggle-track);
+
+    // Matches the 28px controls beside it in the code block overlay
+    &.compact {
+        --markdown-view-toggle-segment: 28px;
+    }
+
+    // Matches the 36px icon buttons it sits next to in the file preview header
+    &.large {
+        --markdown-view-toggle-segment: 36px;
+    }
+
+    // Always-dark surfaces: feed the inverted IconButton style fixed light colors instead of sidebar theme colors,
+    // and keep the selected state as subtle as the other header icons' hover state
+    &.onDark {
+        --sidebar-text: white;
+        --sidebar-text-rgb: 255, 255, 255;
+        --markdown-view-toggle-track: rgba(255, 255, 255, 0.08);
+        --markdown-view-toggle-thumb: rgba(255, 255, 255, 0.08);
+        --markdown-view-toggle-thumb-border: transparent;
+        --markdown-view-toggle-active-icon: white;
+    }
+
+    // The thumb is exactly the size of the selected button, so the track is exactly as big as the buttons
+    &__thumb {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: var(--markdown-view-toggle-segment);
+        height: var(--markdown-view-toggle-segment);
+        border-radius: var(--radius-s);
+        background: var(--markdown-view-toggle-thumb);
+        box-shadow: var(--elevation-1);
+        outline: 1px solid var(--markdown-view-toggle-thumb-border);
+        outline-offset: -1px;
+        pointer-events: none;
+        transition: transform var(--duration-moderate) var(--ease-transition);
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+    }
+
+    &.raw &__thumb {
+        transform: translateX(var(--markdown-view-toggle-segment));
+    }
+
+    &__option {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+// The sliding thumb is the selected background, so cancel the hover/pressed backgrounds IconButton paints. The class is
+// repeated to outrank IconButton's own hover rule, which carries several :not() selectors, whatever order the CSS loads in.
+.MarkdownViewToggle .MarkdownViewToggle__option.MarkdownViewToggle__option.MarkdownViewToggle__option {
+    &,
+    &:hover:not(:disabled):not(:active),
+    &:active:not(:disabled) {
+        background-color: transparent;
+    }
+
+    &[aria-pressed='true'] {
+        &,
+        &:hover:not(:disabled):not(:active),
+        &:active:not(:disabled) {
+            --icon-button-fg: var(--markdown-view-toggle-active-icon);
+
+            color: var(--markdown-view-toggle-active-icon);
+            cursor: default;
+        }
+    }
+}

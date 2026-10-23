@@ -11,6 +11,8 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getFileDownloadUrl, getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
+import LocalStorageStore from 'stores/local_storage_store';
+
 import ArchivedPreview from 'components/archived_preview';
 import AudioVideoPreview from 'components/audio_video_preview';
 import CodePreview, {hasSupportedLanguage} from 'components/code_preview';
@@ -18,8 +20,10 @@ import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
 import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
 
-import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
+import Constants, {FileTypes, MarkdownViews, ZoomSettings} from 'utils/constants';
+import type {MarkdownView} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as Utils from 'utils/utils';
 
 import type {FilePreviewComponent} from 'types/store/plugins';
@@ -39,6 +43,7 @@ const KeyCodes = Constants.KeyCodes;
 
 export type Props = {
     canDownloadFiles: boolean;
+    currentUserId: string;
     enablePublicLink: boolean;
 
     /**
@@ -78,6 +83,7 @@ type State = {
     translate: Record<number, Translate>;
     isDragging: boolean;
     content: string;
+    markdownView: MarkdownView;
 };
 
 // Pure helper for cursor-aware zoom math. Given current scale + translate,
@@ -130,6 +136,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             }, {}),
             isDragging: false,
             content: '',
+            markdownView: LocalStorageStore.getMarkdownFilePreviewView(this.props.currentUserId),
         };
     }
 
@@ -259,6 +266,11 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             updatedState.prevFileInfosCount = props.fileInfos.length;
             updatedState.prevFileIds = nextFileIds;
 
+            // The content belongs to the file that was shown, so drop it when that file is swapped out underneath us
+            if (nextFileIds[state.imageIndex] !== state.prevFileIds[state.imageIndex]) {
+                updatedState.content = '';
+            }
+
             // Reconcile scale/translate per index: preserve entries whose
             // file identity is unchanged; reset to the new file's default
             // when the identity at that index changed (or is brand new).
@@ -280,7 +292,9 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     }
 
     showImage = (id: number) => {
-        this.setState({imageIndex: id});
+        // Content belongs to the previously shown file until CodePreview reports the new one. Showing the same file
+        // again (e.g. arrow keys in a single-file preview) isn't re-reported, so its content must be kept.
+        this.setState((prev) => ({imageIndex: id, content: id === prev.imageIndex ? prev.content : ''}));
 
         const imageHeight = window.innerHeight - 100;
         this.setState({imageHeight});
@@ -533,6 +547,11 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         this.setState({content});
     };
 
+    handleMarkdownViewChange = (markdownView: MarkdownView) => {
+        LocalStorageStore.setMarkdownFilePreviewView(this.props.currentUserId, markdownView);
+        this.setState({markdownView});
+    };
+
     handleBgClose = (e: React.MouseEvent) => {
         if (e.currentTarget === e.target) {
             this.handleModalClose();
@@ -555,6 +574,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         let fileDownloadUrl;
         let isExternalFile;
         let canCopyContent = false;
+        let isMarkdownFile = false;
         if (isFileInfo(fileInfo)) {
             showPublicLink = true;
             fileName = fileInfo.name;
@@ -646,11 +666,13 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 } else if (hasSupportedLanguage(fileInfo)) {
                     dialogClassName += ' modal-code';
                     canCopyContent = true;
+                    isMarkdownFile = SyntaxHighlighting.isMarkdownLanguage(SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension) ?? '');
                     content = (
                         <CodePreview
                             fileInfo={fileInfo as FileInfo}
                             fileUrl={fileUrl}
                             getContent={this.getContent}
+                            renderMarkdown={isMarkdownFile && !this.props.isMobileView && this.state.markdownView === MarkdownViews.RENDERED}
                         />
                     );
                 } else {
@@ -740,6 +762,9 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     handleNext={this.handleNext}
                                     handleModalClose={this.handleModalClose}
                                     content={this.state.content}
+                                    showMarkdownToggle={isMarkdownFile && this.state.content !== ''}
+                                    markdownView={this.state.markdownView}
+                                    onMarkdownViewChange={this.handleMarkdownViewChange}
                                 />
                                 {zoomBar}
                             </Modal.Title>

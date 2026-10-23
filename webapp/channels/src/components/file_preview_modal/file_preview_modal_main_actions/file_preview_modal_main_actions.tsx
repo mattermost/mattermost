@@ -5,6 +5,11 @@ import React, {memo, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import CloseIcon from '@mattermost/compass-icons/components/close';
+import DownloadOutlineIcon from '@mattermost/compass-icons/components/download-outline';
+import LinkVariantIcon from '@mattermost/compass-icons/components/link-variant';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -13,12 +18,15 @@ import {getFilePublicLink as selectFilePublicLink} from 'mattermost-redux/select
 
 import CopyButton from 'components/copy_button';
 import ExternalLink from 'components/external_link';
+import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_toggle';
 
-import {FileTypes} from 'utils/constants';
+import {FileTypes, MarkdownViews} from 'utils/constants';
+import type {MarkdownView} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+import {FILE_PREVIEW_ICON_BUTTON_CLASS, FILE_PREVIEW_ICON_BUTTON_PROPS} from '../icon_button';
 import {isFileInfo} from '../types';
 import type {LinkInfo} from '../types';
 
@@ -38,6 +46,9 @@ interface Props {
     canCopyContent: boolean;
     handleModalClose: () => void;
     content: string;
+    showMarkdownToggle?: boolean;
+    markdownView?: MarkdownView;
+    onMarkdownViewChange?: (view: MarkdownView) => void;
 }
 
 const FilePreviewModalMainActions: React.FC<Props> = ({
@@ -52,6 +63,9 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
     canCopyContent,
     handleModalClose,
     content,
+    showMarkdownToggle = false,
+    markdownView = MarkdownViews.RENDERED,
+    onMarkdownViewChange,
 }: Props) => {
     const intl = useIntl();
 
@@ -85,15 +99,15 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
     const closeButton = (
         <WithTooltip
             title={closeMessage}
-            key='publicLink'
+            key='close'
         >
-            <button
-                className='file-preview-modal-main-actions__action-item'
+            <IconButton
+                {...FILE_PREVIEW_ICON_BUTTON_PROPS}
+                className={FILE_PREVIEW_ICON_BUTTON_CLASS}
+                icon={<Icon glyph={<CloseIcon/>}/>}
                 onClick={handleModalClose}
                 aria-label={closeMessage}
-            >
-                <i className='icon icon-close'/>
-            </button>
+            />
         </WithTooltip>
     );
 
@@ -114,14 +128,13 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
             key='filePreviewPublicLink'
             title={publicTooltipMessage}
         >
-            <a
-                href='#'
-                className='file-preview-modal-main-actions__action-item'
+            <IconButton
+                {...FILE_PREVIEW_ICON_BUTTON_PROPS}
+                className={FILE_PREVIEW_ICON_BUTTON_CLASS}
+                icon={<Icon glyph={<LinkVariantIcon/>}/>}
                 onClick={copyPublicLink}
                 aria-label={publicTooltipMessage}
-            >
-                <i className='icon icon-link-variant'/>
-            </a>
+            />
         </WithTooltip>
     );
 
@@ -134,27 +147,46 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
             key='download'
             title={downloadMessage}
         >
-            <ExternalLink
-                href={fileURL}
-                className='file-preview-modal-main-actions__action-item'
-                location='file_preview_modal_main_actions'
-                download={filename}
+            <IconButton
+                {...FILE_PREVIEW_ICON_BUTTON_PROPS}
+                className={`${FILE_PREVIEW_ICON_BUTTON_CLASS} file-preview-modal-main-actions__download`}
+                asChild={true}
+                icon={<Icon glyph={<DownloadOutlineIcon/>}/>}
                 aria-label={downloadMessage}
             >
-                <i className='icon icon-download-outline'/>
-            </ExternalLink>
+                <ExternalLink
+                    href={fileURL}
+                    location='file_preview_modal_main_actions'
+                    download={filename}
+                >
+                    {null}
+                </ExternalLink>
+            </IconButton>
         </WithTooltip>
     );
 
     const copy = (
         <CopyButton
-            className='file-preview-modal-main-actions__action-item'
+            className={FILE_PREVIEW_ICON_BUTTON_CLASS}
+            iconButtonProps={FILE_PREVIEW_ICON_BUTTON_PROPS}
             isForText={getFileType(fileInfo.extension) === FileTypes.TEXT}
             content={content}
         />
     );
+
+    const markdownToggle = onMarkdownViewChange && (
+        <MarkdownViewToggle
+            key='markdownToggle'
+            appearance='onDark'
+            size='large'
+            view={markdownView}
+            onChange={onMarkdownViewChange}
+        />
+    );
+
     return (
         <div className='file-preview-modal-main-actions__actions'>
+            {!showOnlyClose && showMarkdownToggle && markdownToggle}
             {!showOnlyClose && canCopyContent && copy}
             {!showOnlyClose && enablePublicLink && showPublicLink && publicLink}
             {!showOnlyClose && canDownloadFiles && download}

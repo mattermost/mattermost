@@ -35,12 +35,36 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Previous file"
-        class="file_preview_modal_main_nav__prev"
+        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
         id="previewArrowLeft"
+        type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_13ryy_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-20_1i355_46"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
       </button>
       <span
         aria-atomic="true"
@@ -51,46 +75,140 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </span>
       <button
         aria-label="Next file"
-        class="file_preview_modal_main_nav__next"
+        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__next"
         id="previewArrowRight"
+        type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_13ryy_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-20_1i355_46"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
       </button>
     </div>
     <div
       class="file-preview-modal-main-actions__actions"
     >
-      <span
+      <button
         aria-label="Copy code"
-        class="post-code__clipboard file-preview-modal-main-actions__action-item"
-        role="button"
+        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button"
+        type="button"
       >
-        <i
-          class="icon icon-content-copy"
-        />
-      </span>
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_13ryy_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-20_1i355_46"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
+      </button>
       <a
         aria-label="Download"
-        class="file-preview-modal-main-actions__action-item"
+        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file-preview-modal-main-actions__download"
         download="img.png"
         href="http://example.com/img.png"
         location="file_preview_modal_main_actions"
         rel="noopener noreferrer"
         target="_blank"
       >
-        <i
-          class="icon icon-download-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_13ryy_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-20_1i355_46"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
       </a>
       <button
         aria-label="Close"
-        class="file-preview-modal-main-actions__action-item"
+        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button"
+        type="button"
       >
-        <i
-          class="icon icon-close"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_13ryy_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-20_1i355_46"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
       </button>
     </div>
   </div>
@@ -107,11 +225,35 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Close"
-        class="file-preview-modal-main-actions__action-item"
+        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button"
+        type="button"
       >
-        <i
-          class="icon icon-close"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_13ryy_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-20_1i355_46"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
       </button>
     </div>
     <div
@@ -119,12 +261,36 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Previous file"
-        class="file_preview_modal_main_nav__prev"
+        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
         id="previewArrowLeft"
+        type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_13ryy_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-20_1i355_46"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
       </button>
       <span
         aria-atomic="true"
@@ -135,12 +301,36 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </span>
       <button
         aria-label="Next file"
-        class="file_preview_modal_main_nav__next"
+        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__next"
         id="previewArrowRight"
+        type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_13ryy_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-20_1i355_46"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
       </button>
     </div>
   </div>

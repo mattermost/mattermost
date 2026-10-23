@@ -42,6 +42,32 @@ export function renderLineNumbers(code: string) {
     return lineNumbers.join('\n');
 }
 
+// Splits highlighted HTML into one self-contained string per source line. Highlight spans can run across lines
+// (like fenced blocks in Markdown), so each line closes the spans it leaves open and reopens them on the next.
+export function splitHighlightedLines(html: string): string[] {
+    const lines: string[] = [];
+    const openTags: string[] = [];
+    let current = '';
+
+    for (const part of html.split(/(<span[^>]*>|<\/span>|\r\n|\n|\r)/)) {
+        if (part.startsWith('<span')) {
+            openTags.push(part);
+            current += part;
+        } else if (part === '</span>') {
+            openTags.pop();
+            current += part;
+        } else if (part === '\n' || part === '\r' || part === '\r\n') {
+            lines.push(current + '</span>'.repeat(openTags.length));
+            current = openTags.join('');
+        } else {
+            current += part;
+        }
+    }
+    lines.push(current);
+
+    return lines;
+}
+
 export function getLanguageFromFileExtension(extension: string): string | null {
     for (const key in HighlightedLanguages) {
         if (HighlightedLanguages[key].extensions.find((x: string) => x === extension)) {
@@ -82,6 +108,10 @@ function getLanguageFromNameOrAlias(name: string) {
         const aliases = HighlightedLanguages[key].aliases;
         return aliases && aliases.find((a) => a === langName);
     });
+}
+
+export function isMarkdownLanguage(language: string): boolean {
+    return getLanguageFromNameOrAlias(language) === 'markdown';
 }
 
 async function registerLanguage(languageName: string) {
