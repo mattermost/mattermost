@@ -7,6 +7,7 @@ import (
 	"errors"
 	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -6183,6 +6184,81 @@ func TestBuildAccessControlSubjectTeamPath(t *testing.T) {
 			assert.NotEqual(t, model.AccessControlSubjectScopeChannel, sr.Scope)
 		}
 	})
+}
+
+// TestGetAccessControlFieldsAutocompleteTagsCaller checks that the field
+// autocomplete reads a linked field's template as the caller it was given,
+// not as an untagged context the access control hook refuses.
+func TestGetAccessControlFieldsAutocompleteTagsCaller(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	tmpl, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:     cpaGroup.ID,
+		Name:        "template_" + model.NewId()[:8],
+		Type:        model.PropertyFieldTypeSelect,
+		ObjectType:  model.PropertyFieldObjectTypeTemplate,
+		TargetType:  string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{},
+	})
+	require.NoError(t, err)
+	linked, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:       cpaGroup.ID,
+		Name:          "f_" + model.NewId()[:8],
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Permissions: &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	untagged := request.EmptyContext(th.App.Log())
+	fields, appErr := th.App.GetAccessControlFieldsAutocomplete(untagged, "", false, strings.Repeat("0", 26), 100, th.SystemAdminUser.Id)
+	require.Nil(t, appErr)
+	require.True(t, slices.ContainsFunc(fields, func(f *model.PropertyField) bool { return f.ID == linked.ID }))
+
+	require.Empty(t, th.observedUntaggedPropertyCalls())
+}
+
+// TestRedactSimulationAttributesForCallerTagsSessionCaller checks that the
+// redaction reads the CPA fields as the request's session user, not as an
+// untagged context the access control hook refuses.
+func TestRedactSimulationAttributesForCallerTagsSessionCaller(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	resp := &model.PolicySimulationResponse{
+		Results: []model.PolicySimulationUserResult{{
+			User:       &model.User{Id: model.NewId()},
+			Attributes: map[string]string{field.Name: "il5"},
+		}},
+	}
+	rctx := request.EmptyContext(th.App.Log()).WithSession(&model.Session{UserId: th.BasicUser.Id})
+	th.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+
+	assert.NotContains(t, resp.Results[0].Attributes, field.Name, "a hidden field must still be redacted")
+	require.Empty(t, th.observedUntaggedPropertyCalls())
 }
 
 func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {

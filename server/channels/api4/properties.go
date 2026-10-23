@@ -1299,7 +1299,8 @@ func canManageBotTarget(c *Context, targetID string) bool {
 // (properties.NoCallerIDWarning) when a call with no caller ID has a write
 // refused or values hidden, but not when a field read only has its options
 // hidden. The app package's tests fail on any such call; this package's tests
-// do not check. Reviewing a new property handler means checking this by eye.
+// check only when they opt in through observeUntaggedPropertyCalls. Reviewing
+// a new property handler means checking this by eye.
 func sessionCallerID(c *Context) string {
 	session := c.AppContext.Session()
 	if session.IsUnrestricted() {

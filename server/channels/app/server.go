@@ -190,6 +190,13 @@ func (s *Server) PropertyService() *properties.PropertyService {
 	return s.propertyService
 }
 
+// SetPropertyNoCallerObserverForTests installs observer on the property
+// access control hook, so a test can check that the calls it makes reach the
+// hook with a caller ID. See AccessControlHook.SetNoCallerObserverForTests.
+func (s *Server) SetPropertyNoCallerObserverForTests(observer properties.NoCallerObserver) {
+	s.propertyAccessControlHook.SetNoCallerObserverForTests(observer)
+}
+
 func (s *Server) SetStore(st store.Store) {
 	if s.platform != nil {
 		s.platform.Store = st

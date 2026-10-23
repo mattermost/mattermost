@@ -668,11 +668,19 @@ func (th *TestHelper) ShutdownApp() {
 // caller ID, whatever logger the call's context carries. Each TestHelper has
 // its own server and so its own hook, so one test never sees another's calls.
 func (th *TestHelper) observeUntaggedPropertyCalls() {
-	th.Server.propertyAccessControlHook.SetNoCallerObserverForTests(func(operation, groupID string, fieldIDs []string) {
+	th.Server.SetPropertyNoCallerObserverForTests(func(operation, groupID string, fieldIDs []string) {
 		th.untaggedPropertyCallsMut.Lock()
 		defer th.untaggedPropertyCallsMut.Unlock()
 		th.untaggedPropertyCalls = append(th.untaggedPropertyCalls, fmt.Sprintf("%s group_id=%s field_ids=%v", operation, groupID, fieldIDs))
 	})
+}
+
+// observedUntaggedPropertyCalls returns the calls observeUntaggedPropertyCalls
+// has recorded so far.
+func (th *TestHelper) observedUntaggedPropertyCalls() []string {
+	th.untaggedPropertyCallsMut.Lock()
+	defer th.untaggedPropertyCallsMut.Unlock()
+	return slices.Clone(th.untaggedPropertyCalls)
 }
 
 // checkNoUntaggedPropertyCaller fails the test if the property access control
@@ -682,7 +690,7 @@ func (th *TestHelper) observeUntaggedPropertyCalls() {
 // real untagged caller gets; this catches an internal call that builds or is
 // handed an untagged context instead.
 func (th *TestHelper) checkNoUntaggedPropertyCaller(tb testing.TB) {
-	th.Server.propertyAccessControlHook.SetNoCallerObserverForTests(nil)
+	th.Server.SetPropertyNoCallerObserverForTests(nil)
 	if th.allowUntaggedPropertyCaller.Load() {
 		return
 	}

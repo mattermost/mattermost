@@ -6,8 +6,10 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"slices"
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -3457,6 +3459,113 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 	})
 }
 
+// TestConvertToVisualASTLocalModeTagsCaller checks that local mode's masked
+// visual AST reads the referenced field as the local admin: an empty caller
+// has the access control hook hide the field's options from the masking.
+func TestConvertToVisualASTLocalModeTagsCaller(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "clearance" + model.NewId(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Secret"}},
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	expression := `user.attributes.` + field.Name + ` == "Secret"`
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
+	mockACS.On("ExpressionToVisualAST", mock.Anything, expression).Return(&model.VisualExpression{
+		Conditions: []model.Condition{{
+			Attribute: "user.attributes." + field.Name,
+			Operator:  "==",
+			Value:     "Secret",
+			ValueType: model.LiteralValue,
+		}},
+	}, nil)
+
+	untaggedCalls := observeUntaggedPropertyCalls(t, th)
+
+	resp, err := th.LocalClient.DoAPIPost(context.Background(), "/access_control_policies/cel/visual_ast", string(mustMarshal(t, map[string]string{"expression": expression})))
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	require.Empty(t, untaggedCalls())
+}
+
+// TestGetAccessControlPolicyLocalModeTagsCaller checks that local mode's GET
+// of a policy masks its expressions reading the referenced field as the local
+// admin. Local admin and an empty caller are masked alike, so the response
+// cannot tell them apart; only the access control hook's no-caller observer
+// can.
+func TestGetAccessControlPolicyLocalModeTagsCaller(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "clearance" + model.NewId(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Secret"}},
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	expression := `user.attributes.` + field.Name + ` == "Secret"`
+	policy := &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Type:     model.AccessControlPolicyTypeChannel,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Revision: 1,
+		Rules:    []model.AccessControlPolicyRule{{Expression: expression, Actions: []string{model.AccessControlPolicyActionMembership}}},
+	}
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
+	mockACS.On("GetPolicy", mock.Anything, policy.ID).Return(policy, nil)
+	// The masking looks up each field the expression references through the
+	// resolver it is handed.
+	mockACS.On("MaskExpressionForCaller", mock.Anything, expression, mock.Anything).Run(func(args mock.Arguments) {
+		if _, err := args.Get(2).(model.MaskingFieldResolver).Resolve(model.PropertyFieldObjectTypeUser, field.Name); err != nil {
+			t.Errorf("resolving %s: %v", field.Name, err)
+		}
+	}).Return(expression, false, nil)
+
+	untaggedCalls := observeUntaggedPropertyCalls(t, th)
+
+	_, resp, err := th.LocalClient.GetAccessControlPolicy(context.Background(), policy.ID)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	mockACS.AssertCalled(t, "MaskExpressionForCaller", mock.Anything, expression, mock.Anything)
+
+	require.Empty(t, untaggedCalls())
+}
+
 // TestGetFieldsAutocompleteResourceFields exercises the HTTP boundary of
 // GET /cel/autocomplete/fields for channel-object-type (resource.attributes.*)
 // fields: a channel scope or the include_resource_fields flag surfaces them
@@ -3586,6 +3695,26 @@ func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
+}
+
+// observeUntaggedPropertyCalls records, until the test ends, every call the
+// property access control hook refuses, or hides options or values from, for
+// want of a caller ID, and returns a func reading what it has recorded.
+func observeUntaggedPropertyCalls(t *testing.T, th *TestHelper) func() []string {
+	t.Helper()
+	var mut sync.Mutex
+	var calls []string
+	th.App.Srv().SetPropertyNoCallerObserverForTests(func(operation, groupID string, fieldIDs []string) {
+		mut.Lock()
+		defer mut.Unlock()
+		calls = append(calls, fmt.Sprintf("%s group_id=%s field_ids=%v", operation, groupID, fieldIDs))
+	})
+	t.Cleanup(func() { th.App.Srv().SetPropertyNoCallerObserverForTests(nil) })
+	return func() []string {
+		mut.Lock()
+		defer mut.Unlock()
+		return slices.Clone(calls)
+	}
 }
 
 func mustMarshal(t *testing.T, v any) []byte {

@@ -966,6 +966,10 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 		resource: map[string]struct{}{},
 	}
 
+	// The fields and their templates are read as the request's caller: an
+	// untagged read has the access control hook hide every field's options.
+	rctx = rctxWithSessionCallerID(rctx)
+
 	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return protected, appErr
@@ -2029,7 +2033,7 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 
 	// This endpoint feeds policy authoring, which has no use for a field's
 	// grants or masking configuration -- only the field shape itself.
-	return a.ShapePropertyFieldsForCaller(rctx, model.Session{UserId: callerID}, fields, false), nil
+	return a.ShapePropertyFieldsForCaller(rctxWithCaller, model.Session{UserId: callerID}, fields, false), nil
 }
 
 func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, *model.AppError) {

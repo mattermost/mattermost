@@ -2161,15 +2161,23 @@ func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) erro
 }
 
 func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
-	return api.app.EvaluatePluginAccessRequest(api.ctx, api.id, userID, resourceType, resourceID, action)
+	// Tagged with the plugin's ID so the property reads the evaluation makes
+	// are attributed to the plugin; api.ctx carries no caller, which the
+	// property access control hook refuses.
+	return api.app.EvaluatePluginAccessRequest(api.psaPluginContext(), api.id, userID, resourceType, resourceID, action)
 }
 
 func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
-	return api.app.SavePluginAccessControlPolicy(api.ctx, api.id, actingUserID, policy)
+	// Tagged with the plugin's ID so the existence probe's policy read is
+	// attributed to the plugin; api.ctx carries no caller. The save itself runs
+	// as the acting user.
+	return api.app.SavePluginAccessControlPolicy(api.psaPluginContext(), api.id, actingUserID, policy)
 }
 
 func (api *PluginAPI) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
-	return api.app.GetPluginAccessControlPolicy(api.ctx, api.id, id)
+	// Tagged with the plugin's ID so the policy normalization's field lookups
+	// are attributed to the plugin; api.ctx carries no caller.
+	return api.app.GetPluginAccessControlPolicy(api.psaPluginContext(), api.id, id)
 }
 
 func (api *PluginAPI) DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError {
