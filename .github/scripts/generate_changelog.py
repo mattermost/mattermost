@@ -224,6 +224,7 @@ def get_milestone_number(repo: str, title: str) -> int | None:
 
 
 def docs_site(ref: str) -> "changelog_release.DocsSite":
+    """The docs site at ``ref``, for mapping and checking doc links."""
     return changelog_release.DocsSite.at(ref)
 
 
@@ -234,6 +235,7 @@ def is_rate_limited(response) -> bool:
 
 
 def repo_is_private(repo: str) -> bool:
+    """Whether ``repo`` is private, so its PR links are marked for readers who can't open them."""
     resp = SESSION.get(f"https://api.github.com/repos/{repo}", timeout=API_TIMEOUT)
     resp.raise_for_status()
     return bool(resp.json().get("private"))
@@ -333,6 +335,7 @@ def find_docs_links(prs: dict, sources: set, read_file) -> dict:
 
 
 def _split_source(source: str) -> tuple[str, int]:
+    """``(repo, number)`` from a ``owner/repo#123`` source key."""
     repo, _, number = source.partition("#")
     return repo, int(number)
 
@@ -433,6 +436,7 @@ def pr_owner(pr: dict) -> str | None:
 
 
 def parse_github_time(value: str) -> datetime:
+    """A timezone-aware datetime from a GitHub API timestamp."""
     return datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
 
 
@@ -962,6 +966,7 @@ def group_items_by_section(items: list[dict]) -> list[dict]:
 
 
 def _source_sort_key(source: str):
+    """Sort PR source keys by repo, then number; a derived key (no ``#``) sorts by its text."""
     repo, _, number = source.partition("#")
     return (repo, int(number) if number.isdigit() else 0)
 
@@ -1050,6 +1055,7 @@ _JSX_BOUNDARY_RE = re.compile(r"^[ \t]*</?[A-Z][A-Za-z0-9]*\b")
 
 
 def _bullet_indent(line: str) -> int | None:
+    """The indent of a bullet line, or None if it is not a bullet."""
     match = _BULLET_INDENT_RE.match(line)
     if not match:
         return None
@@ -1057,6 +1063,7 @@ def _bullet_indent(line: str) -> int | None:
 
 
 def _is_jsx_boundary(line: str) -> bool:
+    """Whether ``line`` opens or closes a JSX block such as ``<Note>``."""
     return bool(_JSX_BOUNDARY_RE.match(line))
 
 
@@ -1081,6 +1088,7 @@ def _minimum_bullet_indent(lines: list[str], start: int, end: int) -> int | None
 
 
 def _is_top_level(line: str, top_indent: int | None) -> bool:
+    """Whether ``line`` is a bullet at the section's top level."""
     indent = _bullet_indent(line)
     if indent is None:
         return False
@@ -1263,6 +1271,7 @@ def _insert_heading_block(lines, start, end, level, title, order, block_lines) -
 
 
 def _entry_start(lines: list[str], version_short: str) -> int | None:
+    """The index of the ``## Release vX.Y`` heading line, or None."""
     heading_re = re.compile(r"^## Release " + re.escape(version_short) + r"\b(?!\.)")
     return next((i for i, line in enumerate(lines) if heading_re.match(line)), None)
 
@@ -1279,6 +1288,7 @@ def _section_of(lines: list[str], start: int, index: int) -> tuple[str | None, s
 
 
 def _bullet_text(line: str) -> str:
+    """A bullet line's text without its marker and indent."""
     match = _BULLET_RE.match(line)
     return match.group(1) if match else line.strip()
 
@@ -1455,6 +1465,7 @@ def remove_section(fragment: str, title: str) -> str:
 # rewriting, and which sections the release diff filled.
 
 def _check(check: str, status: str, detail: str, remedy: str = "", blocking: bool = False) -> dict:
+    """One preflight check result."""
     return {"check": check, "status": status, "detail": detail, "remedy": remedy, "blocking": blocking}
 
 
@@ -1580,6 +1591,7 @@ _STATUS = {
 
 
 def _status_item(status: str, name: str, detail: str) -> str:
+    """A report line whose status icon is followed by its meaning in words."""
     icon, label = _STATUS[status]
     return f"- {icon} **{name}** ({label}): {detail}"
 
@@ -1678,6 +1690,7 @@ def render_status(readiness: dict) -> list[str]:
 
 
 def _docs_link(url: str, title: str | None) -> str:
+    """A Markdown link to a docs page, labelled with its title (or path when untitled)."""
     return f"[{title or url.removeprefix(changelog_release.DOCS_SITE) or '/'}]({url})"
 
 
@@ -1758,6 +1771,7 @@ def render_summary(payload: dict, entry: str) -> str:
 
 
 def set_github_output(name: str, value) -> None:
+    """Append ``name=value`` to ``$GITHUB_OUTPUT`` when it is set."""
     path = os.environ.get("GITHUB_OUTPUT")
     if path:
         with open(path, "a", encoding="utf-8") as f:
@@ -1765,6 +1779,7 @@ def set_github_output(name: str, value) -> None:
 
 
 def default_pr_body() -> str:
+    """The body of a new changelog PR, explaining how reruns treat it."""
     return (
         f"Auto-generated changelog for milestone `{MILESTONE_TITLE}` from `{', '.join(REPOS)}`.\n\n"
         "Re-running the **Generate Changelog** workflow in `auto` mode adds release notes "
@@ -1792,6 +1807,7 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
 
 
 def blog_post_link() -> str:
+    """The Markdown link to the release's blog post, built from the version when no URL is given."""
     blog_url = os.environ.get("BLOG_POST_URL", "").strip()
     if not blog_url:
         # Auto-construct short URL (no patch suffix): v11.6.0 → mattermost-v11-6-is-now-available
@@ -1803,6 +1819,7 @@ def blog_post_link() -> str:
 
 
 def main():
+    """Generate or update the entry, then write the readiness report and outputs."""
     mode = os.environ.get("MODE", "create").strip().lower() or "create"
     if mode not in ("create", "update"):
         raise RuntimeError(f"MODE must be 'create' or 'update', not {mode!r}")

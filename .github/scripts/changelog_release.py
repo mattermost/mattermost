@@ -41,6 +41,7 @@ SCHEDULE_MODES = ("auto", "dry_run")
 # ── Versions and refs ───────────────────────────────────────────────────────────────
 
 def parse_version(version: str) -> tuple[int, int, int]:
+    """``(major, minor, patch)`` from ``v12.1.0``, ``12.1.0`` or ``v12.1`` (patch 0)."""
     match = re.fullmatch(r"v?(\d+)\.(\d+)(?:\.(\d+))?", (version or "").strip())
     if not match:
         raise ValueError(f"Cannot parse version {version!r}; expected a form like v12.1.0")
@@ -49,6 +50,7 @@ def parse_version(version: str) -> tuple[int, int, int]:
 
 
 def short_version(version: str) -> str:
+    """``v12.1`` for ``v12.1.0``, as used in entry headings."""
     major, minor, _ = parse_version(version)
     return f"v{major}.{minor}"
 
@@ -122,10 +124,12 @@ def release_type_for(version: str, requested: str, esr_versions: str) -> str:
 
 
 def changelog_path(version: str) -> str:
+    """The changelog file a version's entry goes in, one per major version."""
     return f"{DOCS_DIR}/mattermost-v{parse_version(version)[0]}-changelog.mdx"
 
 
 def has_entry(content: str, version: str) -> bool:
+    """Whether ``content`` already has a ``## Release vX.Y`` entry for ``version``."""
     return re.search(rf"(?m)^## Release {re.escape(short_version(version))} - ", content or "") is not None
 
 
@@ -198,6 +202,7 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
 # ── Facts read from the release diff ────────────────────────────────────────────────
 
 def _git(*args: str) -> subprocess.CompletedProcess:
+    """Run git from the top of the checkout, whatever the current directory."""
     # Paths are repo-relative wherever the script is run from (the workflow copies it out
     # of the checkout before switching branches).
     top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
@@ -220,6 +225,7 @@ def git_show(ref: str, path: str) -> str | None:
 
 
 def git_added_files(base: str, head: str, path: str) -> list[str]:
+    """Files under ``path`` added between ``base`` and ``head``. A failing git command raises."""
     result = _git("diff", "--name-only", "--diff-filter=A", base, head, "--", path)
     if result.returncode != 0:
         raise RuntimeError(f"git diff {base} {head} -- {path} failed: {result.stderr.strip()}")
@@ -247,6 +253,7 @@ PLUGIN_DISPLAY_NAMES = {
 
 
 def plugin_display_name(package: str) -> str:
+    """``Calls`` for ``mattermost-plugin-calls``, using the changelog's established names."""
     slug = package.removeprefix("mattermost-plugin-")
     return PLUGIN_DISPLAY_NAMES.get(slug) or " ".join(part.capitalize() for part in slug.split("-"))
 
@@ -264,10 +271,12 @@ def plugin_packages(makefile: str) -> dict[str, str]:
 
 
 def plugin_version_link(package: str, version: str) -> str:
+    """A Markdown link to the plugin release's GitHub page."""
     return f"[{version}](https://github.com/mattermost/{package}/releases/tag/{version})"
 
 
 def plugin_notes(old: dict, new: dict) -> list[dict]:
+    """A note for each pre-packaged plugin bumped, added or removed between two Makefile versions."""
     notes = []
     for package in sorted(new):
         version = new[package]
@@ -282,10 +291,12 @@ def plugin_notes(old: dict, new: dict) -> list[dict]:
 
 
 def websocket_events(go_source: str) -> set[str]:
+    """The ``WebsocketEventType`` values defined in a Go source file."""
     return set(re.findall(r'WebsocketEventType\s*=\s*"([a-z0-9_]+)"', go_source or ""))
 
 
 def websocket_notes(old: set, new: set) -> list[dict]:
+    """A note for each WebSocket event added or removed between two releases."""
     notes = []
     for event in sorted(new - old):
         text = f"Added the ``{event}`` WebSocket event."
@@ -297,6 +308,7 @@ def websocket_notes(old: set, new: set) -> list[dict]:
 
 
 def migration_note(name: str, sql: str) -> dict:
+    """A note asking for a Database Schema Changes bullet for one migration, carrying its SQL."""
     sql = (sql or "").strip()
     if len(sql) > MAX_MIGRATION_SQL_CHARS:
         sql = sql[:MAX_MIGRATION_SQL_CHARS] + "\n-- (truncated)"
@@ -456,6 +468,7 @@ def docs_page_url(path: str, content: str | None = None) -> str | None:
 
 
 def _plain_heading(heading: str) -> str:
+    """A heading's text without its anchor, links, HTML or emphasis."""
     text = re.sub(r"\s*\\?\{#[^}]+\}\s*$", "", heading)
     text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
     return re.sub(r"<[^>]+>|[*_`]", "", text).strip()
@@ -485,6 +498,7 @@ def heading_anchor(heading: str) -> str:
 
 
 def added_headings(patch: str | None) -> list[str]:
+    """The level 2 to 6 headings a diff patch adds."""
     return [m.group(1).strip() for m in re.finditer(r"(?m)^\+#{2,6}\s+(.+)$", patch or "")]
 
 
@@ -504,6 +518,7 @@ def pr_references(body: str, repo: str) -> set[str]:
 
 
 def _docs_candidates(files: list[dict], via: str, read_file) -> list[dict]:
+    """The served docs pages among ``files``, other than release notes, with what the change did to each."""
     candidates = []
     for f in files or []:
         path = f["filename"]
@@ -609,6 +624,7 @@ CHANGELOG_GLOB = "docs/main/product-overview/mattermost-v*-changelog.mdx"
 
 
 def _site_path(path: str) -> str:
+    """A docs URL path in the form pages are keyed by: no trailing slash or ``.html``."""
     path = re.sub(r"\.html$", "", (path or "/").rstrip("/")) or "/"
     return "/" if path == "/index" else path
 
@@ -621,6 +637,7 @@ class DocsSite:
     """
 
     def __init__(self, files: list[str], read, slugged: set | None = None, redirects: str | None = None):
+        """Index ``files`` (repo-relative docs paths) as pages, reading each with ``read(path)``."""
         self.read = read
         self.pages = {}
         for path in files:
@@ -637,6 +654,7 @@ class DocsSite:
 
     @classmethod
     def at(cls, ref: str) -> "DocsSite":
+        """The docs site as it is at git ``ref``."""
         roots = [root.rstrip("/") for root, _ in DOCS_ROOTS]
         listing = _git("ls-tree", "-r", "--name-only", ref, "--", *roots)
         if listing.returncode != 0:
@@ -697,11 +715,13 @@ class DocsSite:
         return self.resolve(url)[1]
 
     def title(self, url: str) -> str | None:
+        """The title of the page ``url`` points to, or None if it is not served."""
         page, _ = self.resolve(url)
         return page_title(page, self.read(page)) if page else None
 
 
 def docs_urls(text: str) -> list[str]:
+    """The docs.mattermost.com URLs in ``text``, without trailing punctuation."""
     return [match.group(0).rstrip(".,;:") for match in DOCS_URL_RE.finditer(text or "")]
 
 
@@ -722,6 +742,7 @@ def added_lines(diff: str) -> list[tuple[str, int, str]]:
 
 
 def broken_links(lines: list[tuple[str, int, str]], site: DocsSite) -> list[dict]:
+    """One problem per docs link in ``(file, line, text)`` lines that the site does not serve."""
     problems = []
     for path, number, text in lines:
         for url in docs_urls(text):
@@ -762,6 +783,7 @@ def reviewers_for(sections: list[dict], mapping: dict) -> list[str]:
 # ── CLI ─────────────────────────────────────────────────────────────────────────────
 
 def _write_outputs(outputs: dict) -> None:
+    """Print ``outputs`` and append them to ``$GITHUB_OUTPUT`` when it is set."""
     path = os.environ.get("GITHUB_OUTPUT")
     for key, value in outputs.items():
         print(f"{key}={value}")
@@ -772,6 +794,7 @@ def _write_outputs(outputs: dict) -> None:
 
 
 def _read_file(path: str) -> str | None:
+    """A file's contents, or None if it does not exist."""
     try:
         with open(path, encoding="utf-8") as f:
             return f.read()
@@ -780,6 +803,7 @@ def _read_file(path: str) -> str | None:
 
 
 def main(argv: list[str]) -> int:
+    """Command-line entry point: ``resolve``, ``reviewers`` or ``check-links BASE_REF``."""
     command = argv[1] if len(argv) > 1 else ""
     if command == "resolve":
         ls_remote = subprocess.run(
