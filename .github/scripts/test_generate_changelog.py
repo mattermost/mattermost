@@ -364,7 +364,7 @@ class MainTest(unittest.TestCase):
         self.out = self.tmp / "out"
         self.saved = {
             name: getattr(gc, name)
-            for name in ("get_milestone_number", "repo_is_private", "get_merged_prs", "get_pr_details", "polish_with_ai", "VERSION", "MILESTONE_TITLE", "REPOS")
+            for name in ("get_milestone_number", "repo_is_private", "docs_site", "get_merged_prs", "get_pr_details", "polish_with_ai", "VERSION", "MILESTONE_TITLE", "REPOS")
         }
         self.saved_derived = gc.changelog_release.derived_notes
         self.saved_show = gc.changelog_release.git_show
@@ -375,6 +375,8 @@ class MainTest(unittest.TestCase):
         gc.REPOS = ["mattermost/mattermost"]
         gc.get_milestone_number = lambda repo, title: 7
         gc.repo_is_private = lambda repo: repo == "mattermost/enterprise"
+        self.site_pages = {"docs/main/product-overview/release-policy.mdx": "## Release types\n"}
+        gc.docs_site = lambda ref: gc.changelog_release.DocsSite(list(self.site_pages), self.site_pages.get)
         gc.get_merged_prs = lambda repo, number: self.prs
         self.details = {}
         gc.get_pr_details = lambda repo, number: self.details.get(number, {"head_ref": f"branch-{number}", "files": []})
@@ -444,6 +446,7 @@ class MainTest(unittest.TestCase):
         self.assertIn("➖ **WebSocket events** (no changes this release): none in the release diff", summary)
         self.assertIn("⏳ **Benchmarking** (not yet checked)", summary)
         self.assertIn("Generator status: ready to run", summary)
+        self.assertIn("✅ **1 link(s)** (pass): every page and heading exists", summary)
         self.assertEqual(payload["readiness"]["missing_by_owner"], [{"owner": "dev4", "sources": ["mattermost/mattermost#4"]}])
 
         with self.assertRaises(RuntimeError) as caught:
@@ -459,6 +462,7 @@ class MainTest(unittest.TestCase):
         }]}
         pages = {"docs/main/administration-guide/manage/admin/feature.mdx": "---\ntitle: Feature\n---\n# Feature\n"}
         gc.changelog_release.git_show = lambda ref, path: pages.get(path, "FROM golang:1.27.1-bookworm\n")
+        self.site_pages.update(pages)
         sent = []
 
         def polish(notes):
@@ -475,6 +479,20 @@ class MainTest(unittest.TestCase):
         self.assertEqual(link["used_in"], ["Administration"])
         self.assertIn("changed in the same PR, which added the page", link["basis"])
         self.assertIn(f"is documented in [Feature]({url}) (`/administration-guide/manage/admin/feature`) (linked in Administration)", (self.out / "summary.md").read_text())
+
+    def test_broken_docs_link_in_the_generated_text_is_reported(self):
+        gc.polish_with_ai = lambda notes: ((
+            "### Improvements\n\n#### Administration\n"
+            " - Added [a thing](https://docs.mattermost.com/product-overview/release-policy#no-such-heading). [[N1]]\n"
+            " - Fixed an issue found later. [[N2]]\n - Pre-packaged Calls plugin version [v1.12.6](https://example.com). [[N3]]\n"
+        ), True)
+        gc.main()
+        broken = self._payload()["readiness"]["broken_links"]
+        self.assertEqual([b["url"] for b in broken],
+                         ["https://docs.mattermost.com/product-overview/release-policy#no-such-heading"])
+        self.assertIn("❌ **https://docs.mattermost.com/product-overview/release-policy#no-such-heading** (fail): "
+                      "docs/main/product-overview/release-policy.mdx has no heading or id that gives #no-such-heading",
+                      (self.out / "summary.md").read_text())
 
     def test_unreadable_repo_is_reported_as_unknown_not_missing(self):
         import requests

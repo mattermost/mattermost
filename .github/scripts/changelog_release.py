@@ -182,7 +182,10 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
 # ── Facts read from the release diff ────────────────────────────────────────────────
 
 def _git(*args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(["git", *args], capture_output=True, text=True)
+    # Paths are repo-relative wherever the script is run from (the workflow copies it out
+    # of the checkout before switching branches).
+    top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    return subprocess.run(["git", *args], capture_output=True, text=True, cwd=top.stdout.strip() or None)
 
 
 def git_show(ref: str, path: str) -> str | None:
@@ -578,6 +581,128 @@ def docs_link(source: str, prs: dict, files_of, read_file) -> dict:
     return {}
 
 
+# ── Link check ──────────────────────────────────────────────────────────────────────
+#
+# Every docs.mattermost.com link must reach a page, and its #anchor a heading on it.
+# The site is rebuilt from the docs sources at a ref the way docs_page_url serves them,
+# plus the hand-maintained legacy redirects, so no network access is needed.
+
+DOCS_URL_RE = re.compile(r"https?://docs\.mattermost\.com(?P<path>/[^\s)>\]\"'`#?]*)?(?:\?[^\s)>\]\"'`#]*)?(?:#(?P<anchor>[^\s)>\]\"'`]*))?")
+REDIRECTS_FILE = "docs/site/sidebars/active-redirects.json"
+CHANGELOG_GLOB = "docs/main/product-overview/mattermost-v*-changelog.mdx"
+
+
+def _site_path(path: str) -> str:
+    path = re.sub(r"\.html$", "", (path or "/").rstrip("/")) or "/"
+    return "/" if path == "/index" else path
+
+
+class DocsSite:
+    """The pages, and their headings, docs.mattermost.com builds from ``files``.
+
+    ``read(path)`` returns a file's text. ``slugged`` names the files with a frontmatter
+    slug; None reads every page to find out.
+    """
+
+    def __init__(self, files: list[str], read, slugged: set | None = None, redirects: str | None = None):
+        self.read = read
+        self.pages = {}
+        for path in files:
+            if os.path.basename(path).startswith("_"):
+                continue
+            needs_content = slugged is None or path in slugged
+            url = docs_page_url(path, read(path) if needs_content else None)
+            if url:
+                self.pages.setdefault(_site_path(url[len(DOCS_SITE):]), path)
+        self.redirects = {}
+        for redirect in json.loads(redirects or "{}").get("redirects", []):
+            self.redirects[_site_path(redirect["from"])] = redirect["to"]
+        self._anchors = {}
+
+    @classmethod
+    def at(cls, ref: str) -> "DocsSite":
+        roots = [root.rstrip("/") for root, _ in DOCS_ROOTS]
+        listing = _git("ls-tree", "-r", "--name-only", ref, "--", *roots)
+        if listing.returncode != 0:
+            raise RuntimeError(f"git ls-tree {ref} failed: {listing.stderr.strip()}")
+        grep = _git("grep", "-l", "-E", "^slug:", ref, "--", *roots)
+        slugged = {line.split(":", 1)[1] for line in grep.stdout.splitlines() if ":" in line}
+        files = [line for line in listing.stdout.splitlines() if re.search(r"\.mdx?$", line)]
+        return cls(files, lambda path: git_show(ref, path), slugged, git_show(ref, REDIRECTS_FILE))
+
+    def anchors(self, path: str, seen: frozenset = frozenset()) -> set[str]:
+        """The ids a page's headings and explicit ``id=`` attributes get, partials included."""
+        if path in self._anchors:
+            return self._anchors[path]
+        text = re.sub(r"(?ms)^\s*(```|~~~).*?^\s*\1", "", self.read(path) or "")
+        anchors, counts = set(), {}
+        for heading in re.findall(r"(?m)^#{1,6}\s+(.+?)\s*$", text):
+            slug = heading_anchor(heading)
+            if not re.search(r"\\?\{#[^}]+\}\s*$", heading):
+                count = counts.get(slug, 0)
+                counts[slug] = count + 1
+                slug = f"{slug}-{count}" if count else slug
+            anchors.add(slug)
+        anchors |= set(re.findall(r"""\b(?:id|name)=["']([^"']+)["']""", text))
+        for partial in re.findall(r"""(?m)^import\s+\w+\s+from\s+['"](\.{1,2}/[^'"]+\.mdx?)['"]""", text):
+            included = os.path.normpath(os.path.join(os.path.dirname(path), partial))
+            if included not in seen:
+                anchors |= self.anchors(included, seen | {path})
+        self._anchors[path] = anchors
+        return anchors
+
+    def check(self, url: str) -> str | None:
+        """Why ``url`` does not resolve, or None when it does (or is not checked)."""
+        match = DOCS_URL_RE.match(url)
+        if not match:
+            return None
+        path, anchor = _site_path(match.group("path")), match.group("anchor") or ""
+        anchor = re.sub(r"\.html$", "", anchor)
+        if path == "/api" or path.startswith("/api/"):
+            return None
+        for _ in range(5):
+            if path in self.pages or path not in self.redirects:
+                break
+            target, _, redirect_anchor = self.redirects[path].partition("#")
+            path, anchor = _site_path(target), anchor or re.sub(r"\.html$", "", redirect_anchor)
+        page = self.pages.get(path)
+        if page is None:
+            return f"no docs page is served at {path}"
+        if anchor and anchor not in self.anchors(page):
+            return f"{page} has no heading or id that gives #{anchor}"
+        return None
+
+
+def docs_urls(text: str) -> list[str]:
+    return [match.group(0).rstrip(".,;:") for match in DOCS_URL_RE.finditer(text or "")]
+
+
+def added_lines(diff: str) -> list[tuple[str, int, str]]:
+    """(file, line number, text) for each line a unified diff adds."""
+    lines, path, number = [], None, 0
+    for line in diff.splitlines():
+        if line.startswith("+++ "):
+            path = line[6:] if line.startswith("+++ b/") else None
+        elif line.startswith("@@"):
+            number = int(re.match(r"@@ -\S+ \+(\d+)", line).group(1))
+        elif line.startswith("+") and path:
+            lines.append((path, number, line[1:]))
+            number += 1
+        elif not line.startswith("-") and path:
+            number += 1
+    return lines
+
+
+def broken_links(lines: list[tuple[str, int, str]], site: DocsSite) -> list[dict]:
+    problems = []
+    for path, number, text in lines:
+        for url in docs_urls(text):
+            problem = site.check(url)
+            if problem:
+                problems.append({"file": path, "line": number, "url": url, "problem": problem})
+    return problems
+
+
 # ── Reviewers ───────────────────────────────────────────────────────────────────────
 
 def reviewers_for(sections: list[dict], mapping: dict) -> list[str]:
@@ -646,7 +771,20 @@ def main(argv: list[str]) -> int:
         mapping = json.loads(os.environ.get("SECTION_REVIEWERS") or "{}")
         print(",".join(reviewers_for(sections, mapping)))
         return 0
-    print("usage: changelog_release.py resolve | reviewers SECTIONS_JSON", file=sys.stderr)
+    if command == "check-links" and len(argv) > 2:
+        # Only the lines this change adds: older entries link pages that have since moved,
+        # which is for the docs team's own link check, not a reason to block this PR.
+        diff = _git("diff", "--unified=0", f"{argv[2]}...HEAD", "--", CHANGELOG_GLOB)
+        if diff.returncode != 0:
+            raise RuntimeError(f"git diff {argv[2]}...HEAD failed: {diff.stderr.strip()}")
+        lines = added_lines(diff.stdout)
+        problems = broken_links(lines, DocsSite.at("HEAD"))
+        checked = sum(len(docs_urls(text)) for _, _, text in lines)
+        for p in problems:
+            print(f"::error file={p['file']},line={p['line']},title=Broken docs link::{p['url']}: {p['problem']}")
+        print(f"{checked} docs.mattermost.com link(s) added to the changelog; {len(problems)} broken")
+        return 1 if problems else 0
+    print("usage: changelog_release.py resolve | reviewers SECTIONS_JSON | check-links BASE_REF", file=sys.stderr)
     return 2
 
 

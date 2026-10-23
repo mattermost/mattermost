@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Tests for release resolution, release-diff notes and reviewer routing."""
+"""Tests for release resolution, release-diff notes, doc links and reviewer routing."""
 
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -398,6 +399,68 @@ class ReviewersTest(unittest.TestCase):
     def test_wildcard_only_when_something_changed(self):
         self.assertEqual(cr.reviewers_for(self.SECTIONS, {"*": ["docs-editor"]}), ["docs-editor"])
         self.assertEqual(cr.reviewers_for([], {"*": ["docs-editor"]}), [])
+
+
+class LinkCheckTest(unittest.TestCase):
+    PAGES = {
+        "docs/main/product-overview/release-policy.mdx": "## Release types\n\n## Release types\n\n```\n## Not a heading\n```\n",
+        "docs/main/administration-guide/manage/admin/error-codes.mdx": "## ERROR_LICENSED_USERS_LIMIT_EXCEEDED\n",
+        "docs/main/administration-guide/manage/admin/channel-attributes.mdx":
+            "import Partial from './_attributes.mdx';\n\n## Set up \\{#setup}\n<a id=\"legacy-id\"></a>\n\n<Partial />\n",
+        "docs/main/administration-guide/manage/admin/_attributes.mdx": "### From a partial\n",
+        "docs/main/for/sre.mdx": "---\nslug: /for/site-reliability\n---\n# SRE\n",
+        "docs/develop/integrate/plugins/index.md": "# Plugins\n",
+    }
+    REDIRECTS = json.dumps({"redirects": [
+        {"from": "/about/release-policy", "to": "/product-overview/release-policy"},
+        {"from": "/about/faq", "to": "/product-overview/release-policy#release-types.html"},
+    ]})
+
+    def setUp(self):
+        self.site = cr.DocsSite(list(self.PAGES), self.PAGES.get, redirects=self.REDIRECTS)
+
+    def test_resolving_links(self):
+        ok = [
+            "https://docs.mattermost.com/product-overview/release-policy.html#release-types",
+            "https://docs.mattermost.com/product-overview/release-policy#release-types-1",
+            "https://docs.mattermost.com/about/release-policy.html#release-types",
+            "https://docs.mattermost.com/about/faq",
+            "https://docs.mattermost.com/administration-guide/manage/admin/error-codes#error_licensed_users_limit_exceeded",
+            "https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes#setup",
+            "https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes#legacy-id",
+            "https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes#from-a-partial",
+            "https://docs.mattermost.com/for/site-reliability",
+            "https://docs.mattermost.com/developers/integrate/plugins/",
+            "https://docs.mattermost.com/api/v4/posts",
+        ]
+        self.assertEqual({url: self.site.check(url) for url in ok}, dict.fromkeys(ok))
+        self.assertEqual(self.site.check("https://docs.mattermost.com/for/sre"), "no docs page is served at /for/sre")
+        self.assertIn("has no heading or id that gives #error-licensed-users-limit-exceeded", self.site.check(
+            "https://docs.mattermost.com/administration-guide/manage/admin/error-codes.html#error-licensed-users-limit-exceeded"))
+        self.assertIn("#not-a-heading", self.site.check(
+            "https://docs.mattermost.com/product-overview/release-policy#not-a-heading"))
+        self.assertIsNone(self.site.check("https://mattermost.com/blog/"))
+
+    def test_only_added_lines_are_checked(self):
+        diff = (
+            "diff --git a/docs/main/product-overview/mattermost-v12-changelog.mdx b/docs/main/product-overview/mattermost-v12-changelog.mdx\n"
+            "--- a/docs/main/product-overview/mattermost-v12-changelog.mdx\n"
+            "+++ b/docs/main/product-overview/mattermost-v12-changelog.mdx\n"
+            "@@ -10,0 +11,2 @@\n"
+            "+ - Added [x](https://docs.mattermost.com/for/sre).\n"
+            "+ - See <https://docs.mattermost.com/about/release-policy.html>, and more.\n"
+            "@@ -40 +42 @@\n"
+            "- - Old [y](https://docs.mattermost.com/gone).\n"
+            "+ - New [y](https://docs.mattermost.com/also-gone#z).\n"
+        )
+        lines = cr.added_lines(diff)
+        self.assertEqual([(line[1]) for line in lines], [11, 12, 42])
+        problems = cr.broken_links(lines, self.site)
+        self.assertEqual([(p["line"], p["url"]) for p in problems], [
+            (11, "https://docs.mattermost.com/for/sre"), (42, "https://docs.mattermost.com/also-gone#z"),
+        ])
+        self.assertEqual(cr.docs_urls("<https://docs.mattermost.com/about/release-policy.html>, and"),
+                         ["https://docs.mattermost.com/about/release-policy.html"])
 
 
 if __name__ == "__main__":

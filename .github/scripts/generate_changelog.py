@@ -220,6 +220,10 @@ def get_milestone_number(repo: str, title: str) -> int | None:
     return None
 
 
+def docs_site(ref: str) -> "changelog_release.DocsSite":
+    return changelog_release.DocsSite.at(ref)
+
+
 def repo_is_private(repo: str) -> bool:
     resp = SESSION.get(f"https://api.github.com/repos/{repo}", timeout=API_TIMEOUT)
     resp.raise_for_status()
@@ -1606,6 +1610,17 @@ def render_status(readiness: dict) -> list[str]:
                 lines.append(f"  - {pr(link['source'])}: {pages}")
         lines.append("")
 
+    checked, broken = readiness.get("links_checked", 0), readiness.get("broken_links", [])
+    if checked:
+        lines += ["### Docs links in the generated text", ""]
+        if broken is None:
+            lines.append(_status_item("unknown", f"{checked} link(s)", "not checked; the docs pages could not be read"))
+        elif not broken:
+            lines.append(_status_item("pass", f"{checked} link(s)", "every page and heading exists"))
+        for problem in broken or []:
+            lines.append(_status_item("fail", problem["url"], problem["problem"]))
+        lines.append("")
+
     blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
     lines += [f"**Generator status: {'NOT READY (preflight failing)' if blocking else 'ready to run'}**", ""]
     return lines
@@ -2120,6 +2135,20 @@ def main():
     # proposed_before is only left set when the run proposed a list instead of updating.
     if not proposed_before:
         pr_body = render_pr_body(pr_body, included)
+
+    urls = changelog_release.docs_urls(entry)
+    readiness["links_checked"] = len(urls)
+    readiness["broken_links"] = []
+    if urls:
+        try:
+            site = docs_site(docs_ref)
+            readiness["broken_links"] = changelog_release.broken_links(
+                [("entry.mdx", number, line) for number, line in enumerate(entry.split("\n"), start=1)], site)
+        except RuntimeError as err:
+            readiness["broken_links"] = None
+            print(f"::warning title=Docs links not checked::{err}")
+    for problem in readiness["broken_links"] or []:
+        print(f"::warning title=Broken docs link::{problem['url']}: {problem['problem']}")
 
     for link in readiness["doc_links"] if ai_polished else []:
         link["used_in"] = [
