@@ -488,7 +488,7 @@ class MainTest(unittest.TestCase):
         link = self._payload()["readiness"]["doc_links"][0]
         self.assertEqual(link["used_in"], ["Administration"])
         self.assertIn("changed in the same PR, which added the page", link["basis"])
-        self.assertIn(f"is documented in [Feature]({url}) (`/administration-guide/manage/admin/feature`) (linked in Administration)", (self.out / "summary.md").read_text())
+        self.assertIn(f"is documented in [Feature]({url}) (linked in Administration)", (self.out / "summary.md").read_text())
 
     def test_docs_line_outranks_the_followed_page_and_is_checked(self):
         self.details[1] = {"head_ref": "MM-123-feature", "files": [{

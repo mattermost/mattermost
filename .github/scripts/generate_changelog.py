@@ -1650,8 +1650,7 @@ def render_status(readiness: dict) -> list[str]:
 
 
 def _docs_link(url: str, title: str | None) -> str:
-    path = url.removeprefix(changelog_release.DOCS_SITE) or "/"
-    return f"[{title or path}]({url}) (`{path}`)"
+    return f"[{title or url.removeprefix(changelog_release.DOCS_SITE) or '/'}]({url})"
 
 
 def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> None:
@@ -2242,7 +2241,7 @@ def main():
             "prs_flagged": len(flagged_prs),
             "derived_changes": len(added_sources & derived_sources),
             "sources_added": len(added_sources),
-            "bullets_written": len(items),
+            "bullets_written": len(items) - len(extra_items),
             "bullets_corrected": len(extra_items),
             "bullets_needing_review": sum(item["status"] == "needs_review" for item in reconciled),
             "sources_unattributed": len(unattributed),
