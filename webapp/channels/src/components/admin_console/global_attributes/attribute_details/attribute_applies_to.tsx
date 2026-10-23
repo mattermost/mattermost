@@ -11,8 +11,8 @@ import type {ButtonEmphasis} from '@mattermost/shared/components/button';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
-import Card from 'components/card/card';
 import * as Menu from 'components/menu';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import AttributeAppliesToChannelItem from './attribute_applies_to_channel_item';
 import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, resourceTypeLabels} from './attribute_applies_to_constants';
@@ -91,7 +91,7 @@ const RESOURCE_TYPE_ITEM_COMPONENTS: Record<Exclude<ResourceObjectType, 'channel
     post: AttributeAppliesToPostItem,
 };
 
-// Owns only the Card chrome (header, "Add resource" triggers, empty state)
+// Owns only the AdminPanel chrome (header, "Add resource" triggers, empty state)
 // and renders one per-type row component per entry in appliesTo (a dedicated
 // component per resource type -- AttributeAppliesToUserItem/ChannelItem/
 // PostItem -- rather than one generic item parameterized by resourceType).
@@ -166,99 +166,89 @@ function AttributeAppliesTo({
         </Menu.Container>
     );
 
+    const headerAddResource = availableTypes.length > 0 && !hideAddResource ? renderAddResourceMenu(
+        ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID,
+        'attributeAppliesToAddResourceButtonHeader',
+        formatMessage(messages.addResourceHeader),
+        'tertiary',
+    ) : undefined;
+
     return (
         <div data-testid='attributeAppliesTo'>
-            <Card
-                expanded={true}
-                disableExpandAnimation={true}
-                className='console AttributeAppliesTo'
+            <AdminPanel
+                id='attribute_applies_to'
+                className='AttributeAppliesTo'
+                title={messages.title}
+                subtitle={messages.subtitle}
+                button={headerAddResource}
             >
-                <Card.Header>
-                    <div className='AttributeDetails__headerGroup'>
-                        <div className='AttributeDetails__blockTitle'>
-                            <FormattedMessage {...messages.title}/>
-                        </div>
-                        <FormattedMessage
-                            tagName='p'
-                            {...messages.subtitle}
-                        />
+                {appliesTo.length === 0 ? (
+                    <div
+                        className='AttributeAppliesTo__emptyState'
+                        data-testid='attributeAppliesToEmptyState'
+                    >
+                        <h5 className='AttributeAppliesTo__emptyStateHeading'>
+                            <FormattedMessage {...messages.emptyStateHeading}/>
+                        </h5>
+                        <p className='AttributeAppliesTo__emptyStateHelperText'>
+                            <FormattedMessage {...(hideAddResource ? messages.emptyStateHelperTextPluginOwned : messages.emptyStateHelperText)}/>
+                        </p>
+                        {availableTypes.length > 0 && !hideAddResource && renderAddResourceMenu(
+                            'attribute-applies-to-add-inline',
+                            'attributeAppliesToAddResourceButtonInline',
+                            formatMessage(messages.addResourceHeader),
+                            'primary',
+                        )}
                     </div>
-                    {availableTypes.length > 0 && !hideAddResource && renderAddResourceMenu(
-                        ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID,
-                        'attributeAppliesToAddResourceButtonHeader',
-                        formatMessage(messages.addResourceHeader),
-                        'tertiary',
-                    )}
-                </Card.Header>
-                <Card.Body expanded={true}>
-                    {appliesTo.length === 0 ? (
-                        <div
-                            className='AttributeAppliesTo__emptyState'
-                            data-testid='attributeAppliesToEmptyState'
-                        >
-                            <h5 className='AttributeAppliesTo__emptyStateHeading'>
-                                <FormattedMessage {...messages.emptyStateHeading}/>
-                            </h5>
-                            <p className='AttributeAppliesTo__emptyStateHelperText'>
-                                <FormattedMessage {...(hideAddResource ? messages.emptyStateHelperTextPluginOwned : messages.emptyStateHelperText)}/>
-                            </p>
-                            {availableTypes.length > 0 && !hideAddResource && renderAddResourceMenu(
-                                'attribute-applies-to-add-inline',
-                                'attributeAppliesToAddResourceButtonInline',
-                                formatMessage(messages.addResourceHeader),
-                                'primary',
-                            )}
-                        </div>
-                    ) : (
-                        <>
-                            <div className='AttributeAppliesTo__list'>
-                                {appliesTo.map((type) => {
-                                    if (type === 'channel') {
-                                        return (
-                                            <AttributeAppliesToChannelItem
-                                                key={type}
-                                                config={channelResource}
-                                                onConfigChange={onChannelResourceChange}
-                                                ordered={ordered}
-                                                disabled={disabled}
-                                                lockedTooltip={lockedTooltip}
-                                                removeLockedTooltip={removeLockedTooltips?.[type]}
-                                                onRemove={() => onRemove(type)}
-                                            />
-                                        );
-                                    }
-
-                                    const Item = RESOURCE_TYPE_ITEM_COMPONENTS[type];
-                                    const userProps = type === 'user' ? {
-                                        visibility: userVisibility,
-                                        onVisibilityChange: onUserVisibilityChange,
-                                        managed: userManaged,
-                                        onManagedChange: onUserManagedChange,
-                                        externalSource,
-                                        whoCanSetLockedTooltip: userWhoCanSetLockedTooltip,
-                                    } : {};
+                ) : (
+                    <>
+                        <div className='AttributeAppliesTo__list'>
+                            {appliesTo.map((type) => {
+                                if (type === 'channel') {
                                     return (
-                                        <Item
+                                        <AttributeAppliesToChannelItem
                                             key={type}
+                                            config={channelResource}
+                                            onConfigChange={onChannelResourceChange}
+                                            ordered={ordered}
                                             disabled={disabled}
                                             lockedTooltip={lockedTooltip}
                                             removeLockedTooltip={removeLockedTooltips?.[type]}
                                             onRemove={() => onRemove(type)}
-                                            {...userProps}
                                         />
                                     );
-                                })}
-                            </div>
-                            {availableTypes.length > 0 && !hideAddResource && renderAddResourceMenu(
-                                'attribute-applies-to-add-inline',
-                                'attributeAppliesToAddResourceButtonInline',
-                                formatMessage(messages.addResourceInline),
-                                'tertiary',
-                            )}
-                        </>
-                    )}
-                </Card.Body>
-            </Card>
+                                }
+
+                                const Item = RESOURCE_TYPE_ITEM_COMPONENTS[type];
+                                const userProps = type === 'user' ? {
+                                    visibility: userVisibility,
+                                    onVisibilityChange: onUserVisibilityChange,
+                                    managed: userManaged,
+                                    onManagedChange: onUserManagedChange,
+                                    externalSource,
+                                    whoCanSetLockedTooltip: userWhoCanSetLockedTooltip,
+                                } : {};
+                                return (
+                                    <Item
+                                        key={type}
+                                        disabled={disabled}
+                                        lockedTooltip={lockedTooltip}
+                                        removeLockedTooltip={removeLockedTooltips?.[type]}
+                                        onRemove={() => onRemove(type)}
+                                        {...userProps}
+                                    />
+                                );
+                            })}
+                        </div>
+                        {availableTypes.length > 0 && !hideAddResource && renderAddResourceMenu(
+                            'attribute-applies-to-add-inline',
+                            'attributeAppliesToAddResourceButtonInline',
+                            formatMessage(messages.addResourceInline),
+                            'tertiary',
+                        )}
+                    </>
+                )}
+            </AdminPanel>
         </div>
     );
 }

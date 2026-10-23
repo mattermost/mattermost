@@ -6,6 +6,7 @@ import type {ChangeEvent} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {AdminPanelFooter} from '@mattermost/compass-ui/components/admin-panel-footer';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
@@ -109,64 +110,63 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
             id='team_profile'
             title={defineMessage({id: 'admin.team_settings.team_detail.profileTitle', defaultMessage: 'Team Profile'})}
             subtitle={defineMessage({id: 'admin.team_settings.team_detail.profileDescription', defaultMessage: 'Summary of the team, including team name and description.'})}
+            footer={
+                <AdminPanelFooter
+                    leftActions={
+                        <>
+                            {button()}
+                            {restoreDisabled && !isAirGapped &&
+                                <Button
+                                    onClick={openPricingModal}
+                                    type='button'
+                                    emphasis='secondary'
+                                >
+                                    <FormattedMessage
+                                        id={'workspace_limits.teams_limit_reached.view_upgrade_options'}
+                                        defaultMessage={'View upgrade options'}
+                                    />
+                                </Button>}
+                        </>
+                    }
+                />
+            }
         >
-
-            <div className='group-teams-and-channels'>
-
-                <div className='group-teams-and-channels--body'>
-                    <div className='d-flex'>
-                        <div className='large-team-image-col'>
-                            <TeamIcon
-                                content={name || team.display_name}
-                                size='lg'
-                                url={teamIconUrl}
-                            />
-                        </div>
-                        <div className='team-desc-col team-desc-col--edit'>
-                            <div className='row row-bottom-padding'>
-                                <Input
-                                    id='teamName'
-                                    data-testid='teamNameInput'
-                                    type='text'
-                                    maxLength={Constants.MAX_TEAMNAME_LENGTH}
-                                    value={name}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => onNameChange(e.target.value)}
-                                    label={intl.formatMessage({id: 'admin.team_settings.team_detail.teamNameLabel', defaultMessage: 'Team Name'})}
-                                    disabled={isDisabled}
-                                    customMessage={nameError ? {type: 'error', value: nameError} : null}
-                                />
-                            </div>
-                            <div className='row'>
-                                <Input
-                                    id='teamDescription'
-                                    data-testid='teamDescriptionInput'
-                                    type='textarea'
-                                    maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
-                                    value={description}
-                                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) => onDescriptionChange(e.target.value)}
-                                    label={intl.formatMessage({id: 'admin.team_settings.team_detail.teamDescriptionLabel', defaultMessage: 'Team Description'})}
-                                    disabled={isDisabled}
-                                />
-                            </div>
-                        </div>
+            <div className='d-flex'>
+                <div className='large-team-image-col'>
+                    <TeamIcon
+                        content={name || team.display_name}
+                        size='lg'
+                        url={teamIconUrl}
+                    />
+                </div>
+                <div className='team-desc-col team-desc-col--edit'>
+                    <div className='row row-bottom-padding'>
+                        <Input
+                            id='teamName'
+                            data-testid='teamNameInput'
+                            type='text'
+                            maxLength={Constants.MAX_TEAMNAME_LENGTH}
+                            value={name}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => onNameChange(e.target.value)}
+                            label={intl.formatMessage({id: 'admin.team_settings.team_detail.teamNameLabel', defaultMessage: 'Team Name'})}
+                            disabled={isDisabled}
+                            customMessage={nameError ? {type: 'error', value: nameError} : null}
+                        />
                     </div>
-                    <div className='AdminChannelDetails_archiveContainer'>
-                        {button()}
-                        {restoreDisabled && !isAirGapped &&
-                            <Button
-                                onClick={openPricingModal}
-                                type='button'
-                                emphasis='secondary'
-                            >
-                                <FormattedMessage
-                                    id={'workspace_limits.teams_limit_reached.view_upgrade_options'}
-                                    defaultMessage={'View upgrade options'}
-                                />
-                            </Button>}
+                    <div className='row'>
+                        <Input
+                            id='teamDescription'
+                            data-testid='teamDescriptionInput'
+                            type='textarea'
+                            maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
+                            value={description}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => onDescriptionChange(e.target.value)}
+                            label={intl.formatMessage({id: 'admin.team_settings.team_detail.teamDescriptionLabel', defaultMessage: 'Team Description'})}
+                            disabled={isDisabled}
+                        />
                     </div>
                 </div>
             </div>
-
         </AdminPanel>
     );
 }

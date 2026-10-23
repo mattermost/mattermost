@@ -56,72 +56,106 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             </div>
           </div>
         </div>
-        <div
-          class="Card console expanded"
+        <section
+          aria-labelledby="_r_7_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="access_control_membership_rules"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Attribute-based membership rules
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_7_"
+                    >
+                      Attribute-based membership rules
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Select user attributes and values that qualifying users must have
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_19tix_75"
               >
-                Select user attributes and values that qualifying users must have
+                <button
+                  class="btn btn-primary"
+                >
+                  Switch to Advanced Mode
+                </button>
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-            >
-              Switch to Advanced Mode
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               data-testid="table-editor"
             />
           </div>
-        </div>
-        <div
-          class="Card console add-channels expanded"
+        </section>
+        <section
+          aria-labelledby="_r_8_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix add-channels"
+          id="access_control_assigned_channels"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Assigned channels
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_8_"
+                    >
+                      Assigned channels
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Add channels that this membership policy will apply to.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_19tix_75"
               >
-                Add channels that this membership policy will apply to.
+                <button
+                  class="btn btn-primary"
+                >
+                  Add channels
+                </button>
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-            >
-              Add channels
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               class="AccessControlPolicyChannelsList"
@@ -134,154 +168,158 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   class="DataGrid_search"
                 >
                   <div
-                    class="DataGrid_searchBar"
+                    class="DataGrid_searchControls"
                   >
-                    <span
-                      aria-hidden="true"
-                      class="DataGrid_searchIcon"
-                    >
-                      <i
-                        class="fa fa-search"
-                        title="Search Icon"
-                      />
-                    </span>
-                    <input
-                      data-testid="searchInput"
-                      placeholder="Search"
-                      type="text"
-                      value=""
-                    />
-                    <i
-                      class="DataGrid_clearButton fa fa-times-circle hidden"
-                      data-testid="clear-search"
-                    />
-                  </div>
-                  <div
-                    class="Filter"
-                  >
-                    <button
-                      class="Filter_button"
-                      type="button"
-                    >
-                      <i
-                        class="Icon icon-filter-variant"
-                      />
-                      Filters
-                    </button>
                     <div
-                      class="Filter_content"
+                      class="DataGrid_searchBar"
                     >
+                      <span
+                        aria-hidden="true"
+                        class="DataGrid_searchIcon"
+                      >
+                        <i
+                          class="fa fa-search"
+                          title="Search Icon"
+                        />
+                      </span>
+                      <input
+                        data-testid="searchInput"
+                        placeholder="Search"
+                        type="text"
+                        value=""
+                      />
+                      <i
+                        class="DataGrid_clearButton fa fa-times-circle hidden"
+                        data-testid="clear-search"
+                      />
+                    </div>
+                    <div
+                      class="Filter"
+                    >
+                      <button
+                        class="Filter_button"
+                        type="button"
+                      >
+                        <i
+                          class="Icon icon-filter-variant"
+                        />
+                        Filters
+                      </button>
                       <div
-                        class="Filter_header"
+                        class="Filter_content"
                       >
                         <div
-                          class="Filter_title"
-                        >
-                          Filter by
-                        </div>
-                        <a
-                          class="Filter_reset"
-                        >
-                          Reset filters
-                        </a>
-                      </div>
-                      <hr />
-                      <div
-                        class="Filter_lists"
-                      >
-                        <div
-                          class="FilterList FilterList__full"
+                          class="Filter_header"
                         >
                           <div
-                            class="FilterList_name"
+                            class="Filter_title"
                           >
-                            Teams
+                            Filter by
                           </div>
-                          <div
-                            class="css-b62m3t-container"
+                          <a
+                            class="Filter_reset"
                           >
-                            <span
-                              class="css-1f43avz-a11yText-A11yText"
-                              id="react-select-3-live-region"
-                            />
-                            <span
-                              aria-atomic="false"
-                              aria-live="polite"
-                              aria-relevant="additions text"
-                              class="css-1f43avz-a11yText-A11yText"
-                              role="log"
-                            />
+                            Reset filters
+                          </a>
+                        </div>
+                        <hr />
+                        <div
+                          class="Filter_lists"
+                        >
+                          <div
+                            class="FilterList FilterList__full"
+                          >
                             <div
-                              class="filterListSelect__control css-13cymwt-control"
+                              class="FilterList_name"
                             >
+                              Teams
+                            </div>
+                            <div
+                              class="css-b62m3t-container"
+                            >
+                              <span
+                                class="css-1f43avz-a11yText-A11yText"
+                                id="react-select-3-live-region"
+                              />
+                              <span
+                                aria-atomic="false"
+                                aria-live="polite"
+                                aria-relevant="additions text"
+                                class="css-1f43avz-a11yText-A11yText"
+                                role="log"
+                              />
                               <div
-                                class="filterListSelect__value-container filterListSelect__value-container--is-multi css-hlgwow"
+                                class="filterListSelect__control css-13cymwt-control"
                               >
                                 <div
-                                  class="filterListSelect__placeholder css-1jqq78o-placeholder"
-                                  id="react-select-3-placeholder"
+                                  class="filterListSelect__value-container filterListSelect__value-container--is-multi css-hlgwow"
                                 >
-                                  Search and select teams
-                                </div>
-                                <div
-                                  class="filterListSelect__input-container css-19bb58m"
-                                  data-value=""
-                                >
-                                  <input
-                                    aria-activedescendant=""
-                                    aria-autocomplete="list"
-                                    aria-describedby="react-select-3-placeholder"
-                                    aria-expanded="false"
-                                    aria-haspopup="true"
-                                    autocapitalize="none"
-                                    autocomplete="off"
-                                    autocorrect="off"
-                                    class="filterListSelect__input"
-                                    id="adminConsoleTeamFilterDropdown"
-                                    role="combobox"
-                                    spellcheck="false"
-                                    style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
-                                    tabindex="0"
-                                    type="text"
-                                    value=""
-                                  />
-                                </div>
-                              </div>
-                              <div
-                                class="filterListSelect__indicators css-1wy0on6"
-                              >
-                                <span
-                                  class="filterListSelect__indicator-separator css-1u9des2-indicatorSeparator"
-                                />
-                                <div
-                                  aria-hidden="true"
-                                  class="filterListSelect__indicator filterListSelect__dropdown-indicator css-1xc3v61-indicatorContainer"
-                                >
-                                  <svg
-                                    aria-hidden="true"
-                                    class="css-tj5bde-Svg"
-                                    focusable="false"
-                                    height="20"
-                                    viewBox="0 0 20 20"
-                                    width="20"
+                                  <div
+                                    class="filterListSelect__placeholder css-1jqq78o-placeholder"
+                                    id="react-select-3-placeholder"
                                   >
-                                    <path
-                                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                    Search and select teams
+                                  </div>
+                                  <div
+                                    class="filterListSelect__input-container css-19bb58m"
+                                    data-value=""
+                                  >
+                                    <input
+                                      aria-activedescendant=""
+                                      aria-autocomplete="list"
+                                      aria-describedby="react-select-3-placeholder"
+                                      aria-expanded="false"
+                                      aria-haspopup="true"
+                                      autocapitalize="none"
+                                      autocomplete="off"
+                                      autocorrect="off"
+                                      class="filterListSelect__input"
+                                      id="adminConsoleTeamFilterDropdown"
+                                      role="combobox"
+                                      spellcheck="false"
+                                      style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                                      tabindex="0"
+                                      type="text"
+                                      value=""
                                     />
-                                  </svg>
+                                  </div>
+                                </div>
+                                <div
+                                  class="filterListSelect__indicators css-1wy0on6"
+                                >
+                                  <span
+                                    class="filterListSelect__indicator-separator css-1u9des2-indicatorSeparator"
+                                  />
+                                  <div
+                                    aria-hidden="true"
+                                    class="filterListSelect__indicator filterListSelect__dropdown-indicator css-1xc3v61-indicatorContainer"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="css-tj5bde-Svg"
+                                      focusable="false"
+                                      height="20"
+                                      viewBox="0 0 20 20"
+                                      width="20"
+                                    >
+                                      <path
+                                        d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                      />
+                                    </svg>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
+                        <button
+                          class="btn btn-primary btn-sm Filter_apply"
+                          disabled=""
+                          type="button"
+                        >
+                          Apply
+                        </button>
                       </div>
-                      <button
-                        class="btn btn-primary btn-sm Filter_apply"
-                        disabled=""
-                        type="button"
-                      >
-                        Apply
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -360,35 +398,53 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console delete-policy expanded"
+        </section>
+        <section
+          aria-labelledby="_r_c_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix delete-policy"
+          id="access_control_delete_policy"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Delete policy
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_c_"
+                    >
+                      Delete policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    This policy will be deleted and cannot be recovered.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_19tix_75"
               >
-                This policy will be deleted and cannot be recovered.
+                <button
+                  class="btn btn-primary"
+                >
+                  Delete
+                </button>
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-            >
-              Delete
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
-        </div>
+          </header>
+        </section>
       </div>
     </div>
     <div
@@ -472,72 +528,106 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             </div>
           </div>
         </div>
-        <div
-          class="Card console expanded"
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="access_control_membership_rules"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Attribute-based membership rules
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      Attribute-based membership rules
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Select user attributes and values that qualifying users must have
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_19tix_75"
               >
-                Select user attributes and values that qualifying users must have
+                <button
+                  class="btn btn-primary"
+                >
+                  Switch to Advanced Mode
+                </button>
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-            >
-              Switch to Advanced Mode
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               data-testid="table-editor"
             />
           </div>
-        </div>
-        <div
-          class="Card console add-channels expanded"
+        </section>
+        <section
+          aria-labelledby="_r_1_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix add-channels"
+          id="access_control_assigned_channels"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Assigned channels
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_1_"
+                    >
+                      Assigned channels
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Add channels that this membership policy will apply to.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_19tix_75"
               >
-                Add channels that this membership policy will apply to.
+                <button
+                  class="btn btn-primary"
+                >
+                  Add channels
+                </button>
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-            >
-              Add channels
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               class="AccessControlPolicyChannelsList"
@@ -550,154 +640,158 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   class="DataGrid_search"
                 >
                   <div
-                    class="DataGrid_searchBar"
+                    class="DataGrid_searchControls"
                   >
-                    <span
-                      aria-hidden="true"
-                      class="DataGrid_searchIcon"
-                    >
-                      <i
-                        class="fa fa-search"
-                        title="Search Icon"
-                      />
-                    </span>
-                    <input
-                      data-testid="searchInput"
-                      placeholder="Search"
-                      type="text"
-                      value=""
-                    />
-                    <i
-                      class="DataGrid_clearButton fa fa-times-circle hidden"
-                      data-testid="clear-search"
-                    />
-                  </div>
-                  <div
-                    class="Filter"
-                  >
-                    <button
-                      class="Filter_button"
-                      type="button"
-                    >
-                      <i
-                        class="Icon icon-filter-variant"
-                      />
-                      Filters
-                    </button>
                     <div
-                      class="Filter_content"
+                      class="DataGrid_searchBar"
                     >
+                      <span
+                        aria-hidden="true"
+                        class="DataGrid_searchIcon"
+                      >
+                        <i
+                          class="fa fa-search"
+                          title="Search Icon"
+                        />
+                      </span>
+                      <input
+                        data-testid="searchInput"
+                        placeholder="Search"
+                        type="text"
+                        value=""
+                      />
+                      <i
+                        class="DataGrid_clearButton fa fa-times-circle hidden"
+                        data-testid="clear-search"
+                      />
+                    </div>
+                    <div
+                      class="Filter"
+                    >
+                      <button
+                        class="Filter_button"
+                        type="button"
+                      >
+                        <i
+                          class="Icon icon-filter-variant"
+                        />
+                        Filters
+                      </button>
                       <div
-                        class="Filter_header"
+                        class="Filter_content"
                       >
                         <div
-                          class="Filter_title"
-                        >
-                          Filter by
-                        </div>
-                        <a
-                          class="Filter_reset"
-                        >
-                          Reset filters
-                        </a>
-                      </div>
-                      <hr />
-                      <div
-                        class="Filter_lists"
-                      >
-                        <div
-                          class="FilterList FilterList__full"
+                          class="Filter_header"
                         >
                           <div
-                            class="FilterList_name"
+                            class="Filter_title"
                           >
-                            Teams
+                            Filter by
                           </div>
-                          <div
-                            class="css-b62m3t-container"
+                          <a
+                            class="Filter_reset"
                           >
-                            <span
-                              class="css-1f43avz-a11yText-A11yText"
-                              id="react-select-2-live-region"
-                            />
-                            <span
-                              aria-atomic="false"
-                              aria-live="polite"
-                              aria-relevant="additions text"
-                              class="css-1f43avz-a11yText-A11yText"
-                              role="log"
-                            />
+                            Reset filters
+                          </a>
+                        </div>
+                        <hr />
+                        <div
+                          class="Filter_lists"
+                        >
+                          <div
+                            class="FilterList FilterList__full"
+                          >
                             <div
-                              class="filterListSelect__control css-13cymwt-control"
+                              class="FilterList_name"
                             >
+                              Teams
+                            </div>
+                            <div
+                              class="css-b62m3t-container"
+                            >
+                              <span
+                                class="css-1f43avz-a11yText-A11yText"
+                                id="react-select-2-live-region"
+                              />
+                              <span
+                                aria-atomic="false"
+                                aria-live="polite"
+                                aria-relevant="additions text"
+                                class="css-1f43avz-a11yText-A11yText"
+                                role="log"
+                              />
                               <div
-                                class="filterListSelect__value-container filterListSelect__value-container--is-multi css-hlgwow"
+                                class="filterListSelect__control css-13cymwt-control"
                               >
                                 <div
-                                  class="filterListSelect__placeholder css-1jqq78o-placeholder"
-                                  id="react-select-2-placeholder"
+                                  class="filterListSelect__value-container filterListSelect__value-container--is-multi css-hlgwow"
                                 >
-                                  Search and select teams
-                                </div>
-                                <div
-                                  class="filterListSelect__input-container css-19bb58m"
-                                  data-value=""
-                                >
-                                  <input
-                                    aria-activedescendant=""
-                                    aria-autocomplete="list"
-                                    aria-describedby="react-select-2-placeholder"
-                                    aria-expanded="false"
-                                    aria-haspopup="true"
-                                    autocapitalize="none"
-                                    autocomplete="off"
-                                    autocorrect="off"
-                                    class="filterListSelect__input"
-                                    id="adminConsoleTeamFilterDropdown"
-                                    role="combobox"
-                                    spellcheck="false"
-                                    style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
-                                    tabindex="0"
-                                    type="text"
-                                    value=""
-                                  />
-                                </div>
-                              </div>
-                              <div
-                                class="filterListSelect__indicators css-1wy0on6"
-                              >
-                                <span
-                                  class="filterListSelect__indicator-separator css-1u9des2-indicatorSeparator"
-                                />
-                                <div
-                                  aria-hidden="true"
-                                  class="filterListSelect__indicator filterListSelect__dropdown-indicator css-1xc3v61-indicatorContainer"
-                                >
-                                  <svg
-                                    aria-hidden="true"
-                                    class="css-tj5bde-Svg"
-                                    focusable="false"
-                                    height="20"
-                                    viewBox="0 0 20 20"
-                                    width="20"
+                                  <div
+                                    class="filterListSelect__placeholder css-1jqq78o-placeholder"
+                                    id="react-select-2-placeholder"
                                   >
-                                    <path
-                                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                    Search and select teams
+                                  </div>
+                                  <div
+                                    class="filterListSelect__input-container css-19bb58m"
+                                    data-value=""
+                                  >
+                                    <input
+                                      aria-activedescendant=""
+                                      aria-autocomplete="list"
+                                      aria-describedby="react-select-2-placeholder"
+                                      aria-expanded="false"
+                                      aria-haspopup="true"
+                                      autocapitalize="none"
+                                      autocomplete="off"
+                                      autocorrect="off"
+                                      class="filterListSelect__input"
+                                      id="adminConsoleTeamFilterDropdown"
+                                      role="combobox"
+                                      spellcheck="false"
+                                      style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                                      tabindex="0"
+                                      type="text"
+                                      value=""
                                     />
-                                  </svg>
+                                  </div>
+                                </div>
+                                <div
+                                  class="filterListSelect__indicators css-1wy0on6"
+                                >
+                                  <span
+                                    class="filterListSelect__indicator-separator css-1u9des2-indicatorSeparator"
+                                  />
+                                  <div
+                                    aria-hidden="true"
+                                    class="filterListSelect__indicator filterListSelect__dropdown-indicator css-1xc3v61-indicatorContainer"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="css-tj5bde-Svg"
+                                      focusable="false"
+                                      height="20"
+                                      viewBox="0 0 20 20"
+                                      width="20"
+                                    >
+                                      <path
+                                        d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                      />
+                                    </svg>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
+                        <button
+                          class="btn btn-primary btn-sm Filter_apply"
+                          disabled=""
+                          type="button"
+                        >
+                          Apply
+                        </button>
                       </div>
-                      <button
-                        class="btn btn-primary btn-sm Filter_apply"
-                        disabled=""
-                        type="button"
-                      >
-                        Apply
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -766,7 +860,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div

@@ -64,201 +64,243 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </span>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink "
+        <section
+          aria-labelledby="_r_2_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          data-testid="systemScheme"
           id="systemScheme"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2"
           >
-            <div>
-              <h3>
-                System Scheme
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Set the default permissions inherited by all teams unless a 
-                <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
-                  location="permission_scheme_settings"
-                  rel="noopener noreferrer"
-                  target="_blank"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Team Override Scheme
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_2_"
+                    >
+                      System Scheme
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Set the default permissions inherited by all teams unless a 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Team Override Scheme
+                    </a>
+                     is applied.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <a
+                  class="btn btn-primary"
+                  data-testid="systemScheme-link"
+                  href="/admin_console/user_management/permissions/system_scheme"
+                >
+                  Edit Scheme
                 </a>
-                 is applied.
               </div>
             </div>
-            <div
-              class="button"
-            >
-              <a
-                class="btn btn-primary"
-                data-testid="systemScheme-link"
-                href="/admin_console/user_management/permissions/system_scheme"
-              >
-                Edit Scheme
-              </a>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          </header>
+        </section>
+        <section
+          aria-labelledby="_r_3_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          data-testid="team-override-schemes"
           id="team-override-schemes"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Override Schemes
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Use when specific teams need permission exceptions to the 
-                <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
-                  location="permission_scheme_settings"
-                  rel="noopener noreferrer"
-                  target="_blank"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  System Scheme
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_3_"
+                    >
+                      Team Override Schemes
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Use when specific teams need permission exceptions to the 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      System Scheme
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <a
+                  class="btn btn-primary"
+                  data-testid="team-override-schemes-link"
+                  href="/admin_console/user_management/permissions/team_override_scheme"
+                >
+                  New Team Override Scheme
                 </a>
-                .
               </div>
             </div>
-            <div
-              class="button"
-            >
-              <a
-                class="btn btn-primary"
-                data-testid="team-override-schemes-link"
-                href="/admin_console/user_management/permissions/team_override_scheme"
-              >
-                New Team Override Scheme
-              </a>
-            </div>
-          </div>
+          </header>
           <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
+            class="_admin-panel__body_iwm08_25"
           >
-            <div />
             <div
-              class="permissions-scheme-summary--header"
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
             >
+              <div />
               <div
-                class="title"
+                class="permissions-scheme-summary--header"
+              >
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
+                >
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
+              </div>
+              <div
+                class="permissions-scheme-summary--description"
+              >
+                Test description 1
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
               />
+            </div>
+            <div
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
+            >
+              <div />
               <div
-                class="actions"
+                class="permissions-scheme-summary--header"
               >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
                 >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
               </div>
-            </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 1
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
               <div
-                class="title"
+                class="permissions-scheme-summary--description"
+              >
+                Test description 2
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
               />
+            </div>
+            <div
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
+            >
+              <div />
               <div
-                class="actions"
+                class="permissions-scheme-summary--header"
               >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
                 >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-3"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
               </div>
-            </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 2
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
               <div
-                class="title"
+                class="permissions-scheme-summary--description"
+              >
+                Test description 3
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
               />
-              <div
-                class="actions"
-              >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-3"
-                >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
-              </div>
             </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 3
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -302,89 +344,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </span>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink "
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          data-testid="systemScheme"
           id="systemScheme"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2"
           >
-            <div>
-              <h3>
-                System Scheme
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Set the default permissions inherited by all teams unless a 
-                <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
-                  location="permission_scheme_settings"
-                  rel="noopener noreferrer"
-                  target="_blank"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Team Override Scheme
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      System Scheme
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Set the default permissions inherited by all teams unless a 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Team Override Scheme
+                    </a>
+                     is applied.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <a
+                  class="btn btn-primary"
+                  data-testid="systemScheme-link"
+                  href="/admin_console/user_management/permissions/system_scheme"
+                >
+                  Edit Scheme
                 </a>
-                 is applied.
               </div>
             </div>
-            <div
-              class="button"
-            >
-              <a
-                class="btn btn-primary"
-                data-testid="systemScheme-link"
-                href="/admin_console/user_management/permissions/system_scheme"
-              >
-                Edit Scheme
-              </a>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          </header>
+        </section>
+        <section
+          aria-labelledby="_r_1_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          data-testid="team-override-schemes"
           id="team-override-schemes"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Override Schemes
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Use when specific teams need permission exceptions to the 
-                <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
-                  location="permission_scheme_settings"
-                  rel="noopener noreferrer"
-                  target="_blank"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  System Scheme
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_1_"
+                    >
+                      Team Override Schemes
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Use when specific teams need permission exceptions to the 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      System Scheme
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <a
+                  class="btn btn-primary"
+                  data-testid="team-override-schemes-link"
+                  href="/admin_console/user_management/permissions/team_override_scheme"
+                >
+                  New Team Override Scheme
                 </a>
-                .
               </div>
             </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
             <div
-              class="button"
+              class="no-team-schemes"
             >
-              <a
-                class="btn btn-primary"
-                data-testid="team-override-schemes-link"
-                href="/admin_console/user_management/permissions/team_override_scheme"
-              >
-                New Team Override Scheme
-              </a>
+              No team override schemes created.
             </div>
           </div>
-          <div
-            class="no-team-schemes"
-          >
-            No team override schemes created.
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -428,219 +512,261 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </span>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink "
+        <section
+          aria-labelledby="_r_4_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          data-testid="systemScheme"
           id="systemScheme"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2"
           >
-            <div>
-              <h3>
-                System Scheme
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Set the default permissions inherited by all teams unless a 
-                <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
-                  location="permission_scheme_settings"
-                  rel="noopener noreferrer"
-                  target="_blank"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Team Override Scheme
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_4_"
+                    >
+                      System Scheme
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Set the default permissions inherited by all teams unless a 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Team Override Scheme
+                    </a>
+                     is applied.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <a
+                  class="btn btn-primary disabled"
+                  data-testid="systemScheme-link"
+                  href="/admin_console/user_management/permissions/system_scheme"
+                >
+                  Edit Scheme
                 </a>
-                 is applied.
               </div>
             </div>
-            <div
-              class="button"
-            >
-              <a
-                class="btn btn-primary disabled"
-                data-testid="systemScheme-link"
-                href="/admin_console/user_management/permissions/system_scheme"
-              >
-                Edit Scheme
-              </a>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          </header>
+        </section>
+        <section
+          aria-labelledby="_r_5_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          data-testid="team-override-schemes"
           id="team-override-schemes"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Override Schemes
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Use when specific teams need permission exceptions to the 
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_5_"
+                    >
+                      Team Override Schemes
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Use when specific teams need permission exceptions to the 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      System Scheme
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
                 <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  class="btn btn-primary disabled"
+                  data-testid="team-override-schemes-link"
+                  href="/admin_console/user_management/permissions/team_override_scheme"
+                >
+                  New Team Override Scheme
+                </a>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="team-override-unavailable"
+            >
+              <div
+                class="team-override-unavailable__inner"
+              >
+                Migration job in progress: Team Override Schemes are not available until the job server completes the permissions migration. Learn more in the 
+                <a
+                  href="https://docs.mattermost.com/administration/config-settings.html?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version=#jobs"
                   location="permission_scheme_settings"
                   rel="noopener noreferrer"
                   target="_blank"
                 >
-                  System Scheme
+                  documentation
                 </a>
                 .
               </div>
             </div>
             <div
-              class="button"
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
             >
-              <a
-                class="btn btn-primary disabled"
-                data-testid="team-override-schemes-link"
-                href="/admin_console/user_management/permissions/team_override_scheme"
-              >
-                New Team Override Scheme
-              </a>
-            </div>
-          </div>
-          <div
-            class="team-override-unavailable"
-          >
-            <div
-              class="team-override-unavailable__inner"
-            >
-              Migration job in progress: Team Override Schemes are not available until the job server completes the permissions migration. Learn more in the 
-              <a
-                href="https://docs.mattermost.com/administration/config-settings.html?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version=#jobs"
-                location="permission_scheme_settings"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                documentation
-              </a>
-              .
-            </div>
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
+              <div />
               <div
-                class="title"
-              />
-              <div
-                class="actions"
+                class="permissions-scheme-summary--header"
               >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
                 >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
               </div>
-            </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 1
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
               <div
-                class="title"
-              />
-              <div
-                class="actions"
+                class="permissions-scheme-summary--description"
               >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-2"
-                >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
+                Test description 1
               </div>
-            </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 2
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
               <div
-                class="title"
+                class="permissions-scheme-summary--teams"
               />
-              <div
-                class="actions"
-              >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-3"
-                >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
-              </div>
             </div>
             <div
-              class="permissions-scheme-summary--description"
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
             >
-              Test description 3
+              <div />
+              <div
+                class="permissions-scheme-summary--header"
+              >
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
+                >
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
+              </div>
+              <div
+                class="permissions-scheme-summary--description"
+              >
+                Test description 2
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
+              />
             </div>
             <div
-              class="permissions-scheme-summary--teams"
-            />
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
+            >
+              <div />
+              <div
+                class="permissions-scheme-summary--header"
+              >
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
+                >
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-3"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
+              </div>
+              <div
+                class="permissions-scheme-summary--description"
+              >
+                Test description 3
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
+              />
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -684,219 +810,261 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </span>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink "
+        <section
+          aria-labelledby="_r_6_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          data-testid="systemScheme"
           id="systemScheme"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2"
           >
-            <div>
-              <h3>
-                System Scheme
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Set the default permissions inherited by all teams unless a 
-                <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
-                  location="permission_scheme_settings"
-                  rel="noopener noreferrer"
-                  target="_blank"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Team Override Scheme
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_6_"
+                    >
+                      System Scheme
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Set the default permissions inherited by all teams unless a 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Team Override Scheme
+                    </a>
+                     is applied.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <a
+                  class="btn btn-primary disabled"
+                  data-testid="systemScheme-link"
+                  href="/admin_console/user_management/permissions/system_scheme"
+                >
+                  Edit Scheme
                 </a>
-                 is applied.
               </div>
             </div>
-            <div
-              class="button"
-            >
-              <a
-                class="btn btn-primary disabled"
-                data-testid="systemScheme-link"
-                href="/admin_console/user_management/permissions/system_scheme"
-              >
-                Edit Scheme
-              </a>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          </header>
+        </section>
+        <section
+          aria-labelledby="_r_7_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          data-testid="team-override-schemes"
           id="team-override-schemes"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Override Schemes
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Use when specific teams need permission exceptions to the 
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_7_"
+                    >
+                      Team Override Schemes
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Use when specific teams need permission exceptions to the 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      System Scheme
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
                 <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  class="btn btn-primary disabled"
+                  data-testid="team-override-schemes-link"
+                  href="/admin_console/user_management/permissions/team_override_scheme"
+                >
+                  New Team Override Scheme
+                </a>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="team-override-unavailable"
+            >
+              <div
+                class="team-override-unavailable__inner"
+              >
+                Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the 
+                <a
+                  href="https://docs.mattermost.com/administration/config-settings.html?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version=#jobs"
                   location="permission_scheme_settings"
                   rel="noopener noreferrer"
                   target="_blank"
                 >
-                  System Scheme
+                  documentation
                 </a>
                 .
               </div>
             </div>
             <div
-              class="button"
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
             >
-              <a
-                class="btn btn-primary disabled"
-                data-testid="team-override-schemes-link"
-                href="/admin_console/user_management/permissions/team_override_scheme"
-              >
-                New Team Override Scheme
-              </a>
-            </div>
-          </div>
-          <div
-            class="team-override-unavailable"
-          >
-            <div
-              class="team-override-unavailable__inner"
-            >
-              Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the 
-              <a
-                href="https://docs.mattermost.com/administration/config-settings.html?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version=#jobs"
-                location="permission_scheme_settings"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                documentation
-              </a>
-              .
-            </div>
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
+              <div />
               <div
-                class="title"
-              />
-              <div
-                class="actions"
+                class="permissions-scheme-summary--header"
               >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
                 >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
               </div>
-            </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 1
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
               <div
-                class="title"
-              />
-              <div
-                class="actions"
+                class="permissions-scheme-summary--description"
               >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-2"
-                >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
+                Test description 1
               </div>
-            </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 2
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
               <div
-                class="title"
+                class="permissions-scheme-summary--teams"
               />
-              <div
-                class="actions"
-              >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-3"
-                >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
-              </div>
             </div>
             <div
-              class="permissions-scheme-summary--description"
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
             >
-              Test description 3
+              <div />
+              <div
+                class="permissions-scheme-summary--header"
+              >
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
+                >
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
+              </div>
+              <div
+                class="permissions-scheme-summary--description"
+              >
+                Test description 2
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
+              />
             </div>
             <div
-              class="permissions-scheme-summary--teams"
-            />
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
+            >
+              <div />
+              <div
+                class="permissions-scheme-summary--header"
+              >
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
+                >
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-3"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
+              </div>
+              <div
+                class="permissions-scheme-summary--description"
+              >
+                Test description 3
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
+              />
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -940,201 +1108,243 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </span>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink "
+        <section
+          aria-labelledby="_r_8_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          data-testid="systemScheme"
           id="systemScheme"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2"
           >
-            <div>
-              <h3>
-                System Scheme
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Set the default permissions inherited by all teams unless a 
-                <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
-                  location="permission_scheme_settings"
-                  rel="noopener noreferrer"
-                  target="_blank"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Team Override Scheme
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_8_"
+                    >
+                      System Scheme
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Set the default permissions inherited by all teams unless a 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Team Override Scheme
+                    </a>
+                     is applied.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <a
+                  class="btn btn-primary"
+                  data-testid="systemScheme-link"
+                  href="/admin_console/user_management/permissions/system_scheme"
+                >
+                  Edit Scheme
                 </a>
-                 is applied.
               </div>
             </div>
-            <div
-              class="button"
-            >
-              <a
-                class="btn btn-primary"
-                data-testid="systemScheme-link"
-                href="/admin_console/user_management/permissions/system_scheme"
-              >
-                Edit Scheme
-              </a>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          </header>
+        </section>
+        <section
+          aria-labelledby="_r_9_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          data-testid="team-override-schemes"
           id="team-override-schemes"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Override Schemes
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Use when specific teams need permission exceptions to the 
-                <a
-                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
-                  location="permission_scheme_settings"
-                  rel="noopener noreferrer"
-                  target="_blank"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  System Scheme
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_9_"
+                    >
+                      Team Override Schemes
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Use when specific teams need permission exceptions to the 
+                    <a
+                      href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                      location="permission_scheme_settings"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      System Scheme
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <a
+                  class="btn btn-primary"
+                  data-testid="team-override-schemes-link"
+                  href="/admin_console/user_management/permissions/team_override_scheme"
+                >
+                  New Team Override Scheme
                 </a>
-                .
               </div>
             </div>
-            <div
-              class="button"
-            >
-              <a
-                class="btn btn-primary"
-                data-testid="team-override-schemes-link"
-                href="/admin_console/user_management/permissions/team_override_scheme"
-              >
-                New Team Override Scheme
-              </a>
-            </div>
-          </div>
+          </header>
           <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
+            class="_admin-panel__body_iwm08_25"
           >
-            <div />
             <div
-              class="permissions-scheme-summary--header"
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
             >
+              <div />
               <div
-                class="title"
+                class="permissions-scheme-summary--header"
+              >
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
+                >
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
+              </div>
+              <div
+                class="permissions-scheme-summary--description"
+              >
+                Test description 1
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
               />
+            </div>
+            <div
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
+            >
+              <div />
               <div
-                class="actions"
+                class="permissions-scheme-summary--header"
               >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
                 >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
               </div>
-            </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 1
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
               <div
-                class="title"
+                class="permissions-scheme-summary--description"
+              >
+                Test description 2
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
               />
+            </div>
+            <div
+              class="permissions-scheme-summary"
+              data-testid="permissions-scheme-summary"
+            >
+              <div />
               <div
-                class="actions"
+                class="permissions-scheme-summary--header"
               >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                <div
+                  class="title"
+                />
+                <div
+                  class="actions"
                 >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
+                  <a
+                    class="edit-button"
+                    data-testid="undefined-edit"
+                    href="/admin_console/user_management/permissions/team_override_scheme/id-3"
+                  >
+                    Edit
+                  </a>
+                  -
+                  <a
+                    class="delete-button"
+                    data-testid="undefined-delete"
+                  >
+                    Delete
+                  </a>
+                </div>
               </div>
-            </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 2
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
-          </div>
-          <div
-            class="permissions-scheme-summary"
-            data-testid="permissions-scheme-summary"
-          >
-            <div />
-            <div
-              class="permissions-scheme-summary--header"
-            >
               <div
-                class="title"
+                class="permissions-scheme-summary--description"
+              >
+                Test description 3
+              </div>
+              <div
+                class="permissions-scheme-summary--teams"
               />
-              <div
-                class="actions"
-              >
-                <a
-                  class="edit-button"
-                  data-testid="undefined-edit"
-                  href="/admin_console/user_management/permissions/team_override_scheme/id-3"
-                >
-                  Edit
-                </a>
-                -
-                <a
-                  class="delete-button"
-                  data-testid="undefined-delete"
-                >
-                  Delete
-                </a>
-              </div>
             </div>
-            <div
-              class="permissions-scheme-summary--description"
-            >
-              Test description 3
-            </div>
-            <div
-              class="permissions-scheme-summary--teams"
-            />
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>

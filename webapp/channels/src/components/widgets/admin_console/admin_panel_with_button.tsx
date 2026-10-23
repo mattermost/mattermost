@@ -50,7 +50,7 @@ const AdminPanelWithButton = ({
 
     return (
         <AdminPanel
-            className={'AdminPanelWithButton ' + className}
+            className={classNames('AdminPanelWithButton', className)}
             id={id}
             title={title}
             subtitle={subtitle}

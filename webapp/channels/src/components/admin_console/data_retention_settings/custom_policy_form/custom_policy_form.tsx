@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
-import type {WrappedComponentProps} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
@@ -21,12 +20,12 @@ import BlockableLink from 'components/admin_console/blockable_link';
 import ChannelList from 'components/admin_console/data_retention_settings/channel_list';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
 import TeamList from 'components/admin_console/data_retention_settings/team_list';
-import Card from 'components/card/card';
-import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
 import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -50,7 +49,7 @@ type Props = {
         removeDataRetentionCustomPolicyChannels: (id: string, policy: string[]) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
-} & WrappedComponentProps;
+};
 
 type State = {
     policyName: string | undefined;
@@ -71,7 +70,7 @@ type State = {
     formErrorText: React.ReactNode;
 };
 
-class CustomPolicyForm extends React.PureComponent<Props, State> {
+export default class CustomPolicyForm extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -357,72 +356,49 @@ class CustomPolicyForm extends React.PureComponent<Props, State> {
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
-                        <Card
-                            expanded={true}
-                            className={'console'}
+                        <AdminPanel
+                            id='custom_policy_form'
+                            title={messages.formTitle}
+                            subtitle={messages.formSubTitle}
                         >
-                            <Card.Header>
-                                <TitleAndButtonCardHeader
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.data_retention.custom_policy.form.title'
-                                            defaultMessage='Name and retention'
-                                        />
-                                    }
-                                    subtitle={
-                                        <FormattedMessage
-                                            id='admin.data_retention.custom_policy.form.subTitle'
-                                            defaultMessage='Give your policy a name and configure retention settings.'
-                                        />
-                                    }
+                            <div className='CustomPolicy__fields'>
+                                <Input
+                                    name='policyName'
+                                    type='text'
+                                    value={this.state.policyName}
+                                    onChange={(e) => {
+                                        this.setState({policyName: e.target.value, saveNeeded: true});
+                                        this.props.actions.setNavigationBlocked(true);
+                                    }}
+                                    placeholder={messages.policyName}
+                                    customMessage={{type: ItemStatus.ERROR, value: this.state.inputErrorText}}
                                 />
-                            </Card.Header>
-                            <Card.Body
-                                expanded={true}
-                            >
-                                <div
-                                    className='CustomPolicy__fields'
-                                >
-                                    <Input
-                                        name='policyName'
-                                        aria-label={this.props.intl.formatMessage(messages.policyName)}
-                                        type='text'
-                                        value={this.state.policyName}
-                                        onChange={(e) => {
-                                            this.setState({policyName: e.target.value, saveNeeded: true});
+                                <DropdownInputHybrid
+                                    onDropdownChange={(value) => {
+                                        if (this.state.messageRetentionDropdownValue.value !== value.value) {
+                                            this.setState({messageRetentionDropdownValue: value, saveNeeded: true});
                                             this.props.actions.setNavigationBlocked(true);
-                                        }}
-                                        placeholder={messages.policyName}
-                                        customMessage={{type: ItemStatus.ERROR, value: this.state.inputErrorText}}
-                                    />
-                                    <DropdownInputHybrid
-                                        onDropdownChange={(value) => {
-                                            if (this.state.messageRetentionDropdownValue.value !== value.value) {
-                                                this.setState({messageRetentionDropdownValue: value, saveNeeded: true});
-                                                this.props.actions.setNavigationBlocked(true);
-                                            }
-                                        }}
-                                        onInputChange={(e) => {
-                                            this.setState({messageRetentionInputValue: e.target.value, saveNeeded: true});
-                                            this.props.actions.setNavigationBlocked(true);
-                                        }}
-                                        value={this.state.messageRetentionDropdownValue}
-                                        inputValue={this.state.messageRetentionInputValue}
-                                        width={95}
-                                        exceptionToInput={[FOREVER]}
-                                        defaultValue={keepForeverOption()}
-                                        options={[daysOption(), yearsOption(), keepForeverOption()]}
-                                        legend={messages.channelAndDirectMessageRetention}
-                                        placeholder={messages.channelAndDirectMessageRetention}
-                                        inputType={'number'}
-                                        name={'message_retention'}
-                                        dropdownClassNamePrefix={'message_retention'}
-                                        inputId={'message_retention_input'}
-                                    />
-                                </div>
-
-                            </Card.Body>
-                        </Card>
+                                        }
+                                    }}
+                                    onInputChange={(e) => {
+                                        this.setState({messageRetentionInputValue: e.target.value, saveNeeded: true});
+                                        this.props.actions.setNavigationBlocked(true);
+                                    }}
+                                    value={this.state.messageRetentionDropdownValue}
+                                    inputValue={this.state.messageRetentionInputValue}
+                                    width={95}
+                                    exceptionToInput={[FOREVER]}
+                                    defaultValue={keepForeverOption()}
+                                    options={[daysOption(), yearsOption(), keepForeverOption()]}
+                                    legend={messages.channelAndDirectMessageRetention}
+                                    placeholder={messages.channelAndDirectMessageRetention}
+                                    inputType={'number'}
+                                    name={'message_retention'}
+                                    dropdownClassNamePrefix={'message_retention'}
+                                    inputId={'message_retention_input'}
+                                />
+                            </div>
+                        </AdminPanel>
                         {this.state.addTeamOpen &&
                             <TeamSelectorModal
                                 onModalDismissed={this.closeAddTeam}
@@ -434,44 +410,20 @@ class CustomPolicyForm extends React.PureComponent<Props, State> {
                                 excludePolicyConstrained={true}
                             />
                         }
-                        <Card
-                            expanded={true}
-                            className={'console'}
+                        <AdminPanelWithButton
+                            id='custom_policy_teams'
+                            title={messages.teamSelectorTitle}
+                            subtitle={messages.teamSelectorSubTitle}
+                            buttonText={messages.teamSelectorAddTeams}
+                            onButtonClick={this.openAddTeam}
                         >
-                            <Card.Header>
-                                <TitleAndButtonCardHeader
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.data_retention.custom_policy.team_selector.title'
-                                            defaultMessage='Assigned teams'
-                                        />
-                                    }
-                                    subtitle={
-                                        <FormattedMessage
-                                            id='admin.data_retention.custom_policy.team_selector.subTitle'
-                                            defaultMessage='Add teams that will follow this retention policy.'
-                                        />
-                                    }
-                                    buttonText={
-                                        <FormattedMessage
-                                            id='admin.data_retention.custom_policy.team_selector.addTeams'
-                                            defaultMessage='Add teams'
-                                        />
-                                    }
-                                    onClick={this.openAddTeam}
-                                />
-                            </Card.Header>
-                            <Card.Body
-                                expanded={true}
-                            >
-                                <TeamList
-                                    onRemoveCallback={this.addToRemovedTeams}
-                                    teamsToRemove={this.state.removedTeams}
-                                    teamsToAdd={this.state.newTeams}
-                                    policyId={this.props.policyId}
-                                />
-                            </Card.Body>
-                        </Card>
+                            <TeamList
+                                onRemoveCallback={this.addToRemovedTeams}
+                                teamsToRemove={this.state.removedTeams}
+                                teamsToAdd={this.state.newTeams}
+                                policyId={this.props.policyId}
+                            />
+                        </AdminPanelWithButton>
                         {this.state.addChannelOpen &&
                             <ChannelSelectorModal
                                 onModalDismissed={this.closeAddChannel}
@@ -484,44 +436,20 @@ class CustomPolicyForm extends React.PureComponent<Props, State> {
                                 excludeTeamIds={this.getTeamsToExclude()}
                             />
                         }
-                        <Card
-                            expanded={true}
-                            className={'console'}
+                        <AdminPanelWithButton
+                            id='custom_policy_channels'
+                            title={messages.channelSelectorTitle}
+                            subtitle={messages.channelSelectorSubTitle}
+                            buttonText={messages.channelSelectorAddChannels}
+                            onButtonClick={this.openAddChannel}
                         >
-                            <Card.Header>
-                                <TitleAndButtonCardHeader
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.data_retention.custom_policy.channel_selector.title'
-                                            defaultMessage='Assigned channels'
-                                        />
-                                    }
-                                    subtitle={
-                                        <FormattedMessage
-                                            id='admin.data_retention.custom_policy.channel_selector.subTitle'
-                                            defaultMessage='Add channels that will follow this retention policy.'
-                                        />
-                                    }
-                                    buttonText={
-                                        <FormattedMessage
-                                            id='admin.data_retention.custom_policy.channel_selector.addChannels'
-                                            defaultMessage='Add channels'
-                                        />
-                                    }
-                                    onClick={this.openAddChannel}
-                                />
-                            </Card.Header>
-                            <Card.Body
-                                expanded={true}
-                            >
-                                <ChannelList
-                                    onRemoveCallback={this.addToRemovedChannels}
-                                    channelsToRemove={this.state.removedChannels}
-                                    channelsToAdd={this.state.newChannels}
-                                    policyId={this.props.policyId}
-                                />
-                            </Card.Body>
-                        </Card>
+                            <ChannelList
+                                onRemoveCallback={this.addToRemovedChannels}
+                                channelsToRemove={this.state.removedChannels}
+                                channelsToAdd={this.state.newChannels}
+                                policyId={this.props.policyId}
+                            />
+                        </AdminPanelWithButton>
                     </div>
                 </div>
                 <div className='admin-console-save'>
@@ -568,6 +496,38 @@ class CustomPolicyForm extends React.PureComponent<Props, State> {
 }
 
 const messages = defineMessages({
+    formTitle: {
+        id: 'admin.data_retention.custom_policy.form.title',
+        defaultMessage: 'Name and retention',
+    },
+    formSubTitle: {
+        id: 'admin.data_retention.custom_policy.form.subTitle',
+        defaultMessage: 'Give your policy a name and configure retention settings.',
+    },
+    teamSelectorTitle: {
+        id: 'admin.data_retention.custom_policy.team_selector.title',
+        defaultMessage: 'Assigned teams',
+    },
+    teamSelectorSubTitle: {
+        id: 'admin.data_retention.custom_policy.team_selector.subTitle',
+        defaultMessage: 'Add teams that will follow this retention policy.',
+    },
+    teamSelectorAddTeams: {
+        id: 'admin.data_retention.custom_policy.team_selector.addTeams',
+        defaultMessage: 'Add teams',
+    },
+    channelSelectorTitle: {
+        id: 'admin.data_retention.custom_policy.channel_selector.title',
+        defaultMessage: 'Assigned channels',
+    },
+    channelSelectorSubTitle: {
+        id: 'admin.data_retention.custom_policy.channel_selector.subTitle',
+        defaultMessage: 'Add channels that will follow this retention policy.',
+    },
+    channelSelectorAddChannels: {
+        id: 'admin.data_retention.custom_policy.channel_selector.addChannels',
+        defaultMessage: 'Add channels',
+    },
     channelAndDirectMessageRetention: {
         id: 'admin.data_retention.form.channelAndDirectMessageRetention',
         defaultMessage: 'Channel & direct message retention',
@@ -577,5 +537,3 @@ const messages = defineMessages({
         defaultMessage: 'Policy name',
     },
 });
-
-export default injectIntl(CustomPolicyForm);

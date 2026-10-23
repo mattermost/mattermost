@@ -2067,6 +2067,18 @@
     "defaultMessage": "Enforce device ID consistency",
     "description": "Label of a true/false toggle in System Console > System Attributes > Attribute-Based Access > Session Attributes. 'Enforce' is a verb; 'device ID' is the session attribute being checked."
   },
+  "admin.accesscontrol.sections.session_attributes.description": {
+    "defaultMessage": "Configure how device identity is trusted and validated for session attributes.",
+    "description": "Subtitle under the Session Attributes AdminPanel on System Console > System Attributes > Attribute-Based Access."
+  },
+  "admin.accesscontrol.sections.settings.description": {
+    "defaultMessage": "Enable attribute-based access control and related membership policy settings.",
+    "description": "Subtitle under the Access Control AdminPanel on System Console > System Attributes > Attribute-Based Access."
+  },
+  "admin.accesscontrol.sections.settings.title": {
+    "defaultMessage": "Access Control",
+    "description": "Title of the Access Control AdminPanel on System Console > System Attributes > Attribute-Based Access, grouping the ABAC enable, audit logging, and channel indicator toggles."
+  },
   "admin.accesscontrol.session_attributes": {
     "defaultMessage": "Session Attributes",
     "description": "Heading of the 'Session Attributes' subsection in System Console > System Attributes > Attribute-Based Access. Groups the settings that control device-identity session attributes."
@@ -10690,6 +10702,18 @@
   "admin.openIdConvert.text": {
     "defaultMessage": "Convert to OpenID Connect",
     "description": "Button in the System Console that converts the existing OAuth 2.0 configuration to OpenID Connect."
+  },
+  "admin.panel.collapse": {
+    "defaultMessage": "Collapse section",
+    "description": "Accessible label for the control that collapses an expandable System Console admin settings panel."
+  },
+  "admin.panel.expand": {
+    "defaultMessage": "Expand section",
+    "description": "Accessible label for the control that expands a collapsed System Console admin settings panel."
+  },
+  "admin.panel.untitled": {
+    "defaultMessage": "Settings",
+    "description": ""
   },
   "admin.password.enableForgotLink.description": {
     "defaultMessage": "When true, “Forgot password” link appears on the Mattermost login page, which allows users to reset their password. When false, the link is hidden from users. This link can be customized to redirect to a URL of your choice from <a>Site Configuration > Customization.</a>",

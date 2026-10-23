@@ -23,6 +23,21 @@
     }
 }
 
+// Match Compass AdminPanel chrome (surface, border, radius, elevation).
+// Scoped to GlobalAttributes so shared admin-console__container / __wrapper
+// layout chrome is unchanged for other System Console pages.
+// overflow:hidden clips table cell backgrounds to the panel radius (avoids
+// sharp corners bleeding past --radius-m). Row ••• menus still work: they use
+// Menu.Container → MUI Popover, which portals to document body (unlike
+// SystemUsers filter popovers that must escape an unclipped panel).
+.admin-console .GlobalAttributes__root .GlobalAttributes__panel {
+    overflow: hidden;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: var(--radius-m);
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-1);
+}
+
 .GlobalAttributes__newAttribute {
     flex-shrink: 0;
     margin-inline-start: 16px;

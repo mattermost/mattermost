@@ -383,6 +383,41 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(text.indexOf('Plugin section')).toBeLessThan(text.indexOf('Schema footer'));
     });
 
+    test('should stack schema sections in admin-console__schema-sections for content gap', () => {
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: {
+                id: 'Config',
+                name: 'config',
+                sections: [
+                    {
+                        key: 'section-a',
+                        title: 'Section A',
+                        description: 'Description A',
+                        settings: [],
+                    },
+                    {
+                        key: 'section-b',
+                        title: 'Section B',
+                        description: 'Description B',
+                        settings: [],
+                    },
+                ],
+            } as AdminDefinitionSubSectionSchema,
+            patchConfig: jest.fn(),
+        };
+
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const stack = container.querySelector('.admin-console__schema-sections');
+
+        expect(stack).toBeInTheDocument();
+        expect(stack?.querySelectorAll(':scope > .AdminPanel.AdminSectionPanel')).toHaveLength(2);
+        expect(screen.getByRole('heading', {name: 'Section A'})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Section B'})).toBeInTheDocument();
+    });
+
     test('should render top-level settings and sections between the schema header and footer', () => {
         const props = {
             ...DefaultProps,

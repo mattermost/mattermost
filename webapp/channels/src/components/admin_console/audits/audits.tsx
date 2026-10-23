@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, memo, useCallback} from 'react';
-import type {CSSProperties} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {Audit} from '@mattermost/types/audits';
 
@@ -13,7 +13,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import ComplianceReports from 'components/admin_console/compliance_reports';
 import AuditTable from 'components/audit_table';
 import LoadingScreen from 'components/loading_screen';
-import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 type Props = {
     isLicensed: boolean;
@@ -25,10 +25,12 @@ type Props = {
 };
 
 const messages = defineMessages({
+    title: {id: 'admin.complianceMonitoring.userActivityLogsTitle', defaultMessage: 'User Activity Logs'},
     reload: {id: 'admin.audits.reload', defaultMessage: 'Reload User Activity Logs'},
 });
 
 export const searchableStrings = [
+    messages.title,
     messages.reload,
 ];
 
@@ -53,35 +55,6 @@ const Audits = ({
         actions.getAudits().then(() => setIsLoadingAudits(false));
     }, [actions]);
 
-    const activityLogHeader = () => {
-        const h4Style: CSSProperties = {
-            display: 'inline-block',
-            marginBottom: '6px',
-        };
-        const divStyle: CSSProperties = {
-            clear: 'both',
-        };
-        return (
-            <div style={divStyle}>
-                <h4 style={h4Style}>
-                    <FormattedMessage
-                        id='admin.complianceMonitoring.userActivityLogsTitle'
-                        defaultMessage='User Activity Logs'
-                    />
-                </h4>
-                <Button
-                    type='submit'
-                    emphasis='tertiary'
-                    className='pull-right'
-                    onClick={reload}
-                >
-                    <ReloadIcon/>
-                    <FormattedMessage {...messages.reload}/>
-                </Button>
-            </div>
-        );
-    };
-
     const renderComplianceReports = () => {
         if (!isLicensed) {
             return <div/>;
@@ -95,26 +68,37 @@ const Audits = ({
         content = <LoadingScreen/>;
     } else {
         content = (
-            <div>
-                <AuditTable
-                    audits={audits}
-                    showUserId={true}
-                    showIp={true}
-                    showSession={true}
-                />
-            </div>
+            <AuditTable
+                audits={audits}
+                showUserId={true}
+                showIp={true}
+                showSession={true}
+            />
         );
     }
 
     return (
         <div>
             {renderComplianceReports()}
-            <div className='panel compliance-panel'>
-                {activityLogHeader()}
+            <AdminPanel
+                id='user_activity_logs'
+                className='compliance-panel'
+                title={messages.title}
+                button={
+                    <Button
+                        type='button'
+                        emphasis='tertiary'
+                        onClick={reload}
+                    >
+                        <RefreshIcon size={16}/>
+                        <FormattedMessage {...messages.reload}/>
+                    </Button>
+                }
+            >
                 <div className='compliance-panel__table'>
                     {content}
                 </div>
-            </div>
+            </AdminPanel>
         </div>
     );
 };

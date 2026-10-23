@@ -20,9 +20,10 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
             </AdminSectionPanel>,
         );
 
-        expect(screen.getByText('Test Section')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('Test Section');
         expect(screen.getByText('Test description')).toBeInTheDocument();
         expect(screen.getByText('Content')).toBeInTheDocument();
+        expect(screen.getByTestId('admin-section-panel-body')).toBeInTheDocument();
     });
 
     test('renders with description as MessageDescriptor', () => {
@@ -58,14 +59,15 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
         expect(screen.getByText('Enterprise Advanced')).toBeInTheDocument();
     });
 
-    test('renders without header when no title or description', () => {
+    test('renders without AdminPanel chrome when no title or description', () => {
         const {container} = renderWithContext(
             <AdminSectionPanel>
                 <div>{'Content'}</div>
             </AdminSectionPanel>,
         );
 
-        expect(container.querySelector('.AdminSectionPanel__header')).not.toBeInTheDocument();
+        expect(container.querySelector('.AdminPanel')).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading')).not.toBeInTheDocument();
         expect(screen.getByText('Content')).toBeInTheDocument();
     });
 
@@ -107,5 +109,21 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
         expect(screen.getByText('Professional')).toBeInTheDocument();
         expect(screen.getByText('Content')).toBeInTheDocument();
     });
-});
 
+    test('applies AdminPanel and AdminSectionPanel classes', () => {
+        renderWithContext(
+            <AdminSectionPanel
+                title='Threads'
+                description='Configure threaded discussions and auto-follow defaults.'
+                data-testid='PostSettings.Threads'
+            >
+                <div>{'Settings'}</div>
+            </AdminSectionPanel>,
+        );
+
+        const panel = screen.getByTestId('PostSettings.Threads');
+        expect(panel).toHaveClass('AdminPanel', 'AdminSectionPanel', 'clearfix');
+        expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('Threads');
+        expect(screen.getByText('Configure threaded discussions and auto-follow defaults.')).toBeInTheDocument();
+    });
+});

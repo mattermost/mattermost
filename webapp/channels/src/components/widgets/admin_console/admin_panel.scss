@@ -1,16 +1,38 @@
 @use 'utils/variables';
 
-.AdminPanel {
-    padding: 0;
-    border: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
-    border-radius: var(--radius-s);
-    margin: 2em 0 1em;
-    background-color: var(--center-channel-bg);
-    box-shadow: var(--elevation-1);
-    font-size: 0.95em;
+// Legacy content helpers nested under the Compass-backed AdminPanel shell.
+// Outer spacing comes from Compass AdminPanel body (`spacing-xxl`); strip
+// redundant padding/backgrounds from common first-level children.
+// Compass AdminPanel CSS modules set `overflow: hidden` on the root (border-
+// radius clipping) and on collapse-inner (0fr/1fr expand animation). A plain
+// `.AdminPanel { overflow: visible }` loses to the module class on equal
+// specificity when the Compass stylesheet loads later — menus (e.g. Data
+// Retention row actions) get clipped. `section.AdminPanel` beats one module
+// class for the root on non-expandable panels.
+// Expandable panels must keep root `overflow: hidden` (Compass default). Our
+// menu-escape override would otherwise let body content paint outside the
+// panel while `grid-template-rows` animates open/closed.
+section.AdminPanel {
+    overflow: visible;
 
+    &.AdminPanel--expandable {
+        overflow: hidden;
+    }
+
+    // Root overflow:visible lets menus escape the panel, but then Compass
+    // AdminPanelFooter's fill no longer clips to the panel's border-radius.
+    // Mirror the panel's bottom radii onto the footer so the background does
+    // not square off through the rounded corners (e.g. Archive Team/Channel).
+    > [class*='_admin-panel-footer_'] {
+        overflow: hidden;
+        border-bottom-left-radius: var(--radius-m);
+        border-bottom-right-radius: var(--radius-m);
+    }
+}
+
+.AdminPanel {
     .AdminPanel__content {
-        padding: 10px 20px 20px;
+        padding: 0;
     }
 
     .AdminPanel__table {
@@ -30,59 +52,31 @@
         }
     }
 
-    .header {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px;
-        border-radius: var(--radius-s) var(--radius-s) 0 0;
-        background: variables.$white;
-
-        h3 {
-            padding: 0;
-            margin: 4px 0 !important;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .button {
-            align-self: flex-end;
-            margin-left: 10px;
-
-            svg {
-                transform: rotate(0deg);
-                transition: transform 300ms;
-            }
-        }
+    .group-teams-and-channels--body,
+    .group-settings--body,
+    .channel-moderation--body,
+    .group-profile,
+    .DataGrid,
+    .groups-list,
+    .AbstractList,
+    .SystemRolePermissions {
+        padding: 0;
     }
 
-    &.closed {
-        .header {
-            .button {
-                svg {
-                    transform: rotate(90deg);
-                    transition: transform 300ms;
-                }
-            }
+    .DataGrid,
+    .SystemRolePermissions {
+        background: transparent;
+    }
+
+    .group-users {
+        .group-users--body,
+        .group-users--footer {
+            margin-right: 0;
+            margin-left: 0;
         }
-    }
-}
 
-.AdminPanelTogglable {
-    .AdminPanelTogglableContent {
-        display: grid;
-        grid-template-rows: 1fr;
-        transition: all 0.4s ease-in-out 0s;
-    }
-
-    &.closed {
-        .AdminPanelTogglableContent {
-            grid-template-rows: 0fr;
+        .group-users--footer {
+            margin-bottom: 0;
         }
-    }
-
-    .AdminPanelTogglableContent .AdminPanelTogglableContentInner {
-        overflow: hidden;
     }
 }

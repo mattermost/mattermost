@@ -2,24 +2,15 @@
 // See LICENSE.txt for license information.
 
 .ContentFlaggingSettings {
-    h1.content-flagging-section-title {
-        margin: 0;
-        font-size: 16px;
-        line-height: 24px;
+    // Single enable BooleanSetting under form-horizontal: keep label/radio
+    // padding alignment, but drop the default 25px form-group margin — sibling
+    // spacing comes from admin-console__content gap.
+    .admin-console__setting-group > .form-group {
+        margin-bottom: 0;
     }
 
     .content-flagging-section-setting {
         display: flex;
-    }
-
-    h5.content-flagging-section-description {
-        margin: 0;
-    }
-
-    .SectionHeader-ffXwfT.fmYfjH.header > hgroup {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
     }
 
     .setting-title {
@@ -31,20 +22,20 @@
     .content-flagging-section-setting-wrapper {
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: var(--spacing-xl);
     }
 
     .setting-content {
         display: flex;
         flex: 1;
         font-size: 14px;
-        gap: 24px;
+        gap: var(--spacing-xl);
     }
 
     .setting-content-wrapper {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: var(--spacing-xs);
     }
 
     .admin-console-save {
