@@ -357,7 +357,7 @@ notifications:
   email:
     status: OK
 `,
-		model.SupportPacketStatsFileName:   "registered_users: 300\nactive_users: 300\nsingle_channel_guests: 0\nposts: 1000\n",
+		model.SupportPacketStatsFileName:   "registered_users: 100\nactive_users: 100\nsingle_channel_guests: 0\nposts: 1000\n",
 		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
 		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
 		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,

@@ -22,10 +22,21 @@ cd server && make run-server
 No separate terminal or setup step needed — Playwright brings up Postgres, Inbucket, and the Mattermost server itself via [Testcontainers](https://node.testcontainers.org/), then tears them down after the run.
 
 ```bash
-# Run with defaults (Postgres, Inbucket, Mattermost server, minio, openldap, keycloak, elasticsearch)
+# Run with defaults (Postgres, Inbucket, Mattermost server, minio, openldap, keycloak, elasticsearch, nginx)
 PW_USE_TESTCONTAINERS=true npm run test -- login
 
-# Change which additional services start, comma-separated (or "" to start none)
+# Runs the full suite (not just specs/functional/subpath) against the server booted directly under
+# the subpath. The nginx proxy is always started in this mode, even if PW_TESTCONTAINERS_SERVICES
+# omits it or is empty, so there's no need to list it. Setup's "ensure server deployment"
+# step, and every specs/functional/subpath spec's requireSubpathServer(), both fail fast otherwise.
+# Only for a run dedicated entirely to the subpath project — every other test sharing this server
+# would also see the prefix, so don't combine this with chrome/firefox/ipad in the same invocation.
+# Left in subpath mode afterward — tear the stack down (npm run testcontainers:down) to go back to
+# a plain server.
+PW_USE_TESTCONTAINERS=true PW_SERVER_DEPLOY=subpath npx playwright test --project subpath
+
+# Change which additional services start, comma-separated (or "" to start none).
+# nginx is still added when PW_SERVER_DEPLOY=subpath
 PW_USE_TESTCONTAINERS=true PW_TESTCONTAINERS_SERVICES=minio,openldap npm run test
 
 # Pin a specific server image (defaults to mattermostdevelopment/mattermost-enterprise-edition:master)

@@ -31,7 +31,7 @@ var dbNoReadReplica = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    dataSourceReplicasSubject,
-	Eval:       evalDBNoReadReplica,
+	Eval:       healthcheck.Single(evalDBNoReadReplica),
 }
 
 var dbNoSearchReplica = healthcheck.Rule{
@@ -47,7 +47,7 @@ var dbNoSearchReplica = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    dataSourceSearchReplicasSubject,
-	Eval:       evalDBNoSearchReplica,
+	Eval:       healthcheck.Single(evalDBNoSearchReplica),
 }
 
 var dbTraceOn = healthcheck.Rule{
@@ -63,7 +63,7 @@ var dbTraceOn = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "SqlSettings.Trace",
-	Eval:       evalDBTraceOn,
+	Eval:       healthcheck.Single(evalDBTraceOn),
 }
 
 var dbMaxOpenConnsLow = healthcheck.Rule{
@@ -79,7 +79,7 @@ var dbMaxOpenConnsLow = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    maxOpenConnsSubject,
-	Eval:       evalDBMaxOpenConnsLow,
+	Eval:       healthcheck.Single(evalDBMaxOpenConnsLow),
 }
 
 var dbQueryTimeoutHigh = healthcheck.Rule{
@@ -95,7 +95,7 @@ var dbQueryTimeoutHigh = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "SqlSettings.QueryTimeout",
-	Eval:       evalDBQueryTimeoutHigh,
+	Eval:       healthcheck.Single(evalDBQueryTimeoutHigh),
 }
 
 var dbIdleExceedsOpen = healthcheck.Rule{
@@ -111,38 +111,38 @@ var dbIdleExceedsOpen = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "SqlSettings.MaxIdleConns",
-	Eval:       evalDBIdleExceedsOpen,
+	Eval:       healthcheck.Single(evalDBIdleExceedsOpen),
 }
 
-func evalDBNoReadReplica(s *healthcheck.Snapshot) []healthcheck.Result {
-	cfg, ok := config(s)
+func evalDBNoReadReplica(s *healthcheck.Snapshot) healthcheck.Result {
+	cfg, ok := s.ConfigRoot()
 	if !ok {
 		return unknownConfig()
 	}
 	if len(cfg.SqlSettings.DataSourceReplicas) > 0 {
-		return resolved()
+		return healthcheck.Resolved()
 	}
 
-	users, ok := registeredUsers(s)
+	users, ok := s.RegisteredUsers()
 	if !ok {
 		return unknownStats()
 	}
 	if users < readReplicaUsers {
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(users))}
+		return healthcheck.Resolved().WithValue(float64(users))
 	}
 
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_no_read_replica.message")).
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_no_read_replica.message")).
 		WithDetail("users", strconv.FormatInt(users, 10)).
-		WithValue(float64(users))}
+		WithValue(float64(users))
 }
 
-func evalDBNoSearchReplica(s *healthcheck.Snapshot) []healthcheck.Result {
-	cfg, ok := config(s)
+func evalDBNoSearchReplica(s *healthcheck.Snapshot) healthcheck.Result {
+	cfg, ok := s.ConfigRoot()
 	if !ok {
 		return unknownConfig()
 	}
 	if len(cfg.SqlSettings.DataSourceSearchReplicas) > 0 {
-		return resolved()
+		return healthcheck.Resolved()
 	}
 
 	searching, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableSearching })
@@ -150,7 +150,7 @@ func evalDBNoSearchReplica(s *healthcheck.Snapshot) []healthcheck.Result {
 		return unknownConfig()
 	}
 	if searching {
-		return resolved()
+		return healthcheck.Resolved()
 	}
 
 	disabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.SqlSettings.DisableDatabaseSearch })
@@ -158,7 +158,7 @@ func evalDBNoSearchReplica(s *healthcheck.Snapshot) []healthcheck.Result {
 		return unknownConfig()
 	}
 	if disabled {
-		return resolved()
+		return healthcheck.Resolved()
 	}
 
 	posts, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.Posts })
@@ -166,63 +166,63 @@ func evalDBNoSearchReplica(s *healthcheck.Snapshot) []healthcheck.Result {
 		return unknownStats()
 	}
 	if posts < searchReplicaPosts {
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(posts))}
+		return healthcheck.Resolved().WithValue(float64(posts))
 	}
 
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_no_search_replica.message")).
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_no_search_replica.message")).
 		WithDetail("posts", strconv.FormatInt(posts, 10)).
-		WithValue(float64(posts))}
+		WithValue(float64(posts))
 }
 
-func evalDBTraceOn(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalDBTraceOn(s *healthcheck.Snapshot) healthcheck.Result {
 	trace, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.SqlSettings.Trace })
 	switch {
 	case !ok:
 		return unknownConfig()
 	case trace:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_trace_on.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_trace_on.message"))
 	default:
-		return resolved()
+		return healthcheck.Resolved()
 	}
 }
 
-func evalDBMaxOpenConnsLow(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalDBMaxOpenConnsLow(s *healthcheck.Snapshot) healthcheck.Result {
 	maxOpen, ok := maxOpenConns(s)
 	if !ok {
 		return unknownConfig()
 	}
 	if maxOpen >= lowMaxOpenConns {
-		return resolved()
+		return healthcheck.Resolved()
 	}
 
-	users, ok := registeredUsers(s)
+	users, ok := s.RegisteredUsers()
 	if !ok {
 		return unknownStats()
 	}
 	if users < lowMaxOpenUsers {
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(users))}
+		return healthcheck.Resolved().WithValue(float64(users))
 	}
 
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_max_open_conns_low.message")).
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_max_open_conns_low.message")).
 		WithDetail("users", strconv.FormatInt(users, 10)).
 		WithDetail("max_open", strconv.Itoa(maxOpen)).
-		WithValue(float64(users))}
+		WithValue(float64(users))
 }
 
-func evalDBQueryTimeoutHigh(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalDBQueryTimeoutHigh(s *healthcheck.Snapshot) healthcheck.Result {
 	timeout, ok := s.ConfigInt(func(cfg *model.Config) *int { return cfg.SqlSettings.QueryTimeout })
 	switch {
 	case !ok:
 		return unknownConfig()
 	case timeout >= highQueryTimeout:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_query_timeout_high.message")).
-			WithDetail("timeout", strconv.Itoa(timeout))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_query_timeout_high.message")).
+			WithDetail("timeout", strconv.Itoa(timeout))
 	default:
-		return resolved()
+		return healthcheck.Resolved()
 	}
 }
 
-func evalDBIdleExceedsOpen(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalDBIdleExceedsOpen(s *healthcheck.Snapshot) healthcheck.Result {
 	maxOpen, ok := maxOpenConns(s)
 	if !ok {
 		return unknownConfig()
@@ -233,10 +233,10 @@ func evalDBIdleExceedsOpen(s *healthcheck.Snapshot) []healthcheck.Result {
 	case !ok:
 		return unknownConfig()
 	case maxIdle > maxOpen:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_idle_exceeds_open.message")).
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_idle_exceeds_open.message")).
 			WithDetail("max_idle", strconv.Itoa(maxIdle)).
-			WithDetail("max_open", strconv.Itoa(maxOpen))}
+			WithDetail("max_open", strconv.Itoa(maxOpen))
 	default:
-		return resolved()
+		return healthcheck.Resolved()
 	}
 }

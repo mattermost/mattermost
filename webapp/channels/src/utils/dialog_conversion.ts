@@ -4,7 +4,7 @@
 import {isAppSelectOption, type AppForm, type AppField, type AppFormValue, type AppSelectOption, type AppFormValues, type DateTimeConfig} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
-import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+import {AppFieldLayouts, AppFieldTypes} from 'mattermost-redux/constants/apps';
 
 import {stringToMoment} from 'utils/date_utils';
 
@@ -22,6 +22,12 @@ export const DialogElementTypes = {
     CHECKBOX_MATRIX: 'checkbox_matrix',
     FILE: 'file',
     ACTION_BUTTON: 'action_button',
+} as const;
+
+// Collapsible subtypes (from legacy Interactive Dialog spec). An empty subtype
+// stacks, which is why there is no constant for it here.
+export const DialogCollapsibleSubTypes = {
+    GRID: 'grid',
 } as const;
 
 // Dialog element length limits (server-side validation constraints)
@@ -57,6 +63,9 @@ type ServerDialogResponse = {
     callback_id?: string;
     notify_on_cancel?: boolean;
     state?: string;
+    size?: AppForm['size'];
+    submit_buttons?: string;
+    refresh_on_return?: boolean;
 };
 
 // Transformed dialog props structure
@@ -70,7 +79,12 @@ type TransformedDialogProps = {
     callbackId?: string;
     notifyOnCancel?: boolean;
     state?: string;
+    size?: AppForm['size'];
+    submitButtons?: string;
+    refreshOnReturn?: boolean;
 };
+
+export const DIALOG_REFRESH_PLACEHOLDER_PATH = '/refresh';
 
 export type ConversionOptions = {
 
@@ -468,6 +482,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
                 fields: childFields,
                 expanded: !element.collapsible_config?.collapsed,
                 bordered: !element.collapsible_config?.borderless,
+                layout: element.subtype === DialogCollapsibleSubTypes.GRID ? AppFieldLayouts.GRID : AppFieldLayouts.STACKED,
             },
         };
         return {field: collapsibleField, errors};
@@ -606,6 +621,9 @@ export function transformServerDialogToProps(serverDialog: ServerDialogResponse)
         callbackId: serverDialog.callback_id,
         notifyOnCancel: serverDialog.notify_on_cancel,
         state: serverDialog.state,
+        size: serverDialog.size,
+        submitButtons: serverDialog.submit_buttons,
+        refreshOnReturn: serverDialog.refresh_on_return,
     };
 }
 
@@ -621,6 +639,9 @@ export function convertDialogToAppForm(
     sourceUrl: string,
     dialogState: string,
     options: ConversionOptions,
+    submitButtons?: string,
+    refreshOnReturn?: boolean,
+    size?: AppForm['size'],
 ): ConversionResult {
     const allErrors: ValidationError[] = [];
     const convertedFields: AppField[] = [];
@@ -673,22 +694,30 @@ export function convertDialogToAppForm(
         icon: iconUrl,
         header: introductionText ? String(introductionText) : undefined,
         submit_label: submitLabel ? String(submitLabel) : undefined,
+        submit_buttons: submitButtons || undefined,
         submit: {
             path: '/submit',
             expand: {},
             state: dialogState || undefined,
         },
         fields: convertedFields,
+        size,
     };
 
-    // Set source if sourceUrl is provided or if any fields have refresh enabled
+    // Set source if sourceUrl is provided or if any fields have refresh enabled. Without a
+    // sourceUrl the path is a placeholder; the adapter falls back to the dialog's sourceUrl.
     const hasRefreshFields = flattenAppFields(convertedFields).some((field) => field.refresh === true);
     if ((sourceUrl && sourceUrl.trim()) || hasRefreshFields) {
         form.source = {
-            path: sourceUrl || '/refresh',
+            path: sourceUrl || DIALOG_REFRESH_PLACEHOLDER_PATH,
             expand: {},
             state: dialogState || undefined,
         };
+    }
+
+    // Refresh on return needs a real source_url to refresh from.
+    if (refreshOnReturn && sourceUrl && sourceUrl.trim()) {
+        form.refresh_on_return = true;
     }
 
     return {form, errors: allErrors};
@@ -747,6 +776,9 @@ export function convertServerDialogResponseToAppForm(
         transformedDialog.sourceUrl || '',
         transformedDialog.state || '',
         options,
+        transformedDialog.submitButtons,
+        transformedDialog.refreshOnReturn,
+        transformedDialog.size,
     );
 
     return {form, errors};

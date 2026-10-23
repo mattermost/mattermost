@@ -79,6 +79,17 @@ func (s LocalCacheReadReceiptStore) DeleteByPost(rctx request.CTX, postID string
 	return s.ReadReceiptStore.DeleteByPost(rctx, postID)
 }
 
+func (s LocalCacheReadReceiptStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
+	// The caches are keyed by post, so there is no way to target a single user's entries.
+	defer func() {
+		s.rootStore.doClearCacheCluster(s.rootStore.readReceiptCache)
+		s.rootStore.doClearCacheCluster(s.rootStore.readReceiptPostReadersCache)
+		s.rootStore.doClearCacheCluster(s.rootStore.readReceiptPostUnreadCountCache)
+	}()
+
+	return s.ReadReceiptStore.PermanentDeleteByUser(rctx, userID)
+}
+
 func (s LocalCacheReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
 	defer func() {
 		s.rootStore.doInvalidateCacheCluster(s.rootStore.readReceiptCache, fmt.Sprintf("%s:%s", receipt.PostID, receipt.UserID), nil)

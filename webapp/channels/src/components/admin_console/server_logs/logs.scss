@@ -1,0 +1,10 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Uncapped by the settings width, since log lines are wide
+.admin-console .admin-console__wrapper .admin-console__container.ServerLogs {
+    display: flex;
+    overflow: hidden;
+    height: 100%;
+    flex-direction: column;
+}

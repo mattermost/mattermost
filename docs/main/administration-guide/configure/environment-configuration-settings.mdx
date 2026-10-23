@@ -236,7 +236,7 @@ See the [setting up TLS for Mattermost](/deployment-guide/server/setup-tls) for 
 </colgroup>
 <tbody>
 <tr>
-<td><p>Set an explicit idle timeout in the HTTP server. This is the maximum time allowed before an idle connection is disconnected.</p><p>Numerical input in seconds. Default is <strong>300</strong> seconds.</p></td>
+<td><p>Set an explicit idle timeout in the HTTP server. This is the maximum time allowed before an idle connection is disconnected.</p><p>Numerical input in seconds. Must be greater than 0. Default is <strong>300</strong> seconds.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Web Server</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>IdleTimeout</code> &gt; <code>300</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_IDLETIMEOUT</code></li></ul></td>
 </tr>
 </tbody>
@@ -251,7 +251,7 @@ See the [setting up TLS for Mattermost](/deployment-guide/server/setup-tls) for 
 </colgroup>
 <tbody>
 <tr>
-<td><p>We recommend gzip to improve performance unless your environment has specific restrictions, such as a web proxy that distributes gzip files poorly.</p><ul><li><strong>gzip</strong>: <strong>(Default)</strong> The Mattermost server will serve static files compressed with gzip to improve performance. gzip compression applies to the HTML, CSS, Javascript, and other static content files that make up the Mattermost web client.</li><li><strong>Uncompressed</strong>: The Mattermost server will serve static files uncompressed.</li><li><strong>Disabled</strong>: The Mattermost server will not serve static files.</li></ul></td>
+<td><p>We recommend gzip to improve performance unless your environment has specific restrictions, such as a web proxy that distributes gzip files poorly.</p><ul><li><strong>gzip</strong> (<code>gzip</code>): <strong>(Default)</strong> The Mattermost server will serve static files compressed with gzip to improve performance. gzip compression applies to the HTML, CSS, Javascript, and other static content files that make up the Mattermost web client.</li><li><strong>Uncompressed</strong> (<code>uncompressed</code>): The Mattermost server will serve static files uncompressed.</li><li><strong>Disabled</strong> (<code>disabled</code>): The Mattermost server will not serve static files.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Web Server</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>WebserverMode</code> &gt; <code>"gzip"</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_WEBSERVERMODE</code></li></ul></td>
 </tr>
 </tbody>
@@ -440,7 +440,7 @@ We strongly recommend configuring a single websocket URL that matches the [Site 
 </colgroup>
 <tbody>
 <tr>
-<td><p>The minimum TLS version used by the Mattermost server.</p><p>String input. Default is <strong>1.2</strong>.</p></td>
+<td><p>The minimum TLS version used by the Mattermost server.</p><p>Accepted values are <strong>1.0</strong>, <strong>1.1</strong>, <strong>1.2</strong>, and <strong>1.3</strong>. The default is <strong>1.2</strong>.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>TLSMinVer</code> &gt; <code>1.2</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_TLSMINVER</code></li></ul></td>
 </tr>
 </tbody>
@@ -501,7 +501,7 @@ See the [Strict-Transport-Security](https://developer.mozilla.org/en-US/docs/Web
 </colgroup>
 <tbody>
 <tr>
-<td><p>The time, in seconds, that the browser remembers a site is only to be accessed using HTTPS. After this period, a site can't be accessed using HTTP unless <code>TLSStrictTransport</code> is set to <code>true</code>.</p><p>Numerical input. Default is <strong>63072000</strong> (2 years).</p></td>
+<td><p>The time, in seconds, that the browser remembers a site is only to be accessed using HTTPS. After this period, a site can't be accessed using HTTP unless <code>TLSStrictTransport</code> is set to <code>true</code>.</p><p>Numerical input. Must be 0 or greater. Default is <strong>63072000</strong> (2 years).</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>TLSStrictTransportMaxAge</code> &gt; <code>63072000</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE</code></li></ul></td>
 </tr>
 </tbody>
@@ -572,7 +572,7 @@ See the [Strict-Transport-Security](https://developer.mozilla.org/en-US/docs/Web
 </colgroup>
 <tbody>
 <tr>
-<td><p>Define the frequency, in milliseconds, of cluster request time logging for performance monitoring.</p><p>Numerical input. Default is <strong>2000</strong> milliseconds (2 seconds).</p></td>
+<td><p>Define the frequency, in milliseconds, of cluster request time logging for performance monitoring.</p><p>Numerical input. Must be greater than 0. Default is <strong>2000</strong> milliseconds (2 seconds).</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>ClusterLogTimeoutMilliseconds</code> &gt; <code>2000</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_CLUSTERLOGTIMEOUTMILLISECONDS</code></li></ul></td>
 </tr>
 </tbody>
@@ -1121,7 +1121,7 @@ For more information on pg_stat_replication, see the [PostgreSQL documentation](
 </colgroup>
 <tbody>
 <tr>
-<td><p>Specifies how frequently unhealthy replicas will be monitored for liveness check. Mattermost will dynamically choose a replica if it's alive.</p><p>Numerical input. Default is 5 seconds.</p></td>
+<td><p>Specifies how frequently unhealthy replicas will be monitored for liveness check. Mattermost will dynamically choose a replica if it's alive.</p><p>Numerical input. Must be greater than 0. Default is 5 seconds.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>ReplicaMonitorIntervalSeconds</code> &gt; <code>5</code></li><li>Environment variable: <code>MM_SQLSETTINGS_REPLICAMONITORINTERVALSECONDS</code></li></ul></td>
 </tr>
 </tbody>
@@ -1472,7 +1472,7 @@ Files uploaded while this setting is **false** don't appear in file search resul
 </colgroup>
 <tbody>
 <tr>
-<td><p>The number of replicas to use for each post index.</p><p>Numerical input. Default is <strong>1</strong>.</p></td>
+<td><p>The number of replicas to use for each post index.</p><p>Numerical input. Must be 0 or greater. Default is <strong>1</strong>.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ElasticsearchSettings</code> &gt; <code>PostIndexReplicas</code> &gt; <code>1</code></li><li>Environment variable: <code>MM_ELASTICSEARCHSETTINGS_POSTINDEXREPLICAS</code></li></ul></td>
 </tr>
 </tbody>
@@ -1495,7 +1495,7 @@ Files uploaded while this setting is **false** don't appear in file search resul
 </colgroup>
 <tbody>
 <tr>
-<td><p>The number of shards to use for each post index.</p><p>Numerical input. Default is <strong>1</strong>.</p></td>
+<td><p>The number of shards to use for each post index.</p><p>Numerical input. Must be 1 or greater. Default is <strong>1</strong>.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ElasticsearchSettings</code> &gt; <code>PostIndexShards</code> &gt; <code>1</code></li><li>Environment variable: <code>MM_ELASTICSEARCHSETTINGS_POSTINDEXSHARDS</code></li></ul></td>
 </tr>
 </tbody>
@@ -1516,7 +1516,7 @@ If this configuration setting is changed, the changed configuration only applies
 </colgroup>
 <tbody>
 <tr>
-<td><p>The number of replicas to use for each channel index.</p><p>Numerical input. Default is <strong>1</strong>.</p></td>
+<td><p>The number of replicas to use for each channel index.</p><p>Numerical input. Must be 0 or greater. Default is <strong>1</strong>.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ElasticsearchSettings</code> &gt; <code>ChannelIndexReplicas</code> &gt; <code>1</code></li><li>Environment variable: <code>MM_ELASTICSEARCHSETTINGS_CHANNELINDEXREPLICAS</code></li></ul></td>
 </tr>
 </tbody>
@@ -1537,7 +1537,7 @@ If there are `n` data nodes, the number of replicas per shard for each index sho
 </colgroup>
 <tbody>
 <tr>
-<td><p>The number of shards to use for each channel index.</p><p>Numerical input. Default is <strong>1</strong>.</p></td>
+<td><p>The number of shards to use for each channel index.</p><p>Numerical input. Must be 1 or greater. Default is <strong>1</strong>.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ElasticsearchSettings</code> &gt; <code>ChannelIndexShards</code> &gt; <code>1</code></li><li>Environment variable: <code>MM_ELASTICSEARCHSETTINGS_CHANNELINDEXSHARDS</code></li></ul></td>
 </tr>
 </tbody>
@@ -1552,7 +1552,7 @@ If there are `n` data nodes, the number of replicas per shard for each index sho
 </colgroup>
 <tbody>
 <tr>
-<td><p>The number of replicas to use for each user index.</p><p>Numerical input. Default is <strong>1</strong>.</p></td>
+<td><p>The number of replicas to use for each user index.</p><p>Numerical input. Must be 0 or greater. Default is <strong>1</strong>.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ElasticsearchSettings</code> &gt; <code>UserIndexReplicas</code> &gt; <code>1</code></li><li>Environment variable: <code>MM_ELASTICSEARCHSETTINGS_USERINDEXREPLICAS</code></li></ul></td>
 </tr>
 </tbody>
@@ -1573,7 +1573,7 @@ If there are `n` data nodes, the number of replicas per shard for each index sho
 </colgroup>
 <tbody>
 <tr>
-<td><p>The number of shards to use for each user index.</p><p>Numerical input. Default is <strong>1</strong>.</p></td>
+<td><p>The number of shards to use for each user index.</p><p>Numerical input. Must be 1 or greater. Default is <strong>1</strong>.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ElasticsearchSettings</code> &gt; <code>UserIndexShards</code> &gt; <code>1</code></li><li>Environment variable: <code>MM_ELASTICSEARCHSETTINGS_USERINDEXSHARDS</code></li></ul></td>
 </tr>
 </tbody>
@@ -2172,7 +2172,7 @@ Most Amazon S3-compatible storage solutions assign a default storage class of `S
 </colgroup>
 <tbody>
 <tr>
-<td><p>The size, in bytes, of each part in a multi-part upload to Amazon S3.</p><p>Numeric value. Default is 5242880 (5MB).</p></td>
+<td><p>The size, in bytes, of each part in a multi-part upload to Amazon S3.</p><p>Numeric input of at least 5242880 bytes (5 MiB). Defaults to 5242880 bytes.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>AmazonS3UploadPartSizeBytes</code> &gt; <code>5242880</code></li><li>Environment variable: <code>MM_FILESETTINGS_AMAZONS3UPLOADPARTSIZEBYTES</code></li></ul></td>
 </tr>
 </tbody>
@@ -2193,7 +2193,7 @@ A smaller part size can result in more requests and an increase in latency, whil
 </colgroup>
 <tbody>
 <tr>
-<td><p>The size, in bytes, of each part in a multi-part exported to Amazon S3.</p><p>Numeric value. Default is 104857600 (100MB).</p></td>
+<td><p>The size, in bytes, of each part in a multi-part upload when exporting to Amazon S3.</p><p>Numeric input of at least 5242880 bytes (5 MiB). Defaults to 104857600 bytes (100 MiB).</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>ExportAmazonS3UploadPartSizeBytes</code> &gt; <code>104857600</code></li><li>Environment variable: <code>MM_FILESETTINGS_EXPORTAMAZONS3UPLOADPARTSIZEBYTES</code></li></ul></td>
 </tr>
 </tbody>
@@ -2446,7 +2446,7 @@ With self-hosted deployments, you can configure SMTP email server settings by go
 </colgroup>
 <tbody>
 <tr>
-<td><p>The port of SMTP email server.</p><p>String input.</p></td>
+<td><p>The port of SMTP email server.</p><p>String input. Must be a port number between 1 and 65535.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; SMTP</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>"SMTPPort"</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_SMTPPORT</code></li></ul></td>
 </tr>
 </tbody>
@@ -2684,7 +2684,7 @@ See the [high availability cluster-based deployment](/deployment-guide/server/hi
 </colgroup>
 <tbody>
 <tr>
-<td><p>The port used for the gossip protocol. Both UDP and TCP should be allowed on this port.</p><p>Numerical input. Default is <strong>8074</strong>.</p></td>
+<td><p>The port used for the gossip protocol. Both UDP and TCP should be allowed on this port.</p><p>Numerical input. Must be a port number between 1 and 65535. Default is <strong>8074</strong>.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; High Availability</strong></li><li><code>config.json</code> setting: <code>ClusterSettings</code> &gt; <code>GossipPort</code> &gt; <code>8074</code></li><li>Environment variable: <code>MM_CLUSTERSETTINGS_GOSSIPPORT</code></li></ul></td>
 </tr>
 </tbody>
@@ -2802,7 +2802,7 @@ From Mattermost v11.0, notification logs are automatically included in the main 
 </colgroup>
 <tbody>
 <tr>
-<td><p>The level of detail in general log events written when Mattermost outputs log messages to the console.</p><ul><li><strong>DEBUG</strong>: <strong>(Default)</strong> Outputs verbose detail for developers debugging issues.</li><li><strong>ERROR</strong>: Outputs only error messages.</li><li><strong>INFO</strong>: Outputs error messages and information around startup and initialization.</li></ul></td>
+<td><p>The level of detail in general log events written when Mattermost outputs log messages to the console.</p><ul><li><strong>DEBUG</strong>: <strong>(Default)</strong> Outputs verbose detail for developers debugging issues.</li><li><strong>ERROR</strong>: Outputs only error messages.</li><li><strong>INFO</strong>: Outputs error messages and information around startup and initialization.</li></ul><p><strong>TRACE</strong>, <strong>WARN</strong>, <strong>FATAL</strong>, and <strong>PANIC</strong> are also accepted. Values are case-insensitive, and any other value fails configuration validation.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>ConsoleLevel</code> &gt; <code>"DEBUG"</code></li><li>Environment variable: <code>MM_LOGSETTINGS_CONSOLELEVEL</code></li></ul></td>
 </tr>
 </tbody>
@@ -2895,7 +2895,7 @@ Typically set to **true** in a production environment.
 </colgroup>
 <tbody>
 <tr>
-<td><p>The level of detail in general log events when when Mattermost outputs log messages to a file.</p><ul><li><strong>DEBUG</strong>: Outputs verbose detail for developers debugging issues.</li><li><strong>ERROR</strong>: Outputs only error messages.</li><li><strong>INFO</strong>: <strong>(Default)</strong> Outputs error messages and information around startup and initialization.</li></ul></td>
+<td><p>The level of detail in general log events when when Mattermost outputs log messages to a file.</p><ul><li><strong>DEBUG</strong>: Outputs verbose detail for developers debugging issues.</li><li><strong>ERROR</strong>: Outputs only error messages.</li><li><strong>INFO</strong>: <strong>(Default)</strong> Outputs error messages and information around startup and initialization.</li></ul><p><strong>TRACE</strong>, <strong>WARN</strong>, <strong>FATAL</strong>, and <strong>PANIC</strong> are also accepted. Values are case-insensitive, and any other value fails configuration validation.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>FileLevel</code> &gt; <code>"INFO"</code></li><li>Environment variable: <code>MM_LOGSETTINGS_FILELEVEL</code></li></ul></td>
 </tr>
 </tbody>
@@ -2972,7 +2972,7 @@ Enable debug logs by changing the [file log level](#file-log-level) to `DEBUG` t
 </colgroup>
 <tbody>
 <tr>
-<td><p>Enables system admins to limit the size of general log fields during logging.</p><p>Numerical value. Default is <strong>2048</strong>.</p></td>
+<td><p>Enables system admins to limit the size of general log fields during logging.</p><p>Numerical value. Must be 0 or greater. Default is <strong>2048</strong>.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>MaxFieldSize</code> &gt; <code>2048</code></li><li>Environment variable: <code>MM_LOGSETTINGS_MAXFIELDSIZE</code></li></ul></td>
 </tr>
 </tbody>
@@ -3054,7 +3054,7 @@ You can configure logging specifically for Mattermost notifications by editing t
 </colgroup>
 <tbody>
 <tr>
-<td><p>The level of detail in notification log events written when Mattermost outputs log messages to the console.</p><ul><li><strong>DEBUG</strong>: <strong>(Default)</strong> Outputs verbose detail for developers debugging issues.</li><li><strong>ERROR</strong>: Outputs only error messages.</li><li><strong>INFO</strong>: Outputs error messages and information around startup and initialization.</li></ul></td>
+<td><p>The level of detail in notification log events written when Mattermost outputs log messages to the console.</p><ul><li><strong>DEBUG</strong>: <strong>(Default)</strong> Outputs verbose detail for developers debugging issues.</li><li><strong>ERROR</strong>: Outputs only error messages.</li><li><strong>INFO</strong>: Outputs error messages and information around startup and initialization.</li></ul><p><strong>TRACE</strong>, <strong>WARN</strong>, <strong>FATAL</strong>, and <strong>PANIC</strong> are also accepted. Values are case-insensitive, and any other value fails configuration validation.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>NotificationLogSettings</code> &gt; <code>ConsoleLevel</code> &gt; <code>"DEBUG"</code></li><li>Environment variable: <code>MM_NOTIFICATIONLOGSETTINGS_CONSOLELEVEL</code></li></ul></td>
 </tr>
 </tbody>
@@ -3137,7 +3137,7 @@ The path you configure must exist, and Mattermost must have write permissions fo
 </colgroup>
 <tbody>
 <tr>
-<td><p>The level of detail in notification log events when Mattermost outputs log messages to a file.</p><ul><li><strong>DEBUG</strong>: Outputs verbose detail for developers debugging issues.</li><li><strong>ERROR</strong>: Outputs only error messages.</li><li><strong>INFO</strong>: <strong>(Default)</strong> Outputs error messages and information around startup and initialization.</li></ul></td>
+<td><p>The level of detail in notification log events when Mattermost outputs log messages to a file.</p><ul><li><strong>DEBUG</strong>: Outputs verbose detail for developers debugging issues.</li><li><strong>ERROR</strong>: Outputs only error messages.</li><li><strong>INFO</strong>: <strong>(Default)</strong> Outputs error messages and information around startup and initialization.</li></ul><p><strong>TRACE</strong>, <strong>WARN</strong>, <strong>FATAL</strong>, and <strong>PANIC</strong> are also accepted. Values are case-insensitive, and any other value fails configuration validation.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>NotificationLogSettings</code> &gt; <code>FileLevel</code> &gt; <code>"INFO"</code></li><li>Environment variable: <code>MM_NOTIFICATIONLOGSETTINGS_FILELEVEL</code></li></ul></td>
 </tr>
 </tbody>
@@ -3328,7 +3328,7 @@ After changing this setting, the new session length takes effect after the next 
 </colgroup>
 <tbody>
 <tr>
-<td><p>Set the number of hours counted from the last time a user entered their credential into the mobile app to the expiry of the user’s session.</p><p>Numerical input in hours. Default is <strong>720</strong> hours.</p></td>
+<td><p>Set the number of hours counted from the last time a user entered their credential into the mobile app to the expiry of the user’s session.</p><p>Numerical input in hours. Must be greater than 0. Default is <strong>720</strong> hours.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Session Lengths</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>SessionLengthMobileInHours</code> &gt; <code>720</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_SESSIONLENGTHMOBILEINHOURS</code></li></ul></td>
 </tr>
 </tbody>
@@ -3349,7 +3349,7 @@ After changing this setting, the new session length takes effect after the next 
 </colgroup>
 <tbody>
 <tr>
-<td><p>Set the number of hours from the last time a user entered their SSO credentials to the expiry of the user’s session. This setting defines the session length for SSO authentication, such as SAML, GitLab, and OAuth 2.0.</p><p>Numerical input in hours. Default is <strong>720</strong> hours. Numbers as decimals are also valid values for this configuration setting.</p></td>
+<td><p>Set the number of hours from the last time a user entered their SSO credentials to the expiry of the user’s session. This setting defines the session length for SSO authentication, such as SAML, GitLab, and OAuth 2.0.</p><p>Numerical input in hours. Must be greater than 0. Default is <strong>720</strong> hours.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Session Lengths</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>SessionLengthSSOInHours</code> &gt; <code>720</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_SESSIONLENGTHSSOINHOURS</code></li></ul></td>
 </tr>
 </tbody>
@@ -3371,7 +3371,7 @@ After changing this setting, the new session length takes effect after the next 
 </colgroup>
 <tbody>
 <tr>
-<td><p>Set the number of minutes to cache a session in memory.</p><p>Numerical input in minutes. Default is <strong>10</strong> minutes.</p></td>
+<td><p>Set the number of minutes to cache a session in memory.</p><p>Numerical input in minutes. Must be greater than 0. Default is <strong>10</strong> minutes.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Session Lengths</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>SessionCacheInMinutes</code> &gt; <code>10</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_SESSIONCACHEINMINUTES</code></li></ul></td>
 </tr>
 </tbody>
