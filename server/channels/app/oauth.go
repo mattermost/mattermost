@@ -1162,20 +1162,24 @@ func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *htt
 	}
 	defer resp.Body.Close()
 
-	var buf bytes.Buffer
-	tee := io.TeeReader(resp.Body, &buf)
+	// Read the whole body up front so the error details below always carry the
+	// complete response, regardless of how much the JSON decoder consumes
+	// before it gives up on a malformed one.
+	body, err := io.ReadAll(resp.Body)
 	var ar *model.AccessResponse
-	err = json.NewDecoder(tee).Decode(&ar)
+	if err == nil {
+		err = json.Unmarshal(body, &ar)
+	}
 	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d, error=%v", redactOAuthTokenResponse(buf.String()), resp.StatusCode, err), http.StatusInternalServerError).Wrap(err)
+		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d, error=%v", redactOAuthTokenResponse(string(body)), resp.StatusCode, err), http.StatusInternalServerError).Wrap(err)
 	}
 
 	if strings.ToLower(ar.TokenType) != model.AccessTokenType {
-		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+redactOAuthTokenResponse(buf.String()), http.StatusInternalServerError)
+		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+redactOAuthTokenResponse(string(body)), http.StatusInternalServerError)
 	}
 
 	if ar.AccessToken == "" {
-		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+redactOAuthTokenResponse(buf.String()), http.StatusInternalServerError)
+		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+redactOAuthTokenResponse(string(body)), http.StatusInternalServerError)
 	}
 
 	p = url.Values{}
