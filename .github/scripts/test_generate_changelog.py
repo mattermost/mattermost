@@ -253,6 +253,59 @@ class ReleaseNoteFlagTest(unittest.TestCase):
         self.assertIsNone(gc.flag_reason("missing", {"release-note-none"}))
         self.assertIn("no release-note-none label", gc.flag_reason("missing", set()))
         self.assertIn("labelled release-note", gc.flag_reason("none", {"release-note"}))
+        self.assertIsNone(gc.flag_reason("missing", {"release-note", "Changelog/Not Needed"}))
+
+    def test_extraction_rules(self):
+        template = (
+            "#### Release Note\n<!--\n```release-note\nNONE\n```\n```release-note\n"
+            "Example note.\n```\n-->\n"
+        )
+        self.assertIsNone(gc.extract_release_notes(template))
+        self.assertEqual(gc.release_note_status(template), "missing")
+        spinwick = NOTE_BODY + "\nSpinwick creation command:\n```\n/spinwick create\n```\n"
+        self.assertEqual(gc.extract_release_notes(spinwick), ["Added a thing."])
+        self.assertIsNone(gc.extract_release_notes("#### Release Note\n```\nATTACHMENTS_OMITTED.txt\n```\n"))
+        self.assertEqual(gc.extract_release_notes("Summary.\n\n```release-note\nAdded a thing.\n```"), ["Added a thing."])
+        self.assertEqual(gc.extract_release_notes("## Release Notes\n```release-note\nAdded a thing.\n```"), ["Added a thing."])
+        for empty in ("NONE", "N/A", "---", ""):
+            self.assertIsNone(gc.extract_release_notes(f"```release-note\n{empty}\n```"))
+        self.assertEqual(gc.release_note_status("```release-note\nN/A\n```"), "none")
+        self.assertEqual(gc.release_note_status("#### Release Note\nNONE\n"), "none")
+
+    def test_note_quality(self):
+        self.assertEqual(
+            gc.note_quality_issue("Added ``AuditEventPostDelivered`` audit log event.\n🆕 New API file: `x_test.go`"),
+            "machine-generated content",
+        )
+        self.assertEqual(gc.note_quality_issue("MM-12345"), "a bare ticket reference")
+        self.assertEqual(gc.note_quality_issue("Fixes #38201."), "a bare ticket reference")
+        self.assertEqual(gc.note_quality_issue("Enable Concurrent React features"), "under 6 words")
+        self.assertIsNone(gc.note_quality_issue("Pre-packaged Jira plugin version [v5.0.0](https://example.com)."))
+        self.assertIsNone(gc.note_quality_issue("Added ``fflate``."))
+        self.assertIsNone(gc.note_quality_issue("Fixed an issue where the sidebar kept its old state."))
+
+    def test_owner_of_a_bot_pr_is_its_assignee(self):
+        self.assertEqual(gc.pr_owner({"user": {"login": "dev", "type": "User"}}), "dev")
+        bot = {"user": {"login": "cursor[bot]", "type": "Bot"}, "assignees": [{"login": "hanzei"}]}
+        self.assertEqual(gc.pr_owner(bot), "hanzei")
+        self.assertIsNone(gc.pr_owner({"user": {"login": "unified-ci-app[bot]", "type": "Bot"}, "assignees": []}))
+        self.assertEqual(
+            gc.missing_by_owner([{"source": "a#1", "owner": None}, {"source": "a#2", "owner": "x"},
+                                 {"source": "a#3", "owner": "y"}, {"source": "a#4", "owner": "y"}]),
+            [{"owner": "y", "sources": ["a#3", "a#4"]}, {"owner": "x", "sources": ["a#2"]},
+             {"owner": None, "sources": ["a#1"]}],
+        )
+
+    def test_gap_status_tells_unchecked_from_unchanged(self):
+        derived = [{"source": "websocket:x@added"}, {"source": "websocket:y@removed"}, {"source": "migration:000230_x"}]
+        gaps = {g["section"]: g for g in gc.gap_status(derived, True, "go1.26.10", "branch", "v1.26.10")}
+        self.assertEqual(gaps["WebSocket events"]["detail"], "1 added, 1 removed")
+        self.assertEqual(gaps["Database schema changes"]["status"], "ready")
+        self.assertEqual(gaps["Pre-packaged plugins"]["status"], "no_changes_this_release")
+        self.assertIn("unchanged from the previous entry", gaps["Go version"]["detail"])
+        self.assertTrue(gaps["Benchmarking"]["blocks_publish"])
+        unchecked = {g["section"]: g["status"] for g in gc.gap_status([], False, "", None, None)}
+        self.assertEqual(set(unchecked.values()), {"not_yet_checked"})
 
     def test_cherry_pick_origin(self):
         self.assertEqual(gc.cherry_picked_from("Automated cherry pick of #39121"), 39121)
@@ -348,6 +401,7 @@ class MainTest(unittest.TestCase):
     def _pr(number, body, merged_at, labels=()):
         return {
             "number": number, "title": f"PR {number}", "body": body,
+            "user": {"login": f"dev{number}", "type": "User"}, "assignees": [],
             "labels": [{"name": label} for label in labels],
             "pull_request": {"merged_at": merged_at},
         }
@@ -370,14 +424,58 @@ class MainTest(unittest.TestCase):
         self.assertEqual(payload["metrics"]["prs_flagged"], 1)
         self.assertIn("plugin:mattermost-plugin-calls@v1.12.6", (self.out / "pr_body.md").read_text())
         summary = (self.out / "summary.md").read_text()
-        self.assertIn("1 merged PR(s) need a release-note decision", summary)
-        self.assertIn("[mattermost/mattermost#4](https://github.com/mattermost/mattermost/pull/4)", summary)
+        self.assertIn("### Release notes: 2 of 5 merged PRs have one (40%)", summary)
+        self.assertIn("1 missing, by owner", summary)
+        self.assertIn("@dev4 (1): [mattermost/mattermost#4](https://github.com/mattermost/mattermost/pull/4)", summary)
+        self.assertIn("2 PR(s) intentionally have no note.", summary)
+        self.assertIn("✅ **Go version**: v1.27.1 from origin/release-12.1", summary)
+        self.assertIn("✅ **Pre-packaged plugins**: 1 plugin(s) bumped or removed", summary)
+        self.assertIn("➖ **WebSocket events**: none in the release diff", summary)
+        self.assertIn("⏳ **Benchmarking**", summary)
+        self.assertIn("Generator status: ready to run", summary)
+        self.assertEqual(payload["readiness"]["missing_by_owner"], [{"owner": "dev4", "sources": ["mattermost/mattermost#4"]}])
 
         with self.assertRaises(RuntimeError) as caught:
             gc.main()
         self.assertIn("already has a v12.1 entry", str(caught.exception))
         os.environ["DRY_RUN"] = "true"
         gc.main()
+
+    def test_unreadable_repo_is_reported_as_unknown_not_missing(self):
+        import requests
+        gc.REPOS = ["mattermost/mattermost", "mattermost/enterprise"]
+        real_lookup = gc.get_milestone_number
+
+        def lookup(repo, title):
+            if repo == "mattermost/enterprise":
+                response = requests.Response()
+                response.status_code = 404
+                raise requests.HTTPError(response=response)
+            return real_lookup(repo, title)
+        gc.get_milestone_number = lookup
+        gc.main()
+        payload = self._payload()
+        self.assertEqual(payload["readiness"]["repos_unaudited"],
+                         [{"repo": "mattermost/enterprise", "reason": "HTTP 404 for the workflow token"}])
+        summary = (self.out / "summary.md").read_text()
+        self.assertIn("❔ **milestone in mattermost/enterprise**", summary)
+        self.assertIn("`mattermost/enterprise` was not audited", summary)
+
+        gc.REPOS = ["mattermost/enterprise"]
+        with self.assertRaises(RuntimeError):
+            gc.main()
+
+    def test_blocking_preflight_still_writes_the_status(self):
+        self.changelog.write_text("---\ntitle: v12\n---\nSome text but no header marker and no entries.\n")
+        gc.get_milestone_number = lambda repo, title: None
+        with self.assertRaises(RuntimeError) as caught:
+            gc.main()
+        self.assertIn("Preflight failed", str(caught.exception))
+        summary = (self.out / "summary.md").read_text()
+        self.assertIn("❌ **mattermost-v12-changelog.mdx**: neither the header marker", summary)
+        self.assertIn("❌ **milestone in mattermost/mattermost**: no v12.1.0 milestone", summary)
+        self.assertIn("Generator status: NOT READY (preflight failing)", summary)
+        self.assertFalse((self.out / "sections.json").exists())
 
     def test_empty_proposal_still_asks_for_the_list(self):
         self.changelog.write_text(gc.CHANGELOG_HEADER_TEMPLATE.format(major=12) + "\n\n" + ENTRY_V12_1)

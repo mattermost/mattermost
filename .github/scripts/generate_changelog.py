@@ -54,6 +54,7 @@ import os
 import re
 import sys
 import time
+import unicodedata
 import requests
 from datetime import date, datetime, timezone
 from requests.adapters import HTTPAdapter
@@ -253,55 +254,25 @@ def get_merged_prs(repo: str, milestone_number: int) -> list:
     return prs
 
 
+# What a release-note block holds when its author decided the PR needs no note.
+NO_NOTE_CONTENT = {"NONE", "N/A", "NA", "---", ""}
+
+
+def release_note_blocks(body: str) -> list[str]:
+    """The trimmed contents of every ```release-note fence in ``body``.
+
+    Comments are stripped first: the unfilled PR template holds two example fences, one
+    of them NONE. The tag is required, at any heading level or with no heading at all,
+    because untagged fences in PR bodies hold spinwick commands and attachment dumps.
+    """
+    text = re.sub(r"<!--.*?-->", "", (body or "").replace("\r\n", "\n").replace("\r", "\n"), flags=re.DOTALL)
+    return [block.strip() for block in re.findall(r"```release-note[ \t]*\n(.*?)\n?```", text, re.DOTALL)]
+
+
 def extract_release_notes(body: str) -> list[str] | None:
-    """
-    Extract release note text from a PR body.
-
-    Looks for a '#### Release Note' section, then pulls the content of any
-    fenced code blocks within it (plain ``` or ```release-note).
-    Returns None if the section is missing or all entries are NONE.
-    """
-    if not body:
-        return None
-
-    # Normalize line endings (GitHub API may return \r\n on some PR bodies)
-    body = body.replace("\r\n", "\n").replace("\r", "\n")
-
-    notes = []
-
-    # Primary path: look for a '#### Release Note(s)' section heading
-    section_match = re.search(
-        r"####\s+Release\s+Notes?\s*\n(.*?)(?=\n####|\Z)",
-        body,
-        re.DOTALL | re.IGNORECASE,
-    )
-    if section_match:
-        section = section_match.group(1)
-        # Strip HTML comments (the instructional block in the template)
-        section = re.sub(r"<!--.*?-->", "", section, flags=re.DOTALL)
-        # Extract fenced code blocks (supports both ``` and ```release-note)
-        code_blocks = re.findall(r"```(?:release-note)?\s*\n(.*?)\n?```", section, re.DOTALL)
-        for block in code_blocks:
-            content = block.strip()
-            if content and content.upper() != "NONE":
-                notes.append(content)
-        # Fallback to plain text only when there are no code blocks at all in the section
-        if not notes and "```" not in section:
-            plain = section.strip()
-            if plain and plain.upper() != "NONE":
-                notes.append(plain)
-
-    # Secondary path: scan the entire body for ```release-note blocks.
-    # Catches PRs that use the block format without a #### Release Note heading.
-    if not notes:
-        body_no_comments = re.sub(r"<!--.*?-->", "", body, flags=re.DOTALL)
-        raw_blocks = re.findall(r"```release-note\s*\n(.*?)\n?```", body_no_comments, re.DOTALL)
-        for block in raw_blocks:
-            content = block.strip()
-            if content and content.upper() != "NONE":
-                notes.append(content)
-
-    return notes if notes else None
+    """The release notes in a PR body, or None when it has none (missing, NONE, N/A, empty)."""
+    notes = [block for block in release_note_blocks(body) if block.upper() not in NO_NOTE_CONTENT]
+    return notes or None
 
 
 # Labels that record a deliberate "no release note" decision.
@@ -313,14 +284,21 @@ def release_note_status(body: str) -> str:
     if extract_release_notes(body):
         return "notes"
     text = re.sub(r"<!--.*?-->", "", (body or "").replace("\r\n", "\n"), flags=re.DOTALL)
-    section = re.search(r"####\s+Release\s+Notes?\s*\n(.*?)(?=\n####|\Z)", text, re.DOTALL | re.IGNORECASE)
-    blocks = re.findall(r"```release-note\s*\n(.*?)\n?```", text, re.DOTALL)
-    candidates = ([section.group(1)] if section else []) + blocks
-    return "none" if any(re.search(r"\bNONE\b", c, re.IGNORECASE) for c in candidates) else "missing"
+    section = re.search(r"#+\s+Release\s+Notes?\s*\n(.*?)(?=\n#|\Z)", text, re.DOTALL | re.IGNORECASE)
+    written = [block for block in release_note_blocks(body) if block]
+    if section and re.fullmatch(r"\s*(NONE|N/?A)\.?\s*", section.group(1), re.IGNORECASE):
+        written.append("NONE")
+    return "none" if written else "missing"
 
 
 def flag_reason(status: str, labels: set) -> str | None:
-    """Why a merged PR needs a human look before its notes are silently left out, or None."""
+    """Why a merged PR needs a human look before its notes are silently left out, or None.
+
+    An opt-out label settles it even next to the release-note label, which some PRs
+    carry together with Changelog/Not Needed.
+    """
+    if labels & NO_NOTE_LABELS:
+        return None
     if "release-note" in labels and status != "notes":
         return "labelled release-note, but no release note was found in the PR body"
     if status == "missing" and not labels & NO_NOTE_LABELS:
@@ -332,6 +310,39 @@ def cherry_picked_from(title: str) -> int | None:
     """The PR a cherry-pick was made from: "Automated cherry pick of #39121", "Fix x (#39291)"."""
     match = re.search(r"cherry[- ]?pick(?:ed)? (?:of )?#(\d+)|\(#(\d+)\)\s*$", title or "", re.IGNORECASE)
     return int(match.group(1) or match.group(2)) if match else None
+
+
+MIN_NOTE_WORDS = 6
+_TICKET_RE = re.compile(r"(?i)^(?:fix(?:es|ed)?\s+)?(?:MM-\d+|#\d+|https?://\S+)[.\s]*$")
+# Plugin bumps and dependency or setting lines are short by house style.
+_TERSE_BY_STYLE_RE = re.compile(r"(?i)\bplugin\b|\bversion\s+v?\d|`|\]\(")
+
+
+def note_quality_issue(text: str) -> str | None:
+    """Why a release note that passes the gate will still need rewriting, or None.
+
+    Only the cases that can be told from the text: generated content (the API-docs bot
+    writes "🆕 New API file: x_test.go" lines into the fence), a bare ticket reference,
+    or a note too short to say what changed.
+    """
+    text = text.strip()
+    if any(line.strip()[:1] and unicodedata.category(line.strip()[0]) == "So" for line in text.splitlines()):
+        return "machine-generated content"
+    if _TICKET_RE.match(text):
+        return "a bare ticket reference"
+    if len(text.split()) < MIN_NOTE_WORDS and not _TERSE_BY_STYLE_RE.search(text):
+        return f"under {MIN_NOTE_WORDS} words"
+    return None
+
+
+def pr_owner(pr: dict) -> str | None:
+    """Who to ask about a PR: its author, or for a bot-authored PR its first assignee."""
+    user = pr.get("user") or {}
+    login = user.get("login") or ""
+    if login and user.get("type") != "Bot" and not login.endswith("[bot]"):
+        return login
+    assignees = pr.get("assignees") or []
+    return assignees[0]["login"] if assignees else None
 
 
 def parse_github_time(value: str) -> datetime:
@@ -719,6 +730,10 @@ def previous_major_changelog_path(changelog_path: str) -> str | None:
     return f"{prefix}{int(major) - 1}{suffix}"
 
 
+# The header block ends with the platform scope note, which closes a <Note> component.
+HEADER_END_MARKER = "may not represent all affected configurations.\n\n</Note>"
+
+
 def insert_changelog_entry(
     entry: str, changelog_path: str = "CHANGELOG.md", header: str = ""
 ) -> None:
@@ -732,9 +747,6 @@ def insert_changelog_entry(
     if os.path.exists(changelog_path):
         with open(changelog_path, "r", encoding="utf-8") as f:
             existing = f.read()
-
-    # The header block ends with the platform scope note, which closes a <Note> component.
-    HEADER_END_MARKER = "may not represent all affected configurations.\n\n</Note>"
 
     if not existing.strip():
         # New or empty file (e.g. the first release of a new major version). Write the
@@ -1233,6 +1245,158 @@ def remove_section(fragment: str, title: str) -> str:
     return re.sub(r"(?ms)^### " + re.escape(title) + r"\b.*?(?=^### \S|\Z)", "", fragment).strip() + "\n"
 
 
+# ── Readiness ───────────────────────────────────────────────────────────────────────
+#
+# What the changelog-status skill reports before anyone reviews the entry: whether the
+# generator can run, which merged PRs it cannot take a note from, which notes will need
+# rewriting, and which sections the release diff filled.
+
+def _check(check: str, status: str, detail: str, remedy: str = "", blocking: bool = False) -> dict:
+    return {"check": check, "status": status, "detail": detail, "remedy": remedy, "blocking": blocking}
+
+
+def preflight_checks(changelog_path: str, mode: str, milestones: dict, go_source: str | None) -> list[dict]:
+    """Each check is pass, fail or unknown. A failing blocking check stops the run.
+
+    ``milestones`` maps each repo to its milestone number, None when it has no such
+    milestone, or a string saying why it could not be read.
+    """
+    checks = []
+    name = os.path.basename(changelog_path)
+    if not os.path.exists(changelog_path):
+        if mode == "update":
+            checks.append(_check(name, "fail", "missing from the changelog PR's branch",
+                                 "Check the PR branch, or re-run in regenerate mode.", blocking=True))
+        else:
+            checks.append(_check(name, "pass", "not on master yet; it will be created from the header template"))
+    else:
+        with open(changelog_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        if not content.strip() or HEADER_END_MARKER in content:
+            checks.append(_check(name, "pass", "header marker present" if content.strip() else "empty; the header will be written"))
+        elif re.search(r"(?m)^## Release\b", content):
+            checks.append(_check(name, "fail", "header marker missing; entries go above the first ## Release heading",
+                                 "Restore the header's closing `may not represent all affected configurations.` / `</Note>`."))
+        else:
+            checks.append(_check(name, "fail", "neither the header marker nor a ## Release heading is present",
+                                 "Restore the file header; the entry has nowhere to go.", blocking=True))
+
+    found = [repo for repo, number in milestones.items() if isinstance(number, int)]
+    for repo, number in milestones.items():
+        if isinstance(number, int):
+            checks.append(_check(f"milestone in {repo}", "pass", f"{MILESTONE_TITLE} found"))
+        elif number is None:
+            checks.append(_check(f"milestone in {repo}", "fail", f"no {MILESTONE_TITLE} milestone",
+                                 "Create it, or check the milestone input (it is four-part, e.g. v12.1.0).",
+                                 blocking=not found))
+        else:
+            checks.append(_check(f"milestone in {repo}", "unknown", number,
+                                 "Give the workflow token read access to this repo; its PRs were not audited."))
+
+    if go_source:
+        checks.append(_check("Go version", "pass", f"from {go_source}"))
+    else:
+        checks.append(_check("Go version", "fail", "not read from the release branch; the entry reuses the previous one",
+                             "Pass go_version on dispatch, or fetch the release branch."))
+    return checks
+
+
+def gap_status(derived: list[dict], refs_read: bool, go_version: str, go_source: str | None,
+               previous_go: str | None) -> list[dict]:
+    """The sections no developer note fills: ready, no_changes_this_release or not_yet_checked.
+
+    A section is never ready just because nothing was found; with no refs to diff it
+    was not checked at all.
+    """
+    def of(prefix):
+        return [note["source"] for note in derived if note["source"].startswith(prefix)]
+
+    def diffed(section, sources, detail):
+        if sources:
+            return {"section": section, "status": "ready", "detail": detail}
+        if refs_read:
+            return {"section": section, "status": "no_changes_this_release", "detail": "none in the release diff"}
+        return {"section": section, "status": "not_yet_checked", "detail": "release refs were not available to diff"}
+
+    events = of("websocket:")
+    added = sum(source.endswith("@added") for source in events)
+    migrations = of("migration:")
+    plugins = of("plugin:")
+    gaps = [
+        diffed("WebSocket events", events, f"{added} added, {len(events) - added} removed"),
+        diffed("Database schema changes", migrations,
+               f"{len(migrations)} new migration(s): {', '.join(s.split(':', 1)[1] for s in migrations)}"),
+        diffed("Pre-packaged plugins", plugins, f"{len(plugins)} plugin(s) bumped or removed"),
+    ]
+    if go_source:
+        formatted = normalize_go_version(go_version)
+        unchanged = " (unchanged from the previous entry)" if previous_go == formatted else ""
+        gaps.append({"section": "Go version", "status": "ready", "detail": f"{formatted} from {go_source}{unchanged}"})
+    else:
+        gaps.append({"section": "Go version", "status": "not_yet_checked", "detail": "not read from the release branch"})
+    benchmark = of("benchmark:")
+    gaps.append({"section": "Benchmarking", "status": "ready", "detail": "read from the performance comparison"} if benchmark
+                else {"section": "Benchmarking", "status": "not_yet_checked", "blocks_publish": True,
+                      "detail": "no performance comparison published for this release yet"})
+    return gaps
+
+
+def missing_by_owner(flagged: list[dict]) -> list[dict]:
+    """Flagged PRs grouped by who to ask, most first."""
+    groups: dict[str, list[str]] = {}
+    for pr in flagged:
+        groups.setdefault(pr.get("owner") or "", []).append(pr["source"])
+    return [{"owner": owner or None, "sources": sources}
+            for owner, sources in sorted(groups.items(), key=lambda item: (-len(item[1]), item[0] == "", item[0]))]
+
+
+_STATUS_ICONS = {"pass": "✅", "fail": "❌", "unknown": "❔", "ready": "✅",
+                 "no_changes_this_release": "➖", "not_yet_checked": "⏳"}
+
+
+def render_status(readiness: dict) -> list[str]:
+    """The changelog-status digest: preflight, release-note coverage, gaps, note quality."""
+    lines = ["### Preflight", ""]
+    for check in readiness["preflight"]:
+        line = f"- {_STATUS_ICONS[check['status']]} **{check['check']}**: {check['detail']}"
+        if check["status"] != "pass" and check["remedy"]:
+            line += f". {check['remedy']}"
+        lines.append(line)
+    lines.append("")
+
+    notes = readiness["notes"]
+    merged = notes["prs_merged"]
+    share = f" ({round(100 * notes['with_notes'] / merged)}%)" if merged else ""
+    lines += [f"### Release notes: {notes['with_notes']} of {merged} merged PRs have one{share}", ""]
+    for repo in readiness["repos_unaudited"]:
+        lines.append(f"- ❔ `{repo['repo']}` was not audited ({repo['reason']}), so its PRs are unknown, not missing.")
+    if notes["missing"]:
+        lines.append(f"- ⏳ {notes['missing']} missing, by owner. Add a release note, or the `release-note-none` label, then re-run:")
+        for group in readiness["missing_by_owner"]:
+            owner = f"@{group['owner']}" if group["owner"] else "bot-authored, no assignee"
+            lines.append(f"  - {owner} ({len(group['sources'])}): {' '.join(_pr_link(s) for s in group['sources'])}")
+    else:
+        lines.append("- ✅ None missing.")
+    lines += [f"- {notes['intentional']} PR(s) intentionally have no note.", ""]
+
+    lines += ["### Sections no developer note fills", ""]
+    for gap in readiness["gaps"]:
+        blocks = " (blocks publish)" if gap.get("blocks_publish") else ""
+        lines.append(f"- {_STATUS_ICONS[gap['status']]} **{gap['section']}**: {gap['detail']}{blocks}")
+    lines.append("")
+
+    if readiness["note_quality"]:
+        lines += [f"### Note quality: {len(readiness['note_quality'])} note(s) will need rewriting", ""]
+        for note in readiness["note_quality"]:
+            excerpt = note["excerpt"].replace("`", "'")
+            lines.append(f"- {_pr_link(note['source'])} {note['reason']}: \"{excerpt}\"")
+        lines.append("")
+
+    blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
+    lines += [f"**Generator status: {'NOT READY (preflight failing)' if blocking else 'ready to run'}**", ""]
+    return lines
+
+
 def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> None:
     """Write entry.mdx, sections.json, pr_body.md and summary.md for the workflow to publish."""
     if not output_dir:
@@ -1284,19 +1448,12 @@ def render_summary(payload: dict, entry: str) -> str:
     elif payload["mode"] == "update" and not payload["changed"]:
         lines += ["No new release notes since the last run.", ""]
 
+    lines += render_status(payload["readiness"])
+
     lines += ["| Metric | Value |", "|:---|---:|"]
     lines += [f"| {key.replace('_', ' ')} | {value} |" for key, value in metrics.items()]
     lines.append("")
 
-    if payload["prs_flagged"]:
-        lines += [
-            f"### {len(payload['prs_flagged'])} merged PR(s) need a release-note decision",
-            "These were left out of the changelog. Add a release note to the PR, or the "
-            "`release-note-none` label if it needs none, then re-run.",
-            "",
-        ]
-        lines += [f"- {_pr_link(pr['source'])}: {pr['title']} — {pr['reason']}" for pr in payload["prs_flagged"]]
-        lines.append("")
     if payload["sources_unattributed"]:
         lines += ["### Notes no bullet was attributed to", ""]
         lines += [f"- {_pr_link(source)}" for source in payload["sources_unattributed"]]
@@ -1371,13 +1528,29 @@ def main():
     no_notes_prs = []
     flagged_prs = []
 
+    milestones = {}
+    unaudited = []
+    note_quality = []
+
     for repo in REPOS:
         print(f"── {repo}")
-        milestone_number = get_milestone_number(repo, MILESTONE_TITLE)
+        try:
+            milestone_number = get_milestone_number(repo, MILESTONE_TITLE)
+            milestones[repo] = milestone_number
+            prs = get_merged_prs(repo, milestone_number) if milestone_number is not None else []
+        except requests.HTTPError as err:
+            status = err.response.status_code if err.response is not None else None
+            if status not in (401, 403, 404):
+                raise
+            # A repo the token cannot read is unknown, not a repo with nothing missing.
+            reason = f"HTTP {status} for the workflow token"
+            milestones[repo] = reason
+            unaudited.append({"repo": repo, "reason": reason})
+            print(f"::warning title=Repo not audited::{repo}: {reason}; its PRs are not in this changelog")
+            continue
         if milestone_number is None:
             continue
 
-        prs = get_merged_prs(repo, milestone_number)
         print(f"   📋 Found {len(prs)} merged PR(s)")
         total_prs += len(prs)
 
@@ -1389,6 +1562,13 @@ def main():
             if notes:
                 for note in notes:
                     all_notes.append({"source": source, "text": note, "merged_at": merged_at})
+                    issue = note_quality_issue(note)
+                    if issue:
+                        lines = [line.strip() for line in note.splitlines() if line.strip()]
+                        if issue == "machine-generated content":
+                            lines = [line for line in lines if unicodedata.category(line[0]) == "So"]
+                        note_quality.append({"source": source, "title": pr["title"], "reason": issue,
+                                             "excerpt": " / ".join(lines)[:160]})
                 print(f"   ✅ #{pr['number']}: {pr['title']}")
             else:
                 no_notes_prs.append((repo, pr))
@@ -1397,10 +1577,12 @@ def main():
             if reason:
                 origin = cherry_picked_from(pr["title"])
                 flagged_prs.append({
-                    "source": source, "title": pr["title"], "reason": reason,
+                    "source": source, "title": pr["title"], "reason": reason, "owner": pr_owner(pr),
                     "origin": f"{repo}#{origin}" if origin else None,
                 })
         print()
+    if unaudited and len(unaudited) == len(REPOS):
+        raise RuntimeError(f"None of {', '.join(REPOS)} could be read with the workflow token")
 
     # A cherry-pick needs no note of its own when the PR it was picked from has one.
     noted = {note["source"] for note in all_notes}
@@ -1474,6 +1656,7 @@ def main():
     release_type = os.environ.get("RELEASE_TYPE", "feature").strip().lower()
     release_date = os.environ.get("RELEASE_DATE", "").strip() or date.today().strftime("%Y-%m-%d")
     go_version = os.environ.get("GO_VERSION", "").strip()
+    go_source = "the go_version input" if go_version else None
     if not go_version and head_ref:
         # The release branch's build image is what the release is built with; reusing the
         # previous entry's version is wrong in every release that bumps Go.
@@ -1481,11 +1664,38 @@ def main():
             changelog_release.git_show(head_ref, changelog_release.BUILDENV_DOCKERFILE)
         ) or ""
         if go_version:
-            print(f"ℹ️  Go version read from {head_ref}:{changelog_release.BUILDENV_DOCKERFILE}: {go_version}")
+            go_source = f"{head_ref}:{changelog_release.BUILDENV_DOCKERFILE}"
+            print(f"ℹ️  Go version read from {go_source}: {go_version}")
     # Derived from VERSION by default so a new major version needs no edit here, and
     # cannot land in the previous major's file. CHANGELOG_PATH overrides it.
     changelog_path = os.environ.get("CHANGELOG_PATH") or changelog_path_for_version(VERSION)
     print(f"📄 Changelog file: {changelog_path}")
+
+    previous_go = None
+    if mode == "create":
+        previous_go = extract_previous_go_version(changelog_path) or extract_previous_go_version(
+            previous_major_changelog_path(changelog_path) or ""
+        )
+    readiness = {
+        "preflight": preflight_checks(changelog_path, mode, milestones, go_source),
+        "repos_unaudited": unaudited,
+        "notes": {
+            "prs_merged": total_prs,
+            "with_notes": total_prs - len(no_notes_prs),
+            "intentional": len(no_notes_prs) - len(flagged_prs),
+            "missing": len(flagged_prs),
+        },
+        "missing_by_owner": missing_by_owner(flagged_prs),
+        "note_quality": note_quality,
+        "gaps": gap_status(derived, bool(base_ref and head_ref), go_version, go_source, previous_go),
+    }
+    blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
+    if blocking:
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+            with open(os.path.join(output_dir, "summary.md"), "w", encoding="utf-8") as f:
+                f.write("\n".join([f"## {VERSION} changelog ({mode})", ""] + render_status(readiness)) + "\n")
+        raise RuntimeError("Preflight failed: " + "; ".join(f"{c['check']}: {c['detail']}" for c in blocking))
 
     # A second create would insert a duplicate entry above the published one. A dry run
     # is still allowed, so a shipped release can be regenerated to compare against.
@@ -1638,7 +1848,8 @@ def main():
     derived_sources = {note["source"] for note in derived}
     payload = {
         # 2: sources may be derived keys (plugin:…, websocket:…, migration:…) as well as
-        # owner/repo#number; adds prs_flagged, derived_sources, proposed_sources and metrics.
+        # owner/repo#number; adds prs_flagged, derived_sources, proposed_sources, readiness
+        # and metrics.
         "schema_version": 2,
         "version": VERSION,
         "milestone": MILESTONE_TITLE,
@@ -1659,6 +1870,7 @@ def main():
             {"source": f"{repo}#{pr['number']}", "title": pr["title"]} for repo, pr in no_notes_prs
         ],
         "prs_flagged": flagged_prs,
+        "readiness": readiness,
         "metrics": {
             "prs_merged": total_prs,
             "prs_with_notes": total_prs - len(no_notes_prs),
