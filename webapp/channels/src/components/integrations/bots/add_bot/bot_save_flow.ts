@@ -207,7 +207,7 @@ async function saveEventDelivery(actions: BotSaveActions, userId: string, change
         const result = await actions.upsertBotEventSubscription(userId, change.patch);
         const error = stepError(result);
         const data = result?.data;
-        return error === undefined && data ? {saved: {...data, secret: undefined}, secret: data.secret} : {error};
+        return error === undefined && data ? {saved: {...data, secret: undefined}, secret: data.mode === 'push' ? data.secret : undefined} : {error};
     }
     default: {
         const unhandled: never = change;
@@ -252,7 +252,8 @@ export async function saveBotCreate(actions: BotSaveActions, input: BotSaveInput
     if (input.eventSubscription) {
         const result = await actions.createBotWithEventSubscription(input.bot, input.eventSubscription);
         created = result?.data?.bot;
-        secret = result?.data?.eventSubscription.secret;
+        const subscription = result?.data?.eventSubscription;
+        secret = subscription?.mode === 'push' ? subscription.secret : undefined;
         createError = result?.error?.message;
     } else {
         const result = await actions.createBot(input.bot);

@@ -777,6 +777,18 @@ describe('components/integrations/bots/AddBot', () => {
             expect(botActions.createBot).not.toHaveBeenCalled();
         });
 
+        test('create with Pull does not pass a secret to the confirm page', async () => {
+            renderForm({}, {createBotWithEventSubscription: jest.fn().mockResolvedValue({data: {bot: editBot, eventSubscription: {...subscription, mode: 'pull', secret: 'whsec_pull'}}})});
+
+            typeUsername();
+            chooseMode('Pull');
+            submit('Create Bot Account');
+
+            await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(
+                `/${team.name}/integrations/confirm?type=bots&id=bot-user-id&token=default-secret`,
+            ));
+        });
+
         test('create with None uses the plain create action', async () => {
             const botActions = renderForm();
 
@@ -812,6 +824,17 @@ describe('components/integrations/bots/AddBot', () => {
             expect(screen.getByRole('link', {name: 'Done'})).toBeInTheDocument();
             expect(botActions.upsertBotEventSubscription).toHaveBeenCalledWith('bot-user-id', {mode: 'push', callback_url: PUSH_URL, ignore_bot_authors: true});
             expect(historyMock.push).not.toHaveBeenCalled();
+        });
+
+        test('edit to Pull navigates away without showing a secret', async () => {
+            renderForm({bot: editBot}, {upsertBotEventSubscription: jest.fn().mockResolvedValue({data: {...subscription, mode: 'pull', secret: 'whsec_pull'}})});
+
+            await waitFor(() => expect(screen.getByRole('radio', {name: 'None'})).toBeEnabled());
+            chooseMode('Pull');
+            submit('Update');
+
+            await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(`/${team.name}/integrations/bots`));
+            expect(screen.queryByText('whsec_pull')).not.toBeInTheDocument();
         });
 
         test('edit loads the existing subscription and an unchanged form saves nothing', async () => {

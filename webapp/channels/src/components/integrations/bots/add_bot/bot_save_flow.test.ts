@@ -10,7 +10,7 @@ import type {BotSaveActions} from './bot_save_flow';
 
 const buildActions = (overrides: Partial<BotSaveActions> = {}): BotSaveActions => ({
     createBot: jest.fn().mockResolvedValue({data: TestHelper.getBotMock({user_id: 'bot-user-id'})}),
-    createBotWithEventSubscription: jest.fn().mockResolvedValue({data: {bot: TestHelper.getBotMock({user_id: 'bot-user-id'}), eventSubscription: {secret: 'whsec'}}}),
+    createBotWithEventSubscription: jest.fn().mockResolvedValue({data: {bot: TestHelper.getBotMock({user_id: 'bot-user-id'}), eventSubscription: {mode: 'push', secret: 'whsec'}}}),
     patchBot: jest.fn().mockResolvedValue({data: TestHelper.getBotMock({user_id: 'bot-user-id'})}),
     uploadProfileImage: jest.fn().mockResolvedValue({data: true}),
     setDefaultProfileImage: jest.fn().mockResolvedValue({data: true}),
@@ -20,7 +20,7 @@ const buildActions = (overrides: Partial<BotSaveActions> = {}): BotSaveActions =
     getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
     updateUserCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
     getBotEventSubscription: jest.fn().mockResolvedValue({data: null}),
-    upsertBotEventSubscription: jest.fn().mockResolvedValue({data: {secret: 'whsec'}}),
+    upsertBotEventSubscription: jest.fn().mockResolvedValue({data: {mode: 'push', secret: 'whsec'}}),
     deleteBotEventSubscription: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
     ...overrides,
 });
@@ -148,16 +148,18 @@ describe('bot_save_flow', () => {
         };
         const patch = {mode: 'push' as const, callback_url: 'https://example.com/hook', ignore_bot_authors: true};
 
-        test('an upsert returns the secret only when the server sent one', async () => {
-            const withSecret = await saveBotEdit(buildActions(), {...base, eventDelivery: {kind: 'upsert', patch}});
-            const without = await saveBotEdit(
-                buildActions({upsertBotEventSubscription: jest.fn().mockResolvedValue({data: {}})}),
-                {...base, eventDelivery: {kind: 'upsert', patch}},
-            );
+        test('an upsert returns the secret only for push', async () => {
+            const upsertReturning = (data: object) => buildActions({upsertBotEventSubscription: jest.fn().mockResolvedValue({data})});
 
-            expect(withSecret).toMatchObject({ok: true, failures: [], eventSecret: 'whsec'});
-            expect(without).toMatchObject({ok: true, failures: []});
-            expect('eventSecret' in without && without.eventSecret).toBeFalsy();
+            const push = await saveBotEdit(buildActions(), {...base, eventDelivery: {kind: 'upsert', patch}});
+            const pushWithoutSecret = await saveBotEdit(upsertReturning({mode: 'push'}), {...base, eventDelivery: {kind: 'upsert', patch}});
+            const pull = await saveBotEdit(upsertReturning({mode: 'pull', secret: 'whsec'}), {...base, eventDelivery: {kind: 'upsert', patch: {...patch, mode: 'pull'}}});
+
+            expect(push).toMatchObject({ok: true, failures: [], eventSecret: 'whsec'});
+            expect(pushWithoutSecret).toMatchObject({ok: true, failures: []});
+            expect(pull).toMatchObject({ok: true, failures: []});
+            expect('eventSecret' in pushWithoutSecret && pushWithoutSecret.eventSecret).toBeFalsy();
+            expect('eventSecret' in pull && pull.eventSecret).toBeFalsy();
         });
 
         test('a saved change is returned so the form can adopt it', async () => {
