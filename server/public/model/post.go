@@ -1614,6 +1614,21 @@ func DefaultUpdatePostOptions() *UpdatePostOptions {
 	}
 }
 
+// Copy returns a copy of the options. Each field is assigned so a later
+// reference field is copied here instead of shared by a struct assignment.
+func (o *UpdatePostOptions) Copy() *UpdatePostOptions {
+	if o == nil {
+		return nil
+	}
+	return &UpdatePostOptions{
+		SafeUpdate:                 o.SafeUpdate,
+		IsRestorePost:              o.IsRestorePost,
+		AllowMmBlocksActionsUpdate: o.AllowMmBlocksActionsUpdate,
+		AllowIdentityPropsUpdate:   o.AllowIdentityPropsUpdate,
+		FileCreatorID:              o.FileCreatorID,
+	}
+}
+
 type PreparePostForClientOpts struct {
 	IsNewPost       bool
 	IsEditPost      bool

@@ -1025,11 +1025,9 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 
 // UpdatePostWithOptions updates a post using the supplied options.
 func (api *PluginAPI) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	options = options.Copy()
 	if options == nil {
 		options = &model.UpdatePostOptions{}
-	} else {
-		copied := *options
-		options = &copied
 	}
 
 	if options.FileCreatorID != "" {
