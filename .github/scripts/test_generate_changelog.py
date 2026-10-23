@@ -152,6 +152,32 @@ class MergePlacementTest(unittest.TestCase):
         self.assertLess(merged.find("Bar"), merged.find("NewTable"))
 
 
+class FragmentMergedTest(unittest.TestCase):
+    def test_schema_summary_folded_into_a_reworded_one_is_not_lost(self):
+        entry = """## Release v12.1 - x
+
+### Upgrade Impact
+#### Database Schema Changes
+ - A reviewer reworded this summary of the v12.1 schema changes.
+   - Added a ``Foo`` column.
+
+### Bug Fixes
+ - Kept.
+"""
+        fragment = """### Upgrade Impact
+#### Database Schema Changes
+ - The following schema changes are included in the v12.1 release. No database downtime is expected.
+   - Added the ``healthfindings`` table.
+"""
+        merged = gc.merge_into_entry(entry, "v12.1", fragment)
+        self.assertNotIn("The following schema changes", merged)
+        self.assertIn("healthfindings", merged)
+        gc.require_fragment_merged(fragment, merged)
+
+        with self.assertRaises(RuntimeError):
+            gc.require_fragment_merged(fragment, entry)
+
+
 class BulletMarkerTest(unittest.TestCase):
     def test_star_and_plus_bullets_become_dashes_and_are_inserted(self):
         normalized = gc.normalize_formatting("* Fixed an issue where the toast never dismissed.\n  * Nested detail.\n+ Added a setting.\n")
@@ -375,6 +401,8 @@ class MainTest(unittest.TestCase):
         payload = self._payload()
 
         self.assertEqual(payload["sources_added"], ["mattermost/mattermost#2"])
+        self.assertEqual(payload["derived_sources"], ["plugin:mattermost-plugin-calls@v1.12.6"])
+        self.assertEqual(payload["metrics"]["derived_changes"], 0)
         self.assertEqual(payload["seeded_before"], "2026-10-20T05:50:50Z")
         self.assertIn("Fixed an issue found later.", after)
         self.assertNotIn("Added the first thing.", after)

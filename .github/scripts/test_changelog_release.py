@@ -171,6 +171,34 @@ class DerivedNotesTest(unittest.TestCase):
         self.assertTrue(all(note["derived"] for note in notes))
         self.assertTrue(all(" " not in source for source in sources), "sources are space-separated in the PR body")
 
+    def test_git_helpers_separate_absent_paths_from_failures(self):
+        import os
+        import subprocess
+        import tempfile
+        repo = tempfile.mkdtemp()
+        git = ["git", "-C", repo, "-c", "user.name=t", "-c", "user.email=t@t"]
+        subprocess.run(git + ["init", "-q"], check=True)
+        Path(repo, "a.txt").write_text("one\n")
+        subprocess.run(git + ["add", "."], check=True)
+        subprocess.run(git + ["commit", "-q", "-m", "a"], check=True)
+        subprocess.run(git + ["tag", "base"], check=True)
+        Path(repo, "b.up.sql").write_text("CREATE TABLE b ();\n")
+        subprocess.run(git + ["add", "."], check=True)
+        subprocess.run(git + ["commit", "-q", "-m", "b"], check=True)
+
+        cwd = os.getcwd()
+        os.chdir(repo)
+        try:
+            self.assertEqual(cr.git_show("base", "a.txt"), "one\n")
+            self.assertIsNone(cr.git_show("base", "b.up.sql"))
+            self.assertEqual(cr.git_added_files("base", "HEAD", "."), ["b.up.sql"])
+            with self.assertRaises(RuntimeError):
+                cr.git_show("origin/release-99.0", "a.txt")
+            with self.assertRaises(RuntimeError):
+                cr.git_added_files("v99.0.0", "HEAD", ".")
+        finally:
+            os.chdir(cwd)
+
     def test_no_refs_no_notes(self):
         self.assertEqual(cr.derived_notes("", "origin/release-12.1"), [])
 

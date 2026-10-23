@@ -1206,7 +1206,19 @@ def require_fragment_merged(fragment: str, merged: str) -> None:
     A bullet outside any ``###`` section (the no-API-key fallback) has nowhere to go.
     """
     present = {line.strip() for line in merged.split("\n")}
-    lost = [line.strip() for line in fragment.split("\n") if _BULLET_RE.match(line) and line.strip() not in present]
+    lines = fragment.split("\n")
+
+    # A parent such as the Database Schema Changes summary is not inserted when the
+    # entry already has one; its children carry the content.
+    def is_parent(i: int) -> bool:
+        following = next((line for line in lines[i + 1:] if line.strip()), "")
+        child_indent = _bullet_indent(following)
+        return child_indent is not None and child_indent > (_bullet_indent(lines[i]) or 0)
+
+    lost = [
+        line.strip() for i, line in enumerate(lines)
+        if _BULLET_RE.match(line) and not is_parent(i) and line.strip() not in present
+    ]
     if lost:
         raise RuntimeError(
             f"Refusing to write the changelog: {len(lost)} new bullet(s) have no section to be "
@@ -1626,7 +1638,7 @@ def main():
             "prs_with_notes": total_prs - len(no_notes_prs),
             "prs_without_notes": len(no_notes_prs),
             "prs_flagged": len(flagged_prs),
-            "derived_changes": len(derived_sources),
+            "derived_changes": len(added_sources & derived_sources),
             "sources_added": len(added_sources),
             "bullets_written": len(items),
             "sources_unattributed": len(unattributed),

@@ -169,18 +169,29 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
 
 # ── Facts read from the release diff ────────────────────────────────────────────────
 
+def _git(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], capture_output=True, text=True)
+
+
 def git_show(ref: str, path: str) -> str | None:
-    result = subprocess.run(["git", "show", f"{ref}:{path}"], capture_output=True, text=True)
-    return result.stdout if result.returncode == 0 else None
+    """The file at ``ref``, or None when ``ref`` has no such path.
 
-
-def git_added_files(base: str, head: str, path: str) -> list[str] | None:
-    result = subprocess.run(
-        ["git", "diff", "--name-only", "--diff-filter=A", base, head, "--", path],
-        capture_output=True, text=True,
-    )
-    if result.returncode != 0:
+    A failing git command (an unfetched ref, say) raises instead: treating it as an
+    absent file would turn every plugin and WebSocket event into a false addition.
+    """
+    result = _git("show", f"{ref}:{path}")
+    if result.returncode == 0:
+        return result.stdout
+    listing = _git("ls-tree", "--name-only", ref, "--", path)
+    if listing.returncode == 0 and not listing.stdout.strip():
         return None
+    raise RuntimeError(f"git show {ref}:{path} failed: {(result.stderr or listing.stderr).strip()}")
+
+
+def git_added_files(base: str, head: str, path: str) -> list[str]:
+    result = _git("diff", "--name-only", "--diff-filter=A", base, head, "--", path)
+    if result.returncode != 0:
+        raise RuntimeError(f"git diff {base} {head} -- {path} failed: {result.stderr.strip()}")
     return sorted(line for line in result.stdout.splitlines() if line.strip())
 
 
@@ -281,7 +292,7 @@ def derived_notes(base_ref: str, head_ref: str, show=git_show, added=git_added_f
         websocket_events(show(base_ref, WEBSOCKET_EVENTS_FILE)),
         websocket_events(show(head_ref, WEBSOCKET_EVENTS_FILE)),
     )
-    for path in added(base_ref, head_ref, MIGRATIONS_DIR) or []:
+    for path in added(base_ref, head_ref, MIGRATIONS_DIR):
         if path.endswith(".up.sql"):
             name = os.path.basename(path).removesuffix(".up.sql")
             notes.append(migration_note(name, show(head_ref, path)))
