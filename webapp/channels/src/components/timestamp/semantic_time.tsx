@@ -18,7 +18,7 @@ const SemanticTime: FC<Props> = ({
     return (
         <time
             {...props}
-            dateTime={DateTime.fromJSDate(value).toLocal().toISO({includeOffset: false})}
+            dateTime={DateTime.fromJSDate(value).toLocal().toISO({includeOffset: false}) ?? undefined}
         >
             {children}
         </time>

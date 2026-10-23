@@ -8,6 +8,7 @@ import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 import semver from 'semver';
 
+import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -1351,13 +1352,12 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                             </span>
                                         )}
                                         {this.state.uploading && (
-                                            <div
+                                            <ProgressBar
                                                 className='PluginManagement__uploadProgress'
-                                                role='progressbar'
+                                                indeterminate={true}
+                                                size='small'
                                                 aria-label={this.props.intl.formatMessage({id: 'admin.plugin.upload.progress', defaultMessage: 'Plugin upload progress'})}
-                                            >
-                                                <div className='PluginManagement__uploadProgressBar'/>
-                                            </div>
+                                            />
                                         )}
                                     </button>
                                     <input

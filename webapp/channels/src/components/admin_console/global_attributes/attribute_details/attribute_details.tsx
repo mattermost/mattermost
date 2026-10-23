@@ -7,9 +7,11 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useParams} from 'react-router-dom';
+import type {Dispatch} from 'redux';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon} from '@mattermost/compass-icons/components';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
@@ -26,7 +28,6 @@ import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagVal
 import LoadingScreen from 'components/loading_screen';
 import {pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -45,8 +46,8 @@ import AttributeOwnersSource from './attribute_owners_source';
 import AttributePluginSource from './attribute_plugin_source';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
 import AttributeSelect from './attribute_select';
-import type {ExternalSource} from './external_source';
-import {externalSourceMessages, resolveExternalSource} from './external_source';
+import type {ExternalSource, ExternalSourceLinks} from './external_source';
+import {ALL_EXTERNAL_SOURCES, NO_EXTERNAL_SOURCE_LINKS, externalSourceLinksFromField, externalSourceMessages, hasExternalSourceLink, resolveExternalSource} from './external_source';
 import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames} from './graph';
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
@@ -70,6 +71,8 @@ import {
     linkedFieldsByResourceType,
     listPropertyFields,
     patchLinkedAttributeField,
+    syncUserAttributeFieldDelete,
+    syncUserAttributeFieldUpsert,
     updateAttributeField,
 } from '../utils';
 
@@ -226,6 +229,7 @@ type SaveOutcome =
 // than attempted for a failure this banner can't explain). Returns the
 // settled failure outcome for handleSave to hand to finalizeSave.
 async function rollbackLinkedFields(
+    dispatch: Dispatch,
     createdLinkedFields: Array<{type: ResourceObjectType; field: PropertyField}>,
     templateFieldId: string,
     failedType: ResourceObjectType,
@@ -236,6 +240,10 @@ async function rollbackLinkedFields(
         try {
             // eslint-disable-next-line no-await-in-loop
             await deleteLinkedAttributeField(created.type, created.field.id);
+
+            // A user field was mirrored into the CPA slice as it was created;
+            // drop it back out now that the rollback has removed it server-side.
+            syncUserAttributeFieldDelete(dispatch, created.type, created.field.id);
         } catch {
             survivingTypes.push(created.type);
         }
@@ -403,11 +411,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [fieldType, setFieldType] = useState<AttributeTypeId>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
 
-    // Independent of fieldType/options -- both may be set at once (mirrors
-    // CPA's own dot-menu, which lets an admin link both AD/LDAP and SAML on
-    // the same field). See attribute_external_source.tsx.
-    const [ldapAttr, setLdapAttr] = useState('');
-    const [samlAttr, setSamlAttr] = useState('');
+    // Independent of fieldType/options. AD/LDAP and SAML may be linked at once
+    // (mirrors CPA's own dot-menu, which lets an admin link both on the same
+    // field); OpenID Connect only on its own. See attribute_external_source.tsx.
+    const [externalLinks, setExternalLinks] = useState<ExternalSourceLinks>(NO_EXTERNAL_SOURCE_LINKS);
 
     const allowedResourceTypes = useAllowedResourceTypes();
 
@@ -445,11 +452,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const originalUserVisibilityRef = useRef<FieldVisibility>('when_set');
     const originalUserManagedRef = useRef<UserManagedValue>('');
 
-    // Template ldap/saml as loaded (or last successfully saved). Sync reads the
+    // Template sync links as loaded (or last successfully saved). Sync reads the
     // linked Users field's own attrs, which are only copied from the template at
     // create time, so a change here must be patched onto that field on Save.
-    const originalLdapAttrRef = useRef('');
-    const originalSamlAttrRef = useRef('');
+    const originalExternalLinksRef = useRef<ExternalSourceLinks>(NO_EXTERNAL_SOURCE_LINKS);
 
     // Compared against the live *server* field type at Save time to pick which
     // order DELETE/PATCH run in (see handleSave) -- the server rejects a type-
@@ -562,12 +568,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setIsNameManuallyEdited(true);
                 setFieldType(getAttributeTypeDescriptor(field).id);
                 setOptions(loadedOptions);
-                const loadedLdap = typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '';
-                const loadedSaml = typeof field.attrs?.saml === 'string' ? field.attrs.saml : '';
-                originalLdapAttrRef.current = loadedLdap;
-                originalSamlAttrRef.current = loadedSaml;
-                setLdapAttr(loadedLdap);
-                setSamlAttr(loadedSaml);
+                const loadedLinks = externalSourceLinksFromField(field);
+                originalExternalLinksRef.current = loadedLinks;
+                setExternalLinks(loadedLinks);
 
                 // A non-template field has no linked children: Applies-to is its
                 // own object type, so there is no other resource to add or remove.
@@ -831,13 +834,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             setOptions((prevOptions) => (prevOptions.length > 0 ? prevOptions.map((option, index) => ({...option, rank: index + 1})) : prevOptions));
         }
 
-        // The server strips attrs.ldap/attrs.saml from any field whose type an
-        // identity source cannot populate (AccessControlAttributeValidationHook)
-        // -- clear both proactively here so the UI never shows a link that's
-        // about to silently vanish.
+        // The server strips every sync link (attrs.ldap, attrs.saml, attrs.openid)
+        // from any field whose type an identity source cannot populate
+        // (AccessControlAttributeValidationHook) -- clear them proactively here
+        // so the UI never shows a link that's about to silently vanish.
         if (!canSyncAttributeType(newType)) {
-            setLdapAttr('');
-            setSamlAttr('');
+            setExternalLinks(NO_EXTERNAL_SOURCE_LINKS);
         }
 
         // Raise-only and lower-only compare ranks, so they cannot survive a move off
@@ -859,20 +861,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // no-op guard above.
     const handleLink = useCallback((source: ExternalSource, rawValue: string) => {
         const value = rawValue.trim();
-        const current = source === 'ldap' ? ldapAttr : samlAttr;
-        if (value === current) {
+        if (value === externalLinks[source]) {
             return;
         }
         markDirty();
-        if (source === 'ldap') {
-            setLdapAttr(value);
-        } else {
-            setSamlAttr(value);
-        }
+        setExternalLinks((prev) => ({...prev, [source]: value}));
         if (value && !canSyncAttributeType(fieldType)) {
             setFieldType('text');
         }
-    }, [ldapAttr, samlAttr, fieldType, markDirty]);
+    }, [externalLinks, fieldType, markDirty]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setDisplayName(e.target.value);
@@ -939,8 +936,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
     }, [handleDoneClick, handleCancelEdit]);
 
-    const hasExternalSource = Boolean(ldapAttr || samlAttr);
-    const linkedExternalSource = resolveExternalSource(ldapAttr, samlAttr);
+    const hasExternalSource = hasExternalSourceLink(externalLinks);
+    const linkedExternalSource = resolveExternalSource(externalLinks);
     const managedByExternalSource = isPluginOwned ? undefined : linkedExternalSource;
 
     // External source (LDAP/SAML) is a user-identity concept. A template's linked
@@ -971,7 +968,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // a synced select or multiselect that applies to no Users would be left
     // with a list nobody can add to.
     const appliesToUsers = isNonTemplate ? objectType === 'user' : appliesTo.includes('user');
-    const wasSyncedWhenLoaded = Boolean(originalLdapAttrRef.current || originalSamlAttrRef.current);
+    const wasSyncedWhenLoaded = hasExternalSourceLink(originalExternalLinksRef.current);
 
     // Unique name is the identifier policies and integrations bind to, and the
     // server does not copy it onto linked fields. Renaming while any resource
@@ -1106,8 +1103,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // refuses. Linking a source for the first time still saves the
                 // options the admin seeded.
                 ...(optionsOwnedBySync && wasSyncedWhenLoaded ? {} : {options}),
-                ldapAttr,
-                samlAttr,
+                externalLinks,
             };
 
             // An unlinked user/channel/post field owns its own row -- one PATCH
@@ -1122,7 +1118,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     patch.resourceAttrs = buildChannelFieldPatch(channelResource).attrs;
                 }
                 try {
-                    await updateAttributeField(objectType, fieldId, patch);
+                    const updatedField = await updateAttributeField(objectType, fieldId, patch);
+                    syncUserAttributeFieldUpsert(dispatch, updatedField, false);
                 } catch (error) {
                     finalizeSave({
                         success: false,
@@ -1164,6 +1161,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     try {
                         // eslint-disable-next-line no-await-in-loop
                         await deleteLinkedAttributeField(type, existing.id);
+                        syncUserAttributeFieldDelete(dispatch, type, existing.id);
                         delete persistedLinkedFieldsRef.current[type];
                     } catch {
                         finalizeSave({
@@ -1202,6 +1200,26 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 return;
             }
 
+            // updatePropertyField returns only the template. The server still
+            // rewrites linked fields in that same write (options, type), but
+            // the originating tab never receives property_field_* for it.
+            // Newly created Users rows and an explicit Users-config PATCH are
+            // synced below; an already-persisted Users row that stays applied
+            // is not, so read it back into the CPA slice. A fetch miss must
+            // not fail the save -- the template update has already landed.
+            if (appliesTo.includes('user') && !toCreate.includes('user') && persistedLinkedFieldsRef.current.user) {
+                try {
+                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, allowedResourceTypes);
+                    const userField = linkedFieldsByResourceType(linkedFields).user;
+                    if (userField) {
+                        persistedLinkedFieldsRef.current.user = userField;
+                        syncUserAttributeFieldUpsert(dispatch, userField, false);
+                    }
+                } catch {
+                    // Best-effort originating-tab cache refresh only.
+                }
+            }
+
             if (!typeChanged && !(await deleteRemovedLinkedFields('applies_to_remove_partial_save'))) {
                 return;
             }
@@ -1219,6 +1237,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         newResourcePermissionValuesFor(type),
                     );
                     persistedLinkedFieldsRef.current[type] = linkedField;
+                    syncUserAttributeFieldUpsert(dispatch, linkedField, true);
                     if (type === 'user') {
                         originalUserVisibilityRef.current = userVisibility;
                         originalUserManagedRef.current = userManaged;
@@ -1259,9 +1278,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             if (userIsUpdateCandidate) {
                 const visibilityChanged = userVisibility !== originalUserVisibilityRef.current;
                 const managedChanged = userManaged !== originalUserManagedRef.current;
-                const ldapChanged = ldapAttr !== originalLdapAttrRef.current;
-                const samlChanged = samlAttr !== originalSamlAttrRef.current;
-                const syncSourceChanged = ldapChanged || samlChanged;
+                const changedSyncSources = ALL_EXTERNAL_SOURCES.filter((source) => externalLinks[source] !== originalExternalLinksRef.current[source]);
+                const syncSourceChanged = changedSyncSources.length > 0;
                 const existingUserField = persistedLinkedFieldsRef.current.user;
                 const cascadeDisplayName = existingUserField ? shouldCascadeLinkedDisplayName(existingUserField) : false;
                 if (existingUserField && (visibilityChanged || managedChanged || cascadeDisplayName || syncSourceChanged)) {
@@ -1276,19 +1294,18 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                 // null unlinks, matching updateAttributeField's
                                 // template patch — sync reads these attrs on the
                                 // Users field, not the template.
-                                ...(ldapChanged ? {ldap: ldapAttr || null} : {}),
-                                ...(samlChanged ? {saml: samlAttr || null} : {}),
+                                ...Object.fromEntries(changedSyncSources.map((source) => [source, externalLinks[source] || null])),
                             },
                             (visibilityChanged || managedChanged) ? userConfigPermissionValues : undefined,
                         );
                         persistedLinkedFieldsRef.current.user = updatedUserField;
+                        syncUserAttributeFieldUpsert(dispatch, updatedUserField, false);
                         if (visibilityChanged || managedChanged) {
                             originalUserVisibilityRef.current = userVisibility;
                             originalUserManagedRef.current = userManaged;
                         }
                         if (syncSourceChanged) {
-                            originalLdapAttrRef.current = ldapAttr;
-                            originalSamlAttrRef.current = samlAttr;
+                            originalExternalLinksRef.current = externalLinks;
                         }
                     } catch {
                         // Distinct from applies_to_partial_save -- the Users row is
@@ -1363,15 +1380,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             }
 
             originalDisplayNameRef.current = nextDisplayName;
-            originalLdapAttrRef.current = ldapAttr;
-            originalSamlAttrRef.current = samlAttr;
+            originalExternalLinksRef.current = externalLinks;
             finalizeSave({success: true});
             return;
         }
 
         let templateField: PropertyField;
         try {
-            templateField = await createAttributeField(displayName, currentName, fieldType, options, {ldapAttr, samlAttr});
+            templateField = await createAttributeField(displayName, currentName, fieldType, options, externalLinks);
         } catch (error) {
             finalizeSave({
                 success: false,
@@ -1400,15 +1416,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     newResourcePermissionValuesFor(type),
                 );
                 createdLinkedFields.push({type, field: linkedField});
+                syncUserAttributeFieldUpsert(dispatch, linkedField, true);
             } catch (error) {
                 // eslint-disable-next-line no-await-in-loop
-                outcome = await rollbackLinkedFields(createdLinkedFields, templateField.id, type, error);
+                outcome = await rollbackLinkedFields(dispatch, createdLinkedFields, templateField.id, type, error);
                 break;
             }
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, optionsOwnedBySync, wasSyncedWhenLoaded, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged, userRemoveLocked]);
+    }, [dispatch, canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, optionsOwnedBySync, wasSyncedWhenLoaded, externalLinks, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged, userRemoveLocked, allowedResourceTypes]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);
@@ -1825,8 +1842,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             )}
                                             {showsExternalSource && fieldType !== 'graph' && (
                                                 <AttributeExternalSource
-                                                    ldapAttr={ldapAttr}
-                                                    samlAttr={samlAttr}
+                                                    links={externalLinks}
                                                     fieldType={fieldType}
                                                     onLink={handleLink}
                                                     disabled={saving || effectiveDisabled}
