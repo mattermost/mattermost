@@ -23,12 +23,12 @@ exports[`admin_console/team_channel_settings/team/TeamGroups should match snapsh
         class="button"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           id="addGroupsToTeamToggle"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Add Group
           </span>
@@ -85,12 +85,12 @@ exports[`admin_console/team_channel_settings/team/TeamGroups should match snapsh
           1 - 1 of 1
         </div>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 disabled"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
           disabled=""
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             <i
               class="icon icon-chevron-left"
@@ -99,13 +99,13 @@ exports[`admin_console/team_channel_settings/team/TeamGroups should match snapsh
           </span>
         </button>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 disabled"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
           data-testid="page-link-next"
           disabled=""
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             <i
               class="icon icon-chevron-right"

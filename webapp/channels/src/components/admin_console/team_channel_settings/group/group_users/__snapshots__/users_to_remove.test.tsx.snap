@@ -40,12 +40,11 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
         >
           <button
             aria-expanded="false"
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 Filter_button"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
             <span
-              aria-hidden="true"
-              class="_button__icon-slot_aa8j5_35"
+              class="_button__icon-slot_we8pe_35"
             >
               <div
                 aria-hidden="true"
@@ -70,7 +69,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </div>
             </span>
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Filters
             </span>
@@ -219,12 +218,12 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </div>
             </div>
             <button
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49 Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Apply
               </span>
@@ -337,12 +336,11 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
         >
           <button
             aria-expanded="false"
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 Filter_button"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
             <span
-              aria-hidden="true"
-              class="_button__icon-slot_aa8j5_35"
+              class="_button__icon-slot_we8pe_35"
             >
               <div
                 aria-hidden="true"
@@ -367,7 +365,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </div>
             </span>
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Filters
             </span>
@@ -516,12 +514,12 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </div>
             </div>
             <button
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49 Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Apply
               </span>
@@ -770,12 +768,11 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
         >
           <button
             aria-expanded="false"
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 Filter_button"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
             <span
-              aria-hidden="true"
-              class="_button__icon-slot_aa8j5_35"
+              class="_button__icon-slot_we8pe_35"
             >
               <div
                 aria-hidden="true"
@@ -800,7 +797,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </div>
             </span>
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Filters
             </span>
@@ -922,12 +919,12 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
               </div>
             </div>
             <button
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49 Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Apply
               </span>

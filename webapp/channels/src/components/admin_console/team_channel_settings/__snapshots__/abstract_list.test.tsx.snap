@@ -120,12 +120,12 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
         1 - 1 of 1
       </div>
       <button
-        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 disabled"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
         disabled=""
         type="button"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           <i
             class="icon icon-chevron-left"
@@ -134,13 +134,13 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
         </span>
       </button>
       <button
-        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 disabled"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
         data-testid="page-link-next"
         disabled=""
         type="button"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           <i
             class="icon icon-chevron-right"

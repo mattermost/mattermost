@@ -94,12 +94,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
               class="button"
             >
               <a
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                 data-testid="systemScheme-link"
                 href="/admin_console/user_management/permissions/system_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   Edit Scheme
                 </span>
@@ -137,12 +137,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
               class="button"
             >
               <a
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                 data-testid="team-override-schemes-link"
                 href="/admin_console/user_management/permissions/team_override_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   New Team Override Scheme
                 </span>
@@ -340,12 +340,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
               class="button"
             >
               <a
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                 data-testid="systemScheme-link"
                 href="/admin_console/user_management/permissions/system_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   Edit Scheme
                 </span>
@@ -383,12 +383,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
               class="button"
             >
               <a
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                 data-testid="team-override-schemes-link"
                 href="/admin_console/user_management/permissions/team_override_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   New Team Override Scheme
                 </span>
@@ -475,12 +475,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             >
               <a
                 aria-disabled="true"
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--disabled_aa8j5_28"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--disabled_we8pe_28"
                 data-testid="systemScheme-link"
                 href="/admin_console/user_management/permissions/system_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   Edit Scheme
                 </span>
@@ -519,12 +519,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             >
               <a
                 aria-disabled="true"
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--disabled_aa8j5_28"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--disabled_we8pe_28"
                 data-testid="team-override-schemes-link"
                 href="/admin_console/user_management/permissions/team_override_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   New Team Override Scheme
                 </span>
@@ -741,12 +741,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             >
               <a
                 aria-disabled="true"
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--disabled_aa8j5_28"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--disabled_we8pe_28"
                 data-testid="systemScheme-link"
                 href="/admin_console/user_management/permissions/system_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   Edit Scheme
                 </span>
@@ -785,12 +785,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             >
               <a
                 aria-disabled="true"
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--disabled_aa8j5_28"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--disabled_we8pe_28"
                 data-testid="team-override-schemes-link"
                 href="/admin_console/user_management/permissions/team_override_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   New Team Override Scheme
                 </span>
@@ -1006,12 +1006,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
               class="button"
             >
               <a
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                 data-testid="systemScheme-link"
                 href="/admin_console/user_management/permissions/system_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   Edit Scheme
                 </span>
@@ -1049,12 +1049,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
               class="button"
             >
               <a
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                 data-testid="team-override-schemes-link"
                 href="/admin_console/user_management/permissions/team_override_scheme"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   New Team Override Scheme
                 </span>

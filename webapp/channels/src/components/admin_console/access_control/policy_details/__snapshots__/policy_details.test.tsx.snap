@@ -75,11 +75,11 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               </div>
             </div>
             <button
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Switch to Advanced Mode
               </span>
@@ -116,11 +116,11 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               </div>
             </div>
             <button
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Add channels
               </span>
@@ -171,12 +171,11 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   >
                     <button
                       aria-expanded="false"
-                      class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 Filter_button"
+                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
                       type="button"
                     >
                       <span
-                        aria-hidden="true"
-                        class="_button__icon-slot_aa8j5_35"
+                        class="_button__icon-slot_we8pe_35"
                       >
                         <div
                           aria-hidden="true"
@@ -201,7 +200,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                         </div>
                       </span>
                       <span
-                        class="_button__label_aa8j5_31"
+                        class="_button__label_we8pe_31"
                       >
                         Filters
                       </span>
@@ -314,12 +313,12 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                         </div>
                       </div>
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49 Filter_apply"
+                        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
                         disabled=""
                         type="button"
                       >
                         <span
-                          class="_button__label_aa8j5_31"
+                          class="_button__label_we8pe_31"
                         >
                           Apply
                         </span>
@@ -422,11 +421,11 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               </div>
             </div>
             <button
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Delete
               </span>
@@ -442,24 +441,24 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       class="admin-console-save"
     >
       <button
-        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Save
         </span>
       </button>
       <a
-        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/system_attributes/membership_policies"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Cancel
         </span>
@@ -544,11 +543,11 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               </div>
             </div>
             <button
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Switch to Advanced Mode
               </span>
@@ -585,11 +584,11 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               </div>
             </div>
             <button
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Add channels
               </span>
@@ -640,12 +639,11 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   >
                     <button
                       aria-expanded="false"
-                      class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 Filter_button"
+                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
                       type="button"
                     >
                       <span
-                        aria-hidden="true"
-                        class="_button__icon-slot_aa8j5_35"
+                        class="_button__icon-slot_we8pe_35"
                       >
                         <div
                           aria-hidden="true"
@@ -670,7 +668,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                         </div>
                       </span>
                       <span
-                        class="_button__label_aa8j5_31"
+                        class="_button__label_we8pe_31"
                       >
                         Filters
                       </span>
@@ -783,12 +781,12 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                         </div>
                       </div>
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49 Filter_apply"
+                        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
                         disabled=""
                         type="button"
                       >
                         <span
-                          class="_button__label_aa8j5_31"
+                          class="_button__label_we8pe_31"
                         >
                           Apply
                         </span>
@@ -868,24 +866,24 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       class="admin-console-save"
     >
       <button
-        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Save
         </span>
       </button>
       <a
-        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/system_attributes/membership_policies"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Cancel
         </span>

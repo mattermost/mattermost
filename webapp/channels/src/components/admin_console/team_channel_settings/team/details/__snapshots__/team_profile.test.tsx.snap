@@ -125,12 +125,11 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
             type="button"
           >
             <span
-              aria-hidden="true"
-              class="_button__icon-slot_aa8j5_35"
+              class="_button__icon-slot_we8pe_35"
             >
               <div
                 aria-hidden="true"
@@ -155,7 +154,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
               </div>
             </span>
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Archive Team
             </span>
@@ -292,12 +291,11 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
             type="button"
           >
             <span
-              aria-hidden="true"
-              class="_button__icon-slot_aa8j5_35"
+              class="_button__icon-slot_we8pe_35"
             >
               <div
                 aria-hidden="true"
@@ -322,7 +320,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
               </div>
             </span>
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Unarchive Team
             </span>
@@ -459,12 +457,11 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
             type="button"
           >
             <span
-              aria-hidden="true"
-              class="_button__icon-slot_aa8j5_35"
+              class="_button__icon-slot_we8pe_35"
             >
               <div
                 aria-hidden="true"
@@ -489,7 +486,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
               </div>
             </span>
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Unarchive Team
             </span>
@@ -626,13 +623,12 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
             disabled=""
             type="button"
           >
             <span
-              aria-hidden="true"
-              class="_button__icon-slot_aa8j5_35"
+              class="_button__icon-slot_we8pe_35"
             >
               <div
                 aria-hidden="true"
@@ -657,17 +653,17 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
               </div>
             </span>
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Unarchive Team
             </span>
           </button>
           <button
-            class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
             type="button"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               View upgrade options
             </span>
@@ -804,12 +800,11 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
             type="button"
           >
             <span
-              aria-hidden="true"
-              class="_button__icon-slot_aa8j5_35"
+              class="_button__icon-slot_we8pe_35"
             >
               <div
                 aria-hidden="true"
@@ -834,7 +829,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
               </div>
             </span>
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Archive Team
             </span>

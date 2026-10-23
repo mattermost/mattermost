@@ -137,24 +137,24 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
               class="update-buttons-wrapper"
             >
               <button
-                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                 type="button"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   Back
                 </span>
               </button>
               <button
-                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                 data-testid="saveSetting"
                 disabled=""
                 id="saveItems"
                 type="submit"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   Save Details
                 </span>

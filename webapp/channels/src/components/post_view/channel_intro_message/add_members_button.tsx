@@ -1,14 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
+import {AccountPlusOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {TileButton} from '@mattermost/compass-ui/components/tile-button';
 import type {Channel} from '@mattermost/types/channels';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
+import {openModal} from 'actions/views/modals';
 
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -89,14 +94,33 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
 
 const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; pluginButtons: React.ReactNode}) => {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
 
-    const modalId = channel.group_constrained ? ModalIdentifiers.ADD_GROUPS_TO_CHANNEL : ModalIdentifiers.CHANNEL_INVITE;
-    const modal = channel.group_constrained ? AddGroupsToChannelModal : ChannelInviteModal;
     const channelIsArchived = channel.delete_at !== 0;
+    const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
+
+    const handleAddPeople = useCallback(() => {
+        if (channel.group_constrained) {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.ADD_GROUPS_TO_CHANNEL,
+                dialogType: AddGroupsToChannelModal,
+                dialogProps: {channel},
+            }));
+            return;
+        }
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.CHANNEL_INVITE,
+            dialogType: ChannelInviteModal,
+            dialogProps: {channel},
+        }));
+    }, [channel, dispatch]);
+
     if (channelIsArchived) {
         return null;
     }
-    const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
+
+    const addLabel = channel.group_constrained ? formatMessage({id: 'intro_messages.inviteGroupsToChannel.button', defaultMessage: 'Add groups'}) : formatMessage({id: 'intro_messages.inviteMembersToChannel.button', defaultMessage: 'Add people'});
 
     return (
         <div className='MoreThanMaxFreeUsersWrapper'>
@@ -106,28 +130,13 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                     teamId={channel.team_id}
                     permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS]}
                 >
-                    <ToggleModalButton
-                        className='action-button'
-                        modalId={modalId}
-                        dialogType={modal}
-                        dialogProps={{channel}}
-                    >
-                        <i
-                            className='icon-account-plus-outline'
-                            title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
-                            aria-hidden='true'
-                        />
-                        {channel.group_constrained &&
-                            <FormattedMessage
-                                id='intro_messages.inviteGroupsToChannel.button'
-                                defaultMessage='Add groups'
-                            />}
-                        {!channel.group_constrained &&
-                            <FormattedMessage
-                                id='intro_messages.inviteMembersToChannel.button'
-                                defaultMessage='Add people'
-                            />}
-                    </ToggleModalButton>
+                    <TileButton
+                        onClick={handleAddPeople}
+                        aria-label={addLabel}
+                        aria-haspopup='dialog'
+                        icon={<Icon glyph={<AccountPlusOutlineIcon/>}/>}
+                        label={addLabel}
+                    />
                 </ChannelPermissionGate>
             </div>
             {pluginButtons}

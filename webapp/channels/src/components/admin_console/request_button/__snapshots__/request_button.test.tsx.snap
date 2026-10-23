@@ -10,11 +10,11 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Button Text
           </span>
@@ -40,11 +40,11 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Button Text
           </span>
@@ -81,11 +81,11 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Button Text
           </span>
@@ -122,11 +122,11 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Button Text
           </span>
@@ -163,11 +163,11 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Button Text
           </span>

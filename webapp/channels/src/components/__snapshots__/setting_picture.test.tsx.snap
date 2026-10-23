@@ -52,37 +52,37 @@ exports[`components/SettingItemMin should match snapshot with active Save button
             />
             <button
               aria-label="Select"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Select
               </span>
             </button>
             <button
               aria-label="Save"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               tabindex="0"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Save
               </span>
             </button>
             <button
               aria-label="Cancel"
-              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
               data-testid="cancelSettingPicture"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Cancel
               </span>
@@ -137,37 +137,37 @@ exports[`components/SettingItemMin should match snapshot with removeSrc state ac
             />
             <button
               aria-label="Select"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Select
               </span>
             </button>
             <button
               aria-label="Save"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               tabindex="0"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Save
               </span>
             </button>
             <button
               aria-label="Cancel"
-              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
               data-testid="cancelSettingPicture"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Cancel
               </span>
@@ -233,20 +233,20 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
             />
             <button
               aria-label="Select"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
               disabled=""
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Select
               </span>
             </button>
             <button
               aria-label="Uploading..."
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
@@ -254,7 +254,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
             >
               <span
                 aria-hidden="true"
-                class="_button__icon-slot_aa8j5_35"
+                class="_button__icon-slot_we8pe_35"
               >
                 <span
                   aria-label="Loading"
@@ -264,19 +264,19 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
                 />
               </span>
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Uploading...
               </span>
             </button>
             <button
               aria-label="Cancel"
-              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
               data-testid="cancelSettingPicture"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Cancel
               </span>
@@ -348,38 +348,38 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
             />
             <button
               aria-label="Select"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Select
               </span>
             </button>
             <button
               aria-label="Save"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Save
               </span>
             </button>
             <button
               aria-label="Cancel"
-              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
               data-testid="cancelSettingPicture"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Cancel
               </span>
@@ -444,38 +444,38 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
             />
             <button
               aria-label="Select"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Select
               </span>
             </button>
             <button
               aria-label="Save"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Save
               </span>
             </button>
             <button
               aria-label="Cancel"
-              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
               data-testid="cancelSettingPicture"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Cancel
               </span>
@@ -547,38 +547,38 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
             />
             <button
               aria-label="Select"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Select
               </span>
             </button>
             <button
               aria-label="Save"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Save
               </span>
             </button>
             <button
               aria-label="Cancel"
-              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
               data-testid="cancelSettingPicture"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Cancel
               </span>
@@ -667,38 +667,38 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
             />
             <button
               aria-label="Select"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Select
               </span>
             </button>
             <button
               aria-label="Save"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Save
               </span>
             </button>
             <button
               aria-label="Cancel"
-              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
               data-testid="cancelSettingPicture"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Cancel
               </span>
@@ -787,38 +787,38 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
             />
             <button
               aria-label="Select"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Select
               </span>
             </button>
             <button
               aria-label="Save"
-              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Save
               </span>
             </button>
             <button
               aria-label="Cancel"
-              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
               data-testid="cancelSettingPicture"
               type="button"
             >
               <span
-                class="_button__label_aa8j5_31"
+                class="_button__label_we8pe_31"
               >
                 Cancel
               </span>

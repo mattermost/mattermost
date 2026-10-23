@@ -40,23 +40,23 @@ exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = 
           class="terms-of-service__button-group"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="acceptTerms"
             type="submit"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               I Agree
             </span>
           </button>
           <button
-            class="_button_aa8j5_2 _button--emphasis-quaternary_aa8j5_114 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
             id="rejectTerms"
             type="reset"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               I Disagree
             </span>
@@ -135,13 +135,13 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on ac
           class="terms-of-service__button-group"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             disabled=""
             id="acceptTerms"
             type="submit"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               <span
                 class="LoadingSpinner"
@@ -157,13 +157,13 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on ac
             </span>
           </button>
           <button
-            class="_button_aa8j5_2 _button--emphasis-quaternary_aa8j5_114 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
             disabled=""
             id="rejectTerms"
             type="reset"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               I Disagree
             </span>
@@ -215,25 +215,25 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on re
           class="terms-of-service__button-group"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             disabled=""
             id="acceptTerms"
             type="submit"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               I Agree
             </span>
           </button>
           <button
-            class="_button_aa8j5_2 _button--emphasis-quaternary_aa8j5_114 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
             disabled=""
             id="rejectTerms"
             type="reset"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               <span
                 class="LoadingSpinner"

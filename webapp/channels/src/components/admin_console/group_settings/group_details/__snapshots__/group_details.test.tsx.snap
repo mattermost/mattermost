@@ -164,12 +164,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     id="add_team_or_channel"
                     type="button"
                   >
                     <span
-                      class="_button__label_aa8j5_31"
+                      class="_button__label_we8pe_31"
                     >
                       Add Team or Channel
                       <i
@@ -360,12 +360,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 prev disabled"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 prev disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   <i
                     class="icon icon-chevron-left"
@@ -374,12 +374,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 </span>
               </button>
               <button
-                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 next disabled"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 next disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   <i
                     class="icon icon-chevron-right"
@@ -396,25 +396,25 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Save
         </span>
       </button>
       <a
-        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/groups"
         id="cancelButtonSettings"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Cancel
         </span>
@@ -592,12 +592,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     id="add_team_or_channel"
                     type="button"
                   >
                     <span
-                      class="_button__label_aa8j5_31"
+                      class="_button__label_we8pe_31"
                     >
                       Add Team or Channel
                       <i
@@ -788,12 +788,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 prev disabled"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 prev disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   <i
                     class="icon icon-chevron-left"
@@ -802,12 +802,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 </span>
               </button>
               <button
-                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 next disabled"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 next disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   <i
                     class="icon icon-chevron-right"
@@ -824,25 +824,25 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Save
         </span>
       </button>
       <a
-        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/groups"
         id="cancelButtonSettings"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Cancel
         </span>
@@ -1018,12 +1018,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     id="add_team_or_channel"
                     type="button"
                   >
                     <span
-                      class="_button__label_aa8j5_31"
+                      class="_button__label_we8pe_31"
                     >
                       Add Team or Channel
                       <i
@@ -1214,12 +1214,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 prev disabled"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 prev disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   <i
                     class="icon icon-chevron-left"
@@ -1228,12 +1228,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 </span>
               </button>
               <button
-                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 next disabled"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 next disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   <i
                     class="icon icon-chevron-right"
@@ -1250,25 +1250,25 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Save
         </span>
       </button>
       <a
-        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/groups"
         id="cancelButtonSettings"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Cancel
         </span>
@@ -1444,12 +1444,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     id="add_team_or_channel"
                     type="button"
                   >
                     <span
-                      class="_button__label_aa8j5_31"
+                      class="_button__label_we8pe_31"
                     >
                       Add Team or Channel
                       <i
@@ -1638,12 +1638,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 prev disabled"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 prev disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   <i
                     class="icon icon-chevron-left"
@@ -1652,12 +1652,12 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 </span>
               </button>
               <button
-                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 next disabled"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 next disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_aa8j5_31"
+                  class="_button__label_we8pe_31"
                 >
                   <i
                     class="icon icon-chevron-right"
@@ -1674,25 +1674,25 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Save
         </span>
       </button>
       <a
-        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/groups"
         id="cancelButtonSettings"
       >
         <span
-          class="_button__label_aa8j5_31"
+          class="_button__label_we8pe_31"
         >
           Cancel
         </span>

@@ -55,23 +55,23 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
         class="system-notice__footer"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Remind Me Later
           </span>
         </button>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Don't Show Again
           </span>
@@ -128,23 +128,23 @@ exports[`components/SystemNotice should match snapshot for admin, regular notice
         class="system-notice__footer"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Remind Me Later
           </span>
         </button>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Don't Show Again
           </span>
@@ -201,23 +201,23 @@ exports[`components/SystemNotice should match snapshot for regular user, admin a
         class="system-notice__footer"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Remind Me Later
           </span>
         </button>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Don't Show Again
           </span>
@@ -282,23 +282,23 @@ exports[`components/SystemNotice should match snapshot for regular user, regular
         class="system-notice__footer"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Remind Me Later
           </span>
         </button>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Don't Show Again
           </span>
@@ -357,23 +357,23 @@ exports[`components/SystemNotice should match snapshot for show function returni
         class="system-notice__footer"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Remind Me Later
           </span>
         </button>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Don't Show Again
           </span>
@@ -430,12 +430,12 @@ exports[`components/SystemNotice should match snapshot for with allowForget equa
         class="system-notice__footer"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Remind Me Later
           </span>
@@ -471,23 +471,23 @@ exports[`components/SystemNotice should match snapshot when a custom icon is pas
         class="system-notice__footer"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Remind Me Later
           </span>
         </button>
         <button
-          class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Don't Show Again
           </span>

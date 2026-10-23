@@ -3,13 +3,13 @@
 exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
 <div>
   <button
-    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 some-class"
+    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 some-class"
     data-testid="saveSetting"
     id="saveSetting"
     type="submit"
   >
     <span
-      class="_button__label_aa8j5_31"
+      class="_button__label_we8pe_31"
     >
       Save
     </span>
@@ -20,13 +20,13 @@ exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
 exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
 <div>
   <button
-    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
     data-testid="saveSetting"
     id="saveSetting"
     type="submit"
   >
     <span
-      class="_button__label_aa8j5_31"
+      class="_button__label_we8pe_31"
     >
       Save
     </span>
@@ -37,13 +37,13 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
 exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
 <div>
   <button
-    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
     data-testid="saveSetting"
     id="saveSetting"
     type="submit"
   >
     <span
-      class="_button__label_aa8j5_31"
+      class="_button__label_we8pe_31"
     >
       Go
     </span>
@@ -54,7 +54,7 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
 exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
 <div>
   <button
-    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
     data-testid="saveSetting"
     disabled=""
     id="saveSetting"
@@ -62,7 +62,7 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
   >
     <span
       aria-hidden="true"
-      class="_button__icon-slot_aa8j5_35"
+      class="_button__icon-slot_we8pe_35"
     >
       <span
         aria-label="Loading"
@@ -72,7 +72,7 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
       />
     </span>
     <span
-      class="_button__label_aa8j5_31"
+      class="_button__label_we8pe_31"
     >
       Saving
     </span>
@@ -83,7 +83,7 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
 exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
 <div>
   <button
-    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
     data-testid="saveSetting"
     disabled=""
     id="saveSetting"
@@ -91,7 +91,7 @@ exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
   >
     <span
       aria-hidden="true"
-      class="_button__icon-slot_aa8j5_35"
+      class="_button__icon-slot_we8pe_35"
     >
       <span
         aria-label="Loading"
@@ -101,7 +101,7 @@ exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
       />
     </span>
     <span
-      class="_button__label_aa8j5_31"
+      class="_button__label_we8pe_31"
     >
       Saving Config...
     </span>

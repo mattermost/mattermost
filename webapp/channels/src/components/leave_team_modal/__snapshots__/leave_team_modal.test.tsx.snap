@@ -49,23 +49,23 @@ exports[`components/LeaveTeamModal should render the leave team model 1`] = `
           class="modal-footer"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             id="leaveTeamNo"
             type="button"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               No
             </span>
           </button>
           <button
-            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
             id="leaveTeamYes"
             type="button"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Yes
             </span>

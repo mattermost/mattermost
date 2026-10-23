@@ -71,12 +71,12 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             data-testid="Test private-channel_groupsyncable_remove"
             type="button"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Remove
             </span>
@@ -115,12 +115,12 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             data-testid="Test private-team_groupsyncable_remove"
             type="button"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Remove
             </span>
@@ -178,12 +178,12 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             data-testid="Test public-channel_groupsyncable_remove"
             type="button"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Remove
             </span>
@@ -222,12 +222,12 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             data-testid="Test public-team_groupsyncable_remove"
             type="button"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Remove
             </span>
@@ -270,12 +270,12 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             data-testid="Test team with children_groupsyncable_remove"
             type="button"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Remove
             </span>
@@ -318,12 +318,12 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             data-testid="Test team with children_groupsyncable_remove"
             type="button"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Remove
             </span>

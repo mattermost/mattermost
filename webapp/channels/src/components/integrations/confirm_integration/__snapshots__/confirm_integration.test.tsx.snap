@@ -68,12 +68,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
         class="backstage-form__footer"
       >
         <a
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           href="/team_test/integrations/commands"
           id="doneButton"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Done
           </span>
@@ -150,12 +150,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
         class="backstage-form__footer"
       >
         <a
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           href="/team_test/integrations/incoming_webhooks"
           id="doneButton"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Done
           </span>
@@ -254,12 +254,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         class="backstage-form__footer"
       >
         <a
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           href="/team_test/integrations/oauth2-apps"
           id="doneButton"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Done
           </span>
@@ -338,12 +338,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         class="backstage-form__footer"
       >
         <a
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           href="/team_test/integrations/outgoing_webhooks"
           id="doneButton"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Done
           </span>
@@ -440,12 +440,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         class="backstage-form__footer"
       >
         <a
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           href="/team_test/integrations/outgoing-oauth2-connections"
           id="doneButton"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Done
           </span>

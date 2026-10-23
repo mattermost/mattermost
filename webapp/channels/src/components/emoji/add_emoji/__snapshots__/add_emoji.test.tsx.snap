@@ -74,11 +74,11 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
                 class="add-emoji__upload"
               >
                 <button
-                  class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   type="button"
                 >
                   <span
-                    class="_button__label_aa8j5_31"
+                    class="_button__label_we8pe_31"
                   >
                     Select
                   </span>
@@ -101,22 +101,22 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/undefined/emoji"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Cancel
             </span>
           </a>
           <button
-            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             data-testid="save-button"
             type="submit"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Save
             </span>
@@ -202,11 +202,11 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
                 class="add-emoji__upload"
               >
                 <button
-                  class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   type="button"
                 >
                   <span
-                    class="_button__label_aa8j5_31"
+                    class="_button__label_we8pe_31"
                   >
                     Select
                   </span>
@@ -254,22 +254,22 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
           class="backstage-form__footer"
         >
           <a
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/undefined/emoji"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Cancel
             </span>
           </a>
           <button
-            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             data-testid="save-button"
             type="submit"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Save
             </span>
@@ -355,11 +355,11 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
                 class="add-emoji__upload"
               >
                 <button
-                  class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   type="button"
                 >
                   <span
-                    class="_button__label_aa8j5_31"
+                    class="_button__label_we8pe_31"
                   >
                     Select
                   </span>
@@ -382,22 +382,22 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
           class="backstage-form__footer"
         >
           <a
-            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/undefined/emoji"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Cancel
             </span>
           </a>
           <button
-            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             data-testid="save-button"
             type="submit"
           >
             <span
-              class="_button__label_aa8j5_31"
+              class="_button__label_we8pe_31"
             >
               Save
             </span>

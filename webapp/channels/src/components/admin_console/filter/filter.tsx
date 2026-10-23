@@ -196,7 +196,7 @@ class Filter extends React.PureComponent<Props, State> {
                     type='button'
                     emphasis='tertiary'
                     size='small'
-                    className={classNames('Filter_button', {Filter__active: this.state.show})}
+                    className='Filter_button'
                     aria-expanded={this.state.show}
                     onClick={this.togglePopover}
                     ref={this.buttonRef}

@@ -23,12 +23,12 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
         class="button"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           id="addRoleMembers"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Add People
           </span>
@@ -168,13 +168,13 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
         class="button"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           disabled=""
           id="addRoleMembers"
           type="button"
         >
           <span
-            class="_button__label_aa8j5_31"
+            class="_button__label_we8pe_31"
           >
             Add People
           </span>
