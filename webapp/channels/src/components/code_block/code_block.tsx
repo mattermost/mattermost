@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {createContext, useCallback, useContext, useEffect, useState, type JSX} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState, type JSX} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
@@ -15,6 +15,7 @@ import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_to
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import {MarkdownViews} from 'utils/constants';
 import type {MarkdownView} from 'utils/constants';
+import {isLikelyMarkdown} from 'utils/is_likely_markdown';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
 
@@ -51,7 +52,9 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
     const usedLanguage = getUsedLanguage();
 
-    const canToggleMarkdown = depth === 0 && SyntaxHighlighting.isMarkdownLanguage(usedLanguage);
+    // Untagged blocks are checked too, but an explicit other language is respected
+    const detectedMarkdown = useMemo(() => !usedLanguage && isLikelyMarkdown(code), [usedLanguage, code]);
+    const canToggleMarkdown = depth === 0 && (SyntaxHighlighting.isMarkdownLanguage(usedLanguage) || detectedMarkdown);
     const [markdownView, setMarkdownView] = useState<MarkdownView>(() => (canToggleMarkdown ? LocalStorageStore.getMarkdownCodeBlockView(currentUserId) : MarkdownViews.RAW));
     const showRendered = canToggleMarkdown && markdownView === MarkdownViews.RENDERED;
 

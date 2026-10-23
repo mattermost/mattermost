@@ -26252,11 +26252,11 @@
     "description": "Accessible name of the segmented control that switches Markdown content between rendered output and raw source."
   },
   "markdown_view_toggle.raw": {
-    "defaultMessage": "Raw",
+    "defaultMessage": "Code",
     "description": "Label and tooltip of the segment that shows Markdown content as raw source text."
   },
   "markdown_view_toggle.rendered": {
-    "defaultMessage": "Rendered",
+    "defaultMessage": "Preview",
     "description": "Label and tooltip of the segment that shows Markdown content as rendered output."
   },
   "marketplace_command.disabled": {

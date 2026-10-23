@@ -244,10 +244,13 @@ h6.markdown__heading {
     }
 
     .post-code__markdown-toggle {
+        flex-shrink: 0;
+        align-self: flex-start;
         margin-right: 4px;
         opacity: 0;
 
-        &:focus-within {
+        // :focus-within would keep it visible after a click, since the clicked button stays focused
+        &:has(:focus-visible) {
             opacity: 1;
         }
     }

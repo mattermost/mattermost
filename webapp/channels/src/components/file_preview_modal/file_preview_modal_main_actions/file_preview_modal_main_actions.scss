@@ -10,5 +10,10 @@
         align-items: center;
         justify-content: flex-end;
         gap: 8px;
+
+        // The modal paints every link white; keep the download link on the same IconButton color as the buttons beside it
+        a.file-preview-modal-main-actions__download.file-preview-modal-main-actions__download:any-link {
+            color: var(--icon-button-fg);
+        }
     }
 }

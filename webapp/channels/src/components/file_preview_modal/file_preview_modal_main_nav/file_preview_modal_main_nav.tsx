@@ -19,7 +19,7 @@ interface Props {
     handleNext: () => void;
 }
 
-const iconButtonProps = {size: 'medium', style: 'inverted'} as const;
+const iconButtonProps = {size: 'medium', padding: 'compact', style: 'inverted'} as const;
 
 const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     const {formatMessage} = useIntl();
@@ -38,7 +38,7 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
         >
             <IconButton
                 id='previewArrowLeft'
-                className='file_preview_modal_main_nav__prev'
+                className='file-preview-modal__icon-button file_preview_modal_main_nav__prev'
                 {...iconButtonProps}
                 icon={<Icon glyph={<ChevronLeftIcon/>}/>}
                 onClick={props.handlePrev}
@@ -59,7 +59,7 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
         >
             <IconButton
                 id='previewArrowRight'
-                className='file_preview_modal_main_nav__next'
+                className='file-preview-modal__icon-button file_preview_modal_main_nav__next'
                 {...iconButtonProps}
                 icon={<Icon glyph={<ChevronRightIcon/>}/>}
                 onClick={props.handleNext}

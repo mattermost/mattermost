@@ -22,7 +22,7 @@ type Props = {
 
     // 'onDark' is for surfaces that are always dark regardless of theme, like the file preview header
     appearance?: 'default' | 'onDark';
-    size?: 'default' | 'compact';
+    size?: 'default' | 'compact' | 'large';
     className?: string;
 };
 
@@ -34,12 +34,12 @@ const messages = defineMessages({
     },
     rendered: {
         id: 'markdown_view_toggle.rendered',
-        defaultMessage: 'Rendered',
+        defaultMessage: 'Preview',
         description: 'Label and tooltip of the segment that shows Markdown content as rendered output.',
     },
     raw: {
         id: 'markdown_view_toggle.raw',
-        defaultMessage: 'Raw',
+        defaultMessage: 'Code',
         description: 'Label and tooltip of the segment that shows Markdown content as raw source text.',
     },
 });
@@ -53,12 +53,13 @@ const MarkdownViewToggle = ({view, onChange, appearance = 'default', size = 'def
     const intl = useIntl();
     const onDark = appearance === 'onDark';
     const compact = size === 'compact';
+    const large = size === 'large';
 
     return (
         <div
             role='group'
             aria-label={intl.formatMessage(messages.group)}
-            className={classNames('MarkdownViewToggle', {onDark, compact, raw: view === MarkdownViews.RAW}, className)}
+            className={classNames('MarkdownViewToggle', {onDark, compact, large, raw: view === MarkdownViews.RAW}, className)}
         >
             <span
                 className='MarkdownViewToggle__thumb'
@@ -75,8 +76,8 @@ const MarkdownViewToggle = ({view, onChange, appearance = 'default', size = 'def
                     >
                         <IconButton
                             className='MarkdownViewToggle__option'
-                            size='small'
-                            padding={compact ? 'compact' : 'default'}
+                            size={large ? 'medium' : 'small'}
+                            padding={compact || large ? 'compact' : 'default'}
                             style={onDark ? 'inverted' : 'default'}
                             icon={<Icon glyph={glyph}/>}
                             aria-label={label}

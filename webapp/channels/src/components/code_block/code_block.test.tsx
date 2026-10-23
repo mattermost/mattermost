@@ -126,19 +126,49 @@ it shouldn't highlight, it's just garbage`;
             );
             await actImmediate();
 
-            expect(screen.getByRole('button', {name: 'Raw'})).toHaveAttribute('aria-pressed', 'true');
-            expect(screen.getByRole('button', {name: 'Rendered'})).toHaveAttribute('aria-pressed', 'false');
+            expect(screen.getByRole('button', {name: 'Code'})).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'false');
             expect(container.querySelector('.hljs code')).toBeInTheDocument();
             expect(container.querySelector('.post-code')).toHaveClass('post-code--wrap');
             expect(container.querySelector('.post-code__line-numbers')).not.toBeInTheDocument();
             expect(screen.queryByRole('heading', {name: 'Heading'})).not.toBeInTheDocument();
         });
 
-        test.each(['typescript', 'xml', 'html', ''])('should not show the toggle for %p', async (language) => {
+        test.each(['typescript', 'xml', 'html', 'bash'])('should not show the toggle for explicit %p blocks', async (language) => {
             renderWithContext(
                 <CodeBlock
                     code={markdown}
                     language={language}
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+        });
+
+        test('should offer the toggle for untagged blocks that look like markdown', async () => {
+            const {container} = renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language=''
+                />,
+            );
+            await actImmediate();
+
+            expect(screen.getByRole('button', {name: 'Code'})).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.queryByText('Markdown')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
+
+            expect(screen.getByRole('heading', {level: 1, name: 'Heading'})).toBeInTheDocument();
+            expect(container.querySelector('.post-code__rendered')).toBeInTheDocument();
+        });
+
+        test('should not offer the toggle for untagged blocks that are not markdown', async () => {
+            renderWithContext(
+                <CodeBlock
+                    code={'# install\nnpm install\n# build\nnpm run build'}
+                    language=''
                 />,
             );
             await actImmediate();
@@ -155,15 +185,15 @@ it shouldn't highlight, it's just garbage`;
             );
             await actImmediate();
 
-            await userEvent.click(screen.getByRole('button', {name: 'Rendered'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
 
             expect(screen.getByRole('heading', {level: 1, name: 'Heading'})).toBeInTheDocument();
             expect(screen.getByText('bold').tagName).toBe('STRONG');
-            expect(screen.getByRole('button', {name: 'Rendered'})).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'true');
             expect(container.querySelector('.post-code__rendered')).toBeInTheDocument();
             expect(container.querySelector('.hljs')).not.toBeInTheDocument();
 
-            await userEvent.click(screen.getByRole('button', {name: 'Raw'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Code'}));
 
             expect(screen.queryByRole('heading', {name: 'Heading'})).not.toBeInTheDocument();
             expect(container.querySelector('.hljs code')).toBeInTheDocument();
@@ -180,7 +210,7 @@ it shouldn't highlight, it's just garbage`;
             );
             await actImmediate();
 
-            await userEvent.click(screen.getByRole('button', {name: 'Rendered'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
             await userEvent.click(screen.getByLabelText('Copy code'));
 
             expect(spy).toHaveBeenCalledWith(markdown);
@@ -194,7 +224,7 @@ it shouldn't highlight, it's just garbage`;
                 />,
             );
             await actImmediate();
-            await userEvent.click(screen.getByRole('button', {name: 'Rendered'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
             first.unmount();
 
             renderWithContext(
@@ -217,7 +247,7 @@ it shouldn't highlight, it's just garbage`;
             );
             await actImmediate();
 
-            await userEvent.click(screen.getByRole('button', {name: 'Rendered'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
             await actImmediate();
 
             expect(screen.getAllByRole('group', {name: 'Markdown view'})).toHaveLength(1);

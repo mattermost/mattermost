@@ -33,7 +33,8 @@ import './file_preview_modal_main_actions.scss';
 
 const COPIED_TOOLTIP_DURATION = 2000;
 
-const iconButtonProps = {size: 'medium', style: 'inverted'} as const;
+const iconButtonProps = {size: 'medium', padding: 'compact', style: 'inverted'} as const;
+const ICON_BUTTON_CLASS = 'file-preview-modal__icon-button';
 
 interface Props {
     showOnlyClose?: boolean;
@@ -104,6 +105,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
         >
             <IconButton
                 {...iconButtonProps}
+                className={ICON_BUTTON_CLASS}
                 icon={<Icon glyph={<CloseIcon/>}/>}
                 onClick={handleModalClose}
                 aria-label={closeMessage}
@@ -130,6 +132,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
         >
             <IconButton
                 {...iconButtonProps}
+                className={ICON_BUTTON_CLASS}
                 icon={<Icon glyph={<LinkVariantIcon/>}/>}
                 onClick={copyPublicLink}
                 aria-label={publicTooltipMessage}
@@ -148,6 +151,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
         >
             <IconButton
                 {...iconButtonProps}
+                className={`${ICON_BUTTON_CLASS} file-preview-modal-main-actions__download`}
                 asChild={true}
                 icon={<Icon glyph={<DownloadOutlineIcon/>}/>}
                 aria-label={downloadMessage}
@@ -165,6 +169,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
 
     const copy = (
         <CopyButton
+            className={ICON_BUTTON_CLASS}
             iconButtonProps={iconButtonProps}
             isForText={getFileType(fileInfo.extension) === FileTypes.TEXT}
             content={content}
@@ -175,6 +180,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
         <MarkdownViewToggle
             key='markdownToggle'
             appearance='onDark'
+            size='large'
             view={markdownView}
             onChange={onMarkdownViewChange}
         />

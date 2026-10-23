@@ -8,7 +8,7 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import MarkdownViewToggle from './markdown_view_toggle';
 
 describe('components/MarkdownViewToggle', () => {
-    test('should expose a named group with a rendered and a raw button', () => {
+    test('should expose a named group with a preview and a code button', () => {
         renderWithContext(
             <MarkdownViewToggle
                 view='rendered'
@@ -18,8 +18,8 @@ describe('components/MarkdownViewToggle', () => {
 
         expect(screen.getByRole('group', {name: 'Markdown view'})).toBeInTheDocument();
         expect(screen.getAllByRole('button')).toHaveLength(2);
-        expect(screen.getByRole('button', {name: 'Rendered'})).toHaveAttribute('aria-pressed', 'true');
-        expect(screen.getByRole('button', {name: 'Raw'})).toHaveAttribute('aria-pressed', 'false');
+        expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByRole('button', {name: 'Code'})).toHaveAttribute('aria-pressed', 'false');
     });
 
     test('should mark the raw button pressed and slide the thumb when view is raw', () => {
@@ -30,8 +30,8 @@ describe('components/MarkdownViewToggle', () => {
             />,
         );
 
-        expect(screen.getByRole('button', {name: 'Raw'})).toHaveAttribute('aria-pressed', 'true');
-        expect(screen.getByRole('button', {name: 'Rendered'})).toHaveAttribute('aria-pressed', 'false');
+        expect(screen.getByRole('button', {name: 'Code'})).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'false');
         expect(screen.getByRole('group')).toHaveClass('raw');
     });
 
@@ -50,8 +50,8 @@ describe('components/MarkdownViewToggle', () => {
             />,
         );
 
-        expect(screen.getByRole('button', {name: 'Rendered'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Raw'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Preview'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Code'})).toBeInTheDocument();
     });
 
     test('should call onChange with the clicked view and not for the current one', async () => {
@@ -63,10 +63,10 @@ describe('components/MarkdownViewToggle', () => {
             />,
         );
 
-        await userEvent.click(screen.getByRole('button', {name: 'Rendered'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
         expect(onChange).not.toHaveBeenCalled();
 
-        await userEvent.click(screen.getByRole('button', {name: 'Raw'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Code'}));
         expect(onChange).toHaveBeenCalledWith('raw');
     });
 
@@ -81,7 +81,7 @@ describe('components/MarkdownViewToggle', () => {
 
         await userEvent.tab();
         await userEvent.tab();
-        expect(screen.getByRole('button', {name: 'Raw'})).toHaveFocus();
+        expect(screen.getByRole('button', {name: 'Code'})).toHaveFocus();
 
         await userEvent.keyboard('{Enter}');
         expect(onChange).toHaveBeenCalledWith('raw');

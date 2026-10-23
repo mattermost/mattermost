@@ -1,40 +1,49 @@
 .MarkdownViewToggle {
     --markdown-view-toggle-segment: 32px;
-    --markdown-view-toggle-gap: 2px;
     --markdown-view-toggle-track: rgba(var(--center-channel-color-rgb), 0.08);
     --markdown-view-toggle-thumb: var(--center-channel-bg);
+    --markdown-view-toggle-thumb-border: rgba(var(--center-channel-color-rgb), 0.12);
     --markdown-view-toggle-active-icon: var(--center-channel-color);
 
     position: relative;
     display: inline-flex;
     align-items: center;
-    padding: var(--markdown-view-toggle-gap);
-    border-radius: 6px;
+    border-radius: var(--radius-s);
     background: var(--markdown-view-toggle-track);
-    gap: var(--markdown-view-toggle-gap);
 
+    // Matches the 28px controls beside it in the code block overlay
     &.compact {
         --markdown-view-toggle-segment: 28px;
     }
 
-    // Always-dark surfaces: feed the inverted IconButton style fixed light colors instead of sidebar theme colors
+    // Matches the 36px icon buttons it sits next to in the file preview header
+    &.large {
+        --markdown-view-toggle-segment: 36px;
+    }
+
+    // Always-dark surfaces: feed the inverted IconButton style fixed light colors instead of sidebar theme colors,
+    // and keep the selected state as subtle as the other header icons' hover state
     &.onDark {
         --sidebar-text: white;
         --sidebar-text-rgb: 255, 255, 255;
-        --markdown-view-toggle-track: rgba(255, 255, 255, 0.16);
-        --markdown-view-toggle-thumb: white;
-        --markdown-view-toggle-active-icon: #3f4350;
+        --markdown-view-toggle-track: rgba(255, 255, 255, 0.12);
+        --markdown-view-toggle-thumb: rgba(255, 255, 255, 0.16);
+        --markdown-view-toggle-thumb-border: rgba(255, 255, 255, 0.12);
+        --markdown-view-toggle-active-icon: white;
     }
 
+    // The thumb is exactly the size of the selected button, so the track is exactly as big as the buttons
     &__thumb {
         position: absolute;
-        top: var(--markdown-view-toggle-gap);
-        left: var(--markdown-view-toggle-gap);
+        top: 0;
+        left: 0;
         width: var(--markdown-view-toggle-segment);
         height: var(--markdown-view-toggle-segment);
-        border-radius: 4px;
+        box-sizing: border-box;
+        border: 1px solid var(--markdown-view-toggle-thumb-border);
+        border-radius: var(--radius-s);
         background: var(--markdown-view-toggle-thumb);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+        box-shadow: var(--elevation-1);
         pointer-events: none;
         transition: transform var(--duration-moderate) var(--ease-transition);
 
@@ -44,7 +53,7 @@
     }
 
     &.raw &__thumb {
-        transform: translateX(calc(var(--markdown-view-toggle-segment) + var(--markdown-view-toggle-gap)));
+        transform: translateX(var(--markdown-view-toggle-segment));
     }
 
     &__option {

@@ -7,7 +7,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
   >
     <button
       aria-label="Previous file"
-      class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--style-inverted_13ryy_159 file_preview_modal_main_nav__prev"
+      class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
       id="previewArrowLeft"
       type="button"
     >
@@ -47,7 +47,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
     </span>
     <button
       aria-label="Next file"
-      class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--style-inverted_13ryy_159 file_preview_modal_main_nav__next"
+      class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__next"
       id="previewArrowRight"
       type="button"
     >
