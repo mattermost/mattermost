@@ -5,6 +5,7 @@ package audit
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -46,6 +47,20 @@ func (a *Audit) LogRecord(level mlog.Level, rec model.AuditRecord) {
 	}
 
 	a.logger.Log(level, "", flds...)
+}
+
+// IsLevelEnabled reports whether a configured target is accepting records at the given level.
+func (a *Audit) IsLevelEnabled(level mlog.Level) bool {
+	return a.logger.IsLevelEnabled(level)
+}
+
+// IsActive reports whether a configured target is accepting records at any audit level other
+// than audit-delivery. That level is opt-in and so high volume that a target bound only to it
+// does not mean general audit logging is on.
+func (a *Audit) IsActive() bool {
+	return slices.ContainsFunc(mlog.MLvlAuditAll, func(level mlog.Level) bool {
+		return level.ID != mlog.LvlAuditDelivery.ID && a.IsLevelEnabled(level)
+	})
 }
 
 // Configure sets zero or more target to output audit logs to.

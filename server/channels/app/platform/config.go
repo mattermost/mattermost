@@ -226,9 +226,22 @@ func (ps *PlatformService) ClientConfigHash() string {
 	return ps.clientConfigHash.Load().(string)
 }
 
+// SetAuditLoggingActiveFunc sets the function the client config uses to report whether the
+// audit logger is writing records, and regenerates the client config.
+func (ps *PlatformService) SetAuditLoggingActiveFunc(isActive func() bool) {
+	ps.auditLoggingActive.Store(&isActive)
+	ps.regenerateClientConfig()
+}
+
 func (ps *PlatformService) regenerateClientConfig() {
 	clientConfig := config.GenerateClientConfig(ps.Config(), ps.telemetryId, ps.License())
 	limitedClientConfig := config.GenerateLimitedClientConfig(ps.Config(), ps.telemetryId, ps.License())
+
+	auditLoggingActive := false
+	if isActive := ps.auditLoggingActive.Load(); isActive != nil {
+		auditLoggingActive = (*isActive)()
+	}
+	clientConfig["AuditLoggingActive"] = strconv.FormatBool(auditLoggingActive)
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := ps.Store.TermsOfService().GetLatest(true)

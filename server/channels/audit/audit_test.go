@@ -6,6 +6,7 @@ package audit
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -99,4 +100,122 @@ func TestAudit_LogAuditRecord(t *testing.T) {
 			require.ElementsMatch(t, testCase.expectedLogs, strings.Split(actual, "\n"))
 		})
 	}
+}
+
+func TestAudit_IsActive(t *testing.T) {
+	fileTarget := func(path string, levels ...mlog.Level) mlog.TargetCfg {
+		return mlog.TargetCfg{
+			Type:    "file",
+			Format:  "json",
+			Levels:  levels,
+			Options: json.RawMessage(fmt.Sprintf(`{"filename": %q}`, path)),
+		}
+	}
+
+	// A syslog target dials its server when added, so a closed port makes it fail to start.
+	unreachableSyslogTarget := func(t *testing.T) mlog.TargetCfg {
+		listener, err := net.Listen("tcp", "127.0.0.1:0")
+		require.NoError(t, err)
+		port := listener.Addr().(*net.TCPAddr).Port
+		require.NoError(t, listener.Close())
+
+		return mlog.TargetCfg{
+			Type:    "syslog",
+			Format:  "json",
+			Levels:  []mlog.Level{mlog.LvlAuditAPI},
+			Options: json.RawMessage(fmt.Sprintf(`{"host": "127.0.0.1", "port": %d, "tag": "audit"}`, port)),
+		}
+	}
+
+	newAudit := func(t *testing.T) *Audit {
+		adt := &Audit{}
+		adt.Init(DefMaxQueueSize)
+		t.Cleanup(func() { _ = adt.Shutdown() })
+		return adt
+	}
+
+	// wroteRecord logs an audit-api record and reports whether it reached the file at path.
+	wroteRecord := func(t *testing.T, adt *Audit, path string) bool {
+		adt.LogRecord(mlog.LvlAuditAPI, model.AuditRecord{EventName: "probe"})
+		require.NoError(t, adt.Flush())
+		data, err := os.ReadFile(path)
+		if os.IsNotExist(err) {
+			return false
+		}
+		require.NoError(t, err)
+		return strings.Contains(string(data), `"event_name":"probe"`)
+	}
+
+	t.Run("no targets", func(t *testing.T) {
+		adt := newAudit(t)
+		require.NoError(t, adt.Configure(mlog.LoggerConfiguration{}))
+
+		require.False(t, adt.IsActive())
+		for _, level := range mlog.MLvlAuditAll {
+			require.False(t, adt.IsLevelEnabled(level), level.Name)
+		}
+	})
+
+	for _, level := range []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI} {
+		t.Run("target bound to "+level.Name, func(t *testing.T) {
+			adt := newAudit(t)
+			path := filepath.Join(t.TempDir(), "audit.log")
+			require.NoError(t, adt.Configure(mlog.LoggerConfiguration{"audit": fileTarget(path, level)}))
+
+			require.True(t, adt.IsActive())
+			require.True(t, adt.IsLevelEnabled(level))
+		})
+	}
+
+	t.Run("target bound only to audit-delivery", func(t *testing.T) {
+		adt := newAudit(t)
+		path := filepath.Join(t.TempDir(), "audit.log")
+		require.NoError(t, adt.Configure(mlog.LoggerConfiguration{"delivery": fileTarget(path, mlog.LvlAuditDelivery)}))
+
+		require.False(t, adt.IsActive())
+		require.True(t, adt.IsLevelEnabled(mlog.LvlAuditDelivery))
+		require.False(t, adt.IsLevelEnabled(mlog.LvlAuditAPI))
+	})
+
+	t.Run("target bound to a non-audit level", func(t *testing.T) {
+		adt := newAudit(t)
+		path := filepath.Join(t.TempDir(), "audit.log")
+		require.NoError(t, adt.Configure(mlog.LoggerConfiguration{"errors": fileTarget(path, mlog.LvlError)}))
+
+		require.False(t, adt.IsActive())
+	})
+
+	t.Run("target that fails to connect", func(t *testing.T) {
+		adt := newAudit(t)
+		require.Error(t, adt.Configure(mlog.LoggerConfiguration{"syslog": unreachableSyslogTarget(t)}))
+
+		require.False(t, adt.IsActive())
+		require.False(t, adt.IsLevelEnabled(mlog.LvlAuditAPI))
+	})
+
+	// ConfigureTargets adds targets in map order and stops at the first failure, so whether
+	// the valid target is live varies between runs. IsActive must match what is written.
+	t.Run("partial configuration matches records written", func(t *testing.T) {
+		for range 10 {
+			adt := newAudit(t)
+			path := filepath.Join(t.TempDir(), "audit.log")
+			require.Error(t, adt.Configure(mlog.LoggerConfiguration{
+				"file":   fileTarget(path, mlog.LvlAuditAPI),
+				"syslog": unreachableSyslogTarget(t),
+			}))
+
+			require.Equal(t, wroteRecord(t, adt, path), adt.IsActive())
+		}
+	})
+
+	t.Run("reconfiguring updates the answer", func(t *testing.T) {
+		adt := newAudit(t)
+		path := filepath.Join(t.TempDir(), "audit.log")
+		require.NoError(t, adt.Configure(mlog.LoggerConfiguration{"audit": fileTarget(path, mlog.LvlAuditAPI)}))
+		require.True(t, adt.IsActive())
+		require.True(t, wroteRecord(t, adt, path))
+
+		require.NoError(t, adt.Configure(mlog.LoggerConfiguration{}))
+		require.False(t, adt.IsActive())
+	})
 }
