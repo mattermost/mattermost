@@ -7,6 +7,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
+import {ErrorMessage} from '@mattermost/compass-ui/components/error-message';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {ItemStatus} from 'utils/constants';
@@ -204,8 +205,9 @@ const Input = React.forwardRef((
     };
 
     const showLegend = Boolean(focused || value);
-    const error = customInputLabel?.type === ItemStatus.ERROR;
-    const warning = customInputLabel?.type === ItemStatus.WARNING;
+    const customMessageType = customInputLabel?.type || ItemStatus.ERROR;
+    const error = customMessageType === ItemStatus.ERROR;
+    const warning = customMessageType === ItemStatus.WARNING;
 
     const clearButton = value && clearable ? (
         <WithTooltip
@@ -300,24 +302,32 @@ const Input = React.forwardRef((
             </div>
             {/* Display custom or derived error messages */}
             {customInputLabel && (
-                <div
-                    className={`Input___customMessage Input___${customInputLabel?.type || 'error'}`}
-                    id={errorId}
-                    role={error || warning ? 'alert' : undefined}
-                >
-                    <i
-                        className={classNames(`icon ${customInputLabel?.type || 'error'}`, {
-                            'icon-alert-outline': (customInputLabel?.type || 'error') === ItemStatus.WARNING,
-                            'icon-alert-circle-outline': (customInputLabel?.type || 'error') === ItemStatus.ERROR,
-                            'icon-information-outline': (customInputLabel?.type || 'error') === ItemStatus.INFO,
-                            'icon-check': (customInputLabel?.type || 'error') === ItemStatus.SUCCESS,
-                        })}
-                        role='img'
-                        aria-label={customInputLabel.value ? '' : customInputLabel.type || 'error'}
-                        aria-hidden={Boolean(customInputLabel.value)}
+                error ? (
+                    <ErrorMessage
+                        id={errorId}
+                        className='Input___error'
+                        message={customInputLabel.value}
                     />
-                    <span>{customInputLabel?.value}</span>
-                </div>
+                ) : (
+                    <div
+                        className={`Input___customMessage Input___${customMessageType}`}
+                        id={errorId}
+                        role={warning ? 'alert' : undefined}
+                    >
+                        <i
+                            className={classNames(`icon ${customMessageType}`, {
+                                'icon-alert-outline': customMessageType === ItemStatus.WARNING,
+                                'icon-alert-circle-outline': customMessageType === ItemStatus.ERROR,
+                                'icon-information-outline': customMessageType === ItemStatus.INFO,
+                                'icon-check': customMessageType === ItemStatus.SUCCESS,
+                            })}
+                            role='img'
+                            aria-label={customInputLabel.value ? '' : customMessageType}
+                            aria-hidden={Boolean(customInputLabel.value)}
+                        />
+                        <span>{customInputLabel.value}</span>
+                    </div>
+                )
             )}
         </div>
     );
