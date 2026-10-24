@@ -9141,6 +9141,11 @@
     "description": "Bulk import error shown to admins when saving a user's per-team theme preference during import fails."
   },
   {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Error importing user teams. Team not found.",
+    "description": ""
+  },
+  {
     "id": "app.import.pre_create_sso_user.missing_fields.app_error",
     "translation": "SSO user import data is missing required fields (username or email).",
     "description": "Bulk import error when a single sign-on (SSO) user record in the import file lacks the data needed to create the account ahead of the main import."

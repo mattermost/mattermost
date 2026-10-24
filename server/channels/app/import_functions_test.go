@@ -2284,7 +2284,7 @@ func TestImportUsernamRemap(t *testing.T) {
 {"type":"user","user":{"username":"` + srcUsername + `","email":"` + destUser.Email + `","auth_service":"ldap","auth_data":"` + authData + `","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}
 {"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + srcUsername + `","message":"hello from renamed user","create_at":` + strconv.FormatInt(createAt, 10) + `}}`
 
-		_, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
+		_, _, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
 		require.Nil(t, appErr)
 
 		team, tErr := th.App.Srv().Store().Team().GetByName(teamName)
@@ -2416,6 +2416,10 @@ func TestImportUsernamRemap(t *testing.T) {
 
 		_, ok := report.Remap.Lookup(srcUsername)
 		assert.False(t, ok, "a shared email must not redirect content to a differently-named account")
+
+		// The unmatched-user record must not be logged when the shell was never created:
+		// otherwise the CSV would report created_inactive for an account that does not exist.
+		assert.Empty(t, report.UnmatchedUsers.All(), "no unmatched-user record should be logged when shell creation failed")
 	})
 
 	t.Run("remap is populated on username conflict during scoped import shell creation", func(t *testing.T) {
@@ -2658,7 +2662,7 @@ func TestImportUserTeams(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserTeams(th.Context, user, tc.data, false)
+				appErr := th.App.importUserTeams(th.Context, user, tc.data, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
@@ -2697,7 +2701,7 @@ func TestImportUserTeams(t *testing.T) {
 		}
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 1 })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 100 })
-		appErr := th.App.importUserTeams(th.Context, user, data, false)
+		appErr := th.App.importUserTeams(th.Context, user, data, false, &imports.ImportReport{})
 		require.NotNil(t, appErr)
 	})
 
@@ -2724,7 +2728,7 @@ func TestImportUserTeams(t *testing.T) {
 				Name: &th.BasicTeam.Name,
 			},
 		}
-		appErr := th.App.importUserTeams(th.Context, user, data, false)
+		appErr := th.App.importUserTeams(th.Context, user, data, false, &imports.ImportReport{})
 		require.Nil(t, appErr)
 
 		teamMember, nErr := th.App.Srv().Store().Team().GetMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -2844,7 +2848,7 @@ func TestImportUserChannels(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserChannels(th.Context, user, th.BasicTeam, tc.data, false)
+				appErr := th.App.importUserChannels(th.Context, user, th.BasicTeam, tc.data, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
