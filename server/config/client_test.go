@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetClientConfig(t *testing.T) {
-	t.Parallel()
+	t.Setenv(AdditionalAuditTargetsEnv, "")
 	testCases := []struct {
 		description    string
 		config         *model.Config
@@ -780,7 +780,7 @@ func TestGetClientConfig(t *testing.T) {
 			"audit logging - advanced target with license",
 			&model.Config{
 				ExperimentalAuditSettings: model.ExperimentalAuditSettings{
-					AdvancedLoggingJSON: json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`),
+					AdvancedLoggingJSON: json.RawMessage(`{"my-audit":{"type":"file","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`),
 				},
 			},
 			"",
@@ -799,7 +799,7 @@ func TestGetClientConfig(t *testing.T) {
 			"audit logging - advanced target without license",
 			&model.Config{
 				ExperimentalAuditSettings: model.ExperimentalAuditSettings{
-					AdvancedLoggingJSON: json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`),
+					AdvancedLoggingJSON: json.RawMessage(`{"my-audit":{"type":"file","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`),
 				},
 			},
 			"",

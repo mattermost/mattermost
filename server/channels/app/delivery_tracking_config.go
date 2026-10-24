@@ -94,7 +94,7 @@ func (s *Server) warnIfDeliveryAuditTargetMissing(cfg *model.Config) {
 	}
 
 	mlog.Warn(
-		"DeliveryTrackingSettings.Enable is enabled but no configured audit log target consumes the audit-delivery level; post delivery audit records will be discarded. Add a target for the level via ExperimentalAuditSettings.AdvancedLoggingJSON.",
+		"DeliveryTrackingSettings.Enable is enabled but no configured audit log target consumes the audit-delivery level; post delivery audit records will be discarded. Add a target for the level via ExperimentalAuditSettings.AdvancedLoggingJSON or the MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL environment variable.",
 		mlog.String("level", mlog.LvlAuditDelivery.Name),
 	)
 }
