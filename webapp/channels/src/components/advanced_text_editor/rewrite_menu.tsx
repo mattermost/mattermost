@@ -18,6 +18,7 @@ import {
     SpellcheckIcon,
 } from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Agent} from '@mattermost/types/agents';
 
 import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
@@ -167,8 +168,8 @@ export default function RewriteMenu({
                                 size='x-small'
                                 type='button'
                                 onClick={onCancelProcessing}
+                                leadingIcon={<Icon glyph={<CloseIcon/>}/>}
                             >
-                                <i className='icon icon-close'/>
                                 <FormattedMessage
                                     id='texteditor.rewrite.stopGenerating'
                                     defaultMessage='Stop generating'
@@ -230,8 +231,8 @@ export default function RewriteMenu({
                         size='x-small'
                         type='button'
                         onClick={onUndoMessage}
+                        leadingIcon={<Icon glyph={<CloseIcon/>}/>}
                     >
-                        <i className='icon icon-close'/>
                         <FormattedMessage
                             id='texteditor.rewrite.discard'
                             defaultMessage='Discard'
@@ -241,9 +242,10 @@ export default function RewriteMenu({
                         emphasis='quaternary'
                         size='x-small'
                         type='button'
+                        className='rewrite-menu-footer__regenerate'
                         onClick={onRegenerateMessage}
+                        leadingIcon={<Icon glyph={<ContentCopyIcon/>}/>}
                     >
-                        <i className='icon icon-content-copy'/>
                         <FormattedMessage
                             id='texteditor.rewrite.regenerate'
                             defaultMessage='Regenerate'
@@ -384,8 +386,8 @@ export function RewriteSubMenuHeader({
                         size='x-small'
                         type='button'
                         onClick={onCancelProcessing}
+                        leadingIcon={<Icon glyph={<CloseIcon/>}/>}
                     >
-                        <CloseIcon size={14}/>
                         <FormattedMessage
                             id='texteditor.rewrite.stopGenerating'
                             defaultMessage='Stop generating'
@@ -432,8 +434,8 @@ export function RewriteSubMenuFooter({
                 size='x-small'
                 type='button'
                 onClick={onUndoMessage}
+                leadingIcon={<Icon glyph={<CloseIcon/>}/>}
             >
-                <CloseIcon size={14}/>
                 <FormattedMessage
                     id='texteditor.rewrite.discard'
                     defaultMessage='Discard'
@@ -443,9 +445,10 @@ export function RewriteSubMenuFooter({
                 emphasis='quaternary'
                 size='x-small'
                 type='button'
+                className='rewrite-menu-footer__regenerate'
                 onClick={onRegenerateMessage}
+                leadingIcon={<Icon glyph={<ContentCopyIcon/>}/>}
             >
-                <ContentCopyIcon size={14}/>
                 <FormattedMessage
                     id='texteditor.rewrite.regenerate'
                     defaultMessage='Regenerate'
