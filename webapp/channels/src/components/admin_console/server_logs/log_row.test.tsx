@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {LogLevelEnum} from '@mattermost/types/admin';
+import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -504,7 +504,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
     });
 
     describe('node', () => {
-        const nodeLog: LogObjectWithAdditionalInfo = {...baseLog, node: 'node-a'};
+        const nodeLog: LogObjectWithAdditionalInfo = {...baseLog, [LogNodeKey]: 'node-a'};
 
         test('should not render the node without showNode', () => {
             renderLogRow({log: nodeLog});
@@ -553,6 +553,20 @@ describe('components/admin_console/server_logs/LogRow', () => {
             await waitFor(() => {
                 expect(writeText).toHaveBeenCalledWith(JSON.stringify(baseLog, undefined, 2));
             });
+        });
+
+        test('should keep a node field the server logged in the details and the copied JSON', async () => {
+            const serverLog = {...baseLog, node: 'node-b'};
+            renderLogRow({log: {...serverLog, [LogNodeKey]: 'node-a'}, showNode: true, isExpanded: true});
+
+            expect(document.querySelector('.LogRow__node')).toHaveTextContent('node-a');
+            const extraKeys = Array.from(document.querySelectorAll('.LogRow__details-grid .LogRow__detail-label')).
+                map((el) => el.textContent);
+            expect(extraKeys).toEqual(['job_id', 'worker', 'node']);
+
+            await userEvent.click(screen.getByText('Copy JSON'));
+
+            expect(writeText).toHaveBeenCalledWith(JSON.stringify(serverLog, undefined, 2));
         });
 
         test('should copy the log line unchanged', async () => {
