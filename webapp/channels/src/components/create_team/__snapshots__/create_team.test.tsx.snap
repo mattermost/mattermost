@@ -106,9 +106,31 @@ exports[`component/create_team should match snapshot default 1`] = `
                   class="_button__label_we8pe_31"
                 >
                   Next
-                  <i
-                    class="icon icon-chevron-right"
-                  />
+                </span>
+                <span
+                  class="_button__icon-slot_we8pe_35"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="18"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="18"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 </span>
               </button>
             </form>
