@@ -105,6 +105,7 @@ export type ViewsState = {
         remotes: {
             [storageKey: string]: boolean;
         };
+        pendingQuote: PendingQuote | null;
     };
 
     rhs: RhsViewState;
@@ -217,4 +218,12 @@ export type ViewsState = {
         manuallyUnread: {[id: string]: boolean};
         toastStatus: boolean;
     };
+};
+
+export type PendingQuote = {
+    channelId: string;
+    rootId: string;
+
+    // Markdown of the quoted text
+    text: string;
 };
