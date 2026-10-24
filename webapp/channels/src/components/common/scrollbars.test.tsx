@@ -38,6 +38,43 @@ describe('Scrollbars', () => {
         expect(onScroll).toHaveBeenCalled();
     });
 
+    test('should stop a press on the scrollbar track from reaching drag and drop sensors', () => {
+        render(
+            <Scrollbars>
+                <div/>
+            </Scrollbars>,
+        );
+
+        const track = document.querySelector<HTMLElement>('.simplebar-track.simplebar-vertical')!;
+        track.style.visibility = 'visible';
+        track.getBoundingClientRect = () => ({x: 229, y: 0, left: 229, right: 240, top: 0, bottom: 400, width: 11, height: 400, toJSON: () => ''});
+
+        const onTrack = new MouseEvent('mousedown', {bubbles: true, cancelable: true, clientX: 235, clientY: 100});
+        window.dispatchEvent(onTrack);
+        expect(onTrack.defaultPrevented).toBe(true);
+
+        const besideTrack = new MouseEvent('mousedown', {bubbles: true, cancelable: true, clientX: 200, clientY: 100});
+        window.dispatchEvent(besideTrack);
+        expect(besideTrack.defaultPrevented).toBe(false);
+    });
+
+    test('should not stop a press where the track is hidden because the content fits', () => {
+        render(
+            <Scrollbars>
+                <div/>
+            </Scrollbars>,
+        );
+
+        const track = document.querySelector<HTMLElement>('.simplebar-track.simplebar-vertical')!;
+        track.style.visibility = 'hidden';
+        track.getBoundingClientRect = () => ({x: 229, y: 0, left: 229, right: 240, top: 0, bottom: 400, width: 11, height: 400, toJSON: () => ''});
+
+        const onTrack = new MouseEvent('mousedown', {bubbles: true, cancelable: true, clientX: 235, clientY: 100});
+        window.dispatchEvent(onTrack);
+
+        expect(onTrack.defaultPrevented).toBe(false);
+    });
+
     test('should attach ref to the correct element', () => {
         let scrollElement;
         render(
