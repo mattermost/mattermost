@@ -268,6 +268,18 @@ func (hooks *hooksTimerLayer) OnLicenseChanged(oldLicense, newLicense *model.Lic
 	hooks.recordTime(startTime, "OnLicenseChanged", true)
 }
 
+func (hooks *hooksTimerLayer) OnPluginActivated(manifest *model.Manifest) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnPluginActivated(manifest)
+	hooks.recordTime(startTime, "OnPluginActivated", true)
+}
+
+func (hooks *hooksTimerLayer) OnPluginDeactivated(manifest *model.Manifest) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnPluginDeactivated(manifest)
+	hooks.recordTime(startTime, "OnPluginDeactivated", true)
+}
+
 func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.ConfigurationWillBeSaved(newCfg)
@@ -563,6 +575,20 @@ func (hooks *hooksTimerLayer) OnLicenseChangedWithRPCErr(oldLicense, newLicense 
 	startTime := timePkg.Now()
 	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnLicenseChangedWithRPCErr(oldLicense, newLicense)
 	hooks.recordTime(startTime, "OnLicenseChangedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnPluginActivatedWithRPCErr(manifest *model.Manifest) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnPluginActivatedWithRPCErr(manifest)
+	hooks.recordTime(startTime, "OnPluginActivatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnPluginDeactivatedWithRPCErr(manifest *model.Manifest) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnPluginDeactivatedWithRPCErr(manifest)
+	hooks.recordTime(startTime, "OnPluginDeactivatedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsRPCErr
 }
 
