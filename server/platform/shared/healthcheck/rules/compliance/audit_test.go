@@ -5,6 +5,7 @@ package compliance
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
@@ -69,6 +70,11 @@ func TestAuditLogOff(t *testing.T) {
 		{"inactive above the threshold", withUsers(enterprise(audit(false, "")), 5001), off("5001").withValue(5001)},
 		{"server records active though the config has no targets", withUsers(configSnapshot(audit(false, ""), recordedAudit(true)), 50000), resolved},
 		{"server records inactive though the config enables the file", withUsers(configSnapshot(audit(true, ""), recordedAudit(false)), 5001), off("5001").withValue(5001)},
+		{"server record ignored when its section failed", withUsers(configSnapshot(audit(false, ""), func() *healthcheck.NodeSnapshot {
+			leader := recordedAudit(true)
+			leader.Diagnostics.Errors = model.SectionErrors{model.SectionConfigSource: errors.New("collection failed")}
+			return leader
+		}()), 5001), off("5001").withValue(5001)},
 		{"file enabled absent", enterprise(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }), configUnknown},
 	}
 
