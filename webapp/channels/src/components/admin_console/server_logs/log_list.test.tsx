@@ -3,7 +3,7 @@
 
 import React, {useState} from 'react';
 
-import {LogLevelEnum} from '@mattermost/types/admin';
+import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import {renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
@@ -24,7 +24,7 @@ function makeLog(msg: string, timestamp: string, level = LogLevelEnum.INFO): Log
 }
 
 function makeNodeLog(node: string, msg: string, timestamp = '2026-03-12T10:00:01.000Z', level = LogLevelEnum.INFO): LogObjectWithAdditionalInfo {
-    return {...makeLog(msg, timestamp, level), node};
+    return {...makeLog(msg, timestamp, level), [LogNodeKey]: node};
 }
 
 function makeFailedNodeLog(node: string, timestamp = '2026-03-12 10:00:02.000 +00:00'): LogObjectWithAdditionalInfo {
@@ -33,7 +33,7 @@ function makeFailedNodeLog(node: string, timestamp = '2026-03-12 10:00:02.000 +0
         level: LogLevelEnum.ERROR,
         msg: 'Failed to fetch logs from node',
         error: 'connection refused',
-        node,
+        [LogNodeKey]: node,
     } as unknown as LogObjectWithAdditionalInfo;
 }
 
@@ -622,6 +622,20 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             expect(rowMessages()).toEqual(['b']);
             expect(document.querySelector('.LogRow__node mark')).toHaveTextContent('node-b');
+        });
+
+        test('should search a node field the server logged', () => {
+            renderListWith({
+                logs: [
+                    {...makeNodeLog('node-a', 'A node has joined the cluster'), node: 'node-b'},
+                    makeNodeLog('node-a', 'other'),
+                ],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-a',
+                search: 'node-b',
+            });
+
+            expect(rowMessages()).toEqual(['A node has joined the cluster']);
         });
 
         test('should not search the node name with a single node', () => {

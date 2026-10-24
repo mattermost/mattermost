@@ -7,6 +7,14 @@
 // Log Viewer
 // ============================
 
+// The menu renders in a portal, outside .LogViewer, and long hostnames wrap rather than being cut off
+#serverLogsNodeMenu .label-elements {
+    min-width: 0;
+    flex-shrink: 1;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
 .LogViewer {
     @include log_viewer.viewer-shell;
 
@@ -72,8 +80,10 @@
     // Column header
     // ---------------------
     // Mirrors the .adminConsoleListTable `thead` so it matches the other console lists
+    // Reserves the list's scrollbar gutter so the columns line up with the rows
     &__header {
         display: flex;
+        overflow: hidden;
         align-items: center;
         padding: 12px log_viewer.$row-padding-x;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
@@ -83,6 +93,7 @@
         font-weight: 600;
         gap: log_viewer.$column-gap;
         line-height: 16px;
+        scrollbar-gutter: stable;
         white-space: nowrap;
     }
 
@@ -139,6 +150,7 @@
         flex: 1;
         overflow-x: hidden;
         overflow-y: auto;
+        scrollbar-gutter: stable;
     }
 
     // Loading and empty states

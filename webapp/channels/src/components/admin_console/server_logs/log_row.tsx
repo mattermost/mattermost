@@ -7,6 +7,8 @@ import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
+import {LogNodeKey} from '@mattermost/types/admin';
+
 import {useUser} from 'components/common/hooks/useUser';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -111,7 +113,7 @@ function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode 
     return parts.length === 1 ? parts[0] : <>{parts}</>;
 }
 
-const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller', 'node']);
+const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller']);
 
 function CopyButton({value}: {value: string}) {
     const intl = useIntl();
@@ -200,13 +202,6 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     );
 }
 
-// The node is added by the client, so copies match the entry as the server logged it
-function entryJson(log: LogObjectWithAdditionalInfo): string {
-    const entry = {...log};
-    delete entry.node;
-    return JSON.stringify(entry, undefined, 2);
-}
-
 function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText, showNode}: Props) {
     const [copyJsonStatus, copyJson] = useClipboardCopy();
     const [copyLineStatus, copyLine] = useClipboardCopy();
@@ -229,7 +224,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
 
     const handleCopyJson = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        copyJson(entryJson(log));
+        copyJson(JSON.stringify(log, undefined, 2));
     }, [copyJson, log]);
 
     const handleCopyLine = useCallback((e: React.MouseEvent) => {
@@ -248,7 +243,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
             onToggleExpand(log);
         }
         if (e.key === 'c' && !e.ctrlKey && !e.metaKey) {
-            copyJson(entryJson(log));
+            copyJson(JSON.stringify(log, undefined, 2));
         }
     }, [copyJson, log, onToggleExpand]);
 
@@ -299,9 +294,9 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                 {showNode && (
                     <span
                         className='LogRow__node'
-                        title={log.node}
+                        title={log[LogNodeKey]}
                     >
-                        {highlightSearchTerm(log.node ?? '', searchTerm)}
+                        {highlightSearchTerm(log[LogNodeKey] ?? '', searchTerm)}
                     </span>
                 )}
                 <span className='LogRow__message'>

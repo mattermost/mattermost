@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {LogLevelEnum} from '@mattermost/types/admin';
+import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import {renderWithContext, userEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
@@ -18,7 +18,7 @@ function nodeLog(node: string, msg: string): LogObjectWithAdditionalInfo {
         msg,
         timestamp: '2026-10-20 11:39:58.100 +02:00',
         worker: '',
-        node,
+        [LogNodeKey]: node,
     };
 }
 
@@ -378,7 +378,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
         localStorage.clear();
     });
 
-    function logsElement(logs: LogObjectWithAdditionalInfo[], getLogs: jest.Mock, logNodes = [...new Set(logs.map((log) => log.node!))]) {
+    function logsElement(logs: LogObjectWithAdditionalInfo[], getLogs: jest.Mock, logNodes = [...new Set(logs.map((log) => log[LogNodeKey]!))]) {
         return (
             <Logs
                 logs={logs}
