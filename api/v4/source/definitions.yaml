@@ -2231,6 +2231,45 @@ components:
           properties:
             MaxUsersForStatistics:
               type: integer
+    ConfigHistoryEntry:
+      type: object
+      description: A configuration saved by the server
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds the configuration was saved
+          type: integer
+          format: int64
+        active:
+          description: Whether this is the configuration the server is using
+          type: boolean
+        unreadable:
+          description: >
+            Whether the saved configuration can't be loaded, such as one that
+            isn't valid JSON. It can't be retrieved or rolled back to.
+          type: boolean
+        changes:
+          description: >
+            The settings that changed from the configuration saved before this
+            one, or null when they aren't known: for the oldest saved
+            configuration, for an unreadable one, and for one saved right after
+            an unreadable one
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/ConfigChange"
+    ConfigChange:
+      type: object
+      description: A setting whose value changed between two saved configurations
+      properties:
+        path:
+          description: The setting, such as `ServiceSettings.SiteURL`
+          type: string
+        old_value:
+          description: The previous value, or asterisks for a sensitive setting
+        new_value:
+          description: The new value, or asterisks for a sensitive setting
     EnvironmentConfig:
       type: object
       properties:

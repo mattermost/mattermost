@@ -4,13 +4,16 @@
 package commands
 
 import (
+	"encoding/json"
 	"os"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
@@ -454,5 +457,366 @@ func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
 		s.Require().Equal("Failed to migrate config store.", err.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func newConfigHistoryCmd(perPage int, detailed bool) *cobra.Command {
+	cmd := &cobra.Command{}
+	cmd.Flags().Int("page", 0, "")
+	cmd.Flags().Int("per-page", perPage, "")
+	cmd.Flags().Bool("detailed", detailed, "")
+	return cmd
+}
+
+// latestConfigID returns the id of the active saved configuration.
+func (s *MmctlE2ETestSuite) latestConfigID() string {
+	history, appErr := s.th.App.GetConfigHistory(0, 1)
+	s.Require().Nil(appErr)
+	s.Require().Len(history, 1)
+	return history[0].Id
+}
+
+// storedConfig returns the active configuration as saved in the database. Unlike
+// s.th.App.Config(), it doesn't include environment overrides.
+func (s *MmctlE2ETestSuite) storedConfig() *model.Config {
+	ds, err := config.NewDatabaseStore(*s.th.App.Config().SqlSettings.DataSource)
+	s.Require().NoError(err)
+	defer ds.Close()
+
+	b, err := ds.Load()
+	s.Require().NoError(err)
+	cfg := &model.Config{}
+	s.Require().NoError(json.Unmarshal(b, cfg))
+	return cfg
+}
+
+func (s *MmctlE2ETestSuite) TestConfigHistoryCmd() {
+	s.SetupTestHelperWithDatabaseConfigStore()
+	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
+	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
+
+	s.RunForSystemAdminAndLocal("List the saved configurations", func(c client.Client) {
+		printer.Clean()
+
+		err := configHistoryCmdF(c, newConfigHistoryCmd(2, false), nil)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Empty(printer.GetErrorLines())
+
+		entry := printer.GetLines()[0].(*model.ConfigHistoryEntry)
+		s.Require().True(entry.Active)
+		s.Require().Contains(entry.Changes, &model.ConfigChange{Path: "TeamSettings.SiteName", OldValue: "Old Site", NewValue: "New Site"})
+	})
+
+	s.Run("Show the old and new values", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		err := configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(1, true), nil)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Contains(printer.GetLines()[0], "(active)")
+		s.Require().Contains(printer.GetLines()[0], `TeamSettings.SiteName: "Old Site" -> "New Site"`)
+	})
+
+	s.Run("List the saved configurations without permission", func() {
+		printer.Clean()
+
+		err := configHistoryCmdF(s.th.Client, newConfigHistoryCmd(2, false), nil)
+		s.Require().Error(err)
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.Run("Hide sensitive values", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "old-password" })
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "new-password" })
+
+		err := configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(2, true), nil)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Contains(printer.GetLines()[0], "EmailSettings.SMTPPassword: [redacted]")
+		s.Require().Contains(printer.GetLines()[1], `EmailSettings.SMTPPassword: "" -> [redacted]`)
+	})
+
+	s.Run("Mark a saved configuration that can't be read", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+		id := model.NewId()
+		db := s.th.Server.Store().GetInternalMasterDB()
+		_, err := db.Exec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES ($1, $2, $3)", id, `{"ServiceSettings": {"SiteURL": 5}}`, model.GetMillis())
+		s.Require().NoError(err)
+		defer func() {
+			_, deleteErr := db.Exec("DELETE FROM Configurations WHERE Id = $1", id)
+			s.Require().NoError(deleteErr)
+		}()
+
+		err = configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(2, false), nil)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().NotContains(printer.GetLines()[0], "(can't be read)")
+		s.Require().Contains(printer.GetLines()[1], id)
+		s.Require().Contains(printer.GetLines()[1], "(can't be read)")
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestConfigHistoryCmdWithoutDatabaseStore() {
+	s.SetupTestHelper()
+
+	s.RunForSystemAdminAndLocal("List the saved configurations of a memory store", func(c client.Client) {
+		printer.Clean()
+
+		err := configHistoryCmdF(c, newConfigHistoryCmd(2, false), nil)
+		s.Require().ErrorContains(err, "Configuration history is only available when the configuration is stored in the database.")
+		s.Require().Empty(printer.GetLines())
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
+	s.SetupTestHelperWithDatabaseConfigStore()
+
+	s.RunForSystemAdminAndLocal("Roll back to a saved configuration", func(c client.Client) {
+		printer.Clean()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
+
+		err := configRollbackCmdF(c, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal("Old Site", *s.th.App.Config().TeamSettings.SiteName)
+		s.Require().Equal("Old Site", *s.storedConfig().TeamSettings.SiteName)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "TeamSettings.SiteName", OldValue: "New Site", NewValue: "Old Site"}},
+		}, printer.GetLines()[0])
+	})
+
+	s.Run("Keep sensitive values without local mode", func() {
+		printer.Clean()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "old-password" })
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "new-password" })
+
+		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal("new-password", *s.th.App.Config().EmailSettings.SMTPPassword)
+		s.Require().Equal("new-password", *s.storedConfig().EmailSettings.SMTPPassword)
+		s.Require().Equal(&configRollbackResult{ConfigId: oldConfigID, Changes: []*model.ConfigChange{}}, printer.GetLines()[0])
+	})
+
+	s.Run("Say that kept settings may still differ when no settings changed", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "old-password" })
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "new-password" })
+
+		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{"Rolled back to saved configuration " + oldConfigID + ". No settings changed, but settings that keep their current values, such as sensitive values without --local, may still differ from it."}, printer.GetLines())
+	})
+
+	s.Run("Restore sensitive values in local mode", func() {
+		printer.Clean()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "old-password" })
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "new-password" })
+
+		err := configRollbackCmdF(s.th.LocalClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal("old-password", *s.th.App.Config().EmailSettings.SMTPPassword)
+		s.Require().Equal("old-password", *s.storedConfig().EmailSettings.SMTPPassword)
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "EmailSettings.SMTPPassword", OldValue: model.FakeSetting, NewValue: model.FakeSetting}},
+		}, printer.GetLines()[0])
+	})
+
+	s.Run("Keep sensitive values that the server can't match without local mode", func() {
+		printer.Clean()
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.SqlSettings.DataSourceReplicas = []string{}
+			cfg.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{}
+		})
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.SiteName = "Old Site"
+			*cfg.EmailSettings.SMTPPassword = ""
+			cfg.SqlSettings.DataSourceReplicas = []string{"postgres://replica0", "postgres://replica1"}
+		})
+		oldConfigID := s.latestConfigID()
+		replicaLagSettings := []*model.ReplicaLagSettings{{DataSource: new("postgres://replica0"), QueryAbsoluteLag: new("select 1")}}
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.SiteName = "New Site"
+			*cfg.EmailSettings.SMTPPassword = "new-password"
+			cfg.SqlSettings.DataSourceReplicas = []string{"postgres://replica0"}
+			cfg.SqlSettings.ReplicaLagSettings = replicaLagSettings
+		})
+
+		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
+			s.Require().Equal("Old Site", *cfg.TeamSettings.SiteName)
+			s.Require().Equal("new-password", *cfg.EmailSettings.SMTPPassword)
+			s.Require().Equal([]string{"postgres://replica0"}, cfg.SqlSettings.DataSourceReplicas)
+			s.Require().Equal(replicaLagSettings, cfg.SqlSettings.ReplicaLagSettings)
+		}
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "TeamSettings.SiteName", OldValue: "New Site", NewValue: "Old Site"}},
+		}, printer.GetLines()[0])
+	})
+
+	s.Run("Show the values of plugin settings, except sensitive ones", func() {
+		pluginID := "com.example.rollback"
+		pluginDir := filepath.Join(*s.th.App.Config().PluginSettings.Directory, pluginID)
+		s.Require().NoError(os.MkdirAll(pluginDir, 0700))
+		defer os.RemoveAll(pluginDir)
+		manifest := `{"id": "` + pluginID + `", "settings_schema": {"settings": [{"key": "Color", "type": "text"}, {"key": "Token", "type": "text", "secret": true}]}}`
+		s.Require().NoError(os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(manifest), 0600))
+		savePluginSettings := func(color, token string) {
+			s.th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.PluginSettings.Plugins[pluginID] = map[string]any{"color": color, "token": token}
+			})
+		}
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { delete(cfg.PluginSettings.Plugins, pluginID) })
+
+		printer.Clean()
+		savePluginSettings("red", "old-token")
+		oldConfigID := s.latestConfigID()
+		savePluginSettings("blue", "new-token")
+
+		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal(map[string]any{"color": "red", "token": "new-token"}, s.th.App.Config().PluginSettings.Plugins[pluginID])
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "PluginSettings.Plugins." + pluginID + ".color", OldValue: "blue", NewValue: "red"}},
+		}, printer.GetLines()[0])
+
+		printer.Clean()
+		savePluginSettings("blue", "new-token")
+
+		err = configRollbackCmdF(s.th.LocalClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal(map[string]any{"color": "red", "token": "old-token"}, s.th.App.Config().PluginSettings.Plugins[pluginID])
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes: []*model.ConfigChange{
+				{Path: "PluginSettings.Plugins." + pluginID + ".color", OldValue: "blue", NewValue: "red"},
+				{Path: "PluginSettings.Plugins." + pluginID + ".token", OldValue: model.FakeSetting, NewValue: model.FakeSetting},
+			},
+		}, printer.GetLines()[0])
+	})
+
+	s.Run("Keep the settings of plugins when rolling back to enable plugins", func() {
+		printer.Clean()
+		pluginID := "com.example.uninstalled"
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			delete(cfg.PluginSettings.Plugins, pluginID)
+			*cfg.PluginSettings.Enable = true
+		})
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			cfg.PluginSettings.Plugins[pluginID] = map[string]any{"key": "value"}
+		})
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
+
+		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
+			s.Require().True(*cfg.PluginSettings.Enable)
+			s.Require().Equal(map[string]any{"key": "value"}, cfg.PluginSettings.Plugins[pluginID])
+		}
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "PluginSettings.Enable", OldValue: false, NewValue: true}},
+		}, printer.GetLines()[0])
+	})
+
+	s.RunForSystemAdminAndLocal("Roll back to an unknown configuration", func(c client.Client) {
+		printer.Clean()
+
+		err := configRollbackCmdF(c, &cobra.Command{}, []string{model.NewId()})
+		s.Require().ErrorContains(err, "No saved configuration has this ID.")
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Roll back to an invalid configuration ID", func(c client.Client) {
+		printer.Clean()
+
+		err := configRollbackCmdF(c, &cobra.Command{}, []string{"not-an-id"})
+		s.Require().EqualError(err, "invalid configuration ID: not-an-id")
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.Run("Roll back the settings the user may change", func() {
+		printer.Clean()
+		s.th.AddPermissionToRole(s.T(), model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer s.th.RemovePermissionFromRole(s.T(), model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		s.th.AddPermissionToRole(s.T(), model.PermissionSysconsoleWriteEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer s.th.RemovePermissionFromRole(s.T(), model.PermissionSysconsoleWriteEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			*cfg.TeamSettings.SiteName = "Old Site"
+			cfg.RateLimitSettings.VaryByHeader = "X-Old"
+		})
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.SiteName = "New Site"
+			cfg.RateLimitSettings.VaryByHeader = "X-New"
+		})
+
+		err := configRollbackCmdF(s.th.Client, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
+			s.Require().Equal("X-Old", cfg.RateLimitSettings.VaryByHeader)
+			s.Require().Equal("New Site", *cfg.TeamSettings.SiteName)
+			s.Require().Equal("http://localhost:8065", *cfg.ServiceSettings.SiteURL)
+		}
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "RateLimitSettings.VaryByHeader", OldValue: "X-New", NewValue: "X-Old"}},
+		}, printer.GetLines()[0])
+	})
+
+	s.Run("Roll back without permission", func() {
+		printer.Clean()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
+
+		err := configRollbackCmdF(s.th.Client, &cobra.Command{}, []string{oldConfigID})
+		s.Require().Error(err)
+		s.Require().Equal("New Site", *s.th.App.Config().TeamSettings.SiteName)
+		s.Require().Equal("New Site", *s.storedConfig().TeamSettings.SiteName)
+		s.Require().Empty(printer.GetLines())
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestConfigRollbackCmdWithEnvironmentOverrides() {
+	s.T().Setenv("MM_SERVICESETTINGS_SITEURL", "http://localhost:8065")
+	s.SetupTestHelperWithDatabaseConfigStore()
+
+	s.RunForSystemAdminAndLocal("Roll back with the site URL set by an environment variable", func(c client.Client) {
+		printer.Clean()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
+
+		err := configRollbackCmdF(c, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal("Old Site", *s.th.App.Config().TeamSettings.SiteName)
+		s.Require().Equal("http://localhost:8065", *s.th.App.Config().ServiceSettings.SiteURL)
+		stored := s.storedConfig()
+		s.Require().Equal("Old Site", *stored.TeamSettings.SiteName)
+		s.Require().Empty(*stored.ServiceSettings.SiteURL)
 	})
 }

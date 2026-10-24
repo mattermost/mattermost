@@ -42,6 +42,7 @@ func TestDesanitize(t *testing.T) {
 	actual.SqlSettings.DataSourceReplicas = append(actual.SqlSettings.DataSourceReplicas, "replica1")
 	actual.SqlSettings.DataSourceSearchReplicas = append(actual.SqlSettings.DataSourceSearchReplicas, "search_replica0")
 	actual.SqlSettings.DataSourceSearchReplicas = append(actual.SqlSettings.DataSourceSearchReplicas, "search_replica1")
+	actual.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{{DataSource: new("replica_lag0"), QueryAbsoluteLag: new("query")}}
 	actual.PluginSettings.Plugins = map[string]map[string]any{
 		"plugin1": {
 			"secret":    "value1",
@@ -72,6 +73,7 @@ func TestDesanitize(t *testing.T) {
 	target.ServiceSettings.GiphySdkKey = model.NewPointer(model.FakeSetting)
 	target.SqlSettings.DataSourceReplicas = []string{model.FakeSetting, model.FakeSetting}
 	target.SqlSettings.DataSourceSearchReplicas = []string{model.FakeSetting, model.FakeSetting}
+	target.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{{DataSource: model.NewPointer(model.FakeSetting), QueryAbsoluteLag: new("query")}}
 	target.PluginSettings.Plugins = map[string]map[string]any{
 		"plugin1": {
 			"secret":    model.FakeSetting,
@@ -103,6 +105,7 @@ func TestDesanitize(t *testing.T) {
 	assert.Equal(t, *actual.ServiceSettings.GiphySdkKey, *target.ServiceSettings.GiphySdkKey)
 	assert.Equal(t, actual.SqlSettings.DataSourceReplicas, target.SqlSettings.DataSourceReplicas)
 	assert.Equal(t, actual.SqlSettings.DataSourceSearchReplicas, target.SqlSettings.DataSourceSearchReplicas)
+	assert.Equal(t, actual.SqlSettings.ReplicaLagSettings, target.SqlSettings.ReplicaLagSettings)
 	assert.Equal(t, actual.ServiceSettings.SplitKey, target.ServiceSettings.SplitKey)
 	assert.Equal(t, actual.PluginSettings.Plugins, target.PluginSettings.Plugins)
 }
@@ -126,9 +129,14 @@ func TestDesanitizeRemovesAllFakeSettings(t *testing.T) {
 }
 
 // populateStrings sets every empty string reachable from v to value so that
-// Sanitize will replace it if it is a secret field.
+// Sanitize will replace it if it is a secret field. An empty slice is given an
+// element first, since its elements can be secrets too.
 func populateStrings(v reflect.Value, value string) {
 	switch v.Kind() {
+	case reflect.String:
+		if v.String() == "" && v.CanSet() {
+			v.SetString(value)
+		}
 	case reflect.Pointer:
 		if v.IsNil() && v.CanSet() {
 			v.Set(reflect.New(v.Type().Elem()))
@@ -150,6 +158,9 @@ func populateStrings(v reflect.Value, value string) {
 			}
 		}
 	case reflect.Slice:
+		if v.Len() == 0 && v.CanSet() {
+			v.Set(reflect.Append(v, reflect.New(v.Type().Elem()).Elem()))
+		}
 		for i := range v.Len() {
 			populateStrings(v.Index(i), value)
 		}

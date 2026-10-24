@@ -880,6 +880,22 @@ func (mr *MockClientMockRecorder) GetConfig(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfig", reflect.TypeOf((*MockClient)(nil).GetConfig), ctx)
 }
 
+// GetConfigHistory mocks base method.
+func (m *MockClient) GetConfigHistory(ctx context.Context, page, perPage int) ([]*model.ConfigHistoryEntry, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConfigHistory", ctx, page, perPage)
+	ret0, _ := ret[0].([]*model.ConfigHistoryEntry)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetConfigHistory indicates an expected call of GetConfigHistory.
+func (mr *MockClientMockRecorder) GetConfigHistory(ctx, page, perPage any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfigHistory", reflect.TypeOf((*MockClient)(nil).GetConfigHistory), ctx, page, perPage)
+}
+
 // GetConfigWithOptions mocks base method.
 func (m *MockClient) GetConfigWithOptions(ctx context.Context, options model.GetConfigOptions) (map[string]any, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -960,6 +976,22 @@ func (m *MockClient) GetHealthFindings(ctx context.Context, filter model.HealthF
 func (mr *MockClientMockRecorder) GetHealthFindings(ctx, filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthFindings", reflect.TypeOf((*MockClient)(nil).GetHealthFindings), ctx, filter)
+}
+
+// GetHistoricalConfig mocks base method.
+func (m *MockClient) GetHistoricalConfig(ctx context.Context, configID string) (*model.Config, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHistoricalConfig", ctx, configID)
+	ret0, _ := ret[0].(*model.Config)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetHistoricalConfig indicates an expected call of GetHistoricalConfig.
+func (mr *MockClientMockRecorder) GetHistoricalConfig(ctx, configID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHistoricalConfig", reflect.TypeOf((*MockClient)(nil).GetHistoricalConfig), ctx, configID)
 }
 
 // GetIncomingWebhook mocks base method.

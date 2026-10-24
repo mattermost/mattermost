@@ -4598,6 +4598,31 @@ func (c *Client4) GetConfigWithOptions(ctx context.Context, options GetConfigOpt
 	return DecodeJSONFromResponse[map[string]any](r)
 }
 
+// GetConfigHistory returns a page of the configurations saved by a database-backed
+// config store, newest first, each with the settings changed from the one before it.
+func (c *Client4) GetConfigHistory(ctx context.Context, page, perPage int) ([]*ConfigHistoryEntry, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.configRoute().Join("history"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigHistoryEntry](r)
+}
+
+// GetHistoricalConfig returns a configuration saved by a database-backed config store,
+// with the same items sanitized as GetConfig.
+func (c *Client4) GetHistoricalConfig(ctx context.Context, configID string) (*Config, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.configRoute().Join("history", configID), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Config](r)
+}
+
 // ReloadConfig will reload the server configuration.
 func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.configRoute().Join("reload"), "")

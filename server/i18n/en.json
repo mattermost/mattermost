@@ -2456,6 +2456,11 @@
     "description": "Admin API error when merging the stored configuration with restricted defaults fails while reading the config; 'config' is the server configuration."
   },
   {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Failed to compare the saved configurations.",
+    "description": "Admin API error when listing saved server configurations fails while working out which settings changed between two of them."
+  },
+  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Failed to migrate config store.",
     "description": "Error from the config migration command (moving configuration between file and database storage); admin/CLI audience."
@@ -7818,6 +7823,21 @@
     "id": "app.compliance.save.saving.app_error",
     "translation": "We encountered an error saving the compliance report.",
     "description": "Admin-facing API error when saving a compliance report job fails."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Unable to get the saved configurations.",
+    "description": "Admin API and mmctl error when reading the history of saved server configurations from the database fails."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "No saved configuration has this ID.",
+    "description": "Admin API and mmctl error when the ID given for a saved server configuration doesn't match any configuration in the history."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Configuration history is only available when the configuration is stored in the database.",
+    "description": "Admin API and mmctl error when the configuration history is requested but the server reads its configuration from a file, which keeps no history; 'database' is the database the server's configuration is stored in."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
