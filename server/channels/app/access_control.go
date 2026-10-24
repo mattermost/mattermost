@@ -22,13 +22,12 @@ const attributeViewRefreshInterval = 30 * time.Second
 
 const accessControlChildPolicySearchLimit = 1000
 
-// attributeBasedAccessControlEnabled must stay the exact predicate the enforcement paths use, with
-// no license check, so the render-ETag and cache-invalidation gates can never be narrower than the
-// sanitization they keep in step with.
+// attributeBasedAccessControlEnabled reports whether the ABAC setting is on.
+// It omits the license and the PermissionPolicies feature flag on purpose:
+// render-ETag and cache-invalidation gates must not be narrower than the
+// setting itself. Callers that run AccessEvaluation check the flag themselves.
 func attributeBasedAccessControlEnabled(cfg *model.Config) bool {
-	return cfg.FeatureFlags.PermissionPolicies &&
-		cfg.AccessControlSettings.EnableAttributeBasedAccessControl != nil &&
-		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl
+	return model.SafeDereference(cfg.AccessControlSettings.EnableAttributeBasedAccessControl)
 }
 
 func (a *App) attributeBasedAccessControlEnabled() bool {
