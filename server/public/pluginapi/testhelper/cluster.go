@@ -31,14 +31,9 @@ type Node struct {
 	nc *nodeContainer
 
 	// ID is the node's cluster ID, usable as PluginClusterEventSendOptions.TargetId.
-	// It is empty outside a cluster, and changes whenever the node restarts.
+	// It is empty outside a cluster and while the node is stopped, and changes
+	// whenever the node restarts.
 	ID string
-
-	// Hostname is the container's hostname, e.g. "mm-node-1".
-	Hostname string
-
-	// URL is the base URL of this node.
-	URL string
 
 	// AdminClient is the admin's API client, aimed at this node. It shares the
 	// session of TestHelper.AdminClient, which is Nodes[0].AdminClient.
@@ -65,8 +60,17 @@ func SetupCluster(t *testing.T, n int) *TestHelper {
 	if os.Getenv(licenseEnv) == "" {
 		t.Skipf("Skipping cluster test: set %s to a license with the Cluster feature", licenseEnv)
 	}
-	return setup(t, topology{nodes: n, cluster: true})
+	return setup(t, n)
 }
+
+// Hostname is the container's hostname, e.g. "mm-node-1".
+func (n *Node) Hostname() string { return n.nc.hostname }
+
+// URL is the base URL of this node. It may change when the node restarts.
+func (n *Node) URL() string { return n.nc.url }
+
+// isCluster reports whether th runs a cluster rather than a single server.
+func (th *TestHelper) isCluster() bool { return len(th.Nodes) > 1 }
 
 // newNodes builds the Node list for th, with cluster IDs when in a cluster. The
 // nodes' user clients are set once the test user exists.
@@ -75,21 +79,19 @@ func (th *TestHelper) newNodes(c *mmContainers) {
 
 	th.Nodes = make([]*Node, len(c.nodes))
 	for i, nc := range c.nodes {
-		node := &Node{th: th, nc: nc, Hostname: nc.hostname, URL: nc.url}
-		if i == 0 {
-			node.AdminClient = th.AdminClient
-		} else {
-			node.AdminClient = clientFor(nc.url, th.AdminClient)
-		}
-		th.Nodes[i] = node
+		th.Nodes[i] = &Node{th: th, nc: nc, AdminClient: nodeClient(i, nc.url, th.AdminClient)}
 	}
-	if c.topology.cluster {
+	if th.isCluster() {
 		th.waitForCluster()
 	}
 }
 
-// clientFor returns a client for url that shares the session of c.
-func clientFor(url string, c *model.Client4) *model.Client4 {
+// nodeClient returns the client for node i: c itself for the first node, whose
+// clients are TestHelper's, otherwise a client for url that shares c's session.
+func nodeClient(i int, url string, c *model.Client4) *model.Client4 {
+	if i == 0 {
+		return c
+	}
 	nc := model.NewAPIv4Client(url)
 	nc.SetToken(c.AuthToken)
 	return nc
@@ -116,27 +118,35 @@ func (th *TestHelper) requireClusterLicense() {
 		"the license in %s does not include the Cluster feature", licenseEnv)
 }
 
+// forgetID clears the ID of a node that left the cluster. The old ID is kept as
+// stale: Docker may hand the node's address to a restarted node while the old
+// member is still listed under it.
+func (n *Node) forgetID() {
+	if n.ID != "" {
+		n.th.staleIDs = append(n.th.staleIDs, n.ID)
+		n.ID = ""
+	}
+}
+
 // waitForCluster waits until every running node is a cluster member, and records
 // each node's cluster ID. Members are matched to containers by their gossip
-// address, which is the container's address on the Docker network. Members with
-// a stale ID, that of a node before it restarted, are ignored: a restarted node
-// may get its old address back while its old member is still listed.
-func (th *TestHelper) waitForCluster(stale ...string) {
+// address, which is the container's address on the Docker network; members with
+// a stale ID are ignored.
+func (th *TestHelper) waitForCluster() {
 	th.t.Helper()
 
 	var running []*Node
 	for _, n := range th.Nodes {
 		state, err := n.nc.container.State(th.t.Context())
-		require.NoError(th.t, err, "failed to read state of %s", n.Hostname)
+		require.NoError(th.t, err, "failed to read state of %s", n.Hostname())
 		switch {
 		case !state.Running:
-			// A stopped node is no cluster member, and Docker may have handed its
-			// address to another node.
-			n.ID = ""
-		case !n.nc.paused:
+			n.forgetID()
+		case state.Paused:
+			// A paused node keeps its ID: it is still the same cluster member.
+		default:
 			running = append(running, n)
 		}
-		// A paused node keeps its ID: it is still the same cluster member.
 	}
 
 	require.NotEmpty(th.t, running, "no node is running")
@@ -147,7 +157,7 @@ func (th *TestHelper) waitForCluster(stale ...string) {
 		require.NoError(c, err, "failed to read cluster status")
 		ids = make(map[string]string, len(infos))
 		for _, info := range infos {
-			if slices.Contains(stale, info.Id) {
+			if slices.Contains(th.staleIDs, info.Id) {
 				continue
 			}
 			// Registered nodes that aren't connected have no gossip address.
@@ -157,9 +167,9 @@ func (th *TestHelper) waitForCluster(stale ...string) {
 			}
 		}
 		for _, n := range running {
-			assert.NotEmpty(c, ids[n.nc.ip], "%s has not joined the cluster; members: %v", n.Hostname, ids)
+			assert.NotEmpty(c, ids[n.nc.ip], "%s has not joined the cluster; members: %v", n.Hostname(), ids)
 		}
-	}, clusterFormTimeout, time.Second, "cluster did not form: want %d connected nodes", len(running))
+	}, clusterFormTimeout, 250*time.Millisecond, "cluster did not form: want %d connected nodes", len(running))
 
 	for _, n := range running {
 		n.ID = ids[n.nc.ip]
@@ -171,9 +181,8 @@ func (th *TestHelper) waitForCluster(stale ...string) {
 func (n *Node) Exec(t *testing.T, cmd ...string) string {
 	t.Helper()
 
-	exitCode, output, err := execInContainerOutput(t.Context(), n.nc.container, cmd...)
-	require.NoError(t, err)
-	require.Zero(t, exitCode, "command %v on %s failed: %s", cmd, n.Hostname, output)
+	output, err := execInContainer(t.Context(), n.nc.container, cmd...)
+	require.NoError(t, err, "command failed on %s", n.Hostname())
 	return output
 }
 
@@ -185,18 +194,16 @@ func (n *Node) Pause(t *testing.T) {
 
 	docker := dockerClient(t)
 	_, err := docker.ContainerPause(t.Context(), n.nc.container.GetContainerID(), client.ContainerPauseOptions{})
-	require.NoError(t, err, "failed to pause %s", n.Hostname)
-	n.nc.paused = true
+	require.NoError(t, err, "failed to pause %s", n.Hostname())
 
 	t.Cleanup(func() {
-		if n.nc.paused {
-			// t.Context() is already canceled during cleanup.
-			_, err := docker.ContainerUnpause(context.Background(), n.nc.container.GetContainerID(), client.ContainerUnpauseOptions{})
-			if err != nil {
-				t.Errorf("failed to unpause %s: %v", n.Hostname, err)
-				return
-			}
-			n.nc.paused = false
+		// t.Context() is already canceled during cleanup.
+		ctx := context.Background()
+		if state, err := n.nc.container.State(ctx); err != nil || !state.Paused {
+			return // unpaused or stopped by the test
+		}
+		if _, err := docker.ContainerUnpause(ctx, n.nc.container.GetContainerID(), client.ContainerUnpauseOptions{}); err != nil {
+			t.Errorf("failed to unpause %s: %v", n.Hostname(), err)
 		}
 	})
 }
@@ -206,8 +213,7 @@ func (n *Node) Unpause(t *testing.T) {
 	t.Helper()
 
 	_, err := dockerClient(t).ContainerUnpause(t.Context(), n.nc.container.GetContainerID(), client.ContainerUnpauseOptions{})
-	require.NoError(t, err, "failed to unpause %s", n.Hostname)
-	n.nc.paused = false
+	require.NoError(t, err, "failed to unpause %s", n.Hostname())
 }
 
 // Stop shuts the node down; in a cluster, it leaves the cluster.
@@ -215,6 +221,7 @@ func (n *Node) Stop(t *testing.T) {
 	t.Helper()
 
 	require.NoError(t, n.nc.stop(t.Context()))
+	n.forgetID()
 }
 
 // Start starts a node shut down by Stop and, in a cluster, waits until it has
@@ -223,16 +230,14 @@ func (n *Node) Stop(t *testing.T) {
 func (n *Node) Start(t *testing.T) {
 	t.Helper()
 
-	oldID := n.ID
 	require.NoError(t, n.nc.start(t.Context()))
-	n.URL = n.nc.url
-	retarget(n.AdminClient, n.URL)
-	retarget(n.Client, n.URL)
+	retarget(n.AdminClient, n.URL())
+	retarget(n.Client, n.URL())
 	if n == n.th.Nodes[0] {
-		n.th.ServerURL = n.URL
+		n.th.ServerURL = n.URL()
 	}
-	if n.th.containers.topology.cluster {
-		n.th.waitForCluster(oldID)
+	if n.th.isCluster() {
+		n.th.waitForCluster()
 	}
 }
 

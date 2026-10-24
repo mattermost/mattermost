@@ -48,7 +48,8 @@ type TestHelper struct {
 	// SetupCluster. ServerURL, AdminClient and Client belong to Nodes[0].
 	Nodes []*Node
 
-	containers *mmContainers
+	// staleIDs are the cluster IDs nodes had before they stopped.
+	staleIDs []string
 }
 
 // Static plugin metadata, cached via sync.Once (never changes between tests).
@@ -177,10 +178,12 @@ func leaseTimeout(t *testing.T) <-chan time.Time {
 func Setup(t *testing.T) *TestHelper {
 	t.Helper()
 
-	return setup(t, singleNode)
+	return setup(t, 1)
 }
 
-func setup(t *testing.T, topo topology) *TestHelper {
+// setup runs Setup against the given number of Mattermost nodes; more than one
+// forms a cluster.
+func setup(t *testing.T, nodes int) *TestHelper {
 	t.Helper()
 
 	if os.Getenv("SKIP_DOCKER_TESTS") != "" {
@@ -191,7 +194,7 @@ func setup(t *testing.T, topo topology) *TestHelper {
 	// tests do not clobber each other's global state (config, DB) mid-run.
 	acquireInstance(t)
 
-	c, err := ensureContainers(t, topo)
+	c, err := ensureContainers(t, nodes)
 	require.NoError(t, err, "Docker is required for integration tests")
 	t.Cleanup(func() {
 		if t.Failed() {
@@ -210,9 +213,8 @@ func setup(t *testing.T, topo topology) *TestHelper {
 	require.NoError(t, err, "failed to reset database")
 
 	th := &TestHelper{
-		t:          t,
-		ServerURL:  c.nodes[0].url,
-		containers: c,
+		t:         t,
+		ServerURL: c.nodes[0].url,
 	}
 
 	// Login as admin (freshly re-created by resetDatabase).
@@ -223,7 +225,7 @@ func setup(t *testing.T, topo topology) *TestHelper {
 	th.AdminUser, _, err = th.AdminClient.GetMe(ctx, "")
 	require.NoError(t, err, "failed to get admin user")
 
-	if topo.cluster {
+	if nodes > 1 {
 		th.requireClusterLicense()
 	}
 	// In a cluster, this waits for the nodes to join each other, so the plugin
@@ -243,9 +245,8 @@ func setup(t *testing.T, topo topology) *TestHelper {
 	_, _, err = th.AdminClient.AddChannelMember(ctx, th.Channel.Id, th.User.Id)
 	require.NoError(t, err, "failed to add user to channel")
 
-	th.Nodes[0].Client = th.Client
-	for _, n := range th.Nodes[1:] {
-		n.Client = clientFor(n.URL, th.Client)
+	for i, n := range th.Nodes {
+		n.Client = nodeClient(i, n.URL(), th.Client)
 	}
 
 	return th

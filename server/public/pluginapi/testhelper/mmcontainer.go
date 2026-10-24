@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -45,18 +46,9 @@ const (
 	dataDir = "/mattermost/data"
 )
 
-// topology describes a set of Mattermost containers. Each distinct topology is
-// started once per test binary and reused by every test that asks for it.
-type topology struct {
-	nodes   int
-	cluster bool
-}
-
-var singleNode = topology{nodes: 1}
-
-// mmContainers holds references to the running test containers of one topology.
+// mmContainers holds references to the running test containers: one Mattermost
+// node, or the nodes of one cluster.
 type mmContainers struct {
-	topology      topology
 	pgContainer   *postgres.PostgresContainer
 	dockerNetwork *testcontainers.DockerNetwork
 	nodes         []*nodeContainer
@@ -68,7 +60,6 @@ type nodeContainer struct {
 	hostname  string // the container's hostname, also its alias on the Docker network
 	url       string // base URL reachable from the test process
 	ip        string // address on the Docker network, which the cluster advertises
-	paused    bool
 }
 
 type containersResult struct {
@@ -78,7 +69,7 @@ type containersResult struct {
 
 var (
 	containersMu     sync.Mutex
-	sharedContainers = map[topology]containersResult{}
+	sharedContainers = map[int]containersResult{} // by node count
 )
 
 func getMMImage() string {
@@ -88,20 +79,21 @@ func getMMImage() string {
 	return defaultMMImage
 }
 
-// ensureContainers starts the containers for topo once per test binary invocation.
-// Subsequent calls return the cached containers, or the cached error. If Docker is
-// unavailable, returns an error.
-func ensureContainers(t *testing.T, topo topology) (*mmContainers, error) {
+// ensureContainers starts the given number of Mattermost nodes once per test binary
+// invocation: one standalone server, or a cluster of more. Subsequent calls return
+// the cached containers, or the cached error. If Docker is unavailable, returns an
+// error.
+func ensureContainers(t *testing.T, nodes int) (*mmContainers, error) {
 	t.Helper()
 
 	containersMu.Lock()
 	defer containersMu.Unlock()
 
-	if r, ok := sharedContainers[topo]; ok {
+	if r, ok := sharedContainers[nodes]; ok {
 		return r.containers, r.err
 	}
-	c, err := startContainers(topo)
-	sharedContainers[topo] = containersResult{containers: c, err: err}
+	c, err := startContainers(nodes)
+	sharedContainers[nodes] = containersResult{containers: c, err: err}
 
 	// Container cleanup is handled by the testcontainers-go Ryuk reaper, which
 	// automatically removes containers when the test process exits. We do NOT
@@ -110,7 +102,7 @@ func ensureContainers(t *testing.T, topo topology) (*mmContainers, error) {
 	return c, err
 }
 
-func startContainers(topo topology) (c *mmContainers, err error) {
+func startContainers(nodes int) (c *mmContainers, err error) {
 	// testcontainers-go panics (via MustExtractDockerHost) when Docker is not
 	// available instead of returning an error. Recover so callers get an error.
 	defer func() {
@@ -144,7 +136,7 @@ func startContainers(topo topology) (c *mmContainers, err error) {
 		return nil, fmt.Errorf("failed to start Postgres container: %w", err)
 	}
 
-	c = &mmContainers{topology: topo, pgContainer: pgC, dockerNetwork: nw}
+	c = &mmContainers{pgContainer: pgC, dockerNetwork: nw}
 	terminate := func() {
 		for _, n := range c.nodes {
 			_ = n.container.Terminate(ctx)
@@ -152,58 +144,42 @@ func startContainers(topo topology) (c *mmContainers, err error) {
 		_ = pgC.Terminate(ctx)
 	}
 
-	env := nodeEnv(topo)
+	cluster := nodes > 1
+	env := nodeEnv(cluster)
 
 	// Start the first node on its own, so a cluster's first node creates the
 	// database schema and the shared config before the others boot against them.
-	first, err := startNode(ctx, nw, 0, env, topo.cluster)
-	if err != nil {
-		terminate()
-		return nil, err
-	}
-	c.nodes = append(c.nodes, first)
-
-	rest := make([]*nodeContainer, topo.nodes-1)
-	errs := make([]error, topo.nodes-1)
-	var wg sync.WaitGroup
-	for i := range rest {
-		wg.Go(func() {
-			rest[i], errs[i] = startNode(ctx, nw, i+1, env, topo.cluster)
+	// The admin user is created by resetDatabase, which every Setup runs first.
+	c.nodes = make([]*nodeContainer, nodes)
+	c.nodes[0], err = startNode(ctx, nw, 0, env, cluster)
+	if err == nil {
+		err = inParallel(nodes-1, func(i int) (err error) {
+			c.nodes[i+1], err = startNode(ctx, nw, i+1, env, cluster)
+			return err
 		})
 	}
-	wg.Wait()
-	for i, n := range rest {
-		if n != nil {
-			c.nodes = append(c.nodes, n)
-		}
-		if errs[i] != nil {
-			err = errs[i]
-		}
-	}
 	if err != nil {
+		c.nodes = slices.DeleteFunc(c.nodes, func(n *nodeContainer) bool { return n == nil })
 		terminate()
 		return nil, err
-	}
-
-	// Create the initial admin user via mmctl inside the container.
-	// The --local flag uses the Unix socket, bypassing auth (necessary when no users exist).
-	if err := execInContainer(ctx, first.container,
-		"mmctl", "--local", "user", "create",
-		"--email", adminEmail,
-		"--username", adminUsername,
-		"--password", adminPassword,
-		"--system-admin",
-		"--email-verified",
-	); err != nil {
-		terminate()
-		return nil, fmt.Errorf("failed to create admin user: %w", err)
 	}
 
 	return c, nil
 }
 
-// nodeEnv returns the environment every Mattermost container of topo starts with.
-func nodeEnv(topo topology) map[string]string {
+// inParallel runs fn(0) to fn(n-1) concurrently and joins their errors.
+func inParallel(n int, fn func(i int) error) error {
+	errs := make([]error, n)
+	var wg sync.WaitGroup
+	for i := range n {
+		wg.Go(func() { errs[i] = fn(i) })
+	}
+	wg.Wait()
+	return errors.Join(errs...)
+}
+
+// nodeEnv returns the environment every Mattermost container starts with.
+func nodeEnv(cluster bool) map[string]string {
 	dsn := fmt.Sprintf("postgres://%s:%s@postgres:5432/%s?sslmode=disable",
 		pgUser, pgPassword, pgDBName)
 
@@ -219,7 +195,7 @@ func nodeEnv(topo topology) map[string]string {
 		"MM_PASSWORDSETTINGS_MINIMUMLENGTH":             "5",
 		"MM_LOGSETTINGS_CONSOLELEVEL":                   "ERROR",
 	}
-	if !topo.cluster {
+	if !cluster {
 		return env
 	}
 
@@ -305,8 +281,6 @@ func (n *nodeContainer) stop(ctx context.Context) error {
 	if err := n.container.Stop(ctx, &stopTimeout); err != nil {
 		return fmt.Errorf("failed to stop %s: %w", n.hostname, err)
 	}
-	// Docker stops a paused container too, which leaves it no longer paused.
-	n.paused = false
 	return nil
 }
 
@@ -327,11 +301,9 @@ func (n *nodeContainer) start(ctx context.Context) error {
 // The reset runs through the first node. Every other node is stopped first, so no
 // node writes to the database while it is emptied, and started again afterwards.
 func resetDatabase(ctx context.Context, c *mmContainers) error {
-	first := c.nodes[0]
-	for _, n := range c.nodes[1:] {
-		if err := n.stop(ctx); err != nil {
-			return err
-		}
+	first, others := c.nodes[0], c.nodes[1:]
+	if err := inParallel(len(others), func(i int) error { return others[i].stop(ctx) }); err != nil {
+		return err
 	}
 
 	// A test may have left the first node stopped.
@@ -345,7 +317,7 @@ func resetDatabase(ctx context.Context, c *mmContainers) error {
 		}
 	}
 
-	if err := execInContainer(ctx, first.container,
+	if _, err := execInContainer(ctx, first.container,
 		"mattermost", "db", "reset", "--confirm",
 	); err != nil {
 		return fmt.Errorf("database reset failed: %w", err)
@@ -361,13 +333,7 @@ func resetDatabase(ctx context.Context, c *mmContainers) error {
 		return err
 	}
 	// The other nodes find the schema in place, so they can boot side by side.
-	errs := make([]error, len(c.nodes)-1)
-	var wg sync.WaitGroup
-	for i, n := range c.nodes[1:] {
-		wg.Go(func() { errs[i] = n.start(ctx) })
-	}
-	wg.Wait()
-	if err := errors.Join(errs...); err != nil {
+	if err := inParallel(len(others), func(i int) error { return others[i].start(ctx) }); err != nil {
 		return err
 	}
 
@@ -399,16 +365,17 @@ func resetDatabase(ctx context.Context, c *mmContainers) error {
 	return nil
 }
 
-// execInContainer runs a command inside a container and returns an error if it fails.
-func execInContainer(ctx context.Context, c testcontainers.Container, cmd ...string) error {
+// execInContainer runs a command inside a container and returns its combined
+// output, or an error if it can't run or exits non-zero.
+func execInContainer(ctx context.Context, c testcontainers.Container, cmd ...string) (string, error) {
 	exitCode, output, err := execInContainerOutput(ctx, c, cmd...)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if exitCode != 0 {
-		return fmt.Errorf("command %v exited %d: %s", cmd, exitCode, output)
+		return "", fmt.Errorf("command %v exited %d: %s", cmd, exitCode, output)
 	}
-	return nil
+	return output, nil
 }
 
 // execInContainerOutput runs a command inside a container and returns its exit code

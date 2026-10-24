@@ -24,10 +24,10 @@ func TestSetupNode(t *testing.T) {
 	require.Len(t, th.Nodes, 1)
 	node := th.Nodes[0]
 	assert.Empty(t, node.ID, "a single server has no cluster ID")
-	assert.Equal(t, th.ServerURL, node.URL)
+	assert.Equal(t, th.ServerURL, node.URL())
 	assert.Same(t, th.AdminClient, node.AdminClient)
 	assert.Same(t, th.Client, node.Client)
-	assert.Equal(t, "mm-node-0", node.Hostname)
+	assert.Equal(t, "mm-node-0", node.Hostname())
 	// The image has no shell or coreutils, only the Mattermost binaries.
 	assert.Contains(t, node.Exec(t, "mattermost", "version"), "Version:")
 }
@@ -53,7 +53,7 @@ func TestSetupClusterFormsCluster(t *testing.T) {
 	require.Len(t, th.Nodes, 2)
 	ids := map[string]bool{}
 	for _, node := range th.Nodes {
-		require.NotEmpty(t, node.ID, "%s should have a cluster ID", node.Hostname)
+		require.NotEmpty(t, node.ID, "%s should have a cluster ID", node.Hostname())
 		ids[node.ID] = true
 
 		// Each node answers with the shared session.
@@ -100,7 +100,7 @@ func TestNodePause(t *testing.T) {
 	paused := th.Nodes[1]
 
 	// A paused server accepts connections but never answers, so bound the wait.
-	probe := model.NewAPIv4Client(paused.URL)
+	probe := model.NewAPIv4Client(paused.URL())
 	probe.HTTPClient = &http.Client{Timeout: 2 * time.Second}
 
 	paused.Pause(t)
