@@ -1,0 +1,137 @@
+---
+# E2E autofix on merge. After each master E2E run, the toolkit's e2e-test-watch action picks
+# the Playwright specs that keep failing on master, and the agent's own PRs that no longer merge.
+# This workflow adds the server images to test with and sends each request to the "E2E Autofix"
+# Cursor automation. Its instructions live in the automation, not in this repository.
+#
+# Without the webhook secrets it only writes the job summary. Set the variable
+# E2E_ENABLE_AUTOFIX to "false" to turn it off.
+name: E2E Tests (autofix on merge)
+on:
+  workflow_run:
+    workflows: ["E2E Tests (master/release - merge)"]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: e2e-tests-autofix-on-merge
+  cancel-in-progress: false
+
+env:
+  TRUNK: master
+  # Server images the master E2E run tests, by edition: <repo>:<mattermost sha7>_<enterprise sha7>.
+  SERVER_IMAGES: >-
+    {"enterprise": "mattermostdevelopment/mattermost-enterprise-edition",
+     "fips": "mattermostdevelopment/mattermost-enterprise-fips-edition"}
+  # Commit statuses whose description carries the run's "image_tag:<tag>".
+  IMAGE_STATUS_PREFIX: e2e-test/playwright-full/
+
+jobs:
+  autofix:
+    # Master runs only (TRUNK). The triggering workflow also runs on release branches; their fixes
+    # need a branch decision this workflow doesn't make yet.
+    if: >-
+      github.event.workflow_run.head_branch == 'master' &&
+      github.event.workflow_run.conclusion != 'cancelled' && vars.E2E_ENABLE_AUTOFIX != 'false'
+    runs-on: ubuntu-24.04
+    # A workflow_run job gets read-only caches by default, so the record step could not save
+    # the ledger of sent requests and the next run would send them again. Safe only while this
+    # job checks out and runs no pull-request code.
+    cache-mode: write
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: read
+    steps:
+      - name: ci/e2e-autofix-plan
+        id: plan
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-watch@main # actions/e2e-test-watch
+        with:
+          repository: ${{ github.repository }}
+          gh-run-id: ${{ github.event.workflow_run.id }}
+          gh-run-attempt: ${{ github.event.workflow_run.run_attempt }}
+          branch: ${{ env.TRUNK }}
+          # Playwright only: the agent's instructions reproduce Playwright specs, not Cypress.
+          suites: >-
+            [{"name": "playwright-full-enterprise-master", "test_root": "e2e-tests/playwright/specs"},
+             {"name": "playwright-full-fips-master", "test_root": "e2e-tests/playwright/specs"}]
+          github-token: ${{ github.token }}
+          label: e2e-autofix
+          extra-labels: AI/babysit
+          max-broken-per-run: 10
+          max-flaky-per-day: 6
+          cause-hold-hours: 4
+
+      # Every request gets `base`: the newest master commit whose images exist, which the agent
+      # tests and branches from. A fix request also gets `server_images`: the images the failing
+      # run tested. Request data reaches the script only through files and stdin.
+      - name: ci/e2e-autofix-send
+        id: send
+        if: steps.plan.outputs.count != '0'
+        env:
+          REQUESTS_FILE: ${{ steps.plan.outputs.requests-file }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          WEBHOOK_URL: ${{ secrets.CURSOR_E2E_AUTOFIX_WEBHOOK_URL }}
+          WEBHOOK_KEY: ${{ secrets.CURSOR_E2E_AUTOFIX_WEBHOOK_KEY }}
+        run: |
+          results='[]'
+          # Reported even if the step fails part way, so what was sent is not sent again.
+          report() { echo "results=$results" >> "$GITHUB_OUTPUT"; }
+          trap report EXIT
+          if [ -z "$WEBHOOK_URL" ] || [ -z "$WEBHOOK_KEY" ]; then
+            echo "No webhook configured: the requests are only in the job summary."
+            exit 0
+          fi
+
+          # A per-commit tag only: a moving tag such as master may not match the commit's code.
+          tag_of() {
+            local tag
+            tag=$(gh api "repos/$REPOSITORY/commits/$1/statuses?per_page=100" --jq \
+              '[.[] | select(.context | startswith(env.IMAGE_STATUS_PREFIX)) | .description // ""
+                | capture("image_tag:(?<t>[A-Za-z0-9._-]+)")?.t] | first // empty' 2>/dev/null) || true
+            [[ "$tag" =~ ^[0-9a-f]{7}_[0-9a-f]{7}$ ]] && echo "$tag"
+          }
+          images_of() { jq -c --arg tag "$1" 'map_values("\(.):\($tag)")' <<<"$SERVER_IMAGES"; }
+          images_exist() {
+            local image
+            for image in $(jq -r '.[]' <<<"$1"); do
+              timeout 30 docker manifest inspect "$image" >/dev/null 2>&1 || return 1
+            done
+          }
+
+          base='null'
+          while IFS= read -r sha; do
+            tag=$(tag_of "$sha") || continue
+            images=$(images_of "$tag")
+            images_exist "$images" || continue
+            base=$(jq -nc --arg commit "$sha" --arg tag "$tag" --argjson images "$images" \
+              '{commit: $commit, server_image_tag: $tag, server_images: $images}')
+            break
+          done < <(gh api "repos/$REPOSITORY/commits?sha=$TRUNK&per_page=30" --jq '.[].sha')
+          echo "base: $base"
+
+          while IFS= read -r request; do
+            id=$(jq -r '.id' <<<"$request")
+            payload=$(jq -c --argjson base "$base" '.payload + (if $base then {base: $base} else {} end)' <<<"$request")
+            commit=$(jq -r '.commit // empty' <<<"$payload")
+            if [[ "$commit" =~ ^[0-9a-f]{7,40}$ ]] && tag=$(tag_of "$commit"); then
+              payload=$(jq -c --arg tag "$tag" --argjson images "$(images_of "$tag")" \
+                '. + {server_image_tag: $tag, server_images: $images}' <<<"$payload")
+            elif [ -n "$commit" ]; then
+              echo "$id: no per-commit image_tag in the statuses of $commit; sent without server_images"
+            fi
+            status=$(printf '%s' "$payload" | curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
+              -X POST "$WEBHOOK_URL" -H "Authorization: Bearer $WEBHOOK_KEY" -H 'Content-Type: application/json' \
+              --data-binary @-) || true
+            echo "$id: HTTP ${status:-000}"
+            results=$(jq -c --arg id "$id" --arg status "${status:-0}" '. + [{id: $id, status: ($status | tonumber)}]' <<<"$results")
+          done < <(jq -c '.[]' "$REQUESTS_FILE")
+
+      # Runs on every trunk run, even one that sent nothing, to keep the record of sent requests alive.
+      - name: ci/e2e-autofix-record
+        if: always() && steps.plan.outcome == 'success'
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-watch/record@main # actions/e2e-test-watch/record
+        with:
+          results: ${{ steps.send.outputs.results || '[]' }}
