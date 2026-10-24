@@ -208,15 +208,6 @@ $z-index-tour-tips-backdrop: 1250;
         // _buttons.scss, which the Compass buttons no longer match.
         gap: 8px;
 
-        // Compass small is 8px/16px padding around a 16px label. Master's
-        // .btn-sm was a fixed 32px box with no vertical padding, which is what
-        // the tip was laid out against.
-        #tipNextButton,
-        #tipPreviousButton {
-            height: 32px;
-            padding: 0 16px;
-        }
-
         #tipNextButton {
             --button-fg: var(--button-bg);
 

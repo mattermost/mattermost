@@ -55,6 +55,10 @@ type Props = {
     tourSteps?: Record<string, number>;
     nextBtn?: JSX.Element;
     prevBtn?: JSX.Element;
+
+    // Compass icon slots. Keep these off the label so Button can size and align them.
+    nextTrailingIcon?: React.ReactNode;
+    prevLeadingIcon?: React.ReactNode;
     imageURL?: string;
     singleTip?: boolean;
     showOptOut?: boolean;
@@ -104,6 +108,8 @@ export const TourTip = ({
     pulsatingDotPlacement,
     nextBtn,
     prevBtn,
+    nextTrailingIcon,
+    prevLeadingIcon,
     className,
     offset: tipOffset = [-18, 4],
     placement = 'right-start',
@@ -219,6 +225,7 @@ export const TourTip = ({
                                 id='tipPreviousButton'
                                 emphasis='tertiary'
                                 size='small'
+                                leadingIcon={prevLeadingIcon}
                                 onClick={handlePrevious}
                             >
                                 {prevBtn}
@@ -229,6 +236,7 @@ export const TourTip = ({
                                 id='tipNextButton'
                                 emphasis='primary'
                                 size='small'
+                                trailingIcon={nextTrailingIcon}
                                 onClick={handleNext}
                             >
                                 {nextBtn}
