@@ -42,6 +42,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetAllSessionsWithActiveDeviceIds", func(t *testing.T) { testGetAllSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
+	t.Run("GetScopedSessions", func(t *testing.T) { testGetScopedSessions(t, rctx, ss) })
 }
 
 func testSessionStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -726,4 +727,32 @@ func testGetMobileSessionMetadata(t *testing.T, rctx request.CTX, ss store.Store
 		}
 	}
 	require.True(t, found)
+}
+
+func testGetScopedSessions(t *testing.T, rctx request.CTX, ss store.Store) {
+	now := model.GetMillis()
+	save := func(props model.StringMap, expiresAt int64) *model.Session {
+		session, err := ss.Session().Save(rctx, &model.Session{UserId: model.NewId(), Props: props, ExpiresAt: expiresAt})
+		require.NoError(t, err)
+		return session
+	}
+
+	scoped := save(model.StringMap{model.SessionPropScope: `{"created_by_plugin_id":"p"}`}, now+60000)
+	malformed := save(model.StringMap{model.SessionPropScope: "{"}, now+60000)
+	save(model.StringMap{model.SessionPropScope: `{"created_by_plugin_id":"p"}`}, now-1)
+	unscoped := save(model.StringMap{"other": "x"}, now+60000)
+
+	sessions, err := ss.Session().GetScopedSessions(rctx)
+	require.NoError(t, err)
+	var ids []string
+	for _, session := range sessions {
+		ids = append(ids, session.Id)
+	}
+	assert.Contains(t, ids, scoped.Id)
+	assert.Contains(t, ids, malformed.Id)
+	assert.NotContains(t, ids, unscoped.Id)
+	for _, session := range sessions {
+		assert.True(t, session.IsScoped())
+		assert.Greater(t, session.ExpiresAt, now)
+	}
 }

@@ -14372,6 +14372,27 @@ func (s *RetryLayerSessionStore) GetMobileSessionMetadata() ([]*model.MobileSess
 
 }
 
+func (s *RetryLayerSessionStore) GetScopedSessions(rctx request.CTX) ([]*model.Session, error) {
+
+	tries := 0
+	for {
+		result, err := s.SessionStore.GetScopedSessions(rctx)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSessionStore) GetSessions(rctx request.CTX, userID string) ([]*model.Session, error) {
 
 	tries := 0
