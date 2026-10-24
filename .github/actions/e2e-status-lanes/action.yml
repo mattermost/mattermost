@@ -1,0 +1,70 @@
+---
+name: E2E status lanes
+description: >-
+  Reads the single list of PR E2E lanes that feed the cross-lane triage aggregate from
+  e2e-status-lanes.json, next to this action. Callers check out .github at github.sha
+  (sparse, into .e2e-trusted) and reference this action from that checkout, so the list and
+  the action always come from the tree the caller's YAML runs from: never from the tested
+  commit or a PR head. Outputs for status writers are
+  unconditional; the triage outputs are empty unless context-name is one of the lanes, so
+  master and release contexts never claim the aggregate. Fails on a malformed list.
+inputs:
+  context-name:
+    description: Commit-status context of the calling lane
+    required: false
+    default: ""
+outputs:
+  lanes:
+    description: Comma-separated lanes summarised by the aggregate
+    value: ${{ steps.read.outputs.lanes }}
+  aggregate:
+    description: Aggregate commit-status context
+    value: ${{ steps.read.outputs.aggregate }}
+  triage-lanes:
+    description: Lanes triage summarises for this context; empty unless context-name is a lane
+    value: ${{ steps.read.outputs.triage-lanes }}
+  triage-context:
+    description: Aggregate context triage writes for this context; empty unless context-name is a lane
+    value: ${{ steps.read.outputs.triage-context }}
+runs:
+  using: composite
+  steps:
+    - id: read
+      shell: bash
+      env:
+        CONTEXT_NAME: ${{ inputs.context-name }}
+        ACTION_DIR: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        # The list sits beside .github/actions, so it is always the copy this action was loaded from.
+        FILE="${ACTION_DIR}/../../e2e-status-lanes.json"
+        fail() { echo "::error::${FILE}: $1"; exit 1; }
+        valid() { [[ "$1" =~ ^e2e-test/[a-z0-9/_.-]+$ ]]; }
+
+        [ -f "$FILE" ] || fail "not found"
+        jq -e '(.aggregate_context | type == "string") and (.lanes | type == "array")' "$FILE" >/dev/null \
+          || fail "needs a string aggregate_context and a lanes array"
+        AGGREGATE=$(jq -r '.aggregate_context' "$FILE")
+        LANE_LIST=()
+        while IFS= read -r LANE; do LANE_LIST+=("$LANE"); done < <(jq -r '.lanes[]' "$FILE")
+        valid "$AGGREGATE" || fail "aggregate_context '${AGGREGATE}' is not an e2e-test/ context"
+        [ "${#LANE_LIST[@]}" -gt 0 ] || fail "lanes is empty"
+        MEMBER=false
+        for LANE in "${LANE_LIST[@]}"; do
+          valid "$LANE" || fail "lane '${LANE}' is not an e2e-test/ context"
+          [ "$LANE" != "$AGGREGATE" ] || fail "the aggregate ${AGGREGATE} cannot also be a lane"
+          if [ "$LANE" = "$CONTEXT_NAME" ]; then MEMBER=true; fi
+        done
+        LANES=$(IFS=,; echo "${LANE_LIST[*]}")
+
+        {
+          echo "lanes=${LANES}"
+          echo "aggregate=${AGGREGATE}"
+          if [ "$MEMBER" = "true" ]; then
+            echo "triage-lanes=${LANES}"
+            echo "triage-context=${AGGREGATE}"
+          else
+            echo "triage-lanes="
+            echo "triage-context="
+          fi
+        } >> "$GITHUB_OUTPUT"
