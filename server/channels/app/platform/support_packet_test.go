@@ -315,6 +315,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)
+		assert.Equal(t, new(false), d.Config.AuditLoggingActive)
 
 		/* DB */
 		require.NotNil(t, d.Database.Type)
@@ -494,6 +495,52 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Contains(t, body, "is_seat_count_enforced: true\n")
 		assert.Contains(t, body, "extra_users: 5\n")
 		assert.Contains(t, body, "    ldap: true\n")
+	})
+
+	t.Run("audit_logging_active records this server's audit targets", func(t *testing.T) {
+		setAudit := func(t *testing.T, fileEnabled bool, advanced string) {
+			t.Helper()
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.FileEnabled = new(fileEnabled)
+				cfg.ExperimentalAuditSettings.FileName = new("audit.log")
+				cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(advanced)
+			})
+			t.Cleanup(func() {
+				th.Service.UpdateConfig(func(cfg *model.Config) {
+					cfg.ExperimentalAuditSettings.FileEnabled = new(false)
+					cfg.ExperimentalAuditSettings.FileName = new("")
+					cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage("{}")
+				})
+			})
+		}
+		auditTarget := `{"audit": {"type": "file", "format": "json", "levels": [{"id": 100, "name": "audit-api"}], "options": {"filename": "audit.log"}}}`
+
+		t.Run("file enabled", func(t *testing.T) {
+			setAudit(t, true, "{}")
+			d := getDiagnostics(t)
+			assert.Equal(t, new(true), d.Config.AuditLoggingActive)
+
+			fileData, err := supportPacketDiagnosticsFile(d, nil)
+			require.NoError(t, err)
+			assert.Contains(t, string(fileData.Body), "  audit_logging_active: true #")
+		})
+
+		t.Run("advanced target with advanced logging licensed", func(t *testing.T) {
+			setAudit(t, false, auditTarget)
+			assert.Equal(t, new(true), getDiagnostics(t).Config.AuditLoggingActive)
+		})
+
+		t.Run("advanced target without advanced logging license", func(t *testing.T) {
+			setAudit(t, false, auditTarget)
+			unlicensed := model.NewTestLicense("ldap")
+			unlicensed.Features.AdvancedLogging = new(false)
+			require.True(t, th.Service.SetLicense(unlicensed))
+			t.Cleanup(func() {
+				require.True(t, th.Service.SetLicense(license))
+			})
+
+			assert.Equal(t, new(false), getDiagnostics(t).Config.AuditLoggingActive)
+		})
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -1628,6 +1675,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.BuildHash = "abc123"
 	diagnostics.Server.GoVersion = "go1.26"
 	diagnostics.Config.Source = "memory://"
+	diagnostics.Config.AuditLoggingActive = new(true)
 	diagnostics.Database.Type = new("postgres")
 	diagnostics.Database.Version = new("16.4")
 	diagnostics.Database.SchemaVersion = new("123")

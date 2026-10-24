@@ -29,6 +29,12 @@ func licensedLeader(sku string, features *model.Features) *healthcheck.NodeSnaps
 	}
 }
 
+func recordedAudit(active bool) *healthcheck.NodeSnapshot {
+	leader := licensedLeader(model.LicenseShortSkuEnterprise, nil)
+	leader.Diagnostics.Diagnostics.Config.AuditLoggingActive = new(active)
+	return leader
+}
+
 func enterprise(mutate func(*model.Config)) *healthcheck.Snapshot {
 	return configSnapshot(mutate, licensedLeader(model.LicenseShortSkuEnterprise, nil))
 }
@@ -61,6 +67,8 @@ func TestAuditLogOff(t *testing.T) {
 		{"inactive with stats absent", enterprise(audit(false, "")), statsUnknown},
 		{"inactive at the threshold", withUsers(enterprise(audit(false, "")), 5000), resolved.withValue(5000)},
 		{"inactive above the threshold", withUsers(enterprise(audit(false, "")), 5001), off("5001").withValue(5001)},
+		{"server records active though the config has no targets", withUsers(configSnapshot(audit(false, ""), recordedAudit(true)), 50000), resolved},
+		{"server records inactive though the config enables the file", withUsers(configSnapshot(audit(true, ""), recordedAudit(false)), 5001), off("5001").withValue(5001)},
 		{"file enabled absent", enterprise(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }), configUnknown},
 	}
 

@@ -41,7 +41,7 @@ func evalAuditLogOff(s *healthcheck.Snapshot) healthcheck.Result {
 	if _, ok = s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ExperimentalAuditSettings.FileEnabled }); !ok {
 		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
-	if config.IsAuditLoggingActive(s.Config.Config.ExperimentalAuditSettings, allowAdvancedLogging(s)) {
+	if auditLoggingActive(s) {
 		return healthcheck.Resolved()
 	}
 
@@ -56,6 +56,15 @@ func evalAuditLogOff(s *healthcheck.Snapshot) healthcheck.Result {
 	default:
 		return healthcheck.Resolved().WithValue(float64(users))
 	}
+}
+
+// Prefers the server's recorded result: checking the config here would use the environment and
+// platform of whatever machine evaluates a packet. Packets from older servers fall back to the config.
+func auditLoggingActive(s *healthcheck.Snapshot) bool {
+	if diag, ok := s.LeaderDiag(model.SectionConfigSource); ok && diag.Config.AuditLoggingActive != nil {
+		return *diag.Config.AuditLoggingActive
+	}
+	return config.IsAuditLoggingActive(s.Config.Config.ExperimentalAuditSettings, allowAdvancedLogging(s))
 }
 
 // An unknown license, as in packets from older servers, cannot rule out advanced audit targets.

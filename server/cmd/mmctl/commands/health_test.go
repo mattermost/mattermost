@@ -10,6 +10,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -501,6 +503,35 @@ Version
 		s.Equal("PushNotificationServer does not use https://", findings[1].Title)
 		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[1].FirstSeenAt)
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
+	})
+
+	s.Run("audit logging is judged by the server that generated the packet, not this machine", func() {
+		var cfg model.Config
+		s.Require().NoError(json.Unmarshal([]byte(healthTestPacketConfig()), &cfg))
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(false)
+		noAuditTargets, err := json.Marshal(cfg)
+		s.Require().NoError(err)
+
+		reportsAuditLogOff := func(serverAuditActive bool) bool {
+			files := healthTestPacketFiles()
+			files[model.SupportPacketDiagnosticsFileName] += "config:\n  audit_logging_active: " + strconv.FormatBool(serverAuditActive) + "\n"
+			files[model.SupportPacketStatsFileName] = "registered_users: 6000\n"
+			files[model.SupportPacketConfigFileName] = string(noAuditTargets)
+
+			printer.Clean()
+			printer.SetFormat(printer.FormatJSON)
+			s.Require().NoError(healthCheckPacketCmdF(healthPacketTestCommand(s.writeHealthTestPacket(files), false, false), []string{}))
+			s.Require().Len(printer.GetLines(), 1)
+			list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+			s.Require().True(ok)
+			return slices.ContainsFunc(list.Findings, func(f *model.HealthFinding) bool { return f.Code == "AUDIT_LOG_OFF" })
+		}
+
+		s.True(reportsAuditLogOff(false))
+		s.False(reportsAuditLogOff(true), "the server audits through targets its config doesn't show")
+
+		s.T().Setenv("MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL", `{"audit": {"type": "file", "format": "json", "levels": [{"id": 100, "name": "audit-api"}], "options": {"filename": "audit.log"}}}`)
+		s.True(reportsAuditLogOff(false), "audit targets on the evaluating machine say nothing about the server")
 	})
 
 	s.Run("packet warnings follow the disclaimer and contain no em dash", func() {
