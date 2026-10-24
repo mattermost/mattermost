@@ -734,7 +734,7 @@ func TestGetClientConfig(t *testing.T) {
 			[]string{"MobileEphemeralModeEnabled", "MobileEphemeralModeDisconnectionTimeoutSeconds", "MobileEphemeralModeOfflinePersistenceTimerHours", "MobileEphemeralModeAutoCacheCleanupDays"},
 		},
 		{
-			"audit logging - setting is reported independently of audit targets",
+			"audit logging - AuditLoggingActive is not derived from config",
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAccessControlAuditLogging: new(true),

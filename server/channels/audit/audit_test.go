@@ -196,7 +196,7 @@ func TestAudit_IsActive(t *testing.T) {
 	// ConfigureTargets adds targets in map order and stops at the first failure, so whether
 	// the valid target is live varies between runs. IsActive must match what is written.
 	t.Run("partial configuration matches records written", func(t *testing.T) {
-		for range 10 {
+		for range 30 {
 			adt := newAudit(t)
 			path := filepath.Join(t.TempDir(), "audit.log")
 			require.Error(t, adt.Configure(mlog.LoggerConfiguration{

@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -205,5 +206,32 @@ func TestAuditLoggingActiveClientConfig(t *testing.T) {
 		require.NoError(t, th.App.Srv().Audit.Configure(mlog.LoggerConfiguration{"api": auditFileTarget(t, mlog.LvlAuditAPI)}))
 		touchConfig(th)
 		require.Equal(t, "true", auditLoggingActive(th))
+	})
+}
+
+func TestAccessControlAuditTargetMissingWarning(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	enableAccessControlAuditLogging := func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAccessControlAuditLogging = model.NewPointer(true)
+	}
+
+	t.Run("warns when no audit target is live", func(t *testing.T) {
+		th := SetupConfig(t, enableAccessControlAuditLogging)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, accessControlAuditTargetMissingWarning)
+	})
+
+	t.Run("stays quiet when an audit target is live", func(t *testing.T) {
+		auditFile := filepath.Join(t.TempDir(), "audit.log")
+		th := SetupConfig(t, func(cfg *model.Config) {
+			enableAccessControlAuditLogging(cfg)
+			cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+			cfg.ExperimentalAuditSettings.FileName = model.NewPointer(auditFile)
+		})
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, accessControlAuditTargetMissingWarning)
 	})
 }

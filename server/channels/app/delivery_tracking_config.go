@@ -74,6 +74,8 @@ func (a *App) validateTrackedChannelIDs(channelIDs []string) error {
 	return nil
 }
 
+const deliveryAuditTargetMissingWarning = "DeliveryTrackingSettings.Enable is enabled but no active audit log target consumes the audit-delivery level; post delivery audit records will be discarded. Add a target for the level via ExperimentalAuditSettings.AdvancedLoggingJSON."
+
 func (s *Server) warnIfDeliveryAuditTargetMissing(cfg *model.Config) {
 	if cfg.FeatureFlags == nil || !cfg.FeatureFlags.PostDeliveryTracking {
 		return
@@ -87,10 +89,7 @@ func (s *Server) warnIfDeliveryAuditTargetMissing(cfg *model.Config) {
 		return
 	}
 
-	mlog.Warn(
-		"DeliveryTrackingSettings.Enable is enabled but no active audit log target consumes the audit-delivery level; post delivery audit records will be discarded. Add a target for the level via ExperimentalAuditSettings.AdvancedLoggingJSON.",
-		mlog.String("level", mlog.LvlAuditDelivery.Name),
-	)
+	s.Log().Warn(deliveryAuditTargetMissingWarning, mlog.String("level", mlog.LvlAuditDelivery.Name))
 }
 
 // deliveryAuditWarnInputsChanged reports whether anything the delivery audit target warning
