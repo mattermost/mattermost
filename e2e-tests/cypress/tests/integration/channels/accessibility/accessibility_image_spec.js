@@ -58,9 +58,9 @@ describe('Verify Accessibility Support in Different Images', () => {
                 cy.get('.status-wrapper').click();
             });
 
-            // * Verify image alt in profile popover
+            // * Verify the profile popover image is decorative since the popover already shows the user's name
             cy.get('.user-profile-popover').within(() => {
-                cy.get('.Avatar').should('have.attr', 'alt', `${otherUser.username} profile image`);
+                cy.get('.Avatar').should('have.attr', 'alt', '');
             });
         });
 
