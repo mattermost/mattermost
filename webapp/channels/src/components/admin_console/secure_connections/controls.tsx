@@ -195,7 +195,7 @@ type CompassButtonProps = ComponentProps<typeof MmButton>;
 export const Button = ({style, ...props}: CompassButtonProps) => (
     <MmButton
         emphasis='secondary'
-        style={{margin: '-1px -2px', ...style}}
+        style={{alignSelf: 'center', marginRight: 'var(--spacing-xxxs)', ...style}}
         {...props}
     />
 );

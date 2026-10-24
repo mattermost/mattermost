@@ -12,6 +12,7 @@ import styled from 'styled-components';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -291,13 +292,15 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
                         defaultMessage="A list of all the channels shared with your organization and channels you're sharing externally."
                     />
                 </hgroup>
-                <AddChannelsButton onClick={handleAdd}>
-                    <PlusIcon size={18}/>
+                <Button
+                    onClick={handleAdd}
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
+                >
                     <FormattedMessage
                         id='admin.secure_connections.details.shared_channels.add_channels.button'
                         defaultMessage='Add channels'
                     />
-                </AddChannelsButton>
+                </Button>
             </SectionHeader>
             <TabsWrapper>
                 {showTabs && (
@@ -365,13 +368,6 @@ const Placeholder = (props: {filter: 'home' | 'remote'; rc: RemoteCluster}) => {
         </PlaceholderContainer>
     );
 };
-
-const AddChannelsButton = ({style, ...props}: React.ComponentProps<typeof Button>) => (
-    <Button
-        style={{paddingLeft: 15, ...style}}
-        {...props}
-    />
-);
 
 const TabsWrapper = styled.div`
     .tabs {
