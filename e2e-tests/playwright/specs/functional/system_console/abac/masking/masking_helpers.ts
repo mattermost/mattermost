@@ -4,20 +4,16 @@
 import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
+import {patchFeatureFlags} from '@mattermost/playwright-lib';
+
 import {deleteFieldFromDB} from './masking_db_setup';
 
 export async function enableMaskingFlag(client: Client4): Promise<void> {
-    const config = await client.getConfig();
-    config.FeatureFlags = config.FeatureFlags || {};
-    (config.FeatureFlags as any).AttributeValueMasking = true;
-    await client.updateConfig(config);
+    await patchFeatureFlags(client, {AttributeValueMasking: true});
 }
 
 export async function disableMaskingFlag(client: Client4): Promise<void> {
-    const config = await client.getConfig();
-    config.FeatureFlags = config.FeatureFlags || {};
-    (config.FeatureFlags as any).AttributeValueMasking = false;
-    await client.updateConfig(config);
+    await patchFeatureFlags(client, {AttributeValueMasking: false});
 }
 
 export async function createMaskingTextField(client: Client4, fieldName: string): Promise<string> {

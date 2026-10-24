@@ -16,6 +16,8 @@ import {
     AZURITE_BLOB_PORT,
     ELASTICSEARCH_ALIAS,
     ELASTICSEARCH_PORT,
+    SPLIT_MOCK_ALIAS,
+    SPLIT_MOCK_CONTROL_PORT,
     INBUCKET_ALIAS,
     INBUCKET_WEB_PORT,
     KEYCLOAK_ALIAS,
@@ -189,6 +191,11 @@ async function startStackLocked(): Promise<void> {
             additional[name] = additionalContainers[index];
         });
 
+        // The server fetches the mock Split service's CA when it starts, so its address has to be known first.
+        if (additional.splitmock) {
+            testConfig.splitMockUrl = resolveUrl(additional.splitmock, SPLIT_MOCK_CONTROL_PORT, SPLIT_MOCK_ALIAS);
+        }
+
         const mattermost = await trackAndLog('server', startMattermostContainer(network.getName()));
 
         started = {network, postgres, inbucket, webhook, mattermost, additional};
@@ -272,6 +279,7 @@ function logStackReused(): void {
         minio: testConfig.minioUrl,
         azurite: testConfig.azuriteUrl,
         nginx: testConfig.nginxUrl,
+        splitmock: testConfig.splitMockUrl,
     };
     testConfig.testcontainersServices.forEach((name) => {
         lines.push(`  - ${name.padEnd(13)} = ${additionalUrls[name]}`);
@@ -601,6 +609,7 @@ const ADDITIONAL_CONTAINER_METADATA: Record<TestContainersServiceName, Container
         port: testConfig.sslServer ? NGINX_SSL_PORT : NGINX_PORT,
         image: NGINX_IMAGE,
     },
+    splitmock: {alias: SPLIT_MOCK_ALIAS, port: SPLIT_MOCK_CONTROL_PORT, image: 'built, mock Split service'},
 };
 
 function containerEntries(stack: StartedStack): Array<[string, StartedTestContainer, ContainerMetadata]> {
@@ -773,6 +782,9 @@ function applyResolvedConfig(stack: StartedStack): void {
             }
         }
     }
+    if (stack.additional.splitmock) {
+        testConfig.splitMockUrl = resolveUrl(stack.additional.splitmock, SPLIT_MOCK_CONTROL_PORT, SPLIT_MOCK_ALIAS);
+    }
 }
 
 // One block per write: a human-readable `# [timestamp] label` comment line (dotenv ignores
@@ -794,6 +806,7 @@ function envFileLines(label: string): string[] {
         `PW_MINIO_URL=${testConfig.minioUrl}`,
         `PW_AZURITE_URL=${testConfig.azuriteUrl}`,
         `PW_NGINX_URL=${testConfig.nginxUrl}`,
+        `PW_SPLIT_MOCK_URL=${testConfig.splitMockUrl}`,
         `PW_TESTCONTAINERS_NETWORK_NAME=${testConfig.testcontainersNetworkName}`,
         `PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID=${testConfig.mattermostContainerId}`,
         // Persist the image currently running (separate from process SERVER_IMAGE / to-image).

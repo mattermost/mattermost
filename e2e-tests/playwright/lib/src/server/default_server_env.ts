@@ -6,6 +6,9 @@ import {logTestcontainers} from '../containers/log';
 import {resolveMattermostBootEnv} from '../containers/mattermost_container';
 import {getMattermostContainerEnv, restartMattermostContainer} from '../containers/stack';
 
+import {resetSplitMock, waitForServerFeatureFlags} from './split_mock';
+import {getAdminClient} from './init';
+
 import {defaultBootEnv, reloadTestConfig, testConfig} from '@/test_config';
 import {isUpgradePathProjectSelected} from '@/upgrade_env';
 
@@ -31,14 +34,34 @@ async function envDrift(): Promise<{set: Record<string, string>; unset: string[]
     return {set, unset};
 }
 
+// Puts the feature flags ensureFeatureFlag() changed back to the defaults the server booted with, and waits until the
+// running server reports them again. No restart: the mock Split service pushes the change to the server.
+async function resetFeatureFlags(): Promise<void> {
+    if (!testConfig.splitMockEnabled) {
+        return;
+    }
+
+    const restored = await resetSplitMock();
+    if (Object.keys(restored).length === 0) {
+        return;
+    }
+
+    const {adminClient} = await getAdminClient();
+    await waitForServerFeatureFlags(adminClient, restored);
+    logTestcontainers(`feature flags are back to the defaults (${Object.keys(restored).join(', ')}).`);
+}
+
 /**
  * Restarts the server with the env a fresh boot gets, so a spec doesn't inherit what an earlier one set through
- * ensureFeatureFlag(), ensureMinio(), ensureOpensearch() and the like. No-op when the server already matches.
+ * ensureMinio(), ensureOpensearch() and the like, and puts feature flags back to their defaults. No-op when the server already
+ * matches.
  */
 export async function ensureDefaultServerEnv(): Promise<void> {
     if (!testConfig.useTestContainers || isUpgradePathProjectSelected()) {
         return;
     }
+
+    await resetFeatureFlags();
 
     // Under the lock, with the current container id: another process may have replaced the server since this one started.
     await withStackLock('check server env', async () => {
