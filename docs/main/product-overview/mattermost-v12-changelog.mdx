@@ -14,6 +14,123 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 </Note>
 
+## Release v12.1 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-1-feature-release}
+
+**Release day: 2026-11-16**
+
+### Upgrade Impact
+
+#### Database Schema Changes
+  - Added the ``creator`` value to the ``permission_level`` enum type to support the new creator permission level for property fields; an enum value addition with no table rewrite and negligible impact on running systems.
+  - Added the ``healthfindings`` table, which stores the findings raised by the Built-in Health Dashboard keyed by a finding fingerprint; a new table with no impact on existing tables or queries.
+  - Added the index ``idx_healthfindings_lastseenat`` on ``healthfindings (lastseenat)`` using ``CONCURRENTLY``, so the build doesn't block reads or writes; no downtime expected.
+  - Added the partial index ``idx_propertyvalues_groupid_fieldid`` on ``PropertyValues (GroupID, FieldID)`` for rows where ``DeleteAt`` is 0, using ``CONCURRENTLY``, to speed up lookups that filter by group and field; no downtime expected.
+
+#### config.json
+New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
+  - **Changes to Enterprise plans:**
+    - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableFileIndexing`` configuration setting to control indexing of file attachments in Elasticsearch and OpenSearch.
+  - **Changes to All plans:**
+    - ``ServiceSettings.EnableFileSearch``, which defaults to ``true``, is now configurable in the System Console. It moved from **System Console > Experimental > Features** to **System Console > Site Configuration > File Sharing and Downloads**, and is also reported in the client configuration so the web app can hide the file search and channel files entry points when it's disabled. The setting itself is unchanged.
+  - **Changes to Professional, Enterprise, and Enterprise Advanced plans:**
+    - Under ``OpenIdSettings`` in ``config.json``, added ``AdditionalScopes`` configuration setting to request additional scopes from the OpenID Connect provider. The default is an empty string.
+
+#### Compatibility
+  - Updated minimum supported Firefox version to 153+.
+
+### Improvements
+
+See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-available/) on the highlights in our latest release.
+
+#### User Interface
+  - Pre-packaged Calls plugin version [v1.12.6](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.6). Fixed layout regressions in call menus and the Desktop screen share picker, and the self video thumbnail now shows on the left in 1:1 video calls.
+  - Pre-packaged Dataminr plugin version [v3.0.0](https://github.com/mattermost/mattermost-plugin-dataminr/releases/tag/v3.0.0).
+  - Deprecated the ServiceNow plugin. It is no longer prepackaged with the server and is no longer offered in the onboarding wizard.
+  - Improved System Console Sidebar Navigation user interface.
+  - Updated ``ConfirmModal`` to use Compass UI buttons.
+  - Added an Out of Office notice above the Direct Message composer when the recipient has automatic replies enabled, and suppressed the off-hours indicator while that notice is shown.
+  - Themed the full-page error screen, including Post Not Found, with the signed-in user's center channel and link colors.
+  - Added support for Markdown images, Markdown paste, and caret-anchored autocomplete in the rich text editor, and fixed rich text editor formatting so the composer matches posted messages.
+  - "Download all" in the media gallery now downloads all attachments as a single zip file instead of one download per file.
+  - Markdown phone links now render as a phone pills component.
+  - Introduced a new reusable call options menu component that allows users to start either a Mattermost call or dial a user's phone number for the Calls plugin.
+  - Made the system policy indicator banner fully translatable as complete sentences, with locale-aware formatting of policy name lists.
+  - Added a "Managed by" indicator to the Applies to > Users card of a Global Attribute synced from AD/LDAP or SAML, showing the sync source and that the values are not editable in Mattermost.
+  - Added attributes to bot accounts: bot managers can set a bot's attribute values from the Add/Edit Bot page, and the bot's profile popover shows them.
+  - Prevented burn-on-read messages from being scheduled as weekly recurring posts.
+  - Added the Enable File Search setting to the System Console. When file search is disabled, the web app now hides file search and channel files instead of showing empty results.
+  - Clarified the wording of several System Console messages on the Site health page and in user attribute sync settings.
+  - The auto-translation AI Service setting in the System Console now shows when the saved service no longer exists in the Agents plugin, instead of displaying a different service as selected.
+  - Completed the missing Brazilian Portuguese web translations, and localized interface and accessibility labels that were English-only.
+  - Translated the corrected and newly added English strings into all supported languages.
+  - Renamed the help menu's Mattermost user guide link to Mattermost documentation, opening the server's bundled documentation on root installs and https://docs.mattermost.com on subpath installs.
+
+#### Plugins/Integrations
+  - Added the ``pluginapi/testhelper`` package to the public module, enabling plugin authors to write integration tests using real Mattermost containers via testcontainers-go.
+
+#### Administration
+  - Added the Built-in Health Dashboard rule evaluation engine in ``platform/shared/healthcheck``, including deployment gating, panic containment, and deterministic finding fingerprinting.
+  - Added the ``EnforceLogPathRoot`` feature flag, disabled by default. When enabled, a log or audit file path that resolves outside the logging root (``MM_LOG_PATH``, or the default logs directory) causes the server to refuse to start and is rejected on configuration save, instead of only being logged as an error. Validation now also covers ``LogSettings.FileLocation`` and ``ExperimentalAuditSettings.FileName``.
+  - Support packet ``stats.yaml`` now omits failed stat keys instead of serializing them as zero, preserving unknown-vs-zero semantics in packet data.
+  - Support packet generation now accumulates and reports all diagnostics, job, and permission collector errors in ``warning.txt`` instead of potentially overwriting earlier errors.
+  - Support packet ``diagnostics.yaml`` now omits a field when collecting it fails, instead of reporting it as 0 or empty. This covers the hostname, total memory, file descriptor counts, database type, version and schema version, database connection pool counters, file store disk space and filesystem type, and the cluster node count. A standalone server without a cluster interface now reports ``number_of_nodes`` as 1 instead of 0.
+  - Unhandled promise rejections in the web app are now logged to the server, and are shown in the error bar when Developer Mode is enabled.
+  - AD/LDAP and SAML can now sync select and multiselect user attributes. Values from the identity provider are added as options automatically, and options no user holds are removed. An attribute that the identity provider stops sending now clears the user's synced value at the next sync or login instead of keeping the previous value. Only the sync can add, rename, or remove the options of a synced attribute. An attribute linked to both AD/LDAP and SAML is now synced from AD/LDAP only.
+  - User attributes can now be synced from OpenID Connect claims at every sign-in, including nested claims (dot paths) and list claims, for use in attribute-based access control. A claim that the provider stops sending clears the attribute. Added ``OpenIdSettings.AdditionalScopes`` to request additional scopes from the OpenID Connect provider, and the ``OpenIdAttributeSync`` feature flag, which is on by default.
+  - Added a new Attribute-Based Access Control (ABAC) permission, Create Burn-on-Read Message, so administrators can restrict which users are able to send burn-on-read messages.
+  - Added a new "creator" permission level for property fields. It grants the creator of the target object the same access that the "admin" level grants, in addition to everyone the "admin" level already covers.
+  - Added ``ElasticsearchSettings.EnableFileIndexing`` configuration setting to stop indexing file attachments in Elasticsearch and OpenSearch.
+  - Added bundled product documentation at ``/_documentation`` (root-path installs) and a ``mattermost docs`` CLI to serve it locally when the server is down. SiteURL subpath installs should use ``mattermost docs`` only.
+  - Offered the TLS 1.3 hybrid key exchange X25519MLKEM768 when Mattermost terminates TLS.
+  - Made the ``/secure-connection remove`` response fully translatable.
+
+#### Performance
+  - Added the ``EnforceLogPathRoot`` feature flag to reject log and audit file paths that resolve outside the logging root, preventing unintended filesystem access.
+
+### Bug Fixes
+  - Fixed an issue where multi-byte (CJK) characters were dropped, doubled, or split when typing quickly in the AI Agent rewrite prompt.
+  - Fixed an issue where the quick switcher ("Find Channels") ranked Group Messages containing a person above the Direct Message with that person when typing their username (reported on web/desktop).
+  - Fixed an issue where server log downloads and support packet log collection failed when the log directory is reached through a symlink. Log paths whose final component is an unresolved symlink are now rejected.
+  - Fixed an issue where SVG files with relative dimensions, such as ``width="100%"``, or a comma-separated ``viewBox`` were previewed at the wrong size or not at all.
+  - Fixed an issue where the message composer's remove-labels control was invisible while keyboard-focused, and added a tooltip for it on hover and focus.
+  - Fixed an issue where the channel autocomplete in the invite modal used different row spacing and channel-slug formatting than the channel autocomplete in the post composer.
+  - Fixed an issue where a slash command whose integration replied with a 2xx status other than 200 OK, such as 201 Created, showed an error to the user instead of the integration's response.
+  - Fixed an issue where choosing Manage roles > Member for a guest in the System Console left their team and channel memberships as Guest. Manage roles is no longer offered for guests; use Promote to member instead.
+  - Fixed an issue where the dropdown chevron on hierarchical attribute value pickers shrank as more values were selected and the input wrapped onto multiple lines.
+  - Fixed an issue where searching for a number on its own did not find posts containing that number as the trailing part of a hyphenated word, such as searching "12345" not finding "flight-12345", when PostgreSQL is the search backend.
+  - Fixed an issue where editing or deleting a post immediately after posting it could intermittently fail on servers configured with database read replicas.
+  - Fixed an issue where the Channel Settings modal blocked navigation to its other sections while a channel permission rule was being edited without explaining why.
+  - Fixed an issue where a draft sent from the Drafts panel could reappear after switching teams or reloading.
+  - Fixed an issue where the OpenSearch bulk indexing job could hang indefinitely when a connection to OpenSearch stalled.
+  - Fixed an issue where ``/secure-connection remove`` reported that the connection was not found when deleting it failed, instead of showing the error.
+  - Fixed an issue where ``/secure-connection remove`` reported a connection as not found when ``connectionID`` was empty or malformed. It now replies that the argument is missing or invalid.
+  - Fixed an issue where ``/secure-connection create`` showed internal error details instead of a translated error message when creating a secure connection failed.
+  - Fixed an issue where the High Availability config hash reported in the System Console showed each node's boot-time value instead of its current configuration, which could indicate a config mismatch between nodes that were running identical configs.
+  - Fixed an issue where only the first ten system permission policies were enforced, so any policy beyond that — including one that should have denied access — was silently ignored.
+  - Fixed an issue where message attachment fields with a title but an empty value were not displayed when Mattermost Blocks was enabled (reported on webapp).
+  - Corrected spelling and grammar in a number of English web app messages.
+  - Corrected spelling and grammar in a number of English server messages.
+  - Fixed an issue where ``mmctl config set`` could not set a list setting, such as ``SqlSettings.DataSourceReplicas``, to exactly one value (reported on macOS).
+  - Fixed an issue where deleting a thread reply that mentioned multiple groups could leave a background process repeatedly querying the database until the server was restarted.
+  - Fixed an issue where v12 servers failed to start when ``SupportSettings.SupportEmail``, ``EmailSettings.FeedbackEmail``, or ``EmailSettings.ReplyToAddress`` held a list of addresses or a value that was not an email address. Such values are now reduced to their first valid address or cleared, and a warning is logged. Also fixed ``mattermost db`` commands reporting configuration validation errors as untranslated message IDs.
+
+### API Changes
+  - Added an optional ``includePropertyGroups`` query parameter to ``GET /api/v4/posts/{post_id}``, ``GET /api/v4/posts/{post_id}/thread``, ``GET /api/v4/channels/{channel_id}/posts``, ``GET /api/v4/users/{user_id}/channels/{channel_id}/posts/unread``, and ``GET /api/v4/channels/{channel_id}/views/{view_id}/posts``, which hydrates each post's property values for the named group onto post metadata.
+  - Added ``DELETE /{fingerprint:[a-f0-9]{32}}/mute`` (``unmuteHealthFinding``) API endpoint.
+  - Added ``GET /`` (``getHealthFindings``) API endpoint.
+  - Added ``POST /{fingerprint:[a-f0-9]{32}}/mute`` (``muteHealthFinding``) API endpoint.
+
+### Audit Log Event Changes
+  - Added ``AuditEventMuteHealthFinding`` audit log event.
+  - Added ``AuditEventUnmuteHealthFinding`` audit log event.
+
+### Go Version
+ - v12.1 is built with Go ``v1.26.10``.
+
+### Open Source Components
+  - Added ``@mattermost/compass-ui``, ``fflate``, ``go.uber.org/mock``, ``goccy/go-yaml``, ``golang-jwt/jwt``, ``golang-migrate/migrate``, ``golang/freetype``, ``react``, and ``react-dom``.
+  - Removed ``@tippyjs/react``, ``goccy/go-yaml``, ``golang-jwt/jwt``, ``golang-migrate/migrate``, ``golang/freetype``, and ``golang/mock``.
+
 ## Release v12.0 - [Major Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-0-major-release}
 
 - **12.0.1, released 2026-10-22**

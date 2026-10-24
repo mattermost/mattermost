@@ -10,6 +10,62 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 <Inc0_common_esr_support />
 
 </Important>
+## Release v6.4 \{#release-v6-4}
+
+**v6.4.0 release day: 2026-11-16**
+
+**Download Binaries:** [Mattermost Desktop on GitHub](https://github.com/mattermost/desktop/releases/latest)
+
+### Important Upgrade Notes
+
+- Servers configured with a subpath in their Site URL now require Boards v9.4.0 or later. The Desktop App no longer strips the server subpath from paths sent by Boards, a workaround that caused "Team not found" errors when a team name matched the subpath, so older Boards versions may show navigation errors. Update the Boards plugin to v9.4.0 or later before updating the Desktop App. Follow the [Boards installation instructions](https://docs.mattermost.com/administration-guide/configure/install-boards.html). Deployments without a subpath are unaffected. See the [forum post](https://forum.mattermost.com/t/desktop-app-v6-4-requires-boards-v9-4-0-for-subpath-deployments/26064) for full details and migration options.
+
+### Compatibility
+
+- Desktop App is supported on any currently supported [Mattermost server version](https://docs.mattermost.com/product-overview/mattermost-desktop-releases.html#latest-releases).
+
+### Improvements
+
+#### All Platforms
+
+- Moved most native dialogs to in-app modals to better unify the user interface.
+- Added a table in **Settings** that shows the session attribute values the app currently reports.
+- Added a randomly generated identifier, stored locally and stable for the lifetime of an installation, to the crash and error reports sent to Sentry when error reporting is enabled. It allows reports from the same installation to be correlated without identifying the user.
+- Updated file download finalization handling for saved downloads.
+
+### Architectural Changes
+
+- Upgraded Electron to v43.3.0. Electron is the underlying technology used to build the Desktop App.
+
+### Bug Fixes
+
+#### macOS
+
+- Fixed keyboard shortcuts so that ``Cmd+W`` targets windows other than the main window when one of those windows is focused.
+
+#### Linux
+
+- Fixed Mattermost notifications not being retained in the KDE Plasma notification history.
+- Fixed the missing app icon on the GNOME dock.
+- Fixed desktop entry ``Exec`` path handling.
+
+#### All Platforms
+
+- Fixed an issue where the Calls widget could crash the app when resized to a very large size.
+- Fixed an issue with some local network access checks.
+- Fixed an issue where the pre-authentication secret wasn't applied to WebSocket connections.
+- Fixed an issue where adding a Mattermost server on the local network, such as ``localhost`` or a private IP address, would fail to validate.
+- Fixed several crashes caused by accessing the main window, a server view, or the tray icon after it was destroyed, or by creating the main window before the app finished launching.
+- Fixed a crash that could occur when the loading screen faded after its web contents had already been torn down.
+- Fixed an issue where servers configured with a subpath could show a "Team not found" error in some cases.
+
+### Known Issues
+
+- Sometimes during installation you may see this message: ``Warning 1946. Property 'System.AppUserModel.ID' for shortcut 'Mattermost.Ink' could not be set``. This message can be safely ignored.
+- Users seeing an endless "Loading..." screen when attempting to log in to the app may need to manually clear cached data. The Mattermost data directory is `/Users/<username>/Library/Containers/Mattermost/Data/Library/Application Support/Mattermost` on macOS, `Users/<username>/AppData/Roaming/Mattermost` on Windows, and `~/.config/Mattermost` on Linux. Delete only the `Cache`, `Code Cache`, and `GPUCache` subdirectories. Deleting the full Mattermost data directory also resets desktop configuration and session data.
+- On Linux, a left-click on the Mattermost tray icon doesn't open the app window but opens the tray menu.
+- Crashes might be experienced in some Linux desktop clients due to an upstream bug in the `libnotifyapp` library. A recommended workaround is to disable the Mattermost system tray icon via Desktop Settings.
+
 ## Release v6.3 \{#release-v6-3}
 
 - **v6.3.1, released 2026-10-15**

@@ -16,6 +16,31 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 </Note>
 
+## 2.46.0 Release \{#release-v2-46-0}
+ - Release Date: November 16, 2026
+ - Server Versions Supported: Server v11.7.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.
+
+### Compatibility
+ - **Upgrade to server version v11.7.0 or later is required.** Support for server [Extended Support Release](https://docs.mattermost.com/product-overview/release-policy.html#extended-support-releases) (ESR) v10.11.0 has ended and upgrading to server ESR v11.7.0 or later is required. As we innovate and offer newer versions of our mobile apps, we maintain backwards compatibility only with supported server versions. Users who upgrade to the newest mobile apps while being connected to an unsupported server version can be exposed to compatibility issues, which can cause crashes or severe bugs that break core functionality of the app.
+ - Android 11+ is required.
+ - iOS 18.0+ is required.
+
+### Improvements
+ - Added warnings when Mobile Ephemeral Mode settings configured on the server change what cached data the app retains.
+ - Added audit events for Mobile Ephemeral Mode actions performed in the app, including offline purges, periodic cache cleanups, and wipes triggered by a session revocation.
+ - Added support for Playbooks task requirements when completing checklist items.
+ - Updated the message composer to hide the **Burn-on-read** option when an attribute-based permission policy doesn't allow the user to send burn-on-read messages in the channel.
+
+### Bug Fixes
+ - Fixed an issue where each notification started a new log file, so exporting logs with the report tool could lose recent app activity (reported on iOS).
+ - Fixed a crash that ended the active call when opening the call thread while another thread was already open (reported on iOS and Android).
+ - Fixed an issue where an interactive message attachment image didn't update in place after an action button changed the image URL.
+ - Fixed an issue where interactive dialog date and time fields didn't offer manual time entry when the integration uses the current ``manual_time_entry`` setting.
+
+### Known Issues
+ - Users are unable to adjust the font size via the OS font size setting.
+ - Some Google Pixel phones on Android 12+ might not continue past the login screen. This is a known issue with the OS, and the current workaround is to restart the device.
+
 ## 2.45.0 Release \{#release-v2-45-0}
  - Release Date: October 15, 2026
  - Server Versions Supported: Server v11.7.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.
