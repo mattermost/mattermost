@@ -12,6 +12,7 @@ import EditionAndLicense from '@/ui/components/system_console/sections/about/edi
 import TeamStatistics from '@/ui/components/system_console/sections/reporting/team_statistics';
 import ServerLogs from '@/ui/components/system_console/sections/reporting/server_logs';
 import Users from '@/ui/components/system_console/sections/user_management/users';
+import ChannelDetail from '@/ui/components/system_console/sections/user_management/channel_detail';
 import DelegatedGranularAdministration from '@/ui/components/system_console/sections/user_management/delegated_granular_administration';
 import PermissionsSystemScheme from '@/ui/components/system_console/sections/user_management/permissions_system_scheme';
 import MobileSecurity from '@/ui/components/system_console/sections/environment/mobile_security';
@@ -47,6 +48,7 @@ export default class SystemConsolePage {
 
     // User Management
     readonly users: Users;
+    readonly channelDetail: ChannelDetail;
     readonly delegatedGranularAdministration: DelegatedGranularAdministration;
     readonly permissionsSystemScheme: PermissionsSystemScheme;
 
@@ -99,6 +101,7 @@ export default class SystemConsolePage {
 
         // User Management
         this.users = new Users(adminConsoleWrapper);
+        this.channelDetail = new ChannelDetail(adminConsoleWrapper);
         this.delegatedGranularAdministration = new DelegatedGranularAdministration(adminConsoleWrapper);
         this.permissionsSystemScheme = new PermissionsSystemScheme(adminConsoleWrapper);
 
