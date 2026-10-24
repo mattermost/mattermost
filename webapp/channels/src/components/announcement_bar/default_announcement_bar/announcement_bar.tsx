@@ -196,6 +196,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
             {
                 this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText &&
                 <Button
+                    className='announcement-bar__cta'
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
                     emphasis='tertiary'
@@ -210,6 +211,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
             {
                 this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
                 <Button
+                    className='announcement-bar__cta'
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
                     emphasis='tertiary'

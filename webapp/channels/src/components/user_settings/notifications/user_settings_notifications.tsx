@@ -1095,14 +1095,19 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                     a: (chunks) => ((
                                         <Button
                                             asChild={true}
-                                            emphasis='link'
-                                            size='x-small'
+                                            emphasis='quaternary'
+                                            size='small'
+                                            leadingIcon={
+                                                <LightbulbOutlineIcon
+                                                    className='circular-border'
+                                                    aria-hidden={true}
+                                                />
+                                            }
                                         >
                                             <ExternalLink
                                                 location='user_settings_notifications'
                                                 href='https://mattermost.com/pl/about-notifications'
                                             >
-                                                <LightbulbOutlineIcon className='circular-border'/>
                                                 <span>{chunks}</span>
                                             </ExternalLink>
                                         </Button>

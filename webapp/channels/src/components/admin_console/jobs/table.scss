@@ -48,8 +48,23 @@
         text-align: right;
     }
 
+    // Muted at rest so the row hover has something to reveal. Compass
+    // quaternary is --link-color out of the box, which left the link already
+    // blue and the hover a no-op. Colours go through --button-fg because the
+    // Compass label does not read `color`.
     .view-details-link {
+        --button-fg: rgba(var(--sys-center-channel-color-rgb), 0.56);
+
+        padding: 0;
+        background: transparent;
         white-space: nowrap;
+
+        &:hover,
+        &:focus {
+            --button-fg: var(--button-bg);
+
+            background: transparent;
+        }
     }
 
     .DataGrid_footer {

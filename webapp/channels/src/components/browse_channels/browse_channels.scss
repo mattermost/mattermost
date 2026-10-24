@@ -226,14 +226,25 @@
                 }
             }
 
+            // Row actions are revealed on hover. They cannot use
+            // visibility: hidden -- that takes a control out of the tab order
+            // entirely, so the button can never be focused to reveal itself,
+            // and Withdraw request is the only affordance a pending row has.
+            // pointer-events stops an invisible button swallowing row clicks.
             .more-modal__actions {
                 button {
                     min-width: 54px;
                     height: 32px;
                     font-size: 12px;
                     font-weight: 600;
-                    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-                    visibility: hidden;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+                }
+
+                button:focus-visible {
+                    opacity: 1;
+                    pointer-events: auto;
                 }
             }
         }
@@ -248,7 +259,8 @@
                 .primaryButton,
                 .outlineButton,
                 .withdrawButton {
-                    visibility: visible;
+                    opacity: 1;
+                    pointer-events: auto;
                 }
             }
         }

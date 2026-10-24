@@ -200,8 +200,22 @@ $z-index-tour-tips-backdrop: 1250;
 
     &__btn-ctr {
         display: flex;
+        align-items: center;
         flex-grow: 1;
         justify-content: flex-end;
+
+        // The 8px used to come from the global `.btn + .btn` rule in
+        // _buttons.scss, which the Compass buttons no longer match.
+        gap: 8px;
+
+        // Compass small is 8px/16px padding around a 16px label. Master's
+        // .btn-sm was a fixed 32px box with no vertical padding, which is what
+        // the tip was laid out against.
+        #tipNextButton,
+        #tipPreviousButton {
+            height: 32px;
+            padding: 0 16px;
+        }
 
         #tipNextButton {
             --button-fg: var(--button-bg);
@@ -285,11 +299,6 @@ $z-index-tour-tips-backdrop: 1250;
     }
 
     &__opt {
-        // Sits on the --button-bg tip box, so the link has to take the brand
-        // foreground. Compass's appearance='inverted' resolves to --sidebar-text,
-        // which is dark on Quartz.
-        --button-fg: var(--button-color);
-
         display: flex;
         align-items: baseline;
         align-self: flex-end;
@@ -298,6 +307,15 @@ $z-index-tour-tips-backdrop: 1250;
         color: rgba(var(--button-color-rgb), 0.9);
         font-size: 12px;
         gap: 0.25em;
+
+        // Sits on the --button-bg tip box, so the link takes the brand
+        // foreground. This has to land on the button itself -- Compass declares
+        // --button-fg on the element, which beats any value inherited from a
+        // container -- and appearance='inverted' is no use here because it
+        // resolves to --sidebar-text, which is dark on Quartz.
+        .tour-tip__opt-out {
+            --button-fg: var(--button-color);
+        }
     }
 
     &__backdrop {

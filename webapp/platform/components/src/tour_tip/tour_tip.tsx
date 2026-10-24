@@ -243,6 +243,7 @@ export const TourTip = ({
                             defaultMessage='Seen this before? '
                         />
                         <Button
+                            className='tour-tip__opt-out'
                             emphasis='link'
                             size='x-small'
                             onClick={handleSkip}

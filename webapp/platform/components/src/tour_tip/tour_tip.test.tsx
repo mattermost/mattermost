@@ -151,12 +151,16 @@ describe('TourTip', () => {
         });
     });
 
-    test('renders opt-out as an inverted link button', async () => {
+    // appearance='inverted' resolves to --sidebar-text, which is dark on Quartz.
+    // The tip box is --button-bg, so the link carries its own class and takes
+    // --button-fg from the brand colour instead.
+    test('renders opt-out as a link button carrying the tip-box override', async () => {
         renderTourTip({showOptOut: true});
 
         const optOut = await screen.findByRole('button', {name: 'Opt out of these tips.'});
 
         expect(optOut.className).toMatch(/_button--emphasis-link_/);
-        expect(optOut.className).toMatch(/_button--appearance-inverted_/);
+        expect(optOut.className).not.toMatch(/_button--appearance-inverted_/);
+        expect(optOut).toHaveClass('tour-tip__opt-out');
     });
 });

@@ -177,9 +177,11 @@
             content: none;
         }
 
-        // Footers that still hold Bootstrap buttons (most plugin modals) would
-        // otherwise stack Bootstrap's own `.btn + .btn` margin on top of the gap.
-        .btn + .btn {
+        // Buttons that are direct children are flex items and already get the
+        // gap, so Bootstrap's own `.btn + .btn` margin would stack on top.
+        // Buttons nested inside a wrapper are not flex items and get no gap,
+        // so they keep Bootstrap's margin -- don't widen this selector.
+        > .btn + .btn {
             margin-left: 0;
         }
 
