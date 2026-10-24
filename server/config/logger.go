@@ -82,7 +82,7 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 		}
 
 		// apply audit specific levels. Cloned so the target can never alias, and mutate,
-		// the package-level slice shared with auditLevelIDs and IsAuditLevelActive.
+		// the package-level slice shared with auditLevelIDs.
 		targetCfg.Levels = slices.Clone(basicAuditFileLevels)
 
 		// apply audit specific formatting
@@ -124,12 +124,16 @@ var auditLevelIDs = func() map[logr.LevelID]struct{} {
 	return m
 }()
 
-// IsAuditLoggingActive reports whether the server is actually emitting audit logs to at
-// least one sink, given the audit settings and whether advanced logging is licensed.
+// IsAuditLoggingActive reports whether the audit settings configure at least one sink for
+// audit logs, given whether advanced logging is licensed.
 //
 // It returns true when basic file auditing is enabled, or when the advanced audit logging
 // config defines at least one target bound to an audit level. A valid advanced-logging
 // config that routes nothing to an audit level returns false.
+//
+// This only inspects config. A running server should ask its audit logger instead
+// (audit.Audit.IsActive), since targets that fail to start and config edits made since
+// startup are not reflected here.
 func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool) bool {
 	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled {
 		return true
@@ -147,38 +151,6 @@ func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAd
 	for _, target := range cfg {
 		for _, level := range target.Levels {
 			if _, ok := auditLevelIDs[level.ID]; ok {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
-// IsAuditLevelActive reports whether records logged at the given audit level would actually
-// reach a sink.
-//
-// Unlike IsAuditLoggingActive, basic file auditing only counts when the requested level is
-// one the built-in `_defAudit` target is bound to. Enabling
-// ExperimentalAuditSettings.FileEnabled does not make audit-delivery active, for example.
-func IsAuditLevelActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool, level mlog.Level) bool {
-	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled &&
-		slices.ContainsFunc(basicAuditFileLevels, func(l mlog.Level) bool { return l.ID == level.ID }) {
-		return true
-	}
-
-	if !allowAdvancedLogging {
-		return false
-	}
-
-	cfg := make(mlog.LoggerConfiguration)
-	if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &cfg); err != nil {
-		return false
-	}
-
-	for _, target := range cfg {
-		for _, targetLevel := range target.Levels {
-			if targetLevel.ID == level.ID {
 				return true
 			}
 		}

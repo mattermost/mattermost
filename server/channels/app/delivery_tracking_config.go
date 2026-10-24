@@ -4,14 +4,12 @@
 package app
 
 import (
-	"bytes"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 func (a *App) GetDeliveryTrackingConfig(rctx request.CTX) (*model.DeliveryTrackingConfig, *model.AppError) {
@@ -76,6 +74,8 @@ func (a *App) validateTrackedChannelIDs(channelIDs []string) error {
 	return nil
 }
 
+const deliveryAuditTargetMissingWarning = "DeliveryTrackingSettings.Enable is enabled but no active audit log target consumes the audit-delivery level; post delivery audit records will be discarded. Add a target for the level via ExperimentalAuditSettings.AdvancedLoggingJSON."
+
 func (s *Server) warnIfDeliveryAuditTargetMissing(cfg *model.Config) {
 	if cfg.FeatureFlags == nil || !cfg.FeatureFlags.PostDeliveryTracking {
 		return
@@ -85,18 +85,11 @@ func (s *Server) warnIfDeliveryAuditTargetMissing(cfg *model.Config) {
 		return
 	}
 
-	license := s.License()
-	allowAdvancedLogging := license != nil && license.Features != nil &&
-		license.Features.AdvancedLogging != nil && *license.Features.AdvancedLogging
-
-	if config.IsAuditLevelActive(cfg.ExperimentalAuditSettings, allowAdvancedLogging, mlog.LvlAuditDelivery) {
+	if s.Audit.IsLevelEnabled(mlog.LvlAuditDelivery) {
 		return
 	}
 
-	mlog.Warn(
-		"DeliveryTrackingSettings.Enable is enabled but no configured audit log target consumes the audit-delivery level; post delivery audit records will be discarded. Add a target for the level via ExperimentalAuditSettings.AdvancedLoggingJSON.",
-		mlog.String("level", mlog.LvlAuditDelivery.Name),
-	)
+	s.Log().Warn(deliveryAuditTargetMissingWarning, mlog.String("level", mlog.LvlAuditDelivery.Name))
 }
 
 // deliveryAuditWarnInputsChanged reports whether anything the delivery audit target warning
@@ -109,16 +102,5 @@ func deliveryAuditWarnInputsChanged(oldCfg, newCfg *model.Config) bool {
 		return true
 	}
 
-	if model.SafeDereference(oldCfg.DeliveryTrackingSettings.Enable) != model.SafeDereference(newCfg.DeliveryTrackingSettings.Enable) {
-		return true
-	}
-
-	if model.SafeDereference(oldCfg.ExperimentalAuditSettings.FileEnabled) != model.SafeDereference(newCfg.ExperimentalAuditSettings.FileEnabled) {
-		return true
-	}
-
-	return !bytes.Equal(
-		oldCfg.ExperimentalAuditSettings.GetAdvancedLoggingConfig(),
-		newCfg.ExperimentalAuditSettings.GetAdvancedLoggingConfig(),
-	)
+	return model.SafeDereference(oldCfg.DeliveryTrackingSettings.Enable) != model.SafeDereference(newCfg.DeliveryTrackingSettings.Enable)
 }
