@@ -215,18 +215,28 @@ export default class PluginRegistry {
 
     /**
      * Register components for search.
-     * Accepts React components. Returns a unique identifier.
+     * Accepts the following:
+     * - buttonComponent - A react component rendered as the search type option.
+     * - suggestionsComponent - A react component rendered as the suggestions for this search type.
+     * - hintsComponent - A react component rendered as the hints for this search type.
+     * - action - A function called with the search terms when the user runs a search of this type.
+     * - priority - Optional number (default: 0). Search types with a priority greater than 0 are shown before the
+     *   built-in keyword search types, and the highest priority one is selected by default when search is opened.
+     *   Unregister the component with unregisterComponent when the search type becomes unavailable.
+     * Returns a unique identifier.
      */
     registerSearchComponents = ({
         buttonComponent,
         suggestionsComponent,
         hintsComponent,
         action,
+        priority = 0,
     }: {
         buttonComponent: SearchButtonsComponent['component'];
         suggestionsComponent: SearchSuggestionsComponent['component'];
         hintsComponent: SearchHintsComponent['component'];
         action: SearchButtonsComponent['action'];
+        priority?: number;
     }) => {
         const id = generateId();
         this.dispatchPluginComponentWithData('SearchButtons', {
@@ -234,6 +244,7 @@ export default class PluginRegistry {
             pluginId: this.id,
             component: buttonComponent,
             action,
+            priority,
         });
         this.dispatchPluginComponentAction('SearchSuggestions', suggestionsComponent, id);
         this.dispatchPluginComponentAction('SearchHints', hintsComponent, id);

@@ -692,6 +692,42 @@ describe('PluginRegistry — registerProduct', () => {
     });
 });
 
+describe('PluginRegistry — registerSearchComponents', () => {
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    const baseArgs = {
+        buttonComponent: () => null,
+        suggestionsComponent: () => null,
+        hintsComponent: () => null,
+        action: jest.fn(),
+    };
+
+    test.each([
+        {name: 'defaults priority to 0', args: baseArgs, expected: 0},
+        {name: 'stores the given priority', args: {...baseArgs, priority: 10}, expected: 10},
+    ])('$name', ({args, expected}) => {
+        const registry = new PluginRegistry('test_plugin');
+        const id = registry.registerSearchComponents(args);
+
+        const [button] = mockCurrentStore.getState().components.SearchButtons;
+        expect(button).toMatchObject({id, pluginId: 'test_plugin', priority: expected});
+    });
+
+    test('unregisterComponent removes the button, suggestions and hints', () => {
+        const registry = new PluginRegistry('test_plugin');
+        const id = registry.registerSearchComponents({...baseArgs, priority: 10});
+
+        registry.unregisterComponent(id);
+
+        const {components} = mockCurrentStore.getState();
+        expect(components.SearchButtons).toHaveLength(0);
+        expect(components.SearchSuggestions).toHaveLength(0);
+        expect(components.SearchHints).toHaveLength(0);
+    });
+});
+
 describe('PluginRegistry lifetime', () => {
     beforeEach(() => {
         mockCurrentStore = createStore(pluginsReducer);
