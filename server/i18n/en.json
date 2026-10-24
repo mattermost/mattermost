@@ -11767,8 +11767,8 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "The logging configuration contains a log or audit file path outside the logging root directory. Check the server logs for details.",
-    "description": "Admin-facing error when saving a configuration whose log or audit file path resolves outside the allowed logging root directory; the server logs name the offending path."
+    "translation": "The logging configuration contains a log or audit file path outside the logging root directory or inside a directory the server manages. Check the server logs for details.",
+    "description": "Admin-facing error when saving a configuration whose log or audit file path resolves outside the allowed logging root directory, or inside a directory the server manages such as the plugin, data, config or templates directory; the server logs name the offending path."
   },
   {
     "id": "app.save_config.plugin_hook_error",

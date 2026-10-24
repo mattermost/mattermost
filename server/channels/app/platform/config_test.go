@@ -207,6 +207,10 @@ func TestSaveConfigLogPathEnforcement(t *testing.T) {
 
 	outOfRootTarget := json.RawMessage(`{"evil": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + filepath.Join(outside, "out.log") + `"}}}`)
 
+	fileTargetIn := func(path string) json.RawMessage {
+		return json.RawMessage(`{"t": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + path + `"}}}`)
+	}
+
 	// setup returns a minimal service whose log root is pinned to root and whose active config
 	// is clean, with enforcement set to enforce. It deliberately skips the full test helper:
 	// SaveConfig only needs a config store and a logger here, and registering no config
@@ -270,6 +274,38 @@ func TestSaveConfigLogPathEnforcement(t *testing.T) {
 
 		cfg := ps.Config().Clone()
 		*cfg.LogSettings.FileLocation = outside
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+	})
+
+	t.Run("flag on rejects a target inside the active plugin directory", func(t *testing.T) {
+		ps := setup(t, true)
+
+		activePlugins := filepath.Join(root, "plugins")
+		cfg := ps.Config().Clone()
+		*cfg.PluginSettings.Directory = activePlugins
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
+
+		// the new config moves the plugin directory, but the active one is still in use until a restart
+		cfg = ps.Config().Clone()
+		*cfg.PluginSettings.Directory = filepath.Join(root, "moved")
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetIn(filepath.Join(activePlugins, "x", "plugin"))
+
+		_, _, appErr = ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+	})
+
+	t.Run("flag on rejects a target inside the new plugin directory", func(t *testing.T) {
+		ps := setup(t, true)
+
+		newPlugins := filepath.Join(root, "new-plugins")
+		cfg := ps.Config().Clone()
+		*cfg.PluginSettings.Directory = newPlugins
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetIn(filepath.Join(newPlugins, "x", "plugin"))
 
 		_, _, appErr := ps.SaveConfig(cfg, false)
 		require.NotNil(t, appErr)
