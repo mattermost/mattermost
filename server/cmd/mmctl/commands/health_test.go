@@ -520,7 +520,9 @@ Version
 
 			printer.Clean()
 			printer.SetFormat(printer.FormatJSON)
-			s.Require().NoError(healthCheckPacketCmdF(healthPacketTestCommand(s.writeHealthTestPacket(files), false, false), []string{}))
+			cmd := newTestCmd(s.T(), HealthCheckCmd)
+			s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
+			s.Require().NoError(healthCheckPacketCmdF(cmd, []string{}))
 			s.Require().Len(printer.GetLines(), 1)
 			list, ok := printer.GetLines()[0].(*model.HealthFindingList)
 			s.Require().True(ok)
