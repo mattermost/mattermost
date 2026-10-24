@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgryski/dgoogauth"
 	"github.com/gorilla/websocket"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -646,7 +646,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 		secretString := setupUserWithMFA(t, th, ruser)
 
 		// Generate TOTP token from the user's MFA secret
-		code := dgoogauth.ComputeCode(secretString, time.Now().UTC().Unix()/30)
+		code := mfa.ComputeCode(secretString, time.Now().UTC().Unix()/30)
 		token := fmt.Sprintf("%06d", code)
 
 		client := th.CreateClient()
