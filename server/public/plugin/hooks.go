@@ -326,6 +326,7 @@ type Hooks interface {
 	// This is used to allow communication between multiple instances of the same plugin
 	// that are running on separate nodes of the same High-Availability cluster.
 	// This hook receives events sent by a call to PublishPluginClusterEvent.
+	// Since server version 12.1, ev.SourceId holds the cluster ID of the sending node.
 	//
 	// Minimum server version: 5.36
 	OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)

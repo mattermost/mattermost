@@ -33,6 +33,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -5412,4 +5413,72 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		_, err := api.GetPropertyGroup("no_such_group")
 		require.Error(t, err)
 	})
+}
+
+// clusterWithNodes is a fake cluster that reports a node ID and node list.
+type clusterWithNodes struct {
+	testlib.FakeClusterInterface
+	id    string
+	nodes []*model.ClusterInfo
+}
+
+func (c *clusterWithNodes) GetClusterId() string { return c.id }
+
+func (c *clusterWithNodes) GetClusterInfos() ([]*model.ClusterInfo, error) { return c.nodes, nil }
+
+func TestPluginAPIClusterNodes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	api := th.SetupPluginAPI()
+
+	t.Run("not a cluster", func(t *testing.T) {
+		assert.Empty(t, api.GetClusterNodeID())
+		nodes, err := api.GetClusterNodes()
+		require.NoError(t, err)
+		assert.Empty(t, nodes)
+	})
+
+	t.Run("cluster", func(t *testing.T) {
+		cluster := &clusterWithNodes{
+			id: "node1",
+			nodes: []*model.ClusterInfo{
+				{Id: "node1", Hostname: "10.0.0.1", IPAddress: "10.0.0.1:8074"},
+				{Id: "node2", Hostname: "10.0.0.2", IPAddress: "10.0.0.2:8074"},
+			},
+		}
+		th.Server.Platform().SetCluster(cluster)
+		defer th.Server.Platform().SetCluster(nil)
+
+		assert.Equal(t, "node1", api.GetClusterNodeID())
+		nodes, err := api.GetClusterNodes()
+		require.NoError(t, err)
+		assert.Equal(t, cluster.nodes, nodes)
+	})
+}
+
+func TestPluginAPIPublishPluginClusterEventSourceID(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	api := th.SetupPluginAPI()
+
+	cluster := &clusterWithNodes{id: "node1"}
+	th.Server.Platform().SetCluster(cluster)
+	defer th.Server.Platform().SetCluster(nil)
+
+	for _, target := range []string{"", "node2"} {
+		cluster.ClearMessages()
+		err := api.PublishPluginClusterEvent(
+			model.PluginClusterEvent{Id: "event", Data: []byte("data")},
+			model.PluginClusterEventSendOptions{SendType: model.PluginClusterEventSendTypeReliable, TargetId: target},
+		)
+		require.NoError(t, err)
+
+		msgs := cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventPluginEvent
+		})
+		require.Len(t, msgs, 1, "target %q", target)
+		assert.Equal(t, "pluginid", msgs[0].Props["PluginID"])
+		assert.Equal(t, "event", msgs[0].Props["EventID"])
+		assert.Equal(t, "node1", msgs[0].Props["SourceID"])
+	}
 }

@@ -1607,6 +1607,7 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 		Props: map[string]string{
 			"PluginID": api.id,
 			"EventID":  ev.Id,
+			"SourceID": api.app.Cluster().GetClusterId(),
 		},
 		Data: ev.Data,
 	}
@@ -1621,6 +1622,21 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	}
 
 	return nil
+}
+
+// GetClusterNodeID returns the cluster ID of this node, or an empty string when
+// the server is not part of a cluster.
+func (api *PluginAPI) GetClusterNodeID() string {
+	if api.app.Cluster() == nil {
+		return ""
+	}
+	return api.app.Cluster().GetClusterId()
+}
+
+// GetClusterNodes returns the nodes of the cluster, or an empty list when the
+// server is not part of a cluster.
+func (api *PluginAPI) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	return api.app.GetClusterStatus(api.ctx)
 }
 
 // RequestTrialLicense requests a trial license and installs it in the server
