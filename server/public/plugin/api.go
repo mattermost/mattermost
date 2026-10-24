@@ -1229,6 +1229,23 @@ type API interface {
 	// Minimum server version: 5.36
 	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 
+	// GetClusterNodeID returns the cluster ID of the node the plugin is running on, for use as
+	// PluginClusterEventSendOptions.TargetId by other nodes. It returns an empty string until
+	// the node has joined a High-Availability cluster, e.g. when clustering is disabled.
+	//
+	// @tag Cluster
+	// Minimum server version: 12.2
+	GetClusterNodeID() string
+
+	// GetClusterNodes returns the nodes connected to the High-Availability cluster, including
+	// the one the plugin is running on. Each Id can be used as
+	// PluginClusterEventSendOptions.TargetId. It returns an empty list until this node has
+	// joined a cluster. Each call may query the database, so avoid calling it on hot paths.
+	//
+	// @tag Cluster
+	// Minimum server version: 12.2
+	GetClusterNodes() ([]*model.ClusterInfo, error)
+
 	// RequestTrialLicense requests a trial license and installs it in the server
 	//
 	// Minimum server version: 5.36
