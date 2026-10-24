@@ -56,7 +56,7 @@ export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
             disabled={interactionsDisabled || element.disabled === true || isExecuting}
             aria-busy={isExecuting}
         >
-            {isExecuting && <LoadingSpinner/>}
+            {isExecuting && <LoadingSpinner legacy={true}/>}
             <Markdown
                 message={element.text}
                 options={buttonMarkdownOptions}

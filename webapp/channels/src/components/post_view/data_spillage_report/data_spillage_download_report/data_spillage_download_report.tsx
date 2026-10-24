@@ -79,7 +79,7 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
 
     switch (status) {
     case 'generating':
-        icon = <LoadingSpinner/>;
+        icon = <LoadingSpinner legacy={true}/>;
         label = (
             <FormattedMessage
                 id='data_spillage_report.download_report.generating.button_text'

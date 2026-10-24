@@ -77,6 +77,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
                 disabled={this.props.installing}
             >
                 <LoadingWrapper
+                    legacy={true}
                     loading={this.props.installing}
                     text={defineMessage({id: 'marketplace_modal.installing', defaultMessage: 'Installing...'})}
                 >

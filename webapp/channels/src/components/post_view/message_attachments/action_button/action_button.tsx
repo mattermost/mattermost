@@ -74,6 +74,7 @@ const ActionButton = ({
                 hexColor={hexColor}
             >
                 <LoadingWrapper
+                    legacy={true}
                     loading={actionExecuting}
                     text={actionExecutingMessage}
                 >
