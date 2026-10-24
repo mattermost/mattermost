@@ -183,7 +183,11 @@ func TestHydratePropertyValues(t *testing.T) {
 		th := setupPropertyValuesTest(t)
 		// Names are deliberately reverse-alphabetical relative to creation order.
 		first := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "zulu")
+		// CreateAt is millisecond-resolution; same-ms fields fall back to FieldID order.
+		for model.GetMillis() <= first.CreateAt {
+		}
 		second := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "alpha")
+		require.Greater(t, second.CreateAt, first.CreateAt)
 
 		post := th.post(t, th.BasicChannel)
 		// Values written in the opposite order to prove output order tracks the field, not the value.
