@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UnreadBadge} from '@mattermost/compass-ui/components/unread-badge';
 import React, {type ComponentType, type MouseEvent, type ReactNode} from 'react';
+import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {openModal} from 'actions/views/modals';
@@ -20,6 +22,13 @@ type Props = {
     role?: string;
 };
 
+const messages = defineMessages({
+    unreadBadgeAriaLabel: {
+        id: 'unread_badge.aria_label',
+        defaultMessage: 'Unread',
+    },
+});
+
 const ToggleModalButton = ({
     ariaLabel,
     children,
@@ -34,6 +43,7 @@ const ToggleModalButton = ({
     role,
 }: Props) => {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
 
     const show = (e: MouseEvent<HTMLButtonElement>) => {
         if (e) {
@@ -49,7 +59,13 @@ const ToggleModalButton = ({
         dispatch(openModal(modalData));
     };
 
-    const badge = showUnread ? <span className={'unread-badge'}/> : null;
+    const badge = showUnread ? (
+        <UnreadBadge
+            className='unread-badge'
+            context='icon-button'
+            aria-label={formatMessage(messages.unreadBadgeAriaLabel)}
+        />
+    ) : null;
 
     // allow callers to provide an onClick which will be called before the modal is shown
     const clickHandler = (e: MouseEvent<HTMLButtonElement>) => {
