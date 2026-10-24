@@ -1,0 +1,54 @@
+{
+  "id": "playbooks",
+  "name": "Playbooks",
+  "description": "Mattermost Playbooks enable reliable and repeatable processes for your teams using checklists, automation, and retrospectives.",
+  "homepage_url": "https://github.com/mattermost/mattermost-plugin-playbooks/",
+  "support_url": "https://github.com/mattermost/mattermost-plugin-playbooks/issues",
+  "icon_path": "assets/plugin_icon.svg",
+  "min_server_version": "11.0.0",
+  "server": {
+    "executables": {
+      "linux-amd64": "server/dist/plugin-linux-amd64",
+      "linux-arm64": "server/dist/plugin-linux-arm64",
+      "darwin-amd64": "server/dist/plugin-darwin-amd64",
+      "darwin-arm64": "server/dist/plugin-darwin-arm64",
+      "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+    }
+  },
+  "webapp": {
+    "bundle_path": "webapp/dist/main.js"
+  },
+  "settings_schema": {
+    "header": "",
+    "footer": "",
+    "settings": [
+      {
+        "key": "enableTeamsTabApp",
+        "display_name": "Enable Teams Tab App",
+        "type": "bool",
+        "help_text": "When true, enable a Microsoft Teams Tab app to expose Mattermost Playbook runs.",
+        "default": false
+      },
+      {
+        "key": "teamsTabAppTenantIDs",
+        "display_name": "Authorized Tenant IDs for Teams Tab App",
+        "type": "text",
+        "help_text": "A comma separated list of Microsoft Tenant IDs allowed to access Playbook runs.",
+        "default": ""
+      },
+      {
+        "key": "EnableExperimentalFeatures",
+        "type": "bool",
+        "display_name": "Enable Experimental Features:",
+        "help_text": "Enable experimental features that come with in-progress UI, bugs, and cool stuff."
+      },
+      {
+        "key": "enableincrementalupdates",
+        "type": "bool",
+        "display_name": "Enable Incremental Updates",
+        "help_text": "When enabled, sends incremental WebSocket updates instead of full playbook run objects for better performance.",
+        "default": false
+      }
+    ]
+  }
+}
