@@ -14,6 +14,7 @@ import CreatableReactSelect from 'react-select/creatable';
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
@@ -1097,12 +1098,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                             asChild={true}
                                             emphasis='quaternary'
                                             size='small'
-                                            leadingIcon={
-                                                <LightbulbOutlineIcon
-                                                    className='circular-border'
-                                                    aria-hidden={true}
-                                                />
-                                            }
+                                            leadingIcon={<Icon glyph={<LightbulbOutlineIcon/>}/>}
                                         >
                                             <ExternalLink
                                                 location='user_settings_notifications'
