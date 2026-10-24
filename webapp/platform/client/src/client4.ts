@@ -5289,13 +5289,17 @@ export default class Client4 {
         );
     };
 
-    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string) => {
-        const requestBody: {expression: string; channelId?: string; teamId?: string} = {expression};
+    // membership also rejects what the membership sync can't evaluate.
+    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string, membership?: boolean) => {
+        const requestBody: {expression: string; channelId?: string; teamId?: string; membership?: boolean} = {expression};
         if (channelId) {
             requestBody.channelId = channelId;
         }
         if (teamId) {
             requestBody.teamId = teamId;
+        }
+        if (membership) {
+            requestBody.membership = true;
         }
 
         return this.doFetch<CELExpressionError[]>(
