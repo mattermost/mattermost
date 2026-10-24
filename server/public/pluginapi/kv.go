@@ -3,6 +3,7 @@ package pluginapi
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -198,6 +199,7 @@ type ListKeysOption func(*listKeysOptions)
 
 // listKeysOptions holds configurations of a ListKeys() operation.
 type listKeysOptions struct {
+	prefix   string
 	checkers []func(key string) (keep bool, err error)
 }
 
@@ -217,10 +219,11 @@ func (o *listKeysOptions) checkAll(key string) (keep bool, err error) {
 }
 
 // WithPrefix only return keys that start with the given string.
+// The prefix is pushed down to the SQL query for efficient filtering.
 func WithPrefix(prefix string) ListKeysOption {
-	return WithChecker(func(key string) (keep bool, err error) {
-		return strings.HasPrefix(key, prefix), nil
-	})
+	return func(args *listKeysOptions) {
+		args.prefix = prefix
+	}
 }
 
 // WithChecker allows for a custom filter function to determine which keys to return.
@@ -247,7 +250,25 @@ func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]stri
 	// get our keys a batch at a time, filter out the ones we don't want based on our args
 	// any errors will hault the whole process and return the error raw
 
-	keys, appErr := k.api.KVList(page, count)
+	var keys []string
+	var appErr *model.AppError
+	if args.prefix != "" {
+		keys, appErr = k.api.KVListWithOptions(page, count, model.PluginKVListOptions{Prefix: args.prefix})
+		if appErr != nil && (appErr.StatusCode == http.StatusNotImplemented ||
+			strings.Contains(strings.ToLower(appErr.DetailedError), "not implemented")) {
+			// Server doesn't support KVListWithOptions; fall back to KVList
+			// with client-side prefix filtering via the checkers pipeline.
+			keys, appErr = k.api.KVList(page, count)
+			prefix := args.prefix
+			args.checkers = append([]func(string) (bool, error){
+				func(key string) (bool, error) {
+					return strings.HasPrefix(key, prefix), nil
+				},
+			}, args.checkers...)
+		}
+	} else {
+		keys, appErr = k.api.KVList(page, count)
+	}
 	if appErr != nil {
 		return nil, normalizeAppErr(appErr)
 	}
