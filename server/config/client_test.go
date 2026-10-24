@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetClientConfig(t *testing.T) {
-	t.Parallel()
+	t.Setenv(AdditionalAuditTargetsEnv, "")
 	testCases := []struct {
 		description    string
 		config         *model.Config

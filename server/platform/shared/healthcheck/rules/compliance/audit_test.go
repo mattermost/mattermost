@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
@@ -39,7 +40,7 @@ func auditTarget(levels ...string) string {
 }
 
 func TestAuditLogOff(t *testing.T) {
-	t.Parallel()
+	t.Setenv(config.AdditionalAuditTargetsEnv, "")
 
 	apiTarget := auditTarget(`{"id": 100, "name": "audit-api"}`)
 	off := func(users string) want {
