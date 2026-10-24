@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -5415,70 +5416,83 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 	})
 }
 
-// clusterWithNodes is a fake cluster that reports a node ID and node list.
+// clusterWithNodes is a fake cluster that reports a node ID and node list, and
+// whether this node has joined.
 type clusterWithNodes struct {
 	testlib.FakeClusterInterface
-	id    string
-	nodes []*model.ClusterInfo
+	id     string
+	nodes  []*model.ClusterInfo
+	joined atomic.Bool
 }
 
 func (c *clusterWithNodes) GetClusterId() string { return c.id }
 
+func (c *clusterWithNodes) GetMyClusterInfo() *model.ClusterInfo {
+	if !c.joined.Load() {
+		return nil
+	}
+	return &model.ClusterInfo{Id: c.id}
+}
+
 func (c *clusterWithNodes) GetClusterInfos() ([]*model.ClusterInfo, error) { return c.nodes, nil }
 
-func TestPluginAPIClusterNodes(t *testing.T) {
+func TestPluginAPICluster(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
-	api := th.SetupPluginAPI()
 
-	t.Run("not a cluster", func(t *testing.T) {
+	t.Run("no cluster implementation", func(t *testing.T) {
+		th := Setup(t)
+		api := th.SetupPluginAPI()
+
 		assert.Empty(t, api.GetClusterNodeID())
 		nodes, err := api.GetClusterNodes()
 		require.NoError(t, err)
 		assert.Empty(t, nodes)
 	})
 
-	t.Run("cluster", func(t *testing.T) {
-		cluster := &clusterWithNodes{
-			id: "node1",
-			nodes: []*model.ClusterInfo{
-				{Id: "node1", Hostname: "10.0.0.1", IPAddress: "10.0.0.1:8074"},
-				{Id: "node2", Hostname: "10.0.0.2", IPAddress: "10.0.0.2:8074"},
-			},
-		}
-		th.Server.Platform().SetCluster(cluster)
-		defer th.Server.Platform().SetCluster(nil)
+	cluster := &clusterWithNodes{
+		id: "node1",
+		nodes: []*model.ClusterInfo{
+			{Id: "node1", Hostname: "10.0.0.1", IPAddress: "10.0.0.1:8074"},
+			{Id: "node2", Hostname: "10.0.0.2", IPAddress: "10.0.0.2:8074"},
+			{Id: "registration", Hostname: "10.0.0.3"}, // registered, not connected
+		},
+	}
+	th := SetupWithClusterMock(t, cluster)
+	api := th.SetupPluginAPI()
+
+	// Enterprise builds always register a cluster implementation, even when
+	// clustering is disabled or hasn't started.
+	t.Run("not joined", func(t *testing.T) {
+		assert.Empty(t, api.GetClusterNodeID())
+		nodes, err := api.GetClusterNodes()
+		require.NoError(t, err)
+		assert.Empty(t, nodes)
+	})
+
+	t.Run("joined", func(t *testing.T) {
+		cluster.joined.Store(true)
+		defer cluster.joined.Store(false)
 
 		assert.Equal(t, "node1", api.GetClusterNodeID())
 		nodes, err := api.GetClusterNodes()
 		require.NoError(t, err)
-		assert.Equal(t, cluster.nodes, nodes)
+		assert.Equal(t, cluster.nodes[:2], nodes, "only connected nodes")
 	})
-}
 
-func TestPluginAPIPublishPluginClusterEventSourceID(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	api := th.SetupPluginAPI()
-
-	cluster := &clusterWithNodes{id: "node1"}
-	th.Server.Platform().SetCluster(cluster)
-	defer th.Server.Platform().SetCluster(nil)
-
-	for _, target := range []string{"", "node2"} {
+	t.Run("published events carry the source node", func(t *testing.T) {
 		cluster.ClearMessages()
 		err := api.PublishPluginClusterEvent(
 			model.PluginClusterEvent{Id: "event", Data: []byte("data")},
-			model.PluginClusterEventSendOptions{SendType: model.PluginClusterEventSendTypeReliable, TargetId: target},
+			model.PluginClusterEventSendOptions{SendType: model.PluginClusterEventSendTypeReliable, TargetId: "node2"},
 		)
 		require.NoError(t, err)
 
 		msgs := cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
 			return msg.Event == model.ClusterEventPluginEvent
 		})
-		require.Len(t, msgs, 1, "target %q", target)
+		require.Len(t, msgs, 1)
 		assert.Equal(t, "pluginid", msgs[0].Props["PluginID"])
 		assert.Equal(t, "event", msgs[0].Props["EventID"])
 		assert.Equal(t, "node1", msgs[0].Props["SourceID"])
-	}
+	})
 }

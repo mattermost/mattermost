@@ -1596,7 +1596,8 @@ func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
 func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	opts model.PluginClusterEventSendOptions,
 ) error {
-	if api.app.Cluster() == nil {
+	cluster := api.app.Cluster()
+	if cluster == nil {
 		return nil
 	}
 
@@ -1607,16 +1608,16 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 		Props: map[string]string{
 			"PluginID": api.id,
 			"EventID":  ev.Id,
-			"SourceID": api.app.Cluster().GetClusterId(),
+			"SourceID": cluster.GetClusterId(),
 		},
 		Data: ev.Data,
 	}
 
 	// If TargetId is empty we broadcast to all other cluster nodes.
 	if opts.TargetId == "" {
-		api.app.Cluster().SendClusterMessage(msg)
+		cluster.SendClusterMessage(msg)
 	} else {
-		if err := api.app.Cluster().SendClusterMessageToNode(opts.TargetId, msg); err != nil {
+		if err := cluster.SendClusterMessageToNode(opts.TargetId, msg); err != nil {
 			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.TargetId, err)
 		}
 	}
@@ -1625,18 +1626,29 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 }
 
 // GetClusterNodeID returns the cluster ID of this node, or an empty string when
-// the server is not part of a cluster.
+// it hasn't joined a cluster.
 func (api *PluginAPI) GetClusterNodeID() string {
-	if api.app.Cluster() == nil {
-		return ""
-	}
-	return api.app.Cluster().GetClusterId()
+	return api.app.ClusterNodeID()
 }
 
-// GetClusterNodes returns the nodes of the cluster, or an empty list when the
-// server is not part of a cluster.
+// GetClusterNodes returns the nodes connected to the cluster, or an empty list
+// when this node hasn't joined one. Nodes that are only registered are left
+// out: their Id is a registration ID, which can't be used as a TargetId.
 func (api *PluginAPI) GetClusterNodes() ([]*model.ClusterInfo, error) {
-	return api.app.GetClusterStatus(api.ctx)
+	nodes := []*model.ClusterInfo{}
+	if api.app.ClusterNodeID() == "" {
+		return nodes, nil
+	}
+	infos, err := api.app.GetClusterStatus(api.ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, info := range infos {
+		if info.IPAddress != "" {
+			nodes = append(nodes, info)
+		}
+	}
+	return nodes, nil
 }
 
 // RequestTrialLicense requests a trial license and installs it in the server

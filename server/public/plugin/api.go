@@ -1230,17 +1230,17 @@ type API interface {
 	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 
 	// GetClusterNodeID returns the cluster ID of the node the plugin is running on, for use as
-	// PluginClusterEventSendOptions.TargetId by other nodes. It returns an empty string when
-	// the server is not part of a High-Availability cluster.
+	// PluginClusterEventSendOptions.TargetId by other nodes. It returns an empty string until
+	// the node has joined a High-Availability cluster, e.g. when clustering is disabled.
 	//
 	// @tag Cluster
 	// Minimum server version: 12.1
 	GetClusterNodeID() string
 
-	// GetClusterNodes returns the nodes of the High-Availability cluster, including the one the
-	// plugin is running on. Nodes that are registered but not currently connected are listed
-	// without an IPAddress or ConfigHash. It returns an empty list when the server is not part
-	// of a cluster.
+	// GetClusterNodes returns the nodes connected to the High-Availability cluster, including
+	// the one the plugin is running on. Each Id can be used as
+	// PluginClusterEventSendOptions.TargetId. It returns an empty list until this node has
+	// joined a cluster. Each call may query the database, so avoid calling it on hot paths.
 	//
 	// @tag Cluster
 	// Minimum server version: 12.1

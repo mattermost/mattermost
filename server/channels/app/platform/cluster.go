@@ -65,8 +65,7 @@ func (ps *PlatformService) PublishPluginClusterEvent(productID string, ev model.
 		SendType:         opts.SendType,
 		WaitForAllToSend: false,
 		Props: map[string]string{
-			"EventID":  ev.Id,
-			"SourceID": ps.clusterIFace.GetClusterId(),
+			"EventID": ev.Id,
 		},
 		Data: ev.Data,
 	}
