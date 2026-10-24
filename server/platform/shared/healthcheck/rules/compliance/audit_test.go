@@ -32,7 +32,7 @@ func licensedLeader(sku string, features *model.Features) *healthcheck.NodeSnaps
 
 func recordedAudit(active bool) *healthcheck.NodeSnapshot {
 	leader := licensedLeader(model.LicenseShortSkuEnterprise, nil)
-	leader.Diagnostics.Diagnostics.Config.AuditLoggingActive = new(active)
+	leader.Diagnostics.Diagnostics.Config.AuditLoggingConfigured = new(active)
 	return leader
 }
 
@@ -72,11 +72,11 @@ func TestAuditLogOff(t *testing.T) {
 		{"server records inactive though the config enables the file", withUsers(configSnapshot(audit(true, ""), recordedAudit(false)), 5001), off("5001").withValue(5001)},
 		{"server records active though the config has no file enabled value", withUsers(configSnapshot(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }, recordedAudit(true)), 50000), resolved},
 		{"server records inactive though the config has no file enabled value", withUsers(configSnapshot(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }, recordedAudit(false)), 5001), off("5001").withValue(5001)},
-		{"server record ignored when its section failed", withUsers(configSnapshot(audit(false, ""), func() *healthcheck.NodeSnapshot {
+		{"server record used when another config collector failed", withUsers(configSnapshot(audit(false, ""), func() *healthcheck.NodeSnapshot {
 			leader := recordedAudit(true)
 			leader.Diagnostics.Errors = model.SectionErrors{model.SectionConfigSource: errors.New("collection failed")}
 			return leader
-		}()), 5001), off("5001").withValue(5001)},
+		}()), 5001), resolved},
 		{"file enabled absent", enterprise(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }), configUnknown},
 	}
 

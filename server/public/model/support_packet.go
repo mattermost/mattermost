@@ -75,8 +75,10 @@ type SupportPacketDiagnostics struct {
 
 	Config struct {
 		Source string `yaml:"store_type"`
-		// AuditLoggingActive is the server's own audit check, which depends on its environment and platform.
-		AuditLoggingActive *bool `yaml:"audit_logging_active,omitempty"`
+		// AuditLoggingConfigured is the server's own audit check of its config, license, environment and
+		// platform at packet time. The audit logger applies its targets only at startup, so after a runtime
+		// config or license change this can differ from what the server is writing.
+		AuditLoggingConfigured *bool `yaml:"audit_logging_configured,omitempty"`
 	} `yaml:"config"`
 
 	Database struct {

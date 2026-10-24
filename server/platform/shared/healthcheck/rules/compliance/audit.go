@@ -61,10 +61,12 @@ func evalAuditLogOff(s *healthcheck.Snapshot) healthcheck.Result {
 
 // Prefers the server's recorded result: checking the config here would use the environment and
 // platform of whatever machine evaluates a packet. Packets from older servers fall back to the config,
-// which is unavailable (ok=false) when its audit settings are missing.
+// which is unavailable (ok=false) when its audit settings are missing. The recorded value cannot fail to
+// collect, so it is not tied to any section's error.
 func auditLoggingActive(s *healthcheck.Snapshot) (bool, bool) {
-	if diag, found := s.LeaderDiag(model.SectionConfigSource); found && diag.Config.AuditLoggingActive != nil {
-		return *diag.Config.AuditLoggingActive, true
+	leader, _ := s.Leader()
+	if diag, found := leader.Diag(); found && diag.Config.AuditLoggingConfigured != nil {
+		return *diag.Config.AuditLoggingConfigured, true
 	}
 	if _, found := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ExperimentalAuditSettings.FileEnabled }); !found {
 		return false, false

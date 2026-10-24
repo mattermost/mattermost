@@ -106,7 +106,7 @@ func (ps *PlatformService) EnableLoggingMetrics() {
 
 // RemoveUnlicensedLogTargets removes any unlicensed log target types.
 func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
-	if license != nil && *license.Features.AdvancedLogging {
+	if license.HasAdvancedLogging() {
 		// advanced logging enabled via license; no need to remove any targets
 		return
 	}

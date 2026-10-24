@@ -315,7 +315,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)
-		assert.Equal(t, new(false), d.Config.AuditLoggingActive)
+		assert.Equal(t, new(false), d.Config.AuditLoggingConfigured)
 
 		/* DB */
 		require.NotNil(t, d.Database.Type)
@@ -497,9 +497,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Contains(t, body, "    ldap: true\n")
 	})
 
-	t.Run("audit_logging_active records this server's audit targets", func(t *testing.T) {
+	t.Run("audit_logging_configured records this server's audit targets", func(t *testing.T) {
 		setAudit := func(t *testing.T, fileEnabled bool, advanced string) {
 			t.Helper()
+			prior := th.Service.Config().Clone().ExperimentalAuditSettings
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.ExperimentalAuditSettings.FileEnabled = new(fileEnabled)
 				cfg.ExperimentalAuditSettings.FileName = new("audit.log")
@@ -507,9 +508,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			})
 			t.Cleanup(func() {
 				th.Service.UpdateConfig(func(cfg *model.Config) {
-					cfg.ExperimentalAuditSettings.FileEnabled = new(false)
-					cfg.ExperimentalAuditSettings.FileName = new("")
-					cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage("{}")
+					cfg.ExperimentalAuditSettings = prior
 				})
 			})
 		}
@@ -518,16 +517,16 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		t.Run("file enabled", func(t *testing.T) {
 			setAudit(t, true, "{}")
 			d := getDiagnostics(t)
-			assert.Equal(t, new(true), d.Config.AuditLoggingActive)
+			assert.Equal(t, new(true), d.Config.AuditLoggingConfigured)
 
 			fileData, err := supportPacketDiagnosticsFile(d, nil)
 			require.NoError(t, err)
-			assert.Contains(t, string(fileData.Body), "  audit_logging_active: true #")
+			assert.Contains(t, string(fileData.Body), "  audit_logging_configured: true #")
 		})
 
 		t.Run("advanced target with advanced logging licensed", func(t *testing.T) {
 			setAudit(t, false, auditTarget)
-			assert.Equal(t, new(true), getDiagnostics(t).Config.AuditLoggingActive)
+			assert.Equal(t, new(true), getDiagnostics(t).Config.AuditLoggingConfigured)
 		})
 
 		t.Run("advanced target without advanced logging license", func(t *testing.T) {
@@ -539,7 +538,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 				require.True(t, th.Service.SetLicense(license))
 			})
 
-			assert.Equal(t, new(false), getDiagnostics(t).Config.AuditLoggingActive)
+			assert.Equal(t, new(false), getDiagnostics(t).Config.AuditLoggingConfigured)
 		})
 	})
 
@@ -1675,7 +1674,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.BuildHash = "abc123"
 	diagnostics.Server.GoVersion = "go1.26"
 	diagnostics.Config.Source = "memory://"
-	diagnostics.Config.AuditLoggingActive = new(true)
+	diagnostics.Config.AuditLoggingConfigured = new(true)
 	diagnostics.Database.Type = new("postgres")
 	diagnostics.Database.Version = new("16.4")
 	diagnostics.Database.SchemaVersion = new("123")

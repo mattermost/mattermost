@@ -514,7 +514,7 @@ Version
 
 		reportsAuditLogOff := func(serverAuditActive bool) bool {
 			files := healthTestPacketFiles()
-			files[model.SupportPacketDiagnosticsFileName] += "config:\n  audit_logging_active: " + strconv.FormatBool(serverAuditActive) + "\n"
+			files[model.SupportPacketDiagnosticsFileName] += "config:\n  audit_logging_configured: " + strconv.FormatBool(serverAuditActive) + "\n"
 			files[model.SupportPacketStatsFileName] = "registered_users: 6000\n"
 			files[model.SupportPacketConfigFileName] = string(noAuditTargets)
 

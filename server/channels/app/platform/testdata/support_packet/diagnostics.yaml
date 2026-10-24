@@ -32,7 +32,7 @@ server:
   go_version: go1.26
 config:
   store_type: memory://
-  audit_logging_active: true # this server's own audit check; offline health checks use it instead of the config
+  audit_logging_configured: true # this server's audit check of its current config and license; offline health checks use it
 database:
   type: postgres
   version: "16.4"

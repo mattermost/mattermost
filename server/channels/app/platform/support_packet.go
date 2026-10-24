@@ -52,7 +52,7 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.server.max_file_descriptors":      {yaml.LineComment(" system limit (ulimit -n)")},
 	"$.server.version":                   {yaml.HeadComment(" Software")},
 
-	"$.config.audit_logging_active": {yaml.LineComment(" this server's own audit check; offline health checks use it instead of the config")},
+	"$.config.audit_logging_configured": {yaml.LineComment(" this server's audit check of its current config and license; offline health checks use it")},
 
 	// database: sql.DBStats cumulative counters (lifetime of process; all drivers)
 	"$.database.master_pool_wait_count":                  {yaml.LineComment(" cumulative; total times a goroutine waited for a connection since process start")},
@@ -244,9 +244,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()
-	license := ps.License()
-	allowAdvancedLogging := license != nil && license.Features != nil && model.SafeDereference(license.Features.AdvancedLogging)
-	d.Config.AuditLoggingActive = new(config.IsAuditLoggingActive(ps.Config().ExperimentalAuditSettings, allowAdvancedLogging))
+	d.Config.AuditLoggingConfigured = new(config.IsAuditLoggingActive(ps.Config().ExperimentalAuditSettings, ps.License().HasAdvancedLogging()))
 
 	/* DB */
 	databaseType, schemaVersion, err := ps.DatabaseTypeAndSchemaVersion()
