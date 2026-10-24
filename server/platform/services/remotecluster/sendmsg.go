@@ -150,7 +150,7 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteClu
 	req.Header.Set(model.HeaderRemoteclusterId, rc.RemoteId)
 	req.Header.Set(model.HeaderRemoteclusterToken, rc.RemoteToken)
 
-	body, err = rcs.sendRemoteRequest(req.WithContext(ctx), true)
+	body, err = rcs.sendRemoteRequest(req.WithContext(ctx))
 	if metrics := rcs.server.GetMetrics(); metrics != nil {
 		if err != nil {
 			var timeoutErr interface{ Timeout() bool }

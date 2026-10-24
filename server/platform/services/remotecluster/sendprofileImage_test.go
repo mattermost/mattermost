@@ -150,9 +150,8 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 }
 
 // TestService_sendProfileImageToRemote_ResponseHandling exercises sendProfileImageToRemote against
-// a remote whose reply varies in size, shape and status. This call site makes no use of the reply
-// body, so the cases cover the status it reports and how much of a reply the remote gets to send
-// before the caller stops reading.
+// a remote whose reply varies in size, shape and status. The cases cover what the caller makes of
+// each reply, and how much of a reply the remote gets to send before the caller stops reading.
 func TestService_sendProfileImageToRemote_ResponseHandling(t *testing.T) {
 	rs := newResponseServer()
 	defer rs.Close()
@@ -187,48 +186,15 @@ func TestService_sendProfileImageToRemote_ResponseHandling(t *testing.T) {
 	// The complete reply of a remote that stored the image.
 	reply := []byte(model.MapToJSON(map[string]string{model.STATUS: model.StatusOk}))
 
-	assertReplyCases(t, rs, call, []replyCase{
-		{
-			name:  "complete reply",
-			reply: replyBody{prefix: reply},
-		},
-		{
-			name:  "empty reply",
-			reply: replyBody{},
-		},
-		{
-			// The body is of no use to this call site, so its length does not change the outcome.
-			name:  "reply far longer than the caller reads",
-			reply: replyBody{prefix: reply, padLen: paddingBeyondRead},
-		},
-		{
-			name:    "error status with a complete reply",
-			reply:   replyBody{prefix: reply, status: http.StatusInternalServerError},
-			wantErr: true,
-			errText: "500",
-		},
-		{
-			name:    "error status with a reply far longer than the caller reads",
-			reply:   replyBody{prefix: reply, padLen: paddingBeyondRead, status: http.StatusInternalServerError},
-			wantErr: true,
-			errText: "500",
-		},
-		{
-			// The remote declares more than it sends and then closes the connection.
-			name:    "reply cut off partway",
-			reply:   replyBody{prefix: reply, declaredLength: len(reply) + 1024},
-			wantErr: true,
-			errIs:   errRemoteUnreachable,
-		},
-		{
-			// The body is of no use to this call site, so failing to read it does not hide the status.
-			name:     "error status with a reply cut off partway",
-			reply:    replyBody{prefix: reply, status: http.StatusRequestEntityTooLarge, declaredLength: len(reply) + 1024},
-			wantErr:  true,
-			errText:  "413",
-			errIsNot: errRemoteUnreachable,
-		},
+	t.Run("complete reply", func(t *testing.T) {
+		rs.setReply(replyBody{prefix: reply})
+		defer rs.awaitIdle(t)
+
+		require.NoError(t, call(defaultCallTimeout))
 	})
+
+	// This call site ignores the reply body, so a reply with no body at all is not an error.
+	assertReplyCases(t, rs, call, sharedReplyCases(reply, true))
 
 	t.Run("connection is available to the calls that follow", func(t *testing.T) {
 		rs.setReply(replyBody{prefix: reply})

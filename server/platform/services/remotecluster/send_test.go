@@ -223,7 +223,7 @@ func TestService_sendFileToRemote_ResponseHandling(t *testing.T) {
 	})
 
 	// A reply with no body at all carries no FileInfo for this call site to decode.
-	assertReplyCases(t, rs, call, decodedReplyCases(reply, false))
+	assertReplyCases(t, rs, call, sharedReplyCases(reply, false))
 
 	assertReplyBytesServedStaysBounded(t, rs, reply, call)
 }
@@ -274,7 +274,7 @@ func TestService_sendFrameToRemote_ResponseHandling(t *testing.T) {
 
 	// This call site hands the bytes back for its callers to decode, so a reply with no body at
 	// all reaches them as an empty slice rather than as an error.
-	cases := decodedReplyCases(reply, true)
+	cases := sharedReplyCases(reply, true)
 
 	// A remote that goes quiet partway through its reply is answered by the call timeout, which
 	// this case shortens so it does not have to wait out the default.
@@ -536,10 +536,10 @@ type replyCase struct {
 	errIsNot error  // sentinel the error must not wrap, when the case is specific about it
 }
 
-// decodedReplyCases returns the cases shared by the call sites that read a remote's reply and go on
-// to decode it. prefix is the complete, well-formed reply such a remote returns; emptyReplyIsOK
-// says whether the call site accepts a reply with no body at all.
-func decodedReplyCases(prefix []byte, emptyReplyIsOK bool) []replyCase {
+// sharedReplyCases returns the cases shared by every call site that reads a remote's reply. prefix
+// is the complete, well-formed reply such a remote returns; emptyReplyIsOK says whether the call
+// site accepts a reply with no body at all.
+func sharedReplyCases(prefix []byte, emptyReplyIsOK bool) []replyCase {
 	// Padding that brings a reply to exactly the most a caller reads of one.
 	upToRead := int64(MaxRemoteResponseSize - len(prefix))
 
@@ -693,62 +693,35 @@ func assertReplyBytesServedStaysBounded(t *testing.T, rs *responseServer, prefix
 	})
 }
 
-// TestRemoteResponseReadLength covers how much of a remote's reply is read by each of the two ways
-// of handling one, for a single caller and for concurrent callers. Unlike the call site tests it
-// hands the reply straight to them rather than over a connection, so the lengths it asserts are
-// exact rather than an allowance.
+// TestRemoteResponseReadLength covers how much of a remote's reply readRemoteResponse reads, for a
+// single caller and for concurrent callers. Unlike the call site tests it hands the reply straight
+// to it rather than over a connection, so the lengths it asserts are exact rather than an allowance.
 func TestRemoteResponseReadLength(t *testing.T) {
-	handlers := []struct {
-		name     string
-		handle   func(body io.Reader) error
-		maxRead  int64
-		wantErr  bool
-		wantWhat string
-	}{
-		{
-			name:     "read for its content",
-			handle:   func(body io.Reader) error { _, err := readRemoteResponse(body); return err },
-			maxRead:  MaxRemoteResponseSize + 1,
-			wantErr:  true,
-			wantWhat: "a reply too long to return is reported as an error",
-		},
-		{
-			name:     "read only to leave the connection reusable",
-			handle:   drainRemoteResponse,
-			maxRead:  MaxRemoteResponseSize,
-			wantWhat: "a reply that is of no use to the caller is not an error however long it is",
-		},
-	}
+	const maxRead = MaxRemoteResponseSize + 1
 
-	for _, h := range handlers {
-		for _, callers := range []int{1, concurrentCallers} {
-			t.Run(fmt.Sprintf("%s, %d caller(s)", h.name, callers), func(t *testing.T) {
-				var read atomic.Int64
-				errs := make([]error, callers)
+	for _, callers := range []int{1, concurrentCallers} {
+		t.Run(fmt.Sprintf("%d caller(s)", callers), func(t *testing.T) {
+			var read atomic.Int64
+			errs := make([]error, callers)
 
-				var wg sync.WaitGroup
-				wg.Add(callers)
-				for i := range callers {
-					go func() {
-						defer wg.Done()
-						errs[i] = h.handle(&generatedReply{remaining: directReplyLength, read: &read})
-					}()
-				}
-				wg.Wait()
+			var wg sync.WaitGroup
+			wg.Add(callers)
+			for i := range callers {
+				go func() {
+					defer wg.Done()
+					_, errs[i] = readRemoteResponse(&generatedReply{remaining: directReplyLength, read: &read})
+				}()
+			}
+			wg.Wait()
 
-				for _, err := range errs {
-					if h.wantErr {
-						assert.Error(t, err, h.wantWhat)
-					} else {
-						assert.NoError(t, err, h.wantWhat)
-					}
-				}
+			for _, err := range errs {
+				assert.ErrorIs(t, err, errRemoteResponseTooLarge, "a reply too long to return is reported as an error")
+			}
 
-				assert.LessOrEqual(t, read.Load(), h.maxRead*int64(callers),
-					"read %.1f MiB of the %.1f MiB offered across %d caller(s)",
-					mib(read.Load()), mib(directReplyLength*int64(callers)), callers)
-			})
-		}
+			assert.LessOrEqual(t, read.Load(), maxRead*int64(callers),
+				"read %.1f MiB of the %.1f MiB offered across %d caller(s)",
+				mib(read.Load()), mib(directReplyLength*int64(callers)), callers)
+		})
 	}
 }
 

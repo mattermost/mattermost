@@ -18,28 +18,15 @@ import (
 const MaxRemoteResponseSize = 1024 * 1024
 
 // sendRemoteRequest sends req to a remote server and returns the body of its reply, read with
-// readRemoteResponse, or discarded with drainRemoteResponse when readBody is false. A failure to send
-// the request or to read the reply wraps errRemoteUnreachable, and a reply longer than
-// MaxRemoteResponseSize wraps errRemoteResponseTooLarge. A non-200 status is an error, returned with
-// the body when it was read in full.
-func (rcs *Service) sendRemoteRequest(req *http.Request, readBody bool) ([]byte, error) {
+// readRemoteResponse. A failure to send the request or to read the reply wraps errRemoteUnreachable,
+// and a reply longer than MaxRemoteResponseSize wraps errRemoteResponseTooLarge. A non-200 status is
+// an error, returned with the body when it was read in full.
+func (rcs *Service) sendRemoteRequest(req *http.Request) ([]byte, error) {
 	resp, err := rcs.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", errRemoteUnreachable, err)
 	}
 	defer resp.Body.Close()
-
-	if !readBody {
-		// The body is unused, so failing to drain it must not hide the status.
-		drainErr := drainRemoteResponse(resp.Body)
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
-		}
-		if drainErr != nil {
-			return nil, fmt.Errorf("%w: %w", errRemoteUnreachable, drainErr)
-		}
-		return nil, nil
-	}
 
 	body, err := readRemoteResponse(resp.Body)
 	if err != nil && !errors.Is(err, errRemoteResponseTooLarge) {
@@ -70,13 +57,6 @@ func readRemoteResponse(body io.Reader) ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
-}
-
-// drainRemoteResponse reads and discards up to MaxRemoteResponseSize bytes of a remote server's
-// reply, allowing the HTTP connection to be reused. It is for callers that make no use of the body.
-func drainRemoteResponse(body io.Reader) error {
-	_, err := io.Copy(io.Discard, io.LimitReader(body, MaxRemoteResponseSize))
-	return err
 }
 
 // Response represents the bytes replied from a remote server when a message is sent.

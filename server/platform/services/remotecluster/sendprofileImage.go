@@ -135,6 +135,6 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	_, err = rcs.sendRemoteRequest(req.WithContext(ctx), false)
+	_, err = rcs.sendRemoteRequest(req.WithContext(ctx))
 	return err
 }
