@@ -157,6 +157,13 @@ export interface CELEditorProps {
      */
     onTestClick?: () => void;
 
+    /** Force the test button into the disabled state (overrides default). */
+    testButtonDisabled?: boolean;
+
+    /** Tooltip shown when the test button is disabled, in place of the
+     *  built-in reason. Useful for explaining why testing is unavailable. */
+    testButtonTooltip?: string;
+
     /** Optional label override for the test button. Lets the
      *  permission-rule editor render "Simulate rules" instead of the
      *  default "Test access rule" copy. */
@@ -179,6 +186,8 @@ function CELEditor({
     userAttributes,
     resourceAttributes = [],
     onTestClick,
+    testButtonDisabled = false,
+    testButtonTooltip,
     testButtonLabel,
     hasMaskedRows = false,
     actions,
@@ -508,13 +517,11 @@ function CELEditor({
                     <TestButton
                         onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
                         label={testButtonLabel}
-                        disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
-                        disabledTooltip={
-                            hasMaskedRows ? intl.formatMessage({
-                                id: 'admin.access_control.cel_editor.masked_values_tooltip',
-                                defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
-                            }) : undefined
-                        }
+                        disabled={testButtonDisabled || disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                        disabledTooltip={testButtonTooltip ?? (hasMaskedRows ? intl.formatMessage({
+                            id: 'admin.access_control.cel_editor.masked_values_tooltip',
+                            defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
+                        }) : undefined)}
                     />
                 </div>
             </div>

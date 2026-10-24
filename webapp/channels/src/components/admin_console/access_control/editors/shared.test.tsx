@@ -7,7 +7,9 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
+import {TestButton, celPrefixForField, excludeHiddenNativeFields, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
+
+import {fixture} from '../cel_expression_test_fixtures';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
@@ -569,6 +571,21 @@ describe('excludeSessionAttributes', () => {
     });
 });
 
+describe('excludeHiddenNativeFields', () => {
+    const nativeEmail = makeField('email', {native: true});
+    const nativeCreateAt = makeField('createat', {native: true});
+    const customEmail = makeField('email', {managed: 'admin'});
+    const fields = [nativeEmail, nativeCreateAt, customEmail];
+
+    test('drops only native fields with a hidden name', () => {
+        expect(excludeHiddenNativeFields(fields, ['email', 'isbot'])).toEqual([nativeCreateAt, customEmail]);
+    });
+
+    test.each([undefined, []])('returns the same array when the hidden list is %p', (hidden) => {
+        expect(excludeHiddenNativeFields(fields, hidden)).toBe(fields);
+    });
+});
+
 describe('celPrefixForField', () => {
     test('session field resolves to the user.session namespace', () => {
         expect(celPrefixForField({object_type: 'session'})).toBe('user.session.');
@@ -700,6 +717,40 @@ describe('isSimpleExpression / isSimpleCondition with graph attributes', () => {
 
     test('a hierarchy predicate on the resource side is not simple', () => {
         expect(isSimpleCondition('resource.attributes.programs.coversAll(["F-18 Program"])')).toBe(false);
+    });
+});
+
+describe('isSimpleExpression on server-serialized bodies', () => {
+    it.each([
+        'a masking on GET',
+        'a masking off GET',
+        'd1 masking on GET',
+        'd1 masking off GET',
+        'd2 masking on GET',
+        'd3 masking on GET',
+        'e masking on GET',
+        'e masking off GET',
+    ])('%s is simple', (name) => {
+        expect(isSimpleExpression(fixture(name).expression)).toBe(true);
+    });
+
+    it.each([
+        'b masking on GET',
+        'b masking off GET',
+        'c masking on GET',
+        'c masking off GET',
+    ])('%s is not simple', (name) => {
+        expect(isSimpleExpression(fixture(name).expression)).toBe(false);
+    });
+});
+
+describe('isSimpleExpression with comments', () => {
+    test('a separator inside a comment does not split the expression', () => {
+        expect(isSimpleExpression('user.attributes.A.startsWith("x") // c) && user.attributes.B == "y"')).toBe(false);
+    });
+
+    test('a quote inside a comment does not hide a later separator', () => {
+        expect(isSimpleExpression('user.attributes.A == "x" // it\'s\n&& user.attributes.B == "y"')).toBe(false);
     });
 });
 
