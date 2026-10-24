@@ -43,6 +43,12 @@ type TestHelper struct {
 
 	// Channel is an open channel created in Team for this test.
 	Channel *model.Channel
+
+	// Nodes are the Mattermost servers: one for Setup, one per cluster member for
+	// SetupCluster. ServerURL, AdminClient and Client belong to Nodes[0].
+	Nodes []*Node
+
+	containers *mmContainers
 }
 
 // Static plugin metadata, cached via sync.Once (never changes between tests).
@@ -171,6 +177,12 @@ func leaseTimeout(t *testing.T) <-chan time.Time {
 func Setup(t *testing.T) *TestHelper {
 	t.Helper()
 
+	return setup(t, singleNode)
+}
+
+func setup(t *testing.T, topo topology) *TestHelper {
+	t.Helper()
+
 	if os.Getenv("SKIP_DOCKER_TESTS") != "" {
 		t.Skip("Skipping integration test (SKIP_DOCKER_TESTS is set)")
 	}
@@ -179,8 +191,13 @@ func Setup(t *testing.T) *TestHelper {
 	// tests do not clobber each other's global state (config, DB) mid-run.
 	acquireInstance(t)
 
-	c, err := ensureContainers(t)
+	c, err := ensureContainers(t, topo)
 	require.NoError(t, err, "Docker is required for integration tests")
+	t.Cleanup(func() {
+		if t.Failed() {
+			dumpNodeLogs(t, c)
+		}
+	})
 
 	require.NoError(t, ensurePluginMeta(), "failed to resolve plugin metadata")
 
@@ -193,20 +210,28 @@ func Setup(t *testing.T) *TestHelper {
 	require.NoError(t, err, "failed to reset database")
 
 	th := &TestHelper{
-		t:         t,
-		ServerURL: c.serverURL,
+		t:          t,
+		ServerURL:  c.nodes[0].url,
+		containers: c,
 	}
 
 	// Login as admin (freshly re-created by resetDatabase).
-	th.AdminClient = model.NewAPIv4Client(c.serverURL)
+	th.AdminClient = model.NewAPIv4Client(th.ServerURL)
 	_, _, err = th.AdminClient.Login(ctx, adminUsername, adminPassword)
 	require.NoError(t, err, "failed to login as admin")
 
 	th.AdminUser, _, err = th.AdminClient.GetMe(ctx, "")
 	require.NoError(t, err, "failed to get admin user")
 
+	if topo.cluster {
+		th.requireClusterLicense()
+	}
+	// In a cluster, this waits for the nodes to join each other, so the plugin
+	// installed below reaches all of them.
+	th.newNodes(c)
+
 	// Deploy plugin. After DB reset plugin state is cleared, so we re-deploy every time.
-	err = deployPlugin(ctx, th.AdminClient)
+	err = deployPlugin(ctx, th.AdminClient, len(c.nodes))
 	require.NoError(t, err, "failed to deploy plugin")
 
 	// Create fresh test data.
@@ -218,10 +243,17 @@ func Setup(t *testing.T) *TestHelper {
 	_, _, err = th.AdminClient.AddChannelMember(ctx, th.Channel.Id, th.User.Id)
 	require.NoError(t, err, "failed to add user to channel")
 
+	th.Nodes[0].Client = th.Client
+	for _, n := range th.Nodes[1:] {
+		n.Client = clientFor(n.URL, th.Client)
+	}
+
 	return th
 }
 
-func deployPlugin(ctx context.Context, client *model.Client4) error {
+// deployPlugin installs and enables the plugin, and waits until it runs on each
+// of the given number of nodes.
+func deployPlugin(ctx context.Context, client *model.Client4, nodes int) error {
 	f, err := os.Open(pluginBundle) //nolint:gosec
 	if err != nil {
 		return fmt.Errorf("open bundle %s: %w", pluginBundle, err)
@@ -241,7 +273,8 @@ func deployPlugin(ctx context.Context, client *model.Client4) error {
 		return fmt.Errorf("enable plugin: %w", err)
 	}
 
-	// Poll until the plugin reaches Running state.
+	// Poll until the plugin reaches Running state on every node. Statuses list one
+	// entry per node, told apart by ClusterId.
 	pollCtx, cancel := context.WithDeadline(ctx, time.Now().Add(30*time.Second))
 	defer cancel()
 
@@ -251,10 +284,14 @@ func deployPlugin(ctx context.Context, client *model.Client4) error {
 		if statusErr != nil {
 			lastStatusErr = statusErr
 		} else {
+			running := map[string]bool{}
 			for _, s := range statuses {
 				if s.PluginId == pluginID && s.State == model.PluginStateRunning {
-					return nil
+					running[s.ClusterId] = true
 				}
+			}
+			if len(running) >= nodes {
+				return nil
 			}
 		}
 		select {
