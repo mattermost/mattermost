@@ -8,11 +8,13 @@ import (
 	"io"
 	"net"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/moby/moby/client"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 
@@ -116,29 +118,38 @@ func (th *TestHelper) requireClusterLicense() {
 
 // waitForCluster waits until every running node is a cluster member, and records
 // each node's cluster ID. Members are matched to containers by their gossip
-// address, which is the container's address on the Docker network.
-func (th *TestHelper) waitForCluster() {
+// address, which is the container's address on the Docker network. Members with
+// a stale ID, that of a node before it restarted, are ignored: a restarted node
+// may get its old address back while its old member is still listed.
+func (th *TestHelper) waitForCluster(stale ...string) {
 	th.t.Helper()
 
 	var running []*Node
 	for _, n := range th.Nodes {
 		state, err := n.nc.container.State(th.t.Context())
 		require.NoError(th.t, err, "failed to read state of %s", n.Hostname)
-		if state.Running && !n.nc.paused {
+		switch {
+		case !state.Running:
+			// A stopped node is no cluster member, and Docker may have handed its
+			// address to another node.
+			n.ID = ""
+		case !n.nc.paused:
 			running = append(running, n)
 		}
+		// A paused node keeps its ID: it is still the same cluster member.
 	}
 
 	require.NotEmpty(th.t, running, "no node is running")
 
 	var ids map[string]string // container address -> cluster ID
-	require.Eventually(th.t, func() bool {
+	require.EventuallyWithT(th.t, func(c *assert.CollectT) {
 		infos, _, err := running[0].AdminClient.GetClusterStatus(th.t.Context())
-		if err != nil {
-			return false
-		}
+		require.NoError(c, err, "failed to read cluster status")
 		ids = make(map[string]string, len(infos))
 		for _, info := range infos {
+			if slices.Contains(stale, info.Id) {
+				continue
+			}
 			// Registered nodes that aren't connected have no gossip address.
 			host, _, err := net.SplitHostPort(info.IPAddress)
 			if err == nil {
@@ -146,14 +157,11 @@ func (th *TestHelper) waitForCluster() {
 			}
 		}
 		for _, n := range running {
-			if ids[n.nc.ip] == "" {
-				return false
-			}
+			assert.NotEmpty(c, ids[n.nc.ip], "%s has not joined the cluster; members: %v", n.Hostname, ids)
 		}
-		return true
-	}, clusterFormTimeout, time.Second, "cluster did not form: want %d connected nodes, have %v", len(running), ids)
+	}, clusterFormTimeout, time.Second, "cluster did not form: want %d connected nodes", len(running))
 
-	for _, n := range th.Nodes {
+	for _, n := range running {
 		n.ID = ids[n.nc.ip]
 	}
 }
@@ -215,6 +223,7 @@ func (n *Node) Stop(t *testing.T) {
 func (n *Node) Start(t *testing.T) {
 	t.Helper()
 
+	oldID := n.ID
 	require.NoError(t, n.nc.start(t.Context()))
 	n.URL = n.nc.url
 	retarget(n.AdminClient, n.URL)
@@ -223,7 +232,7 @@ func (n *Node) Start(t *testing.T) {
 		n.th.ServerURL = n.URL
 	}
 	if n.th.containers.topology.cluster {
-		n.th.waitForCluster()
+		n.th.waitForCluster(oldID)
 	}
 }
 

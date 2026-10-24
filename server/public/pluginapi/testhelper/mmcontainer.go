@@ -5,6 +5,7 @@ package testhelper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -304,6 +305,8 @@ func (n *nodeContainer) stop(ctx context.Context) error {
 	if err := n.container.Stop(ctx, &stopTimeout); err != nil {
 		return fmt.Errorf("failed to stop %s: %w", n.hostname, err)
 	}
+	// Docker stops a paused container too, which leaves it no longer paused.
+	n.paused = false
 	return nil
 }
 
@@ -357,10 +360,15 @@ func resetDatabase(ctx context.Context, c *mmContainers) error {
 	if err := first.start(ctx); err != nil {
 		return err
 	}
-	for _, n := range c.nodes[1:] {
-		if err := n.start(ctx); err != nil {
-			return err
-		}
+	// The other nodes find the schema in place, so they can boot side by side.
+	errs := make([]error, len(c.nodes)-1)
+	var wg sync.WaitGroup
+	for i, n := range c.nodes[1:] {
+		wg.Go(func() { errs[i] = n.start(ctx) })
+	}
+	wg.Wait()
+	if err := errors.Join(errs...); err != nil {
+		return err
 	}
 
 	// Re-create the admin user since the Users table was truncated.
