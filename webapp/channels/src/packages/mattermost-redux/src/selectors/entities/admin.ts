@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {LogNodeKey} from '@mattermost/types/admin';
 import type {LogObject, LogObjectWithNode} from '@mattermost/types/admin';
 import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import type {PluginStatusRedux} from '@mattermost/types/plugins';
@@ -35,7 +36,7 @@ export const getAllLogsWithNode = createSelector(
         // The reducer stores the query response unchanged: entries keyed by node name
         const logsByNode = logs as unknown as Record<string, LogObject[]>;
         return Object.entries(logsByNode).flatMap(([node, entries]) =>
-            entries.map((entry): LogObjectWithNode => ({...entry, node})),
+            entries.map((entry): LogObjectWithNode => ({...entry, [LogNodeKey]: node})),
         );
     },
 );

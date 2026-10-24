@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {LogLevelEnum} from '@mattermost/types/admin';
+import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 import type {LogObject} from '@mattermost/types/admin';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -31,9 +31,9 @@ describe('selectors.entities.admin', () => {
         const state = stateWith({'node-a': [e1, e2], 'node-b': [e3]});
 
         expect(getAllLogsWithNode(state)).toEqual([
-            {...e1, node: 'node-a'},
-            {...e2, node: 'node-a'},
-            {...e3, node: 'node-b'},
+            {...e1, [LogNodeKey]: 'node-a'},
+            {...e2, [LogNodeKey]: 'node-a'},
+            {...e3, [LogNodeKey]: 'node-b'},
         ]);
     });
 
@@ -51,10 +51,10 @@ describe('selectors.entities.admin', () => {
         expect(getAllLogsWithNode(state)).toBe(getAllLogsWithNode(state));
     });
 
-    test('getAllLogsWithNode keeps the node it came from over a node field in the entry', () => {
-        const state = stateWith({'node-a': [{...e1, node: 'other'}]});
+    test('getAllLogsWithNode keeps a node field the server logged', () => {
+        const state = stateWith({'node-a': [{...e1, node: 'node-b'}]});
 
-        expect(getAllLogsWithNode(state)).toEqual([{...e1, node: 'node-a'}]);
+        expect(getAllLogsWithNode(state)).toEqual([{...e1, node: 'node-b', [LogNodeKey]: 'node-a'}]);
     });
 
     test('getAllLogsWithNode leaves the stored entries untouched', () => {

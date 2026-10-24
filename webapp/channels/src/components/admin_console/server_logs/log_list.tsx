@@ -7,6 +7,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import {LogNodeKey} from '@mattermost/types/admin';
 
 import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
@@ -132,9 +133,11 @@ export function loadPrefs(): StoredPrefs {
     };
 }
 
-// Every field counts: concurrent requests log the same message, caller and millisecond
+// Every field counts: concurrent requests log the same message, caller and millisecond.
+// The node is a symbol, which Object.keys skips, so it's added for nodes logging the same line
 function logKey(log: LogObjectWithAdditionalInfo): string {
-    return Object.keys(log).sort().map((field) => `${field}=${formatLogValue(log[field])}`).join('|');
+    const fields = Object.keys(log).sort().map((field) => `${field}=${formatLogValue(log[field])}`).join('|');
+    return `${log[LogNodeKey] ?? ''}|${fields}`;
 }
 
 // Content keys keep rows mounted across reloads; identical entries get a suffix
@@ -229,7 +232,7 @@ export default function LogList({
             return logs;
         }
         return logs.filter((log) => {
-            if (selectedNode && log.node !== selectedNode) {
+            if (selectedNode && log[LogNodeKey] !== selectedNode) {
                 return false;
             }
             if (cutoff === null || log.msg === FAILED_NODE_MSG) {
@@ -261,8 +264,8 @@ export default function LogList({
 
         if (search) {
             const lowerSearch = search.toLowerCase();
-            filtered = filtered.filter((log) => Object.entries(log).some(([key, value]) =>
-                key !== 'level' && key !== 'timestamp' && (showNodes || key !== 'node') && formatLogValue(value).toLowerCase().includes(lowerSearch),
+            filtered = filtered.filter((log) => (showNodes && log[LogNodeKey]?.toLowerCase().includes(lowerSearch)) || Object.entries(log).some(([key, value]) =>
+                key !== 'level' && key !== 'timestamp' && formatLogValue(value).toLowerCase().includes(lowerSearch),
             ));
         }
 
