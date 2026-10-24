@@ -313,6 +313,11 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 		// new user.  Make sure the remoteID is correct and insert the record
 		// Preserve original remote ID before overwriting RemoteId
 		originalRemoteId := user.GetRemoteID()
+		// A local origin user has no RemoteId before synchronization.
+		// Forwarded users may carry synthetic email addresses.
+		if originalRemoteId == "" {
+			user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
+		}
 		user.RemoteId = new(rc.RemoteId)
 		if user.Props == nil || user.Props[model.UserPropsKeyOriginalRemoteId] == "" {
 			if originalRemoteId == "" {
@@ -334,9 +339,12 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			)
 			return nil, fmt.Errorf("error updating user: %w", ErrRemoteIDMismatch)
 		}
-		// save the updated username and email in props
+		// Preserve the original email for forwarded users.
+		// Their Email field may contain a synthetic local value.
 		user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
-		user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
+		if user.GetRemoteID() == "" {
+			user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
+		}
 
 		patch := &model.UserPatch{
 			Username:  &user.Username,
@@ -348,6 +356,14 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
 		}
+		// Use the originating user's email, or the original email
+		// provided by the forwarding remote when available.
+		if user.GetRemoteID() == "" {
+			patch.Email = &user.Email
+		} else if remoteEmail, ok := user.GetProp(model.UserPropsKeyRemoteEmail); ok && remoteEmail != "" {
+			patch.Email = &remoteEmail
+		}
+
 		if userSaved, err = scs.updateSyncUser(rctx, patch, euser, channel, rc); err != nil {
 			return nil, err
 		}
@@ -381,9 +397,9 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	// ensure the new user is created with system_user role and random password.
 	user = sanitizeUserForSync(user)
 
-	// save the original username and email in props
+	// RemoteEmail was selected before the incoming RemoteId was rewritten.
+	// Preserve it instead of replacing it with a synthetic email.
 	user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
-	user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
 	// rare since we are joining a username that is unique at a remote site with a unique
