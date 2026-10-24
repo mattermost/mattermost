@@ -49,6 +49,24 @@ export function readGlossary(tree, locale) {
     }));
 }
 
+/** The glossary entries a source string uses, as hints for its translator. */
+export function termsIn(glossary, english) {
+    const text = flatten(english);
+    const out = [];
+    for (const entry of glossary) {
+        if (entry.patterns.some(({re}) => re.test(text))) {
+            out.push({
+                term: entry.term,
+                ...(entry.target === undefined ? {} : {target: entry.target}),
+                ...(entry.note ? {note: entry.note} : {}),
+                ...(entry.doNotTranslate ? {doNotTranslate: true} : {}),
+                ...(entry.commonWord ? {commonWord: true} : {}),
+            });
+        }
+    }
+    return out;
+}
+
 /**
  * A locale's style.json entry, with avoid compiled into one pattern, or null.
  * skipSentenceStart is for languages whose formal pronoun is also an ordinary
