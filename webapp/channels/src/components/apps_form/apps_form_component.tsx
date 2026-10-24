@@ -1017,15 +1017,15 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return (
-            <>
-                <div>
-                    {this.state.formError && (
-                        <div>
-                            <div className='error-text'>
-                                <Markdown message={this.state.formError}/>
-                            </div>
+            <div className='apps-form-footer'>
+                {this.state.formError && (
+                    <div className='apps-form-footer__error'>
+                        <div className='error-text'>
+                            <Markdown message={this.state.formError}/>
                         </div>
-                    )}
+                    </div>
+                )}
+                <div className='apps-form-footer__buttons'>
                     <Button
                         id={this.elementId('appsModalCancel')}
                         type='button'
@@ -1039,7 +1039,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     </Button>
                     {submitButtons}
                 </div>
-            </>
+            </div>
         );
     }
 
