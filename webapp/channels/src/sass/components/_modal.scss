@@ -168,7 +168,22 @@
         justify-content: end;
         padding: 24px 32px;
         border: none;
-        grid-row-gap: 8px;
+        gap: 8px;
+
+        // Bootstrap 3 clearfix pseudos become flex items and add extra gap.
+        &::before,
+        &::after {
+            display: none;
+            content: none;
+        }
+
+        // Buttons that are direct children are flex items and already get the
+        // gap, so Bootstrap's own `.btn + .btn` margin would stack on top.
+        // Buttons nested inside a wrapper are not flex items and get no gap,
+        // so they keep Bootstrap's margin -- don't widen this selector.
+        > .btn + .btn {
+            margin-left: 0;
+        }
 
         &.divider {
             border-top: var(--border-light);
@@ -185,10 +200,6 @@
             float: left;
             font-weight: bold;
             text-align: left;
-        }
-
-        & .btn + .btn {
-            margin-left: 8px;
         }
     }
 

@@ -200,9 +200,14 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Add teams
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Add teams
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -292,9 +297,14 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Add channels
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Add channels
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -341,13 +351,40 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                     class="Filter"
                   >
                     <button
-                      class="Filter_button"
+                      aria-expanded="false"
+                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
                       type="button"
                     >
-                      <i
-                        class="Icon icon-filter-variant"
-                      />
-                      Filters
+                      <span
+                        class="_button__icon-slot_we8pe_35"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-12_1i355_30"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="14"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="14"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
+                      <span
+                        class="_button__label_we8pe_31"
+                      >
+                        Filters
+                      </span>
                     </button>
                     <div
                       class="Filter_content"
@@ -551,11 +588,15 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                         </div>
                       </div>
                       <button
-                        class="btn btn-primary btn-sm Filter_apply"
+                        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
                         disabled=""
                         type="button"
                       >
-                        Apply
+                        <span
+                          class="_button__label_we8pe_31"
+                        >
+                          Apply
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -598,21 +639,27 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-tertiary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/compliance/data_retention_settings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
     </div>
   </div>
@@ -814,9 +861,14 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Add teams
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Add teams
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -916,9 +968,14 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Add channels
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Add channels
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -965,13 +1022,40 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                     class="Filter"
                   >
                     <button
-                      class="Filter_button"
+                      aria-expanded="false"
+                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
                       type="button"
                     >
-                      <i
-                        class="Icon icon-filter-variant"
-                      />
-                      Filters
+                      <span
+                        class="_button__icon-slot_we8pe_35"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-12_1i355_30"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="14"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="14"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
+                      <span
+                        class="_button__label_we8pe_31"
+                      >
+                        Filters
+                      </span>
                     </button>
                     <div
                       class="Filter_content"
@@ -1175,11 +1259,15 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                         </div>
                       </div>
                       <button
-                        class="btn btn-primary btn-sm Filter_apply"
+                        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
                         disabled=""
                         type="button"
                       >
-                        Apply
+                        <span
+                          class="_button__label_we8pe_31"
+                        >
+                          Apply
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -1232,21 +1320,27 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-tertiary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/compliance/data_retention_settings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
     </div>
   </div>

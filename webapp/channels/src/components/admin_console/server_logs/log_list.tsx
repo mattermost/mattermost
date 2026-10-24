@@ -6,6 +6,9 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import ExternalLink from 'components/external_link';
@@ -586,34 +589,33 @@ export default function LogList({
 
             <div className='LogViewer__filters-spacer'/>
 
-            <button
-                type='button'
-                className='btn btn-sm btn-tertiary'
+            <Button
+                emphasis='tertiary'
+                size='medium'
                 onClick={onReload}
+                leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
             >
-                <i
-                    className='icon icon-refresh'
-                    aria-hidden='true'
-                />
                 <FormattedMessage
                     id='admin.logs.ReloadLogs'
                     defaultMessage='Reload'
                 />
-            </button>
-            <ExternalLink
-                location='download_logs'
-                className='btn btn-sm btn-primary'
-                href={downloadUrl}
+            </Button>
+            <Button
+                asChild={true}
+                emphasis='primary'
+                size='medium'
+                leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
             >
-                <i
-                    className='icon icon-download-outline'
-                    aria-hidden='true'
-                />
-                <FormattedMessage
-                    id='admin.logs.DownloadLogs'
-                    defaultMessage='Download'
-                />
-            </ExternalLink>
+                <ExternalLink
+                    location='download_logs'
+                    href={downloadUrl}
+                >
+                    <FormattedMessage
+                        id='admin.logs.DownloadLogs'
+                        defaultMessage='Download'
+                    />
+                </ExternalLink>
+            </Button>
         </div>
     );
 
@@ -776,9 +778,9 @@ export default function LogList({
                 </span>
 
                 <div className='LogViewer__footer-controls'>
-                    <button
-                        type='button'
-                        className={`btn btn-sm ${wrapText ? 'btn-tertiary' : 'btn-quaternary'}`}
+                    <Button
+                        emphasis={wrapText ? 'tertiary' : 'quaternary'}
+                        size='small'
                         onClick={() => setWrapText(!wrapText)}
                         aria-pressed={wrapText}
                     >
@@ -786,7 +788,7 @@ export default function LogList({
                             id='admin.logs.wrap'
                             defaultMessage='Wrap text'
                         />
-                    </button>
+                    </Button>
 
                     <div className='LogViewer__pagesize'>
                         <label htmlFor='logPageSize'>

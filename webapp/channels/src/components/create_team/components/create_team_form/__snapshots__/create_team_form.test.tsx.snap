@@ -61,14 +61,18 @@ exports[`CreateTeamForm - display_name step should match snapshot 1`] = `
         Name your team in any language. Your team name shows in menus and headings.
       </div>
       <button
-        class="btn btn-primary mt-8"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 mt-8"
         id="teamNameNextButton"
         type="submit"
       >
-        Next
-        <i
-          class="icon icon-chevron-right"
-        />
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Next
+          <i
+            class="icon icon-chevron-right"
+          />
+        </span>
       </button>
     </form>
   </div>
@@ -142,11 +146,15 @@ exports[`CreateTeamForm - team_url step should match snapshot 1`] = `
         class="mt-8"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           id="teamURLFinishButton"
           type="submit"
         >
-          Finish
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Finish
+          </span>
         </button>
       </div>
       <div

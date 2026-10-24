@@ -6,7 +6,7 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -269,7 +269,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     id='joinViewChannelButton'
                     onClick={(e) => this.handleJoin(channel, e)}
                     emphasis={joinViewChannelButtonEmphasis}
-                    size='sm'
+                    size='small'
                     className={joinViewChannelButtonClass}
                     disabled={Boolean(this.state.joiningChannel)}
                     tabIndex={-1}
@@ -293,7 +293,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 id='requestToJoinChannelButton'
                 onClick={(e) => this.handleRequestToJoin(channel, e)}
                 emphasis='primary'
-                size='sm'
+                size='small'
                 className='primaryButton'
                 disabled={Boolean(this.state.requestingChannel)}
                 tabIndex={-1}
@@ -314,9 +314,10 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         const renderWithdrawButton = () => (
             <Button
                 id='withdrawRequestButton'
+                className='withdrawButton'
                 onClick={(e) => this.handleWithdrawRequest(channel, e)}
                 emphasis='tertiary'
-                size='sm'
+                size='small'
                 disabled={Boolean(this.state.withdrawingChannel)}
                 aria-label={this.props.intl.formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'})}
             >
@@ -612,7 +613,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 nextButton = (
                     <Button
                         emphasis='tertiary'
-                        size='sm'
+                        size='small'
                         className='filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
@@ -630,7 +631,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 previousButton = (
                     <Button
                         emphasis='tertiary'
-                        size='sm'
+                        size='small'
                         className='filter-control filter-control__prev'
                         onClick={this.previousPage}
                         aria-label={this.props.intl.formatMessage({id: 'more_channels.prev', defaultMessage: 'Previous'})}

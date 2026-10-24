@@ -23,10 +23,15 @@ exports[`admin_console/team_channel_settings/team/TeamMembers should match snaps
         class="button"
       >
         <button
-          class="style--none btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           id="addTeamMembers"
+          type="button"
         >
-          Add Members
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Add Members
+          </span>
         </button>
       </div>
     </div>
@@ -64,13 +69,40 @@ exports[`admin_console/team_channel_settings/team/TeamMembers should match snaps
           class="Filter"
         >
           <button
-            class="Filter_button"
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            <i
-              class="Icon icon-filter-variant"
-            />
-            Filters
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
           <div
             class="Filter_content"
@@ -216,11 +248,15 @@ exports[`admin_console/team_channel_settings/team/TeamMembers should match snaps
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -327,10 +363,15 @@ exports[`admin_console/team_channel_settings/team/TeamMembers should match snaps
         class="button"
       >
         <button
-          class="style--none btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           id="addTeamMembers"
+          type="button"
         >
-          Add Members
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Add Members
+          </span>
         </button>
       </div>
     </div>
@@ -368,13 +409,40 @@ exports[`admin_console/team_channel_settings/team/TeamMembers should match snaps
           class="Filter"
         >
           <button
-            class="Filter_button"
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            <i
-              class="Icon icon-filter-variant"
-            />
-            Filters
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
           <div
             class="Filter_content"
@@ -520,11 +588,15 @@ exports[`admin_console/team_channel_settings/team/TeamMembers should match snaps
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>

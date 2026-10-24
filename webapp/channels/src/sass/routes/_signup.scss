@@ -109,8 +109,14 @@ body {
         padding-bottom: 0.5em;
 
         .terms-of-service__button-group {
+            display: flex;
+            justify-content: center;
             padding-top: 1em;
             padding-bottom: 1em;
+
+            // Was the global `.btn + .btn` margin in _buttons.scss, which the
+            // Compass buttons no longer match.
+            gap: 8px;
         }
 
         .terms-of-service__server-error {
