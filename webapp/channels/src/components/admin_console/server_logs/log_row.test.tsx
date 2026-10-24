@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {LogLevelEnum} from '@mattermost/types/admin';
+import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -33,6 +33,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
         onFocus: jest.fn(),
         searchTerm: '',
         wrapText: false,
+        showNode: false,
     };
 
     const writeText = jest.fn();
@@ -499,6 +500,81 @@ describe('components/admin_console/server_logs/LogRow', () => {
             await userEvent.click(screen.getByText('@admin'));
 
             expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('node', () => {
+        const nodeLog: LogObjectWithAdditionalInfo = {...baseLog, [LogNodeKey]: 'node-a'};
+
+        test('should not render the node without showNode', () => {
+            renderLogRow({log: nodeLog});
+
+            expect(document.querySelector('.LogRow__node')).not.toBeInTheDocument();
+            expect(getRow()).not.toHaveClass('LogRow--with-node');
+        });
+
+        test('should render the node with its full name as the title', () => {
+            renderLogRow({log: nodeLog, showNode: true});
+
+            const node = document.querySelector('.LogRow__node');
+            expect(node).toHaveTextContent('node-a');
+            expect(node).toHaveAttribute('title', 'node-a');
+            expect(getRow()).toHaveClass('LogRow--with-node');
+        });
+
+        test('should highlight the search term in the node', () => {
+            renderLogRow({log: nodeLog, showNode: true, searchTerm: 'node'});
+
+            expect(document.querySelector('.LogRow__node mark')).toHaveTextContent('node');
+        });
+
+        test('should not list the node among the extra fields', () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            const extraKeys = Array.from(document.querySelectorAll('.LogRow__details-grid .LogRow__detail-label')).
+                map((el) => el.textContent);
+            expect(extraKeys).toEqual(['job_id', 'worker']);
+        });
+
+        test('should copy the log as JSON without the node', async () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            await userEvent.click(screen.getByText('Copy JSON'));
+
+            expect(writeText).toHaveBeenCalledWith(JSON.stringify(baseLog, undefined, 2));
+        });
+
+        test('should copy the log as JSON without the node when c is pressed', async () => {
+            renderLogRow({log: nodeLog, showNode: true});
+
+            getRowSummary().focus();
+            await userEvent.keyboard('c');
+
+            await waitFor(() => {
+                expect(writeText).toHaveBeenCalledWith(JSON.stringify(baseLog, undefined, 2));
+            });
+        });
+
+        test('should keep a node field the server logged in the details and the copied JSON', async () => {
+            const serverLog = {...baseLog, node: 'node-b'};
+            renderLogRow({log: {...serverLog, [LogNodeKey]: 'node-a'}, showNode: true, isExpanded: true});
+
+            expect(document.querySelector('.LogRow__node')).toHaveTextContent('node-a');
+            const extraKeys = Array.from(document.querySelectorAll('.LogRow__details-grid .LogRow__detail-label')).
+                map((el) => el.textContent);
+            expect(extraKeys).toEqual(['job_id', 'worker', 'node']);
+
+            await userEvent.click(screen.getByText('Copy JSON'));
+
+            expect(writeText).toHaveBeenCalledWith(JSON.stringify(serverLog, undefined, 2));
+        });
+
+        test('should copy the log line unchanged', async () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            await userEvent.click(screen.getByText('Copy log line'));
+
+            expect(writeText).toHaveBeenCalledWith('2024-01-01 12:34:56.789 +00:00 [INFO] Something happened (app/server.go:123)');
         });
     });
 
