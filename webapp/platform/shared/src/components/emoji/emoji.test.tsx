@@ -31,6 +31,16 @@ describe('Emoji', () => {
         });
     });
 
+    test('should render a non-interactive span', () => {
+        renderWithContext(
+            <Emoji emojiName='smiley'/>,
+        );
+
+        const link = screen.getByLabelText(':smiley:');
+        expect(link.tagName).toBe('SPAN');
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
     test('should render the provided custom emoji', () => {
         renderWithContext(
             <Emoji emojiName='custom-emoji-1'/>,
