@@ -25,7 +25,7 @@ func (c *ClusterService) PublishPluginEvent(ev model.PluginClusterEvent, opts mo
 // GetNodeID returns the cluster ID of the node the plugin is running on, or an
 // empty string until the node has joined a cluster.
 //
-// Minimum server version: 12.1
+// Minimum server version: 12.2
 func (c *ClusterService) GetNodeID() string {
 	return c.api.GetClusterNodeID()
 }
@@ -34,7 +34,7 @@ func (c *ClusterService) GetNodeID() string {
 // an empty list until this node has joined a cluster. Each Id can be used as a
 // TargetId. Each call may query the database, so avoid calling it on hot paths.
 //
-// Minimum server version: 12.1
+// Minimum server version: 12.2
 func (c *ClusterService) GetNodes() ([]*model.ClusterInfo, error) {
 	return c.api.GetClusterNodes()
 }

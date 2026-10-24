@@ -1234,7 +1234,7 @@ type API interface {
 	// the node has joined a High-Availability cluster, e.g. when clustering is disabled.
 	//
 	// @tag Cluster
-	// Minimum server version: 12.1
+	// Minimum server version: 12.2
 	GetClusterNodeID() string
 
 	// GetClusterNodes returns the nodes connected to the High-Availability cluster, including
@@ -1243,7 +1243,7 @@ type API interface {
 	// joined a cluster. Each call may query the database, so avoid calling it on hot paths.
 	//
 	// @tag Cluster
-	// Minimum server version: 12.1
+	// Minimum server version: 12.2
 	GetClusterNodes() ([]*model.ClusterInfo, error)
 
 	// RequestTrialLicense requests a trial license and installs it in the server
