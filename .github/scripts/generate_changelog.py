@@ -11,9 +11,23 @@ Expects these environment variables:
   RELEASE_TYPE      - (optional) "feature" (default), "major" (a vX.0 release), or
                       "esr" (Extended Support Release). Selects the heading label and
                       the anchor slug other docs pages deep-link to.
-  RELEASE_DATE      - (optional) Release day date (e.g. "2026-05-15"). Defaults to today.
+  RELEASE_DATE      - (optional) Release day date (e.g. "2026-05-15"). Defaults to today,
+                      or to "TBD" on a scheduled run (EVENT_NAME=schedule), which is
+                      reported in the preflight checks.
   GO_VERSION        - (optional) Go version used in this release (e.g. "go1.22.5").
-                      If not provided, changelog notes it is unchanged from previous release.
+                      If not provided, it is read from RELEASE_HEAD_REF's
+                      server/build/Dockerfile.buildenv, then from the previous entry.
+  RELEASE_HEAD_REF  - (optional) Git ref of this release, e.g. "origin/release-12.1".
+  RELEASE_BASE_REF  - (optional) Git ref of the previous release, e.g. "v12.0.0". With
+                      both set, plugin version changes, WebSocket events and schema
+                      migrations between them are added as notes (see changelog_release.py).
+  SOURCES_SEED_BEFORE - (update mode, optional) When the changelog PR body has no
+                      changelog-sources list (a PR opened before it existed), propose the
+                      PRs merged before this ISO time — when the PR branch was last
+                      updated — in the run summary for a reviewer to confirm and add to
+                      the body, instead of failing. Nothing is changed on such a run.
+  DRY_RUN           - (optional) "true" allows create mode to run for a version whose
+                      entry already exists in the changelog file, for previews.
   BLOG_POST_URL     - (optional) Blog post URL for the Improvements section.
                       Auto-constructed from VERSION if not provided.
   ANTHROPIC_API_KEY - (optional) If set, release notes are polished by Claude
@@ -40,15 +54,22 @@ must therefore be MDX-safe (see the "MDX safety" rule in SYSTEM_PROMPT).
 import json
 import os
 import re
+import sys
+import time
+import unicodedata
 import requests
 from datetime import date, datetime, timezone
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import changelog_release  # noqa: E402
+
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 REPOS = [r.strip() for r in os.environ["REPOS"].split(",") if r.strip()]
 MILESTONE_TITLE = os.environ["MILESTONE"]
 VERSION = os.environ["VERSION"]
+RELEASE_DATE_PLACEHOLDER = "TBD"
 
 HEADERS = {
     "Authorization": f"token {GITHUB_TOKEN}",
@@ -165,7 +186,11 @@ Here are your instructions:
 
 11.  **Focus:** Output only the section content (headings and bullet points). Do not include the release version header line or any introductory or concluding remarks from yourself.
 
-12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. End every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. If a bullet combines several notes, list every ID: `[[N3,N7]]`. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing."""
+12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. End every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. If a bullet combines several notes, list every ID: `[[N3,N7]]`. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
+
+13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing.
+
+14.  **Documentation links:** A note may end with a `Docs page:` line, found by following its PR to the documentation that PR changed. When that note's bullet goes under `### Improvements`, link the feature's name in the bullet to that URL, exactly as given, the way existing entries do: ` - Added [channel attributes](https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes) on Enterprise Advanced.` Link it once, and only in an `### Improvements` bullet. Never add a docs.mattermost.com link that was not given in a note."""
 
 
 def get_milestone_number(repo: str, title: str) -> int | None:
@@ -198,6 +223,24 @@ def get_milestone_number(repo: str, title: str) -> int | None:
     return None
 
 
+def docs_site(ref: str) -> "changelog_release.DocsSite":
+    """The docs site at ``ref``, for mapping and checking doc links."""
+    return changelog_release.DocsSite.at(ref)
+
+
+def is_rate_limited(response) -> bool:
+    """A 403 that is GitHub's rate limit, which says nothing about the token's access."""
+    headers = response.headers if response is not None else {}
+    return headers.get("X-RateLimit-Remaining") == "0" or "Retry-After" in headers
+
+
+def repo_is_private(repo: str) -> bool:
+    """Whether ``repo`` is private, so its PR links are marked for readers who can't open them."""
+    resp = SESSION.get(f"https://api.github.com/repos/{repo}", timeout=API_TIMEOUT)
+    resp.raise_for_status()
+    return bool(resp.json().get("private"))
+
+
 def get_merged_prs(repo: str, milestone_number: int) -> list:
     """Fetch all merged PRs belonging to the given milestone in the given repo."""
     prs = []
@@ -226,61 +269,192 @@ def get_merged_prs(repo: str, milestone_number: int) -> list:
                 pr_url = f"https://api.github.com/repos/{repo}/pulls/{item['number']}"
                 pr_resp = SESSION.get(pr_url, timeout=API_TIMEOUT)
                 pr_resp.raise_for_status()
-                if pr_resp.json().get("merged"):
+                pr_data = pr_resp.json()
+                if pr_data.get("merged"):
+                    item["pull_request"]["merged_at"] = pr_data.get("merged_at")
                     prs.append(item)
         page += 1
     return prs
 
 
+# What a release-note block holds when its author decided the PR needs no note.
+NO_NOTE_CONTENT = {"NONE", "N/A", "NA", "---", ""}
+
+
+def release_note_blocks(body: str) -> list[str]:
+    """The trimmed contents of every ```release-note fence in ``body``.
+
+    Comments are stripped first: the unfilled PR template holds two example fences, one
+    of them NONE. The tag is required, at any heading level or with no heading at all,
+    because untagged fences in PR bodies hold spinwick commands and attachment dumps.
+    """
+    text = re.sub(r"<!--.*?-->", "", (body or "").replace("\r\n", "\n").replace("\r", "\n"), flags=re.DOTALL)
+    return [block.strip() for block in re.findall(r"```release-note[ \t]*\n(.*?)\n?```", text, re.DOTALL)]
+
+
+# Docs live in this repo; a docs PR for an enterprise feature is opened here too.
+DOCS_REPO = "mattermost/mattermost"
+DETAIL_WORKERS = 8
+
+
+def get_pr_details(repo: str, number: int) -> dict:
+    """A PR's branch name and, for DOCS_REPO, the docs files it changed with their patches."""
+    resp = SESSION.get(f"https://api.github.com/repos/{repo}/pulls/{number}", timeout=API_TIMEOUT)
+    resp.raise_for_status()
+    details = {"head_ref": resp.json().get("head", {}).get("ref", ""), "files": []}
+    page = 1
+    while repo == DOCS_REPO:
+        resp = SESSION.get(
+            f"https://api.github.com/repos/{repo}/pulls/{number}/files",
+            params={"per_page": 100, "page": page}, timeout=API_TIMEOUT,
+        )
+        resp.raise_for_status()
+        batch = resp.json()
+        details["files"] += [
+            {"filename": f["filename"], "status": f.get("status"), "patch": f.get("patch")}
+            for f in batch if f["filename"].startswith("docs/")
+        ]
+        if len(batch) < 100:
+            break
+        page += 1
+    return details
+
+
+def find_docs_links(prs: dict, sources: set, read_file) -> dict:
+    """``changelog_release.docs_link`` for each source PR, fetching PR details in parallel."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    keys = sorted(prs)
+    with ThreadPoolExecutor(DETAIL_WORKERS) as pool:
+        details = dict(zip(keys, pool.map(lambda s: get_pr_details(*_split_source(s)), keys)))
+    info = {source: {**prs[source], "head_ref": details[source]["head_ref"]} for source in keys}
+    return {
+        source: changelog_release.docs_link(source, info, lambda s: details[s]["files"], read_file)
+        for source in sorted(sources, key=_source_sort_key)
+    }
+
+
+def _split_source(source: str) -> tuple[str, int]:
+    """``(repo, number)`` from a ``owner/repo#123`` source key."""
+    repo, _, number = source.partition("#")
+    return repo, int(number)
+
+
+_DOCS_LINE_RE = re.compile(r"(?im)^[ \t]*Docs:[ \t]*(.*?)[ \t]*$\n?")
+
+
+def split_docs_line(note: str) -> tuple[str, str | None]:
+    """A release note without its ``Docs: <url>`` line, and the docs URL that line names.
+
+    The author knows which page documents the change, so it outranks the docs page
+    found by following the PR. A path is taken as relative to docs.mattermost.com.
+    """
+    url = None
+    for value in _DOCS_LINE_RE.findall(note):
+        value = re.sub(r"^\[[^\]]*\]\((.*)\)$|^<(.*)>$", lambda m: m.group(1) or m.group(2), value.strip())
+        if value.startswith("/"):
+            value = changelog_release.DOCS_SITE + value
+        if url is None and changelog_release.DOCS_URL_RE.fullmatch(value):
+            url = value
+    return _DOCS_LINE_RE.sub("", note).strip(), url
+
+
 def extract_release_notes(body: str) -> list[str] | None:
-    """
-    Extract release note text from a PR body.
+    """The release notes in a PR body, or None when it has none (missing, NONE, N/A, empty)."""
+    notes = [block for block in release_note_blocks(body) if block.upper() not in NO_NOTE_CONTENT]
+    return notes or None
 
-    Looks for a '#### Release Note' section, then pulls the content of any
-    fenced code blocks within it (plain ``` or ```release-note).
-    Returns None if the section is missing or all entries are NONE.
+
+# Labels that record a deliberate "no release note" decision.
+NO_NOTE_LABELS = {"release-note-none", "release-note/none", "release-note/na", "Changelog/Not Needed"}
+
+
+def release_note_status(body: str) -> str:
+    """"notes" if the PR has a release note, "none" if its author wrote NONE, else "missing"."""
+    if extract_release_notes(body):
+        return "notes"
+    text = re.sub(r"<!--.*?-->", "", (body or "").replace("\r\n", "\n"), flags=re.DOTALL)
+    section = re.search(r"#+\s+Release\s+Notes?\s*\n(.*?)(?=\n#|\Z)", text, re.DOTALL | re.IGNORECASE)
+    written = [block for block in release_note_blocks(body) if block]
+    if section and re.fullmatch(r"\s*(NONE|N/?A)\.?\s*", section.group(1), re.IGNORECASE):
+        written.append("NONE")
+    return "none" if written else "missing"
+
+
+def flag_reason(status: str, labels: set) -> str | None:
+    """Why a merged PR needs a human look before its notes are silently left out, or None.
+
+    An opt-out label settles it even next to the release-note label, which some PRs
+    carry together with Changelog/Not Needed.
     """
-    if not body:
+    if labels & NO_NOTE_LABELS:
         return None
+    if "release-note" in labels and status != "notes":
+        return "labelled release-note, but no release note was found in the PR body"
+    if status == "missing" and not labels & NO_NOTE_LABELS:
+        return "no release note and no release-note-none label"
+    return None
 
-    # Normalize line endings (GitHub API may return \r\n on some PR bodies)
-    body = body.replace("\r\n", "\n").replace("\r", "\n")
 
-    notes = []
+def cherry_picked_from(title: str) -> int | None:
+    """The PR a cherry-pick was made from: "Automated cherry pick of #39121", "Fix x (#39291)"."""
+    match = re.search(r"cherry[- ]?pick(?:ed)? (?:of )?#(\d+)|\(#(\d+)\)\s*$", title or "", re.IGNORECASE)
+    return int(match.group(1) or match.group(2)) if match else None
 
-    # Primary path: look for a '#### Release Note(s)' section heading
-    section_match = re.search(
-        r"####\s+Release\s+Notes?\s*\n(.*?)(?=\n####|\Z)",
-        body,
-        re.DOTALL | re.IGNORECASE,
-    )
-    if section_match:
-        section = section_match.group(1)
-        # Strip HTML comments (the instructional block in the template)
-        section = re.sub(r"<!--.*?-->", "", section, flags=re.DOTALL)
-        # Extract fenced code blocks (supports both ``` and ```release-note)
-        code_blocks = re.findall(r"```(?:release-note)?\s*\n(.*?)\n?```", section, re.DOTALL)
-        for block in code_blocks:
-            content = block.strip()
-            if content and content.upper() != "NONE":
-                notes.append(content)
-        # Fallback to plain text only when there are no code blocks at all in the section
-        if not notes and "```" not in section:
-            plain = section.strip()
-            if plain and plain.upper() != "NONE":
-                notes.append(plain)
 
-    # Secondary path: scan the entire body for ```release-note blocks.
-    # Catches PRs that use the block format without a #### Release Note heading.
-    if not notes:
-        body_no_comments = re.sub(r"<!--.*?-->", "", body, flags=re.DOTALL)
-        raw_blocks = re.findall(r"```release-note\s*\n(.*?)\n?```", body_no_comments, re.DOTALL)
-        for block in raw_blocks:
-            content = block.strip()
-            if content and content.upper() != "NONE":
-                notes.append(content)
+MIN_NOTE_WORDS = 6
+_TICKET_RE = re.compile(r"(?i)^(?:fix(?:es|ed)?\s+)?(?:MM-\d+|#\d+|https?://\S+)[.\s]*$")
+# Plugin bumps and dependency or setting lines are short by house style.
+_TERSE_BY_STYLE_RE = re.compile(r"(?i)\bplugin\b|\bversion\s+v?\d|`|\]\(")
 
-    return notes if notes else None
+
+def note_quality_issue(text: str) -> str | None:
+    """Why a release note that passes the gate will still need rewriting, or None.
+
+    Only the cases that can be told from the text: generated content (the API-docs bot
+    writes "🆕 New API file: x_test.go" lines into the fence), a bare ticket reference,
+    or a note too short to say what changed.
+    """
+    text = text.strip()
+    if any(line.strip()[:1] and unicodedata.category(line.strip()[0]) == "So" for line in text.splitlines()):
+        return "machine-generated content"
+    if _TICKET_RE.match(text):
+        return "a bare ticket reference"
+    if len(text.split()) < MIN_NOTE_WORDS and not _TERSE_BY_STYLE_RE.search(text):
+        return f"under {MIN_NOTE_WORDS} words"
+    return None
+
+
+def pr_owner(pr: dict) -> str | None:
+    """Who to ask about a PR: its author, or for a bot-authored PR its first assignee."""
+    user = pr.get("user") or {}
+    login = user.get("login") or ""
+    if login and user.get("type") != "Bot" and not login.endswith("[bot]"):
+        return login
+    assignees = pr.get("assignees") or []
+    return assignees[0]["login"] if assignees else None
+
+
+def parse_github_time(value: str) -> datetime:
+    """A timezone-aware datetime from a GitHub API timestamp."""
+    return datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+
+
+def seed_sources(notes: list[dict], cutoff: str) -> set:
+    """The sources a changelog PR opened before source tracking probably covers.
+
+    Such a PR has no changelog-sources list. ``cutoff`` is when its branch was last
+    updated: it was generated from the PRs merged before it was opened, and reviewers
+    keep it current by hand from then on. Derived notes are included because such a PR
+    predates them, so any plugin or schema bullets in it were written by hand.
+
+    This is a guess, so it is only ever proposed for review, never recorded.
+    """
+    limit = parse_github_time(cutoff)
+    return {
+        note["source"] for note in notes
+        if note.get("derived") or (note.get("merged_at") and parse_github_time(note["merged_at"]) <= limit)
+    }
 
 
 # Output cap for the polish request. A full feature release is comfortably larger than
@@ -296,7 +470,8 @@ def _raw_bullets(notes: list[dict]) -> str:
     """
     blocks = []
     for note in notes:
-        lines = note["text"].replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        text = note.get("fallback") or note["text"]
+        lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
         blocks.append(f"- {lines[0]} [[{note['id']}]]")
         for line in lines[1:]:
             blocks.append(f"  {line.strip()}" if line.strip() else "")
@@ -330,7 +505,10 @@ def polish_with_ai(notes: list[dict]) -> tuple[str, bool]:
     print("✨ Sending notes to Claude for categorization and proofreading...")
     client = anthropic.Anthropic(api_key=api_key)
 
-    raw_text = "\n\n---\n\n".join(f"[{note['id']}] {note['text']}" for note in notes)
+    raw_text = "\n\n---\n\n".join(
+        f"[{note['id']}] {note['text']}" + (f"\nDocs page: {note['docs_url']}" if note.get("docs_url") else "")
+        for note in notes
+    )
     user_message = f"Here are the raw release notes to process:\n\n{raw_text}"
 
     response = client.messages.create(
@@ -369,6 +547,7 @@ def normalize_formatting(text: str) -> str:
          single minimum taken across the whole fragment.
       3. Remove a blank line between the ``### Improvements`` heading and the blog
          post line that must immediately follow it.
+      4. Drop headings with nothing under them, other than ``### Go Version``.
 
     MDX safety: rule 1 would otherwise strip the ``---`` delimiters of a YAML
     frontmatter block, which MDX requires at the very start of the file. This is
@@ -428,7 +607,15 @@ def normalize_formatting(text: str) -> str:
     # 3. Close the gap between ### Improvements and its blog post line.
     text = re.sub(r"(?m)^(### Improvements)[ \t]*\n\s*\n(?=See )", r"\1\n", text)
 
-    # 4. Collapse runs of blank lines (removing a rule can leave a doubled gap).
+    # 4. Drop headings with nothing under them (the model sometimes keeps
+    #    "#### Database Schema Changes" for a release with no migrations), subsections
+    #    first so a section left with only empty subsections goes too. ### Go Version is
+    #    empty by design here; its line is filled in later.
+    for level in ("####", "###"):
+        text = re.sub(
+            rf"(?m)^{level} (?!Go Version\b)[^\n]*(?:\n|\Z)(?:[ \t]*\n)*(?=#{{1,{len(level)}}} |\Z)", "", text)
+
+    # 5. Collapse runs of blank lines (removing a rule can leave a doubled gap).
     #    At least one blank line is always kept, which MDX needs around JSX blocks.
     text = re.sub(r"\n{3,}", "\n\n", text)
 
@@ -646,6 +833,10 @@ def previous_major_changelog_path(changelog_path: str) -> str | None:
     return f"{prefix}{int(major) - 1}{suffix}"
 
 
+# The header block ends with the platform scope note, which closes a <Note> component.
+HEADER_END_MARKER = "may not represent all affected configurations.\n\n</Note>"
+
+
 def insert_changelog_entry(
     entry: str, changelog_path: str = "CHANGELOG.md", header: str = ""
 ) -> None:
@@ -659,9 +850,6 @@ def insert_changelog_entry(
     if os.path.exists(changelog_path):
         with open(changelog_path, "r", encoding="utf-8") as f:
             existing = f.read()
-
-    # The header block ends with the platform scope note, which closes a <Note> component.
-    HEADER_END_MARKER = "may not represent all affected configurations.\n\n</Note>"
 
     if not existing.strip():
         # New or empty file (e.g. the first release of a new major version). Write the
@@ -778,6 +966,7 @@ def group_items_by_section(items: list[dict]) -> list[dict]:
 
 
 def _source_sort_key(source: str):
+    """Sort PR source keys by repo, then number; a derived key (no ``#``) sorts by its text."""
     repo, _, number = source.partition("#")
     return (repo, int(number) if number.isdigit() else 0)
 
@@ -866,6 +1055,7 @@ _JSX_BOUNDARY_RE = re.compile(r"^[ \t]*</?[A-Z][A-Za-z0-9]*\b")
 
 
 def _bullet_indent(line: str) -> int | None:
+    """The indent of a bullet line, or None if it is not a bullet."""
     match = _BULLET_INDENT_RE.match(line)
     if not match:
         return None
@@ -873,6 +1063,7 @@ def _bullet_indent(line: str) -> int | None:
 
 
 def _is_jsx_boundary(line: str) -> bool:
+    """Whether ``line`` opens or closes a JSX block such as ``<Note>``."""
     return bool(_JSX_BOUNDARY_RE.match(line))
 
 
@@ -897,6 +1088,7 @@ def _minimum_bullet_indent(lines: list[str], start: int, end: int) -> int | None
 
 
 def _is_top_level(line: str, top_indent: int | None) -> bool:
+    """Whether ``line`` is a bullet at the section's top level."""
     indent = _bullet_indent(line)
     if indent is None:
         return False
@@ -1078,6 +1270,113 @@ def _insert_heading_block(lines, start, end, level, title, order, block_lines) -
         lines[at:at] = body + [""]
 
 
+def _entry_start(lines: list[str], version_short: str) -> int | None:
+    """The index of the ``## Release vX.Y`` heading line, or None."""
+    heading_re = re.compile(r"^## Release " + re.escape(version_short) + r"\b(?!\.)")
+    return next((i for i, line in enumerate(lines) if heading_re.match(line)), None)
+
+
+def _section_of(lines: list[str], start: int, index: int) -> tuple[str | None, str | None]:
+    """The ``###`` section and ``####`` subsection line ``index`` sits under."""
+    subsection = None
+    for i in range(index, start, -1):
+        if lines[i].startswith("#### ") and subsection is None:
+            subsection = lines[i][5:].strip()
+        elif lines[i].startswith("### "):
+            return lines[i][4:].strip(), subsection
+    return None, subsection
+
+
+def _bullet_text(line: str) -> str:
+    """A bullet line's text without its marker and indent."""
+    match = _BULLET_RE.match(line)
+    return match.group(1) if match else line.strip()
+
+
+_GO_LINE_RE = re.compile(r"(is built with Go\s+``)(v?[\d.]+)(``)")
+
+
+def replace_entry_go_version(content: str, version_short: str, go_version: str) -> tuple[str, str | None, str | None]:
+    """Set the Go version in the entry's ``### Go Version`` line.
+
+    Returns (content, the version the entry had or None when it has no such line, the
+    line as written). Only the version is replaced, so a reviewer's wording is kept.
+    """
+    lines = content.split("\n")
+    start = _entry_start(lines, version_short)
+    if start is None:
+        return content, None, None
+    end = _region_end(lines, start, r"^## ")
+    go = next((i for i in range(start, end) if re.match(r"^### +Go Version\s*$", lines[i])), None)
+    if go is None:
+        return content, None, None
+    for i in range(go + 1, _region_end(lines, go, r"^#{2,3} ")):
+        match = _GO_LINE_RE.search(lines[i])
+        if match:
+            lines[i] = lines[i][:match.start(2)] + go_version + lines[i][match.end(2):]
+            return "\n".join(lines), normalize_go_version(match.group(2)), _bullet_text(lines[i])
+    return content, None, None
+
+
+_DIFF_DERIVED = ("plugin:", "websocket:", "migration:")
+
+
+def reconcile_derived(content: str, version_short: str, included: set, derived: list[dict]) -> tuple[str, set, set, list[dict]]:
+    """Bring bullets read from an earlier release diff in line with the current one.
+
+    A plugin bumped again since the last run (calls@v1.12.6, now v1.12.7) gets a new
+    source key, so on its own it would be added as a second bullet claiming both
+    versions ship. When the old version's release link appears exactly once in the
+    entry, it is replaced in place and the key swapped. Otherwise, or when an included
+    change is no longer in the diff at all, the bullet is left for a reviewer and the
+    newer note is withheld until the sources list says it is handled.
+
+    Returns (content, included, sources to withhold, one result per reconciled source).
+    """
+    lines = content.split("\n")
+    start = _entry_start(lines, version_short)
+    if start is None:
+        return content, included, set(), []
+    end = _region_end(lines, start, r"^## ")
+    current = {note["source"] for note in derived}
+    plugins = {}
+    for source in current:
+        if source.startswith("plugin:"):
+            package, _, version = source[len("plugin:"):].rpartition("@")
+            plugins[package] = version
+
+    included = set(included)
+    withheld, results = set(), []
+    for source in sorted(s for s in included if s.startswith(_DIFF_DERIVED) and s not in current):
+        result = {"source": source, "status": "needs_review", "replaced_by": None, "section": None, "subsection": None}
+        package, _, old = source[len("plugin:"):].rpartition("@") if source.startswith("plugin:") else ("", "", "")
+        new = plugins.get(package) if package else None
+        if new is None:
+            result["detail"] = "no longer in the release diff; the bullet may describe a change that was reverted"
+            result["remedy"] = f"Remove or correct the bullet, then drop `{source}` from the changelog-sources comment."
+            results.append(result)
+            continue
+
+        newer = f"plugin:{package}@{new}"
+        result["replaced_by"] = newer
+        withheld.add(newer)
+        old_link = changelog_release.plugin_version_link(package, old)
+        hits = [i for i in range(start, end) if old_link in lines[i]]
+        if old != "removed" and new != "removed" and len(hits) == 1 and lines[hits[0]].count(old_link) == 1:
+            lines[hits[0]] = lines[hits[0]].replace(old_link, changelog_release.plugin_version_link(package, new))
+            included.discard(source)
+            included.add(newer)
+            result.update(status="replaced", text=_bullet_text(lines[hits[0]]),
+                          detail=f"{old} replaced by {new}, the version the release branch now ships")
+            result["section"], result["subsection"] = _section_of(lines, start, hits[0])
+        else:
+            result["detail"] = f"the entry says {old}, the release branch now ships {new}"
+            result["remedy"] = (f"Correct the bullet, then replace `{source}` with `{newer}` in the "
+                                "changelog-sources comment.")
+        results.append(result)
+    return "\n".join(lines), included, withheld, results
+
+
 def merge_into_entry(content: str, version_short: str, fragment: str) -> str:
     """Add the bullets of ``fragment`` to the ``version_short`` entry in ``content``.
 
@@ -1086,8 +1385,7 @@ def merge_into_entry(content: str, version_short: str, fragment: str) -> str:
     canonical position; one it already has receives the new bullets at its end.
     """
     lines = content.split("\n")
-    heading_re = re.compile(r"^## Release " + re.escape(version_short) + r"\b(?!\.)")
-    entry_start = next((i for i, line in enumerate(lines) if heading_re.match(line)), None)
+    entry_start = _entry_start(lines, version_short)
     if entry_start is None:
         raise RuntimeError(
             f"Could not find the '## Release {version_short}' entry to update. It may "
@@ -1127,13 +1425,277 @@ def merge_into_entry(content: str, version_short: str, fragment: str) -> str:
     return "\n".join(lines)
 
 
+def require_fragment_merged(fragment: str, merged: str) -> None:
+    """Fail when a bullet of the fragment did not land in the merged entry.
+
+    Its source would still be recorded as included, so the note would never be added.
+    A bullet outside any ``###`` section (the no-API-key fallback) has nowhere to go.
+    """
+    present = {line.strip() for line in merged.split("\n")}
+    lines = fragment.split("\n")
+
+    # A parent such as the Database Schema Changes summary is not inserted when the
+    # entry already has one; its children carry the content.
+    def is_parent(i: int) -> bool:
+        following = next((line for line in lines[i + 1:] if line.strip()), "")
+        child_indent = _bullet_indent(following)
+        return child_indent is not None and child_indent > (_bullet_indent(lines[i]) or 0)
+
+    lost = [
+        line.strip() for i, line in enumerate(lines)
+        if _BULLET_RE.match(line) and not is_parent(i) and line.strip() not in present
+    ]
+    if lost:
+        raise RuntimeError(
+            f"Refusing to write the changelog: {len(lost)} new bullet(s) have no section to be "
+            f"merged into (first: {lost[0]!r}). Update mode needs AI-categorized notes; set "
+            "ANTHROPIC_API_KEY. Nothing was written."
+        )
+
+
 def remove_section(fragment: str, title: str) -> str:
     """Drop a ``###`` section, heading and body, from generated text."""
     return re.sub(r"(?ms)^### " + re.escape(title) + r"\b.*?(?=^### \S|\Z)", "", fragment).strip() + "\n"
 
 
+# ── Readiness ───────────────────────────────────────────────────────────────────────
+#
+# What the changelog-status skill reports before anyone reviews the entry: whether the
+# generator can run, which merged PRs it cannot take a note from, which notes will need
+# rewriting, and which sections the release diff filled.
+
+def _check(check: str, status: str, detail: str, remedy: str = "", blocking: bool = False) -> dict:
+    """One preflight check result."""
+    return {"check": check, "status": status, "detail": detail, "remedy": remedy, "blocking": blocking}
+
+
+def preflight_checks(changelog_path: str, mode: str, milestones: dict, go_source: str | None,
+                     release_date: str = "") -> list[dict]:
+    """Each check is pass, fail or unknown. A failing blocking check stops the run.
+
+    ``milestones`` maps each repo to its milestone number, None when it has no such
+    milestone, or a string saying why it could not be read.
+    """
+    checks = []
+    name = os.path.basename(changelog_path)
+    if not os.path.exists(changelog_path):
+        if mode == "update":
+            checks.append(_check(name, "fail", "missing from the changelog PR's branch",
+                                 "Check the PR branch, or re-run in regenerate mode.", blocking=True))
+        else:
+            checks.append(_check(name, "pass", "not on master yet; it will be created from the header template"))
+    else:
+        with open(changelog_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        if not content.strip() or HEADER_END_MARKER in content:
+            checks.append(_check(name, "pass", "header marker present" if content.strip() else "empty; the header will be written"))
+        elif re.search(r"(?m)^## Release\b", content):
+            checks.append(_check(name, "fail", "header marker missing; entries go above the first ## Release heading",
+                                 "Restore the header's closing `may not represent all affected configurations.` / `</Note>`."))
+        else:
+            checks.append(_check(name, "fail", "neither the header marker nor a ## Release heading is present",
+                                 "Restore the file header; the entry has nowhere to go.", blocking=True))
+
+    found = [repo for repo, number in milestones.items() if isinstance(number, int)]
+    for repo, number in milestones.items():
+        if isinstance(number, int):
+            checks.append(_check(f"milestone in {repo}", "pass", f"{MILESTONE_TITLE} found"))
+        elif number is None:
+            checks.append(_check(f"milestone in {repo}", "fail", f"no {MILESTONE_TITLE} milestone",
+                                 "Create it, or check the milestone input (it is the full three-part version, e.g. v12.1.0).",
+                                 blocking=not found))
+        else:
+            checks.append(_check(f"milestone in {repo}", "unknown", number,
+                                 "Give the workflow token read access to this repo; its PRs were not audited."))
+
+    if go_source:
+        checks.append(_check("Go version", "pass", f"from {go_source}"))
+    else:
+        checks.append(_check("Go version", "fail", "not read from the release branch; the entry reuses the previous one",
+                             "Pass go_version on dispatch, or fetch the release branch."))
+
+    if mode == "create" and release_date == RELEASE_DATE_PLACEHOLDER:
+        checks.append(_check("Release day", "unknown", f"written as `{RELEASE_DATE_PLACEHOLDER}`; a scheduled run is not given one",
+                             "Set the Release day line on the changelog PR before it merges."))
+    return checks
+
+
+def gap_status(derived: list[dict], refs_read: bool, go_version: str, go_source: str | None,
+               previous_go: str | None, entry_go: dict | None = None) -> list[dict]:
+    """The sections no developer note fills: ready, no_changes_this_release, not_yet_checked
+    or needs_review.
+
+    A section is never ready just because nothing was found; with no refs to diff it
+    was not checked at all. ``entry_go`` is given in update mode: ``{"had": version}``,
+    the Go version the entry said before this run, None when it has no Go line.
+    """
+    def of(prefix):
+        return [note["source"] for note in derived if note["source"].startswith(prefix)]
+
+    def diffed(section, sources, detail):
+        if sources:
+            return {"section": section, "status": "ready", "detail": detail}
+        if refs_read:
+            return {"section": section, "status": "no_changes_this_release", "detail": "none in the release diff"}
+        return {"section": section, "status": "not_yet_checked", "detail": "release refs were not available to diff"}
+
+    events = of("websocket:")
+    added = sum(source.endswith("@added") for source in events)
+    migrations = of("migration:")
+    plugins = of("plugin:")
+    gaps = [
+        diffed("WebSocket events", events, f"{added} added, {len(events) - added} removed"),
+        diffed("Database schema changes", migrations,
+               f"{len(migrations)} new migration(s): {', '.join(s.split(':', 1)[1] for s in migrations)}"),
+        diffed("Pre-packaged plugins", plugins, f"{len(plugins)} plugin(s) bumped or removed"),
+    ]
+    if go_source and entry_go is not None and entry_go["had"] is None:
+        gaps.append({"section": "Go version", "status": "needs_review",
+                     "detail": f"{normalize_go_version(go_version)} from {go_source}, but the entry has no "
+                               "`is built with Go ``vX.Y.Z``` line under ### Go Version to update; add it"})
+    elif go_source:
+        formatted = normalize_go_version(go_version)
+        if entry_go is not None and entry_go["had"] != formatted:
+            note = f" (the entry said {entry_go['had']}; updated)"
+        elif entry_go is not None:
+            note = " (matches the entry)"
+        else:
+            note = " (unchanged from the previous entry)" if previous_go == formatted else ""
+        gaps.append({"section": "Go version", "status": "ready", "detail": f"{formatted} from {go_source}{note}"})
+    else:
+        gaps.append({"section": "Go version", "status": "not_yet_checked", "detail": "not read from the release branch"})
+    benchmark = of("benchmark:")
+    gaps.append({"section": "Benchmarking", "status": "ready", "detail": "read from the performance comparison"} if benchmark
+                else {"section": "Benchmarking", "status": "not_yet_checked", "blocks_publish": True,
+                      "detail": "no performance comparison published for this release yet"})
+    return gaps
+
+
+def missing_by_owner(flagged: list[dict]) -> list[dict]:
+    """Flagged PRs grouped by who to ask, most first."""
+    groups: dict[str, list[str]] = {}
+    for pr in flagged:
+        groups.setdefault(pr.get("owner") or "", []).append(pr["source"])
+    return [{"owner": owner or None, "sources": sources}
+            for owner, sources in sorted(groups.items(), key=lambda item: (-len(item[1]), item[0] == "", item[0]))]
+
+
+# Every icon is followed by its meaning in words, so the status is not carried by the
+# emoji alone (screen readers announce emoji by their Unicode name, e.g. "hourglass").
+_STATUS = {
+    "pass": ("✅", "pass"), "fail": ("❌", "fail"), "unknown": ("❔", "unknown"),
+    "ready": ("✅", "ready"), "no_changes_this_release": ("➖", "no changes this release"),
+    "not_yet_checked": ("⏳", "not yet checked"), "needs_review": ("⚠️", "needs a reviewer"),
+    "replaced": ("🔁", "updated"),
+}
+
+
+def _status_item(status: str, name: str, detail: str) -> str:
+    """A report line whose status icon is followed by its meaning in words."""
+    icon, label = _STATUS[status]
+    return f"- {icon} **{name}** ({label}): {detail}"
+
+
+def render_status(readiness: dict) -> list[str]:
+    """The changelog-status digest: preflight, release-note coverage, gaps, note quality."""
+    private = readiness.get("repos_private", [])
+
+    def pr(source):
+        return _pr_link(source, private)
+
+    lines = ["### Preflight", ""]
+    for check in readiness["preflight"]:
+        line = _status_item(check["status"], check["check"], check["detail"])
+        if check["status"] != "pass" and check["remedy"]:
+            line += f". {check['remedy']}"
+        lines.append(line)
+    lines.append("")
+
+    notes = readiness["notes"]
+    merged = notes["prs_merged"]
+    share = f" ({round(100 * notes['with_notes'] / merged)}%)" if merged else ""
+    lines += [f"### Release notes: {notes['with_notes']} of {merged} merged PRs have one{share}", ""]
+    for repo in readiness["repos_unaudited"]:
+        lines.append(f"- ❔ Not audited: `{repo['repo']}` ({repo['reason']}), so its PRs are unknown, not missing.")
+    if notes["missing"]:
+        lines.append(f"- ⏳ Missing: {notes['missing']}, by owner. Add a release note, or the `release-note-none` label, then re-run:")
+        for group in readiness["missing_by_owner"]:
+            owner = f"@{group['owner']}" if group["owner"] else "bot-authored, no assignee"
+            lines.append(f"  - {owner} ({len(group['sources'])}): {', '.join(pr(s) for s in group['sources'])}")
+    else:
+        lines.append("- ✅ None missing.")
+    lines += [f"- {notes['intentional']} PR(s) intentionally have no note.", ""]
+
+    lines += ["### Sections no developer note fills", ""]
+    for gap in readiness["gaps"]:
+        blocks = " (blocks publish)" if gap.get("blocks_publish") else ""
+        lines.append(_status_item(gap["status"], gap["section"], gap["detail"] + blocks))
+    lines.append("")
+
+    reconciled = readiness.get("reconciled", [])
+    if reconciled:
+        lines += ["### Bullets from an earlier release diff that no longer match it", ""]
+        for item in reconciled:
+            remedy = f". {item['remedy']}" if item["status"] == "needs_review" else "."
+            lines.append(_status_item(item["status"], f"`{item['source']}`", item["detail"]) + remedy)
+        lines.append("")
+
+    if readiness["note_quality"]:
+        lines += [f"### Note quality: {len(readiness['note_quality'])} note(s) will need rewriting", ""]
+        for note in readiness["note_quality"]:
+            excerpt = note["excerpt"].replace("`", "'")
+            lines.append(f"- {pr(note['source'])} {note['reason']}: \"{excerpt}\"")
+        lines.append("")
+
+    links, unclear = readiness.get("doc_links", []), readiness.get("doc_links_unclear", [])
+    named_broken = readiness.get("doc_links_named_broken", [])
+    if links or unclear or named_broken:
+        lines += [f"### Doc links: {len(links)} named on a Docs: line or found by following the PR to the docs it changed", ""]
+        for link in named_broken:
+            lines.append(_status_item("fail", f"Docs: line of {pr(link['source'])}", f"{link['url']}: {link['problem']}. "
+                                      "Fix the line in the PR's release note, then re-run."))
+        for link in links:
+            where = ""
+            if "used_in" in link:
+                if link["used_in"]:
+                    where = f" (linked in {', '.join(link['used_in'])})"
+                elif link.get("linked_elsewhere"):
+                    where = f" (linked from the bullet for {', '.join(pr(s) for s in link['linked_elsewhere'])} instead)"
+                else:
+                    where = " (no bullet links it)"
+            lines.append(f"- {pr(link['source'])} is documented in {_docs_link(link['url'], link.get('title'))}{where}. "
+                         f"Basis: {link['basis']}.")
+        if unclear:
+            lines.append(f"- {len(unclear)} PR(s) changed docs, but no page clearly documents the change, so no link was proposed:")
+            for link in unclear:
+                titles = link.get("titles", {})
+                pages = ", ".join(_docs_link(url, titles.get(url)) for url in link["candidates"])
+                lines.append(f"  - {pr(link['source'])}: {pages}")
+        lines.append("")
+
+    checked, broken = readiness.get("links_checked", 0), readiness.get("broken_links", [])
+    if checked:
+        lines += ["### Docs links in the generated text", ""]
+        if broken is None:
+            lines.append(_status_item("unknown", f"{checked} link(s)", "not checked; the docs pages could not be read"))
+        elif not broken:
+            lines.append(_status_item("pass", f"{checked} link(s)", "every page and heading exists"))
+        for problem in broken or []:
+            lines.append(_status_item("fail", problem["url"], problem["problem"]))
+        lines.append("")
+
+    blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
+    lines += [f"**Generator status: {'NOT READY (preflight failing)' if blocking else 'ready to run'}**", ""]
+    return lines
+
+
+def _docs_link(url: str, title: str | None) -> str:
+    """A Markdown link to a docs page, labelled with its title (or path when untitled)."""
+    return f"[{title or url.removeprefix(changelog_release.DOCS_SITE) or '/'}]({url})"
+
+
 def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> None:
-    """Write entry.mdx, sections.json and pr_body.md for the workflow to publish."""
+    """Write entry.mdx, sections.json, pr_body.md and summary.md for the workflow to publish."""
     if not output_dir:
         return
     os.makedirs(output_dir, exist_ok=True)
@@ -1144,9 +1706,72 @@ def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> N
         f.write("\n")
     with open(os.path.join(output_dir, "pr_body.md"), "w", encoding="utf-8") as f:
         f.write(pr_body)
+    with open(os.path.join(output_dir, "summary.md"), "w", encoding="utf-8") as f:
+        f.write(render_summary(payload, entry))
+
+
+def _pr_link(source: str, private=()) -> str:
+    """A link to a PR, saying when only people with access to its private repo can open it."""
+    repo, _, number = source.partition("#")
+    if not number:
+        return f"`{source}`"
+    return f"[{source}](https://github.com/{repo}/pull/{number})" + (" (private repo)" if repo in private else "")
+
+
+def render_summary(payload: dict, entry: str) -> str:
+    """The run summary: what was generated, the run's metrics, and the PRs that need a look."""
+    metrics = payload["metrics"]
+    private = payload["readiness"].get("repos_private", [])
+    lines = [f"## {payload['version']} changelog ({payload['mode']})", ""]
+    if payload.get("proposed_before"):
+        proposed = payload["proposed_sources"]
+        lines += [
+            "### Action needed: confirm the changelog sources",
+            f"The changelog PR has no changelog-sources list, so nothing was changed. These "
+            f"{len(proposed)} source(s) were merged before its branch was last updated "
+            f"({payload['proposed_before']}), or were read from the release diff. Check that the "
+            "entry covers each one, drop any it does not, and add the comment below to the PR "
+            "body. The next run then adds only what is missing.",
+            "",
+            "<details><summary>Proposed sources</summary>",
+            "",
+        ]
+        lines += [f"- {_pr_link(source, private)}" for source in proposed]
+        lines += [
+            "",
+            "</details>",
+            "",
+            "```",
+            render_pr_body("", set(proposed)).strip(),
+            "```",
+            "",
+        ]
+    elif payload["mode"] == "update" and not payload["changed"]:
+        lines += ["No new release notes since the last run.", ""]
+
+    lines += render_status(payload["readiness"])
+
+    lines += ["| Metric | Value |", "|:---|---:|"]
+    lines += [f"| {key.replace('_', ' ')} | {value} |" for key, value in metrics.items()]
+    lines.append("")
+
+    if payload["sources_unattributed"]:
+        lines += ["### Notes no bullet was attributed to", ""]
+        lines += [f"- {_pr_link(source, private)}" for source in payload["sources_unattributed"]]
+        lines.append("")
+
+    if entry.strip():
+        lines += ["Added to the open changelog PR:" if payload["mode"] == "update" else "Generated entry:", ""]
+        lines += ["````mdx", entry.rstrip(), "````", ""]
+    lines.append(
+        "Each section's bullets and their sources are in `sections.json` in the "
+        "`changelog-output` artifact."
+    )
+    return "\n".join(lines) + "\n"
 
 
 def set_github_output(name: str, value) -> None:
+    """Append ``name=value`` to ``$GITHUB_OUTPUT`` when it is set."""
     path = os.environ.get("GITHUB_OUTPUT")
     if path:
         with open(path, "a", encoding="utf-8") as f:
@@ -1154,12 +1779,14 @@ def set_github_output(name: str, value) -> None:
 
 
 def default_pr_body() -> str:
+    """The body of a new changelog PR, explaining how reruns treat it."""
     return (
         f"Auto-generated changelog for milestone `{MILESTONE_TITLE}` from `{', '.join(REPOS)}`.\n\n"
         "Re-running the **Generate Changelog** workflow in `auto` mode adds release notes "
         "from newly merged PRs to this PR and leaves every existing line, including edits "
-        "made here, untouched. `regenerate` mode rebuilds the entry from scratch and "
-        "discards those edits.\n"
+        "made here, untouched, except that the Go version and pre-packaged plugin version "
+        "links are kept in step with the release branch. `regenerate` mode rebuilds the "
+        "entry from scratch and discards those edits.\n"
     )
 
 
@@ -1180,6 +1807,7 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
 
 
 def blog_post_link() -> str:
+    """The Markdown link to the release's blog post, built from the version when no URL is given."""
     blog_url = os.environ.get("BLOG_POST_URL", "").strip()
     if not blog_url:
         # Auto-construct short URL (no patch suffix): v11.6.0 → mattermost-v11-6-is-now-available
@@ -1191,6 +1819,7 @@ def blog_post_link() -> str:
 
 
 def main():
+    """Generate or update the entry, then write the readiness report and outputs."""
     mode = os.environ.get("MODE", "create").strip().lower() or "create"
     if mode not in ("create", "update"):
         raise RuntimeError(f"MODE must be 'create' or 'update', not {mode!r}")
@@ -1198,31 +1827,141 @@ def main():
 
     print(f"🔍 Milestone: {MILESTONE_TITLE} | Repos: {', '.join(REPOS)} | Mode: {mode}\n")
 
+    started = time.monotonic()
     # Each note keeps the PR it came from, so every bullet written can be traced back.
     all_notes = []
     total_prs = 0
     no_notes_prs = []
+    flagged_prs = []
+
+    milestones = {}
+    unaudited = []
+    note_quality = []
+    milestone_prs = {}
+    private_repos = []
+    named_docs = {}
 
     for repo in REPOS:
         print(f"── {repo}")
-        milestone_number = get_milestone_number(repo, MILESTONE_TITLE)
+        try:
+            milestone_number = get_milestone_number(repo, MILESTONE_TITLE)
+            milestones[repo] = milestone_number
+            if repo_is_private(repo):
+                private_repos.append(repo)
+            prs = get_merged_prs(repo, milestone_number) if milestone_number is not None else []
+        except requests.HTTPError as err:
+            status = err.response.status_code if err.response is not None else None
+            if status not in (401, 403, 404) or is_rate_limited(err.response):
+                raise
+            # A repo the token cannot read is unknown, not a repo with nothing missing.
+            reason = f"HTTP {status} for the workflow token"
+            milestones[repo] = reason
+            unaudited.append({"repo": repo, "reason": reason})
+            print(f"::warning title=Repo not audited::{repo}: {reason}; its PRs are not in this changelog")
+            continue
         if milestone_number is None:
             continue
 
-        prs = get_merged_prs(repo, milestone_number)
         print(f"   📋 Found {len(prs)} merged PR(s)")
         total_prs += len(prs)
 
         for pr in sorted(prs, key=lambda p: p["number"]):
-            notes = extract_release_notes(pr.get("body") or "")
+            source = f"{repo}#{pr['number']}"
+            body = pr.get("body") or ""
+            milestone_prs[source] = {"title": pr["title"], "body": body}
+            notes = extract_release_notes(body)
+            merged_at = (pr.get("pull_request") or {}).get("merged_at")
             if notes:
                 for note in notes:
-                    all_notes.append({"source": f"{repo}#{pr['number']}", "text": note})
+                    note, named_url = split_docs_line(note)
+                    if named_url:
+                        named_docs.setdefault(source, named_url)
+                    if not note:
+                        continue
+                    all_notes.append({"source": source, "text": note, "merged_at": merged_at})
+                    issue = note_quality_issue(note)
+                    if issue:
+                        lines = [line.strip() for line in note.splitlines() if line.strip()]
+                        if issue == "machine-generated content":
+                            lines = [line for line in lines if unicodedata.category(line[0]) == "So"]
+                        note_quality.append({"source": source, "title": pr["title"], "reason": issue,
+                                             "excerpt": " / ".join(lines)[:160]})
                 print(f"   ✅ #{pr['number']}: {pr['title']}")
             else:
                 no_notes_prs.append((repo, pr))
                 print(f"   ⏭️  #{pr['number']}: {pr['title']} (NONE / no notes)")
+            reason = flag_reason(release_note_status(body), {label["name"] for label in pr.get("labels") or []})
+            if reason:
+                origin = cherry_picked_from(pr["title"])
+                flagged_prs.append({
+                    "source": source, "title": pr["title"], "reason": reason, "owner": pr_owner(pr),
+                    "origin": f"{repo}#{origin}" if origin else None,
+                })
         print()
+    if unaudited and len(unaudited) == len(REPOS):
+        raise RuntimeError(f"None of {', '.join(REPOS)} could be read with the workflow token")
+
+    # A cherry-pick needs no note of its own when the PR it was picked from has one.
+    noted = {note["source"] for note in all_notes}
+    flagged_prs = [pr for pr in flagged_prs if pr.pop("origin") not in noted]
+    for pr in flagged_prs:
+        print(f"::warning title=Release note needed::{pr['source']} {pr['title']}: {pr['reason']}")
+
+    # Docs pages are read as they are on master at the start of the run: in update mode
+    # the checkout is the changelog PR's branch, cut before later docs changes landed.
+    docs_ref = os.environ.get("DOCS_REF", "").strip() or "HEAD"
+    docs_links = find_docs_links(
+        milestone_prs, noted, lambda path: changelog_release.git_show(docs_ref, path)
+    ) if noted else {}
+    site_cache = {}
+
+    def site():
+        if "site" not in site_cache:
+            site_cache["site"] = docs_site(docs_ref)
+        return site_cache["site"]
+
+    # The Docs: line outranks the page found by following the PR, if it reaches one.
+    named_broken = []
+    for source, url in sorted(named_docs.items()):
+        if source not in noted:
+            continue
+        basis = "named on the Docs: line of the PR's release note"
+        try:
+            problem, title = site().check(url), site().title(url)
+        except RuntimeError as err:
+            problem, title = None, None
+            basis += f" (not checked: {err})"
+        if problem:
+            named_broken.append({"source": source, "url": url, "problem": problem})
+            print(f"::warning title=Docs line link is broken::{source} names {url}: {problem}")
+        else:
+            docs_links[source] = {"url": url, "title": title, "basis": basis}
+    for note in all_notes:
+        note["docs_url"] = docs_links.get(note["source"], {}).get("url")
+    linked = {source: link for source, link in docs_links.items() if link.get("url")}
+    print(f"📚 Docs pages found for {len(linked)} of {len(noted)} PR(s) with release notes")
+    for source, link in linked.items():
+        print(f"   {source}: {link['url']} ({link['basis']})")
+    print()
+
+    # What the release changes that developers rarely write notes for: pre-packaged
+    # plugin versions, WebSocket events and schema migrations, read from the git diff
+    # between the previous release's tag and this release's branch.
+    base_ref = os.environ.get("RELEASE_BASE_REF", "").strip()
+    head_ref = os.environ.get("RELEASE_HEAD_REF", "").strip()
+    derived = changelog_release.derived_notes(base_ref, head_ref) + changelog_release.benchmark_notes(VERSION)
+    if derived:
+        print(f"🔧 {len(derived)} change(s) read from the {base_ref}..{head_ref} diff and the performance comparison:")
+        for note in derived:
+            print(f"   {note['source']}")
+        print()
+    all_notes += derived
+
+    version_short = changelog_release.short_version(VERSION)
+    # Derived from VERSION by default so a new major version needs no edit here, and
+    # cannot land in the previous major's file. CHANGELOG_PATH overrides it.
+    changelog_path = os.environ.get("CHANGELOG_PATH") or changelog_path_for_version(VERSION)
+    print(f"📄 Changelog file: {changelog_path}")
 
     # In update mode only the PRs the open changelog PR does not already include are
     # generated. Which PRs those are is read from the PR body, not from the entry text,
@@ -1232,6 +1971,10 @@ def main():
     # only its included-PR list is replaced.
     pr_body = default_pr_body()
     included = set()
+    proposed_before = os.environ.get("SOURCES_SEED_BEFORE", "").strip() if mode == "update" else ""
+    proposed_sources = []
+    original_content = content = None
+    withheld, reconciled, extra_items = set(), [], []
     body_file = os.environ.get("PR_BODY_FILE", "").strip()
     if body_file and os.path.exists(body_file):
         with open(body_file, "r", encoding="utf-8") as f:
@@ -1241,29 +1984,118 @@ def main():
             raise RuntimeError("MODE=update needs PR_BODY_FILE pointing at the changelog PR's body")
         listed = parse_sources_comment(pr_body)
         if listed is None:
-            raise RuntimeError(
-                "The changelog PR body has no changelog-sources comment, so there is no way "
-                "to tell which PRs it already includes. Re-run in regenerate mode, which "
-                "rebuilds the entry and records the list."
+            if not proposed_before:
+                raise RuntimeError(
+                    "The changelog PR body has no changelog-sources comment, so there is no way "
+                    "to tell which PRs it already includes. Re-run in regenerate mode, which "
+                    "rebuilds the entry and records the list, or set SOURCES_SEED_BEFORE to the "
+                    "time the PR branch was last updated to get a list to review."
+                )
+            # Only a proposal: recording it unreviewed would make every later run skip a
+            # note that is not actually in the entry. Nothing is generated or written.
+            proposed_sources = sorted(seed_sources(all_notes, proposed_before), key=_source_sort_key)
+            all_notes = []
+            listed = set()
+            print(
+                f"::warning title=Changelog sources need review::The changelog PR has no "
+                f"changelog-sources list. Proposed {len(proposed_sources)} source(s) merged before "
+                f"{proposed_before}; check them against the entry and add the list from the run "
+                "summary to the PR body. Nothing was changed."
             )
+        else:
+            proposed_before = ""
+            if os.path.exists(changelog_path):
+                with open(changelog_path, "r", encoding="utf-8") as f:
+                    original_content = content = f.read()
         included = listed
-        all_notes = [note for note in all_notes if note["source"] not in included]
-        print(f"ℹ️  {len(included)} PR(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
+        if content is not None and base_ref and head_ref:
+            content, included, withheld, reconciled = reconcile_derived(content, version_short, included, derived)
+            for item in reconciled:
+                if item["status"] == "replaced":
+                    print(f"🔁 {item['source']}: {item['detail']}")
+                    extra_items.append({"section": item["section"], "subsection": item["subsection"],
+                                        "text": item["text"], "sources": [item["replaced_by"]]})
+                else:
+                    print(f"::warning title=Changelog bullet needs review::{item['source']}: {item['detail']}. {item['remedy']}")
+        all_notes = [note for note in all_notes if note["source"] not in included | withheld]
+        print(f"ℹ️  {len(included)} source(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
 
     for number, note in enumerate(all_notes, start=1):
         note["id"] = f"N{number}"
     sources_by_id = {note["id"]: note["source"] for note in all_notes}
 
-    # Derive short version for heading/anchor: "v11.7.0" → "v11.7", "11.7.0" → "v11.7"
-    version_short = "v" + re.sub(r"\.0$", "", VERSION.lstrip("v"))
-
     release_type = os.environ.get("RELEASE_TYPE", "feature").strip().lower()
-    release_date = os.environ.get("RELEASE_DATE", "").strip() or date.today().strftime("%Y-%m-%d")
+    release_date = os.environ.get("RELEASE_DATE", "").strip()
+    if not release_date:
+        # A scheduled run happens weeks before release day, so its date would be wrong.
+        scheduled = os.environ.get("EVENT_NAME") == "schedule"
+        release_date = RELEASE_DATE_PLACEHOLDER if scheduled else date.today().strftime("%Y-%m-%d")
     go_version = os.environ.get("GO_VERSION", "").strip()
-    # Derived from VERSION by default so a new major version needs no edit here, and
-    # cannot land in the previous major's file. CHANGELOG_PATH overrides it.
-    changelog_path = os.environ.get("CHANGELOG_PATH") or changelog_path_for_version(VERSION)
-    print(f"📄 Changelog file: {changelog_path}")
+    go_source = "the go_version input" if go_version else None
+    if not go_version and head_ref:
+        # The release branch's build image is what the release is built with; reusing the
+        # previous entry's version is wrong in every release that bumps Go.
+        go_version = changelog_release.go_version_from_buildenv(
+            changelog_release.git_show(head_ref, changelog_release.BUILDENV_DOCKERFILE)
+        ) or ""
+        if go_version:
+            go_source = f"{head_ref}:{changelog_release.BUILDENV_DOCKERFILE}"
+            print(f"ℹ️  Go version read from {go_source}: {go_version}")
+
+    # The entry's Go Version section is written once, on create; a later Go bump on the
+    # release branch is applied to it here.
+    entry_go = None
+    if content is not None and go_source:
+        formatted_go = normalize_go_version(go_version)
+        content, had, go_line = replace_entry_go_version(content, version_short, formatted_go)
+        entry_go = {"had": had}
+        if had is None:
+            print(f"::warning title=Go version needs review::The {version_short} entry has no Go version line to set to {formatted_go}")
+        elif had != formatted_go:
+            print(f"🔁 Go version: {had} → {formatted_go}")
+            extra_items.append({"section": "Go Version", "subsection": None, "text": go_line, "sources": []})
+
+    previous_go = None
+    if mode == "create":
+        previous_go = extract_previous_go_version(changelog_path) or extract_previous_go_version(
+            previous_major_changelog_path(changelog_path) or ""
+        )
+    readiness = {
+        "preflight": preflight_checks(changelog_path, mode, milestones, go_source, release_date),
+        "repos_unaudited": unaudited,
+        "repos_private": private_repos,
+        "notes": {
+            "prs_merged": total_prs,
+            "with_notes": total_prs - len(no_notes_prs),
+            "intentional": len(no_notes_prs) - len(flagged_prs),
+            "missing": len(flagged_prs),
+        },
+        "missing_by_owner": missing_by_owner(flagged_prs),
+        "note_quality": note_quality,
+        "doc_links": [{"source": source, **link} for source, link in docs_links.items() if link.get("url")],
+        "doc_links_unclear": [{"source": source, **link} for source, link in docs_links.items() if link.get("candidates")],
+        "doc_links_named_broken": named_broken,
+        "gaps": gap_status(derived, bool(base_ref and head_ref), go_version, go_source, previous_go, entry_go),
+        "reconciled": reconciled,
+    }
+    blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
+    if blocking:
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+            with open(os.path.join(output_dir, "summary.md"), "w", encoding="utf-8") as f:
+                f.write("\n".join([f"## {VERSION} changelog ({mode})", ""] + render_status(readiness)) + "\n")
+        raise RuntimeError("Preflight failed: " + "; ".join(f"{c['check']}: {c['detail']}" for c in blocking))
+
+    # A second create would insert a duplicate entry above the published one. A dry run
+    # is still allowed, so a shipped release can be regenerated to compare against.
+    if mode == "create" and os.environ.get("DRY_RUN", "").strip().lower() != "true":
+        if os.path.exists(changelog_path):
+            with open(changelog_path, "r", encoding="utf-8") as f:
+                if changelog_release.has_entry(f.read(), VERSION):
+                    raise RuntimeError(
+                        f"{changelog_path} already has a {version_short} entry. Run in update mode "
+                        "against the open changelog PR, or as a dry run to preview."
+                    )
 
     items = []
     referenced = set()
@@ -1272,6 +2104,7 @@ def main():
 
     if mode == "update":
         entry = ""
+        updated = content
         if all_notes:
             fragment, items, referenced, ai_polished = render_fragment(all_notes, sources_by_id)
             # The entry already has its Go Version section; a new ### Improvements
@@ -1281,15 +2114,17 @@ def main():
             if ai_polished:
                 check_for_truncation(fragment)
             require_sources_attributed(sources_by_id, referenced)
-            with open(changelog_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            updated = merge_into_entry(content, version_short, fragment)
-            with open(changelog_path, "w", encoding="utf-8") as f:
-                f.write(updated)
+            updated = merge_into_entry(updated, version_short, fragment)
+            require_fragment_merged(fragment, updated)
             entry = fragment
             print(f"✅ Added {len(items)} bullet(s) from {len(sources_by_id)} note(s) to the {version_short} entry")
-        else:
+        elif updated == original_content:
             print("✅ No new release notes since the last run — changelog left unchanged")
+        changed = updated is not None and updated != original_content
+        if changed:
+            with open(changelog_path, "w", encoding="utf-8") as f:
+                f.write(updated)
+        items += extra_items
     else:
         # Anchor slugs replace dots with dashes: "v11.9" → "v11-9"
         version_slug_anchor = version_short.replace(".", "-")
@@ -1371,6 +2206,8 @@ def main():
         else:
             entry += go_section + "\n"
             entry += "\n_No other release notes for this version._\n"
+        items.append({"section": "Go Version", "subsection": None,
+                      "text": _bullet_text(go_section.split("\n", 1)[1]), "sources": []})
 
         # Last gate before the entry is written: fail the run rather than commit a
         # half-written sentence to customer-facing docs.
@@ -1396,10 +2233,42 @@ def main():
     # sent again on the next run instead of being skipped forever.
     unattributed = unattributed_sources(sources_by_id, referenced)
     included |= {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
-    pr_body = render_pr_body(pr_body, included)
+    # proposed_before is only left set when the run proposed a list instead of updating.
+    if not proposed_before:
+        pr_body = render_pr_body(pr_body, included)
 
+    urls = changelog_release.docs_urls(entry)
+    readiness["links_checked"] = len(urls)
+    readiness["broken_links"] = []
+    if urls:
+        try:
+            readiness["broken_links"] = changelog_release.broken_links(
+                [("entry.mdx", number, line) for number, line in enumerate(entry.split("\n"), start=1)], site())
+        except RuntimeError as err:
+            readiness["broken_links"] = None
+            print(f"::warning title=Docs links not checked::{err}")
+    for problem in readiness["broken_links"] or []:
+        print(f"::warning title=Broken docs link::{problem['url']}: {problem['problem']}")
+
+    for link in readiness["doc_links"] if ai_polished else []:
+        link["used_in"] = [
+            item["subsection"] or item["section"] for item in items
+            if link["source"] in item["sources"] and link["url"] in item["text"]
+        ]
+        # The model may put the link on a related feature's bullet instead.
+        link["linked_elsewhere"] = sorted({
+            source for item in items
+            if link["source"] not in item["sources"] and link["url"] in item["text"]
+            for source in item["sources"]
+        }, key=_source_sort_key)
+
+    added_sources = set(sources_by_id.values())
+    derived_sources = {note["source"] for note in derived}
     payload = {
-        "schema_version": 1,
+        # 2: sources may be derived keys (plugin:…, websocket:…, migration:…) as well as
+        # owner/repo#number; adds prs_flagged, derived_sources, proposed_sources, readiness
+        # and metrics.
+        "schema_version": 2,
         "version": VERSION,
         "milestone": MILESTONE_TITLE,
         "release_type": release_type,
@@ -1410,15 +2279,37 @@ def main():
         "changed": changed,
         "sections": group_items_by_section(items),
         "sources_included": sorted(included, key=_source_sort_key),
-        "sources_added": sorted(set(sources_by_id.values()), key=_source_sort_key),
+        "sources_added": sorted(added_sources, key=_source_sort_key),
         "sources_unattributed": unattributed,
+        "derived_sources": sorted(derived_sources),
+        "proposed_before": proposed_before,
+        "proposed_sources": proposed_sources,
         "prs_without_notes": [
             {"source": f"{repo}#{pr['number']}", "title": pr["title"]} for repo, pr in no_notes_prs
         ],
+        "prs_flagged": flagged_prs,
+        "readiness": readiness,
+        "metrics": {
+            "prs_merged": total_prs,
+            "prs_with_notes": total_prs - len(no_notes_prs),
+            "prs_without_notes": len(no_notes_prs),
+            "prs_flagged": len(flagged_prs),
+            "derived_changes": len(added_sources & derived_sources),
+            "sources_added": len(added_sources),
+            "bullets_written": len(items) - len(extra_items),
+            "bullets_corrected": len(extra_items),
+            "bullets_needing_review": sum(item["status"] == "needs_review" for item in reconciled),
+            "sources_unattributed": len(unattributed),
+            "ai_polished": ai_polished,
+            "duration_seconds": round(time.monotonic() - started, 1),
+        },
     }
     write_outputs(output_dir, entry, payload, pr_body)
     set_github_output("changed", "true" if changed else "false")
-    set_github_output("added_prs", len(set(sources_by_id.values())))
+    set_github_output("added_prs", len(added_sources - derived_sources))
+    set_github_output("added_derived", len(added_sources & derived_sources))
+    set_github_output("flagged_prs", len(flagged_prs))
+    set_github_output("corrected", len(extra_items))
 
     if no_notes_prs:
         print(f"\n⚠️  {len(no_notes_prs)} PR(s) had no release notes (marked NONE or section missing):")
