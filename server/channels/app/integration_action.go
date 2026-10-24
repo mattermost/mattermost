@@ -190,7 +190,9 @@ func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Re
 	var httpClient *http.Client
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
-	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(path.Clean(inURL.Path), path.Join(subpath, "plugins")) {
+	pluginPrefix := path.Join(subpath, "plugins") + "/"
+	cleanPath := path.Clean(inURL.Path)
+	if inURL.Host == siteURL.Host && (strings.HasPrefix(cleanPath, pluginPrefix) || cleanPath+"/" == pluginPrefix) {
 		req.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
 		httpClient = a.HTTPService().MakeClient(true)
 	} else {
