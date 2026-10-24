@@ -177,10 +177,18 @@
             content: none;
         }
 
-        // Buttons that are direct children are flex items and already get the
-        // gap, so Bootstrap's own `.btn + .btn` margin would stack on top.
-        // Buttons nested inside a wrapper are not flex items and get no gap,
-        // so they keep Bootstrap's margin -- don't widen this selector.
+        // Bootstrap buttons nested inside a wrapper are not flex items, so the
+        // gap never reaches them and they fall back to Bootstrap's own
+        // `.modal-footer .btn + .btn` margin, which is 5px. Master overrode
+        // that to 8px for every descendant; keep doing so (most plugin modals,
+        // Playbooks included, build their footers this way).
+        .btn + .btn {
+            margin-left: 8px;
+        }
+
+        // ...except as direct children, where they are flex items and the gap
+        // already spaces them -- the margin would stack on top. Same
+        // specificity as the rule above, so this has to come after it.
         > .btn + .btn {
             margin-left: 0;
         }
