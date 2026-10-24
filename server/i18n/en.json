@@ -13717,11 +13717,6 @@
     "description": "Error returned when message search is attempted while search is disabled; {{.Backend}} is 'Elasticsearch' or 'OpenSearch'."
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Failed to parse search result matches",
-    "description": "Error when the highlighted match data in message search results from the search backend cannot be parsed."
-  },
-  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "Search failed to complete",
     "description": "Error returned to the user when a message search query against the search backend fails."
