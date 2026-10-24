@@ -239,11 +239,12 @@ type ExperienceSyncResponse struct {
 
 // ExperienceSyncTeamDelta contains delta data for one team in a sync response.
 type ExperienceSyncTeamDelta struct {
-	TeamID         string                      `json:"team_id"`
-	Team           *ExperienceTeam             `json:"team,omitempty"`
-	Memberships    []*ExperienceTeamMember     `json:"memberships,omitempty"`
-	Channels       []*ExperienceChannel        `json:"channels,omitempty"`
-	ChannelMembers ExperienceChannelMemberList `json:"channel_members"`
+	TeamID            string                      `json:"team_id"`
+	Team              *ExperienceTeam             `json:"team,omitempty"`
+	Memberships       []*ExperienceTeamMember     `json:"memberships,omitempty"`
+	Channels          []*ExperienceChannel        `json:"channels,omitempty"`
+	ChannelMembers    ExperienceChannelMemberList `json:"channel_members"`
+	SidebarCategories *OrderedSidebarCategories   `json:"sidebar_categories,omitempty"`
 }
 
 // ExperienceSyncActiveChannel contains context data for the active channel.
