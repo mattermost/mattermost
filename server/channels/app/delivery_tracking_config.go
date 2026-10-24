@@ -85,11 +85,7 @@ func (s *Server) warnIfDeliveryAuditTargetMissing(cfg *model.Config) {
 		return
 	}
 
-	license := s.License()
-	allowAdvancedLogging := license != nil && license.Features != nil &&
-		license.Features.AdvancedLogging != nil && *license.Features.AdvancedLogging
-
-	if config.IsAuditLevelActive(cfg.ExperimentalAuditSettings, allowAdvancedLogging, mlog.LvlAuditDelivery) {
+	if config.IsAuditLevelActive(cfg.ExperimentalAuditSettings, s.License().HasAdvancedLogging(), mlog.LvlAuditDelivery) {
 		return
 	}
 
