@@ -216,6 +216,13 @@ func TestAccessControlAuditTargetMissingWarning(t *testing.T) {
 		cfg.AccessControlSettings.EnableAccessControlAuditLogging = model.NewPointer(true)
 	}
 
+	t.Run("stays quiet when access control audit logging is off", func(t *testing.T) {
+		th := Setup(t)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, accessControlAuditTargetMissingWarning)
+	})
+
 	t.Run("warns when no audit target is live", func(t *testing.T) {
 		th := SetupConfig(t, enableAccessControlAuditLogging)
 

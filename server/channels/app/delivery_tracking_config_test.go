@@ -216,9 +216,9 @@ func TestWarnIfDeliveryAuditTargetMissing(t *testing.T) {
 			},
 		}))
 	}
-	warn := func(t *testing.T, enable bool) io.Reader {
+	warn := func(t *testing.T, flag, enable bool) io.Reader {
 		cfg := th.App.Config().Clone()
-		cfg.FeatureFlags.PostDeliveryTracking = true
+		cfg.FeatureFlags.PostDeliveryTracking = flag
 		cfg.DeliveryTrackingSettings.Enable = model.NewPointer(enable)
 
 		require.NoError(t, th.TestLogger.Flush())
@@ -232,18 +232,39 @@ func TestWarnIfDeliveryAuditTargetMissing(t *testing.T) {
 
 	t.Run("warns when no live audit target consumes audit-delivery", func(t *testing.T) {
 		configureAudit(t, mlog.LvlAuditAPI)
-		testlib.AssertLog(t, warn(t, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+		testlib.AssertLog(t, warn(t, true, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
 	})
 
-	t.Run("stays quiet when a live audit target consumes audit-delivery, whatever config says", func(t *testing.T) {
+	t.Run("stays quiet when a live audit target consumes audit-delivery", func(t *testing.T) {
 		configureAudit(t, mlog.LvlAuditDelivery)
-		testlib.AssertNoLog(t, warn(t, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+		testlib.AssertNoLog(t, warn(t, true, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
 	})
 
 	t.Run("stays quiet when delivery tracking is disabled", func(t *testing.T) {
 		configureAudit(t, mlog.LvlAuditAPI)
-		testlib.AssertNoLog(t, warn(t, false), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+		testlib.AssertNoLog(t, warn(t, true, false), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
 	})
+
+	t.Run("stays quiet when the feature flag is off", func(t *testing.T) {
+		configureAudit(t, mlog.LvlAuditAPI)
+		testlib.AssertNoLog(t, warn(t, false, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+	})
+}
+
+func TestDeliveryAuditTargetMissingWarningOnConfigChange(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PostDeliveryTracking = true
+		cfg.DeliveryTrackingSettings.Enable = model.NewPointer(false)
+	})
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.DeliveryTrackingSettings.Enable = model.NewPointer(true) })
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
 }
 
 func TestDeliveryAuditWarnInputsChanged(t *testing.T) {
