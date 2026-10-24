@@ -14,9 +14,11 @@ type BroadcastHook interface {
 	Process(msg *HookedWebSocketEvent, webConn *WebConn, args map[string]any) error
 }
 
-func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hookIDs []string, hookArgs []map[string]any) *model.WebSocketEvent {
+// runBroadcastHooks returns the event to send to webConn, or rejected when a hook decided the connection should not
+// receive it.
+func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hookIDs []string, hookArgs []map[string]any) (ev *model.WebSocketEvent, rejected bool) {
 	if len(hookIDs) == 0 {
-		return msg
+		return msg, false
 	}
 
 	hookedEvent := MakeHookedWebSocketEvent(msg)
@@ -35,7 +37,7 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 		}
 	}
 
-	return hookedEvent.Event()
+	return hookedEvent.event(), hookedEvent.IsRejected()
 }
 
 // HookedWebSocketEvent is a wrapper for model.WebSocketEvent that is intended to provide a similar interface, except
@@ -43,6 +45,7 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 type HookedWebSocketEvent struct {
 	original *model.WebSocketEvent
 	copy     *model.WebSocketEvent
+	rejected bool
 }
 
 func MakeHookedWebSocketEvent(event *model.WebSocketEvent) *HookedWebSocketEvent {
@@ -55,6 +58,17 @@ func (he *HookedWebSocketEvent) Add(key string, value any) {
 	he.copyIfNecessary()
 
 	he.copy.Add(key, value)
+}
+
+// Reject marks the event as not to be sent to the connection this hook is running for; the hub then does not queue
+// it. The original event, shared by every connection the event fans out to, is never touched.
+func (he *HookedWebSocketEvent) Reject() {
+	he.rejected = true
+}
+
+// IsRejected returns whether a hook has rejected the event for this connection.
+func (he *HookedWebSocketEvent) IsRejected() bool {
+	return he.rejected
 }
 
 func (he *HookedWebSocketEvent) EventType() model.WebsocketEventType {
@@ -81,7 +95,7 @@ func (he *HookedWebSocketEvent) copyIfNecessary() {
 	}
 }
 
-func (he *HookedWebSocketEvent) Event() *model.WebSocketEvent {
+func (he *HookedWebSocketEvent) event() *model.WebSocketEvent {
 	if he.copy == nil {
 		return he.original
 	}
