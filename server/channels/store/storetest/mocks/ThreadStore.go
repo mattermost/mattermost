@@ -110,6 +110,48 @@ func (_m *ThreadStore) Get(id string) (*model.Thread, error) {
 	return r0, r1
 }
 
+// GetDMGMThreadCounts provides a mock function with given fields: userID, postPriorityEnabled
+func (_m *ThreadStore) GetDMGMThreadCounts(userID string, postPriorityEnabled bool) (bool, int64, int64, error) {
+	ret := _m.Called(userID, postPriorityEnabled)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDMGMThreadCounts")
+	}
+
+	var r0 bool
+	var r1 int64
+	var r2 int64
+	var r3 error
+	if rf, ok := ret.Get(0).(func(string, bool) (bool, int64, int64, error)); ok {
+		return rf(userID, postPriorityEnabled)
+	}
+	if rf, ok := ret.Get(0).(func(string, bool) bool); ok {
+		r0 = rf(userID, postPriorityEnabled)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, bool) int64); ok {
+		r1 = rf(userID, postPriorityEnabled)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	if rf, ok := ret.Get(2).(func(string, bool) int64); ok {
+		r2 = rf(userID, postPriorityEnabled)
+	} else {
+		r2 = ret.Get(2).(int64)
+	}
+
+	if rf, ok := ret.Get(3).(func(string, bool) error); ok {
+		r3 = rf(userID, postPriorityEnabled)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
+}
+
 // GetMembershipForUser provides a mock function with given fields: userID, postID
 func (_m *ThreadStore) GetMembershipForUser(userID string, postID string) (*model.ThreadMembership, error) {
 	ret := _m.Called(userID, postID)

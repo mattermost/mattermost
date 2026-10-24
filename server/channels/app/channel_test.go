@@ -3571,6 +3571,10 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 		nil,
 	)
 
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockPreferenceStore.On("Save", mock.AnythingOfType("model.Preferences")).Return(nil)
+
 	mockTeamStore := mocks.TeamStore{}
 	mockStore.On("Team").Return(&mockTeamStore)
 	mockTeamStore.On("GetMember", mock.AnythingOfType("*request.Context"), "team_id_1", "user_id_1").Return(&model.TeamMember{}, nil)

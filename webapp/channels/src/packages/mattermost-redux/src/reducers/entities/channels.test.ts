@@ -1202,11 +1202,15 @@ describe('myMembers', () => {
         });
 
         test('should not overwrite a more up to date last_viewed_at', () => {
+            // Scenario: WS event delivered the real view time (last_viewed_at=20000,
+            // last_update_at=20000). A stale in-flight REST response then arrives
+            // carrying the DB row (last_viewed_at=LastPostAt=10000, last_update_at=20000
+            // — same wall-clock write time). The fence must reject it.
             const state = deepFreeze({
                 [channelId]: {
                     ...TestHelper.fakeChannelMember(userId, channelId),
                     last_viewed_at: 20000,
-                    last_update_at: 10000,
+                    last_update_at: 20000,
                     msg_count: 10,
                 },
             });
@@ -1214,7 +1218,7 @@ describe('myMembers', () => {
             const channelMember = {
                 ...TestHelper.fakeChannelMember(userId, channelId),
                 last_viewed_at: 10000,
-                last_update_at: 10000,
+                last_update_at: 20000,
                 msg_count: 15,
             };
 
@@ -1273,11 +1277,15 @@ describe('myMembers', () => {
         });
 
         test('should not overwrite a more up to date last_viewed_at', () => {
+            // Scenario: WS event delivered the real view time (last_viewed_at=20000,
+            // last_update_at=20000). A stale in-flight REST response then arrives
+            // carrying the DB row (last_viewed_at=LastPostAt=10000, last_update_at=20000
+            // — same wall-clock write time). The fence must reject it.
             const state = deepFreeze({
                 [channelId]: {
                     ...TestHelper.fakeChannelMember(userId, channelId),
                     last_viewed_at: 20000,
-                    last_update_at: 10000,
+                    last_update_at: 20000,
                     msg_count: 10,
                 },
             });
@@ -1285,7 +1293,7 @@ describe('myMembers', () => {
             const channelMember = {
                 ...TestHelper.fakeChannelMember(userId, channelId),
                 last_viewed_at: 10000,
-                last_update_at: 10000,
+                last_update_at: 20000,
                 msg_count: 15,
             };
 
