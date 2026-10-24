@@ -60,6 +60,8 @@ function makeMapStateToProps() {
             minimumHashtagLength: parseInt(config.MinimumHashtagLength || '', 10),
             emojiMap: getEmojiMap(state),
             channelId,
+            enablePhoneNumberAutolinkingInternational: config.EnablePhoneNumberAutolinkingInternational === 'true',
+            enablePhoneNumberAutolinkingNorthAmerican: config.EnablePhoneNumberAutolinkingNorthAmerican === 'true',
         };
     };
 }

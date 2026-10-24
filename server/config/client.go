@@ -54,6 +54,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableMarketplace"] = strconv.FormatBool(*c.PluginSettings.EnableMarketplace)
 	props["EnableLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableLatex)
 	props["EnableInlineLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableInlineLatex)
+	props["EnablePhoneNumberAutolinkingInternational"] = strconv.FormatBool(*c.ServiceSettings.EnablePhoneNumberAutolinkingInternational)
+	props["EnablePhoneNumberAutolinkingNorthAmerican"] = strconv.FormatBool(*c.ServiceSettings.EnablePhoneNumberAutolinkingNorthAmerican)
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
 	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
 	props["DeleteAccountLink"] = *c.ServiceSettings.DeleteAccountLink
