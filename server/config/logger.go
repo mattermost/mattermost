@@ -4,6 +4,8 @@
 package config
 
 import (
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,9 +14,10 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"sync"
 
 	"github.com/mattermost/logr/v2"
+	logrcfg "github.com/mattermost/logr/v2/config"
+	"github.com/mattermost/logr/v2/formatters"
 	"github.com/mattermost/logr/v2/targets"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -131,11 +134,9 @@ var auditLevelIDs = func() map[logr.LevelID]struct{} {
 // adds on top of ExperimentalAuditSettings, whether or not advanced logging is licensed.
 const AdditionalAuditTargetsEnv = "MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL"
 
-// additionalAuditConfig reads AdditionalAuditTargetsEnv once, so every check sees the value
-// configureAudit used. Tests that set the env var must reset it.
-var additionalAuditConfig = sync.OnceValues(readAdditionalAuditConfig)
-
-func readAdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
+// AdditionalAuditConfig returns the audit targets defined by AdditionalAuditTargetsEnv, or nil
+// when it is unset.
+func AdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
 	additionalJSON := strings.TrimSpace(os.Getenv(AdditionalAuditTargetsEnv))
 	if additionalJSON == "" {
 		return nil, nil
@@ -146,13 +147,6 @@ func readAdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
 		return nil, err
 	}
 	return cfg, nil
-}
-
-// AdditionalAuditConfig returns the audit targets defined by AdditionalAuditTargetsEnv, or nil
-// when it is unset.
-func AdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
-	cfg, err := additionalAuditConfig()
-	return maps.Clone(cfg), err
 }
 
 // EffectiveAuditConfig returns the audit targets the server configures: the basic `_defAudit`
@@ -198,8 +192,8 @@ func IsAuditLevelActive(auditSettings model.ExperimentalAuditSettings, allowAdva
 }
 
 // hasAuditTargetFor reports whether a target in the effective audit config is bound to a
-// level accepted by matches. Any config the server would fail to apply reports inactive,
-// since configureAudit then configures no targets at all.
+// level accepted by matches. Any config the server would fail to apply reports inactive, even
+// though logr keeps the targets it added before reaching the failing one.
 func hasAuditTargetFor(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool, matches func(mlog.Level) bool) bool {
 	var configSrc LogConfigSrc
 	if dsn := auditSettings.GetAdvancedLoggingConfig(); allowAdvancedLogging && !utils.IsEmptyJSON(dsn) {
@@ -232,53 +226,110 @@ func hasAuditTargetFor(auditSettings model.ExperimentalAuditSettings, allowAdvan
 	return false
 }
 
-// validateAuditTargets builds cfg's targets on a throwaway logger, the same way
-// audit.Configure does, so a target the server would reject is not counted as active.
-//
-// Building a syslog target dials the syslog server, so syslog targets only have their options
-// checked and are built as console targets instead, which still validates their format.
+// validateAuditTargets applies the checks logr's ConfigureTargets makes when audit.Configure
+// builds cfg, so a target the server would reject is not counted as active. It validates each
+// target's type, options and format directly rather than building the targets, which would
+// allocate a logger and dial syslog servers on every check.
 func validateAuditTargets(cfg mlog.LoggerConfiguration) error {
-	cfg = maps.Clone(cfg)
 	for name, target := range cfg {
-		if !strings.EqualFold(target.Type, "syslog") {
+		if strings.EqualFold(target.Type, "none") {
 			continue
 		}
-		if err := validateSyslogOptions(target.Options); err != nil {
-			return fmt.Errorf("invalid syslog target %s: %w", name, err)
+		if err := validateAuditTargetOptions(target.Type, target.Options); err != nil {
+			return fmt.Errorf("invalid audit target %s: %w", name, err)
 		}
-		target.Type = "console"
-		target.Options = nil
-		cfg[name] = target
-	}
-
-	logger, err := mlog.NewLogger()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = logger.Shutdown()
-	}()
-
-	return logger.ConfigureTargets(cfg, nil)
-}
-
-func validateSyslogOptions(options json.RawMessage) error {
-	if len(options) == 0 {
-		return errors.New("missing syslog target options")
-	}
-
-	var syslogOptions targets.SyslogOptions
-	if err := json.Unmarshal(options, &syslogOptions); err != nil {
-		return err
-	}
-	if err := syslogOptions.CheckValid(); err != nil {
-		return err
-	}
-	if syslogOptions.TLS {
-		_, err := targets.GetCertPoolOrNil(syslogOptions.Cert)
-		return err
+		if err := validateAuditTargetFormat(target.Format, target.FormatOptions); err != nil {
+			return fmt.Errorf("invalid format for audit target %s: %w", name, err)
+		}
 	}
 	return nil
+}
+
+func validateAuditTargetOptions(targetType string, options json.RawMessage) error {
+	switch strings.ToLower(targetType) {
+	case "console":
+		var opts logrcfg.ConsoleOptions
+		if len(options) != 0 {
+			if err := json.Unmarshal(options, &opts); err != nil {
+				return err
+			}
+		}
+		switch opts.Out {
+		case "", "stdout", "stderr":
+			return nil
+		default:
+			return fmt.Errorf("invalid console target option %q", opts.Out)
+		}
+	case "file":
+		var opts targets.FileOptions
+		if err := unmarshalTargetOptions(options, &opts); err != nil {
+			return err
+		}
+		return opts.CheckValid()
+	case "tcp":
+		var opts targets.TcpOptions
+		if err := unmarshalTargetOptions(options, &opts); err != nil {
+			return err
+		}
+		return opts.CheckValid()
+	case "syslog":
+		var opts targets.SyslogOptions
+		if err := unmarshalTargetOptions(options, &opts); err != nil {
+			return err
+		}
+		if err := opts.CheckValid(); err != nil {
+			return err
+		}
+		if opts.TLS {
+			return validateInlineCert(opts.Cert)
+		}
+		return nil
+	default:
+		return fmt.Errorf("target type %q is unrecognized", targetType)
+	}
+}
+
+func unmarshalTargetOptions(options json.RawMessage, opts any) error {
+	if len(options) == 0 {
+		return errors.New("missing target options")
+	}
+	return json.Unmarshal(options, opts)
+}
+
+// validateInlineCert rejects a base64 cert that does not hold a PEM certificate. Any other value
+// is a file path on the server's filesystem (or the server's default cert when empty), which
+// can't be checked from here: offline Support Packet evaluation runs on another machine.
+func validateInlineCert(cert string) error {
+	der, err := base64.StdEncoding.DecodeString(cert)
+	if cert == "" || err != nil {
+		return nil
+	}
+	if !x509.NewCertPool().AppendCertsFromPEM(der) {
+		return errors.New("cannot parse cert")
+	}
+	return nil
+}
+
+func validateAuditTargetFormat(format string, options json.RawMessage) error {
+	var formatter interface{ CheckValid() error }
+	switch strings.ToLower(format) {
+	case "json":
+		formatter = &formatters.JSON{}
+	case "plain":
+		formatter = &formatters.Plain{}
+	case "gelf":
+		formatter = &formatters.Gelf{}
+	default:
+		return fmt.Errorf("format %q is unrecognized", format)
+	}
+
+	if len(options) == 0 {
+		return nil
+	}
+	if err := json.Unmarshal(options, formatter); err != nil {
+		return err
+	}
+	return formatter.CheckValid()
 }
 
 func GetLogFileLocation(fileLocation string) string {

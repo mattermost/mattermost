@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -332,15 +331,9 @@ var deliveryTargetJSON = json.RawMessage(`{"my-delivery":{"type":"file","format"
 // logr never builds.
 const noneAuditTargetJSON = `{"a":{"type":"none","levels":[{"id":100,"name":"audit-api"},{"id":104,"name":"audit-delivery"}]}}`
 
-// setAdditionalAuditTargets sets AdditionalAuditTargetsEnv for the test and resets the cached
-// value so the next read sees it.
 func setAdditionalAuditTargets(t *testing.T, value string) {
 	t.Helper()
 	t.Setenv(AdditionalAuditTargetsEnv, value)
-	additionalAuditConfig = sync.OnceValues(readAdditionalAuditConfig)
-	t.Cleanup(func() {
-		additionalAuditConfig = sync.OnceValues(readAdditionalAuditConfig)
-	})
 }
 
 func TestIsAuditLoggingActive(t *testing.T) {
@@ -548,11 +541,12 @@ func TestIsAuditLoggingActive(t *testing.T) {
 			expected:             true,
 		},
 		{
-			name:                 "env var syslog target with TLS and unreadable cert",
+			// The path is on the server's filesystem, which offline packet evaluation can't read.
+			name:                 "env var syslog target with TLS and cert file path",
 			fileEnabled:          false,
-			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true,"cert":"%%%not-a-cert"}}}`,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true,"cert":"/nonexistent/mattermost/syslog-ca.pem"}}}`,
 			allowAdvancedLogging: false,
-			expected:             false,
+			expected:             true,
 		},
 		{
 			name:                 "env var syslog target with TLS and unparseable cert",
@@ -565,6 +559,48 @@ func TestIsAuditLoggingActive(t *testing.T) {
 			name:                 "env var syslog target with unknown format",
 			fileEnabled:          false,
 			additionalTargets:    `{"a":{"type":"syslog","format":"bogus","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var console target",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"console","format":"plain","levels":[{"id":100,"name":"audit-api"}],"options":{"out":"stderr"}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var console target with invalid output",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"console","format":"plain","levels":[{"id":100,"name":"audit-api"}],"options":{"out":"stdlog"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var file target with no filename",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"file","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var tcp target",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"tcp","format":"gelf","levels":[{"id":100,"name":"audit-api"}],"options":{"ip":"127.0.0.1","port":5000}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var tcp target with missing port",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"tcp","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"ip":"127.0.0.1"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target with malformed format options",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"file","format":"json","format_options":{"enable_caller":"yes"},"levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`,
 			allowAdvancedLogging: false,
 			expected:             false,
 		},
@@ -798,29 +834,17 @@ func TestAdditionalAuditConfig(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("reads the env var once", func(t *testing.T) {
+	t.Run("reads the env var on each call", func(t *testing.T) {
 		setAdditionalAuditTargets(t, string(deliveryTargetJSON))
 
 		cfg, err := AdditionalAuditConfig()
 		require.NoError(t, err)
 		require.Contains(t, cfg, "my-delivery")
 
-		t.Setenv(AdditionalAuditTargetsEnv, "")
+		setAdditionalAuditTargets(t, "")
 		cfg, err = AdditionalAuditConfig()
 		require.NoError(t, err)
-		assert.Contains(t, cfg, "my-delivery")
-	})
-
-	t.Run("callers cannot mutate the cached config", func(t *testing.T) {
-		setAdditionalAuditTargets(t, string(deliveryTargetJSON))
-
-		cfg, err := AdditionalAuditConfig()
-		require.NoError(t, err)
-		delete(cfg, "my-delivery")
-
-		cfg, err = AdditionalAuditConfig()
-		require.NoError(t, err)
-		assert.Contains(t, cfg, "my-delivery")
+		assert.Nil(t, cfg)
 	})
 }
 
