@@ -23,8 +23,9 @@ func matviewExists(t *testing.T, s *SqlStore, name string) bool {
 
 // TestMigration000216 verifies the split of AttributeView into per-object-type
 // views: after the migration both UserAttributeView and ChannelAttributeView
-// exist (and the combined AttributeView is gone), each filtering to its own
-// ObjectType. The down migration restores the single combined view.
+// exist, each filtering to its own ObjectType, and the combined AttributeView
+// is kept, still user-scoped, for servers from before the split. The down
+// migration drops the per-object-type views.
 func TestMigration000216(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
@@ -36,11 +37,14 @@ func TestMigration000216(t *testing.T) {
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer store.Close()
+	// 000236 rebuilds AttributeView on PropertyOptions, so take it off to see
+	// the schema as 000216 left it.
+	defer withoutLegacyAttributeView(t, store)()
 
 	// New() applies all migrations, so 000216 is already in effect.
 	require.True(t, matviewExists(t, store, "UserAttributeView"), "UserAttributeView should exist after migration")
 	require.True(t, matviewExists(t, store, "ChannelAttributeView"), "ChannelAttributeView should exist after migration")
-	require.False(t, matviewExists(t, store, "AttributeView"), "combined AttributeView should be gone after migration")
+	require.True(t, matviewExists(t, store, "AttributeView"), "combined AttributeView should be kept after migration")
 
 	// Seed one user-scoped and one channel-scoped attribute in the same group.
 	group, err := store.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
@@ -98,6 +102,12 @@ func TestMigration000216(t *testing.T) {
 	require.Equal(t, 1, countInView("ChannelAttributeView", channelTarget), "channel row should be in ChannelAttributeView")
 	require.Equal(t, 0, countInView("ChannelAttributeView", userTarget), "user row should not be in ChannelAttributeView")
 
+	// Exactly the statement a server from before the split issues.
+	_, err = store.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView")
+	require.NoError(t, err)
+	require.Equal(t, 1, countInView("AttributeView", userTarget), "user row should be in AttributeView")
+	require.Equal(t, 0, countInView("AttributeView", channelTarget), "channel row should not be in AttributeView")
+
 	// Down then up round-trips the view topology.
 	downSQL := readMigrationSQL(t, "000216_split_attribute_view_by_object_type.down.sql")
 	upSQL := readMigrationSQL(t, "000216_split_attribute_view_by_object_type.up.sql")
@@ -112,5 +122,5 @@ func TestMigration000216(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, matviewExists(t, store, "UserAttributeView"), "up should recreate UserAttributeView")
 	require.True(t, matviewExists(t, store, "ChannelAttributeView"), "up should recreate ChannelAttributeView")
-	require.False(t, matviewExists(t, store, "AttributeView"), "up should drop AttributeView")
+	require.True(t, matviewExists(t, store, "AttributeView"), "up should keep AttributeView")
 }
