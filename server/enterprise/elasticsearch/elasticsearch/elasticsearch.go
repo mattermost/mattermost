@@ -54,6 +54,12 @@ type ElasticsearchInterfaceImpl struct {
 	Platform          *platform.PlatformService
 }
 
+type serverInfo struct {
+	version     int
+	fullVersion string
+	plugins     []string
+}
+
 func getJSONOrErrorStr(obj any) string {
 	b, err := json.Marshal(obj)
 	if err != nil {
@@ -145,32 +151,32 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 	return *es.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize <= 1
 }
 
-// fetchServerInfo retrieves and stores the server version and plugins from the given client.
-func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *elastic.TypedClient) *model.AppError {
+// fetchServerInfo retrieves the server version and plugins from the given client.
+func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *elastic.TypedClient) (serverInfo, *model.AppError) {
 	version, major, appErr := checkVersion(ctx, client, es.Platform.Log())
 	if appErr != nil {
-		return appErr
+		return serverInfo{}, appErr
 	}
 
-	es.version = major
-	es.fullVersion = version
+	info := serverInfo{version: major, fullVersion: version}
 
 	// Plugin information is advisory: it is used for optional analyzers and Support Packets only.
 	// CAT omits nodes with no plugins, so this inventory must not be used to prove cluster-wide absence.
 	resp, err := client.API.Cat.Plugins().Format("json").H("component").Do(ctx)
 	if err != nil {
 		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
-		return nil
+		return info, nil
 	}
 
-	es.plugins = nil
+	// A non-nil slice means plugin discovery succeeded, even if no plugins were found.
+	info.plugins = []string{}
 	for _, plugin := range resp {
 		if plugin.Component != nil && *plugin.Component != "" {
-			es.plugins = append(es.plugins, *plugin.Component)
+			info.plugins = append(info.plugins, *plugin.Component)
 		}
 	}
 
-	return nil
+	return info, nil
 }
 
 func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
@@ -183,8 +189,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 
 	if es.ready.Load() != 0 {
 		// Elasticsearch is already started. We don't return an error
-		// because "Test Connection" already re-initializes the client. So this
-		// can be a valid scenario.
+		// because a repeated start can be a valid scenario.
 		return nil
 	}
 
@@ -193,7 +198,15 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(ctx, es.client); appErr != nil {
+	info, appErr := es.fetchServerInfo(ctx, es.client)
+	if info.fullVersion != "" {
+		es.version = info.version
+		es.fullVersion = info.fullVersion
+	}
+	if info.plugins != nil {
+		es.plugins = info.plugins
+	}
+	if appErr != nil {
 		return appErr
 	}
 
@@ -1646,21 +1659,8 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(context.Background(), client); appErr != nil {
-		return appErr
-	}
-
-	// Resetting the state.
-	if es.ready.CompareAndSwap(0, 1) {
-		// Re-assign the client.
-		// This is necessary in case elasticsearch was started
-		// after server start.
-		es.mutex.Lock()
-		es.client = client
-		es.mutex.Unlock()
-	}
-
-	return nil
+	_, appErr = es.fetchServerInfo(rctx.Context(), client)
+	return appErr
 }
 
 func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppError {
