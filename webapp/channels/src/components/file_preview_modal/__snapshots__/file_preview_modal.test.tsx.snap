@@ -238,6 +238,35 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
 </div>
 `;
 
+exports[`components/FilePreviewModal should match snapshot, loaded with .md file 1`] = `
+<div>
+  <div>
+    <div>
+      <div
+        class="modal-image__wrapper"
+      >
+        <div
+          class="file-preview-modal__main-ctr"
+        >
+          <div>
+            <div>
+              File Preview Modal Header
+            </div>
+          </div>
+          <div
+            class="file-preview-modal__content"
+          >
+            <div>
+              Markdown Preview
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`components/FilePreviewModal should match snapshot, loaded with .mov file 1`] = `
 <div>
   <div>
