@@ -1,17 +1,30 @@
+// AdminPanel now supplies surface/border/radius/shadow/sizing itself.
 .EditSection {
-    width: 920px;
-    height: auto;
-    max-height: 100%;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    border-radius: 4px;
-    background: var(--center-channel-bg);
-    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.08);
+    .EditSection__description {
+        display: flex;
+        flex-direction: column;
+        margin: 0 0 var(--spacing-xl) 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        gap: var(--spacing-m);
+        line-height: 20px;
 
+        p {
+            margin: 0;
+        }
+
+        strong {
+            color: var(--center-channel-color);
+        }
+    }
+
+    // AdminPanel's own body padding already insets this from the panel edges,
+    // so only the table's own internal layout stays here (no duplicate inset).
     .TableSectionContent {
         display: inline-flex;
         width: 100%;
         flex-direction: column;
-        padding: 20px;
 
         .Table {
             display: flex;
@@ -153,139 +166,68 @@
         }
     }
 
-    .AllowedIPAddressesSection {
+    // Rendered as body content directly now (the header it used to sit under,
+    // AllowedIPAddressesSection/SectionHeaderContent, is gone — AdminPanel's
+    // real title/button header replaced it). width:100% instead of the old
+    // hardcoded 856px (= 920 - 2*32, matched to that header's own padding)
+    // so it stays correct against AdminPanel's own body padding instead.
+    .NotInRangeErrorPanel {
         display: inline-flex;
         width: 100%;
-        flex-direction: column;
-        align-items: flex-start;
         justify-content: flex-start;
+        padding: 16px;
+        border: 1px solid var(--error-text-16, rgba(210, 75, 78, 0.16));
+        border-radius: 4px;
+        margin-bottom: var(--spacing-xl);
+        background: var(--error-text-8, rgba(210, 75, 78, 0.08));
+        gap: 12px;
 
-        .SectionHeaderContent {
-            display: flex;
+        .Icon {
+            color: var(--error-text, #d24b4e);
+        }
+
+        .Content {
+            display: inline-flex;
+            flex: 1 1 0;
             flex-direction: column;
             align-items: flex-start;
-            align-self: stretch;
             justify-content: flex-start;
-            padding: 24px 32px;
-            border-bottom: 1px solid rgba(63, 67, 80, 0.12);
-            gap: 24px;
+            padding-right: 24px;
+            gap: 8px;
 
-            .HeaderContent {
-                display: inline-flex;
-                align-items: flex-start;
+            .Title {
                 align-self: stretch;
-                justify-content: flex-start;
-                gap: 32px;
-
-                .TitleSubtitle {
-                    display: inline-flex;
-                    flex: 1 1 0;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    justify-content: center;
-
-                    .Title {
-                        color: #3f4350;
-                        font-family: Metropolis;
-                        font-size: 16px;
-                        font-weight: 600;
-                        line-height: 24px;
-                        word-wrap: break-word;
-                    }
-
-                    .Subtitle {
-                        align-self: stretch;
-                        color: #3f4350;
-                        font-family: 'Open Sans';
-                        font-size: 14px;
-                        font-weight: 400;
-                        line-height: 20px;
-                        word-wrap: break-word;
-                    }
-                }
-
-                .AddIPFilterButton {
-                    display: inline-flex;
-                    flex-direction: column;
-                    align-items: flex-end;
-                    justify-content: flex-start;
-                    border: none;
-                    background: none;
-                    gap: 16px;
-
-                    .Button {
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: flex-start;
-                        padding: 10px 16px;
-                        border: none;
-                        border-radius: 4px;
-                        background: #1c58d9;
-                        color: #fff;
-                        gap: 10px;
-                    }
-                }
+                color: #3f4350;
+                font-family: 'Open Sans';
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
+                word-wrap: break-word;
             }
 
-            .NotInRangeErrorPanel {
-                display: inline-flex;
-                width: 856px;
-                justify-content: flex-start;
-                padding: 16px;
-                border: 1px solid var(--error-text-16, rgba(210, 75, 78, 0.16));
-                border-radius: 4px;
-                background: var(--error-text-8, rgba(210, 75, 78, 0.08));
-                gap: 12px;
+            .Body {
+                align-self: stretch;
+                color: #3f4350;
+                font-family: 'Open Sans';
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 20px;
+                word-wrap: break-word;
+            }
 
-                .Icon {
-                    color: var(--error-text, #d24b4e);
-                }
+            .Button {
+                display: inline;
+                height: 16px;
+                padding: 0;
+                padding-left: 2px;
+                background: none;
+                color: var(--button-bg, rgba(28, 88, 217, 1));
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
 
-                .Content {
-                    display: inline-flex;
-                    flex: 1 1 0;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    justify-content: flex-start;
-                    padding-right: 24px;
-                    gap: 8px;
-
-                    .Title {
-                        align-self: stretch;
-                        color: #3f4350;
-                        font-family: 'Open Sans';
-                        font-size: 14px;
-                        font-weight: 600;
-                        line-height: 20px;
-                        word-wrap: break-word;
-                    }
-
-                    .Body {
-                        align-self: stretch;
-                        color: #3f4350;
-                        font-family: 'Open Sans';
-                        font-size: 14px;
-                        font-weight: 400;
-                        line-height: 20px;
-                        word-wrap: break-word;
-                    }
-
-                    .Button {
-                        display: inline;
-                        height: 16px;
-                        padding: 0;
-                        padding-left: 2px;
-                        background: none;
-                        color: var(--button-bg, rgba(28, 88, 217, 1));
-                        font-size: 14px;
-                        font-weight: 600;
-                        line-height: 20px;
-
-                        &:hover {
-                            cursor: pointer;
-                        }
-                    }
+                &:hover {
+                    cursor: pointer;
                 }
             }
         }
