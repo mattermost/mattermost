@@ -9,20 +9,13 @@
         margin-bottom: 0;
     }
 
-    // Match Compass AdminPanel chrome (center-channel tokens + spacing/type).
+    // AdminPanel now supplies surface/border/radius/elevation/padding/sizing
+    // itself; only the internal content layout (actionsRow + optional error,
+    // stacked with spacing-m between them) stays here.
     &__actionsPanel {
         display: flex;
-        overflow: hidden;
-        width: 100%;
-        max-width: 920px;
-        box-sizing: border-box;
         flex-direction: column;
         align-items: stretch;
-        padding: var(--spacing-xxl);
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: var(--radius-m);
-        background: var(--center-channel-bg);
-        box-shadow: var(--elevation-1);
         gap: var(--spacing-m);
     }
 
