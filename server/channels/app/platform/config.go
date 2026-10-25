@@ -237,12 +237,6 @@ func (ps *PlatformService) regenerateClientConfig() {
 	clientConfig := config.GenerateClientConfig(ps.Config(), ps.telemetryId, ps.License())
 	limitedClientConfig := config.GenerateLimitedClientConfig(ps.Config(), ps.telemetryId, ps.License())
 
-	auditLoggingActive := false
-	if isActive := ps.auditLoggingActive.Load(); isActive != nil {
-		auditLoggingActive = (*isActive)()
-	}
-	clientConfig["AuditLoggingActive"] = strconv.FormatBool(auditLoggingActive)
-
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := ps.Store.TermsOfService().GetLatest(true)
 		if err != nil {
@@ -260,6 +254,15 @@ func (ps *PlatformService) regenerateClientConfig() {
 	}
 
 	clientConfigJSON, _ := json.Marshal(clientConfig)
+
+	// AuditLoggingActive reflects this node's audit logger, so it is left out of the hash that
+	// cluster nodes compare to detect config drift.
+	auditLoggingActive := false
+	if isActive := ps.auditLoggingActive.Load(); isActive != nil {
+		auditLoggingActive = (*isActive)()
+	}
+	clientConfig["AuditLoggingActive"] = strconv.FormatBool(auditLoggingActive)
+
 	ps.clientConfig.Store(clientConfig)
 	ps.limitedClientConfig.Store(limitedClientConfig)
 	ps.clientConfigHash.Store(fmt.Sprintf("%x", sha256.Sum256(clientConfigJSON)))

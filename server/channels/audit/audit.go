@@ -54,13 +54,10 @@ func (a *Audit) IsLevelEnabled(level mlog.Level) bool {
 	return a.logger.IsLevelEnabled(level)
 }
 
-// IsActive reports whether a configured target is accepting records at any audit level other
-// than audit-delivery. That level is opt-in and so high volume that a target bound only to it
-// does not mean general audit logging is on.
+// IsActive reports whether a configured target is accepting records at any general audit level
+// (mlog.MLvlAuditGeneral).
 func (a *Audit) IsActive() bool {
-	return slices.ContainsFunc(mlog.MLvlAuditAll, func(level mlog.Level) bool {
-		return level.ID != mlog.LvlAuditDelivery.ID && a.IsLevelEnabled(level)
-	})
+	return slices.ContainsFunc(mlog.MLvlAuditGeneral, a.IsLevelEnabled)
 }
 
 // Configure sets zero or more target to output audit logs to.

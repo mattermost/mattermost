@@ -315,3 +315,18 @@ func TestSetAuditLoggingActiveFunc(t *testing.T) {
 	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam++ })
 	require.Equal(t, "false", th.Service.ClientConfig()["AuditLoggingActive"], "re-evaluated when the client config is regenerated")
 }
+
+func TestAuditLoggingActiveNotInClientConfigHash(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.Service.SetAuditLoggingActiveFunc(func() bool { return false })
+	inactiveHash := th.Service.ClientConfigHash()
+
+	th.Service.SetAuditLoggingActiveFunc(func() bool { return true })
+	require.Equal(t, "true", th.Service.ClientConfig()["AuditLoggingActive"])
+	require.Equal(t, inactiveHash, th.Service.ClientConfigHash(), "nodes that differ only in audit logger state report the same hash")
+
+	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName += " renamed" })
+	require.NotEqual(t, inactiveHash, th.Service.ClientConfigHash(), "other client config changes still change the hash")
+}

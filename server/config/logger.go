@@ -88,8 +88,8 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 		}
 
 		// apply audit specific levels. Cloned so the target can never alias, and mutate,
-		// the package-level slice shared with auditLevelIDs.
-		targetCfg.Levels = slices.Clone(basicAuditFileLevels)
+		// the shared mlog slice.
+		targetCfg.Levels = slices.Clone(mlog.MLvlAuditGeneral)
 
 		// apply audit specific formatting
 		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": false, "disable_msg": true, "disable_stacktrace": true, "disable_level": true}`)
@@ -108,23 +108,16 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 	return cfg, nil
 }
 
-// basicAuditFileLevels is the fixed set of levels bound to the built-in `_defAudit` file
-// target created from ExperimentalAuditSettings.FileEnabled.
+// auditLevelIDs is the set of mlog level IDs for general audit logging (mlog.MLvlAuditGeneral),
+// which are also the levels bound to the built-in `_defAudit` file target.
 //
 // audit-delivery is deliberately excluded: it produces one record per post per recipient,
-// which is far too high volume for the basic single-file audit sink. An admin opts in by
-// adding a target for it via ExperimentalAuditSettings.AdvancedLoggingJSON.
-var basicAuditFileLevels = []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}
-
-// auditLevelIDs is the set of mlog level IDs the basic audit file target consumes
-// (audit-api, audit-content, audit-permissions, audit-cli).
-//
-// This is derived from basicAuditFileLevels rather than mlog.MLvlAuditAll on purpose: a
-// config whose only audit target is bound to audit-delivery is not emitting general audit
-// records, so IsAuditLoggingActive must still report false for it.
+// which is far too high volume for the basic single-file audit sink, and a config whose only
+// audit target is bound to it is not emitting general audit records, so IsAuditLoggingActive
+// must still report false for it.
 var auditLevelIDs = func() map[logr.LevelID]struct{} {
-	m := make(map[logr.LevelID]struct{}, len(basicAuditFileLevels))
-	for _, l := range basicAuditFileLevels {
+	m := make(map[logr.LevelID]struct{}, len(mlog.MLvlAuditGeneral))
+	for _, l := range mlog.MLvlAuditGeneral {
 		m[l.ID] = struct{}{}
 	}
 	return m
