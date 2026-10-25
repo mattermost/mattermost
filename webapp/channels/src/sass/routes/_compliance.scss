@@ -37,6 +37,5 @@
     }
 }
 
-.compliance-panel {
-    margin-bottom: 3em;
-}
+// Spacing between the Compliance Reports and User Activity Logs panels is
+// owned by the parent .admin-console__content gap, not a margin here.

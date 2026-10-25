@@ -78,7 +78,7 @@ const Audits = ({
     }
 
     return (
-        <div>
+        <>
             {renderComplianceReports()}
             <AdminPanel
                 id='user_activity_logs'
@@ -99,7 +99,7 @@ const Audits = ({
                     {content}
                 </div>
             </AdminPanel>
-        </div>
+        </>
     );
 };
 
