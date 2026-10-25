@@ -7,6 +7,14 @@
 // Log Viewer
 // ============================
 
+// The menu renders in a portal, outside .LogViewer, and long hostnames wrap rather than being cut off
+#serverLogsNodeMenu .label-elements {
+    min-width: 0;
+    flex-shrink: 1;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
 .LogViewer {
     @include log_viewer.viewer-shell;
 
@@ -72,17 +80,20 @@
     // Column header
     // ---------------------
     // Mirrors the .adminConsoleListTable `thead` so it matches the other console lists
+    // Reserves the list's scrollbar gutter so the columns line up with the rows
     &__header {
         display: flex;
+        overflow: hidden;
         align-items: center;
-        padding: 12px 24px;
+        padding: 12px log_viewer.$row-padding-x;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 12px;
         font-weight: 600;
-        gap: 12px;
+        gap: log_viewer.$column-gap;
         line-height: 16px;
+        scrollbar-gutter: stable;
         white-space: nowrap;
     }
 
@@ -115,15 +126,20 @@
         }
     }
 
+    // Must flex like the row cells so the columns line up
+    &__header-node {
+        @include log_viewer.node-column;
+    }
+
     &__header-message {
-        min-width: 0;
-        flex: 1;
+        @include log_viewer.message-column;
     }
 
     &__header-caller {
-        // Caller column plus the gap and the expand chevron beside it
-        width: log_viewer.$caller-column-width + 12px + 16px;
-        flex-shrink: 0;
+        @include log_viewer.caller-column;
+
+        // Stands in for the gap and the expand chevron beside the row's caller
+        margin-inline-end: log_viewer.$column-gap + log_viewer.$expand-indicator-width;
         text-align: right;
     }
 
@@ -134,6 +150,7 @@
         flex: 1;
         overflow-x: hidden;
         overflow-y: auto;
+        scrollbar-gutter: stable;
     }
 
     // Loading and empty states
@@ -234,10 +251,10 @@
         display: flex;
         min-height: 36px;
         align-items: flex-start;
-        padding: 8px 24px;
+        padding: 8px log_viewer.$row-padding-x;
         font-family: log_viewer.$mono-font;
         font-size: 13px;
-        gap: 12px;
+        gap: log_viewer.$column-gap;
         line-height: 20px;
 
         &:focus-visible {
@@ -290,9 +307,19 @@
         font-size: 12px;
     }
 
+    &__node {
+        @include log_viewer.node-column;
+
+        overflow: hidden;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     &__message {
-        min-width: 0;
-        flex: 1;
+        @include log_viewer.message-column;
+
         color: var(--center-channel-color);
     }
 
@@ -307,11 +334,11 @@
         white-space: nowrap;
     }
 
-    // Shrinks to keep the expand indicator on screen; rtl truncates from the start to keep file:line
+    // Rtl truncates from the start to keep file:line
     &__caller {
+        @include log_viewer.caller-column;
+
         overflow: hidden;
-        min-width: 60px;
-        flex: 0 1 log_viewer.$caller-column-width;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         direction: rtl;
         font-size: 12px;
@@ -320,7 +347,7 @@
     }
 
     &__expand-indicator {
-        width: 16px;
+        width: log_viewer.$expand-indicator-width;
         flex-shrink: 0;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 16px;
@@ -337,8 +364,12 @@
     // Expanded details
     // ---------------------
     &__details {
-        padding: 16px 24px 16px log_viewer.$details-indent;
+        padding: 16px log_viewer.$row-padding-x 16px log_viewer.$details-indent;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &--with-node &__details {
+        padding-left: calc(log_viewer.$details-indent + log_viewer.$column-gap + log_viewer.$details-node-width);
     }
 
     // The timestamp is narrow, so it doesn't get the even split the extra fields use
