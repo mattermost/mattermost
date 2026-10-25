@@ -123,6 +123,8 @@ func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus stri
 	return rec
 }
 
+const accessControlAuditTargetMissingWarning = "AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled, or configure a target bound to an audit level via ExperimentalAuditSettings.AdvancedLoggingJSON or the MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL environment variable."
+
 func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) error {
 	adt.OnQueueFull = s.onAuditTargetQueueFull
 	adt.OnError = s.onAuditError
