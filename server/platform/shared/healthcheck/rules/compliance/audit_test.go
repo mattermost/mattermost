@@ -9,12 +9,14 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 func audit(fileEnabled bool, advanced string) func(cfg *model.Config) {
 	return func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = new(fileEnabled)
+		cfg.ExperimentalAuditSettings.FileName = new("audit.log")
 		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(advanced)
 	}
 }
@@ -38,7 +40,7 @@ func auditTarget(levels ...string) string {
 }
 
 func TestAuditLogOff(t *testing.T) {
-	t.Parallel()
+	t.Setenv(config.AdditionalAuditTargetsEnv, "")
 
 	apiTarget := auditTarget(`{"id": 100, "name": "audit-api"}`)
 	off := func(users string) want {
