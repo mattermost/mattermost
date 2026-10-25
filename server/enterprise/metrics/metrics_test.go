@@ -449,6 +449,7 @@ func TestAuditLoggerMetrics(t *testing.T) {
 	auditTarget := audit.MetricsTargetPrefix + "audit_file"
 	auditQueue := audit.MetricsTargetPrefix + "_logr"
 
+	require.NoError(t, th.App.Srv().Audit.Flush())
 	before := loggingMetricsByTarget(t, miImpl)[loggedTotal]
 
 	th.App.Srv().Audit.LogRecord(mlog.LvlAuditAPI, model.AuditRecord{EventName: "test"})
