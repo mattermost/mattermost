@@ -261,10 +261,9 @@ func deployPlugin(ctx context.Context, client *model.Client4, nodes int) error {
 	}
 	defer func() { _ = f.Close() }()
 
-	// Remove any existing plugin (may fail if not installed, that's OK).
-	_, _ = client.RemovePlugin(ctx, pluginID)
-
-	_, _, err = client.UploadPlugin(ctx, f)
+	// Replace any existing install in one step: a separate remove and upload reach
+	// the other nodes as cluster messages handled concurrently, in either order.
+	_, _, err = client.UploadPluginForced(ctx, f)
 	if err != nil {
 		return fmt.Errorf("upload plugin: %w", err)
 	}

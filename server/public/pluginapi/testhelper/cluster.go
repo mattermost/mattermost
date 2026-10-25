@@ -224,12 +224,14 @@ func (n *Node) Stop(t *testing.T) {
 	n.forgetID()
 }
 
-// Start starts a node shut down by Stop and, in a cluster, waits until it has
-// rejoined. It updates the node's URL and clients, which may change with the
-// restart, and its cluster ID, which always does.
+// Start starts a stopped node and, in a cluster, waits until it has rejoined. It
+// updates the node's URL and clients, which may change with the restart, and its
+// cluster ID, which always does.
 func (n *Node) Start(t *testing.T) {
 	t.Helper()
 
+	// A node that stopped other than through Stop still holds its old ID.
+	n.forgetID()
 	require.NoError(t, n.nc.start(t.Context()))
 	retarget(n.AdminClient, n.URL())
 	retarget(n.Client, n.URL())
