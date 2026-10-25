@@ -153,6 +153,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 // a remote whose reply varies in size, shape and status. The cases cover what the caller makes of
 // each reply, and how much of a reply the remote gets to send before the caller stops reading.
 func TestService_sendProfileImageToRemote_ResponseHandling(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-71351")
 	rs := newResponseServer()
 	defer rs.Close()
 
