@@ -10,6 +10,7 @@ import {Link} from 'react-router-dom';
 import {CheckIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {LogNodeKey} from '@mattermost/types/admin';
 
 import {useUser} from 'components/common/hooks/useUser';
 import Avatar from 'components/widgets/users/avatar';
@@ -32,6 +33,7 @@ type Props = {
     onFocus: (log: LogObjectWithAdditionalInfo) => void;
     searchTerm: string;
     wrapText: boolean;
+    showNode: boolean;
 };
 
 const LEVEL_CONFIG: Record<string, {label: MessageDescriptor; className: string}> = {
@@ -203,7 +205,7 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     );
 }
 
-function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText}: Props) {
+function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText, showNode}: Props) {
     const [copyJsonStatus, copyJson] = useClipboardCopy();
     const [copyLineStatus, copyLine] = useClipboardCopy();
     const copyJsonSuccess = copyJsonStatus === 'copied';
@@ -256,6 +258,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
         log.level === 'error' ? 'LogRow--error-bg' : '',
         log.level === 'warn' ? 'LogRow--warn-bg' : '',
         wrapText || isExpanded ? 'LogRow--wrap' : 'LogRow--nowrap',
+        showNode ? 'LogRow--with-node' : '',
     ].filter(Boolean).join(' ');
 
     // Collect extra fields (not timestamp, level, msg, caller)
@@ -291,6 +294,14 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                 >
                     {formatTimestampShort(log.timestamp)}
                 </span>
+                {showNode && (
+                    <span
+                        className='LogRow__node'
+                        title={log[LogNodeKey]}
+                    >
+                        {highlightSearchTerm(log[LogNodeKey] ?? '', searchTerm)}
+                    </span>
+                )}
                 <span className='LogRow__message'>
                     {highlightSearchTerm(log.msg || '', searchTerm)}
                 </span>
