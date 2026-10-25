@@ -65,20 +65,18 @@
         }
     }
 
-    // Match Compass AdminPanel chrome (center-channel tokens + spacing/type).
-    div.OverallScore {
-        display: flex;
-        width: 100%;
-        max-width: 920px;
-        box-sizing: border-box;
-        align-items: center;
-        padding: var(--spacing-xxl);
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: var(--radius-m);
-        margin: 0;
-        background: var(--center-channel-bg);
-        box-shadow: var(--elevation-1);
-        gap: var(--spacing-xxl);
+    // AdminPanel now supplies surface/border/radius/elevation/padding/sizing
+    // itself (it's a <section>, not a <div>, now). Its real children sit
+    // inside its own internal body wrapper, not directly under the root
+    // section, so the icon-beside-content flex layout has to target that
+    // wrapper (same fix server_logs.scss needed) — flex on .OverallScore
+    // itself never reaches scoreEllipseSvg/content, which just block-stack.
+    .OverallScore {
+        [class*='admin-panel__body'] {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xxl);
+        }
 
         &__scoreEllipseSvg {
             display: flex;
