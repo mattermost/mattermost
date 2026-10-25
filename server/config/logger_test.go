@@ -709,15 +709,26 @@ func TestManagedDirs(t *testing.T) {
 		assert.NotContains(t, dirs, " ")
 	})
 
-	t.Run("both configs contribute", func(t *testing.T) {
-		dirs := managedDirs(newCfg("/new/plugins", "/new/client", "/new/data"), newCfg("/old/plugins", "/old/client", "/old/data"))
-		assert.Subset(t, dirs, []string{"/new/plugins", "/new/client", "/new/data", "/old/plugins", "/old/client", "/old/data"})
+	t.Run("config and active directories contribute", func(t *testing.T) {
+		dirs := managedDirs(newCfg("/new/plugins", "/new/client", "/new/data"), []string{"/old/plugins", "/etc/mattermost"})
+		assert.Subset(t, dirs, []string{"/new/plugins", "/new/client", "/new/data", "/old/plugins", "/etc/mattermost"})
 	})
 
-	t.Run("nil active config adds no extra directories", func(t *testing.T) {
+	t.Run("no active directories adds none", func(t *testing.T) {
 		dirs := managedDirs(newCfg("/new/plugins", "/new/client", "/new/data"), nil)
 		assert.Contains(t, dirs, "/new/plugins")
 		assert.NotContains(t, dirs, "/old/plugins")
+	})
+
+	t.Run("export and compliance directories are managed", func(t *testing.T) {
+		cfg := newCfg("/p", "/c", "/d")
+		cfg.FileSettings.ExportDirectory = new("/export")
+		cfg.ComplianceSettings.Directory = new("/compliance")
+		assert.Subset(t, managedDirs(cfg, nil), []string{"/export", "/compliance"})
+	})
+
+	t.Run("nil config sets no directories", func(t *testing.T) {
+		assert.Empty(t, ConfigurableManagedDirs(nil))
 	})
 
 	t.Run("executable directory is managed", func(t *testing.T) {
@@ -728,7 +739,7 @@ func TestManagedDirs(t *testing.T) {
 
 	t.Run("duplicates are removed", func(t *testing.T) {
 		cfg := newCfg("/same", "/same", "/same")
-		assert.Equal(t, 1, strings.Count(strings.Join(managedDirs(cfg, cfg), "\n"), "/same"))
+		assert.Equal(t, 1, strings.Count(strings.Join(managedDirs(cfg, []string{"/same"}), "\n"), "/same"))
 	})
 }
 
@@ -806,19 +817,27 @@ func TestValidateLogPathsManagedDirs(t *testing.T) {
 		assert.Error(t, ValidateLogPaths(cfg, nil, root))
 	})
 
-	t.Run("target inside the active plugin directory is rejected when the new config moves it", func(t *testing.T) {
+	t.Run("target inside an active plugin directory is rejected when the new config moves it", func(t *testing.T) {
 		newCfg := cfgWith(filepath.Join(root, "elsewhere"))
 		newCfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(pluginBinary)
 
 		assert.NoError(t, ValidateLogPaths(newCfg, nil, root))
-		assert.Error(t, ValidateLogPaths(newCfg, cfgWith(pluginDir), root))
+		assert.Error(t, ValidateLogPaths(newCfg, []string{pluginDir}, root))
 	})
 
-	t.Run("target inside the new plugin directory is rejected when the active config differs", func(t *testing.T) {
+	t.Run("target inside the new plugin directory is rejected when the active directories differ", func(t *testing.T) {
 		newCfg := cfgWith(pluginDir)
 		newCfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(pluginBinary)
 
-		assert.Error(t, ValidateLogPaths(newCfg, cfgWith(filepath.Join(root, "elsewhere")), root))
+		assert.Error(t, ValidateLogPaths(newCfg, []string{filepath.Join(root, "elsewhere")}, root))
+	})
+
+	t.Run("compliance directory is managed", func(t *testing.T) {
+		complianceDir := filepath.Join(root, "mattermost", "compliance")
+		cfg := cfgWith(pluginDir)
+		cfg.ComplianceSettings.Directory = new(complianceDir)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(filepath.Join(complianceDir, "compliance", "export.zip"))
+		assert.Error(t, ValidateLogPaths(cfg, nil, root))
 	})
 
 	t.Run("data directory is managed", func(t *testing.T) {

@@ -107,14 +107,17 @@ A log or audit file path is also rejected when it resolves to, or inside, a dire
 - The plugin directory (`PluginSettings.Directory`)
 - The client plugin directory (`PluginSettings.ClientDirectory`)
 - The data directory (`FileSettings.Directory`)
-- The configuration directory that holds `config.json`
+- The export directory (`FileSettings.ExportDirectory`)
+- The compliance directory (`ComplianceSettings.Directory`)
+- The configuration directory that holds the loaded configuration file, including one set with `--config` or `MM_CONFIG`
 - The directory that holds the server executable
 - The `client` directory
 - The `prepackaged_plugins` directory
 - The `templates` directory
+- The `fonts` directory
 - The `i18n` translations directory
 
-The check uses the values from both the current and the new configuration, because some directory changes apply only after a restart. A managed directory that is, or contains, the logging root is not checked. To resolve, move the log file to a path inside the logging root that is outside these directories.
+The check uses the values from the new configuration and from every configuration applied since the server started, because some directory changes apply only after a restart. A managed directory that is, or contains, the logging root is not checked. To resolve, move the log file to a path inside the logging root that is outside these directories.
 
 ### Mattermost Desktop App logs
 

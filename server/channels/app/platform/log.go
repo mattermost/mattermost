@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -48,7 +49,7 @@ func (ps *PlatformService) initLogging() error {
 
 	// Validate log and audit file paths before configuring any target. ConfigureTargets opens
 	// the target files, so a check placed after it would already have written outside the root.
-	logPathErr := config.ValidateLogPaths(ps.Config(), nil, ps.getLogRootPath())
+	logPathErr := config.ValidateLogPaths(ps.Config(), ps.recordActiveManagedDirs(ps.Config()), ps.getLogRootPath())
 	if logPathErr != nil && config.IsLogPathEnforcementEnabled(ps.Config()) {
 		// At startup this aborts the boot via platform.New. On a config reload it leaves the
 		// previously configured (valid) targets in place, so the offending file is never opened.
@@ -254,6 +255,30 @@ func (ps *PlatformService) getLogRootPath() string {
 		return ps.logRootPathOverride
 	}
 	return config.GetLogRootPath()
+}
+
+// recordActiveManagedDirs adds cfg's managed directories and the config file's directory to those
+// the server may still be using, and returns them all. None are removed: some changes apply only after a restart.
+func (ps *PlatformService) recordActiveManagedDirs(cfg *model.Config) []string {
+	ps.activeManagedDirsMut.Lock()
+	defer ps.activeManagedDirsMut.Unlock()
+
+	for _, dir := range append(config.ConfigurableManagedDirs(cfg), ps.configFileDir()) {
+		if strings.TrimSpace(dir) != "" && !slices.Contains(ps.activeManagedDirs, dir) {
+			ps.activeManagedDirs = append(ps.activeManagedDirs, dir)
+		}
+	}
+	return slices.Clone(ps.activeManagedDirs)
+}
+
+// configFileDir returns the directory of the file the config was loaded from, or "" when the
+// config is not file-backed.
+func (ps *PlatformService) configFileDir() string {
+	file, ok := strings.CutPrefix(ps.configStore.String(), "file://")
+	if !ok {
+		return ""
+	}
+	return filepath.Dir(file)
 }
 
 // validateLogFilePath validates that a log file path is within the logging root directory.

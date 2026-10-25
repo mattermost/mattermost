@@ -36,6 +36,7 @@ const (
 const (
 	prepackagedPluginsDir = "prepackaged_plugins"
 	templatesDir          = "templates"
+	fontsDir              = "fonts"
 	i18nDir               = "i18n"
 )
 
@@ -317,7 +318,7 @@ func resolveLogFilePath(filePath string, loggingRoot string) (string, error) {
 // logging root or inside a server-managed directory and the server is not configured to reject it.
 const LogPathInvalidWarning = "Log file path in logging config is outside the logging root directory or inside a directory the server manages. " +
 	"Set the EnforceLogPathRoot feature flag to reject this configuration now; enforcement will become the default in a future release. " +
-	"To fix, set the MM_LOG_PATH environment variable to a parent directory containing all log paths, and move log files into the logging root but outside the plugin, data, config, executable, client, templates and translations directories."
+	"To fix, set the MM_LOG_PATH environment variable to a parent directory containing all log paths, and move log files into the logging root but outside the plugin, data, export, compliance, config, executable, client, templates, fonts and translations directories."
 
 // IsLogPathEnforcementEnabled reports whether a log path outside the logging root should be
 // treated as fatal rather than merely logged. Nil-safe: cfg may carry no feature flags at all.
@@ -330,18 +331,17 @@ func IsLogPathEnforcementEnabled(cfg *model.Config) bool {
 // fields checked are LogSettings.FileLocation, LogSettings.AdvancedLoggingJSON,
 // ExperimentalAuditSettings.FileName and ExperimentalAuditSettings.AdvancedLoggingJSON.
 //
-// activeCfg is the configuration the server runs with now. Its configurable managed directories
-// are checked as well, because a change such as PluginSettings.Directory applies only after a
-// restart. It may be nil.
+// activeDirs are further managed directories the server may still be using, such as those of
+// every configuration applied since startup and the directory of the config file it loaded.
 //
 // loggingRoot is a parameter rather than a call to GetLogRootPath so a caller holding a
 // per-instance override (see PlatformService.getLogRootPath) can supply its own root.
-func ValidateLogPaths(cfg, activeCfg *model.Config, loggingRoot string) error {
+func ValidateLogPaths(cfg *model.Config, activeDirs []string, loggingRoot string) error {
 	if cfg == nil {
 		return nil
 	}
 
-	managed := resolvedManagedDirs(cfg, activeCfg, loggingRoot)
+	managed := resolvedManagedDirs(cfg, activeDirs, loggingRoot)
 	check := func(filePath string) error {
 		resolved, err := resolveLogFilePath(filePath, loggingRoot)
 		if err != nil {
@@ -418,14 +418,14 @@ func validateAdvancedLoggingPaths(loggingJSON json.RawMessage, configSection str
 // target must stay out of. A directory that fails to resolve is dropped: a target under it fails
 // the logging root check, which resolves the same way. A directory that is, or contains, the
 // logging root is dropped too, so that a wide root does not reject every target.
-func resolvedManagedDirs(cfg, activeCfg *model.Config, loggingRoot string) []string {
+func resolvedManagedDirs(cfg *model.Config, activeDirs []string, loggingRoot string) []string {
 	absRoot, err := resolveDir(loggingRoot)
 	if err != nil {
 		return nil
 	}
 
 	var dirs []string
-	for _, dir := range managedDirs(cfg, activeCfg) {
+	for _, dir := range managedDirs(cfg, activeDirs) {
 		resolved, err := resolveDir(dir)
 		if err != nil || isWithinDir(absRoot, resolved) || slices.Contains(dirs, resolved) {
 			continue
@@ -452,26 +452,34 @@ func isWithinDir(path, dir string) bool {
 	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
 }
 
-// managedDirs returns the directories the server reads code, config or data from. The
-// configurable ones come from both cfg and activeCfg. activeCfg may be nil.
-func managedDirs(cfg, activeCfg *model.Config) []string {
-	var candidates []string
-	for _, c := range []*model.Config{cfg, activeCfg} {
-		if c == nil {
-			continue
-		}
-		candidates = append(candidates,
-			model.SafeDereference(c.PluginSettings.Directory),
-			model.SafeDereference(c.PluginSettings.ClientDirectory),
-			model.SafeDereference(c.FileSettings.Directory),
-		)
+// ConfigurableManagedDirs returns the managed directories that cfg sets. A caller passes those of
+// every configuration applied since startup to ValidateLogPaths, because a change such as
+// PluginSettings.Directory applies only after a restart.
+func ConfigurableManagedDirs(cfg *model.Config) []string {
+	if cfg == nil {
+		return nil
 	}
+	return []string{
+		model.SafeDereference(cfg.PluginSettings.Directory),
+		model.SafeDereference(cfg.PluginSettings.ClientDirectory),
+		model.SafeDereference(cfg.FileSettings.Directory),
+		model.SafeDereference(cfg.FileSettings.ExportDirectory),
+		model.SafeDereference(cfg.ComplianceSettings.Directory),
+	}
+}
+
+// managedDirs returns the directories the server reads code, config or data from: those cfg
+// sets, activeDirs, and the ones found by name.
+func managedDirs(cfg *model.Config, activeDirs []string) []string {
+	candidates := ConfigurableManagedDirs(cfg)
+	candidates = append(candidates, activeDirs...)
 	candidates = append(candidates,
 		configDir(),
 		executableDir(),
 		foundDir(fileutils.FindDir(model.ClientDir)),
 		foundDir(fileutils.FindDir(prepackagedPluginsDir)),
 		foundDir(fileutils.FindDir(templatesDir)),
+		foundDir(fileutils.FindDir(fontsDir)),
 		foundDir(fileutils.FindDirRelBinary(i18nDir)),
 	)
 
@@ -493,7 +501,8 @@ func foundDir(dir string, found bool) string {
 	return dir
 }
 
-// configDir returns the directory that holds the configuration files.
+// configDir returns the default configuration directory. A server started with --config or
+// MM_CONFIG passes the directory of the file it loaded in activeDirs.
 func configDir() string {
 	if path, err := resolveConfigFilePath("config.json"); err == nil {
 		return filepath.Dir(path)
