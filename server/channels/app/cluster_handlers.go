@@ -55,15 +55,8 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 	})
 }
 
-func (s *Server) clusterReloadSamlHandler(msg *model.ClusterMessage) {
-	saml := s.Channels().Saml
-	if saml == nil {
-		return
-	}
-
-	if err := saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
-		s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-	}
+func (s *Server) clusterReloadSamlHandler(_ *model.ClusterMessage) {
+	s.Channels().configureSaml(request.EmptyContext(s.Log()))
 }
 
 // registerClusterHandlers registers the cluster message handlers that are handled by the server.
