@@ -4,8 +4,9 @@
 package app
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"errors"
@@ -148,12 +149,9 @@ func registerMockSaml(t *testing.T, configureErr error) *mocks.SamlInterface {
 
 func TestReloadSaml(t *testing.T) {
 	t.Run("no-op when no SAML interface is registered", func(t *testing.T) {
-		RegisterSamlInterface(nil)
-		th := Setup(t)
-
-		require.Nil(t, th.App.Saml())
+		a := &App{ch: &Channels{}}
 		require.NotPanics(t, func() {
-			th.App.reloadSaml(request.TestContext(t))
+			a.reloadSaml(request.TestContext(t))
 		})
 	})
 
@@ -211,9 +209,8 @@ func (c *handlerCapturingCluster) RegisterClusterMessageHandler(event model.Clus
 
 func TestSetSamlIdpCertificateFromMetadata(t *testing.T) {
 	t.Run("rejects data that isn't PEM-encodable", func(t *testing.T) {
-		th := Setup(t)
-
-		appErr := th.App.SetSamlIdpCertificateFromMetadata(request.TestContext(t), []byte("not base64!"))
+		a := &App{}
+		appErr := a.SetSamlIdpCertificateFromMetadata(request.TestContext(t), []byte("not base64!"))
 		require.NotNil(t, appErr)
 		assert.Equal(t, "api.admin.saml.failure_parse_idp_certificate.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -229,7 +226,7 @@ func TestSetSamlIdpCertificateFromMetadata(t *testing.T) {
 		saml.Calls = nil
 		cluster.ClearMessages()
 
-		key, err := rsa.GenerateKey(rand.Reader, 2048)
+		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		require.NoError(t, err)
 		template := &x509.Certificate{
 			SerialNumber: big.NewInt(1),
