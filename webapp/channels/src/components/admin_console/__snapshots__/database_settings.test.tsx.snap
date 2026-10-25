@@ -42,7 +42,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="form-control"
                 disabled=""
                 type="text"
-                value=""
               />
               <div
                 class="help-text"
@@ -306,31 +305,63 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
-                <input
-                  data-testid="tracetrue"
-                  id="tracetrue"
-                  name="trace"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="tracefalse"
-                  id="tracefalse"
-                  name="trace"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                  for="tracetrue"
+                >
+                  <input
+                    class="_radio__input_h0rbb_17"
+                    data-testid="tracetrue"
+                    id="tracetrue"
+                    name="trace"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_h0rbb_36"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_h0rbb_62"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_h0rbb_119"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                  for="tracefalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_h0rbb_17"
+                    data-testid="tracefalse"
+                    id="tracefalse"
+                    name="trace"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_h0rbb_36"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_h0rbb_62"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_h0rbb_119"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="tracehelp-text"
@@ -385,31 +416,63 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
-                <input
-                  checked=""
-                  data-testid="disableDatabaseSearchtrue"
-                  id="disableDatabaseSearchtrue"
-                  name="disableDatabaseSearch"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="disableDatabaseSearchfalse"
-                  id="disableDatabaseSearchfalse"
-                  name="disableDatabaseSearch"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                  for="disableDatabaseSearchtrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_h0rbb_17"
+                    data-testid="disableDatabaseSearchtrue"
+                    id="disableDatabaseSearchtrue"
+                    name="disableDatabaseSearch"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_h0rbb_36"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_h0rbb_62"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_h0rbb_119"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                  for="disableDatabaseSearchfalse"
+                >
+                  <input
+                    class="_radio__input_h0rbb_17"
+                    data-testid="disableDatabaseSearchfalse"
+                    id="disableDatabaseSearchfalse"
+                    name="disableDatabaseSearch"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_h0rbb_36"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_h0rbb_62"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_h0rbb_119"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="disableDatabaseSearchhelp-text"

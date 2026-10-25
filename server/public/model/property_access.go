@@ -16,6 +16,11 @@ const (
 	PropertyAttrsAccessMode     = "access_mode"
 	PropertyAttrsOwners         = "owners"
 
+	// PropertyAttrsMigratedToGlobal marks a Global Attribute template created by
+	// the CPA-to-Global-Attributes migration, distinguishing it from a
+	// template an admin created directly through the Global Attributes UI.
+	PropertyAttrsMigratedToGlobal = "__mm_migrated_to_global"
+
 	// Access Modes
 	PropertyAccessModePublic     = "" // Empty string means public (default)
 	PropertyAccessModeSourceOnly = "source_only"

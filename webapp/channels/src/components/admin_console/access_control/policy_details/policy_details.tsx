@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
@@ -23,7 +24,6 @@ import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
@@ -95,7 +95,7 @@ function PolicyDetails({
     // sets every other field seeded here too.
     const [expression, setExpression] = useState('');
     const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>(policy?.rules || []);
-    const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
+    const [autoSyncMembership, setAutoSyncMembership] = useState(getAutoAddFromRules(policy?.rules));
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
@@ -207,7 +207,7 @@ function PolicyDetails({
                 setPolicyName(result.data?.name || '');
                 setExpression(getMembershipRule(result.data?.rules)?.expression || '');
                 setExistingRules(result.data?.rules || []);
-                setAutoSyncMembership(result.data?.active || false);
+                setAutoSyncMembership(getAutoAddFromRules(result.data?.rules));
 
                 // Child counts + ids are stamped by the GET handler (see
                 // PopulateAccessControlPolicyChildCounts): child_ids lists channels
@@ -300,7 +300,7 @@ function PolicyDetails({
                 setPolicyName(result.data?.name || '');
                 setExpression(getMembershipRule(result.data?.rules)?.expression || '');
                 setExistingRules(result.data?.rules || []);
-                setAutoSyncMembership(result.data?.active || false);
+                setAutoSyncMembership(getAutoAddFromRules(result.data?.rules));
             });
 
             if (!currentPolicyId || !success) {
@@ -330,15 +330,17 @@ function PolicyDetails({
                 }
             }
 
-            // --- Step 3: Handle Policy Active Status Changes ---
+            // --- Step 3: Handle Auto-add Changes ---
             if (success && policyActiveStatusChanges.length > 0) {
-                try {
-                    await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
-                } catch (error) {
+                // The action resolves with an error rather than throwing, so a
+                // rejected update has to be read off the result.
+                const autoAddResult = await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
+                if (autoAddResult.error) {
                     setServerError(formatMessage({
                         id: 'admin.access_control.policy.edit_policy.error.update_active_status',
-                        defaultMessage: 'Error updating policy active status: {error}',
-                    }, {error: error.message}));
+                        defaultMessage: 'Error updating auto-add members: {error}',
+                    }, {error: autoAddResult.error.message}));
+                    setShowConfirmationModal(false);
                     success = false;
                     return;
                 }
@@ -545,18 +547,16 @@ function PolicyDetails({
                                     defaultMessage='Please add user attributes and values to use Attribute-Based Access Control'
                                 />
                             }
-                            text={formatMessage({
+                            description={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.notice.text',
                                 defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.',
                             })}
-                            primaryButton={{
-                                text: formatMessage({
-                                    id: 'admin.access_control.policy.edit_policy.notice.button',
-                                    defaultMessage: 'Configure user attributes',
-                                }),
-                                onClick: () => {
-                                    getHistory().push('/admin_console/system_attributes/user_attributes');
-                                },
+                            primaryButtonLabel={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.notice.button',
+                                defaultMessage: 'Configure user attributes',
+                            })}
+                            onPrimaryAction={() => {
+                                getHistory().push('/admin_console/system_attributes/manage_attributes');
                             }}
                         />
                     </div>)}
@@ -569,7 +569,7 @@ function PolicyDetails({
                                     defaultMessage='Channels without this attribute lose all members'
                                 />
                             }
-                            text={formatMessage({
+                            description={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.channel_attribute_notice.text',
                                 defaultMessage: 'If an assigned channel is missing the referenced attribute, every member of that channel is removed.',
                             })}
@@ -636,7 +636,7 @@ function PolicyDetails({
                                                 defaultMessage='This policy contains restricted values'
                                             />
                                         }
-                                        text={formatMessage({
+                                        description={formatMessage({
                                             id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
                                             defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
                                         })}
@@ -727,7 +727,7 @@ function PolicyDetails({
                                                 defaultMessage='Membership policies affect public and private channels differently'
                                             />
                                         }
-                                        text={formatMessage({
+                                        description={formatMessage({
                                             id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
                                             defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
                                         })}
@@ -751,7 +751,7 @@ function PolicyDetails({
                                                 defaultMessage='This policy contains restricted values - Deletion not allowed'
                                             />
                                         }
-                                        text={formatMessage({
+                                        description={formatMessage({
                                             id: 'admin.access_control.policy.edit_policy.delete_policy.masked_values_warning.text',
                                             defaultMessage: 'Removing this policy could affect access for users you cannot fully account for.',
                                         })}
@@ -768,23 +768,26 @@ function PolicyDetails({
                                                 defaultMessage='This policy is assigned to teams - Deletion not allowed'
                                             />
                                         }
-                                        text={formatMessage({
-                                            id: 'admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.text',
-                                            defaultMessage: 'Remove this policy from the following teams before deleting it. Team assignment is managed from each team\'s System Console page.',
-                                        })}
-                                    >
-                                        {assignedTeams.length > 0 && (
-                                            <ul className='EditPolicy__delete-linked-teams-list'>
-                                                {assignedTeams.map((team) => (
-                                                    <li key={team.id}>
-                                                        <BlockableLink to={`/admin_console/user_management/teams/${team.id}`}>
-                                                            {team.display_name}
-                                                        </BlockableLink>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </SectionNotice>
+                                        description={
+                                            <>
+                                                {formatMessage({
+                                                    id: 'admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.text',
+                                                    defaultMessage: 'Remove this policy from the following teams before deleting it. Team assignment is managed from each team\'s System Console page.',
+                                                })}
+                                                {assignedTeams.length > 0 && (
+                                                    <ul className='EditPolicy__delete-linked-teams-list'>
+                                                        {assignedTeams.map((team) => (
+                                                            <li key={team.id}>
+                                                                <BlockableLink to={`/admin_console/user_management/teams/${team.id}`}>
+                                                                    {team.display_name}
+                                                                </BlockableLink>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </>
+                                        }
+                                    />
                                 </div>
                             )}
                             <Card.Header>
@@ -843,7 +846,7 @@ function PolicyDetails({
 
             {showConfirmationModal && (
                 <PolicyConfirmationModal
-                    active={autoSyncMembership}
+                    autoAdd={autoSyncMembership}
                     onExited={() => setShowConfirmationModal(false)}
                     onConfirm={handleSubmit}
                     channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}

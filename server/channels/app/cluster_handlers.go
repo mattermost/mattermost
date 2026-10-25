@@ -50,8 +50,9 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 	}
 
 	hooks.OnPluginClusterEvent(&plugin.Context{}, model.PluginClusterEvent{
-		Id:   eventID,
-		Data: msg.Data,
+		Id:       eventID,
+		Data:     msg.Data,
+		SourceId: msg.Props["SourceID"],
 	})
 }
 

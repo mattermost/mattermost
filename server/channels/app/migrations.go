@@ -38,6 +38,7 @@ const (
 	boardsPropertySetupDoneKey                     = "boards_property_setup_done"
 	boardsPropertyMigrationVersion                 = "v2"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
+	cpaToGlobalAttributesMigrationKey              = "cpa_to_global_attributes_migration_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -61,10 +62,9 @@ func (a *App) DoAdvancedPermissionsMigration() error {
 
 func (s *Server) doAdvancedPermissionsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(model.AdvancedPermissionsMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -140,10 +140,9 @@ func (a *App) DoEmojisPermissionsMigration() error {
 
 func (s *Server) doEmojisPermissionsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(EmojisPermissionsMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -201,10 +200,9 @@ func (a *App) DoGuestRolesCreationMigration() error {
 
 func (s *Server) doGuestRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(GuestRolesCreationMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -291,10 +289,9 @@ func (a *App) DoSystemConsoleRolesCreationMigration() error {
 
 func (s *Server) doSystemConsoleRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(SystemConsoleRolesCreationMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -334,10 +331,9 @@ func (s *Server) doSystemConsoleRolesCreationMigration(rctx request.CTX) error {
 
 func (s *Server) doSingleRoleCreationMigration(rctx request.CTX, migrationKey, roleId string) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(migrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -346,9 +342,8 @@ func (s *Server) doSingleRoleCreationMigration(rctx request.CTX, migrationKey, r
 	if role == nil {
 		return fmt.Errorf("unknown role id: %q", roleId)
 	}
-	var nfRoleErr *store.ErrNotFound
 	if _, err := s.Store().Role().GetByName(rctx, roleId); err != nil {
-		if !errors.As(err, &nfRoleErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return fmt.Errorf("could not query role %q: %w", roleId, err)
 		}
 		if _, err := s.Store().Role().Save(role); err != nil {
@@ -378,10 +373,9 @@ func (s *Server) doSharedChannelManagerRoleCreationMigration(rctx request.CTX) e
 
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(ContentExtractionConfigDefaultTrueMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -403,10 +397,9 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 
 func (s *Server) doPlaybooksRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(PlaybookRolesCreationMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -526,10 +519,9 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 	const existingInstallationPostsThreshold = 10
 
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(FirstAdminSetupCompleteKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -570,10 +562,9 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 
 func (s *Server) doRemainingSchemaMigrations() error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(remainingSchemaMigrationsKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -602,10 +593,9 @@ func (s *Server) doRemainingSchemaMigrations() error {
 
 func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(postPriorityConfigDefaultTrueMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -760,8 +750,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the
 			// conflict but propagate any other error.
-			var conflictErr *store.ErrConflict
-			if !errors.As(err, &conflictErr) {
+			if _, ok := errors.AsType[*store.ErrConflict](err); !ok {
 				return fmt.Errorf("failed to update content flagging property fields: %w", err)
 			}
 		}
@@ -883,8 +872,7 @@ func (s *Server) doSetupBoardsProperties() error {
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the
 			// conflict but propagate any other error.
-			var conflictErr *store.ErrConflict
-			if !errors.As(err, &conflictErr) {
+			if _, ok := errors.AsType[*store.ErrConflict](err); !ok {
 				return fmt.Errorf("failed to update boards property fields: %w", err)
 			}
 		}
@@ -909,6 +897,13 @@ func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string
 	}
 	rawOptions, ok := attrs["options"]
 	if !ok {
+		// No options to colour. This is also the branch a field whose option list
+		// was withheld from the read for exceeding
+		// model.PropertyFieldMaxHydratedOptions takes, and returning attrs untouched
+		// is right for it too: they still carry the marker that tells the store to
+		// leave the field's options alone, so nothing is recoloured and nothing is
+		// lost. The seeded Status field has three options, so that is a guard
+		// against a hand-edited field rather than a case this migration meets.
 		return attrs
 	}
 
@@ -1036,8 +1031,7 @@ func (s *Server) seedSessionAttributeFields(groupID string) error {
 
 	if len(fieldsToUpdate) > 0 {
 		if _, _, _, err := s.propertyService.UpdatePropertyFields(rctx, groupID, fieldsToUpdate); err != nil {
-			var conflictErr *store.ErrConflict
-			if !errors.As(err, &conflictErr) {
+			if _, ok := errors.AsType[*store.ErrConflict](err); !ok {
 				return fmt.Errorf("failed to update session attribute fields: %w", err)
 			}
 		}
@@ -1154,6 +1148,53 @@ func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
 	return nil
 }
 
+// doSetupCPAToGlobalAttributesMigration migrates every eligible CPA field
+// into a Global Attributes template (PropertyService.MigrateCPAFieldsToGlobalAttributes).
+// Only runs when licensed, since touched fields may predate a lapsed
+// license; unlicensed is not an error — the "done" marker stays unset so a
+// later restart retries once licensed.
+func (s *Server) doSetupCPAToGlobalAttributesMigration(rctx request.CTX) error {
+	if _, err := s.Store().System().GetByName(cpaToGlobalAttributesMigrationKey); err == nil {
+		return nil
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+		return fmt.Errorf("could not query CPA-to-Global-Attributes migration: %w", err)
+	}
+
+	if !model.MinimumEnterpriseLicense(s.License()) {
+		mlog.Info("CPA-to-Global-Attributes migration skipped: server is not currently licensed")
+		return nil
+	}
+
+	migrated, skipped, retryable, err := s.propertyService.MigrateCPAFieldsToGlobalAttributes(rctx)
+	if err != nil {
+		return fmt.Errorf("failed to migrate CPA fields to Global Attributes: %w", err)
+	}
+
+	// Only write the "done" marker once no field needs a retry.
+	if retryable > 0 {
+		mlog.Warn("CPA-to-Global-Attributes migration incomplete: some fields will be retried on a later restart",
+			mlog.Int("migrated", migrated),
+			mlog.Int("skipped", skipped),
+			mlog.Int("retryable", retryable),
+		)
+		return nil
+	}
+
+	mlog.Info("CPA-to-Global-Attributes migration completed",
+		mlog.Int("migrated", migrated),
+		mlog.Int("skipped", skipped),
+	)
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{
+		Name:  cpaToGlobalAttributesMigrationKey,
+		Value: "true",
+	}); err != nil {
+		return fmt.Errorf("failed to mark CPA-to-Global-Attributes migration as complete: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) cacheManagedCategoryIDs() error {
 	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
 	if err != nil {
@@ -1264,10 +1305,9 @@ func (s *Server) doDeleteDmsPreferencesMigration(rctx request.CTX) error {
 }
 
 func (s *Server) doAccessControlPolicyV0_3Migration(rctx request.CTX) error {
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(model.MigrationKeyAccessControlPolicyV0_3); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -1392,6 +1432,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 		{"Access Control Policy V0.3 Migration", s.doAccessControlPolicyV0_3Migration},
 		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
+		{"CPA To Global Attributes Migration", s.doSetupCPAToGlobalAttributesMigration},
 	}
 
 	for i := range m2 {

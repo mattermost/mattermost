@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckIcon, CloseCircleIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
@@ -35,13 +36,13 @@ import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_
 import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
 import * as I18n from 'i18n/i18n';
+import {isUnlicensedAddOn} from 'utils/addons';
 import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
@@ -380,6 +381,10 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         const pluginState = this.props.pluginStatus?.state ?? (this.props.plugin.active ? PluginState.PLUGIN_STATE_RUNNING : PluginState.PLUGIN_STATE_NOT_RUNNING);
         const description = (this.props.plugin.description || this.props.pluginStatus?.description || '').trim();
 
+        // Enabling an unlicensed add-on only ever returns 403, and the settings list
+        // already shows an explanation in place of the toggle.
+        const unlicensedAddOn = isUnlicensedAddOn(this.props.plugin.required_add_on, this.props.license);
+
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
                 <div className='PluginMetadataPanel__actionsPanel'>
@@ -401,13 +406,15 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                                 )}
                             </div>
                         </div>
-                        <PluginEnableButton
-                            id={getPluginEnabledConfigKey(this.props.plugin.id)}
-                            disabled={this.props.isDisabled}
-                            homepageUrl={this.props.plugin.homepage_url}
-                            saveNeeded={this.state.saveNeeded}
-                            value={this.props.plugin.active}
-                        />
+                        {!unlicensedAddOn && (
+                            <PluginEnableButton
+                                id={getPluginEnabledConfigKey(this.props.plugin.id)}
+                                disabled={this.props.isDisabled}
+                                homepageUrl={this.props.plugin.homepage_url}
+                                saveNeeded={this.state.saveNeeded}
+                                value={this.props.plugin.active}
+                            />
+                        )}
                     </div>
                     {this.renderPluginStateError(pluginState, this.props.pluginStatus?.error)}
                 </div>
@@ -526,7 +533,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 <SectionNotice
                     type='warning'
                     title={title}
-                    text={text}
+                    description={text}
                 />
             </div>
         );

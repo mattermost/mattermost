@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
@@ -138,7 +138,7 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
                 <div className='more-modal__actions'>
                     <button
                         className='more-modal__actions--round'
-                        aria-label='Add users to role'
+                        aria-label={this.props.intl.formatMessage({id: 'admin.accessibility.add_users_to_role', defaultMessage: 'Add users to role'})}
                     >
                         <i
                             className='icon icon-plus'

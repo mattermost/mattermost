@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import IconButton from 'components/global_header/header_icon_button';
+import HeaderIconButton from 'components/global_header/header_icon_button';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -31,7 +31,7 @@ const SettingsButton = (props: Props): JSX.Element | null => {
                 />
             }
         >
-            <IconButton
+            <HeaderIconButton
                 icon={'settings-outline'}
                 onClick={(): void => {
                     props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true, focusOriginElement: 'settings_button'}});

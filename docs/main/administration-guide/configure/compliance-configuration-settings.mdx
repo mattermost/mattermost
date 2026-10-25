@@ -141,7 +141,7 @@ Start a Data Retention deletion job immediately. You can monitor the status of t
 
 The time in milliseconds between batches processed during data retention job execution. This setting helps control the rate at which data is deleted to reduce database load during retention operations.
 
-Default is 100 milliseconds. Possible values are any non-negative integer (≥ 0).
+Default is 100 milliseconds. Must be 0 or greater.
 
 <table>
 <colgroup>
@@ -158,7 +158,7 @@ Default is 100 milliseconds. Possible values are any non-negative integer (≥ 0
 
 The number of retention IDs to process in a single batch during data retention job execution. This setting controls how many items are processed together for optimal performance.
 
-Default is 100. Possible values are any non-negative integer (≥ 0).
+Default is 100. Must be greater than 0.
 
 <table style={{width: '90%'}}>
 <colgroup>
@@ -167,23 +167,6 @@ Default is 100. Possible values are any non-negative integer (≥ 0).
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"RetentionIdsBatchSize": 100</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Boards retention days
-
-Set how long Mattermost keeps boards data. When set to a value greater than 0, boards data older than the specified number of days will be deleted during retention job execution only when boards deletion is enabled via `EnableBoardsDeletion`.
-
-Default is 365 days. Possible values are any non-negative integer (≥ 0).
-
-<table style={{width: '85%'}}>
-<colgroup>
-<col style={{width: '85%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"BoardsRetentionDays": 365</code> with numerical input.</td>
 </tr>
 </tbody>
 </table>
@@ -234,34 +217,11 @@ When `EnableFileDeletion` is set to `false`, files will not be deleted regardles
 
 </Note>
 
-### Enable boards deletion
-
-**True**: Boards deletion is enabled during data retention job execution.
-
-**False**: Boards data is not deleted during data retention job execution.
-
-<table style={{width: '96%'}}>
-<colgroup>
-<col style={{width: '95%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableBoardsDeletion": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-When `EnableBoardsDeletion` is set to `false`, boards data will not be deleted regardless of other retention policy settings.
-
-</Note>
-
 ### Batch size
 
 The number of records to process in a single batch during data retention job execution. This setting controls how many records are processed together for optimal performance.
 
-Default is 3000. Possible values are any non-negative integer (≥ 0).
+Default is 3000. Must be greater than 0.
 
 <table style={{width: '82%'}}>
 <colgroup>
@@ -369,7 +329,7 @@ The password associated with the Global Relay SMTP username.
 
 ### Global Relay email address
 
-The email address your Global Relay server monitors for incoming compliance exports.
+The email address your Global Relay server monitors for incoming compliance exports. Must be a valid email address.
 
 <table style={{width: '72%'}}>
 <colgroup>
@@ -378,6 +338,21 @@ The email address your Global Relay server monitors for incoming compliance expo
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"EmailAddress": ""</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
+### Global Relay sender address
+
+An optional fixed From address used for every exported Global Relay EML and as the SMTP envelope sender. When left blank (the default), the export continues to derive From from the first channel participant by username. Participant emails remain in the To header so archiving systems can still index conversation participants.
+
+<table style={{width: '72%'}}>
+<colgroup>
+<col style={{width: '71%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>".MessageExportSettings.GlobalRelaySettings.SenderAddress": ""</code> with string input.</td>
 </tr>
 </tbody>
 </table>
@@ -399,7 +374,7 @@ The SMTP server name URL that will receive your Global Relay EML file when a [cu
 
 ### SMTP server port
 
-The SMTP server port that will receive your Global Relay EML file when a [custom customer account type](#global-relay-customer-account) is configured. Default is `"25"`.
+The SMTP server port that will receive your Global Relay EML file when a [custom customer account type](#global-relay-customer-account) is configured. Must be a port number between 1 and 65535. Default is `"25"`.
 
 <table>
 <colgroup>

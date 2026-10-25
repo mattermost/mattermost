@@ -150,6 +150,21 @@ func (a *App) getFileInfosForDraft(rctx request.CTX, draft *model.Draft) ([]*mod
 		return nil, nil
 	}
 
+	// A draft is unsent content the author still has to be able to see and send, so the
+	// metadata stays. The rendered thumbnail is the file's actual content, so it is
+	// withheld — and never generated — when the policy denies downloading it.
+	if !a.hasFileAttachmentAccess(rctx, draft.UserId, draft.ChannelId) {
+		rctx.Logger().Debug("Withholding draft file thumbnails due to ABAC permission policy",
+			mlog.String("user_id", draft.UserId),
+			mlog.String("channel_id", draft.ChannelId),
+		)
+		for _, fileInfo := range fileInfos {
+			fileInfo.MiniPreview = nil
+		}
+
+		return fileInfos, nil
+	}
+
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
 	return fileInfos, nil

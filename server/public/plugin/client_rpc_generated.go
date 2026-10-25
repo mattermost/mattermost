@@ -6060,6 +6060,36 @@ func (s *apiRPCServer) GetFile(args *Z_GetFileArgs, returns *Z_GetFileReturns) e
 	return nil
 }
 
+type Z_HasPermissionToFileActionArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_HasPermissionToFileActionReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	_args := &Z_HasPermissionToFileActionArgs{sessionID, fileID, action}
+	_returns := &Z_HasPermissionToFileActionReturns{}
+	if err := g.client.Call("Plugin.HasPermissionToFileAction", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionToFileAction API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionToFileAction(args *Z_HasPermissionToFileActionArgs, returns *Z_HasPermissionToFileActionReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionToFileAction(sessionID, fileID, action string) bool
+	}); ok {
+		returns.A = hook.HasPermissionToFileAction(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API HasPermissionToFileAction called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetFileLinkArgs struct {
 	A string
 }
@@ -7407,6 +7437,62 @@ func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEve
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API PublishPluginClusterEvent called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetClusterNodeIDArgs struct {
+}
+
+type Z_GetClusterNodeIDReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetClusterNodeID() string {
+	_args := &Z_GetClusterNodeIDArgs{}
+	_returns := &Z_GetClusterNodeIDReturns{}
+	if err := g.client.Call("Plugin.GetClusterNodeID", _args, _returns); err != nil {
+		log.Printf("RPC call to GetClusterNodeID API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetClusterNodeID(args *Z_GetClusterNodeIDArgs, returns *Z_GetClusterNodeIDReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetClusterNodeID() string
+	}); ok {
+		returns.A = hook.GetClusterNodeID()
+	} else {
+		return encodableError(fmt.Errorf("API GetClusterNodeID called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetClusterNodesArgs struct {
+}
+
+type Z_GetClusterNodesReturns struct {
+	A []*model.ClusterInfo
+	B error
+}
+
+func (g *apiRPCClient) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	_args := &Z_GetClusterNodesArgs{}
+	_returns := &Z_GetClusterNodesReturns{}
+	if err := g.client.Call("Plugin.GetClusterNodes", _args, _returns); err != nil {
+		log.Printf("RPC call to GetClusterNodes API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetClusterNodes(args *Z_GetClusterNodesArgs, returns *Z_GetClusterNodesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetClusterNodes() ([]*model.ClusterInfo, error)
+	}); ok {
+		returns.A, returns.B = hook.GetClusterNodes()
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetClusterNodes called but not implemented."))
 	}
 	return nil
 }
@@ -8786,6 +8872,135 @@ func (s *apiRPCServer) CountPropertyFieldsForTarget(args *Z_CountPropertyFieldsF
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API CountPropertyFieldsForTarget called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetPropertyFieldOptionsArgs struct {
+	A string
+	B string
+	C int64
+	D string
+	E int
+}
+
+type Z_GetPropertyFieldOptionsReturns struct {
+	A *model.PropertyFieldOptionPage
+	B error
+}
+
+func (g *apiRPCClient) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
+	_args := &Z_GetPropertyFieldOptionsArgs{groupID, fieldID, cursorCreateAt, cursorID, perPage}
+	_returns := &Z_GetPropertyFieldOptionsReturns{}
+	if err := g.client.Call("Plugin.GetPropertyFieldOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPropertyFieldOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPropertyFieldOptions(args *Z_GetPropertyFieldOptionsArgs, returns *Z_GetPropertyFieldOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error)
+	}); ok {
+		returns.A, returns.B = hook.GetPropertyFieldOptions(args.A, args.B, args.C, args.D, args.E)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetPropertyFieldOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CreatePropertyFieldOptionsArgs struct {
+	A string
+	B string
+	C []*model.PropertyFieldOption
+}
+
+type Z_CreatePropertyFieldOptionsReturns struct {
+	A []*model.PropertyFieldOption
+	B error
+}
+
+func (g *apiRPCClient) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	_args := &Z_CreatePropertyFieldOptionsArgs{groupID, fieldID, options}
+	_returns := &Z_CreatePropertyFieldOptionsReturns{}
+	if err := g.client.Call("Plugin.CreatePropertyFieldOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to CreatePropertyFieldOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreatePropertyFieldOptions(args *Z_CreatePropertyFieldOptionsArgs, returns *Z_CreatePropertyFieldOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+	}); ok {
+		returns.A, returns.B = hook.CreatePropertyFieldOptions(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API CreatePropertyFieldOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdatePropertyFieldOptionsArgs struct {
+	A string
+	B string
+	C []*model.PropertyFieldOption
+}
+
+type Z_UpdatePropertyFieldOptionsReturns struct {
+	A []*model.PropertyFieldOption
+	B error
+}
+
+func (g *apiRPCClient) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	_args := &Z_UpdatePropertyFieldOptionsArgs{groupID, fieldID, options}
+	_returns := &Z_UpdatePropertyFieldOptionsReturns{}
+	if err := g.client.Call("Plugin.UpdatePropertyFieldOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdatePropertyFieldOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdatePropertyFieldOptions(args *Z_UpdatePropertyFieldOptionsArgs, returns *Z_UpdatePropertyFieldOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+	}); ok {
+		returns.A, returns.B = hook.UpdatePropertyFieldOptions(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdatePropertyFieldOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeletePropertyFieldOptionsArgs struct {
+	A string
+	B string
+	C []string
+}
+
+type Z_DeletePropertyFieldOptionsReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
+	_args := &Z_DeletePropertyFieldOptionsArgs{groupID, fieldID, optionIDs}
+	_returns := &Z_DeletePropertyFieldOptionsReturns{}
+	if err := g.client.Call("Plugin.DeletePropertyFieldOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to DeletePropertyFieldOptions API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeletePropertyFieldOptions(args *Z_DeletePropertyFieldOptionsArgs, returns *Z_DeletePropertyFieldOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error
+	}); ok {
+		returns.A = hook.DeletePropertyFieldOptions(args.A, args.B, args.C)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API DeletePropertyFieldOptions called but not implemented."))
 	}
 	return nil
 }

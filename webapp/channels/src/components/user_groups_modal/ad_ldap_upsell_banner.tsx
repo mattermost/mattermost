@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useEffect, useState, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -119,7 +119,7 @@ function ADLDAPUpsellBanner() {
                 {btn}
                 <button
                     type='button'
-                    aria-label='Close'
+                    aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                     className='banner-close'
                     onClick={() => setShow(false)}
                 >

@@ -3,10 +3,17 @@
 
 import {createStore} from 'redux';
 
+import reducerRegistry from 'mattermost-redux/store/reducer_registry';
+
+import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
+import {registerPluginTranslationsSource} from 'actions/views/root';
+import {registerPluginWebSocketEvent, unregisterPluginWebSocketEvent, registerPluginReconnectHandler, unregisterPluginReconnectHandler} from 'actions/websocket_actions';
 import pluginsReducer from 'reducers/plugins';
 
-import {ActionTypes} from 'utils/constants';
+import {ActionTypes, RHSStates} from 'utils/constants';
+import {registerRHSPluginPopoutListener} from 'utils/popouts/popout_windows';
 
+import type {GlobalState} from 'types/store';
 import type {ProductComponent} from 'types/store/plugins';
 
 import PluginRegistry from './registry';
@@ -334,6 +341,98 @@ describe('PluginRegistry — registerChannelIntro', () => {
     });
 });
 
+describe('PluginRegistry — registerChannelViewComponent', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getChannelViewRegs() {
+        return mockCurrentStore.getState().components.ChannelView;
+    }
+
+    it('(a) adds an entry with the returned id, plugin id, matcher, and component', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        const component = () => null;
+        const id = registry.registerChannelViewComponent({matcher, component});
+
+        expect(typeof id).toBe('string');
+        expect(id.length).toBeGreaterThan(0);
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].id).toBe(id);
+        expect(entries[0].pluginId).toBe(PLUGIN_ID);
+        expect(entries[0].matcher).toBe(matcher);
+        expect(entries[0].component).toBe(component);
+    });
+
+    it('(b) accepts positional arguments', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        const component = () => null;
+        registry.registerChannelViewComponent(matcher, component);
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].matcher).toBe(matcher);
+        expect(entries[0].component).toBe(component);
+    });
+
+    it('(c) unregisterComponent removes only that registration', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id1 = registry.registerChannelViewComponent({matcher: () => true, component: () => null});
+        const id2 = registry.registerChannelViewComponent({matcher: () => false, component: () => null});
+        expect(id1).not.toBe(id2);
+
+        registry.unregisterComponent(id1);
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].id).toBe(id2);
+    });
+
+    it('(d) REMOVED_WEBAPP_PLUGIN sweeps entries for that plugin and leaves others intact', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerChannelViewComponent({matcher: () => true, component: () => null});
+        otherRegistry.registerChannelViewComponent({matcher: () => false, component: () => null});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe('other_plugin');
+    });
+
+    it('(e) registrations from different plugins are sorted by pluginId', () => {
+        const registryZ = new PluginRegistry('zzz_plugin');
+        const registryA = new PluginRegistry('aaa_plugin');
+
+        registryZ.registerChannelViewComponent({matcher: () => true, component: () => null});
+        registryA.registerChannelViewComponent({matcher: () => true, component: () => null});
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(2);
+        expect(entries[0].pluginId).toBe('aaa_plugin');
+        expect(entries[1].pluginId).toBe('zzz_plugin');
+    });
+
+    it('(f) is ignored when the plugin is no longer active', () => {
+        const registry = new PluginRegistry(PLUGIN_ID, () => false);
+        const id = registry.registerChannelViewComponent({matcher: () => true, component: () => null});
+
+        expect(typeof id).toBe('string');
+        expect(getChannelViewRegs()).toHaveLength(0);
+    });
+});
+
 describe('PluginRegistry — registerPostHeaderComponent', () => {
     const PLUGIN_ID = 'test_plugin';
 
@@ -590,5 +689,91 @@ describe('PluginRegistry — registerProduct', () => {
         registry.registerProduct({...baseArgs, baseURL: '/boards', isTeamScoped: false});
 
         expect(getProducts()[0].isTeamScoped).toBe(false);
+    });
+});
+
+describe('PluginRegistry lifetime', () => {
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    it('ignores saved registration functions without changing their return values', () => {
+        let active = true;
+        const registry = new PluginRegistry('test_plugin', () => active);
+        const registerRoot = registry.registerRootComponent;
+        const {rootRegisterMenuItem} = registry.registerPostDropdownSubMenuAction('Menu', jest.fn(), () => true);
+        const before = mockCurrentStore.getState();
+
+        active = false;
+
+        expect(registerRoot(() => null)).toEqual(expect.any(String));
+        expect(rootRegisterMenuItem('Child', jest.fn(), () => true)).toEqual(expect.any(Function));
+        expect(registry.registerSearchComponents({
+            buttonComponent: () => null,
+            suggestionsComponent: () => null,
+            hintsComponent: () => null,
+            action: jest.fn(),
+        })).toEqual(expect.any(String));
+        registry.unregisterComponent('replacement-component');
+        registry.unregisterPostTypeComponent('replacement-post');
+        registry.unregisterAdminConsolePlugin();
+        expect(mockCurrentStore.getState()).toBe(before);
+    });
+
+    it('ignores non-Redux registrations and unregisters after failure', () => {
+        const registry = new PluginRegistry('test_plugin', () => false);
+        registry.registerReducer((state = {}) => state);
+        registry.registerWebSocketEventHandler('test', jest.fn());
+        registry.unregisterWebSocketEventHandler('test');
+        registry.registerReconnectHandler(jest.fn());
+        registry.unregisterReconnectHandler();
+        registry.registerTranslations(() => ({}));
+        registry.registerRHSPluginPopoutListener('test_plugin', jest.fn());
+
+        expect(reducerRegistry.register).not.toHaveBeenCalled();
+        expect(registerPluginWebSocketEvent).not.toHaveBeenCalled();
+        expect(unregisterPluginWebSocketEvent).not.toHaveBeenCalled();
+        expect(registerPluginReconnectHandler).not.toHaveBeenCalled();
+        expect(unregisterPluginReconnectHandler).not.toHaveBeenCalled();
+        expect(registerPluginTranslationsSource).not.toHaveBeenCalled();
+        expect(registerRHSPluginPopoutListener).not.toHaveBeenCalled();
+    });
+
+    it('keeps sidebar handles dispatchable but inert after failure', () => {
+        const rhsActions = jest.requireActual('actions/views/rhs');
+        jest.mocked(showRHSPlugin).mockImplementation(rhsActions.showRHSPlugin);
+        jest.mocked(hideRHSPlugin).mockImplementation(rhsActions.hideRHSPlugin);
+        jest.mocked(toggleRHSPlugin).mockImplementation(rhsActions.toggleRHSPlugin);
+        let active = true;
+        const registry = new PluginRegistry('test_plugin', () => active);
+        const handle = registry.registerRightHandSidebarComponent(() => null, 'Sidebar');
+        const dispatch = jest.fn();
+        const getState = () => ({views: {rhs: {pluggableId: ''}}}) as GlobalState;
+
+        handle.showRHSPlugin(dispatch, getState, undefined);
+        expect(dispatch).toHaveBeenCalledWith({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            state: RHSStates.PLUGIN,
+            pluggableId: handle.id,
+        });
+        dispatch.mockClear();
+        active = false;
+        const before = mockCurrentStore.getState();
+        const lateHandle = registry.registerRightHandSidebarComponent(() => null, 'Late sidebar');
+        const appBar = registry.registerAppBarComponent({
+            iconUrl: 'icon.png',
+            tooltipText: 'Plugin',
+            rhsComponent: () => null,
+            rhsTitle: 'Late sidebar',
+        });
+
+        for (const sidebar of [handle, lateHandle, typeof appBar === 'string' ? undefined : appBar.rhsComponent]) {
+            expect(sidebar?.id).toEqual(expect.any(String));
+            expect(sidebar?.showRHSPlugin(dispatch, getState, undefined)).toEqual({data: false});
+            expect(sidebar?.hideRHSPlugin(dispatch, getState, undefined)).toEqual({data: false});
+            expect(sidebar?.toggleRHSPlugin(dispatch, getState, undefined)).toEqual({data: false});
+        }
+        expect(dispatch).not.toHaveBeenCalled();
+        expect(mockCurrentStore.getState()).toBe(before);
     });
 });

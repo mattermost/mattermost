@@ -17,11 +17,14 @@ import {
     SyncIcon,
     ShieldAlertOutlineIcon,
     SortAscendingIcon,
+    SitemapIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
+
+import {isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
 
 import {PLATFORM_ICONS, platformLabels} from 'components/admin_console/session_attributes/platform_icons';
 import {getSessionAttrs} from 'components/admin_console/session_attributes/utils';
@@ -66,6 +69,8 @@ export const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}
             return <ChevronDownCircleOutlineIcon {...iconProps}/>;
         case 'rank':
             return <SortAscendingIcon {...iconProps}/>;
+        case 'graph':
+            return <SitemapIcon {...iconProps}/>;
         case 'multiselect':
             return <FormatListBulletedIcon {...iconProps}/>;
         case 'text':
@@ -169,7 +174,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         const isSessionAttribute = isSessionAttributeField(option);
         const isNative = option.attrs?.native;
         const isSelected = matchesSelection(option, currentAttribute, currentAttributeObjectType);
-        const isSynced = option.attrs?.ldap || option.attrs?.saml;
+        const isSynced = isPropertyFieldSynced(option);
         const allowed = isSessionAttribute || isNative || hasControlledAttributeValues(option) || enableUserManagedAttributes;
 
         const platforms = isSessionAttribute ? getSessionAttrs(option).platforms : [];
@@ -255,7 +260,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         } else if (!allowed) {
             tooltipContent = formatMessage({
                 id: 'admin.access_control.table_editor.not_safe_to_use',
-                defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.',
+                defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Link the attribute to AD/LDAP, SAML or OpenID Connect to use it in access policies.',
             });
         } else if (isSynced) {
             tooltipContent = formatMessage({

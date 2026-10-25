@@ -63,7 +63,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     private requireConfirm: boolean;
     private customConfirmAction: ((handleConfirm: () => void) => void) | null;
     private afterConfirm: (() => void) | null;
-    private modalBodyRef: React.RefObject<HTMLDivElement>;
+    private modalBodyRef: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);

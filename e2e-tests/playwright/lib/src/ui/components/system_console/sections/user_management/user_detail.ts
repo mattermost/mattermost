@@ -169,6 +169,10 @@ class AdminUserCard {
         await expect(this.container).toBeVisible();
     }
 
+    async expectAuthenticationMethod(text: string | RegExp) {
+        await expect(this.authenticationMethod).toHaveText(text);
+    }
+
     /**
      * Get the field-column container for a field by its exact label text.
      */

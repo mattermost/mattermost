@@ -79,11 +79,11 @@ func (ps *PropertyService) getPropertyValues(groupID string, ids []string) ([]*m
 	return ps.valueStore.GetMany(groupID, ids)
 }
 
-func (ps *PropertyService) searchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+func (ps *PropertyService) searchPropertyValues(rctx request.CTX, groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	// groupID is part of the search method signature to
 	// incentivize the use of the database indexes in searches
 	opts.GroupID = groupID
-	return ps.valueStore.SearchPropertyValues(opts)
+	return ps.valueStore.SearchPropertyValues(rctx, opts)
 }
 
 func (ps *PropertyService) updatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -196,7 +196,7 @@ func (ps *PropertyService) GetPropertyValues(rctx request.CTX, groupID string, i
 }
 
 func (ps *PropertyService) SearchPropertyValues(rctx request.CTX, groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	values, err := ps.searchPropertyValues(groupID, opts)
+	values, err := ps.searchPropertyValues(rctx, groupID, opts)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyValues: %w", err)
 	}

@@ -402,6 +402,33 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) 
 	return infos, nil
 }
 
+func (fs SqlFileInfoStore) GetForPermanentDeleteByUser(userId string, limit int) ([]*model.FileInfo, error) {
+	// Each arm is its own SELECT, combined with UNION rather than OR, so that the post-based
+	// arms can use the PostId index.
+	createdByUser := sq.Select("Id").From("FileInfo").Where(sq.Eq{"CreatorId": userId})
+	onUserPosts := sq.Select("Id").
+		From("FileInfo").
+		Where(sq.Expr("PostId IN (?)", sq.Select("Id").From("Posts").Where(sq.Eq{"UserId": userId})))
+	onRepliesToUserPosts := sq.Select("FileInfo.Id").
+		From("FileInfo").
+		Join("Posts AS Replies ON Replies.Id = FileInfo.PostId").
+		Join("Posts AS Roots ON Roots.Id = Replies.RootId").
+		Where(sq.Eq{"Roots.UserId": userId})
+
+	query := fs.getQueryBuilder().
+		Select(fs.queryFields...).
+		From("FileInfo").
+		Where(sq.Expr("FileInfo.Id IN (SELECT Id FROM ((?) UNION (?) UNION (?)) AS Ids ORDER BY Id LIMIT ?)",
+			createdByUser, onUserPosts, onRepliesToUserPosts, limit)).
+		OrderBy("FileInfo.Id")
+
+	infos := []*model.FileInfo{}
+	if err := fs.GetMaster().SelectBuilder(&infos, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find FileInfos to permanently delete for userId=%s", userId)
+	}
+	return infos, nil
+}
+
 func (fs SqlFileInfoStore) AttachToPost(rctx request.CTX, fileId, postId, channelId, creatorId string) error {
 	query := fs.getQueryBuilder().
 		Update("FileInfo").
@@ -714,13 +741,7 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
-		Where(sq.Or{
-			sq.Gt{"FileInfo.CreateAt": startTime},
-			sq.And{
-				sq.Eq{"FileInfo.CreateAt": startTime},
-				sq.Gt{"FileInfo.Id": startFileID},
-			},
-		}).
+		Where("(FileInfo.CreateAt, FileInfo.Id) > (?, ?)", startTime, startFileID).
 		OrderBy("FileInfo.CreateAt ASC, FileInfo.Id ASC").
 		Limit(uint64(limit))
 

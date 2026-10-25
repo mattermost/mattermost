@@ -11,9 +11,12 @@ import React, {
     useCallback,
 } from 'react';
 import type {
+    ButtonHTMLAttributes,
+    ComponentType,
     ReactNode,
     MouseEvent,
     KeyboardEvent,
+    Ref,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -37,7 +40,12 @@ import './menu.scss';
 export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
 
 const MENU_OPEN_ANIMATION_DURATION = 150;
-const MENU_CLOSE_ANIMATION_DURATION = 100;
+export const MENU_CLOSE_ANIMATION_DURATION = 100;
+
+export type MenuButtonComponentProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+    ref: Ref<HTMLButtonElement>;
+    'data-testid'?: string;
+};
 
 type MenuButtonProps = {
     id: string;
@@ -46,8 +54,8 @@ type MenuButtonProps = {
     'aria-describedby'?: string;
     disabled?: boolean;
     class?: string;
-    as?: 'button' | 'div';
-    children: ReactNode;
+    as?: 'button' | 'div' | ComponentType<MenuButtonComponentProps>;
+    children?: ReactNode;
 
     /**
      * Opt-in passthrough for callers that need to inspect or adjust the
@@ -80,6 +88,8 @@ type MenuProps = {
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
+    minWidth?: string;
+    maxWidth?: string;
     isMenuOpen?: boolean;
 
     /**
@@ -87,6 +97,13 @@ type MenuProps = {
      * menu remain interactive (e.g. during drag-and-drop).
      */
     hideBackdrop?: boolean;
+
+    /**
+     * When true, the modal root does not capture pointer events, so the
+     * trigger stays clickable while the menu is open (e.g. chip remove).
+     * The trigger toggles open/close. Escape still closes.
+     */
+    allowTriggerInteraction?: boolean;
 
     /**
      * When true, MUI will not restore focus to the previously focused
@@ -231,7 +248,13 @@ export function Menu(props: Props) {
         }
     }
 
-    function handleMenuButtonClick(event: MouseEvent) {
+    function handleMenuButtonClick(event: MouseEvent | KeyboardEvent) {
+        // Check before preventDefault so Enter/Space on a descendant remove
+        // button can still fire the native button activation.
+        if ((event.target as HTMLElement).closest?.('[data-menu-prevent-open]')) {
+            return;
+        }
+
         event.preventDefault();
         event.stopPropagation();
 
@@ -253,14 +276,35 @@ export function Menu(props: Props) {
                     },
                 }),
             );
+        } else if (props.menu.allowTriggerInteraction) {
+            setIsMenuOpen((open) => !open);
         } else {
             setIsMenuOpen(true);
         }
     }
 
+    function handleMenuButtonKeyDown(event: KeyboardEvent) {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+
+        // Only the trigger itself should open/toggle — not a focused chip remove.
+        if (event.target !== event.currentTarget) {
+            return;
+        }
+
+        handleMenuButtonClick(event);
+    }
+
     // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
         const MenuButtonComponent = props.menuButton?.as ?? 'button';
+        const isDivTrigger = MenuButtonComponent === 'div';
+        const isDisabled = props.menuButton?.disabled ?? false;
+        let divTabIndex: number | undefined;
+        if (isDivTrigger) {
+            divTabIndex = isDisabled ? -1 : 0;
+        }
 
         const triggerElement = (
             <MenuButtonComponent
@@ -270,12 +314,19 @@ export function Menu(props: Props) {
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
-                disabled={props.menuButton?.disabled ?? false}
+
+                // Native <button> uses disabled. Div triggers are not form
+                // controls, so they expose aria-disabled for AT instead.
+                disabled={isDivTrigger ? undefined : isDisabled}
+                aria-disabled={isDivTrigger ? isDisabled : undefined}
+                role={isDivTrigger ? 'button' : undefined}
+                tabIndex={divTabIndex}
                 aria-label={props.menuButton?.['aria-label']}
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onMouseDown={props.menuButton?.onMouseDown}
-                onClick={handleMenuButtonClick}
+                onClick={isDisabled ? undefined : handleMenuButtonClick}
+                onKeyDown={isDivTrigger && !isDisabled ? handleMenuButtonKeyDown : undefined}
             >
                 {props.menuButton.children}
             </MenuButtonComponent>
@@ -304,6 +355,7 @@ export function Menu(props: Props) {
     }, [isMenuOpen]);
 
     const providerValue = useMenuContextValue(closeMenu, isMenuOpen);
+    const pointerEventsPassThrough = Boolean(props.menu.hideBackdrop || props.menu.allowTriggerInteraction);
 
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
@@ -330,12 +382,12 @@ export function Menu(props: Props) {
                         hideBackdrop={props.menu.hideBackdrop}
                         disableRestoreFocus={props.menu.disableRestoreFocus}
 
-                        // When hideBackdrop is true (e.g. during drag-and-drop), the MUI
-                        // Modal root still covers the viewport with position:fixed;inset:0.
-                        // Making it pointer-events:none lets drag events pass through to
-                        // elements behind it, while the paper content stays interactive.
-                        style={props.menu.hideBackdrop ? {pointerEvents: 'none'} : undefined}
-                        PaperProps={props.menu.hideBackdrop ? {style: {pointerEvents: 'auto'}} : undefined}
+                        // hideBackdrop (DnD) and allowTriggerInteraction (chip
+                        // remove) both need the modal root to stop eating clicks
+                        // so the trigger behind it stays usable. Paper stays
+                        // interactive so the list itself still receives them.
+                        style={pointerEventsPassThrough ? {pointerEvents: 'none'} : undefined}
+                        PaperProps={pointerEventsPassThrough ? {style: {pointerEvents: 'auto'}} : undefined}
                         TransitionProps={{
                             mountOnEnter: true,
                             unmountOnExit: true,
@@ -367,6 +419,8 @@ export function Menu(props: Props) {
                             className={props.menu.className}
                             style={{
                                 width: props.menu.width,
+                                minWidth: props.menu.minWidth,
+                                maxWidth: props.menu.maxWidth,
                             }}
                             autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
                             onKeyDown={handleMenuListKeyDown}

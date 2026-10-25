@@ -923,6 +923,13 @@ func (api *apiTimerLayer) GetFile(fileId string) ([]byte, *model.AppError) {
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.HasPermissionToFileAction(sessionID, fileID, action)
+	api.recordTime(startTime, "HasPermissionToFileAction", true)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetFileLink(fileId string) (string, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetFileLink(fileId)
@@ -1282,6 +1289,20 @@ func (api *apiTimerLayer) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetClusterNodeID() string {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetClusterNodeID()
+	api.recordTime(startTime, "GetClusterNodeID", true)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetClusterNodes()
+	api.recordTime(startTime, "GetClusterNodes", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
@@ -1616,6 +1637,34 @@ func (api *apiTimerLayer) CountPropertyFieldsForTarget(groupID, targetType, targ
 	_returnsA, _returnsB := api.apiImpl.CountPropertyFieldsForTarget(groupID, targetType, targetID, includeDeleted)
 	api.recordTime(startTime, "CountPropertyFieldsForTarget", _returnsB == nil)
 	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyFieldOptions(groupID, fieldID, cursorCreateAt, cursorID, perPage)
+	api.recordTime(startTime, "GetPropertyFieldOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreatePropertyFieldOptions(groupID, fieldID, options)
+	api.recordTime(startTime, "CreatePropertyFieldOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyFieldOptions(groupID, fieldID, options)
+	api.recordTime(startTime, "UpdatePropertyFieldOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyFieldOptions(groupID, fieldID, optionIDs)
+	api.recordTime(startTime, "DeletePropertyFieldOptions", _returnsA == nil)
+	return _returnsA
 }
 
 func (api *apiTimerLayer) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {

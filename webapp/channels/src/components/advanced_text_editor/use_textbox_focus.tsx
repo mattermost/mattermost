@@ -27,11 +27,11 @@ type FocusableComposerRef = {
 };
 
 const useTextboxFocus = (
-    textboxRef: React.RefObject<TextboxClass>,
+    textboxRef: React.RefObject<TextboxClass | null>,
     channelId: string,
     isRHS: boolean,
     canPost: boolean,
-    wysiwygRef?: React.RefObject<WysiwygEditorHandle>,
+    wysiwygRef?: React.RefObject<WysiwygEditorHandle | null>,
 ) => {
     const dispatch = useDispatch();
 

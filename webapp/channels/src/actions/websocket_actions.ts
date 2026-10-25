@@ -19,11 +19,12 @@ import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import type {PropertyValue} from '@mattermost/types/properties';
-import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
+import {supportsHierarchy, type PropertyField, type PropertyValue} from '@mattermost/types/properties';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import type {GlobalState} from '@mattermost/types/store';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 
@@ -81,6 +82,7 @@ import {
 } from 'mattermost-redux/actions/posts';
 import {
     fetchPropertyFields,
+    fetchPropertyValues,
     fetchSystemPropertyValues,
 } from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
@@ -103,6 +105,7 @@ import {
 } from 'mattermost-redux/actions/threads';
 import {
     checkForModifiedUsers,
+    getCustomProfileAttributeValues,
     getUser as loadUser,
 } from 'mattermost-redux/actions/users';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
@@ -120,10 +123,11 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getPropertyFieldById, getPropertyGroupById, getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
@@ -171,6 +175,7 @@ import {
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
+import {clearGraphOptionNamesForField, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -182,6 +187,7 @@ import {getIntl} from 'utils/i18n';
 import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
+import {isWithheldPropertyValue} from 'utils/properties';
 import {getSiteURL} from 'utils/url';
 
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
@@ -870,6 +876,10 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
             if (hasAutotranslationBecomeEnabled(state, channel)) {
                 doDispatch(resetReloadPostsInChannel(channel.id));
             }
+
+            if (existingChannel.disable_join_leave_messages !== channel.disable_join_leave_messages) {
+                doDispatch(resetReloadPostsInChannel(channel.id));
+            }
         }
 
         doDispatch(batchActions(actions));
@@ -1468,12 +1478,39 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
     };
 }
 
-function handlePropertyFieldCreatedOrUpdated(
+/**
+ * User attributes reach the server two ways: the custom profile attribute REST
+ * API, which emits custom_profile_attributes_field_*, and Attribute Management,
+ * which writes the same fields through the generic property-fields API and emits
+ * only property_field_*. Everything that renders user attributes reads the
+ * custom profile attribute slice, so the generic events have to land there too.
+ *
+ * property_field_* events for a system-targeted field fan out to every connected
+ * client, not just admins, and the custom profile attribute slice only exists
+ * under an Enterprise license. Gate on the license the same way the reconnect
+ * refresh does so unlicensed servers never touch the slice off these events.
+ *
+ * The access_control group lives under a server-generated UUID. The property
+ * group cache only learns that mapping once something fetches the group by name,
+ * so fall back to the cached definitions, which all come from that group. While
+ * neither is known a user-object field cannot be told apart from a plugin's own,
+ * so treat it as not-a-CPA-field; the mount and reconnect fetches pick up
+ * anything missed rather than refetch on every unrelated event.
+ */
+function isUserAttributeField(state: GlobalState, field: PropertyField): boolean {
+    if (field.object_type !== USER_OBJECT_TYPE || !isEnterpriseLicense(getLicense(state))) {
+        return false;
+    }
+    const groupId = getPropertyGroupByName(state, ACCESS_CONTROL_PROPERTY_GROUP)?.id ?? getCustomProfileAttributes(state)[0]?.group_id;
+    return Boolean(groupId) && field.group_id === groupId;
+}
+
+export function handlePropertyFieldCreatedOrUpdated(
     msg:
     | WebSocketMessages.PropertyFieldCreated |
     WebSocketMessages.PropertyFieldUpdated,
 ): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
         let field;
         try {
             field = JSON.parse(msg.data.property_field);
@@ -1481,10 +1518,98 @@ function handlePropertyFieldCreatedOrUpdated(
             return;
         }
 
+        // A broadcast field carries no option list the sender considered
+        // caller-specific; options_omitted marks where the list was withheld.
+        // Storing it as received would empty the list for every client, so the
+        // cached options ride along on the dispatch and a refetch of the field's
+        // scope brings back the authoritative, per-caller-filtered list.
+        const optionsOmitted = field.attrs?.options_omitted === true;
+        if (optionsOmitted) {
+            const state = doGetState();
+            const cached = getPropertyFieldById(state, field.id);
+            if (cached) {
+                field = {
+                    ...field,
+                    attrs: {
+                        ...field.attrs,
+                        options: cached.attrs?.options,
+                        options_count: cached.attrs?.options_count,
+                    },
+                };
+            }
+
+            const groupName = getPropertyGroupById(state, field.group_id)?.name;
+            if (groupName) {
+                doDispatch(fetchPropertyFields(groupName, field.object_type, field.target_type, field.target_id));
+            }
+        }
+
+        // A renamed or added graph option would otherwise show its stale cached
+        // name. An inline option list is authoritative for this caller, so it
+        // replaces the cache; a withheld list is caller-specific, so the next
+        // display fetches the names itself.
+        if (supportsHierarchy(field)) {
+            clearGraphOptionNamesForField(field.id);
+            if (!optionsOmitted && Array.isArray(field.attrs?.options)) {
+                const names: Record<string, string> = {};
+                for (const option of field.attrs.options) {
+                    if (option.id) {
+                        names[option.id] = option.name;
+                    }
+                }
+                commitGraphOptionNames(field.id, names);
+            }
+        }
+
         doDispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
             data: {fields: [field]},
         });
+
+        if (isUserAttributeField(doGetState(), field)) {
+            if (optionsOmitted) {
+                // The broadcast withheld this field's option list. The cached
+                // options restored above come from the properties slice, which a
+                // session that only loaded user attributes never populates, so
+                // restore them from the field's own custom profile attribute
+                // entry instead and patch it in place. Caching the stripped
+                // definition would blank the options for every reader; only fall
+                // back to a refetch when the slice has no prior copy to draw on.
+                const cached = doGetState().entities.general.customProfileAttributes[field.id];
+                if (cached) {
+                    doDispatch({
+                        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+                        data: {
+                            ...field,
+                            attrs: {
+                                ...field.attrs,
+                                options: cached.attrs?.options,
+                                options_count: cached.attrs?.options_count,
+                            },
+                        },
+                    });
+
+                    // User Management skips its mount fetch while this
+                    // slice is nonempty, so a restored list would otherwise
+                    // stay until reconnect. Follow with a refetch only for
+                    // admins who can open that page (the same
+                    // SYSCONSOLE_WRITE_USERMANAGEMENT_USERS gate as
+                    // getShowManageUserSettings; license is already required
+                    // to reach this branch). Other clients keep the restored
+                    // list.
+                    if (haveISystemPermission(doGetState(), {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS})) {
+                        doDispatch(getCustomProfileAttributeFields());
+                    }
+                } else {
+                    doDispatch(getCustomProfileAttributeFields());
+                }
+            } else {
+                doDispatch({
+                    type: msg.event === WebSocketEvents.PropertyFieldCreated ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+                    data: field,
+                });
+            }
+        }
 
         // Session attribute field changed; forward the updated field to the Desktop App.
         if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
@@ -1493,7 +1618,7 @@ function handlePropertyFieldCreatedOrUpdated(
     };
 }
 
-function handlePropertyFieldDeleted(
+export function handlePropertyFieldDeleted(
     msg: WebSocketMessages.PropertyFieldDeleted,
 ): ThunkActionFunc<void> {
     return (doDispatch) => {
@@ -1501,24 +1626,36 @@ function handlePropertyFieldDeleted(
             type: PropertyTypes.PROPERTY_FIELD_DELETED,
             data: {fieldId: msg.data.field_id},
         });
+
+        // The payload carries no field, so the group it belonged to is unknown
+        // here. The reducer leaves the slice alone for an id it doesn't hold,
+        // which is the same membership test a group check would make.
+        doDispatch({
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
+            data: msg.data.field_id,
+        });
     };
 }
 
-// The server emits four distinct payloads under one event, distinguished only by
+// The server emits five distinct payloads under one event, distinguished only by
 // which keys are present (see TestPropertyValuesUpdatedPayloadShapes):
 //
 //   upsert            object_type + target_id + the target's full values array
 //   single delete     same keys, but one synthesized row with an empty id
 //   delete for target same keys, values "[]"
 //   delete for field  field_id, no object_type/target_id, values "[]"
+//   withheld          same keys as upsert, but one or more rows carry the
+//                     withheld marker in place of their value
 //
 // A delete tombstone carries no value, and a nil RawMessage marshals to null, so
 // it is byte-identical to a user-initiated `PATCH value: null` apart from the
 // empty id. Treating either of the empty-array shapes as an upsert is a no-op,
 // and treating a tombstone as one leaves a blank row in place of the deleted
-// value — so each shape has to be routed to its own reducer action.
+// value — so each shape has to be routed to its own reducer action. A withheld
+// row carries a real id, so it can't be mistaken for the tombstone shape either;
+// it is split out below and repaired with a refetch instead of being stored.
 export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
         let values;
         try {
             values = JSON.parse(msg.data.values ?? '[]');
@@ -1527,11 +1664,17 @@ export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValue
             return;
         }
 
+        // Shape routing stays keyed on the full array: an event whose every row is
+        // withheld must not be mistaken for the values.length === 0 branch below,
+        // which would wipe the target's values for fields the client can't see.
+        const withheld: Array<PropertyValue<string>> = values.filter((value: PropertyValue<unknown>) => isWithheldPropertyValue(value.value));
+        const visible: Array<PropertyValue<string>> = values.filter((value: PropertyValue<unknown>) => !isWithheldPropertyValue(value.value));
+
         const parsedPropertyValuesUpdated = {
             object_type: msg.data.object_type,
             target_id: msg.data.target_id,
             field_id: msg.data.field_id,
-            values,
+            values: visible,
         };
 
         const {object_type: objectType, target_id: targetId, field_id: fieldId} = msg.data;
@@ -1554,14 +1697,25 @@ export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValue
                     data: {targetId: value.target_id ?? targetId, fieldId: value.field_id},
                 });
             }
-        } else {
+        } else if (visible.length > 0) {
             // Populate the Redux property values store so any component that reads
             // from entities.properties.values (e.g. GlobalClassificationBanner) gets
             // real-time updates without an extra network round-trip.
             doDispatch({
                 type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-                data: {values},
+                data: {values: visible},
             });
+        }
+
+        if (withheld.length > 0 && isTargetScoped) {
+            const state = doGetState();
+            const groupIds = new Set<string>(withheld.map((value) => value.group_id));
+            for (const groupId of groupIds) {
+                const groupName = getPropertyGroupById(state, groupId)?.name;
+                if (groupName) {
+                    doDispatch(fetchPropertyValues(groupName, objectType, targetId));
+                }
+            }
         }
 
         doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
@@ -2450,10 +2604,22 @@ function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorte
 
 export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        doDispatch({
-            type: UserTypes.RECEIVED_CPA_VALUES,
-            data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
-        });
+        const entries = Object.entries(msg.data.values);
+        const withheld = entries.filter(([, value]) => isWithheldPropertyValue(value));
+        const visible = Object.fromEntries(entries.filter(([, value]) => !isWithheldPropertyValue(value)));
+
+        if (Object.keys(visible).length > 0) {
+            doDispatch({
+                type: UserTypes.RECEIVED_CPA_VALUES,
+                data: {userID: msg.data.user_id, customAttributeValues: visible},
+            });
+        }
+
+        // A withheld field id is dropped rather than stored, so the reducer's merge
+        // leaves whatever the store already had for it until the refetch below lands.
+        if (withheld.length > 0) {
+            doDispatch(getCustomProfileAttributeValues(msg.data.user_id));
+        }
 
         // The current user's attribute values are an input to ABAC evaluation, so
         // their render decisions are now stale. Other users' updates do not affect

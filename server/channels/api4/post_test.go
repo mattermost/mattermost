@@ -15,7 +15,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"reflect"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -27,11 +27,15 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 // Helper to enable feature with license
@@ -282,7 +286,7 @@ func TestCreatePost(t *testing.T) {
 		}
 	})
 
-	t.Run("err with integrations-reserved props", func(t *testing.T) {
+	t.Run("integrations-reserved props are stripped even when hardened mode is on", func(t *testing.T) {
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableHardenedMode = true
@@ -298,9 +302,10 @@ func TestCreatePost(t *testing.T) {
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
 		})
 
-		require.Error(t, postErr)
-		CheckBadRequestStatus(t, postResp)
-		assert.Nil(t, rpost)
+		require.NoError(t, postErr)
+		CheckCreatedStatus(t, postResp)
+		require.NotNil(t, rpost)
+		assert.Empty(t, rpost.GetProp(model.PostPropsFromWebhook))
 	})
 
 	t.Run("invalid post type", func(t *testing.T) {
@@ -711,15 +716,12 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
 
-	t.Run("allow username and icon overrides", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableHardenedMode = true
-		})
-
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableHardenedMode = originalHardenedModeSetting
-		})
+	t.Run("username and icon overrides are not honored for an OAuth client", func(t *testing.T) {
+		// v12: override_username/override_icon_url are stripped for every
+		// locally-originated post and only re-injected for FromIncomingWebhook
+		// (see app.CreatePost) — an OAuth-app session posting directly via the
+		// REST API is not FromIncomingWebhook, so the reserved prop is never
+		// honored, independent of the hardened-mode setting.
 
 		post, _, err = client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -728,8 +730,8 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 		})
 
 		require.NoError(t, err)
-		assert.Contains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
-		assert.Contains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideIconURL))
+		assert.NotContains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("%s prop should be stripped for an OAuth client", model.PostPropsOverrideUsername))
+		assert.NotContains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("%s prop should be stripped for an OAuth client", model.PostPropsOverrideIconURL))
 	})
 }
 
@@ -996,7 +998,7 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestMoveThread(t *testing.T) {
-	// Skipped: MoveThreadsEnabled is retired and rejected by Config.IsValid (MM-69646).
+	// Skipped: MoveThreadsEnabled is retired and forced off on config load (MM-69646).
 	// This test requires the flag and cannot run while the server refuses to enable it.
 	t.Skip("MoveThreadsEnabled feature flag is retired (MM-69646)")
 
@@ -2082,7 +2084,7 @@ func TestUpdatePost(t *testing.T) {
 		require.False(t, storedPost.IsPinned)
 	})
 
-	t.Run("err with integrations-reserved props", func(t *testing.T) {
+	t.Run("integrations-reserved props are stripped even when hardened mode is on", func(t *testing.T) {
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableHardenedMode = true
@@ -2092,14 +2094,17 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ServiceSettings.EnableHardenedMode = originalHardenedModeSetting
 		})
 
-		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+		updated, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+			Id:        rpost.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with props",
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
 		})
 
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updated)
+		assert.Empty(t, updated.GetProp(model.PostPropsFromWebhook))
 	})
 
 	t.Run("should prevent updating post with files when user lacks upload_file permission in target channel (team scheme)", func(t *testing.T) {
@@ -2621,7 +2626,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 		fileIDs[i] = fileResp.FileInfos[0].Id
 	}
-	sort.Strings(fileIDs)
+	slices.Sort(fileIDs)
 
 	post := &model.Post{
 		ChannelId:    channel.Id,
@@ -3057,7 +3062,7 @@ func TestPatchPost(t *testing.T) {
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
 	})
 
-	t.Run("err with integrations-reserved props", func(t *testing.T) {
+	t.Run("integrations-reserved props are stripped even when hardened mode is on", func(t *testing.T) {
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableHardenedMode = true
@@ -3072,15 +3077,17 @@ func TestPatchPost(t *testing.T) {
 			Message:   "#hashtag a message",
 			CreateAt:  model.GetMillis() - 2000,
 		}
-		post, _, createErr := th.SystemAdminClient.CreatePost(context.Background(), post)
+		post, _, createErr := client.CreatePost(context.Background(), post)
 		require.NoError(t, createErr)
 
 		patch := &model.PostPatch{}
 		patch.Props = &model.StringInterface{model.PostPropsFromWebhook: "true"}
-		_, patchResp, patchErr := client.PatchPost(context.Background(), post.Id, patch)
+		patched, patchResp, patchErr := client.PatchPost(context.Background(), post.Id, patch)
 
-		require.Error(t, patchErr)
-		CheckBadRequestStatus(t, patchResp)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, patchResp)
+		require.NotNil(t, patched)
+		assert.Empty(t, patched.GetProp(model.PostPropsFromWebhook))
 	})
 
 	t.Run("should be able to add new files", func(t *testing.T) {
@@ -4056,6 +4063,50 @@ func TestGetPostsBefore(t *testing.T) {
 	})
 }
 
+func TestGetPostsExcludeMembershipSystemPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	membershipPost := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "user joined the channel",
+		Type:      model.PostTypeJoinChannel,
+		Props: model.StringInterface{
+			"username": th.BasicUser.Username,
+		},
+	}
+	createdMembershipPost, _, appErr := th.App.CreatePost(th.Context, membershipPost, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	normalPost := th.CreatePost(t)
+
+	disableJoinLeave := true
+	_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{
+		DisableJoinLeaveMessages: &disableJoinLeave,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	posts, _, err := client.GetPostsBefore(context.Background(), th.BasicChannel.Id, normalPost.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+	_, found := posts.Posts[createdMembershipPost.Id]
+	require.False(t, found)
+
+	disableJoinLeave = false
+	_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{
+		DisableJoinLeaveMessages: &disableJoinLeave,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	posts, _, err = client.GetPostsBefore(context.Background(), th.BasicChannel.Id, normalPost.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+	require.Contains(t, posts.Posts, createdMembershipPost.Id)
+}
+
 func TestGetPostsAfter(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -4267,7 +4318,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		for postId := range posts {
 			namedPostIds = append(namedPostIds, namePost(postId))
 		}
-		sort.Strings(namedPostIds)
+		slices.Sort(namedPostIds)
 
 		return namedPostIds
 	}
@@ -5391,6 +5442,46 @@ func TestGetPostThread(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGetPostThreadUpdatesOnlyDeletedReplies(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	root := th.CreatePost(t)
+	kept, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "kept"})
+	require.NoError(t, err)
+	deleted, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "deleted"})
+	require.NoError(t, err)
+	_, err = client.DeletePost(context.Background(), deleted.Id)
+	require.NoError(t, err)
+
+	updatesSince := func(collapsed bool) model.GetPostsOptions {
+		return model.GetPostsOptions{CollapsedThreads: collapsed, UpdatesOnly: true, FromUpdateAt: deleted.CreateAt - 1, Direction: "down"}
+	}
+
+	for _, collapsed := range []bool{true, false} {
+		t.Run(fmt.Sprintf("collapsed=%t", collapsed), func(t *testing.T) {
+			list, _, getErr := client.GetPostThreadWithOpts(context.Background(), root.Id, "", model.GetPostsOptions{CollapsedThreads: collapsed, Direction: "down"})
+			require.NoError(t, getErr)
+			require.Contains(t, list.Posts, kept.Id)
+			require.NotContains(t, list.Posts, deleted.Id)
+
+			list, _, getErr = client.GetPostThreadWithOpts(context.Background(), root.Id, "", updatesSince(collapsed))
+			require.NoError(t, getErr)
+			require.Contains(t, list.Order, deleted.Id)
+			assert.NotZero(t, list.Posts[deleted.Id].DeleteAt)
+			assert.Empty(t, list.Posts[deleted.Id].Message)
+		})
+	}
+
+	_, err = client.DeletePost(context.Background(), root.Id)
+	require.NoError(t, err)
+	_, resp, err := client.GetPostThreadWithOpts(context.Background(), root.Id, "", updatesSince(true))
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+}
+
 func TestSearchPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -6124,6 +6215,140 @@ func TestGetPostsByIds(t *testing.T) {
 	_, response, err = client.GetPostsByIds(context.Background(), []string{"abc123"})
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
+}
+
+func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	createPostWithFile := func(t *testing.T) *model.Post {
+		t.Helper()
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test.txt")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
+
+		post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with files",
+			FileIds:   model.StringArray{fileResp.FileInfos[0].Id},
+		})
+		require.NoError(t, err)
+		return post
+	}
+
+	mockDownloadDecision := func(t *testing.T, allowed bool) *einterfacesmocks.AccessControlServiceInterface {
+		t.Helper()
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment &&
+				req.Subject.ID == th.BasicUser.Id &&
+				req.Resource.Type == model.AccessControlPolicyTypeChannel &&
+				req.Resource.ID == th.BasicChannel.Id
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+
+		return mockACS
+	}
+
+	// Posts are created before any decision is mocked so the stored posts keep their file ids.
+	postWithFile1 := createPostWithFile(t)
+	postWithFile2 := createPostWithFile(t)
+	plainPost := th.CreatePost(t)
+
+	t.Run("file metadata is stripped from every post when the policy denies the download action", func(t *testing.T) {
+		mockACS := mockDownloadDecision(t, false)
+
+		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id, postWithFile2.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts, 2)
+
+		for _, post := range posts {
+			assert.Empty(t, post.FileIds, "file ids should be stripped")
+			require.NotNil(t, post.Metadata)
+			assert.Empty(t, post.Metadata.Files, "file metadata should be stripped")
+			assert.Equal(t, 1, post.Metadata.RedactedFileCount)
+		}
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("file metadata is returned when the policy allows the download action", func(t *testing.T) {
+		mockACS := mockDownloadDecision(t, true)
+
+		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts, 1)
+		assert.Len(t, posts[0].FileIds, 1)
+		require.NotNil(t, posts[0].Metadata)
+		assert.Len(t, posts[0].Metadata.Files, 1)
+		assert.Equal(t, 0, posts[0].Metadata.RedactedFileCount)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("posts without attachments are returned untouched in a denied batch", func(t *testing.T) {
+		mockACS := mockDownloadDecision(t, false)
+
+		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id, plainPost.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts, 2)
+
+		byID := map[string]*model.Post{}
+		for _, post := range posts {
+			byID[post.Id] = post
+		}
+
+		require.Contains(t, byID, plainPost.Id)
+		assert.Equal(t, plainPost.Message, byID[plainPost.Id].Message)
+		assert.Empty(t, byID[plainPost.Id].FileIds)
+		require.NotNil(t, byID[plainPost.Id].Metadata)
+		assert.Equal(t, 0, byID[plainPost.Id].Metadata.RedactedFileCount)
+
+		require.Contains(t, byID, postWithFile1.Id)
+		assert.Empty(t, byID[postWithFile1.Id].Metadata.Files)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("file metadata is unaffected when ABAC is disabled", func(t *testing.T) {
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			})
+		})
+
+		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts, 1)
+		assert.Len(t, posts[0].FileIds, 1)
+		require.NotNil(t, posts[0].Metadata)
+		assert.Len(t, posts[0].Metadata.Files, 1)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
 }
 
 func TestGetEditHistoryForPost(t *testing.T) {
@@ -8207,4 +8432,125 @@ func TestRewritePostRequiresReadAccessToRootThread(t *testing.T) {
 	require.Equalf(t, http.StatusForbidden, resp.StatusCode,
 		"rewrite with root_id in an unreadable channel must return forbidden before using thread content; status=%d body=%s", resp.StatusCode, string(bodyBytes))
 	assert.NotContains(t, string(bodyBytes), secretToken, "response must not leak private thread content")
+}
+
+// replicaLagPostStore simulates a read replica that has not yet received one
+// specific post. Any lookup of that post which is not pinned to the master DB
+// fails with a not-found, exactly as a lagging PostgreSQL hot standby would.
+// Every other lookup passes through to the real store.
+type replicaLagPostStore struct {
+	store.PostStore
+
+	mu            sync.Mutex
+	laggingPostID string
+}
+
+func (s *replicaLagPostStore) setLaggingPost(postID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.laggingPostID = postID
+}
+
+func (s *replicaLagPostStore) missesPost(rctx request.CTX, postID string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.laggingPostID != "" && s.laggingPostID == postID && !sqlstore.HasMaster(rctx.Context())
+}
+
+func (s *replicaLagPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.GetSingle(rctx, id, inclDeleted)
+}
+
+func (s *replicaLagPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.Get(rctx, id, opts, userID, sanitizeOptions)
+}
+
+// replicaLagStore decorates a real Store, swapping Post() for the lagging
+// implementation above. All other store calls pass through.
+type replicaLagStore struct {
+	store.Store
+	posts *replicaLagPostStore
+}
+
+func (s *replicaLagStore) Post() store.PostStore {
+	return s.posts
+}
+
+// TestPostMutationHandlersReadFromMaster covers MM-70867. Handlers that mutate an
+// existing post must pin their lookups to the master DB: a user edits or deletes a post
+// milliseconds after creating it, so an unpinned read can be served by a replica that
+// has not received the row yet. The edit handlers turn that not-found into a 403 "You do
+// not have the appropriate permissions.", which is what the customer sees; deletePost
+// reports it as a 404.
+func TestPostMutationHandlersReadFromMaster(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	originalStore := th.App.Srv().Store()
+	lagging := &replicaLagPostStore{PostStore: originalStore.Post()}
+	th.App.Srv().SetStore(&replicaLagStore{Store: originalStore, posts: lagging})
+	t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+
+	// createPostWithLaggingReplica creates a post and then makes every unpinned
+	// lookup of it miss, reproducing the read-after-write race.
+	createPostWithLaggingReplica := func(t *testing.T) *model.Post {
+		t.Helper()
+
+		post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		lagging.setLaggingPost(post.Id)
+		t.Cleanup(func() { lagging.setLaggingPost("") })
+
+		return post
+	}
+
+	t.Run("updatePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		post.Message = "edited message"
+		updated, _, err := th.Client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err, "editing a post the replica has not caught up on must not fail")
+		require.Equal(t, "edited message", updated.Message)
+	})
+
+	t.Run("patchPost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		patched, _, err := th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{
+			Message: model.NewPointer("patched message"),
+		})
+		require.NoError(t, err, "patching a post the replica has not caught up on must not fail")
+		require.Equal(t, "patched message", patched.Message)
+	})
+
+	// app.DeletePost already pins its own lookup, but the handler looks the post up
+	// first and that read raced. Unlike the edit handlers, deletePost reports the
+	// miss honestly as a 404 rather than relabelling it a 403.
+	t.Run("deletePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		_, err := th.Client.DeletePost(context.Background(), post.Id)
+		require.NoError(t, err, "deleting a post the replica has not caught up on must not fail")
+	})
+
+	// Pinning goes through app.PatchPost, so it raced in both the handler's own lookup
+	// and the app layer's.
+	t.Run("pinPost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		_, err := th.Client.PinPost(context.Background(), post.Id)
+		require.NoError(t, err, "pinning a post the replica has not caught up on must not fail")
+	})
+
+	// app.UpdatePost and app.PatchPost pin their own lookups; that is covered by
+	// TestPostMutationsReadFromMaster in the app package.
 }

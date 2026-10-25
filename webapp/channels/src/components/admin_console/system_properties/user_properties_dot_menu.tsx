@@ -7,13 +7,13 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListNumberedIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {FieldVisibility} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
-import Toggle from 'components/toggle';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {slugifyForCEL} from 'utils/properties';
@@ -113,7 +113,7 @@ const menuId = 'user-property-field_dotmenu';
 
 // Menu.Item renders a second label child as help text under the primary label —
 // the same treatment the "Editable by users" item uses when it's locked.
-const withLinkedHelp = (label: ReactElement, isLinked: boolean, help: ReactNode): ReactElement => (isLinked ? (
+const withLinkedHelp = (label: ReactElement<any>, isLinked: boolean, help: ReactNode): ReactElement<any> => (isLinked ? (
     <>
         <span>{label}</span>
         <span>{help}</span>
@@ -401,14 +401,21 @@ const DotMenu = ({
                     />
                 )}
                 trailingElements={(
-                    <Toggle
-                        size='btn-sm'
-                        disabled={isManagedExternally}
-                        onToggle={handleEditableByUsersToggle}
-                        toggled={isEditableByUsers}
-                        toggleClassName='btn-toggle-primary'
-                        tabIndex={-1}
-                    />
+                    <span
+                        onClick={isManagedExternally ? undefined : (event: React.MouseEvent) => {
+                            // Compass Switch fires onChange on its own click; without
+                            // stopping propagation Menu.Item onClick also runs.
+                            event.stopPropagation();
+                        }}
+                    >
+                        <Switch
+                            size='small'
+                            disabled={isManagedExternally}
+                            onChange={handleEditableByUsersToggle}
+                            checked={isEditableByUsers}
+                            tabIndex={-1}
+                        />
+                    </span>
                 )}
             />
             {field.create_at !== 0 && ([

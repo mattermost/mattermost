@@ -12,7 +12,7 @@ import (
 )
 
 func TestStatus(t *testing.T) {
-	status := Status{NewId(), StatusOnline, true, 0, "123", 0, ""}
+	status := Status{NewId(), StatusOutOfOffice, true, 0, "123", 0, ""}
 	js, err := status.ToJSON()
 	assert.NoError(t, err)
 	var status2 Status
@@ -27,7 +27,10 @@ func TestStatus(t *testing.T) {
 }
 
 func TestStatusListToJSON(t *testing.T) {
-	statuses := []*Status{{NewId(), StatusOnline, true, 0, "123", 0, ""}, {NewId(), StatusOffline, true, 0, "", 0, ""}}
+	statuses := []*Status{
+		{NewId(), StatusOutOfOffice, true, 0, "123", 0, ""},
+		{NewId(), StatusOffline, true, 0, "", 0, ""},
+	}
 	jsonStatuses, err := StatusListToJSON(statuses)
 	assert.NoError(t, err)
 

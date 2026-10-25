@@ -12,6 +12,7 @@ import (
 	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -457,21 +458,26 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		metrics.IncrementWebhookPost()
 	}
 
+	// Compute effective display-identity values once, then pass them via
+	// CreatePostFlags. SanitizeProps strips override_* and webhook_display_name
+	// on every locally-originated post so a forged payload cannot impersonate;
+	// CreatePost re-injects these values under verified integration authority
+	// (FromIncomingWebhook flag) — see app/post.go.
+	var effectiveOverrideUsername, effectiveOverrideIconURL, effectiveOverrideIconEmoji string
 	if *a.Config().ServiceSettings.EnablePostUsernameOverride {
 		if overrideUsername != "" {
-			post.AddProp(model.PostPropsOverrideUsername, overrideUsername)
+			effectiveOverrideUsername = overrideUsername
 		} else {
-			post.AddProp(model.PostPropsOverrideUsername, model.DefaultWebhookUsername)
+			effectiveOverrideUsername = model.DefaultWebhookUsername
 		}
 	}
-
 	if *a.Config().ServiceSettings.EnablePostIconOverride {
-		if overrideIconURL != "" {
-			post.AddProp(model.PostPropsOverrideIconURL, overrideIconURL)
-		}
-		if overrideIconEmoji != "" {
-			post.AddProp(model.PostPropsOverrideIconEmoji, overrideIconEmoji)
-		}
+		effectiveOverrideIconURL = overrideIconURL
+		effectiveOverrideIconEmoji = overrideIconEmoji
+	}
+	var effectiveWebhookDisplayName string
+	if v, ok := props[model.PostPropsWebhookDisplayName].(string); ok {
+		effectiveWebhookDisplayName = v
 	}
 
 	if len(props) > 0 {
@@ -482,9 +488,12 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 					model.ParseMessageAttachment(post, attachments)
 				}
 			case model.PostPropsOverrideIconURL,
+				model.PostPropsOverrideIconEmoji,
 				model.PostPropsOverrideUsername,
+				model.PostPropsWebhookDisplayName,
 				model.PostPropsFromWebhook:
-			// Do nothing
+			// Do nothing — display-identity props are carried via CreatePostFlags
+			// above and re-injected by CreatePost under verified authority.
 			default:
 				post.AddProp(key, val)
 			}
@@ -510,6 +519,10 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 			SilentNotification:   silent,
 			FromIncomingWebhook:  true,
 			AllowMmBlocksActions: split.GetProp(model.PostPropsMmBlocksActions) != nil,
+			OverrideUsername:     effectiveOverrideUsername,
+			OverrideIconURL:      effectiveOverrideIconURL,
+			OverrideIconEmoji:    effectiveOverrideIconEmoji,
+			WebhookDisplayName:   effectiveWebhookDisplayName,
 		}
 		created, _, err := a.CreatePost(rctx, split, channel, flags)
 		if err != nil {
@@ -896,6 +909,28 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 	return webhook, nil
 }
 
+// checkIncomingWebhookDirectChannelTeamScope scopes DM/GM delivery to the webhook's
+// stored team while RestrictDirectMessage is team-only. Incoming webhooks always
+// persist a valid TeamId (IncomingWebhook.IsValid), including through local create,
+// so an empty id cannot match a common team and is denied.
+func (a *App) checkIncomingWebhookDirectChannelTeamScope(rctx request.CTX, hook *model.IncomingWebhook, channel *model.Channel) *model.AppError {
+	if *a.Config().TeamSettings.RestrictDirectMessage != model.DirectMessageTeam {
+		return nil
+	}
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
+		return nil
+	}
+
+	commonTeams, teamErr := a.GetDirectOrGroupMessageMembersCommonTeams(rctx, channel.Id)
+	if teamErr != nil {
+		return teamErr
+	}
+	if !slices.ContainsFunc(commonTeams, func(team *model.Team) bool { return team.Id == hook.TeamId }) {
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
+	}
+	return nil
+}
+
 func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.IncomingWebhookRequest) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -960,12 +995,21 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 			}
 			// Only allow a DM target the webhook owner shares a team with, so the stored
 			// user_id cannot be used to reach users the owner could not message directly.
-			if hook.UserId != result.Id {
+			// While direct messages are restricted to team members, that shared team has to
+			// be the webhook's own team, which is the team a #channel target resolves
+			// against below.
+			restrictedToTeam := *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam
+			if hook.UserId != result.Id || restrictedToTeam {
 				commonTeamIDs, teamErr := a.GetCommonTeamIDsForTwoUsers(hook.UserId, result.Id)
 				if teamErr != nil {
 					return teamErr
 				}
-				if len(commonTeamIDs) == 0 {
+
+				allowed := len(commonTeamIDs) > 0
+				if restrictedToTeam {
+					allowed = slices.Contains(commonTeamIDs, hook.TeamId)
+				}
+				if !allowed {
 					return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channelName}, "", http.StatusForbidden)
 				}
 			}
@@ -1034,6 +1078,10 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	}
 	if restrictedChannel {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
+	}
+
+	if scopeErr := a.checkIncomingWebhookDirectChannelTeamScope(rctx, hook, channel); scopeErr != nil {
+		return scopeErr
 	}
 
 	threadRootID := ""

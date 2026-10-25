@@ -98,7 +98,7 @@ describe('custom plugin sections and settings', () => {
 
     const expectPluginActionsInMetadataPanel = () => {
         const wrapper = document.querySelector('.PluginMetadataPanel__actionsPanel');
-        const toggleButton = screen.queryByRole('button', {name: 'Enable plugin'}) || screen.getByRole('button', {name: 'Disable plugin'});
+        const toggleButton = screen.queryByRole('switch', {name: 'Enable plugin'}) || screen.getByRole('switch', {name: 'Disable plugin'});
         expect(wrapper).toContainElement(toggleButton);
         expect(wrapper).toContainElement(screen.getByRole('button', {name: 'Plugin actions'}));
     };
@@ -112,7 +112,7 @@ describe('custom plugin sections and settings', () => {
             {...baseState});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expectPluginActionsInMetadataPanel();
         const runningBadge = screen.getByTestId('plugin-metadata-status');
@@ -159,7 +159,7 @@ describe('custom plugin sections and settings', () => {
         expect(badge).not.toHaveTextContent(error);
         expect(screen.getByTestId('admin-console-header')).toContainElement(badge);
         expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
-        expect(document.querySelector('.sectionNoticeContainer.warning')).toBeInTheDocument();
+        expect(document.querySelector('[class*="section-notice--type-warning"]')).toBeInTheDocument();
     });
 
     it('renders top-level settings together with sections', () => {
@@ -210,6 +210,127 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('Top-level Setting')).toBeInTheDocument();
         expect(screen.getByText('Section 1')).toBeInTheDocument();
         expect(screen.getByText('Section Setting')).toBeInTheDocument();
+    });
+
+    it('keeps section settings editable when the enabled plugin has no footer', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                footer: '',
+                                settings: [],
+                                sections: [{
+                                    key: 'section1',
+                                    title: 'Section 1',
+                                    settings: [{
+                                        key: 'sectionSetting',
+                                        display_name: 'Section Setting',
+                                        type: 'text' as const,
+                                        help_text: 'Section setting help text',
+                                        placeholder: '',
+                                        default: '',
+                                    }],
+                                }],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getByTestId('PluginSettings.Plugins.testplugin.sectionsettinginput')).not.toBeDisabled();
+    });
+
+    it('keeps section settings editable when the enabled plugin has a footer', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                footer: 'This is the footer',
+                                settings: [],
+                                sections: [{
+                                    key: 'section1',
+                                    title: 'Section 1',
+                                    settings: [{
+                                        key: 'sectionSetting',
+                                        display_name: 'Section Setting',
+                                        type: 'text' as const,
+                                        help_text: 'Section setting help text',
+                                        placeholder: '',
+                                        default: '',
+                                    }],
+                                }],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getByTestId('PluginSettings.Plugins.testplugin.sectionsettinginput')).not.toBeDisabled();
+    });
+
+    it('keeps top-level settings editable for an enabled flat-settings plugin', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                settings: [{
+                                    key: 'topLevelSetting',
+                                    display_name: 'Top-level Setting',
+                                    type: 'text' as const,
+                                    help_text: 'Top-level setting help text',
+                                    placeholder: '',
+                                    default: '',
+                                }],
+                                sections: [],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getByTestId('PluginSettings.Plugins.testplugin.toplevelsettinginput')).not.toBeDisabled();
     });
 
     it('renders warnings for top-level custom settings when plugin activation failed', () => {
@@ -443,7 +564,7 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
@@ -532,7 +653,7 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
@@ -587,7 +708,7 @@ describe('custom plugin sections and settings', () => {
             state,
         );
 
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
 
         updateStoreState({
             entities: {
@@ -621,8 +742,8 @@ describe('custom plugin sections and settings', () => {
             />,
         );
 
-        expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.queryByRole('switch', {name: 'Enable plugin'})).not.toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
     });
@@ -880,13 +1001,134 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('switch', {name: 'Enable plugin'})).not.toBeInTheDocument();
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 1')).toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 2')).toBeInTheDocument();
+    });
+
+    describe('licensed add-on plugins', () => {
+        const addOnBannerText = 'This plugin is a licensed add-on. Your license does not include it, so it cannot be enabled. Contact your Mattermost account team to purchase it.';
+
+        const addOnPlugin = {
+            ...plugin,
+            id: 'crossguard',
+            name: 'Cross Guard',
+            required_add_on: 'crossguard',
+        };
+
+        const renderAddOnPlugin = (license: Record<string, string>, consoleAccess = baseProps.consoleAccess) => {
+            const props = {
+                ...baseProps,
+                license,
+                consoleAccess,
+                match: {params: {plugin_id: 'crossguard'}} as match<{plugin_id: string}>,
+            };
+
+            renderWithContext(
+                <CustomPluginSettings
+                    {...props}
+                    patchConfig={jest.fn()}
+                />,
+                {
+                    entities: {
+                        admin: {plugins: {crossguard: addOnPlugin}},
+                        general: {license},
+                    },
+                },
+            );
+        };
+
+        it('hides every enable control and explains why when the license lacks the add-on', () => {
+            renderAddOnPlugin({IsLicensed: 'true'});
+
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+        });
+
+        it('hides every enable control on an unlicensed server', () => {
+            renderAddOnPlugin({IsLicensed: 'false'});
+
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+        });
+
+        it('drops the schema footer along with the settings', () => {
+            renderAddOnPlugin({IsLicensed: 'true'});
+
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+            expect(screen.queryByText('This is the footer')).not.toBeInTheDocument();
+        });
+
+        it('shows the enable control when the license grants the add-on', () => {
+            renderAddOnPlugin({IsLicensed: 'true', AddOns: 'crossguard'});
+
+            expect(screen.getByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).toBeInTheDocument();
+            expect(screen.queryByText(addOnBannerText)).not.toBeInTheDocument();
+        });
+
+        it('keeps the explanation visible to a read-only admin', () => {
+            renderAddOnPlugin(
+                {IsLicensed: 'true'},
+                {
+                    ...baseProps.consoleAccess,
+                    write: {...baseProps.consoleAccess.write, plugins: false},
+                },
+            );
+
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+        });
+
+        it('does not match an add-on on a substring', () => {
+            renderAddOnPlugin({IsLicensed: 'true', AddOns: 'crossguard-premium'});
+
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+        });
+
+        it('gates on the manifest field rather than the plugin id', () => {
+            renderWithContext(
+                <CustomPluginSettings
+                    {...baseProps}
+                    license={{IsLicensed: 'true'}}
+                    patchConfig={jest.fn()}
+                />,
+                {
+                    entities: {
+                        admin: {plugins: {testplugin: {...plugin, required_add_on: 'crossguard'}}},
+                        general: {license: {IsLicensed: 'true'}},
+                    },
+                },
+            );
+
+            expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enable-button')).not.toBeInTheDocument();
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+        });
+
+        it('leaves plugins that are not add-ons alone', () => {
+            renderWithContext(
+                <CustomPluginSettings
+                    {...baseProps}
+                    license={{IsLicensed: 'true'}}
+                    patchConfig={jest.fn()}
+                />,
+                {
+                    entities: {
+                        admin: {plugins: {testplugin: plugin}},
+                        general: {license: {IsLicensed: 'true'}},
+                    },
+                },
+            );
+
+            expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable-button')).toBeInTheDocument();
+            expect(screen.queryByText(addOnBannerText)).not.toBeInTheDocument();
+        });
     });
 });

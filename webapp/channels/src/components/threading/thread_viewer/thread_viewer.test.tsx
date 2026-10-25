@@ -8,7 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {fakeDate} from 'tests/helpers/date';
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {FakePost} from 'types/store/rhs';
@@ -111,9 +111,8 @@ describe('components/threading/ThreadViewer', () => {
             <ThreadViewer {...baseProps}/>,
         );
 
-        await waitFor(() => {
-            expect(actions.getPostThread).toHaveBeenCalled();
-        });
+        await screen.findByTestId('virtualized-thread-viewer');
+        expect(actions.getPostThread).toHaveBeenCalled();
         expect(container).toMatchSnapshot();
         reset();
     });

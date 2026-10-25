@@ -20,15 +20,16 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"text/template"
 	"time"
 
+	_ "golang.org/x/image/webp" // image decoder
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	_ "golang.org/x/image/webp" // image decoder
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -1039,7 +1040,7 @@ func (v *Validator) Attachments() []string {
 	for attachment := range v.attachmentsUsed {
 		used = append(used, attachment)
 	}
-	sort.Strings(used)
+	slices.Sort(used)
 	return used
 }
 
@@ -1050,7 +1051,7 @@ func (v *Validator) UnusedAttachments() []string {
 			unused = append(unused, attachment)
 		}
 	}
-	sort.Strings(unused)
+	slices.Sort(unused)
 	return unused
 }
 

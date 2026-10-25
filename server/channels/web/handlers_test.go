@@ -6,8 +6,10 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -330,42 +332,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			RequireMfa:     false,
 			IsStatic:       true,
 		}
-
-		request := httptest.NewRequest("POST", "/", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
-	})
-
-	t.Run("static, with EnableConcurrentReact enabled", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		// Feature flags are read-only in the config store, so mutate the live config directly.
-		th.App.Config().FeatureFlags.EnableConcurrentReact = true
-
-		web := New(th.Server)
-
-		// NewStaticHandler computes the CSP SHA directive from the current config, so the
-		// concurrent React inline script's hash must be present in the script-src directive.
-		handler := web.NewStaticHandler(handlerForCSPHeader)
-
-		request := httptest.NewRequest("POST", "/", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' 'sha256-VKORZJUo6WeDwDHwpxEgzZDt8C1kBbDOmUq72sfrx8M='"}, response.Header()["Content-Security-Policy"])
-	})
-
-	t.Run("static, with EnableConcurrentReact disabled", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		// Feature flags are read-only in the config store, so mutate the live config directly.
-		th.App.Config().FeatureFlags.EnableConcurrentReact = false
-
-		web := New(th.Server)
-
-		handler := web.NewStaticHandler(handlerForCSPHeader)
 
 		request := httptest.NewRequest("POST", "/", nil)
 		response := httptest.NewRecorder()
@@ -1091,6 +1057,62 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, http.StatusRequestURITooLong, response.Code)
 	})
+
+	t.Run("414 error page should not send the browser into a redirect loop", func(t *testing.T) {
+		th := Setup(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ServiceSettings.MaximumURLLength = new(30)
+		})
+
+		web := New(th.Server)
+		handler := web.NewStaticHandler(noOpHandler)
+
+		// Follow the error page the way a browser would, until it settles on a page that no
+		// longer sends us anywhere else.
+		nextURL := "/thisurlismorethan30characterslong"
+		var visited []string
+		for range 5 {
+			visited = append(visited, nextURL)
+
+			request := httptest.NewRequest("GET", nextURL, nil)
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, request)
+			require.Equal(t, http.StatusRequestURITooLong, response.Code)
+
+			nextURL = nextBrowserLocation(response)
+			if nextURL == "" {
+				body := response.Body.String()
+				assert.Contains(t, body, "<h2>Error</h2>")
+				assert.Contains(t, body, "URL is too long")
+				assert.NotContains(t, body, "/error?")
+				return
+			}
+		}
+
+		require.Fail(t, "the URL too long error page kept redirecting the browser", "visited: %v", visited)
+	})
+}
+
+// nextBrowserLocation returns the URL the response sends the browser to through any of the
+// mechanisms the error page uses, or an empty string if the browser stays on the page.
+func nextBrowserLocation(response *httptest.ResponseRecorder) string {
+	if location := response.Header().Get("Location"); location != "" {
+		return location
+	}
+
+	body := response.Body.String()
+	for _, pattern := range []*regexp.Regexp{
+		regexp.MustCompile(`window\.location = '([^']+)'`),
+		regexp.MustCompile(`http-equiv="refresh" content="0; url=([^"]+)"`),
+		regexp.MustCompile(`href="([^"]+)"`),
+	} {
+		if matches := pattern.FindStringSubmatch(body); len(matches) == 2 {
+			return html.UnescapeString(strings.NewReplacer(`\u0026`, "&", `\u003D`, "=").Replace(matches[1]))
+		}
+	}
+
+	return ""
 }
 
 func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {

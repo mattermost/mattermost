@@ -8,13 +8,13 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {DotsHorizontalIcon, OpenInNewIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 
 import {disablePlugin, enablePlugin, removePlugin} from 'mattermost-redux/actions/admin';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import * as Menu from 'components/menu';
-import Toggle from 'components/toggle';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
@@ -195,14 +195,15 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
                             defaultMessage={pluginEnabled ? 'Enabled' : 'Disabled'}
                         />
                     )}
-                    <Toggle
-                        size='btn-sm'
-                        disabled={actionsDisabled}
-                        toggled={pluginEnabled}
+                    <Switch
                         id={id}
-                        ariaLabel={toggleAriaLabel}
-                        toggleClassName='btn-toggle-primary'
-                        onToggle={handleTogglePlugin}
+                        size='medium'
+                        disabled={actionsDisabled}
+                        checked={pluginEnabled}
+                        onChange={handleTogglePlugin}
+                        data-testid={`${id}-button`}
+                        tabIndex={0}
+                        aria-label={toggleAriaLabel}
                     />
                 </div>
                 <Menu.Container

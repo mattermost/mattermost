@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {FormatXMLElementFn} from 'intl-messageformat';
+import type {JSX} from 'react';
 import type {
     MessageDescriptor,
     PrimitiveType,

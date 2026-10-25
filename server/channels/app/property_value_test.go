@@ -137,6 +137,25 @@ func TestUpsertPropertyValues_Invariants(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
+	t.Run("rejects a deleted field as not found", func(t *testing.T) {
+		deletedField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "upsert-deleted-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		require.Nil(t, th.App.DeletePropertyField(th.Context, groupID, deletedField.ID, false, ""))
+
+		v := []*model.PropertyValue{makeValue(deletedField.ID)}
+		result, err := th.App.UpsertPropertyValues(th.Context, v, model.PropertyFieldObjectTypeUser, th.BasicUser.Id, "")
+		require.NotNil(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, "app.property_value.upsert.field_not_found.app_error", err.Id)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+	})
+
 	t.Run("rejects ObjectType mismatch when objectType is non-empty", func(t *testing.T) {
 		// Field is ObjectType=user; request specifies channel.
 		v := []*model.PropertyValue{makeValue(createdField.ID)}
@@ -193,6 +212,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID)
 
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
 	})
 
 	t.Run("no invalidation when ABAC is off", func(t *testing.T) {
@@ -201,11 +221,13 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		thMock.App.invalidateUserPropertyValuesEpochs(values)
 
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
 	})
 
 	t.Run("one invalidation per distinct user target when active", func(t *testing.T) {
 		thMock, mockAttributes := setup(t, true, true)
 		mockAttributes.On("InvalidateUserPropertyValuesEpoch", userID).Once()
+		mockAttributes.On("InvalidateUserAttributes", userID).Once()
 
 		thMock.App.invalidateUserPropertyValuesEpochs(values)
 
@@ -218,6 +240,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypePost, model.NewId())
 
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
 	})
 
 	// A write made while ABAC was off must not leave the view stale for a switch back on to read,

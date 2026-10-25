@@ -62,11 +62,6 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 	cfg := w.srv.Config()
 	subpath, _ := utils.GetSubpathFromConfig(cfg)
 
-	enableConcurrentReact := false
-	if cfg.FeatureFlags != nil {
-		enableConcurrentReact = cfg.FeatureFlags.EnableConcurrentReact
-	}
-
 	return &Handler{
 		Srv:            w.srv,
 		HandleFunc:     h,
@@ -76,7 +71,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		RequireMfa:     false,
 		IsStatic:       true,
 
-		cspShaDirective: utils.GetStaticScriptHashes(subpath, enableConcurrentReact),
+		cspShaDirective: utils.GetStaticScriptHashes(subpath),
 	}
 }
 
@@ -561,7 +556,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+	if w.srv.Config().ServiceSettings.CompressResponses() {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
@@ -581,7 +576,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+	if w.srv.Config().ServiceSettings.CompressResponses() {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
@@ -600,7 +595,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+	if w.srv.Config().ServiceSettings.CompressResponses() {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler

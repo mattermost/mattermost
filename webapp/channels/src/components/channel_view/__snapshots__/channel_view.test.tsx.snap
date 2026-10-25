@@ -20,12 +20,15 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
             alt=""
             class="overlay__files"
             loading="lazy"
-            src=""
+            src="test-file-stub"
           />
           Drop a file to upload it.
         </div>
       </div>
     </div>
+    <div
+      data-testid="channel-header"
+    />
     <div
       data-channel-id="channelId"
       data-testid="deferred-post-view"
@@ -74,12 +77,15 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
             alt=""
             class="overlay__files"
             loading="lazy"
-            src=""
+            src="test-file-stub"
           />
           Drop a file to upload it.
         </div>
       </div>
     </div>
+    <div
+      data-testid="channel-header"
+    />
     <div
       data-channel-id="channelId"
       data-testid="deferred-post-view"
@@ -127,12 +133,15 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
             alt=""
             class="overlay__files"
             loading="lazy"
-            src=""
+            src="test-file-stub"
           />
           Drop a file to upload it.
         </div>
       </div>
     </div>
+    <div
+      data-testid="channel-header"
+    />
     <div
       data-channel-id="channelId"
       data-testid="deferred-post-view"
@@ -141,7 +150,11 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
       class="post-create__container AdvancedTextEditor__ctr"
       data-testid="post-create"
       id="post-create"
-    />
+    >
+      <div
+        data-testid="advanced-create-post"
+      />
+    </div>
   </div>
 </div>
 `;

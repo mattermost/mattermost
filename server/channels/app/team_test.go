@@ -5,12 +5,15 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
-	"sort"
+	"io"
+	"math/rand/v2"
+	"slices"
+
 	"strings"
 	"testing"
 
@@ -28,6 +31,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -758,8 +762,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		slices.SortFunc(teamsList, func(a, b *model.Team) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
 		})
 
 		for i := range teamsList {
@@ -825,8 +829,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		slices.SortFunc(teamsList, func(a, b *model.Team) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
 		})
 
 		for i := range teamsList {
@@ -860,8 +864,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		slices.SortFunc(teamsList, func(a, b *model.Team) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
 		})
 
 		require.NotEqual(t, int64(0), teamsList[0].DeleteAt)
@@ -1611,6 +1615,67 @@ func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 	require.Zero(t, totalUnread, "GetTotalUnreadThreads must not count orphan ThreadMembership rows")
 }
 
+func TestGetThreadsForUserPreservesWebhookIdentity(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		*cfg.ServiceSettings.EnablePostUsernameOverride = true
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+		ChannelId:   th.BasicChannel.Id,
+		DisplayName: "ThreadHook",
+	})
+	require.Nil(t, appErr)
+	defer func() {
+		appErr = th.App.DeleteIncomingWebhook(hook.Id)
+		require.Nil(t, appErr)
+	}()
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	rootPost, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "root message",
+		"ThreadBot", "", "",
+		model.StringInterface{model.PostPropsWebhookDisplayName: hook.DisplayName},
+		model.PostTypeDefault, "", nil, false)
+	require.Nil(t, appErr)
+
+	// BasicUser2 replies, which auto-follows the thread under ThreadAutoFollow.
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    rootPost.Id,
+		Message:   "a reply",
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.Nil(t, appErr)
+
+	var found *model.ThreadResponse
+	for _, thr := range threads.Threads {
+		if thr.PostId == rootPost.Id {
+			found = thr
+			break
+		}
+	}
+	require.NotNil(t, found, "sanity: root thread must be present in GetThreadsForUser results")
+
+	// Regression: SanitizeNonIdentityProps (not the stronger SanitizeProps) must
+	// be used on this read path, or a webhook post's display identity is wiped
+	// from the Threads response even though it's intact in the DB and the
+	// ordinary channel view.
+	assert.Equal(t, "true", found.Post.GetProp(model.PostPropsFromWebhook))
+	assert.Equal(t, "ThreadBot", found.Post.GetProp(model.PostPropsOverrideUsername))
+	assert.Equal(t, "ThreadHook", found.Post.GetProp(model.PostPropsWebhookDisplayName))
+}
+
 func TestPermanentDeleteChannelRemovesThreadMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1723,7 +1788,7 @@ func TestGetTeamMembers(t *testing.T) {
 			Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 			Username: fmt.Sprintf("user%v", i),
 			Password: model.NewTestPassword(),
-			DeleteAt: int64(rand.Intn(2)),
+			DeleteAt: int64(rand.IntN(2)),
 		}
 		ruser, err := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err)
@@ -1745,8 +1810,8 @@ func TestGetTeamMembers(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the users array by username
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].Username < users[j].Username
+		slices.SortFunc(users, func(a, b model.User) int {
+			return cmp.Compare(a.Username, b.Username)
 		})
 
 		// We should have the same number of users in both users and members array as we have not excluded any deleted members
@@ -1789,8 +1854,8 @@ func TestGetTeamMembers(t *testing.T) {
 		}
 
 		// Sort our non deleted members by username
-		sort.Slice(usersNotDeleted, func(i, j int) bool {
-			return usersNotDeleted[i].Username < usersNotDeleted[j].Username
+		slices.SortFunc(usersNotDeleted, func(a, b model.User) int {
+			return cmp.Compare(a.Username, b.Username)
 		})
 
 		require.Equal(t, len(usersNotDeleted), len(members))
@@ -1801,8 +1866,8 @@ func TestGetTeamMembers(t *testing.T) {
 
 	t.Run("Ensure Sorted By User ID when no TeamMemberGetOptions is passed", func(t *testing.T) {
 		// Sort them by UserID because the result of GetTeamMembers() is also sorted
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].Id < users[j].Id
+		slices.SortFunc(users, func(a, b model.User) int {
+			return cmp.Compare(a.Id, b.Id)
 		})
 
 		// Fetch team members multiple times
@@ -2660,4 +2725,59 @@ func TestTeamSendEvents(t *testing.T) {
 		require.Equal(t, "", teamFromEvent.Email)
 		require.Equal(t, "", teamFromEvent.InviteId)
 	}
+}
+
+func TestSetTeamIconFromFileEXIFOrientation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// quadrants-orientation-8.png: 128×128 color quadrants with EXIF orientation 8.
+	// quadrants-orientation-1.png: same visual content already rotated, EXIF orientation 1.
+	rotated, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-8.png")
+	require.NoError(t, err)
+	normal, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-1.png")
+	require.NoError(t, err)
+
+	rotatedTeam := th.CreateTeam(t)
+	normalTeam := th.CreateTeam(t)
+
+	appErr := th.App.SetTeamIconFromFile(th.Context, rotatedTeam, bytes.NewReader(rotated))
+	require.Nil(t, appErr)
+	appErr = th.App.SetTeamIconFromFile(th.Context, normalTeam, bytes.NewReader(normal))
+	require.Nil(t, appErr)
+
+	rotatedIcon, appErr := th.App.GetTeamIcon(rotatedTeam)
+	require.Nil(t, appErr)
+	normalIcon, appErr := th.App.GetTeamIcon(normalTeam)
+	require.Nil(t, appErr)
+
+	assert.Equal(t, normalIcon, rotatedIcon,
+		"EXIF-rotated image should produce the same team icon as the normally-oriented one")
+
+	t.Run("seek failure returns an error", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		// The decoder rewinds once after reading the image config.
+		reader := &limitedRewindReader{Reader: bytes.NewReader(rotated), rewindsLeft: 1}
+		appErr := th.App.SetTeamIconFromFile(th.Context, team, reader)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.team.set_team_icon.seek.app_error", appErr.Id)
+
+		_, appErr = th.App.GetTeamIcon(team)
+		require.NotNil(t, appErr)
+	})
+}
+
+type limitedRewindReader struct {
+	*bytes.Reader
+	rewindsLeft int
+}
+
+func (r *limitedRewindReader) Seek(offset int64, whence int) (int64, error) {
+	if whence == io.SeekStart {
+		if r.rewindsLeft == 0 {
+			return 0, errors.New("seek not supported")
+		}
+		r.rewindsLeft--
+	}
+	return r.Reader.Seek(offset, whence)
 }

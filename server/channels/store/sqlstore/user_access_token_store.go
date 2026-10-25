@@ -14,6 +14,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// botHasUserOwnerSQL mirrors model.Bot.HasUserOwner: an id-shaped OwnerId is a
+// user id, possibly of a since-deleted user, while a plugin owner carries a
+// manifest id. Unlike model.IsValidId this matches ASCII only, which is all
+// model.NewId produces.
+const botHasUserOwnerSQL = "Bots.OwnerId ~ '^[0-9A-Za-z]{26}$'"
+
 type SqlUserAccessTokenStore struct {
 	*SqlStore
 
@@ -271,11 +277,11 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 	return tokens, nil
 }
 
-// GetExpiringTokens returns active, non-bot tokens belonging to non-deactivated
-// users that need a pre-expiry warning for one of the given day thresholds
-// (e.g. 7/3/1), ordered most-urgent first, up to the given limit. Bot tokens are
-// excluded because bot accounts are exempt from the expiry policy and have no
-// human inbox to notify.
+// GetExpiringTokens returns active tokens with an active human notification
+// recipient that need a pre-expiry warning for one of the given day thresholds
+// (e.g. 7/3/1), ordered most-urgent first, up to the given limit. User-owned bot
+// tokens notify the bot owner. Plugin-owned bot tokens are excluded. When
+// includeUserOwnedTokens is false, non-bot tokens are also excluded.
 //
 // Only *actionable* rows are returned: for each threshold T a token qualifies
 // when it has entered the T-day bucket (ExpiresAt <= now + T days) and has not
@@ -295,7 +301,7 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 // hitting the DB rather than relying on the int -> uint64 cast (which would
 // otherwise wrap a negative value into an enormous unsigned limit and
 // effectively disable the bound).
-func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
 	if limit <= 0 || len(thresholds) == 0 {
@@ -326,13 +332,29 @@ func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, 
 		From("UserAccessTokens").
 		InnerJoin("Users ON Users.Id = UserAccessTokens.UserId").
 		LeftJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
+		LeftJoin("Users BotOwners ON BotOwners.Id = Bots.OwnerId").
 		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
 		Where(sq.Gt{"UserAccessTokens.ExpiresAt": now}).
-		Where(sq.Eq{"Users.DeleteAt": 0}).
-		Where(sq.Eq{"Bots.UserId": nil}).
 		Where(actionable).
 		OrderBy("UserAccessTokens.ExpiresAt ASC").
 		Limit(uint64(limit))
+
+	userOwnedBot := sq.And{
+		sq.NotEq{"Bots.UserId": nil},
+		sq.NotEq{"BotOwners.Id": nil},
+		sq.Eq{"BotOwners.DeleteAt": 0},
+	}
+	if includeUserOwnedTokens {
+		query = query.Where(sq.Or{
+			sq.And{
+				sq.Eq{"Bots.UserId": nil},
+				sq.Eq{"Users.DeleteAt": 0},
+			},
+			userOwnedBot,
+		})
+	} else {
+		query = query.Where(userOwnedBot)
+	}
 
 	// Read from master: this dedups against LastNotifiedAt (written to master),
 	// so a lagging replica could re-surface an already-warned token and send a
@@ -354,19 +376,24 @@ func (s SqlUserAccessTokenStore) UpdateLastNotifiedAt(tokenId string, notifiedAt
 	return nil
 }
 
-// CountNonCompliantExpiry returns the number of active, non-bot tokens that
-// violate the maximum lifetime policy implied by maxExpiresAt. It is used to
-// preview the blast radius before revoking.
+// CountNonCompliantExpiry returns the number of active user and user-owned bot
+// tokens that violate the maximum lifetime policy implied by maxExpiresAt.
+// Plugin-owned bot tokens are excluded. A bot whose owning account was deleted
+// still counts: it is user-owned, so the policy applies.
 func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(*)").
 		From("UserAccessTokens").
+		LeftJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
 		Where(sq.Or{
 			sq.Eq{"UserAccessTokens.ExpiresAt": 0},
 			sq.Gt{"UserAccessTokens.ExpiresAt": maxExpiresAt},
 		}).
 		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
-		Where(sq.Expr("UserAccessTokens.UserId NOT IN (SELECT UserId FROM Bots)"))
+		Where(sq.Or{
+			sq.Eq{"Bots.UserId": nil},
+			sq.Expr(botHasUserOwnerSQL),
+		})
 
 	var count int64
 	if err := s.GetReplica().GetBuilder(&count, query); err != nil {
@@ -385,13 +412,14 @@ func (s SqlUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, li
 		return nil, nil
 	}
 
-	sql := `
+	sql := fmt.Sprintf(`
 WITH to_delete AS (
-    SELECT Id, Token, UserId
+    SELECT UserAccessTokens.Id, UserAccessTokens.Token, UserAccessTokens.UserId
     FROM UserAccessTokens
-    WHERE (ExpiresAt = 0 OR ExpiresAt > $1)
-      AND IsActive = true
-      AND UserId NOT IN (SELECT UserId FROM Bots)
+    LEFT JOIN Bots ON Bots.UserId = UserAccessTokens.UserId
+    WHERE (UserAccessTokens.ExpiresAt = 0 OR UserAccessTokens.ExpiresAt > $1)
+      AND UserAccessTokens.IsActive = true
+      AND (Bots.UserId IS NULL OR %s)
     LIMIT $2
 ),
 deleted_sessions AS (
@@ -403,7 +431,7 @@ deleted_tokens AS (
     WHERE Id IN (SELECT Id FROM to_delete)
     RETURNING UserId
 )
-SELECT UserId FROM deleted_tokens`
+SELECT UserId FROM deleted_tokens`, botHasUserOwnerSQL)
 
 	var userIDs []string
 	if err := s.GetMaster().Select(&userIDs, sql, maxExpiresAt, limit); err != nil {

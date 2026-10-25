@@ -8,8 +8,11 @@ import {
     convertDialogToAppForm,
     convertAppFormValuesToDialogSubmission,
     convertElement,
+    convertServerDialogResponseToAppForm,
+    transformServerDialogToProps,
     DialogElementTypes,
     extractPrimitiveValues,
+    flattenDialogElements,
     getDefaultValue,
     getFieldType,
     getOptions,
@@ -155,6 +158,8 @@ describe('dialog_conversion', () => {
         it('should map select fields correctly', () => {
             expect(getFieldType({type: DialogElementTypes.SELECT} as DialogElement)).toBe('static_select');
             expect(getFieldType({type: DialogElementTypes.RADIO} as DialogElement)).toBe('radio');
+            expect(getFieldType({type: DialogElementTypes.CHECKBOX_GROUP} as DialogElement)).toBe('checkbox_group');
+            expect(getFieldType({type: DialogElementTypes.CHECKBOX_MATRIX} as DialogElement)).toBe('checkbox_matrix');
         });
 
         it('should map select fields with data_source correctly', () => {
@@ -540,6 +545,58 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[0].type).toBe('text');
             expect(form.fields?.[0].label).toBe('Text Field');
             expect(form.fields?.[0].is_required).toBe(true);
+        });
+
+        it('should set submit_buttons on the form when provided', () => {
+            const {form} = convertDialogToAppForm(
+                [{name: 'choice', type: 'select', display_name: 'Choice', options: [{text: 'A', value: 'a'}]} as DialogElement],
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '',
+                '',
+                legacyOptions,
+                'choice',
+            );
+
+            expect(form.submit_buttons).toBe('choice');
+        });
+
+        it('should leave submit_buttons undefined when not provided or empty', () => {
+            const convert = (submitButtons?: string) => convertDialogToAppForm([], 'Test Dialog', undefined, undefined, undefined, '', '', legacyOptions, submitButtons);
+
+            expect(convert().form.submit_buttons).toBeUndefined();
+            expect(convert('').form.submit_buttons).toBeUndefined();
+        });
+
+        it('should carry submit_buttons through convertServerDialogResponseToAppForm', () => {
+            const {form} = convertServerDialogResponseToAppForm({
+                title: 'Server Dialog',
+                elements: [{name: 'choice', type: 'select', display_name: 'Choice', options: [{text: 'A', value: 'a'}]}],
+                submit_buttons: 'choice',
+            }, legacyOptions);
+
+            expect(form.submit_buttons).toBe('choice');
+        });
+
+        it('should set refresh_on_return only when the dialog has a source_url', () => {
+            const convert = (sourceUrl: string, refreshOnReturn?: boolean) =>
+                convertDialogToAppForm([], 'Test Dialog', undefined, undefined, undefined, sourceUrl, '', legacyOptions, undefined, refreshOnReturn).form;
+
+            expect(convert('https://example.com/source', true).refresh_on_return).toBe(true);
+            expect(convert('', true).refresh_on_return).toBeUndefined();
+            expect(convert('https://example.com/source').refresh_on_return).toBeUndefined();
+        });
+
+        it('should carry refresh_on_return through convertServerDialogResponseToAppForm', () => {
+            const {form} = convertServerDialogResponseToAppForm({
+                title: 'Server Dialog',
+                source_url: 'https://example.com/source',
+                refresh_on_return: true,
+            }, legacyOptions);
+
+            expect(form.refresh_on_return).toBe(true);
         });
 
         it('should pass introduction text without escaping (Markdown.format handles sanitization)', () => {
@@ -1360,6 +1417,63 @@ describe('dialog_conversion', () => {
             });
         });
 
+        it('should flag a required checkbox_group left empty in enhanced mode', () => {
+            const values = {
+                reasons: [],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: false,
+                    options: [
+                        {text: 'Reason 1', value: 'r1'},
+                        {text: 'Reason 2', value: 'r2'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                enhancedOptions,
+            );
+
+            // An empty array is not null/undefined, so the required check must be
+            // enforced here rather than silently submitting [].
+            expect(errors).toHaveLength(1);
+            expect(errors[0].field).toBe('reasons');
+            expect(errors[0].code).toBe(ValidationErrorCode.REQUIRED);
+            expect(submission).toEqual({reasons: []});
+        });
+
+        it('should not flag an optional checkbox_group left empty', () => {
+            const values = {
+                reasons: [],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: true,
+                    options: [{text: 'Reason 1', value: 'r1'}],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                enhancedOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({reasons: []});
+        });
+
         it('should handle multiselect field without options validation', () => {
             const values = {
                 multiselect_field: ['user1', 'user2'], // Primitive values (already processed by extractPrimitiveValues)
@@ -1488,6 +1602,82 @@ describe('dialog_conversion', () => {
             expect(submission).toEqual({
                 radio_object: 'optA',
                 radio_string: 'optB',
+            });
+        });
+
+        it('should handle checkbox_group field values', () => {
+            const values = {
+                waiver_reasons: ['reason_1', 'reason_3'],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'waiver_reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                waiver_reasons: ['reason_1', 'reason_3'],
+            });
+        });
+
+        it('should submit empty array for optional checkbox_group with no value', () => {
+            const values = {} as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'waiver_reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: true,
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                waiver_reasons: [],
+            });
+        });
+
+        it('should handle checkbox_matrix field values', () => {
+            const values = {
+                waiver_severity: ['reason_1:high,severe', 'reason_3:high'],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'waiver_severity',
+                    type: 'checkbox_matrix',
+                    display_name: 'Severity',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                waiver_severity: ['reason_1:high,severe', 'reason_3:high'],
             });
         });
 
@@ -2330,6 +2520,380 @@ describe('dialog_conversion', () => {
                     emptied: [],
                 });
             });
+        });
+    });
+});
+
+describe('dialog_conversion - collapsible', () => {
+    const legacyOptions: ConversionOptions = {enhanced: false};
+    const enhancedOptions: ConversionOptions = {enhanced: true};
+
+    // collapsible builds a collapsible DialogElement with the given children.
+    const collapsible = (name: string, elements: DialogElement[], collapsed?: boolean): DialogElement => ({
+        name,
+        display_name: 'Section ' + name,
+        type: DialogElementTypes.COLLAPSIBLE,
+        collapsible_config: {elements, collapsed},
+    } as DialogElement);
+
+    const textEl = (name: string): DialogElement => ({
+        name,
+        display_name: 'Text ' + name,
+        type: DialogElementTypes.TEXT,
+    } as DialogElement);
+
+    describe('getFieldType', () => {
+        it('maps collapsible to the collapsible AppFieldType', () => {
+            expect(getFieldType(collapsible('s', [textEl('a')]))).toBe('collapsible');
+        });
+    });
+
+    describe('convertElement', () => {
+        it('produces a COLLAPSIBLE AppField with converted child fields and no value', () => {
+            // create a good object and make sure all the attributes made it in
+            const testCollapsible = collapsible('a', [textEl('b')]);
+            const {field, errors} = convertElement(testCollapsible, legacyOptions);
+            expect(errors).toHaveLength(0);
+
+            // check fields
+            expect(field?.name).toBe('a');
+            expect(field?.type).toBe('collapsible');
+            expect(field?.label).toBe('Section a');
+
+            // make sure parent container has no value
+            expect(field?.value).toBeUndefined();
+
+            // check child element
+            expect(field?.collapsible_config?.fields?.[0].name).toBe('b');
+            expect(field?.collapsible_config?.fields?.[0].type).toBe('text');
+            expect(field?.collapsible_config?.fields?.[0].label).toBe('Text b');
+        });
+
+        it('defaults expanded to true when collapsed is undefined', () => {
+            // create a test collapsible object and check the expanded attribute's value
+            const testCollapsible = collapsible('a', []);
+            const {field, errors} = convertElement(testCollapsible, legacyOptions);
+
+            // make sure no errors are present
+            expect(errors).toHaveLength(0);
+
+            // right now, collapsible shouldn't have a set collapsed value
+            expect(field?.collapsible_config?.expanded).toBe(true);
+        });
+
+        it('honors collapsed=true', () => {
+            // create a test collapsible object and mark it collapsed
+            const testCollapsible = collapsible('a', [textEl('b')], true);
+            const {field, errors} = convertElement(testCollapsible, legacyOptions);
+
+            // make sure no errors are present
+            expect(errors).toHaveLength(0);
+
+            expect(field?.collapsible_config?.expanded).toBe(false);
+        });
+
+        it('propagates child conversion errors', () => {
+            // make an invalid child that is to be put into the collapsible element
+
+            const invalidChild = {
+                name: 'bad',
+                type: 'not real',
+            } as DialogElement;
+
+            // create a test collapsible object
+            const testCollapsible = collapsible('a', [invalidChild]);
+
+            // convert the element using the invalid child
+            const {errors} = convertElement(testCollapsible, legacyOptions);
+
+            // assert that we should have seen errors during conversion
+            expect(errors.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('flattenDialogElements', () => {
+        it('returns a flat list unchanged', () => {
+            // create flat list
+            const elementList = [textEl('a'), textEl('b')];
+
+            // call flattenList and check value
+            expect(flattenDialogElements(elementList)).toHaveLength(2);
+            expect(flattenDialogElements(elementList)).toEqual([textEl('a'), textEl('b')]);
+        });
+
+        it('expands a single collapsible into its children', () => {
+            const testCollapsible = collapsible('s', [textEl('a'), textEl('b')]);
+            expect(flattenDialogElements([testCollapsible])).toEqual([textEl('a'), textEl('b')]);
+        });
+
+        it('recursively flattens nested collapsibles', () => {
+            // create a nested collapsible element
+            const testNestedCollapsible = collapsible('a', [collapsible('b', [textEl('a'), textEl('b')])]);
+
+            // expect that elements are flattened and we only get the children
+            expect(flattenDialogElements([testNestedCollapsible])).toEqual([textEl('a'), textEl('b')]);
+        });
+
+        it('returns [] for a collapsible with no elements', () => {
+            // create a collapsible element with no child elements
+            const testCollapsibleNoChildren = collapsible('a', []);
+
+            // flatten it and make sure we return an empty array
+            expect(flattenDialogElements([testCollapsibleNoChildren])).toHaveLength(0);
+        });
+    });
+
+    describe('convertAppFormValuesToDialogSubmission', () => {
+        it('collects child values and excludes the collapsible container', () => {
+            const testCollapsibleWithChildren = collapsible('a', [textEl('b'), textEl('c')]);
+            const values = {b: 'b val', c: 'c val'};
+
+            const ret = convertAppFormValuesToDialogSubmission(values, [testCollapsibleWithChildren], legacyOptions);
+
+            // there shouldn't be any errors here
+            expect(ret.errors).toHaveLength(0);
+
+            // check values that are returned by function call
+            const decon = ret.submission;
+
+            expect(decon.b).toEqual('b val');
+            expect(decon.c).toEqual('c val');
+
+            // this makes sure that a does not have a value, since the base collapsible element does not have a value of its own
+            expect(decon).not.toHaveProperty('a');
+        });
+
+        it('collects values from deeply nested collapsibles', () => {
+            const deeplyNested = collapsible('level1', [collapsible('level2', [collapsible('level3', [textEl('deep'), textEl('deep2'), textEl('deep3')])])]);
+
+            const values = {deep: 'deep val', deep2: 'deep val2', deep3: 'deep val3'};
+
+            const ret = convertAppFormValuesToDialogSubmission(values, [deeplyNested], legacyOptions);
+
+            // error check
+            expect(ret.errors).toHaveLength(0);
+
+            // check values returned by call
+            const decon = ret.submission;
+
+            expect(decon.deep).toEqual('deep val');
+            expect(decon.deep2).toEqual('deep val2');
+            expect(decon.deep3).toEqual('deep val3');
+        });
+    });
+
+    describe('validateDialogElement', () => {
+        it('does not produce errors for a well-formed collapsible', () => {
+            // a collapsible has name, display_name, and type set, so it should validate cleanly
+            const errors = validateDialogElement(collapsible('a', [textEl('b')]), 0, enhancedOptions);
+            expect(errors).toHaveLength(0);
+        });
+    });
+
+    describe('convertElement nested', () => {
+        it('recursively converts a collapsible nested inside a collapsible', () => {
+            // collapsible "outer" wraps collapsible "inner" wraps a single leaf field
+            const nested = collapsible('outer', [collapsible('inner', [textEl('leaf')])]);
+            const {field, errors} = convertElement(nested, legacyOptions);
+
+            expect(errors).toHaveLength(0);
+
+            // outer container
+            expect(field?.type).toBe('collapsible');
+            expect(field?.value).toBeUndefined();
+
+            // inner container, nested under outer's fields
+            const inner = field?.collapsible_config?.fields?.[0];
+            expect(inner?.name).toBe('inner');
+            expect(inner?.type).toBe('collapsible');
+            expect(inner?.value).toBeUndefined();
+
+            // leaf field at the bottom
+            expect(inner?.collapsible_config?.fields?.[0].name).toBe('leaf');
+            expect(inner?.collapsible_config?.fields?.[0].type).toBe('text');
+        });
+    });
+
+    describe('convertDialogToAppForm', () => {
+        it('includes a collapsible field with its converted children in form.fields', () => {
+            const elements = [collapsible('section', [textEl('child')])];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+
+            // the collapsible container is preserved as a field (not flattened) for rendering
+            expect(form.fields?.[0].name).toBe('section');
+            expect(form.fields?.[0].type).toBe('collapsible');
+
+            // and its child is converted and nested underneath
+            expect(form.fields?.[0].collapsible_config?.fields?.[0].name).toBe('child');
+            expect(form.fields?.[0].collapsible_config?.fields?.[0].type).toBe('text');
+        });
+
+        it('handles a collapsible alongside flat top-level fields', () => {
+            const elements = [textEl('top'), collapsible('section', [textEl('child')])];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(2);
+
+            // order is preserved: flat field first, then the collapsible
+            expect(form.fields?.[0].name).toBe('top');
+            expect(form.fields?.[0].type).toBe('text');
+            expect(form.fields?.[1].name).toBe('section');
+            expect(form.fields?.[1].type).toBe('collapsible');
+        });
+    });
+});
+
+describe('dialog_conversion - grid layout and dialog size', () => {
+    const legacyOptions: ConversionOptions = {enhanced: false};
+
+    const textEl = (name: string): DialogElement => ({
+        name,
+        display_name: 'Text ' + name,
+        type: DialogElementTypes.TEXT,
+    } as DialogElement);
+
+    // collapsibleEl builds a collapsible, optionally carrying a subtype. The
+    // grid is a layout mode on the existing container, so it arrives as
+    // subtype: 'grid' rather than as a new element type.
+    const collapsibleEl = (name: string, elements: DialogElement[], subtype?: string): DialogElement => ({
+        name,
+        display_name: 'Section ' + name,
+        type: DialogElementTypes.COLLAPSIBLE,
+        subtype,
+        collapsible_config: {elements},
+    } as DialogElement);
+
+    describe('collapsible layout', () => {
+        it("maps subtype 'grid' to layout 'grid'", () => {
+            const {field, errors} = convertElement(collapsibleEl('g', [textEl('a')], 'grid'), legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(field?.collapsible_config?.layout).toBe('grid');
+        });
+
+        it("defaults to layout 'stacked' when no subtype is given", () => {
+            const {field, errors} = convertElement(collapsibleEl('s', [textEl('a')]), legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(field?.collapsible_config?.layout).toBe('stacked');
+        });
+
+        it("falls back to 'stacked' for an unrecognised subtype rather than passing it through", () => {
+            const {field, errors} = convertElement(collapsibleEl('s', [textEl('a')], 'carousel'), legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(field?.collapsible_config?.layout).toBe('stacked');
+        });
+
+        it('sets the layout on a nested collapsible independently of its parent', () => {
+            // A grid's rows are themselves collapsibles, and they are stacked.
+            const grid = collapsibleEl('grid', [collapsibleEl('row', [textEl('cell')])], 'grid');
+            const {field, errors} = convertElement(grid, legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(field?.collapsible_config?.layout).toBe('grid');
+
+            const rowField = field?.collapsible_config?.fields?.[0];
+            expect(rowField?.type).toBe('collapsible');
+            expect(rowField?.collapsible_config?.layout).toBe('stacked');
+        });
+    });
+
+    describe('AppForm.size', () => {
+        const convert = (size?: 'small' | 'medium' | 'large') => convertDialogToAppForm(
+            [textEl('a')],
+            'Test Dialog',
+            undefined,
+            undefined,
+            undefined,
+            '',
+            '',
+            legacyOptions,
+            undefined,
+            undefined,
+            size,
+        );
+
+        it.each(['small', 'medium', 'large'] as const)('carries size %s onto the form', (size) => {
+            const {form, errors} = convert(size);
+
+            expect(errors).toHaveLength(0);
+            expect(form.size).toBe(size);
+        });
+
+        it('leaves size undefined when the dialog does not set one', () => {
+            const {form, errors} = convert();
+
+            expect(errors).toHaveLength(0);
+            expect(form.size).toBeUndefined();
+        });
+    });
+
+    describe('transformServerDialogToProps', () => {
+        it('carries size through from the server response', () => {
+            const props = transformServerDialogToProps({
+                title: 'Test Dialog',
+                elements: [],
+                size: 'large',
+            });
+
+            expect(props.size).toBe('large');
+        });
+
+        it('leaves size undefined when the server response omits it', () => {
+            const props = transformServerDialogToProps({
+                title: 'Test Dialog',
+                elements: [],
+            });
+
+            expect(props.size).toBeUndefined();
+        });
+    });
+
+    describe('convertServerDialogResponseToAppForm', () => {
+        it('carries size all the way from the server response to the form', () => {
+            const {form, errors} = convertServerDialogResponseToAppForm({
+                title: 'Test Dialog',
+                elements: [textEl('a')],
+                size: 'medium',
+            }, legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(form.size).toBe('medium');
+        });
+
+        it('leaves size undefined when the server response omits it, so the modal keeps its historical width', () => {
+            const {form, errors} = convertServerDialogResponseToAppForm({
+                title: 'Test Dialog',
+                elements: [textEl('a')],
+            }, legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(form.size).toBeUndefined();
         });
     });
 });

@@ -6,6 +6,7 @@ import React from 'react';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
+import GraphValueCell from './graph_value_cell';
 import MultiValueSelector from './multi_value_selector_menu';
 import SingleValueSelector from './single_value_selector_menu';
 
@@ -49,6 +50,9 @@ export interface ValueSelectorMenuProps {
     // one is picked, the row switches to a resource.attributes.<name> target.
     channelFields?: UserPropertyField[];
     onSelectTarget?: (name: string) => void;
+
+    field?: UserPropertyField;
+    rowIndex?: number;
 }
 
 const ValueSelectorMenu = ({
@@ -60,8 +64,25 @@ const ValueSelectorMenu = ({
     placeholder,
     channelFields = [],
     onSelectTarget,
+    field,
+    rowIndex = 0,
 }: ValueSelectorMenuProps) => {
     const isMultiOperator = isMultiValueOperator(row.operator);
+
+    if (field?.type === 'graph' && isMultiOperator && !row.targetAttribute) {
+        return (
+            <GraphValueCell
+                field={field}
+                row={row}
+                disabled={disabled}
+                updateValues={updateValues}
+                placeholder={placeholder}
+                channelFields={channelFields}
+                onSelectTarget={onSelectTarget}
+                rowIndex={rowIndex}
+            />
+        );
+    }
 
     if (isMultiOperator) {
         return (
