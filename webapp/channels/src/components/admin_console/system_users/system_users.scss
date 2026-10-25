@@ -1,14 +1,20 @@
 @use 'utils/_mixins';
 
-// Match Compass AdminPanel chrome (surface, border, radius, elevation).
-// Scoped to SystemUsers so shared admin-console__container / __wrapper
-// layout chrome is unchanged for other System Console pages. Do not set
-// overflow:hidden — filter, column, duration, and row-action menus escape.
+// AdminPanel now supplies surface/border/radius/elevation itself, and (being
+// non-expandable) already defaults to overflow:visible, so filter, column,
+// duration, and row-action menus keep escaping without extra work.
+// The page was previously built on the plain admin-console__container (no
+// max-width), not admin-console__content's 920px-capped one, since the users
+// table is wide — AdminPanel caps itself at 920px regardless of ancestor, so
+// that still needs overriding here (same issue GlobalAttributes__panel hit).
+// Ambient body padding is stripped too: the filters row and table cells
+// already bring their own flush padding.
 .admin-console .SystemUsers .SystemUsers__panel {
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: var(--radius-m);
-    background: var(--center-channel-bg);
-    box-shadow: var(--elevation-1);
+    max-width: none;
+
+    [class*='admin-panel__body'] {
+        padding: 0;
+    }
 }
 
 table.systemUsersTable {

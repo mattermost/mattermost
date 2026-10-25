@@ -16,6 +16,7 @@ import {AdminConsoleListTable, ElapsedDurationCell, PAGE_SIZES, LoadingStates} f
 import type {TableMeta} from 'components/admin_console/list_table';
 import SharedUserIndicator from 'components/shared_user_indicator';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {getDisplayName, imageURLForUser} from 'utils/utils';
 
@@ -497,7 +498,10 @@ function SystemUsers(props: Props) {
                 <RevokeSessionsButton/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
-                <div className='admin-console__container ignore-marking SystemUsers__panel'>
+                <AdminPanel
+                    id='system_users'
+                    className='ignore-marking SystemUsers__panel'
+                >
                     <div className='admin-console__filters-rows'>
                         <SystemUsersSearch
                             searchTerm={props.tablePropertySearchTerm}
@@ -523,7 +527,7 @@ function SystemUsers(props: Props) {
                     <AdminConsoleListTable<UserReport>
                         table={table}
                     />
-                </div>
+                </AdminPanel>
             </div>
         </div>
     );
