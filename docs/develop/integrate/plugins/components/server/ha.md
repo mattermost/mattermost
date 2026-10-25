@@ -40,3 +40,42 @@ if cronErr != nil {
 
 p.backgroundJob = job
 ```
+
+## Test a plugin in high availability mode
+
+The [pluginapi/testhelper](https://github.com/mattermost/mattermost/tree/master/server/public/pluginapi/testhelper) package runs a plugin's integration tests against a real Mattermost server in Docker. `testhelper.SetupCluster(t, n)` starts a cluster of `n` servers instead of a single one, so you can test behavior that spans servers, such as cluster events or state that must not be kept in memory:
+
+```go
+func TestTriggerWordAcrossNodes(t *testing.T) {
+    th := testhelper.SetupCluster(t, 2)
+    a, b := th.Nodes[0], th.Nodes[1]
+
+    // Set the trigger word through a.Client, then post through b.Client
+    // and check that the plugin on b alerts the user.
+}
+```
+
+The servers share one database, which also holds the configuration, and one file store. The plugin is deployed once and runs on every server, and a configuration change made through one server reaches the others. Each test starts from a freshly formed cluster.
+
+Each entry in `th.Nodes` is one server, with:
+
+- `ID`: its cluster ID, which you can use as `PluginClusterEventSendOptions.TargetId`. It's empty while the server is stopped, and changes whenever the server restarts.
+- `AdminClient` and `Client`: API clients aimed at that server, sharing the sessions of `th.AdminClient` and `th.Client`.
+- `Pause(t)` and `Unpause(t)`: freeze the server, so it stays a cluster member but stops answering both HTTP requests and its peers. This is how a hung or partitioned server looks to the rest of the cluster.
+- `Stop(t)` and `Start(t)`: the server leaves the cluster and rejoins it. `Start` waits until the server has rejoined, and updates its URL, clients, and `ID`.
+- `Exec(t, cmd...)`: runs a command in the server's container. The Mattermost image contains no shell, so only `mattermost` and `mmctl` are available.
+
+Clustering requires a license with the Cluster feature. Set the `MM_LICENSE` environment variable to the license when running the tests. The servers run in the test service environment, so a license signed with Mattermost's test key works. Without `MM_LICENSE`, cluster tests are skipped, so pull requests from forks still pass. A license the server rejects, or one without the Cluster feature, fails the test.
+
+In GitHub Actions, map a repository secret to `MM_LICENSE` in the step that runs the tests:
+
+```yaml
+- name: Run tests
+  env:
+    MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+  run: make test
+```
+
+:::tip
+Setting up a cluster takes about 20 to 25 seconds per test, compared with about 5 seconds for a single server, because each test restarts the servers and waits for them to rejoin the cluster. Use `testhelper.Setup(t)` for tests that don't need more than one server.
+:::
