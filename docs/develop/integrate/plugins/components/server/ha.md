@@ -57,13 +57,7 @@ func TestTriggerWordAcrossNodes(t *testing.T) {
 
 The servers share one database, which also holds the configuration, and one file store. The plugin is deployed once and runs on every server, and a configuration change made through one server reaches the others. Each test starts from a freshly formed cluster.
 
-Each entry in `th.Nodes` is one server, with:
-
-- `ID`: its cluster ID, which you can use as `PluginClusterEventSendOptions.TargetId`. It's empty while the server is stopped, and changes whenever the server restarts.
-- `AdminClient` and `Client`: API clients aimed at that server, sharing the sessions of `th.AdminClient` and `th.Client`.
-- `Pause(t)` and `Unpause(t)`: freeze the server, so it stays a cluster member but stops answering both HTTP requests and its peers. This is how a hung or partitioned server looks to the rest of the cluster.
-- `Stop(t)` and `Start(t)`: the server leaves the cluster and rejoins it. `Start` waits until the server has rejoined, and updates its URL, clients, and `ID`.
-- `Exec(t, cmd...)`: runs a command in the server's container. The Mattermost image contains no shell, so only `mattermost` and `mmctl` are available.
+Each entry in `th.Nodes` is one server. Use its `AdminClient` and `Client` to call the plugin on that server, and its `ID` as `PluginClusterEventSendOptions.TargetId`. The ID changes whenever the server restarts. To take a server away, `Pause(t)` freezes it, so it looks hung to the rest of the cluster, and `Stop(t)` shuts it down, so it leaves the cluster. `Start(t)` brings it back. See the [package source](https://github.com/mattermost/mattermost/tree/master/server/public/pluginapi/testhelper) for the full API.
 
 Clustering requires a license with the Cluster feature. Set the `MM_LICENSE` environment variable to the license when running the tests. The servers run in the test service environment, so a license signed with Mattermost's test key works. Without `MM_LICENSE`, cluster tests are skipped, so pull requests from forks still pass. A license the server rejects, or one without the Cluster feature, fails the test.
 
