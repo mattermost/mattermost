@@ -5,12 +5,17 @@ package metrics
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/config"
 	seMocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
@@ -398,4 +403,69 @@ func TestServerInfo(t *testing.T) {
 			require.Equal(t, want, labels[key])
 		}
 	})
+}
+
+// loggingMetricsByTarget returns the value of each logging metric series, keyed by metric name and target.
+func loggingMetricsByTarget(t *testing.T, miImpl *MetricsInterfaceImpl) map[string]map[string]float64 {
+	t.Helper()
+
+	families, err := miImpl.Registry.Gather()
+	require.NoError(t, err)
+
+	byName := map[string]map[string]float64{}
+	for _, family := range families {
+		if !strings.HasPrefix(family.GetName(), "mattermost_logging_logger_") {
+			continue
+		}
+		byTarget := map[string]float64{}
+		for _, metric := range family.GetMetric() {
+			for _, label := range metric.GetLabel() {
+				if label.GetName() == "target" {
+					byTarget[label.GetValue()] = metric.GetCounter().GetValue() + metric.GetGauge().GetValue()
+				}
+			}
+		}
+		byName[family.GetName()] = byTarget
+	}
+	return byName
+}
+
+func TestAuditLoggerMetrics(t *testing.T) {
+	// Metrics and the audit target must be configured before the server starts, because audit
+	// targets are only configured once in NewServer.
+	t.Setenv("MM_METRICSSETTINGS_ENABLE", "true")
+	t.Setenv("MM_METRICSSETTINGS_LISTENADDRESS", ":0")
+	t.Setenv(config.AdditionalAuditTargetsEnv, fmt.Sprintf(
+		`{"audit_file":{"type":"file","format":"json","levels":[{"id":%d,"name":%q}],"options":{"filename":%q}}}`,
+		mlog.LvlAuditAPI.ID, mlog.LvlAuditAPI.Name, filepath.Join(t.TempDir(), "audit.log"),
+	))
+
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+
+	miImpl, ok := th.App.Metrics().(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", th.App.Metrics()))
+
+	const loggedTotal = "mattermost_logging_logger_logged_total"
+	auditTarget := audit.MetricsTargetPrefix + "audit_file"
+	auditQueue := audit.MetricsTargetPrefix + "_logr"
+
+	before := loggingMetricsByTarget(t, miImpl)[loggedTotal]
+
+	th.App.Srv().Audit.LogRecord(mlog.LvlAuditAPI, model.AuditRecord{EventName: "test"})
+	require.NoError(t, th.App.Srv().Audit.Flush())
+
+	metrics := loggingMetricsByTarget(t, miImpl)
+	require.Equal(t, before[auditTarget]+1, metrics[loggedTotal][auditTarget])
+	require.Equal(t, before[auditQueue]+1, metrics[loggedTotal][auditQueue], "audit logger's own queue should be counted separately from the main logger's")
+
+	for _, name := range []string{
+		"mattermost_logging_logger_queue_used",
+		loggedTotal,
+		"mattermost_logging_logger_error_total",
+		"mattermost_logging_logger_dropped_total",
+		"mattermost_logging_logger_blocked_total",
+	} {
+		require.Contains(t, metrics[name], auditTarget, name)
+		require.NotContains(t, metrics[name], "audit_file", "%s: audit targets should not be reported under their unprefixed name", name)
+	}
 }
