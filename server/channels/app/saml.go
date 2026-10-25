@@ -98,28 +98,24 @@ func (a *App) saveSamlCertificateConfig(rctx request.CTX, setFile func(*model.Sa
 	return nil
 }
 
-func (a *App) AddSamlPublicCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeSamlFile(SamlPublicCertificateName, fileData); err != nil {
+func (a *App) addSamlCertificate(rctx request.CTX, filename string, fileData *multipart.FileHeader, setFile func(*model.SamlSettings)) *model.AppError {
+	if err := a.writeSamlFile(filename, fileData); err != nil {
 		return err
 	}
 
-	return a.saveSamlCertificateConfig(rctx, func(s *model.SamlSettings) { *s.PublicCertificateFile = SamlPublicCertificateName })
+	return a.saveSamlCertificateConfig(rctx, setFile)
+}
+
+func (a *App) AddSamlPublicCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
+	return a.addSamlCertificate(rctx, SamlPublicCertificateName, fileData, func(s *model.SamlSettings) { *s.PublicCertificateFile = SamlPublicCertificateName })
 }
 
 func (a *App) AddSamlPrivateCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeSamlFile(SamlPrivateKeyName, fileData); err != nil {
-		return err
-	}
-
-	return a.saveSamlCertificateConfig(rctx, func(s *model.SamlSettings) { *s.PrivateKeyFile = SamlPrivateKeyName })
+	return a.addSamlCertificate(rctx, SamlPrivateKeyName, fileData, func(s *model.SamlSettings) { *s.PrivateKeyFile = SamlPrivateKeyName })
 }
 
 func (a *App) AddSamlIdpCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeSamlFile(SamlIdpCertificateName, fileData); err != nil {
-		return err
-	}
-
-	return a.saveSamlCertificateConfig(rctx, func(s *model.SamlSettings) { *s.IdpCertificateFile = SamlIdpCertificateName })
+	return a.addSamlCertificate(rctx, SamlIdpCertificateName, fileData, func(s *model.SamlSettings) { *s.IdpCertificateFile = SamlIdpCertificateName })
 }
 
 func (a *App) removeSamlFile(filename string) *model.AppError {
@@ -278,7 +274,7 @@ func (a *App) SetSamlIdpCertificateFromMetadata(rctx request.CTX, data []byte) *
 		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, "invalid PEM data", http.StatusBadRequest)
 	}
 	if _, e := x509.ParseCertificate(block.Bytes); e != nil {
-		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(e)
+		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, "", http.StatusBadRequest).Wrap(e)
 	}
 
 	data = pem.EncodeToMemory(&pem.Block{
