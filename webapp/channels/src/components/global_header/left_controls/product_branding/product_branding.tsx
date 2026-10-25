@@ -4,8 +4,6 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import {ChevronDownIcon} from '@mattermost/compass-icons/components';
-
 import {getConfig, isFreeEdition as isFreeEditionSelector, isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import ProductBrandingFreeEdition from './product_branding_free_edition';
@@ -29,10 +27,6 @@ export function ProductBranding() {
                 <span className='globalHeader-leftControls-productBranding-licensedEdition-heading'>
                     {siteName}
                 </span>
-                <ChevronDownIcon
-                    size={16}
-                    aria-hidden='true'
-                />
             </span>
         );
     }

@@ -74,22 +74,16 @@ $menuWidth: 240px;
             }
         }
 
-        // With the product rail on, the site name stands in for the product name, followed by a
-        // chevron; a long name truncates rather than pushing into the search box.
+        // With the product rail on, the site name stands in for the product name; a long name
+        // truncates rather than pushing into the search box.
         &-siteName {
             min-width: 0;
-            gap: 4px;
 
             .globalHeader-leftControls-productBranding-licensedEdition-heading {
                 overflow: hidden;
                 max-width: 200px;
                 text-overflow: ellipsis;
                 white-space: nowrap;
-            }
-
-            svg {
-                flex: 0 0 auto;
-                fill: currentColor;
             }
         }
     }
