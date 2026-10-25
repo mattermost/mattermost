@@ -724,6 +724,9 @@ func newResponseServer() *responseServer {
 		}
 		if reply.declaredLength > 0 {
 			w.Header().Set("Content-Length", strconv.Itoa(reply.declaredLength))
+			// A reply that does not match its declared length breaks the connection, so keep the
+			// caller from reusing it.
+			w.Header().Set("Connection", "close")
 		}
 
 		var body io.Writer = w
