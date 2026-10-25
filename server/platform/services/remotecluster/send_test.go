@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -446,6 +447,101 @@ func TestService_sendFrameToRemote_Metrics(t *testing.T) {
 			metrics.AssertExpectations(t)
 		})
 	}
+}
+
+// TestService_sendFrameToRemote_AfterOverrunReply covers a send that follows a reply longer than
+// the length the remote declared. The remote closes the connection after such a reply, but only
+// once the caller has already returned it to its idle pool, so the next send to that remote is
+// written on a connection the remote then drops without replying.
+func TestService_sendFrameToRemote_AfterOverrunReply(t *testing.T) {
+	reply, err := json.Marshal(&Response{Status: ResponseStatusOK})
+	require.NoError(t, err)
+
+	var mu sync.Mutex
+	var received []string
+	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var frame model.RemoteClusterFrame
+		if json.NewDecoder(r.Body).Decode(&frame) == nil {
+			mu.Lock()
+			received = append(received, frame.Msg.Id)
+			mu.Unlock()
+		}
+
+		w.Header().Set("Content-Length", strconv.Itoa(len(reply)))
+		w.Write(reply)
+		w.Write([]byte("past the declared length"))
+	}))
+	listener := &heldCloseListener{Listener: ts.Listener}
+	ts.Listener = listener
+	ts.Start()
+	defer ts.Close()
+
+	rc := makeRemoteCluster("remote_test_overrun_reply", ts.URL, TestTopics)
+
+	service, err := NewRemoteClusterService(newMockServer(t, nil), newMockApp(t, nil))
+	require.NoError(t, err)
+	service.disablePing = true
+
+	require.NoError(t, service.Start())
+	defer service.Shutdown()
+	// Releases the server's held close of the last connection, which ts.Close would otherwise wait on.
+	defer service.httpClient.CloseIdleConnections()
+
+	url := fmt.Sprintf("%s/%s", ts.URL, SendMsgURL)
+
+	var sent []string
+	for i := range 2 {
+		frame := &model.RemoteClusterFrame{
+			RemoteId: rc.RemoteId,
+			Msg:      makeRemoteClusterMsg(model.NewId(), NoteContent),
+		}
+		sent = append(sent, frame.Msg.Id)
+
+		respJSON, err := service.sendFrameToRemote(defaultCallTimeout, rc, frame, url)
+		require.NoError(t, err, "send %d should reach the remote", i+1)
+		assert.Equal(t, reply, respJSON)
+	}
+
+	assert.Equal(t, int32(1), listener.dropped.Load(),
+		"the second send should first have been written on the connection the remote closed")
+
+	mu.Lock()
+	defer mu.Unlock()
+	assert.Equal(t, sent, received, "the remote should have received every send once")
+}
+
+// heldCloseListener hands out connections whose close by the server is held back until the client
+// writes on them again, so a client that reused one has written its request before the connection
+// goes away. It counts how many connections the client wrote on after the server closed them.
+type heldCloseListener struct {
+	net.Listener
+	dropped atomic.Int32
+}
+
+func (l *heldCloseListener) Accept() (net.Conn, error) {
+	conn, err := l.Listener.Accept()
+	if err != nil {
+		return nil, err
+	}
+	return &heldCloseConn{Conn: conn, dropped: &l.dropped}, nil
+}
+
+type heldCloseConn struct {
+	net.Conn // embedded as the interface so the server cannot half-close it ahead of Close
+	dropped  *atomic.Int32
+	once     sync.Once
+}
+
+func (c *heldCloseConn) Close() error {
+	c.once.Do(func() {
+		if err := c.Conn.SetReadDeadline(time.Now().Add(time.Second * 10)); err != nil {
+			return
+		}
+		if n, _ := c.Conn.Read(make([]byte, 1)); n > 0 {
+			c.dropped.Add(1)
+		}
+	})
+	return c.Conn.Close()
 }
 
 func makeRemoteClusters(num int, siteURL string, isPlugin bool) []*model.RemoteCluster {

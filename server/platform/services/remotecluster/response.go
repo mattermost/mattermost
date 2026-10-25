@@ -21,7 +21,15 @@ const MaxRemoteResponseSize = 1024 * 1024
 // readRemoteResponse. A failure to send the request or to read the reply wraps errRemoteUnreachable,
 // and a reply longer than MaxRemoteResponseSize wraps errRemoteResponseTooLarge. A non-200 status is
 // an error, returned with the body when it was read in full.
+//
+// A remote can drop a pooled connection just as a request is written on it, for instance after a
+// reply that overran its declared length. Marking req idempotent lets the transport resend it on a
+// new connection when the connection was reused, no reply byte arrived and the body is replayable.
+// Failed sends are resent anyway, so receivers already handle a repeated request. The nil value
+// keeps the header off the wire.
 func (rcs *Service) sendRemoteRequest(req *http.Request) ([]byte, error) {
+	req.Header["Idempotency-Key"] = nil
+
 	resp, err := rcs.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", errRemoteUnreachable, err)
