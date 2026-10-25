@@ -4,8 +4,15 @@
 package app
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"errors"
+	"math/big"
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -171,17 +178,74 @@ func TestReloadSaml(t *testing.T) {
 				return m.Event == model.ClusterEventReloadSaml
 			})
 			require.Len(t, msgs, 1)
+			assert.Equal(t, model.ClusterSendReliable, msgs[0].SendType)
+			assert.False(t, msgs[0].WaitForAllToSend)
 		})
 	}
 
-	t.Run("cluster handler reconfigures the SP", func(t *testing.T) {
+	t.Run("registered cluster handler reconfigures the SP", func(t *testing.T) {
 		saml := registerMockSaml(t, nil)
 
-		th := Setup(t)
+		cluster := &handlerCapturingCluster{handlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{}}
+		th := SetupWithClusterMock(t, cluster)
+		// The test helper doesn't join the cluster, so handlers aren't registered on startup.
+		th.Server.registerClusterHandlers()
 		saml.Calls = nil
 
-		th.Server.clusterReloadSamlHandler(&model.ClusterMessage{Event: model.ClusterEventReloadSaml})
+		handler, ok := cluster.handlers[model.ClusterEventReloadSaml]
+		require.True(t, ok, "no handler registered for %s", model.ClusterEventReloadSaml)
+		handler(&model.ClusterMessage{Event: model.ClusterEventReloadSaml})
 
 		saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
+	})
+}
+
+type handlerCapturingCluster struct {
+	testlib.FakeClusterInterface
+	handlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
+}
+
+func (c *handlerCapturingCluster) RegisterClusterMessageHandler(event model.ClusterEvent, h einterfaces.ClusterMessageHandler) {
+	c.handlers[event] = h
+}
+
+func TestSetSamlIdpCertificateFromMetadata(t *testing.T) {
+	t.Run("rejects data that isn't PEM-encodable", func(t *testing.T) {
+		th := Setup(t)
+
+		appErr := th.App.SetSamlIdpCertificateFromMetadata(request.TestContext(t), []byte("not base64!"))
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.admin.saml.failure_parse_idp_certificate.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("rotating the certificate reloads the SP and broadcasts to the cluster", func(t *testing.T) {
+		saml := registerMockSaml(t, nil)
+
+		cluster := &testlib.FakeClusterInterface{}
+		th := SetupWithClusterMock(t, cluster)
+		// A rotation keeps the filename, so the config listener doesn't reconfigure the SP.
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
+		saml.Calls = nil
+		cluster.ClearMessages()
+
+		key, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+		template := &x509.Certificate{
+			SerialNumber: big.NewInt(1),
+			NotBefore:    time.Now(),
+			NotAfter:     time.Now().Add(time.Hour),
+		}
+		certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+		require.NoError(t, err)
+
+		appErr := th.App.SetSamlIdpCertificateFromMetadata(request.TestContext(t), []byte(base64.StdEncoding.EncodeToString(certDER)))
+		require.Nil(t, appErr)
+
+		saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
+		msgs := cluster.SelectMessages(func(m *model.ClusterMessage) bool {
+			return m.Event == model.ClusterEventReloadSaml
+		})
+		assert.Len(t, msgs, 1)
 	})
 }
