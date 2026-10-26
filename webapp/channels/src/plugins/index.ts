@@ -9,6 +9,7 @@ import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
 import {unregisterPluginTranslationsSource} from 'actions/views/root';
@@ -128,9 +129,15 @@ export async function initializePlugins(): Promise<void> {
     }));
 }
 
+// lastFetchedForUserId records the user, or '' when logged out, whose session was used to last fetch
+// the plugin list. Logged out clients may only receive pre-auth plugins from the server.
+let lastFetchedForUserId: string | undefined;
+
 // getPlugins queries the server for all enabled plugins
 export function getPlugins(): ActionFuncAsync<ClientPluginManifest[]> {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
+        lastFetchedForUserId = getCurrentUserId(getState()) || '';
+
         let plugins;
         try {
             plugins = await Client4.getWebappPlugins();
@@ -320,12 +327,13 @@ export async function loadPluginsIfNecessary(): Promise<void> {
     const newManifests = store.getState().plugins.plugins as {[key: string]: PluginManifest};
 
     // Get new plugins and update existing plugins if version changed
+    const loads: Array<Promise<void>> = [];
     Object.values(newManifests).forEach((newManifest: PluginManifest) => {
         const oldManifest = oldManifests[newManifest.id];
         if (!oldManifest || oldManifest.version !== newManifest.version) {
-            loadPlugin(newManifest).catch((loadErr: Error) => {
+            loads.push(loadPlugin(newManifest).catch((loadErr: Error) => {
                 console.error(loadErr.message); //eslint-disable-line no-console
-            });
+            }));
         }
     });
 
@@ -336,4 +344,17 @@ export async function loadPluginsIfNecessary(): Promise<void> {
             removePlugin(oldManifest);
         }
     });
+
+    await Promise.all(loads);
+}
+
+// ensureAuthenticatedPluginsLoaded re-synchronizes plugins when the plugin list was last fetched
+// for a different session, such as on the login page before the user logged in.
+export async function ensureAuthenticatedPluginsLoaded(): Promise<void> {
+    const currentUserId = getCurrentUserId(store.getState());
+    if (!currentUserId || lastFetchedForUserId === undefined || lastFetchedForUserId === currentUserId) {
+        return;
+    }
+
+    await loadPluginsIfNecessary();
 }
