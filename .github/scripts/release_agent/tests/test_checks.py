@@ -4,7 +4,7 @@ from datetime import date
 from release_agent import checks, rules
 from release_agent.agent import template_vars
 from release_agent.release_calendar import Release
-from release_agent.tests.fakes import FakeGitHub, FakeHub, FakeJira
+from release_agent.tests.fakes import FakeConfluence, FakeGitHub, FakeHub, FakeJira
 
 MM, ENT = "mattermost/mattermost", "mattermost/enterprise"
 RULES = {rule["task"]: rule for rule in rules.load_yaml(rules.RULES_PATH)["rules"]}
@@ -16,16 +16,21 @@ def release():
                            "final_build": date(2026, 11, 9), "release_day": date(2026, 11, 16)})
 
 
-def context(github=None, jira=None, hub=None, has_branch=True, rc_numbers=(1, 2)):
+def context(github=None, jira=None, hub=None, has_branch=True, rc_numbers=(1, 2), today=date(2026, 11, 4),
+            confluence=None, primary=True, page_id="123"):
     rel = release()
-    return checks.Context(release=rel, today=date(2026, 11, 4), vars=template_vars(rel, NAMING, list(rc_numbers)),
+    values = {**template_vars(rel, NAMING, list(rc_numbers)), "holidays_page_id": page_id}
+    return checks.Context(release=rel, today=today, vars=values,
                           has_branch=has_branch, rc_numbers=list(rc_numbers), github=github or FakeGitHub(),
-                          jira=jira or FakeJira(), hub=hub or FakeHub(), testing_alerts_channel="alerts")
+                          jira=jira or FakeJira(), hub=hub or FakeHub(), testing_alerts_channel="alerts",
+                          confluence=confluence or FakeConfluence(), primary=primary)
 
 
-def pr(number, title="A change", login="dev", state="closed", merged_at="2026-10-20T10:00:00Z"):
+def pr(number, title="A change", login="dev", state="closed", merged_at="2026-10-20T10:00:00Z",
+       created_at="2026-11-09T14:00:00Z"):
     return {"number": number, "title": title, "state": state, "html_url": f"https://github.com/x/pull/{number}",
-            "user": {"login": login}, "assignees": [], "pull_request": {"merged_at": merged_at}}
+            "user": {"login": login}, "assignees": [], "pull_request": {"merged_at": merged_at},
+            "created_at": created_at}
 
 
 def commit(message, sha="s"):
@@ -47,6 +52,7 @@ class TemplateTest(unittest.TestCase):
         self.assertEqual(values["branch"], "release-12.2")
         self.assertEqual(values["rc_tag"], "v12.2.0-rc3")
         self.assertEqual(values["branch_cut"], "2026-10-19")
+        self.assertEqual(values["final_build"], "2026-11-09")
 
     def test_fix_version_needs_a_release_day(self):
         rel = Release(12, 2, {"branch_cut": date(2026, 10, 19)})
@@ -209,22 +215,74 @@ class ReleaseTagsTest(unittest.TestCase):
 
 
 class VersionGoPrsTest(unittest.TestCase):
-    def test_merged(self):
+    AFTER_FINAL_BUILD = date(2026, 11, 10)
+
+    def check(self, github, today=AFTER_FINAL_BUILD):
+        return checks.version_go_prs(context(github, today=today), RULES["version-go-prs"])
+
+    def test_the_whole_batch_is_merged(self):
         github = FakeGitHub()
         github.searches["Update latest"] = [pr(1, "Update latest minor version to 12.2.0"),
-                                              pr(2, "Update latest minor version to 12.20.0", state="open")]
-        result = checks.version_go_prs(context(github), RULES["version-go-prs"])
-        self.assertEqual((result.status, result.summary), (checks.PASS, "1 version.go PR merged"))
-        self.assertIn('in:title "Update latest" created:>=2026-09-04', github.queries[0])
+                                              pr(2, "Update latest patch version to 12.1.1", created_at="2026-11-09T14:01:00Z"),
+                                              pr(3, "Update latest minor version to 12.20.0", state="open",
+                                                 created_at="2026-12-20T10:00:00Z")]
+        result = self.check(github)
+        self.assertEqual((result.status, result.summary), (checks.PASS, "All 2 version.go PRs merged"))
+        self.assertIn('in:title "Update latest" created:>=2026-11-02', github.queries[0])
 
-    def test_open_pr_fails(self):
+    def test_an_open_pr_in_the_batch_fails(self):
         github = FakeGitHub()
-        github.searches["Update latest"] = [pr(1, "Update latest minor version to 12.2.0", state="open")]
-        result = checks.version_go_prs(context(github), RULES["version-go-prs"])
-        self.assertEqual((result.status, result.summary), (checks.FAIL, "1 version.go PR not merged: mattermost#1"))
+        github.searches["Update latest"] = [pr(1, "Update latest minor version to 12.2.0"),
+                                              pr(2, "Update latest patch version to 12.1.1", state="open",
+                                                 created_at="2026-11-09T23:50:00Z")]
+        result = self.check(github)
+        self.assertEqual((result.status, result.summary), (checks.FAIL, "1 of 2 version.go PRs not merged: mattermost#2"))
 
-    def test_none_found_fails(self):
-        self.assertEqual(checks.version_go_prs(context(), RULES["version-go-prs"]).status, checks.FAIL)
+    def test_patch_prs_alone_do_not_count(self):
+        github = FakeGitHub()
+        github.searches["Update latest"] = [pr(2, "Update latest patch version to 12.2.1")]
+        result = self.check(github)
+        self.assertEqual((result.status, result.summary),
+                         (checks.FAIL, "No “Update latest … version to 12.2.0” PR since 2026-11-02"))
+
+    def test_skipped_before_the_final_build(self):
+        github = FakeGitHub()
+        result = self.check(github, today=date(2026, 11, 4))
+        self.assertEqual(result.status, checks.SKIPPED)
+        self.assertEqual(github.queries, [])
+
+
+class HolidaysPageTest(unittest.TestCase):
+    OCTOBER = date(2026, 10, 26)
+
+    def check(self, text="", today=OCTOBER, **kwargs):
+        confluence = FakeConfluence(text)
+        return checks.holidays_page(context(today=today, confluence=confluence, **kwargs), RULES["holidays-page"]), confluence
+
+    def test_passes_when_next_year_is_listed(self):
+        result, confluence = self.check("2026 Holidays New Year's Day Jan 1, 2027 Company holiday")
+        self.assertEqual((result.status, result.summary), (checks.PASS, "The holidays page lists 2027"))
+        self.assertEqual(result.proof_url, "https://wiki.example/pages/123")
+        self.assertEqual(confluence.requested, ["123"])
+
+    def test_fails_until_next_year_is_added(self):
+        result, _ = self.check("Holidays 2026: Jan 1, May 25 ... ticket 120270")
+        self.assertEqual((result.status, result.summary), (checks.FAIL, "The holidays page doesn't list 2027 yet"))
+        self.assertEqual([item.public_label for item in result.items], [None])
+
+    def test_only_checked_in_october(self):
+        result, confluence = self.check(today=date(2026, 11, 4))
+        self.assertEqual((result.status, result.hidden), (checks.SKIPPED, True))
+        self.assertEqual(confluence.requested, [])
+
+    def test_only_the_first_active_release_checks_it(self):
+        result, confluence = self.check(primary=False)
+        self.assertEqual((result.status, result.hidden), (checks.SKIPPED, True))
+        self.assertEqual(confluence.requested, [])
+
+    def test_needs_the_page_id(self):
+        with self.assertRaisesRegex(checks.CheckError, "RELEASE_AGENT_HOLIDAYS_PAGE_ID isn't set"):
+            self.check(page_id="")
 
 
 class ChangelogLabelsTest(unittest.TestCase):

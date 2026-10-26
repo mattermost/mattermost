@@ -182,7 +182,7 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
             lines.append(f"- :white_check_mark: **{outcome.title}** — {outcome.result.summary}"
                          f"{_proof(outcome.result)}{_tick_note(ticks, outcome.rule['task'])}")
 
-    waiting = by_state.get(NOT_DUE, []) + by_state.get(SKIPPED, [])
+    waiting = by_state.get(NOT_DUE, []) + [o for o in by_state.get(SKIPPED, []) if not o.result.hidden]
     if waiting:
         lines += ["", "**Not due yet**"]
         for outcome in waiting:

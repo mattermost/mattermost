@@ -14,11 +14,12 @@
 #                  needs attention, and a passing one is only ticked, from this day on. Each
 #                  due follows the playbook section of its item.
 #   type           the check function (release_agent/checks.py)
-#   source         where the check reads from: jira, github, hub
+#   source         where the check reads from: jira, github, hub, confluence
 #   query          check-specific parameters; strings are formatted with {version} (v12.2.0),
 #                  {short_version} (v12.2), {major}, {minor}, {branch} (release-12.2),
-#                  {milestone}, {fix_version}, {release_month} (November), {release_year}
-#                  and {branch_cut} (YYYY-MM-DD)
+#                  {milestone}, {fix_version}, {release_month} (November), {release_year},
+#                  each calendar milestone below as YYYY-MM-DD ({branch_cut}, {final_build})
+#                  and {holidays_page_id} (RELEASE_AGENT_HOLIDAYS_PAGE_ID)
 #   pass_when      what passing means, as the post describes it
 #   on_fail        needs_attention: listed in the post; log_only: run.json and the log only;
 #                  report: report-only tasks, which never fail
@@ -169,12 +170,14 @@ rules:
   - task: version-go-prs
     title: version.go PRs merged
     playbook_item: Merge the automated PRs to update version.go - example PR.
-    due: final_build
+    # The bot opens the PRs once the final build is cut, so they're due the day after.
+    due: final_build+1
     type: version_go_prs
     source: [github]
     query:
       repo: mattermost/mattermost
       author: app/unified-ci-app
+      created_since: "{final_build}"
     pass_when: merged
     on_fail: needs_attention
 
@@ -189,4 +192,19 @@ rules:
       repos: [mattermost/mattermost, mattermost/enterprise]
       labels: [Changelog/Done, Changelog/Not Needed]
     pass_when: none_missing
+    on_fail: needs_attention
+
+  # A yearly task with no playbook item, checked in October by the first active release
+  # only. The page is private, so the post links it and the public log says only whether
+  # next year is listed.
+  - task: holidays-page
+    title: Next year's holidays on Confluence
+    playbook_item: null
+    due: branch_cut
+    type: holidays_page
+    source: [confluence]
+    query:
+      page_id: "{holidays_page_id}"
+      month: 10
+    pass_when: next_year_listed
     on_fail: needs_attention

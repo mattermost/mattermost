@@ -7,6 +7,7 @@ are shown publicly as "(private repo)".
 """
 
 import re
+from calendar import month_name
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
@@ -41,6 +42,7 @@ class Result:
     summary: str
     items: list = field(default_factory=list)
     proof_url: str = ""
+    hidden: bool = False  # left out of the status post, as when a yearly task is out of season
 
 
 @dataclass
@@ -54,6 +56,8 @@ class Context:
     jira: object = None
     hub: object = None
     testing_alerts_channel: str = ""
+    confluence: object = None
+    primary: bool = True  # the first active release, which checks the yearly tasks
 
     def query(self, rule: dict) -> dict:
         return format_values(rule.get("query") or {}, self.vars)
@@ -266,23 +270,59 @@ def release_tags(ctx: Context, rule: dict) -> Result:
     return Result(PASS, f"{wanted} is tagged in {plural(len(query['repos']), 'repo')}")
 
 
+BATCH_WINDOW = timedelta(hours=12)
+# The X.Y.0 title is unique to the release, so searching from before the final build is
+# safe, and it allows for a calendar date that's a little late.
+VERSION_GO_LOOKBACK = timedelta(days=7)
+
+
 def version_go_prs(ctx: Context, rule: dict) -> Result:
-    """The bot's version.go PRs for this release are merged."""
+    """The bot's "Update latest … version" PRs opened with the final build are all merged.
+
+    The batch is the PR updating to this release's X.Y.0 and every other "Update latest" PR
+    opened with it, such as the patch versions of older releases.
+    """
     query = ctx.query(rule)
-    repo = query["repo"]
-    major, minor = ctx.release.key
-    # Search indexes "12.2.0" as one token, so "12.2" can't be searched for; filter instead.
-    since = date.fromisoformat(ctx.vars["branch_cut"]) - timedelta(days=45)
-    search = f'repo:{repo} is:pr author:{query["author"]} in:title "Update latest" created:>={since.isoformat()}'
-    title = re.compile(rf"version to {major}\.{minor}\.\d+\s*$")
-    prs = [pr for pr in ctx.github.search_issues(search) if title.search(pr.get("title", ""))]
-    if not prs:
-        return Result(FAIL, f"No version.go PRs for {ctx.release.short_version} found")
-    unmerged = [pr_item(repo, pr) for pr in prs if pr.get("state") == "open"]
+    repo, since = query["repo"], date.fromisoformat(query["created_since"])
+    version = ctx.release.version.lstrip("v")
+    if ctx.today < since:
+        return Result(SKIPPED, f"The version.go PRs are opened on {since.isoformat()}")
+    search_from = (since - VERSION_GO_LOOKBACK).isoformat()
+    search = f'repo:{repo} is:pr author:{query["author"]} in:title "Update latest" created:>={search_from}'
+    prs = ctx.github.search_issues(search)
+    # Search indexes "12.2.0" as one token but drops the dots, so match the title here.
+    title = re.compile(rf"version to {re.escape(version)}\s*$")
+    targets = [_parse_time(pr["created_at"]) for pr in prs if title.search(pr.get("title", ""))]
+    if not targets:
+        return Result(FAIL, f"No “Update latest … version to {version}” PR since {search_from}")
+    batch = [pr for pr in prs if any(abs(_parse_time(pr["created_at"]) - t) <= BATCH_WINDOW for t in targets)]
+    unmerged = [pr_item(repo, pr) for pr in batch if pr.get("state") == "open"]
     if unmerged:
         labels = ", ".join(item.public_label for item in unmerged)
-        return Result(FAIL, f"{plural(len(unmerged), 'version.go PR')} not merged: {labels}", unmerged)
-    return Result(PASS, f"{plural(len(prs), 'version.go PR')} merged")
+        return Result(FAIL, f"{len(unmerged)} of {plural(len(batch), 'version.go PR')} not merged: {labels}", unmerged)
+    return Result(PASS, f"All {plural(len(batch), 'version.go PR')} merged")
+
+
+def holidays_page(ctx: Context, rule: dict) -> Result:
+    """In October, the Confluence holidays page lists next year's holidays.
+
+    It's a yearly task rather than a release one, so only the first active release checks it.
+    The page is private: its URL is the proof and nothing from it goes in the summary.
+    """
+    query = ctx.query(rule)
+    month = int(query["month"])
+    if ctx.today.month != month or not ctx.primary:
+        why = "it's checked by the earlier active release" if ctx.today.month == month else f"it's checked in {month_name[month]}"
+        return Result(SKIPPED, f"Not checked: {why}", hidden=True)
+    page_id = str(query.get("page_id") or "").strip()
+    if not page_id:
+        raise CheckError("RELEASE_AGENT_HOLIDAYS_PAGE_ID isn't set")
+    year = ctx.today.year + 1
+    text, url = ctx.confluence.page(page_id)
+    if re.search(rf"(?<!\d){year}(?!\d)", text):
+        return Result(PASS, f"The holidays page lists {year}", [], url)
+    return Result(FAIL, f"The holidays page doesn't list {year} yet",
+                  [Item("Holidays page", "Add next year's holidays", url, note=f"No {year} holidays on the page yet")], url)
 
 
 def changelog_labels(ctx: Context, rule: dict) -> Result:
@@ -308,5 +348,6 @@ CHECKS = {
     "release_tags": (release_tags, "present"),
     "version_go_prs": (version_go_prs, "merged"),
     "changelog_labels": (changelog_labels, "none_missing"),
+    "holidays_page": (holidays_page, "next_year_listed"),
 }
 

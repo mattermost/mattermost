@@ -83,14 +83,15 @@
             "e2e_results",
             "release_tags",
             "version_go_prs",
-            "changelog_labels"
+            "changelog_labels",
+            "holidays_page"
           ]
         },
         "source": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {"enum": ["jira", "github", "hub"]}
+          "items": {"enum": ["jira", "github", "hub", "confluence"]}
         },
         "query": {"type": "object"},
         "pass_when": {
@@ -103,7 +104,8 @@
             "found",
             "present",
             "merged",
-            "none_missing"
+            "none_missing",
+            "next_year_listed"
           ]
         },
         "on_fail": {"enum": ["needs_attention", "log_only", "report"]}

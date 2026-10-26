@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import agent
-from .clients import GitHub, Jira, Mattermost, Playbooks, fetch_text
+from .clients import Confluence, GitHub, Jira, Mattermost, Playbooks, fetch_text
 
 
 def load_rules_module():
@@ -33,9 +33,11 @@ def require(name: str) -> str:
 def services_from_env() -> agent.Services:
     hub = Mattermost(require("MM_URL"), require("MM_TOKEN"))
     calendar_url = require("CALENDAR_ICS_URL")
+    atlassian = (os.environ.get("JIRA_URL") or "https://mattermost.atlassian.net", require("JIRA_EMAIL"), require("JIRA_TOKEN"))
     return agent.Services(
         github=GitHub(require("GH_TOKEN")),
-        jira=Jira(os.environ.get("JIRA_URL") or "https://mattermost.atlassian.net", require("JIRA_EMAIL"), require("JIRA_TOKEN")),
+        jira=Jira(*atlassian),
+        confluence=Confluence(*atlassian),
         hub=hub,
         playbooks=Playbooks(hub),
         fetch_calendar=lambda: fetch_text(calendar_url, "Release Dates calendar"),

@@ -22,7 +22,8 @@ name: Release Agent
 #
 # Secrets:
 #   RELEASE_AGENT_MM_TOKEN      — Hub bot token (posts, playbook runs, Testing Alerts channel)
-#   RELEASE_AGENT_JIRA_TOKEN    — read-only Jira API token
+#   RELEASE_AGENT_JIRA_TOKEN    — read-only Atlassian API token for Jira, and for Confluence
+#                                 to read the holidays page
 #   CHANGELOG_READ_PRIVATE_KEY  — the changelog workflow's read app, which can read
 #                                 mattermost/mattermost and mattermost/enterprise
 #   RELEASE_AGENT_CALENDAR_ICS_URL — optional; use instead of the variable when the feed
@@ -34,6 +35,8 @@ name: Release Agent
 #   RELEASE_AGENT_TEST_CHANNEL_ID          — where test mode posts
 #   RELEASE_AGENT_TESTING_ALERTS_CHANNEL_ID — Release: Testing Alerts
 #   RELEASE_AGENT_JIRA_EMAIL               — the Jira token's account
+#   RELEASE_AGENT_HOLIDAYS_PAGE_ID         — the Confluence holidays page, checked in October
+#                                            for next year's holidays
 #   RELEASE_AGENT_PLAYBOOK_ID              — optional; the Cloud & Self-Hosted playbook
 #   RELEASE_AGENT_RELEASE_CHANNEL_IDS      — optional JSON, {"v12.2": "<channel id>"}, to post
 #                                            somewhere other than "Release: v12.2"
@@ -114,6 +117,7 @@ jobs:
           TESTING_ALERTS_CHANNEL_ID: ${{ vars.RELEASE_AGENT_TESTING_ALERTS_CHANNEL_ID }}
           PLAYBOOK_ID: ${{ vars.RELEASE_AGENT_PLAYBOOK_ID }}
           RELEASE_CHANNEL_IDS: ${{ vars.RELEASE_AGENT_RELEASE_CHANNEL_IDS }}
+          HOLIDAYS_PAGE_ID: ${{ vars.RELEASE_AGENT_HOLIDAYS_PAGE_ID }}
           OUT_DIR: ${{ runner.temp }}/release-agent
         run: python3 -m release_agent run --out-dir "$OUT_DIR"
 

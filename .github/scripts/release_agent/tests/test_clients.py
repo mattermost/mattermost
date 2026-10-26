@@ -1,6 +1,6 @@
 import unittest
 
-from release_agent.clients import GitHub, Http, Jira, Mattermost, Playbooks
+from release_agent.clients import Confluence, GitHub, Http, Jira, Mattermost, Playbooks
 
 
 class RecordingHttp(Http):
@@ -11,6 +11,18 @@ class RecordingHttp(Http):
     def request(self, method, path, params=None, body=None):
         self.calls.append((method, path, params, body))
         return self.responses.pop(0)
+
+
+class ConfluenceTest(unittest.TestCase):
+    def test_page_text_and_url(self):
+        page = {"body": {"storage": {"value": "<h2>2027 Holidays</h2><table><tr><td>New Year&rsquo;s Day</td>"
+                                              "<td>Jan&nbsp;1</td></tr></table>"}},
+                "_links": {"base": "https://site.atlassian.net/wiki", "webui": "/spaces/HR/pages/42/Holidays"}}
+        http = RecordingHttp([({}, page)])
+        text, url = Confluence("https://site.atlassian.net", "a@b.c", "t", http).page("42")
+        self.assertEqual(text, "2027 Holidays New Year\u2019s Day Jan 1")
+        self.assertEqual(url, "https://site.atlassian.net/wiki/spaces/HR/pages/42/Holidays")
+        self.assertEqual(http.calls[0][1:3], ("/wiki/api/v2/pages/42", {"body-format": "storage"}))
 
 
 class GitHubTest(unittest.TestCase):

@@ -5,7 +5,9 @@ carry private details, and the Actions log of this public repo is public.
 """
 
 import base64
+import html
 import json
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -142,6 +144,23 @@ class Jira:
 
     def filter_url(self, jql: str) -> str:
         return f"{self.base_url}/issues/?" + urllib.parse.urlencode({"jql": jql})
+
+
+class Confluence:
+    """Confluence on the same Atlassian site as Jira, with the same account and API token."""
+
+    def __init__(self, base_url: str, email: str, token: str, http: Http | None = None):
+        self.base_url = base_url.rstrip("/")
+        auth = base64.b64encode(f"{email}:{token}".encode()).decode()
+        self.http = http or Http("Confluence", self.base_url, {"Authorization": f"Basic {auth}"})
+
+    def page(self, page_id: str) -> tuple[str, str]:
+        """(page text without markup, page URL)."""
+        page = self.http.get(f"/wiki/api/v2/pages/{urllib.parse.quote(page_id)}", **{"body-format": "storage"}) or {}
+        storage = ((page.get("body") or {}).get("storage") or {}).get("value") or ""
+        links = page.get("_links") or {}
+        url = (links.get("base") or f"{self.base_url}/wiki") + (links.get("webui") or "")
+        return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", storage)).split()), url
 
 
 class Mattermost:

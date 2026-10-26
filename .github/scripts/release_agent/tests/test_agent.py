@@ -5,7 +5,7 @@ from datetime import date
 from release_agent import agent, rules
 from release_agent.__main__ import log_line, step_summary
 from release_agent.clients import ServiceError
-from release_agent.tests.fakes import FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
+from release_agent.tests.fakes import FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
 
 MM, ENT = "mattermost/mattermost", "mattermost/enterprise"
 TODAY = date(2026, 11, 4)
@@ -20,7 +20,7 @@ def template_items():
     return [(title, "", 0) for title in sorted(rules.template_items(rules.load_yaml(rules.TEMPLATE_PATH)))]
 
 
-def services(jira=None):
+def services(jira=None, confluence=None):
     github = FakeGitHub()
     github.searches[r"repo:mattermost/enterprise is:pr is:open milestone:\"v12\.2\.0\""] = [
         {"number": 9, "title": SECRET, "state": "open", "html_url": "https://github.com/mattermost/enterprise/pull/9",
@@ -38,15 +38,17 @@ def services(jira=None):
     hub.runs = [checklist_run("run122", "Release: v12.2", "c122", template_items()),
                 checklist_run("run123", "Release: v12.3", "c123", template_items())]
     return agent.Services(github=github, jira=jira or FakeJira(), hub=hub, playbooks=hub,
-                          fetch_calendar=lambda: fixture("release-dates.ics"), ls_remote=lambda: LS_REMOTE)
+                          fetch_calendar=lambda: fixture("release-dates.ics"), ls_remote=lambda: LS_REMOTE,
+                          confluence=confluence or FakeConfluence())
 
 
 def settings(mode="live", release=""):
-    return agent.Settings(mode=mode, release_override=release, testing_alerts_channel="alerts", test_channel="test-chan")
+    return agent.Settings(mode=mode, release_override=release, testing_alerts_channel="alerts", test_channel="test-chan",
+                          holidays_page_id="page9")
 
 
-def run(svc, mode="live", release=""):
-    return agent.run(rules.load_rules(), settings(mode, release), svc, TODAY)
+def run(svc, mode="live", release="", today=TODAY):
+    return agent.run(rules.load_rules(), settings(mode, release), svc, today)
 
 
 def by_task(release_body):
@@ -75,8 +77,9 @@ class LiveRunTest(unittest.TestCase):
             "e2e-results": "needs_attention",
             "rc-tags": "ok",
             "final-tags": "not_due",
-            "version-go-prs": "not_due",
+            "version-go-prs": "skipped",
             "changelog-labels": "ok",
+            "holidays-page": "skipped",
         })
         self.assertEqual(by_task(self.releases["v12.3"])["e2e-results"]["state"], "skipped")
 
@@ -114,7 +117,7 @@ class LiveRunTest(unittest.TestCase):
 
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)
-        self.assertEqual(self.body["totals"]["checks_run"], 20)
+        self.assertEqual(self.body["totals"]["checks_run"], 22)
         self.assertEqual(self.body["totals"]["ticked"], 3)
         self.assertEqual(self.body["totals"]["alarms_raised"], 2)
         self.assertEqual(self.body["totals"]["false_alarms"], 0)
@@ -133,6 +136,34 @@ class LiveRunTest(unittest.TestCase):
 
         again, _ = run(self.svc)
         self.assertEqual(again["releases"][0]["post"], "unchanged")
+
+
+    def test_out_of_season_tasks_are_left_out_of_the_post(self):
+        post = next(p for p in self.svc.hub.created if p["channel_id"] == "c122" and not p["root_id"])
+        self.assertNotIn("holidays", post["message"])
+
+
+class HolidaysPageTest(unittest.TestCase):
+    OCTOBER = date(2026, 10, 26)
+
+    def run_in_october(self, text):
+        svc = services(confluence=FakeConfluence(text))
+        body, _ = run(svc, today=self.OCTOBER)
+        post = next(p for p in svc.hub.created if p["channel_id"] == "c122" and not p["root_id"])
+        return by_task(body["releases"][0])["holidays-page"], body, post["message"]
+
+    def test_missing_next_year_needs_attention_on_hub_only(self):
+        check, body, post = self.run_in_october("Company holidays 2026: Jan 1, Dec 25")
+        self.assertEqual((check["state"], check["summary"], check["items"]),
+                         ("needs_attention", "The holidays page doesn't list 2027 yet", []))
+        self.assertNotIn("wiki.example", json.dumps(body) + step_summary(body))
+        self.assertIn("**Next year's holidays on Confluence** — The holidays page doesn't list 2027 yet", post)
+        self.assertIn("https://wiki.example/pages/page9", post)
+
+    def test_listed_next_year_is_all_good(self):
+        check, _, post = self.run_in_october("Company holidays 2027: Jan 1")
+        self.assertEqual(check["state"], "ok")
+        self.assertIn(":white_check_mark: **Next year's holidays on Confluence** — The holidays page lists 2027", post)
 
 
 class ReleaseChannelTest(unittest.TestCase):

@@ -31,6 +31,7 @@ class Settings:
     test_channel: str = ""
     playbook_id: str = ""
     release_channels: dict = field(default_factory=dict)
+    holidays_page_id: str = ""
 
 
 @dataclass
@@ -41,6 +42,7 @@ class Services:
     playbooks: object
     fetch_calendar: object  # () -> ICS text
     ls_remote: object  # () -> `git ls-remote` output
+    confluence: object = None
 
 
 def resolve_mode(requested: str, variable: str) -> str:
@@ -83,7 +85,7 @@ def template_vars(release, naming: dict, rc_numbers: list) -> dict:
         base["release_month"] = MONTHS[release.release_day.month - 1]
         base["release_year"] = release.release_day.year
     cut = release.milestones.get("branch_cut") or release.window(0)[0]
-    values = {**base, "branch_cut": cut.isoformat()}
+    values = {**base, **{key: day.isoformat() for key, day in release.milestones.items()}, "branch_cut": cut.isoformat()}
     values["release_channels"] = [name.format_map(base) for name in naming["release_channels"]]
     for key in ("milestone", "fix_version"):
         try:
@@ -118,16 +120,19 @@ def evaluate(ctx: checks.Context, rule: dict, due: date | None, today: date) -> 
 
 
 def check_release(release, rules: dict, settings: Settings, services: Services, today: date,
-                  holidays: frozenset, branches: set, tags: set, ls_remote: str) -> posting.ReleaseReport:
+                  holidays: frozenset, branches: set, tags: set, ls_remote: str,
+                  primary: bool = True) -> posting.ReleaseReport:
     t_day = workdays.t_day(today, release.release_day, holidays) if release.release_day else None
     report = posting.ReleaseReport(release, t_day, settings.mode)
     report.flags += release_calendar.cross_check(release, branches, tags, today)
 
     rc_numbers = release_calendar.rc_numbers(ls_remote, release.major, release.minor)
     ctx = checks.Context(
-        release=release, today=today, vars=template_vars(release, rules["naming"], rc_numbers),
+        release=release, today=today,
+        vars={**template_vars(release, rules["naming"], rc_numbers), "holidays_page_id": settings.holidays_page_id},
         has_branch=release.key in branches, rc_numbers=rc_numbers, github=services.github,
         jira=services.jira, hub=services.hub, testing_alerts_channel=settings.testing_alerts_channel,
+        confluence=services.confluence, primary=primary,
     )
     for rule in rules["rules"]:
         due = release_calendar.resolve_due(rule["due"], release, holidays)
@@ -247,8 +252,9 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
 
     body = {"mode": settings.mode, "date": today.isoformat(), "releases": [], "flags": flags}
     details = []
-    for release in selected:
-        report = check_release(release, rules, settings, services, today, holidays, branches, tags, ls_remote)
+    for index, release in enumerate(selected):
+        report = check_release(release, rules, settings, services, today, holidays, branches, tags, ls_remote,
+                               primary=index == 0)
         try:
             post = post_report(report, rules, settings, services, today)
         except Exception as err:  # noqa: BLE001 - still record the run
@@ -303,4 +309,5 @@ def env_settings(env=os.environ) -> Settings:
         test_channel=env.get("TEST_CHANNEL_ID", ""),
         playbook_id=env.get("PLAYBOOK_ID", ""),
         release_channels=json.loads(channels) if channels else {},
+        holidays_page_id=env.get("HOLIDAYS_PAGE_ID", "").strip(),
     )

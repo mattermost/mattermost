@@ -38,7 +38,7 @@ class RulesFileTest(unittest.TestCase):
             "cherry-picks": ("final_build", "(T-16) Feature Complete"),
             "e2e-results": ("feature_complete+2", "(T-15) RC-1 Cut & QA Qualification Starts"),
             "final-tags": ("final_build", "(T-5) Final Release Cut"),
-            "version-go-prs": ("final_build", "(T-5) Final Release Cut"),
+            "version-go-prs": ("final_build+1", "(T-5) Final Release Cut"),
         })
 
     def test_every_check_has_a_rule(self):

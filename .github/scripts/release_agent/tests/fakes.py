@@ -1,4 +1,4 @@
-"""In-memory stand-ins for the GitHub, Jira, Hub and Playbooks clients."""
+"""In-memory stand-ins for the GitHub, Jira, Confluence, Hub and Playbooks clients."""
 
 import copy
 import re
@@ -66,6 +66,16 @@ class FakeJira:
 
     def filter_url(self, jql):
         return f"{self.base_url}/issues/?jql=..."
+
+
+class FakeConfluence:
+    def __init__(self, text=""):
+        self.text = text
+        self.requested = []
+
+    def page(self, page_id):
+        self.requested.append(page_id)
+        return self.text, f"https://wiki.example/pages/{page_id}"
 
 
 class FakeHub:
