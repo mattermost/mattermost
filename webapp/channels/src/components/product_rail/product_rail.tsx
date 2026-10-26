@@ -321,8 +321,8 @@ export default function ProductRail() {
             aria-label={formatMessage(messages.ariaLabel)}
         >
             {teamSidebarHidden && <ProductRailTeamMenu/>}
-            {channelsItem}
             {threadsItem}
+            {channelsItem}
             {boardsItem}
             {docsItem}
             {productItems}

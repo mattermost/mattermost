@@ -333,6 +333,9 @@ body.app__body #root:has(.ProductRail) #channel_view:has(.GlobalThreads) {
 // Beside the thread list, the thread pane is rounded like the center channel beside the channel
 // sidebar, with the sidebar's colour showing behind its corners.
 body.app__body #root:has(.ProductRail) .GlobalThreads {
+    // A fixed-width thread list, like a sidebar, at every desktop width.
+    --list: 368px;
+
     background: var(--sidebar-bg);
 
     .ThreadPane,
@@ -340,6 +343,16 @@ body.app__body #root:has(.ProductRail) .GlobalThreads {
         overflow: hidden;
         border-radius: var(--radius-l) 0 0 var(--radius-l);
         background: var(--center-channel-bg);
+    }
+
+    // The open thread is marked in the sidebar's colours, so it shows on the list's background.
+    .ThreadItem.is-selected {
+        background: rgba(var(--sidebar-text-rgb), 0.1);
+
+        &:hover,
+        &:focus {
+            background: rgba(var(--sidebar-text-rgb), 0.12);
+        }
     }
 
     // The thread list's tabs take the sidebar's colours, so the active one reads on its background.

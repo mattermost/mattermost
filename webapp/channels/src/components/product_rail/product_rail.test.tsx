@@ -228,13 +228,13 @@ describe('ProductRail', () => {
     });
 
     describe('order and boards in Channels', () => {
-        test('should list Channels, Threads, Boards and Docs with no dividers', () => {
+        test('should list Threads, Channels, Boards and Docs with no dividers', () => {
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
 
             const items = [...document.querySelectorAll('.ProductRail > *')].map((item) => item.id);
             expect(items).toEqual([
-                'product-rail-item-channels',
                 'product-rail-item-threads',
+                'product-rail-item-channels',
                 'product-rail-item-boards',
                 'product-rail-item-docs',
             ]);
