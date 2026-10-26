@@ -117,10 +117,10 @@ export class ChannelFilter extends React.PureComponent<Props> {
         this.props.actions.setBoardsShownInChannels?.(!this.props.boardsShownInChannels);
     };
 
-    // While the product rail splits boards from channels, the button opens a menu: the unread
-    // filter, and in Channels, whether to list boards there too.
+    // In the product rail's Channels view, the button opens a menu: the unread filter, and whether to
+    // list boards there too. Elsewhere it's the one-click unread toggle.
     renderMenu() {
-        const {intl, unreadFilterEnabled, productRailSection, boardsShownInChannels} = this.props;
+        const {intl, unreadFilterEnabled, boardsShownInChannels} = this.props;
         const label = intl.formatMessage(messages.menuButton);
 
         return (
@@ -147,16 +147,14 @@ export class ChannelFilter extends React.PureComponent<Props> {
                         labels={<span>{intl.formatMessage(messages.unreadsOnly)}</span>}
                         onClick={this.toggleUnreadFilter}
                     />
-                    {productRailSection === 'channels' && (
-                        <Menu.Item
-                            id='sidebarChannelFilterMenu-showBoards'
-                            role='menuitemcheckbox'
-                            aria-checked={Boolean(boardsShownInChannels)}
-                            leadingElement={checkbox(Boolean(boardsShownInChannels))}
-                            labels={<span>{intl.formatMessage(messages.showBoards)}</span>}
-                            onClick={this.toggleBoardsShown}
-                        />
-                    )}
+                    <Menu.Item
+                        id='sidebarChannelFilterMenu-showBoards'
+                        role='menuitemcheckbox'
+                        aria-checked={Boolean(boardsShownInChannels)}
+                        leadingElement={checkbox(Boolean(boardsShownInChannels))}
+                        labels={<span>{intl.formatMessage(messages.showBoards)}</span>}
+                        onClick={this.toggleBoardsShown}
+                    />
                 </Menu.Container>
             </div>
         );
@@ -165,7 +163,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
     render() {
         const {intl, unreadFilterEnabled} = this.props;
 
-        if (this.props.productRailSection) {
+        if (this.props.productRailSection === 'channels') {
             return this.renderMenu();
         }
 

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link, matchPath, useLocation} from 'react-router-dom';
@@ -191,13 +191,21 @@ export default function ProductRail() {
 
     // Remember where the user is under the current item, however they got there (the rail, the
     // sidebar, a link, the channel switcher). A channel or board also moves the sidebar to its
-    // section.
+    // section. Turning Show boards on or off only changes what Channels lists: it doesn't move the
+    // user, even when the open channel is a board.
+    const lastBoardsShownInChannels = useRef(boardsShownInChannels);
     useEffect(() => {
+        const boardsShownChanged = lastBoardsShownInChannels.current !== boardsShownInChannels;
+        lastBoardsShownInChannels.current = boardsShownInChannels;
+        if (boardsShownChanged) {
+            return;
+        }
+
         if (enabled && viewedTab && currentTeamId) {
             const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels;
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
         }
-    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels]);
+    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels]);
 
     // Saved only once the earlier paths are restored, so they're never overwritten unseen.
     useEffect(() => {

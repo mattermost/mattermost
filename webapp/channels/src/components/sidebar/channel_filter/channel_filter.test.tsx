@@ -93,13 +93,14 @@ describe('components/sidebar/channel_filter', () => {
             expect(railProps.actions.setBoardsShownInChannels).toHaveBeenCalledWith(true);
         });
 
-        test('should not offer showing boards in Boards', async () => {
-            renderWithContext(<ChannelFilterIntl {...{...railProps, productRailSection: 'boards' as const}}/>);
+        test('should be the one-click unread toggle in Boards', () => {
+            const props = {...railProps, productRailSection: 'boards' as const};
+            renderWithContext(<ChannelFilterIntl {...props}/>);
 
-            await userEvent.click(screen.getByRole('button', {name: 'Filter channels'}));
+            expect(screen.queryByRole('button', {name: 'Filter channels'})).not.toBeInTheDocument();
+            fireEvent.click(screen.getByTestId('sidebar-unread-filter-button'));
 
-            expect(screen.getByRole('menuitemcheckbox', {name: 'Unreads only'})).toBeInTheDocument();
-            expect(screen.queryByRole('menuitemcheckbox', {name: 'Show boards'})).not.toBeInTheDocument();
+            expect(props.actions.setUnreadFilterEnabled).toHaveBeenCalledWith(true);
         });
     });
 });

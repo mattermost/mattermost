@@ -7,9 +7,11 @@ import React from 'react';
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {PreferenceTypes} from 'mattermost-redux/action_types';
+
 import type {ChannelKindRegistration} from 'selectors/views/product_rail';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -258,6 +260,25 @@ describe('ProductRail', () => {
 
             expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
             expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('5');
+            expect(screen.getByRole('link', {name: /Boards/})).not.toHaveAttribute('aria-current');
+        });
+
+        test('should stay in Channels on a board when Show boards is turned off', () => {
+            const state = getBoardsState(roadmap.id);
+            const showBoards = (value: string) => ({
+                'sidebar_settings--show_boards_in_channels': {category: 'sidebar_settings', name: 'show_boards_in_channels', user_id: user.id, value},
+            });
+            const {store} = renderAt('/team-one/channels/roadmap', {
+                ...state,
+                entities: {...state.entities, preferences: {myPreferences: showBoards('true')}},
+            });
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
+
+            act(() => {
+                store.dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: Object.values(showBoards('false'))});
+            });
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
             expect(screen.getByRole('link', {name: /Boards/})).not.toHaveAttribute('aria-current');
         });
     });
