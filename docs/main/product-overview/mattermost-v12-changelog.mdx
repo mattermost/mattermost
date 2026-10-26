@@ -87,9 +87,6 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Made the ``/secure-connection remove`` response fully translatable.
   - Updated how responses from connected remote clusters are read. See [connected workspaces](https://docs.mattermost.com/administration-guide/onboard/connected-workspaces). A reply that cannot be read in full, or is longer than the maximum response size, now counts as a remote cluster message error.
 
-#### Performance
-  - Added the ``EnforceLogPathRoot`` feature flag to reject log and audit file paths that resolve outside the logging root, preventing unintended filesystem access.
-
 ### Bug Fixes
   - Fixed an issue where multi-byte (CJK) characters were dropped, doubled, or split when typing quickly in the AI Agent rewrite prompt.
   - Fixed an issue where the quick switcher ("Find Channels") ranked Group Messages containing a person above the Direct Message with that person when typing their username (reported on web/desktop).
@@ -131,8 +128,8 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
  - v12.1 is built with Go ``v1.26.10``.
 
 ### Open Source Components
-  - Added ``@mattermost/compass-ui``, ``fflate``, ``go.uber.org/mock``, ``goccy/go-yaml``, ``golang-jwt/jwt``, ``golang-migrate/migrate``, ``golang/freetype``, ``react``, and ``react-dom``.
-  - Removed ``@tippyjs/react``, ``goccy/go-yaml``, ``golang-jwt/jwt``, ``golang-migrate/migrate``, ``golang/freetype``, and ``golang/mock``.
+  - Added ``@mattermost/compass-ui``, ``fflate``, ``go.uber.org/mock``, ``react``, and ``react-dom``.
+  - Removed ``@tippyjs/react`` and ``golang/mock``.
 
 ## Release v12.0 - [Major Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-0-major-release}
 
