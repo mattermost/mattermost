@@ -91,17 +91,16 @@ func (a *App) saveSamlSettings(update func(*model.SamlSettings)) *model.AppError
 	return err
 }
 
-func (a *App) saveSamlCertificateConfig(rctx request.CTX, setFile func(*model.SamlSettings)) *model.AppError {
-	if err := a.saveSamlSettings(setFile); err != nil {
-		return err
-	}
+// The certificate is already written, so reload even if saving the config fails.
+func (a *App) saveSamlCertificateConfig(rctx request.CTX, filename string, field func(*model.SamlSettings) *string) *model.AppError {
+	appErr := a.saveSamlSettings(func(s *model.SamlSettings) { *field(s) = filename })
 
 	a.reloadSaml(rctx)
 
-	return nil
+	return appErr
 }
 
-func (a *App) addSamlCertificate(rctx request.CTX, filename string, fileData *multipart.FileHeader, setFile func(*model.SamlSettings)) *model.AppError {
+func (a *App) addSamlCertificate(rctx request.CTX, filename string, fileData *multipart.FileHeader, field func(*model.SamlSettings) *string) *model.AppError {
 	data, appErr := readSamlFile(fileData)
 	if appErr != nil {
 		return appErr
@@ -111,15 +110,15 @@ func (a *App) addSamlCertificate(rctx request.CTX, filename string, fileData *mu
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return a.saveSamlCertificateConfig(rctx, setFile)
+	return a.saveSamlCertificateConfig(rctx, filename, field)
 }
 
 func (a *App) AddSamlPublicCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
-	return a.addSamlCertificate(rctx, SamlPublicCertificateName, fileData, func(s *model.SamlSettings) { *s.PublicCertificateFile = SamlPublicCertificateName })
+	return a.addSamlCertificate(rctx, SamlPublicCertificateName, fileData, func(s *model.SamlSettings) *string { return s.PublicCertificateFile })
 }
 
 func (a *App) AddSamlPrivateCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
-	return a.addSamlCertificate(rctx, SamlPrivateKeyName, fileData, func(s *model.SamlSettings) { *s.PrivateKeyFile = SamlPrivateKeyName })
+	return a.addSamlCertificate(rctx, SamlPrivateKeyName, fileData, func(s *model.SamlSettings) *string { return s.PrivateKeyFile })
 }
 
 func (a *App) AddSamlIdpCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
@@ -149,7 +148,7 @@ func (a *App) setSamlIdpCertificate(rctx request.CTX, pemData []byte) *model.App
 		return model.NewAppError("setSamlIdpCertificate", "api.admin.saml.failure_save_idp_certificate_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return a.saveSamlCertificateConfig(rctx, func(s *model.SamlSettings) { *s.IdpCertificateFile = SamlIdpCertificateName })
+	return a.saveSamlCertificateConfig(rctx, SamlIdpCertificateName, func(s *model.SamlSettings) *string { return s.IdpCertificateFile })
 }
 
 func (a *App) removeSamlFile(filename string) *model.AppError {
