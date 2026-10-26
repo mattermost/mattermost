@@ -71,8 +71,7 @@ func (f swapOnEncode) MarshalJSON() ([]byte, error) {
 	return []byte(`{}`), nil
 }
 
-// TestPublishWhileClusterIsUnset covers a test replacing the cluster while a Publish is
-// in flight, such as the config-change Publish left running by an earlier UpdateConfig.
+// Publish must not crash if the cluster is unset after its nil check.
 func TestPublishWhileClusterIsUnset(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -92,5 +91,5 @@ func TestPublishWhileClusterIsUnset(t *testing.T) {
 
 	require.NotPanics(t, func() { th.Service.Publish(event) })
 	require.Nil(t, th.Service.Cluster())
-	require.Len(t, cluster.GetMessages(), 1, "the publish must go to the cluster it found, even though that cluster has since been unset")
+	require.Len(t, cluster.GetMessages(), 1, "the swap must land between Publish's nil check and its send")
 }
