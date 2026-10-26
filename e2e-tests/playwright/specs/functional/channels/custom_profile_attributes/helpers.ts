@@ -181,7 +181,8 @@ export async function editTextAttribute(
  * @param {Page} page - The Playwright page object
  * @param {Object} fieldsMap - Map of field IDs to field objects
  * @param {string} attributeName - The name of the attribute to edit
- * @param {number} optionIndex - The index of the option to select
+ * @param {number} optionIndex - The index of the option to select, counted over all
+ *   options in definition order (the Combobox keeps the selected row in the list)
  */
 export async function editSelectAttribute(
     page: Page,
@@ -194,17 +195,18 @@ export async function editSelectAttribute(
     await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).click();
 
-    // Open the dropdown — the control div carries the field-scoped id
-    const selectControl = page.locator(`#customProfileAttribute_${fieldId}`);
-    await selectControl.scrollIntoViewIfNeeded();
-    await selectControl.click();
+    // The Combobox input carries the field-scoped id and opens its menu on focus,
+    // which the section does on open. Clicking it opens the menu if it is closed
+    // and leaves an open menu open.
+    const input = page.locator(`#customProfileAttribute_${fieldId}`);
+    await input.scrollIntoViewIfNeeded();
+    await input.click();
 
-    // Pick the option by index inside this specific dropdown's open menu.
-    // Scoping to the react-select container avoids fragile global react-select-N-option-M IDs.
-    const selectContainer = page.locator(`#customProfileAttribute_${fieldId}`).locator('..');
-    const option = selectContainer.locator('.react-select__option').nth(optionIndex);
-    await option.waitFor({state: 'visible'});
-    await option.click();
+    // The menu is portaled out of the modal; its listbox id is derived from the input id.
+    // A closed menu stays mounted at opacity 0, so wait on aria-expanded rather than visibility.
+    await expect(input).toHaveAttribute('aria-expanded', 'true');
+    const listbox = page.locator(`#customProfileAttribute_${fieldId}-listbox`);
+    await listbox.getByRole('option').nth(optionIndex).click();
 
     await page.locator('button:has-text("Save")').click();
     // Wait for the Edit button to reappear — same reasoning as editTextAttribute.
@@ -216,7 +218,9 @@ export async function editSelectAttribute(
  * @param {Page} page - The Playwright page object
  * @param {Object} fieldsMap - Map of field IDs to field objects
  * @param {string} attributeName - The name of the attribute to edit
- * @param {Array<number>} optionIndices - The indices of the options to select
+ * @param {Array<number>} optionIndices - The indices of the options to select, counted over
+ *   all options in definition order. Selected rows stay in the list and clicking one
+ *   deselects it, so each index must point at a row that isn't already selected.
  */
 export async function editMultiselectAttribute(
     page: Page,
@@ -229,19 +233,18 @@ export async function editMultiselectAttribute(
     await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).click();
 
-    // The react-select container wraps the control; scope option lookups to it
-    // to avoid relying on fragile global react-select-N-option-M IDs.
-    const selectContainer = page.locator(`#customProfileAttribute_${fieldId}`).locator('..');
+    const input = page.locator(`#customProfileAttribute_${fieldId}`);
+    const listbox = page.locator(`#customProfileAttribute_${fieldId}-listbox`);
 
     for (const index of optionIndices) {
-        // Open the dropdown for each selection (it closes after each pick)
-        const selectControl = page.locator(`#customProfileAttribute_${fieldId}`);
-        await selectControl.scrollIntoViewIfNeeded();
-        await selectControl.click();
+        // The menu closes after each pick; clicking the input reopens it
+        // (and is a no-op when it is already open, as on section open).
+        await input.scrollIntoViewIfNeeded();
+        await input.click();
+        await expect(input).toHaveAttribute('aria-expanded', 'true');
 
-        // Wait for menu to appear and click the nth option
-        const option = selectContainer.locator('.react-select__option').nth(index);
-        await option.waitFor({state: 'visible'});
+        const option = listbox.getByRole('option').nth(index);
+        await expect(option).not.toHaveAttribute('aria-selected', 'true');
         await option.click();
     }
 

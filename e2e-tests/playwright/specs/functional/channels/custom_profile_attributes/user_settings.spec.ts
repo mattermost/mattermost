@@ -187,6 +187,142 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
 });
 
 /**
+ * @objective Verify that keyboard use of a select custom profile attribute stays inside its dropdown:
+ * Escape with the menu open closes the menu but not the profile modal, and Enter on an option picks it
+ * without saving the section, which only saves when Save is clicked.
+ *
+ * @precondition
+ * A test server with a valid license to support Custom Profile Attributes, with a LocationUS select
+ * attribute (options Remote, Office, Hybrid) that the test user has not set.
+ */
+test(
+    'select attribute keyboard picks without saving and Escape keeps the profile modal open',
+    {tag: '@custom_profile_attributes'},
+    async ({pw}) => {
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+
+        // # Open the profile settings modal
+        const profileModal = await channelsPage.openProfileModal();
+        await profileModal.toBeVisible();
+        await verifyAttributesExistInSettings(page, customAttributes);
+
+        // # Edit the LocationUS attribute
+        const fieldId = getFieldIdByName(attributeFieldsMap, 'LocationUS');
+        const editButton = profileModal.container.locator(`#customAttribute_${fieldId}Edit`);
+        await editButton.scrollIntoViewIfNeeded();
+        await editButton.click();
+
+        // * The Combobox input is focused and its menu opened on its own
+        const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        await expect(input).toBeFocused();
+        await expect(input).toHaveAttribute('aria-expanded', 'true');
+        const valueBefore = await input.inputValue();
+
+        // # Press Escape with the menu open
+        await page.keyboard.press('Escape');
+
+        // * The menu closes, while the modal and the section stay open. The modal is still
+        // visible while it fades out, so check that it keeps react-bootstrap's `in` class,
+        // which is dropped as soon as the modal starts closing.
+        const modalRoot = page.locator('#accountSettingsModal');
+        await expect(input).toHaveAttribute('aria-expanded', 'false');
+        await expect(input).toBeFocused();
+        await expect(modalRoot).toHaveClass(/\bin\b/);
+        await expect(profileModal.saveButton).toBeVisible();
+
+        // # Reopen the menu with ArrowDown, move to the next option and pick it with Enter
+        await page.keyboard.press('ArrowDown');
+        await expect(input).toHaveAttribute('aria-expanded', 'true');
+
+        // * The modal is still open after the Escape
+        await expect(modalRoot).toHaveClass(/\bin\b/);
+        await profileModal.toBeVisible();
+
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Enter');
+
+        // * The option is picked but the section has not saved
+        await expect(input).not.toHaveValue(valueBefore);
+        await expect(input).toHaveAttribute('aria-expanded', 'false');
+        await expect(editButton).not.toBeVisible();
+        await expect(profileModal.saveButton).toBeVisible();
+        const pickedValue = await input.inputValue();
+        expect(TEST_LOCATION_OPTIONS.map((option) => option.name)).toContain(pickedValue);
+
+        // # Save the section
+        await profileModal.saveButton.click();
+
+        // * The section closes and shows the picked value
+        await expect(editButton).toBeVisible();
+        await expect(profileModal.getAttributeValue('LocationUS', pickedValue)).toBeVisible();
+    },
+);
+
+/**
+ * @objective Verify that clicking the open dropdown menu outside its options keeps focus on the select
+ * custom profile attribute, so the next Escape closes only the menu and not the profile modal.
+ *
+ * @precondition
+ * A test server with a valid license to support Custom Profile Attributes, with a LocationUS select
+ * attribute (options Remote, Office, Hybrid).
+ */
+test(
+    'clicking the select attribute menu outside an option keeps focus and Escape keeps the profile modal open',
+    {tag: '@custom_profile_attributes'},
+    async ({pw}) => {
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+
+        // # Open the profile settings modal and edit the LocationUS attribute
+        const profileModal = await channelsPage.openProfileModal();
+        await profileModal.toBeVisible();
+        const fieldId = getFieldIdByName(attributeFieldsMap, 'LocationUS');
+        const editButton = profileModal.container.locator(`#customAttribute_${fieldId}Edit`);
+        await editButton.scrollIntoViewIfNeeded();
+        await editButton.click();
+
+        const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        await expect(input).toBeFocused();
+        await expect(input).toHaveAttribute('aria-expanded', 'true');
+
+        // # Click the menu padding just above its first option
+        const listboxId = `customProfileAttribute_${fieldId}-listbox`;
+        const firstOption = page.locator(`#${listboxId}`).getByRole('option').first();
+        const optionBox = await firstOption.boundingBox();
+        expect(optionBox).not.toBeNull();
+        const point = {x: optionBox!.x + optionBox!.width / 2, y: optionBox!.y - 3};
+        const hitsMenuPadding = await page.evaluate(
+            ({x, y, id}) => {
+                const el = document.elementFromPoint(x, y);
+                const popup = document.getElementById(id)?.closest('[class*="combobox__popup"]');
+                return Boolean(el && popup?.contains(el) && !el.closest('[role="option"]'));
+            },
+            {...point, id: listboxId},
+        );
+        expect(
+            hitsMenuPadding,
+            'the click point must land on the menu padding, not an option or outside the menu',
+        ).toBe(true);
+        await page.mouse.click(point.x, point.y);
+
+        // * The menu stays open and the input keeps focus
+        await expect(input).toHaveAttribute('aria-expanded', 'true');
+        await expect(input).toBeFocused();
+
+        // # Press Escape
+        await page.keyboard.press('Escape');
+
+        // * The menu closes, while the modal and the section stay open
+        const modalRoot = page.locator('#accountSettingsModal');
+        await expect(input).toHaveAttribute('aria-expanded', 'false');
+        await expect(input).toBeFocused();
+        await expect(modalRoot).toHaveClass(/\bin\b/);
+        await expect(profileModal.saveButton).toBeVisible();
+    },
+);
+
+/**
  * Verify that users can clear custom profile attribute values and that cleared
  * attributes with "when_set" visibility aren't displayed in the profile popover.
  *
