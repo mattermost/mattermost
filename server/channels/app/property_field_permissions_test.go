@@ -1191,6 +1191,52 @@ func TestAccessControlHookWarnsOnNoCaller(t *testing.T) {
 		assert.Len(t, warnings(t)["PreCreatePropertyField"], before)
 	})
 
+	t.Run("a refused linked field create warns once", func(t *testing.T) {
+		// A template whose value reads are restricted gates every link to it.
+		template, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "no_caller_template_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				Value:  model.ReadWrite{Read: model.PermissionLevelSysadmin},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			}},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		observedRefusal := fmt.Sprintf("PreCreatePropertyField group_id=%s field_ids=[]", groupID)
+		countObserved := func() int {
+			th.untaggedPropertyCallsMut.Lock()
+			defer th.untaggedPropertyCallsMut.Unlock()
+			n := 0
+			for _, call := range th.untaggedPropertyCalls {
+				if call == observedRefusal {
+					n++
+				}
+			}
+			return n
+		}
+		warnedBefore := len(warnings(t)["PreCreatePropertyField"])
+		observedBefore := countObserved()
+
+		_, appErr = th.App.CreatePropertyField(untagged, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "no_caller_linked_" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		}, false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		assert.Equal(t, [][]any{{}}, warnings(t)["PreCreatePropertyField"][warnedBefore:])
+		assert.Equal(t, observedBefore+1, countObserved())
+	})
+
 	t.Run("an emptied read of several values warns once", func(t *testing.T) {
 		values, appErr := th.App.SearchPropertyValues(untagged, groupID, model.PropertyValueSearchOpts{FieldID: field.ID, PerPage: 10})
 		require.Nil(t, appErr)

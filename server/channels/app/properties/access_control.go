@@ -200,6 +200,12 @@ func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.C
 	if templateReadsAreRestricted(source) || source.Permissions.Restrictions.TierFor(model.PropertyActionFieldWrite) == model.PermissionLevelNone {
 		scope := h.extractActingAsScope(rctx)
 		if !h.permissionsAllows(rctx, source, callerID, scope, model.PropertyActionFieldWrite, "") {
+			// The refusal is an AppError rather than ErrAccessDenied, which
+			// PreCreatePropertyField's deferred report does not match, so a
+			// caller that names nobody is reported here.
+			if callerID == "" {
+				h.reportNoCaller(rctx, noCallerWriteRefused, "PreCreatePropertyField", field.GroupID, []string{field.ID})
+			}
 			return model.NewAppError(
 				"CreatePropertyField",
 				"app.property_field.create.linked_source_protected.app_error",
