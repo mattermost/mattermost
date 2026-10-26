@@ -6,6 +6,7 @@ export enum NoResultsVariant {
     Files = 'Files',
     ChannelSearch = 'ChannelSearch',
     Mentions = 'Mentions',
+    MentionsFiltered = 'MentionsFiltered',
     FlaggedPosts = 'FlaggedPosts',
     PinnedPosts = 'PinnedPosts',
     ChannelFiles = 'ChannelFiles',

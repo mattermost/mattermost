@@ -108,6 +108,9 @@ func (rcs *Service) confirmInviteSendError(remoteId string, url string, resp []b
 	if errors.Is(err, errInvalidRemoteURL) {
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.invalid_url.app_error", map[string]any{"URL": markdownSafeURL(url)}, "", http.StatusBadRequest).Wrap(err)
 	}
+	if errors.Is(err, errRemoteResponseTooLarge) {
+		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.invalid_response.app_error", nil, "", http.StatusBadGateway).Wrap(err)
+	}
 	if resp == nil {
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

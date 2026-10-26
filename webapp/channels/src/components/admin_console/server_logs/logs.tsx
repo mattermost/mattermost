@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {LogLevelEnum} from '@mattermost/types/admin';
@@ -21,11 +21,13 @@ import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
 import useLogPolling from './use_log_polling';
+import {presetStartMs} from './utils';
 
 import './logs.scss';
 
 type Props = {
     logs: LogObjectWithAdditionalInfo[];
+    logNodes: string[];
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
@@ -76,7 +78,7 @@ function formatFilterDate(date: Date): string {
 
 // No end date, so the server ends the range at its own clock rather than the browser's
 function presetStart(minutes: number): string {
-    return formatFilterDate(new Date(Date.now() - (minutes * 60 * 1000)));
+    return formatFilterDate(new Date(presetStartMs(minutes)));
 }
 
 const ALL_SERVER_NAMES: LogServerNames = [];
@@ -102,15 +104,31 @@ function getInitialFormat(configIsPlainLogs: boolean): boolean {
     return false;
 }
 
-export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
+export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
     const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [enabledLevels, setEnabledLevels] = useState(() => new Set(loadPrefs().enabledLevels));
+    const [initialPrefs] = useState(loadPrefs);
+    const [enabledLevels, setEnabledLevels] = useState(() => new Set(initialPrefs.enabledLevels));
+    const [selectedNode, setSelectedNode] = useState(initialPrefs.node);
     const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);
     const [plainPage, setPlainPage] = useState(0);
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
+
+    // Node-filtered responses only hold the selected node, so the list only ever grows
+    const [knownNodes, setKnownNodes] = useState<string[]>([]);
+    useEffect(() => {
+        setKnownNodes((prev) => {
+            const next = new Set([...prev, ...logNodes]);
+            return next.size === prev.length ? prev : Array.from(next).sort();
+        });
+    }, [logNodes]);
+
+    // A restored or departed node is still listed so it can be switched away from
+    const nodes = useMemo(() => (
+        selectedNode && !knownNodes.includes(selectedNode) ? [...knownNodes, selectedNode].sort() : knownNodes
+    ), [knownNodes, selectedNode]);
 
     // One fetch at a time, so a slow response can't overwrite a newer one
     const fetchQueueRef = useRef<Promise<unknown>>(Promise.resolve());
@@ -140,7 +158,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             }
             const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
             await actions.getLogs({
-                serverNames: ALL_SERVER_NAMES,
+                serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES,
                 logLevels: allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level)),
                 dateFrom: activeTimePreset === null ? '' : presetStart(activeTimePreset),
                 dateTo: '',
@@ -156,7 +174,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         });
         fetchQueueRef.current = fetched.catch(() => undefined);
         return fetched;
-    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, actions]);
+    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, actions]);
 
     // reload's deps are the query's inputs, so this also covers every filter and page change
     useEffect(() => {
@@ -216,6 +234,9 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             search={search}
             enabledLevels={enabledLevels}
             onEnabledLevelsChange={setEnabledLevels}
+            nodes={nodes}
+            selectedNode={selectedNode}
+            onSelectedNodeChange={setSelectedNode}
             onReload={handleReload}
             downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
             liveTailEnabled={liveTailEnabled}
