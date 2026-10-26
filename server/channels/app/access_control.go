@@ -883,23 +883,25 @@ func (p protectedCPAAttributes) set(objectType string) map[string]struct{} {
 // caller is not a system admin.
 //
 // A field is treated as protected — and therefore redacted — when
-// any of the following applies (channel and team admins are never a
-// CPA field's source plugin, so the access_mode branches collapse
-// to "not public" for these callers):
+// any of the following applies (the redaction is one answer for every
+// channel and team admin, so anything short of "everyone may read it"
+// collapses to "inaccessible"):
 //
 //   - `visibility == "hidden"`: the field is hidden on the user
 //     profile page; the simulate UI must not be a side channel.
 //
-//   - `access_mode == "source_only"`: the CPA value is reserved for
-//     the source plugin. Channel/team admins are never plugin
-//     callers, so the value is always inaccessible to them.
+//   - a value.read tier below everyone (none, sysadmin, admin, creator
+//     or member): not every caller may read the value.
 //
-//   - `access_mode == "shared_only"`: the underlying property
-//     service computes an intersection of the caller's and target's
-//     values on read. The simulator does NOT call the property
-//     service (it reads from UserAttributeView directly), so we
-//     conservatively redact these values rather than ship them
-//     unfiltered.
+//   - for a field with options, an option.read tier below everyone:
+//     the simulator's values are option names, which the property
+//     read path hides from a caller denied option.read.
+//
+//   - masking (the template's, for a linked field): the underlying
+//     property service filters the values to what the caller holds
+//     on read. The simulator does NOT call the property service (it
+//     reads from UserAttributeView directly), so we conservatively
+//     redact these values rather than ship them unfiltered.
 //
 // System admins (passed via callerIsSystemAdmin=true) bypass the
 // filter entirely; they always see every attribute the simulator
@@ -952,7 +954,9 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 // protectedCPAFieldNamesForCaller returns, per attribute root, the set of
 // CPA field names whose contents must be hidden from a non-system-admin
 // caller. The set includes both `visibility: hidden` fields and any field
-// whose `access_mode` is not public (source_only / shared_only). The
+// whose values not everyone may read: masking, or a value.read tier below
+// everyone -- or, for a field with options, an option.read tier below
+// everyone (see attributeReadActions). The
 // simulator's UserAttributeView populates its per-user map keyed by
 // `pf.Name` (see db/migrations/postgres/000223_move_property_options_to_table.up.sql,
 // which recreates the views 000216 split by object type),
@@ -1005,10 +1009,10 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 			continue
 		}
 		// Resolved from pf, not f: NewCPAFieldFromPropertyField zeroes
-		// Permissions on the CPAField it builds, so the access mode has to be
+		// Permissions on the CPAField it builds, so readability has to be
 		// read off the raw field, before that happens.
-		accessMode := a.effectiveAccessMode(rctx, group.ID, pf)
-		if cpaFieldIsProtectedForChannelAdmin(f, accessMode) {
+		readable := a.readableByEveryone(rctx, group.ID, pf, attributeReadActions(pf)...)
+		if cpaFieldIsProtectedForChannelAdmin(f, readable) {
 			set[f.Name] = struct{}{}
 		}
 	}
@@ -1018,24 +1022,21 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 // cpaFieldIsProtectedForChannelAdmin reports whether a CPA field's
 // value must be hidden from a non-system-admin caller. Pure helper
 // so the protected-set construction and the per-leaf tree walker can
-// share the same predicate. accessMode is the field's resolved
-// effective access mode (see effectiveAccessMode) rather than
-// f.Attrs.AccessMode directly, since a linked field's own Attrs never
-// carries its template's shared_only scheme.
-func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField, accessMode string) bool {
+// share the same predicate. readableByEveryone is the field's resolved
+// answer from readableByEveryone for attributeReadActions rather than
+// anything on f directly, since a linked field never carries its
+// template's masking.
+func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField, readableByEveryone bool) bool {
 	if f == nil {
 		return false
 	}
 	if f.Attrs.Visibility == model.CustomProfileAttributesVisibilityHidden {
 		return true
 	}
-	// access_mode "" defaults to public — only non-public values are
-	// protected. Channel/team admins are never the source plugin so
-	// both source_only and shared_only collapse to "inaccessible".
-	if accessMode != "" && accessMode != model.PropertyAccessModePublic {
-		return true
-	}
-	return false
+	// The redaction is one answer for every channel/team admin, so a
+	// value only some readers may see -- a tier below everyone, or a
+	// masked field -- collapses to "inaccessible".
+	return !readableByEveryone
 }
 
 // simulationHasRedactableAttributeData reports whether any result row
@@ -1929,7 +1930,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 		return attributes, nil
 	}
 
-	// Strip source_only and shared_only fields: their values must not be
+	// Strip every field whose values not everyone may read: they must not be
 	// exposed to channel members through the invite modal / members sidebar.
 	// Fail closed: if the CPA group or a field cannot be resolved, omit that
 	// field rather than leaking its values.
@@ -1945,8 +1946,8 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 	}
 
 	for fieldName := range attributes {
-		// Read directly from the store so this security filter sees the raw
-		// access_mode, unaffected by property read hooks for the request caller.
+		// Read directly from the store so this security filter sees the stored
+		// permissions, unaffected by property read hooks for the request caller.
 		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
 			// If the error is due to not being found, we won't skip to the next field just yet
@@ -1967,19 +1968,18 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 
 			// A native attribute is a column on the user table, synthesized into a
 			// field shape for this lookup alone. It carries no permissions object
-			// and never will, so it has no access mode to judge -- and asking
-			// effectiveAccessModeUsing anyway would get the answer it gives an
-			// unconverted property field, which is to mask.
+			// and never will, so it has no read tier to judge -- and asking
+			// readableByEveryoneUsing anyway would get the answer it gives an
+			// unconverted property field, which is to strip.
 			continue
 		}
 		// Same store bypass for a linked field's template: a linked field's own
-		// Masking is always nil, so its effective mode must follow the template
-		// to see a masked scheme (effectiveAccessModeUsing).
-		mode := effectiveAccessModeUsing(field, func(id string) (*model.PropertyField, error) {
+		// Masking is always nil, so readability must follow the template to see
+		// a masked scheme (readableByEveryoneUsing).
+		readable := readableByEveryoneUsing(field, func(id string) (*model.PropertyField, error) {
 			return a.Srv().Store().PropertyField().Get(rctx, cpaGroup.ID, id)
-		})
-		switch mode {
-		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
+		}, attributeReadActions(field)...)
+		if !readable {
 			delete(attributes, fieldName)
 		}
 	}

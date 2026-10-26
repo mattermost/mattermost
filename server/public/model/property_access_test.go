@@ -257,6 +257,95 @@ func TestEffectiveAccessMode(t *testing.T) {
 	})
 }
 
+func TestPropertyFieldReadableByEveryone(t *testing.T) {
+	readable := &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelEveryone},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}
+	unmaskedTemplate := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: readable}}
+	maskedTemplate := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: readable, Masking: &Masking{}}}
+	linkedTo := func(template *PropertyField) *PropertyField {
+		return &PropertyField{LinkedFieldID: &template.ID, Permissions: &Permissions{Restrictions: readable}}
+	}
+
+	t.Run("everyone on both tiers with no masking is readable by everyone", func(t *testing.T) {
+		field := &PropertyField{Permissions: &Permissions{Restrictions: readable}}
+		assert.True(t, PropertyFieldReadableByEveryone(field, nil, PropertyActionValueRead))
+		assert.True(t, PropertyFieldReadableByEveryone(field, nil, PropertyActionOptionRead))
+	})
+
+	t.Run("each tier below everyone is not readable by everyone", func(t *testing.T) {
+		for _, tier := range []PermissionLevel{PermissionLevelMember, PermissionLevelCreator, PermissionLevelAdmin, PermissionLevelSysadmin, PermissionLevelNone, ""} {
+			valueField := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+				Value:  ReadWrite{Read: tier},
+				Option: ReadWrite{Read: PermissionLevelEveryone},
+			}}}
+			assert.False(t, PropertyFieldReadableByEveryone(valueField, nil, PropertyActionValueRead), "value.read %q", tier)
+			assert.True(t, PropertyFieldReadableByEveryone(valueField, nil, PropertyActionOptionRead), "option.read is judged on its own tier")
+
+			optionField := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+				Value:  ReadWrite{Read: PermissionLevelEveryone},
+				Option: ReadWrite{Read: tier},
+			}}}
+			assert.False(t, PropertyFieldReadableByEveryone(optionField, nil, PropertyActionOptionRead), "option.read %q", tier)
+			assert.True(t, PropertyFieldReadableByEveryone(optionField, nil, PropertyActionValueRead), "value.read is judged on its own tier")
+		}
+	})
+
+	t.Run("a field's own masking is not readable by everyone", func(t *testing.T) {
+		field := &PropertyField{Permissions: &Permissions{Restrictions: readable, Masking: &Masking{}}}
+		assert.False(t, PropertyFieldReadableByEveryone(field, nil, PropertyActionValueRead))
+		assert.False(t, PropertyFieldReadableByEveryone(field, nil, PropertyActionOptionRead))
+	})
+
+	t.Run("no permissions object is not readable by everyone", func(t *testing.T) {
+		assert.False(t, PropertyFieldReadableByEveryone(&PropertyField{}, nil, PropertyActionValueRead))
+		assert.False(t, PropertyFieldReadableByEveryone(&PropertyField{Permissions: &Permissions{}}, nil, PropertyActionValueRead))
+		assert.False(t, PropertyFieldReadableByEveryone(nil, nil, PropertyActionValueRead))
+	})
+
+	t.Run("an action other than a read is not readable by everyone", func(t *testing.T) {
+		field := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+			Value: ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelEveryone},
+		}}}
+		assert.False(t, PropertyFieldReadableByEveryone(field, nil, PropertyActionValueWrite))
+	})
+
+	t.Run("a linked field follows its template's masking", func(t *testing.T) {
+		assert.True(t, PropertyFieldReadableByEveryone(linkedTo(unmaskedTemplate), unmaskedTemplate, PropertyActionValueRead))
+		assert.False(t, PropertyFieldReadableByEveryone(linkedTo(maskedTemplate), maskedTemplate, PropertyActionValueRead))
+		assert.False(t, PropertyFieldReadableByEveryone(linkedTo(maskedTemplate), maskedTemplate, PropertyActionOptionRead))
+	})
+
+	t.Run("a linked field is judged on its own tier", func(t *testing.T) {
+		field := linkedTo(unmaskedTemplate)
+		field.Permissions.Restrictions = &Restrictions{
+			Value:  ReadWrite{Read: PermissionLevelSysadmin},
+			Option: ReadWrite{Read: PermissionLevelEveryone},
+		}
+		assert.False(t, PropertyFieldReadableByEveryone(field, unmaskedTemplate, PropertyActionValueRead))
+	})
+
+	t.Run("a linked field without its template fails closed", func(t *testing.T) {
+		assert.False(t, PropertyFieldReadableByEveryone(linkedTo(unmaskedTemplate), nil, PropertyActionValueRead))
+		assert.False(t, PropertyFieldReadableByEveryone(linkedTo(unmaskedTemplate), nil, PropertyActionOptionRead))
+	})
+
+	t.Run("a linked field whose template has no permissions object fails closed", func(t *testing.T) {
+		unconverted := &PropertyField{ID: NewId()}
+		assert.False(t, PropertyFieldReadableByEveryone(linkedTo(unconverted), unconverted, PropertyActionValueRead))
+	})
+
+	t.Run("a template other than the linked one fails closed", func(t *testing.T) {
+		assert.False(t, PropertyFieldReadableByEveryone(linkedTo(maskedTemplate), unmaskedTemplate, PropertyActionValueRead))
+	})
+
+	t.Run("an unlinked field ignores a template", func(t *testing.T) {
+		field := &PropertyField{Permissions: &Permissions{Restrictions: readable}}
+		assert.True(t, PropertyFieldReadableByEveryone(field, maskedTemplate, PropertyActionValueRead))
+	})
+}
+
 func TestValidatePropertyFieldAccessMode(t *testing.T) {
 	tests := []struct {
 		name        string

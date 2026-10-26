@@ -4,8 +4,10 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -773,6 +775,96 @@ func TestPropertyFieldBroadcastParams(t *testing.T) {
 		field := &model.PropertyField{TargetType: "organization", TargetID: "org123"}
 		_, _, ok := propertyFieldBroadcastParams(rctx, field)
 		assert.False(t, ok)
+	})
+}
+
+// TestPublishPropertyFieldEvent_OptionsWithheld covers the option list a field
+// broadcast carries. A broadcast has no single reader to filter options for, so
+// it carries the list only when everyone may read it, and withholds it when the
+// option.read tier is narrower than everyone or the linked field's template is
+// masked.
+func TestPublishPropertyFieldEvent_OptionsWithheld(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	groupID := registerTestPropertyGroup(t, th)
+
+	newSelectField := func(t *testing.T, objectType string, linkedFieldID *string) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "broadcast_" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    objectType,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: linkedFieldID,
+		}
+		if linkedFieldID == nil {
+			field.Attrs = model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Alpha"}},
+			}
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, created.Permissions)
+		return created
+	}
+	// Store writes rather than the API, which keeps each setup to the one
+	// permission it is about.
+	storeUpdate := func(t *testing.T, field *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		updated, err := th.Store.PropertyField().Update(groupID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+		return updated[0]
+	}
+
+	broadcastAttrs := func(t *testing.T, field *model.PropertyField) model.StringInterface {
+		t.Helper()
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPropertyFieldUpdated})
+		defer closeWS()
+
+		th.App.publishPropertyFieldEvent(th.Context, model.WebsocketEventPropertyFieldUpdated, field, "")
+
+		select {
+		case event := <-messages:
+			raw, ok := event.GetData()["property_field"].(string)
+			require.True(t, ok, "event carries no property_field payload")
+			var broadcast model.PropertyField
+			require.NoError(t, json.Unmarshal([]byte(raw), &broadcast))
+			require.Equal(t, field.ID, broadcast.ID)
+			return broadcast.Attrs
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "the property_field_updated event was not published")
+			return nil
+		}
+	}
+
+	t.Run("an option list everyone may read is broadcast", func(t *testing.T) {
+		field := newSelectField(t, model.PropertyFieldObjectTypeUser, nil)
+		attrs := broadcastAttrs(t, field)
+		assert.NotEmpty(t, attrs[model.PropertyFieldAttributeOptions])
+		assert.False(t, model.PropertyFieldOptionsOmitted(attrs))
+	})
+
+	t.Run("a sysadmin option.read withholds the option list", func(t *testing.T) {
+		field := newSelectField(t, model.PropertyFieldObjectTypeUser, nil)
+		field.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		field = storeUpdate(t, field)
+
+		attrs := broadcastAttrs(t, field)
+		assert.Empty(t, attrs[model.PropertyFieldAttributeOptions])
+		assert.True(t, model.PropertyFieldOptionsOmitted(attrs))
+	})
+
+	t.Run("a linked field whose template is masked withholds the option list", func(t *testing.T) {
+		template := newSelectField(t, model.PropertyFieldObjectTypeTemplate, nil)
+		linked := newSelectField(t, model.PropertyFieldObjectTypeUser, &template.ID)
+		require.Nil(t, linked.Permissions.Masking, "a linked field carries no masking of its own")
+		template.Permissions.Masking = &model.Masking{}
+		storeUpdate(t, template)
+
+		attrs := broadcastAttrs(t, linked)
+		assert.Empty(t, attrs[model.PropertyFieldAttributeOptions])
+		assert.True(t, model.PropertyFieldOptionsOmitted(attrs))
 	})
 }
 

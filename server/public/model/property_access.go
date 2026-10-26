@@ -210,6 +210,34 @@ func EffectiveAccessMode(field, template *PropertyField) string {
 	return template.GetAccessMode()
 }
 
+// PropertyFieldReadableByEveryone reports whether every reader may read
+// field's values (action PropertyActionValueRead) or its option list
+// (PropertyActionOptionRead): field carries a permissions object, nothing
+// masks it, and that action's read tier is everyone. A websocket broadcast has
+// no single reader to decide for, so it may carry only what this allows. Any
+// other action reports false.
+//
+// A linked field never declares masking of its own; its masking is its
+// template's, so template must be the template field links to. A linked field
+// whose template is nil (missing or unreadable), is some other field, or
+// carries no permissions object reports false. template is ignored when field
+// isn't linked. The tier is field's own, the one the read path judges a human
+// by.
+func PropertyFieldReadableByEveryone(field, template *PropertyField, action string) bool {
+	if action != PropertyActionValueRead && action != PropertyActionOptionRead {
+		return false
+	}
+	if field == nil || field.Permissions == nil || field.Permissions.Masking != nil {
+		return false
+	}
+	if templateID := field.LinkSourceID(); templateID != "" {
+		if template == nil || template.ID != templateID || template.Permissions == nil || template.Permissions.Masking != nil {
+			return false
+		}
+	}
+	return field.Permissions.Restrictions.TierFor(action) == PermissionLevelEveryone
+}
+
 // ValidatePropertyFieldAccessMode validates that the access_mode attribute is valid
 // and compatible with the field type
 func ValidatePropertyFieldAccessMode(field *PropertyField) error {

@@ -1292,6 +1292,112 @@ func TestPatchCPAValues(t *testing.T) {
 		require.Contains(t, wsValues, createdNonPublicField.ID)
 		require.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[createdNonPublicField.ID]))
 	})
+
+	t.Run("a value not everyone may read is withheld from the websocket event", func(t *testing.T) {
+		store := th.App.Srv().Store().PropertyField()
+		storeUpdate := func(t *testing.T, field *model.PropertyField) {
+			t.Helper()
+			_, err := store.Update(field.GroupID, []*model.PropertyField{field}, nil)
+			require.NoError(t, err)
+		}
+
+		// A value.read narrower than everyone, with value.write still open to
+		// the value's owner: only a store write produces that combination.
+		sysadminField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		})
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		storedSysadminField, err := store.Get(request.TestContext(t), sysadminField.GroupID, sysadminField.ID)
+		require.NoError(t, err)
+		storedSysadminField.Permissions.Restrictions.Value.Read = model.PermissionLevelSysadmin
+		storeUpdate(t, storedSysadminField)
+
+		// A field linked to a masked template: the linked field carries no
+		// masking of its own, so only the template says its values are masked.
+		rctx := request.TestContext(t)
+		template, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    sysadminField.GroupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		linkedField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       sysadminField.GroupID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, linkedField.Permissions)
+		require.Nil(t, linkedField.Permissions.Masking)
+		linkedField.Permissions.Restrictions.Value.Read = model.PermissionLevelEveryone
+		linkedField.Permissions.Restrictions.Value.Write = model.PermissionLevelMember
+		storeUpdate(t, linkedField)
+		template.Permissions.Masking = &model.Masking{}
+		storeUpdate(t, template)
+
+		// A field linked to a template that masks nothing, with tiers of
+		// everyone: its value is broadcast as is.
+		openTemplate, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    sysadminField.GroupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		openLinkedField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       sysadminField.GroupID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &openTemplate.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, openLinkedField.Permissions)
+		openLinkedField.Permissions.Restrictions.Value.Read = model.PermissionLevelEveryone
+		openLinkedField.Permissions.Restrictions.Option.Read = model.PermissionLevelEveryone
+		openLinkedField.Permissions.Restrictions.Value.Write = model.PermissionLevelMember
+		storeUpdate(t, openLinkedField)
+
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		values := map[string]json.RawMessage{
+			sysadminField.ID:   json.RawMessage(`"Sysadmin Value"`),
+			linkedField.ID:     json.RawMessage(`"Linked Value"`),
+			openLinkedField.ID: json.RawMessage(`"Open Linked Value"`),
+		}
+		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		var wsValues map[string]json.RawMessage
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventCPAValuesUpdated {
+					valuesData, err := json.Marshal(event.GetData()["values"])
+					require.NoError(t, err)
+					require.NoError(t, json.Unmarshal(valuesData, &wsValues))
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[sysadminField.ID]), "a sysadmin value.read is withheld")
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[linkedField.ID]), "a linked field's template masking is withheld")
+		assert.JSONEq(t, `"Open Linked Value"`, string(wsValues[openLinkedField.ID]), "a linked field everyone may read is broadcast as is")
+	})
 }
 
 func TestPatchCPAValuesForUser(t *testing.T) {

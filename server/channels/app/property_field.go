@@ -69,21 +69,21 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	broadcastField := *field
 	broadcastField.Permissions = nil
 
-	// It has no recipient to filter options against either, so any non-public
-	// field must go out with none at all — a caller reads the field back
-	// afterward to get the copy filtered for them. Asked through
-	// effectiveAccessMode rather than field.GetAccessMode: a linked field's own
-	// Masking is always nil, so its own mode reports public even when the
-	// template whose option list it is broadcasting is masked.
-	if a.effectiveAccessMode(rctx, field.GroupID, field) != model.PropertyAccessModePublic && field.Type.SupportsOptions() {
+	// It has no recipient to filter options against either, so a field whose
+	// option list not everyone may read must go out with none at all — a
+	// caller reads the field back afterward to get the copy filtered for them.
+	// readableByEveryone follows a linked field to its template: a linked
+	// field's own Masking is always nil, even when the template whose option
+	// list it is broadcasting is masked.
+	if field.Type.SupportsOptions() && !a.readableByEveryone(rctx, field.GroupID, field, model.PropertyActionOptionRead) {
 		broadcastField.Attrs = make(model.StringInterface, len(field.Attrs))
 		maps.Copy(broadcastField.Attrs, field.Attrs)
 		broadcastField.HideOptions()
 		// The broadcast withheld the list whatever the source field carried, so
 		// restore the withheld-options marker HideOptions deletes — a client
 		// must be able to tell "options withheld" from "field has no options".
-		// options_count stays deleted: on a non-public field the count is
-		// controlled information too.
+		// options_count stays deleted: on a field not everyone may read the
+		// count is controlled information too.
 		broadcastField.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
 	}
 

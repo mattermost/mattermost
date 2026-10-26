@@ -834,6 +834,78 @@ func TestPropertySyncer_BroadcastWithholdsRestrictedValues(t *testing.T) {
 	}
 }
 
+// TestPropertySyncer_BroadcastWithholdsValuesNotEveryoneCanRead covers the
+// custom profile attribute event, which goes to every connected client: it
+// withholds a value whose value.read tier is narrower than everyone, and a
+// value whose template masks the field linking to it.
+func TestPropertySyncer_BroadcastWithholdsValuesNotEveryoneCanRead(t *testing.T) {
+	mainHelper.Parallel(t)
+	h := setupPropertySyncTest(t)
+
+	// A store write stands in for each setup: neither permissions object is one
+	// the API lets a sync-writable field carry.
+	storeUpdate := func(t *testing.T, fieldID string, change func(*model.PropertyField)) {
+		t.Helper()
+		stored, err := h.Store.PropertyField().Get(request.TestContext(t), h.groupID, fieldID)
+		require.NoError(t, err)
+		require.NotNil(t, stored.Permissions)
+		change(stored)
+		_, err = h.Store.PropertyField().Update(h.groupID, []*model.PropertyField{stored}, nil)
+		require.NoError(t, err)
+	}
+
+	broadcastValue := func(t *testing.T, attribute, fieldID string) json.RawMessage {
+		t.Helper()
+		messages, closeWS := connectFakeWebSocket(t, h.TestHelper, h.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventCPAValuesUpdated})
+		defer closeWS()
+
+		s := h.syncer(model.PropertySyncSourceLDAP)
+		result := h.sync(s, h.BasicUser.Id, map[string][]string{attribute: {"Secret"}}, false)
+		require.Equal(t, model.PropertySyncFieldUpdated, outcomeFor(t, result, fieldID).Status)
+
+		select {
+		case event := <-messages:
+			values, err := json.Marshal(event.GetData()["values"])
+			require.NoError(t, err)
+			var byField map[string]json.RawMessage
+			require.NoError(t, json.Unmarshal(values, &byField))
+			return byField[fieldID]
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "the custom profile attribute event was not published")
+			return nil
+		}
+	}
+
+	t.Run("a sysadmin value.read is withheld", func(t *testing.T) {
+		attribute := "title_" + model.NewId()
+		_, field := h.createAttribute(model.PropertyFieldTypeText, ldapAttrs(attribute))
+		storeUpdate(t, field.ID, func(stored *model.PropertyField) {
+			restrictions := *stored.Permissions.Restrictions
+			restrictions.Value.Read = model.PermissionLevelSysadmin
+			stored.Permissions.Restrictions = &restrictions
+		})
+
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(broadcastValue(t, attribute, field.ID)))
+	})
+
+	t.Run("a linked field whose template is masked is withheld", func(t *testing.T) {
+		attribute := "clearance_" + model.NewId()
+		template, field := h.createAttribute(model.PropertyFieldTypeText, ldapAttrs(attribute))
+		storeUpdate(t, template.ID, func(stored *model.PropertyField) {
+			stored.Permissions.Masking = &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeService, ID: model.PropertySyncSourceLDAP}}}
+		})
+
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(broadcastValue(t, attribute, field.ID)))
+	})
+
+	t.Run("a linked field everyone may read is broadcast as is", func(t *testing.T) {
+		attribute := "office_" + model.NewId()
+		_, field := h.createAttribute(model.PropertyFieldTypeText, ldapAttrs(attribute))
+
+		assert.JSONEq(t, `"Secret"`, string(broadcastValue(t, attribute, field.ID)))
+	})
+}
+
 func TestPropertySyncHelpers(t *testing.T) {
 	t.Run("normalizeSourceValues", func(t *testing.T) {
 		assert.Equal(t, []string{}, normalizeSourceValues(nil))

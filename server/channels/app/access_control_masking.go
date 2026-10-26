@@ -203,10 +203,8 @@ func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName 
 }
 
 // effectiveAccessModeUsing is model.EffectiveAccessMode, reading a linked
-// field's template via getTemplate. Shared by callers that read the template
-// through different paths: the hook-mediated property service
-// (effectiveAccessMode) and the direct store read
-// GetAccessControlPolicyAttributes uses to bypass those hooks.
+// field's template via getTemplate (the hook-mediated property service, for
+// effectiveAccessMode).
 //
 // A linked field whose template can't be read is reported masked. Its own
 // mode would usually say public, since a linked field never carries masking
@@ -249,6 +247,53 @@ func (a *App) effectiveAccessMode(rctx request.CTX, groupID string, field *model
 		}
 		return f, nil
 	})
+}
+
+// readableByEveryoneUsing reports model.PropertyFieldReadableByEveryone for
+// every one of actions, reading a linked field's template once via
+// getTemplate. A template that can't be read leaves the field unreadable by
+// everyone. Shared by callers that read the template through different paths:
+// the hook-mediated property service (readableByEveryone) and the direct store
+// read GetAccessControlPolicyAttributes uses to bypass those hooks.
+func readableByEveryoneUsing(field *model.PropertyField, getTemplate func(id string) (*model.PropertyField, error), actions ...string) bool {
+	var template *model.PropertyField
+	if field.Permissions != nil && field.Permissions.Masking == nil && field.LinkSourceID() != "" {
+		t, err := getTemplate(field.LinkSourceID())
+		if err != nil {
+			return false
+		}
+		template = t
+	}
+	for _, action := range actions {
+		if !model.PropertyFieldReadableByEveryone(field, template, action) {
+			return false
+		}
+	}
+	return true
+}
+
+// readableByEveryone is readableByEveryoneUsing reading the template through
+// the caller-context property service, as effectiveAccessMode does.
+func (a *App) readableByEveryone(rctx request.CTX, groupID string, field *model.PropertyField, actions ...string) bool {
+	return readableByEveryoneUsing(field, func(id string) (*model.PropertyField, error) {
+		f, appErr := a.GetPropertyField(rctx, groupID, id)
+		if appErr != nil {
+			return nil, appErr
+		}
+		return f, nil
+	}, actions...)
+}
+
+// attributeReadActions names the read actions everyone must hold for an
+// attribute's values to be shown outside the property read path, as the
+// attribute views and policy literals show them: value.read, and for a field
+// with options option.read too, since those values are option names and the
+// read path hides the names from a caller denied option.read.
+func attributeReadActions(field *model.PropertyField) []string {
+	if field.Type.SupportsOptions() {
+		return []string{model.PropertyActionValueRead, model.PropertyActionOptionRead}
+	}
+	return []string{model.PropertyActionValueRead}
 }
 
 // resolveHoldingsFieldID names the field whose per-caller values are field's

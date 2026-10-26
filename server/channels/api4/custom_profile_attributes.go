@@ -474,9 +474,10 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 	// CPA-specific websocket event (backward compat). Broadcast copies, never
 	// results: results is what the caller who just wrote these values gets
 	// back over HTTP, and that caller is allowed to see them.
+	broadcastValue := c.App.PropertyValueBroadcaster(rctx)
 	broadcastResults := make(map[string]json.RawMessage, len(upserted))
 	for _, value := range upserted {
-		broadcastResults[value.FieldID] = model.BroadcastValue(fieldByID[value.FieldID], value.Value)
+		broadcastResults[value.FieldID] = broadcastValue(fieldByID[value.FieldID], value.Value)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
 	message.Add("user_id", userID)

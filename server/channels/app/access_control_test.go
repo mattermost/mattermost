@@ -3577,19 +3577,18 @@ func TestRedactSimulationAttributesForCaller(t *testing.T) {
 }
 
 // TestCPAFieldIsProtectedForChannelAdmin covers the per-field
-// predicate used to build the protected-name set. Source_only and
-// shared_only access modes require `protected: true` and a
-// source_plugin_id, which only a plugin caller can set through the
-// app — so this is a pure unit test against directly-constructed
-// CPAField values rather than going through the app's create path.
+// predicate used to build the protected-name set. Whether everyone may
+// read the field's values is resolved by the caller (readableByEveryone)
+// and passed in, so this is a pure unit test against
+// directly-constructed CPAField values.
 func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	tests := []struct {
-		name       string
-		field      *model.CPAField
-		accessMode string
-		want       bool
+		name               string
+		field              *model.CPAField
+		readableByEveryone bool
+		want               bool
 	}{
 		{
 			name: "visibility=hidden is protected",
@@ -3599,52 +3598,36 @@ func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "access_mode=source_only is protected",
+			name: "a field not everyone may read is protected",
 			field: &model.CPAField{
 				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityWhenSet},
 			},
-			accessMode: model.PropertyAccessModeSourceOnly,
-			want:       true,
+			readableByEveryone: false,
+			want:               true,
 		},
 		{
-			name: "access_mode=shared_only is protected",
+			name: "visibility=when_set + readable by everyone is NOT protected",
 			field: &model.CPAField{
 				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityWhenSet},
 			},
-			accessMode: model.PropertyAccessModeSharedOnly,
-			want:       true,
+			readableByEveryone: true,
+			want:               false,
 		},
 		{
-			name: "visibility=when_set + public access mode is NOT protected",
-			field: &model.CPAField{
-				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityWhenSet},
-			},
-			accessMode: model.PropertyAccessModePublic,
-			want:       false,
-		},
-		{
-			name: "visibility=always + public access mode is NOT protected",
+			name: "visibility=always + readable by everyone is NOT protected",
 			field: &model.CPAField{
 				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityAlways},
 			},
-			accessMode: model.PropertyAccessModePublic,
-			want:       false,
+			readableByEveryone: true,
+			want:               false,
 		},
 		{
-			name: "empty access mode defaults to public and is NOT protected",
-			field: &model.CPAField{
-				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityWhenSet},
-			},
-			accessMode: "",
-			want:       false,
-		},
-		{
-			name: "visibility=hidden wins over public access mode (still protected)",
+			name: "visibility=hidden wins over readable by everyone (still protected)",
 			field: &model.CPAField{
 				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityHidden},
 			},
-			accessMode: model.PropertyAccessModePublic,
-			want:       true,
+			readableByEveryone: true,
+			want:               true,
 		},
 		{
 			name:  "nil field is not protected (caller short-circuits but the predicate is defensive)",
@@ -3655,7 +3638,7 @@ func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := cpaFieldIsProtectedForChannelAdmin(tt.field, tt.accessMode)
+			got := cpaFieldIsProtectedForChannelAdmin(tt.field, tt.readableByEveryone)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -4010,7 +3993,7 @@ func makeSimulationResponseForRedactionTest(protectedName, publicName, protected
 }
 
 // TestRedactSimulationAttributesForCallerAccessModes exercises the
-// non-public access-mode branches of cpaFieldIsProtectedForChannelAdmin
+// not-readable-by-everyone branch of cpaFieldIsProtectedForChannelAdmin
 // end to end through RedactSimulationAttributesForCaller. Source_only
 // and shared_only fields require `protected: true` (and a source
 // plugin ID), so we bypass the App-level CreatePropertyField path —
@@ -4128,10 +4111,13 @@ func TestRedactSimulationAttributesForCallerAccessModes(t *testing.T) {
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			LinkedFieldID: &tmpl.ID,
-			// Non-nil but unmasked: what makes effectiveAccessModeUsing follow
-			// LinkedFieldID to the template rather than reading the field's own
-			// (necessarily nil) Masking.
-			Permissions: &model.Permissions{},
+			// Readable by everyone on its own and unmasked, so only the
+			// template's masking (followed through LinkedFieldID by
+			// readableByEveryoneUsing) can protect it.
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			}},
 		})
 		require.NoError(t, sErr)
 
@@ -4140,6 +4126,72 @@ func TestRedactSimulationAttributesForCallerAccessModes(t *testing.T) {
 		require.NoError(t, sErr)
 
 		assertRedactedAgainst(t, linked.Name)
+	})
+
+	// A select field's values reach the simulator as option names, so its
+	// option list has to be readable by everyone too.
+	for _, optionRead := range []model.PermissionLevel{model.PermissionLevelNone, model.PermissionLevelSysadmin} {
+		t.Run("a select field with option.read "+string(optionRead)+" is redacted on every surface", func(t *testing.T) {
+			field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+				GroupID:    cpaGroup.ID,
+				Name:       celSafeName(),
+				Type:       model.PropertyFieldTypeSelect,
+				ObjectType: model.PropertyFieldObjectTypeUser,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+					Option: model.ReadWrite{Read: optionRead},
+				}},
+			})
+			require.NoError(t, sErr)
+
+			assertRedactedAgainst(t, field.Name)
+		})
+	}
+
+	t.Run("a select field everyone may read is not redacted", func(t *testing.T) {
+		selectField, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			}},
+		})
+		require.NoError(t, sErr)
+		protectedField := createProtectedField(t, model.PropertyAccessModeSourceOnly)
+
+		resp := makeSimulationResponseForRedactionTest(protectedField.Name, selectField.Name, "il5", "us")
+		th.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+
+		assert.Equal(t, "us", resp.Results[0].Attributes[selectField.Name], "readable select user attribute must be preserved")
+		assert.Equal(t, "us", resp.Results[0].Sessions[0].Attributes[selectField.Name], "readable select session attribute must be preserved")
+		leafByAttribute := map[string]model.PolicySimulationEvaluationNode{}
+		for _, child := range resp.Results[0].Decisions["upload_file_attachment"].Blame[0].EvaluationTree.Children {
+			leafByAttribute[child.Attribute] = child
+		}
+		assert.Equal(t, "us", leafByAttribute[userAttributesPathPrefix+selectField.Name].ActualValue,
+			"readable select leaf must keep ActualValue")
+	})
+
+	t.Run("a sysadmin value.read is redacted on every surface", func(t *testing.T) {
+		field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelSysadmin},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			}},
+		})
+		require.NoError(t, sErr)
+
+		assertRedactedAgainst(t, field.Name)
 	})
 }
 
@@ -5080,11 +5132,48 @@ func TestGetAccessControlPolicyAttributes_MaskedFieldsFiltered(t *testing.T) {
 	makeField("SourceField", model.PropertyAccessModeSourceOnly)
 	makeField("SharedField", model.PropertyAccessModeSharedOnly)
 
+	// A value.read between everyone and none, which no access mode expresses.
+	_, sErr := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       "SysadminField",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+			Value:  model.ReadWrite{Read: model.PermissionLevelSysadmin},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+		}},
+	})
+	require.NoError(t, sErr)
+
+	// Select fields whose values everyone may read but whose option list --
+	// the names a policy's literals and the attribute view carry -- they may
+	// not.
+	makeSelectField := func(name string, optionRead model.PermissionLevel) {
+		_, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       name,
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: optionRead},
+			}},
+		})
+		require.NoError(t, err)
+	}
+	makeSelectField("OptNoneField", model.PermissionLevelNone)
+	makeSelectField("OptSysadminField", model.PermissionLevelSysadmin)
+
 	channelID := model.NewId()
 	rawAttributes := map[string][]string{
-		"PublicField": {"Engineering"},
-		"SourceField": {"TopSecret"},
-		"SharedField": {"Alpha", "Bravo"},
+		"PublicField":      {"Engineering"},
+		"SourceField":      {"TopSecret"},
+		"SharedField":      {"Alpha", "Bravo"},
+		"SysadminField":    {"Codeword"},
+		"OptNoneField":     {"TopSecret"},
+		"OptSysadminField": {"Restricted"},
 	}
 
 	mockACS := &mocks.AccessControlServiceInterface{}
@@ -5099,6 +5188,9 @@ func TestGetAccessControlPolicyAttributes_MaskedFieldsFiltered(t *testing.T) {
 	assert.Equal(t, map[string][]string{"PublicField": {"Engineering"}}, result)
 	assert.NotContains(t, result, "SourceField")
 	assert.NotContains(t, result, "SharedField")
+	assert.NotContains(t, result, "SysadminField")
+	assert.NotContains(t, result, "OptNoneField")
+	assert.NotContains(t, result, "OptSysadminField")
 	mockACS.AssertExpectations(t)
 }
 
@@ -5125,8 +5217,26 @@ func TestGetAccessControlPolicyAttributes_PublicFieldsPassThrough(t *testing.T) 
 	_, appErr := th.App.CreatePropertyField(rctx, field, false, "")
 	require.Nil(t, appErr)
 
+	// A select field whose values and option names everyone may read.
+	selectFieldName := "s_" + model.NewId()[:8]
+	_, sErr := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       selectFieldName,
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+		}},
+	})
+	require.NoError(t, sErr)
+
 	channelID := model.NewId()
-	rawAttributes := map[string][]string{fieldName: {"Engineering", "Sales"}}
+	rawAttributes := map[string][]string{
+		fieldName:       {"Engineering", "Sales"},
+		selectFieldName: {"Alpha"},
+	}
 
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
@@ -5236,9 +5346,9 @@ func TestGetAccessControlPolicyAttributes_MaskedFieldsWithNameCollisionAreFilter
 // TestGetAccessControlPolicyAttributes_LinkedFieldFollowsTemplateMasking verifies
 // that a linked user field of a masked scheme is still stripped from the
 // policy-attribute allowlist even though its own Permissions carry no Masking
-// -- a linked field's own Masking is always nil by construction, so its
-// effective mode must follow the template (effectiveAccessModeUsing), not
-// GetAccessMode alone.
+// -- a linked field's own Masking is always nil by construction, so
+// readability must follow the template (readableByEveryoneUsing), not the
+// field's own permissions alone.
 func TestGetAccessControlPolicyAttributes_LinkedFieldFollowsTemplateMasking(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
