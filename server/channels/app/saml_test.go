@@ -4,13 +4,16 @@
 package app
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"errors"
 	"math/big"
+	"mime/multipart"
 	"net/http"
 	"testing"
 	"time"
@@ -226,17 +229,7 @@ func TestSetSamlIdpCertificateFromMetadata(t *testing.T) {
 		saml.Calls = nil
 		cluster.ClearMessages()
 
-		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		require.NoError(t, err)
-		template := &x509.Certificate{
-			SerialNumber: big.NewInt(1),
-			NotBefore:    time.Now(),
-			NotAfter:     time.Now().Add(time.Hour),
-		}
-		certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
-		require.NoError(t, err)
-
-		appErr := th.App.SetSamlIdpCertificateFromMetadata(request.TestContext(t), []byte(base64.StdEncoding.EncodeToString(certDER)))
+		appErr := th.App.SetSamlIdpCertificateFromMetadata(request.TestContext(t), []byte(base64.StdEncoding.EncodeToString(testCertificateDER(t))))
 		require.Nil(t, appErr)
 
 		saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
@@ -245,4 +238,96 @@ func TestSetSamlIdpCertificateFromMetadata(t *testing.T) {
 		})
 		assert.Len(t, msgs, 1)
 	})
+}
+
+func TestAddSamlIdpCertificate(t *testing.T) {
+	for name, data := range map[string][]byte{
+		"rejects a file that isn't PEM":                []byte("not a certificate"),
+		"rejects a PEM block that isn't a certificate": pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: []byte("garbage")}),
+	} {
+		t.Run(name, func(t *testing.T) {
+			a := &App{}
+			appErr := a.AddSamlIdpCertificate(request.TestContext(t), samlFileHeader(t, data))
+			require.NotNil(t, appErr)
+			assert.Equal(t, "api.admin.saml.failure_parse_idp_certificate.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+	}
+
+	t.Run("stores the certificate, reloads the SP and broadcasts to the cluster", func(t *testing.T) {
+		saml := registerMockSaml(t, nil)
+
+		cluster := &testlib.FakeClusterInterface{}
+		th := SetupWithClusterMock(t, cluster)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
+		saml.Calls = nil
+		cluster.ClearMessages()
+
+		certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: testCertificateDER(t)})
+		appErr := th.App.AddSamlIdpCertificate(request.TestContext(t), samlFileHeader(t, certPEM))
+		require.Nil(t, appErr)
+
+		stored, err := th.App.GetConfigFile(SamlIdpCertificateName)
+		require.NoError(t, err)
+		assert.Equal(t, certPEM, stored)
+		saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
+		msgs := cluster.SelectMessages(func(m *model.ClusterMessage) bool {
+			return m.Event == model.ClusterEventReloadSaml
+		})
+		assert.Len(t, msgs, 1)
+	})
+}
+
+func TestRemoveSamlIdpCertificate(t *testing.T) {
+	cluster := &configChangeCapturingCluster{}
+	th := SetupWithClusterMock(t, cluster)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
+	require.NoError(t, th.App.Srv().platform.SetConfigFile(SamlIdpCertificateName, []byte("certificate")))
+	cluster.sent = nil
+
+	require.Nil(t, th.App.RemoveSamlIdpCertificate())
+
+	assert.Empty(t, *th.App.Config().SamlSettings.IdpCertificateFile)
+	assert.False(t, *th.App.Config().SamlSettings.Enable)
+	assert.Equal(t, []bool{true}, cluster.sent, "the config change should be sent to the other nodes")
+}
+
+type configChangeCapturingCluster struct {
+	testlib.FakeClusterInterface
+	sent []bool
+}
+
+func (c *configChangeCapturingCluster) ConfigChanged(_, _ *model.Config, sendToOtherServer bool) *model.AppError {
+	c.sent = append(c.sent, sendToOtherServer)
+	return nil
+}
+
+func testCertificateDER(t *testing.T) []byte {
+	t.Helper()
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().Add(time.Hour),
+	}
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	require.NoError(t, err)
+	return certDER
+}
+
+func samlFileHeader(t *testing.T, data []byte) *multipart.FileHeader {
+	t.Helper()
+	var buf bytes.Buffer
+	w := multipart.NewWriter(&buf)
+	part, err := w.CreateFormFile("certificate", "certificate.crt")
+	require.NoError(t, err)
+	_, err = part.Write(data)
+	require.NoError(t, err)
+	require.NoError(t, w.Close())
+
+	form, err := multipart.NewReader(&buf, w.Boundary()).ReadForm(1 << 20)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = form.RemoveAll() })
+	return form.File["certificate"][0]
 }
