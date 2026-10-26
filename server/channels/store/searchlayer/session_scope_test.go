@@ -19,23 +19,20 @@ import (
 )
 
 func TestScopedSearchUsesScopeChannels(t *testing.T) {
-	publicOpen := &model.Channel{Id: model.NewId(), Type: model.ChannelTypeOpen}
-	listed := &model.Channel{Id: model.NewId(), Type: model.ChannelTypePrivate}
-	openOnly := &model.SessionScopeResources{OpenTeamPublicChannels: true}
-	listedOnly := &model.SessionScopeResources{ChannelIDs: []string{listed.Id, publicOpen.Id}}
+	listed := model.NewId()
+	publicOpen := model.NewId()
 
-	setup := func(t *testing.T) (*searchlayer.SearchStore, *storemocks.ChannelStore, *storemocks.TeamStore, *mocks.SearchEngineInterface) {
+	setup := func(t *testing.T) (*searchlayer.SearchStore, *storemocks.ChannelStore, *mocks.SearchEngineInterface) {
 		cfg := &model.Config{}
 		cfg.SetDefaults()
 
 		channelStore := &storemocks.ChannelStore{}
-		teamStore := &storemocks.TeamStore{}
 		postStore := &storemocks.PostStore{}
 		postStore.On("GetPostsByIds", mock.Anything).Return([]*model.Post{}, nil).Maybe()
 		baseStore := &storemocks.Store{}
 		baseStore.On("Channel").Return(channelStore)
 		baseStore.On("Post").Return(postStore)
-		baseStore.On("Team").Return(teamStore)
+		baseStore.On("Team").Return(&storemocks.TeamStore{})
 		baseStore.On("User").Return(&storemocks.UserStore{})
 		baseStore.On("FileInfo").Return(&storemocks.FileInfoStore{})
 
@@ -47,54 +44,59 @@ func TestScopedSearchUsesScopeChannels(t *testing.T) {
 
 		broker := searchengine.NewBroker(cfg)
 		broker.ElasticsearchEngine = es
-		return searchlayer.NewSearchLayer(baseStore, broker, cfg), channelStore, teamStore, es
+		return searchlayer.NewSearchLayer(baseStore, broker, cfg), channelStore, es
 	}
 
-	t.Run("scoped search passes the scope's channels, not memberships", func(t *testing.T) {
-		layer, channelStore, _, es := setup(t)
-		channelStore.On("GetChannelsInSessionScope", "", openOnly).Return(model.ChannelList{publicOpen}, nil).Once()
-		channelStore.On("GetChannelsInSessionScope", "", listedOnly).Return(model.ChannelList{listed, publicOpen}, nil)
+	scoped := &model.SessionScopeResources{ChannelIDs: []string{listed}, OpenTeamPublicChannels: true}
+	channelIDs := func(channels model.ChannelList) []string {
+		ids := []string{}
+		for _, channel := range channels {
+			ids = append(ids, channel.Id)
+		}
+		return ids
+	}
+
+	t.Run("scoped post search passes the scope's channels, not memberships", func(t *testing.T) {
+		layer, channelStore, es := setup(t)
+		teamID := model.NewId()
+		channelStore.On("GetChannelIDsInSessionScope", teamID, scoped, false).Return([]string{listed, publicOpen}, nil)
 
 		var searched model.ChannelList
 		es.On("SearchPosts", mock.Anything, mock.Anything, 0, 20).Run(func(args mock.Arguments) {
 			searched = args.Get(0).(model.ChannelList)
 		}).Return([]string{}, model.PostSearchMatches{}, nil)
 
-		params := &model.SearchParams{Terms: "x", ScopedChannels: &model.SessionScopeResources{ChannelIDs: listedOnly.ChannelIDs, OpenTeamPublicChannels: true}}
-		_, err := layer.Post().SearchPostsForUser(request.TestContext(t), []*model.SearchParams{params}, model.NewId(), "", 0, 20)
+		params := &model.SearchParams{Terms: "x", ScopedChannels: scoped}
+		_, err := layer.Post().SearchPostsForUser(request.TestContext(t), []*model.SearchParams{params}, model.NewId(), teamID, 0, 20)
 		require.NoError(t, err)
-		assert.ElementsMatch(t, model.ChannelList{publicOpen, listed}, searched, "deduplicated union of open-team and listed channels")
+		assert.Equal(t, []string{listed, publicOpen}, channelIDs(searched))
 		channelStore.AssertNotCalled(t, "GetChannels", mock.Anything, mock.Anything, mock.Anything)
-
-		_, err = layer.Post().SearchPostsForUser(request.TestContext(t), []*model.SearchParams{params}, model.NewId(), "", 0, 20)
-		require.NoError(t, err)
-		channelStore.AssertNumberOfCalls(t, "GetChannelsInSessionScope", 3)
 	})
 
-	t.Run("team writes clear the open-team cache", func(t *testing.T) {
-		layer, channelStore, teamStore, es := setup(t)
-		channelStore.On("GetChannelsInSessionScope", "", openOnly).Return(model.ChannelList{publicOpen}, nil)
-		teamStore.On("Update", mock.Anything).Return(&model.Team{}, nil)
-		es.On("SearchFiles", mock.Anything, mock.Anything, 0, 20).Return([]string{}, nil)
+	t.Run("scoped file search passes the scope's channels", func(t *testing.T) {
+		layer, channelStore, es := setup(t)
+		channelStore.On("GetChannelIDsInSessionScope", "", scoped, false).Return([]string{listed}, nil)
 
-		params := &model.SearchParams{Terms: "x", ScopedChannels: openOnly}
+		var searched model.ChannelList
+		es.On("SearchFiles", mock.Anything, mock.Anything, 0, 20).Run(func(args mock.Arguments) {
+			searched = args.Get(0).(model.ChannelList)
+		}).Return([]string{}, nil)
+
+		params := &model.SearchParams{Terms: "x", ScopedChannels: scoped}
 		_, err := layer.FileInfo().Search(request.TestContext(t), []*model.SearchParams{params}, model.NewId(), "", 0, 20)
 		require.NoError(t, err)
-		_, err = layer.Team().Update(&model.Team{})
-		require.NoError(t, err)
-		_, err = layer.FileInfo().Search(request.TestContext(t), []*model.SearchParams{params}, model.NewId(), "", 0, 20)
-		require.NoError(t, err)
-		channelStore.AssertNumberOfCalls(t, "GetChannelsInSessionScope", 2)
+		assert.Equal(t, []string{listed}, channelIDs(searched))
 	})
 
 	t.Run("unscoped search still uses memberships", func(t *testing.T) {
-		layer, channelStore, _, es := setup(t)
+		layer, channelStore, es := setup(t)
 		userID := model.NewId()
-		channelStore.On("GetChannels", "", userID, mock.Anything).Return(model.ChannelList{listed}, nil)
-		es.On("SearchPosts", model.ChannelList{listed}, mock.Anything, 0, 20).Return([]string{}, model.PostSearchMatches{}, nil)
+		member := &model.Channel{Id: listed}
+		channelStore.On("GetChannels", "", userID, mock.Anything).Return(model.ChannelList{member}, nil)
+		es.On("SearchPosts", model.ChannelList{member}, mock.Anything, 0, 20).Return([]string{}, model.PostSearchMatches{}, nil)
 
 		_, err := layer.Post().SearchPostsForUser(request.TestContext(t), []*model.SearchParams{{Terms: "x"}}, userID, "", 0, 20)
 		require.NoError(t, err)
-		channelStore.AssertNotCalled(t, "GetChannelsInSessionScope", mock.Anything, mock.Anything)
+		channelStore.AssertNotCalled(t, "GetChannelIDsInSessionScope", mock.Anything, mock.Anything, mock.Anything)
 	})
 }

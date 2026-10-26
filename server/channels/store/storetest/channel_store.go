@@ -95,6 +95,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("Get", func(t *testing.T) { testChannelStoreGet(t, rctx, ss, s) })
 	t.Run("GetMany", func(t *testing.T) { testChannelStoreGetMany(t, rctx, ss, s) })
 	t.Run("GetChannelsByIds", func(t *testing.T) { testChannelStoreGetChannelsByIds(t, rctx, ss) })
+	t.Run("GetChannelIDsInSessionScope", func(t *testing.T) { testChannelStoreGetChannelIDsInSessionScope(t, rctx, ss) })
 	t.Run("GetChannelsWithTeamDataByIds", func(t *testing.T) { testGetChannelsWithTeamDataByIds(t, rctx, ss) })
 	t.Run("GetForPost", func(t *testing.T) { testChannelStoreGetForPost(t, rctx, ss) })
 	t.Run("Restore", func(t *testing.T) { testChannelStoreRestore(t, rctx, ss) })

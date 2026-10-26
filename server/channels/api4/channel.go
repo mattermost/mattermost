@@ -1405,12 +1405,17 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	channels, err := c.App.GetPublicChannelsForTeam(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	var channels model.ChannelList
+	var err *model.AppError
+	if scope, scoped := c.AppContext.Session().Scope(); scoped {
+		channels, err = c.App.GetPublicChannelsForTeamInSessionScope(c.AppContext, scope, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	} else {
+		channels, err = c.App.GetPublicChannelsForTeam(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	}
 	if err != nil {
 		c.Err = err
 		return
 	}
-	channels = c.App.FilterChannelsToSessionScope(c.AppContext, c.AppContext.Session(), channels)
 
 	err = c.App.FillInChannelsProps(c.AppContext, channels)
 	if err != nil {
@@ -1751,9 +1756,10 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channels model.ChannelList
 	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, appErr = c.App.SearchChannels(c.AppContext, c.Params.TeamId, props.Term)
-		if appErr == nil {
-			channels = c.App.FilterChannelsToSessionScope(c.AppContext, c.AppContext.Session(), channels)
+		if scope, scoped := c.AppContext.Session().Scope(); scoped {
+			channels, appErr = c.App.SearchChannelsInSessionScope(c.AppContext, scope, c.Params.TeamId, props.Term)
+		} else {
+			channels, appErr = c.App.SearchChannels(c.AppContext, c.Params.TeamId, props.Term)
 		}
 	} else if c.AppContext.Session().IsScoped() {
 		c.SetPermissionError(model.PermissionListTeamChannels)

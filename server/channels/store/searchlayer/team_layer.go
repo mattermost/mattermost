@@ -14,22 +14,6 @@ type SearchTeamStore struct {
 	rootStore *SearchStore
 }
 
-func (s SearchTeamStore) Save(team *model.Team) (*model.Team, error) {
-	saved, err := s.TeamStore.Save(team)
-	if err == nil {
-		s.rootStore.invalidateOpenTeamChannels()
-	}
-	return saved, err
-}
-
-func (s SearchTeamStore) Update(team *model.Team) (*model.Team, error) {
-	updated, err := s.TeamStore.Update(team)
-	if err == nil {
-		s.rootStore.invalidateOpenTeamChannels()
-	}
-	return updated, err
-}
-
 func (s SearchTeamStore) SaveMember(rctx request.CTX, teamMember *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	member, err := s.TeamStore.SaveMember(rctx, teamMember, maxUsersPerTeam)
 	if err == nil {

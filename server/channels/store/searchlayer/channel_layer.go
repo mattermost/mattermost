@@ -96,7 +96,6 @@ func (c *SearchChannelStore) bulkIndexChannels(rctx request.CTX, channels []*mod
 func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels, channelOptions...)
 	if err == nil {
-		c.rootStore.invalidateOpenTeamChannels()
 		c.indexChannel(rctx, newChannel)
 	}
 	return newChannel, err
@@ -113,7 +112,6 @@ func (c *SearchChannelStore) Update(rctx request.CTX, channel *model.Channel) (*
 
 	updatedChannel, err := c.ChannelStore.Update(rctx, channel)
 	if err == nil {
-		c.rootStore.invalidateOpenTeamChannels()
 		c.indexChannel(rctx, updatedChannel)
 		// If channel type changed, reindex all posts so their channel_type field is updated.
 		if getErr == nil && oldChannel.Type != updatedChannel.Type {

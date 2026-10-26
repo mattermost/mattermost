@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
-
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,13 +12,14 @@ import (
 // sessionScopeChannelIDsQuery selects the IDs of the channels in a session
 // scope's resources. It is the SQL form of model.SessionScopeAllowsChannel and
 // model.Team.IsOpenToAllUsers and must stay in step with them. The caller has
-// already dropped OpenTeamPublicChannels when compliance mode is on.
+// already dropped OpenTeamPublicChannels when the server turns the open-team
+// grant off.
 func sessionScopeChannelIDsQuery(builder sq.StatementBuilderType, resources *model.SessionScopeResources) sq.SelectBuilder {
 	query := builder.Select("Channels.Id").
 		From("Channels").
 		Where(sq.Eq{"Channels.DeleteAt": 0}).
 		Where(sq.NotEq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}}).
-		Where(sq.Expr(fmt.Sprintf("NOT EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = Channels.Id AND acp.Type = '%s')", model.AccessControlPolicyTypeChannel)))
+		Where(sq.Expr("NOT EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = Channels.Id AND acp.Type = ?)", model.AccessControlPolicyTypeChannel))
 
 	inScope := sq.Or{}
 	if resources != nil && len(resources.ChannelIDs) > 0 {
@@ -29,14 +28,14 @@ func sessionScopeChannelIDsQuery(builder sq.StatementBuilderType, resources *mod
 	if resources != nil && resources.OpenTeamPublicChannels {
 		inScope = append(inScope, sq.And{
 			sq.Eq{"Channels.Type": model.ChannelTypeOpen},
-			sq.Expr(fmt.Sprintf(`Channels.TeamId IN (
+			sq.Expr(`Channels.TeamId IN (
 				SELECT ot.Id FROM Teams ot
 				WHERE ot.AllowOpenInvite = true
 				AND ot.DeleteAt = 0
 				AND COALESCE(ot.GroupConstrained, false) = false
 				AND COALESCE(ot.AllowedDomains, '') = ''
-				AND NOT EXISTS (SELECT 1 FROM AccessControlPolicies tacp WHERE tacp.ID = ot.Id AND tacp.Type = '%s')
-			)`, model.AccessControlPolicyTypeTeam)),
+				AND NOT EXISTS (SELECT 1 FROM AccessControlPolicies tacp WHERE tacp.ID = ot.Id AND tacp.Type = ?)
+			)`, model.AccessControlPolicyTypeTeam),
 		})
 	}
 	if len(inScope) == 0 {
