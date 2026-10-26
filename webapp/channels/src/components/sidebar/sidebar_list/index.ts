@@ -33,6 +33,7 @@ import {
     getDisplayedChannels,
     getDraggingState,
     getCategoriesForCurrentTeam,
+    getCategoryIdsHiddenByProductRail,
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
 import {getFirstBoardInCurrentTeam, getProductRailFilter} from 'selectors/views/product_rail';
@@ -70,6 +71,7 @@ function mapStateToProps(state: GlobalState) {
         markAllAsReadShortcutEnabled: getFeatureFlagValue(state, 'EnableShiftEscapeToMarkAllRead') === 'true',
         isProductRailEnabled: isProductRailEnabled(state),
         showNoBoards: getProductRailFilter(state) === 'boards' && !getFirstBoardInCurrentTeam(state),
+        categoryIdsHiddenByProductRail: getCategoryIdsHiddenByProductRail(state),
         currentStaticPageId: getCurrentStaticPageId(state),
         staticPages: getVisibleStaticPages(state),
     };

@@ -270,6 +270,39 @@ export function makeGetUnreadIdsForCategory(): (state: GlobalState, category: Ch
     );
 }
 
+const emptyCategoryIds = new Set<string>();
+
+// The ids of the current team's categories that the product rail's Channels or Boards section
+// leaves with nothing to show, which the sidebar hides: in Boards, any category without boards;
+// in Channels, one holding only boards. The sidebar list and each category read this one answer,
+// so the list can number the categories it shows without gaps for dragging.
+export const getCategoryIdsHiddenByProductRail: (state: GlobalState) => Set<string> = createSelector(
+    'getCategoryIdsHiddenByProductRail',
+    getCategoriesForCurrentTeam,
+    getChannelsByCategoryForCurrentTeam,
+    getUnreadChannelIdsSet,
+    shouldShowUnreadsCategory,
+    getProductRailFilter,
+    getBoardChannelIds,
+    (categories, channelsByCategory, unreadChannelIds, showUnreadsCategory, railFilter, boardChannelIds) => {
+        if (!railFilter) {
+            return emptyCategoryIds;
+        }
+
+        const hidden = new Set<string>();
+        for (const category of categories) {
+            const channelIds = (channelsByCategory[category.id] ?? []).map((channel) => channel.id);
+            const shown = filterChannelIdsForSection(channelIds, railFilter, boardChannelIds).
+                filter((id) => !showUnreadsCategory || !unreadChannelIds.has(id));
+
+            if (shown.length === 0 && (railFilter === 'boards' || channelIds.length > 0)) {
+                hidden.add(category.id);
+            }
+        }
+        return hidden;
+    },
+);
+
 export function getDraggingState(state: GlobalState): DraggingState {
     return state.views.channelSidebar.draggingState;
 }

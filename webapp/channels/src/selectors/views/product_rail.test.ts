@@ -8,7 +8,7 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 import type {ProductRailSection} from 'types/store/views';
 
-import {filterChannelIdsForSection, getBoardChannelIds, getProductRailSection} from './product_rail';
+import {filterChannelIdsForSection, getBoardChannelIds, getProductRailSection, toFullListIndex} from './product_rail';
 import type {ChannelKindRegistration} from './product_rail';
 
 const channel = TestHelper.getChannelMock({id: 'channel'});
@@ -75,5 +75,27 @@ describe('filterChannelIdsForSection', () => {
 
     test('should leave out boards in Channels', () => {
         expect(filterChannelIdsForSection(ids, 'channels', boardIds)).toEqual([channel.id]);
+    });
+});
+
+describe('toFullListIndex', () => {
+    // b and d are hidden; a, c and e are shown.
+    const full = ['a', 'b', 'c', 'd', 'e'];
+    const visible = ['a', 'c', 'e'];
+
+    test('should place an item dropped before a shown item right before it', () => {
+        // e dropped at the top goes before a.
+        expect(toFullListIndex(visible, full, 'e', 0)).toBe(0);
+
+        // a dropped between c and e goes right before e, past the hidden d.
+        expect(toFullListIndex(visible, full, 'a', 1)).toBe(3);
+    });
+
+    test('should place an item dropped last right after the last shown item', () => {
+        expect(toFullListIndex(visible, full, 'a', 2)).toBe(4);
+    });
+
+    test('should place an item first when nothing else is shown', () => {
+        expect(toFullListIndex(['a'], full, 'a', 0)).toBe(0);
     });
 });

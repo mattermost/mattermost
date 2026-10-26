@@ -84,9 +84,24 @@ const productTab = (product: ProductComponent): ProductRailTab => `product:${pro
 // best-effort: without storage, the rail just starts from each item's default again.
 const lastPathsStorageKey = (userId: string) => `product_rail_last_paths_${userId}`;
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
 function readSavedLastPaths(userId: string): Record<string, Record<string, string>> {
     try {
-        return JSON.parse(localStorage.getItem(lastPathsStorageKey(userId)) ?? '{}');
+        const saved: unknown = JSON.parse(localStorage.getItem(lastPathsStorageKey(userId)) ?? '{}');
+        if (!isPlainObject(saved)) {
+            return {};
+        }
+
+        // Keep only well-formed entries: a tab mapping team ids to path strings.
+        const lastPaths: Record<string, Record<string, string>> = {};
+        for (const [tab, paths] of Object.entries(saved)) {
+            if (isPlainObject(paths)) {
+                lastPaths[tab] = Object.fromEntries(Object.entries(paths).filter(([, path]) => typeof path === 'string')) as Record<string, string>;
+            }
+        }
+        return lastPaths;
     } catch {
         return {};
     }

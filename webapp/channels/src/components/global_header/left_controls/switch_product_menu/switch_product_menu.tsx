@@ -69,8 +69,9 @@ export function SwitchProductMenu(props: Props) {
 
     const isChannelsProductActive = isChannels(props.productId);
 
-    // The product rail lists Channels and every product, so the menu keeps only the rest.
-    const productRailEnabled = useSelector(isProductRailEnabled);
+    // The product rail lists Channels and every product, so the menu keeps only the rest. The rail
+    // needs a current team, so without one the menu keeps them too.
+    const productRailShown = useSelector(isProductRailEnabled) && Boolean(currentTeam);
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -111,18 +112,18 @@ export function SwitchProductMenu(props: Props) {
                 />
             }
         >
-            {!productRailEnabled && (
+            {!productRailShown && (
                 <ProductSwitcherChannelsMenuItem
                     isChannelsProductActive={isChannelsProductActive}
                 />
             )}
-            {!productRailEnabled && (
+            {!productRailShown && (
                 <ProductSwitcherProductsMenuItems
                     currentProductID={props.productId}
                 />
             )}
             <ProductSwitcherPluginMenuItems/>
-            {!productRailEnabled && <Menu.Separator/>}
+            {!productRailShown && <Menu.Separator/>}
             <ProductSwitcherCloudTrialMenuItem
                 isUserAdmin={isUserAdmin}
                 isCloudLicensed={isCloudLicensed}

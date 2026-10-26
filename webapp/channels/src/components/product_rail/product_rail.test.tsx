@@ -305,6 +305,25 @@ describe('ProductRail', () => {
             expect(screen.getByRole('link', {name: /Threads/})).toHaveAttribute('href', '/team-one/threads/thread2');
         });
 
+        test('should ignore saved paths of the wrong shape', () => {
+            localStorage.setItem(`product_rail_last_paths_${user.id}`, 'null');
+            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
+        });
+
+        test('should keep only well-formed saved paths', () => {
+            localStorage.setItem(`product_rail_last_paths_${user.id}`, JSON.stringify({
+                boards: {[team.id]: 42},
+                threads: 'not an object',
+                channels: {[team.id]: '/team-one/channels/town-square'},
+            }));
+
+            renderAt('/team-one/threads', getBoardsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
+        });
+
         test('should save where the user is for the next session', () => {
             renderAt('/team-one/channels/roadmap', getBoardsState(roadmap.id));
 

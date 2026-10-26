@@ -146,6 +146,27 @@ export function filterChannelIdsForSection(channelIds: string[], section: Produc
     return filtered.length === channelIds.length ? channelIds : filtered;
 }
 
+/**
+ * Translates a drop index in a list the rail has filtered (what @hello-pangea/dnd reports) into an
+ * index in the full list, keeping the dropped item next to the same visible neighbours. Both
+ * indices count the list without the dragged item, as dnd does for a move within one list.
+ */
+export function toFullListIndex(visibleIds: string[], fullIds: string[], draggedId: string, visibleIndex: number): number {
+    const visible = visibleIds.filter((id) => id !== draggedId);
+    const full = fullIds.filter((id) => id !== draggedId);
+
+    // Dropped before a visible item: go right before it in the full list.
+    if (visibleIndex < visible.length) {
+        return full.indexOf(visible[visibleIndex]);
+    }
+
+    // Dropped after the last visible item: go right after it, or first if nothing is visible.
+    if (visible.length === 0) {
+        return 0;
+    }
+    return full.indexOf(visible[visible.length - 1]) + 1;
+}
+
 export type SectionUnreads = {
     mentions: number;
     hasUrgent: boolean;
