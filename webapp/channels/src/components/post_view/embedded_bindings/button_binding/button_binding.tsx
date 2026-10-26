@@ -14,7 +14,6 @@ import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/consta
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {createCallContext} from 'utils/apps';
 
@@ -121,19 +120,16 @@ class ButtonBinding extends React.PureComponent<Props, State> {
                 emphasis='tertiary'
                 size='small'
                 onClick={this.handleClick}
+                disabled={this.state.executing}
+                loading={this.state.executing}
             >
-                <LoadingWrapper
-                    legacy={true}
-                    loading={this.state.executing}
-                >
-                    <Markdown
-                        message={label}
-                        options={{
-                            mentionHighlight: false,
-                            markdown: false,
-                        }}
-                    />
-                </LoadingWrapper>
+                <Markdown
+                    message={label}
+                    options={{
+                        mentionHighlight: false,
+                        markdown: false,
+                    }}
+                />
             </Button>
         );
     }
