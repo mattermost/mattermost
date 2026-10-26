@@ -76,7 +76,6 @@ type State = {
     loaded: Record<number, boolean>;
     prevFileInfosCount: number;
     prevFileIds: string[];
-    prevCurrentUserId: string;
     progress: Record<number, number>;
     showCloseBtn: boolean;
     showZoomControls: boolean;
@@ -124,7 +123,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             loaded: Utils.fillRecord(false, this.props.fileInfos.length),
             prevFileInfosCount: 0,
             prevFileIds: this.props.fileInfos.map(FilePreviewModal.getFileIdentity),
-            prevCurrentUserId: this.props.currentUserId,
             progress: Utils.fillRecord(0, this.props.fileInfos.length),
             showCloseBtn: false,
             showZoomControls: false,
@@ -241,14 +239,15 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         window.removeEventListener('blur', this.endDrag);
     }
 
+    componentDidUpdate(prevProps: Props) {
+        // The modal isn't remounted on an account switch, so the stored preference must be re-read for the new user
+        if (prevProps.currentUserId !== this.props.currentUserId) {
+            this.setState({markdownView: LocalStorageStore.getMarkdownFilePreviewView(this.props.currentUserId)});
+        }
+    }
+
     static getDerivedStateFromProps(props: Props, state: State) {
         const updatedState: Partial<State> = {};
-
-        if (props.currentUserId !== state.prevCurrentUserId) {
-            updatedState.markdownView = LocalStorageStore.getMarkdownFilePreviewView(props.currentUserId);
-            updatedState.prevCurrentUserId = props.currentUserId;
-        }
-
         const currentFile = props.fileInfos[state.imageIndex];
         if (currentFile) {
             const extension = currentFile.extension;

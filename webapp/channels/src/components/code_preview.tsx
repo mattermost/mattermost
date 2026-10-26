@@ -138,7 +138,9 @@ const CodePreview = ({
         );
     }
 
-    // Markdown files keep one fixed-size box in both views so switching doesn't resize the modal.
+    // Markdown files keep one fixed-size box in both views so switching doesn't resize the modal. The label is
+    // skipped in both views (not just this one) since adding it to only one would unbalance how much of the fixed
+    // box each view's content gets — and the modal header already shows the file name.
     const isMarkdownFile = SyntaxHighlighting.isMarkdownLanguage(codeInfo.lang);
 
     if (renderMarkdown && isMarkdownFile) {
@@ -155,9 +157,11 @@ const CodePreview = ({
 
     return (
         <div className={classNames('post-code code-preview', {'code-preview--fixed-size code-preview--wrap': isMarkdownFile})}>
-            <span className='post-code__language'>
-                {`${fileInfo.name} - ${language}`}
-            </span>
+            {!isMarkdownFile && (
+                <span className='post-code__language'>
+                    {`${fileInfo.name} - ${language}`}
+                </span>
+            )}
             <div className='hljs'>
                 {isMarkdownFile ? (
                     <WrappedCodeLines html={codeInfo.highlighted}/>

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useState, type JSX} from 'react';
+import React, {createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
@@ -64,13 +64,22 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
     // The saved preference is read when the block becomes toggleable, and a click overrides it for this block
     const storedMarkdownView = useMemo(() => (canToggleMarkdown ? LocalStorageStore.getMarkdownCodeBlockView(currentUserId) : MarkdownViews.RAW), [canToggleMarkdown, currentUserId]);
-    const [chosenMarkdownView, setChosenMarkdownView] = useState<{userId: string; view: MarkdownView} | null>(null);
-    const markdownView = chosenMarkdownView?.userId === currentUserId ? chosenMarkdownView.view : storedMarkdownView;
+    const [chosenMarkdownView, setChosenMarkdownView] = useState<MarkdownView | null>(null);
+    const markdownView = chosenMarkdownView ?? storedMarkdownView;
     const showRendered = canToggleMarkdown && markdownView === MarkdownViews.RENDERED;
+
+    // The block isn't remounted on an account switch, so a click made as one user must not stick around for the next
+    const previousUserId = useRef(currentUserId);
+    useEffect(() => {
+        if (previousUserId.current !== currentUserId) {
+            previousUserId.current = currentUserId;
+            setChosenMarkdownView(null);
+        }
+    }, [currentUserId]);
 
     const handleMarkdownViewChange = (view: MarkdownView) => {
         LocalStorageStore.setMarkdownCodeBlockView(currentUserId, view);
-        setChosenMarkdownView({userId: currentUserId, view});
+        setChosenMarkdownView(view);
     };
 
     // Markdown is prose, so wrap it, with a number on each line rather than one column that wrapped lines would knock out of step.
