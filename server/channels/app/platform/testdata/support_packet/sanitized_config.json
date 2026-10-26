@@ -625,7 +625,8 @@
         "AutomaticPrepackagedPlugins": null,
         "RequirePluginSignature": null,
         "MarketplaceURL": null,
-        "SignaturePublicKeyFiles": null
+        "SignaturePublicKeyFiles": null,
+        "RestrictUnauthenticatedWebappPlugins": null
     },
     "DisplaySettings": {
         "CustomURLSchemes": null,
