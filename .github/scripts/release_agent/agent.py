@@ -225,7 +225,7 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
     releases, notes = release_calendar.releases_from_events(events, calendar["milestones"])
     holidays = release_calendar.holidays_from(events, calendar.get("holiday_markers", []), rules.get("holidays", []))
     ls_remote = services.ls_remote()
-    branches, tags = changelog_release.parse_ls_remote(ls_remote)
+    branches, tags, _ = changelog_release.parse_ls_remote(ls_remote)
 
     flags = list(notes)
     if settings.release_override:
