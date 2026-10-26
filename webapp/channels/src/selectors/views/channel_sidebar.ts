@@ -159,7 +159,9 @@ export const getUnreadChannels = (() => {
                 // The current channel is already in unreadChannels if it was previously unread but we need to add it
                 // if it wasn't previously unread
                 if (currentChannelId && unreadChannels.findIndex((channel) => channel.id === currentChannelId) === -1) {
-                    if (allChannels[currentChannelId]) {
+                    // ...as long as it belongs in the product rail's current section
+                    const inRailSection = !railSection || boardChannelIds.has(currentChannelId) === (railSection === 'boards');
+                    if (allChannels[currentChannelId] && inRailSection) {
                         unreadChannels.push(allChannels[currentChannelId]);
                     }
                 }

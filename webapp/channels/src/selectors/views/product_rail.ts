@@ -152,6 +152,11 @@ export function filterChannelIdsForSection(channelIds: string[], section: Produc
  * indices count the list without the dragged item, as dnd does for a move within one list.
  */
 export function toFullListIndex(visibleIds: string[], fullIds: string[], draggedId: string, visibleIndex: number): number {
+    // Dropped back where it was: keep its place, rather than moving it past hidden neighbours.
+    if (visibleIds.indexOf(draggedId) === visibleIndex) {
+        return fullIds.indexOf(draggedId);
+    }
+
     const visible = visibleIds.filter((id) => id !== draggedId);
     const full = fullIds.filter((id) => id !== draggedId);
 

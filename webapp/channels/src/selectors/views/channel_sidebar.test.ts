@@ -216,6 +216,36 @@ describe('getUnreadChannels', () => {
         expect(Selectors.getUnreadChannels(state)).toEqual([readChannel, unreadChannel2, unreadChannel1]);
     });
 
+    test('with the unread filter enabled, should leave out a current channel from outside the product rail\'s section', () => {
+        // The rail shows Boards, and only the unread channels are boards; the read current channel isn't one.
+        const boardKind = {id: 'board-kind', pluginId: 'boards', kind: 'board', matcher: (_state: unknown, channel: {id: string}) => channel.id.startsWith('unread')};
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                channels: {
+                    ...baseState.entities.channels,
+                    currentChannelId: 'readChannel',
+                },
+                general: {
+                    ...baseState.entities.general,
+                    config: {FeatureFlagProductRail: 'true'},
+                },
+            },
+            plugins: {components: {ChannelKind: [boardKind]}},
+            views: {
+                ...baseState.views,
+                channelSidebar: {
+                    ...baseState.views.channelSidebar,
+                    unreadFilterEnabled: true,
+                },
+                productRail: {section: 'boards', lastPathByTeam: {}, lastPathsLoaded: false},
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.getUnreadChannels(state)).toEqual([unreadChannel2, unreadChannel1]);
+    });
+
     test('with the unreads category enabled, should only return the current channel if it is lastUnreadChannel', () => {
         let state = {
             ...baseState,

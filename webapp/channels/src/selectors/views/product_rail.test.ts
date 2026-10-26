@@ -95,6 +95,12 @@ describe('toFullListIndex', () => {
         expect(toFullListIndex(visible, full, 'a', 2)).toBe(4);
     });
 
+    test('should keep an item where it was when dropped back in place', () => {
+        // c is shown second and dropped second: it stays after the hidden b.
+        expect(toFullListIndex(visible, full, 'c', 1)).toBe(2);
+        expect(toFullListIndex(visible, full, 'e', 2)).toBe(4);
+    });
+
     test('should place an item first when nothing else is shown', () => {
         expect(toFullListIndex(['a'], full, 'a', 0)).toBe(0);
     });
