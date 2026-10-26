@@ -4,6 +4,8 @@
 import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+
 import Setting from './setting';
 
 type Props = {
@@ -48,6 +50,8 @@ const CheckboxGroupSetting = ({
         onChange(id, next);
     }, [onChange, id, value]);
 
+    const labelBeforeClass = labelPosition === 'before' ? 'inline-choice-setting--label-before' : '';
+
     return (
         <Setting
             label={label}
@@ -64,22 +68,16 @@ const CheckboxGroupSetting = ({
                             className='checkbox'
                             key={optionValue}
                         >
-                            <label>
-                                {labelPosition === 'before' && (
-                                    <span className='inline-choice-setting__text'>{text}</span>
-                                )}
-                                <input
-                                    type='checkbox'
-                                    value={optionValue}
-                                    name={id}
-                                    checked={selected.includes(optionValue)}
-                                    onChange={handleChange}
-                                    disabled={disabled}
-                                />
-                                {labelPosition === 'after' && (
-                                    <span className='inline-choice-setting__text'>{text}</span>
-                                )}
-                            </label>
+                            <Checkbox
+                                className={labelBeforeClass}
+                                value={optionValue}
+                                name={id}
+                                checked={selected.includes(optionValue)}
+                                onChange={handleChange}
+                                disabled={disabled}
+                            >
+                                <span className='inline-choice-setting__text'>{text}</span>
+                            </Checkbox>
                         </div>
                     ))
                 }
