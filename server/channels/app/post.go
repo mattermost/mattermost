@@ -3562,6 +3562,12 @@ func (a *App) MoveThread(rctx request.CTX, postID string, sourceChannelID, chann
 		return model.NewAppError("validateMoveOrCopy", "app.post.move_thread_command.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	// Moving copies the thread's files into the target channel, so it needs the
+	// same upload_file_attachment permission as attaching them there directly.
+	if wpl.ContainsFileAttachments() && !a.HasPermissionToChannelAction(rctx, user.Id, user.Roles, targetChannel.Id, model.AccessControlPolicyActionUploadFileAttachment) {
+		return model.NewAppError("MoveThread", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+	}
+
 	var targetTeam *model.Team
 	if targetChannel.IsGroupOrDirect() {
 		if !originalChannel.IsGroupOrDirect() {
