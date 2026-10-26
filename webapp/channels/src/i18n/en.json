@@ -640,7 +640,7 @@
     "description": "Help text under the Username field on the incoming webhook create/edit form, describing the username the integration posts as."
   },
   "add_oauth_app.callbackUrls.help": {
-    "defaultMessage": "The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://.",
+    "defaultMessage": "The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://, or use a custom scheme allowed by your system administrator. Callback URLs that use a custom scheme require PKCE.",
     "description": "Help text under the Callback URLs field on the OAuth 2.0 application create/edit form."
   },
   "add_oauth_app.callbackUrlsRequired": {
@@ -10478,6 +10478,18 @@
   "admin.notices.enableEndUserNoticesTitle": {
     "defaultMessage": "Enable End User Notices: ",
     "description": "Setting label (toggle) on the Notices admin page controlling announcement notices shown to all users; ends with a colon and trailing space."
+  },
+  "admin.oauth.allowedRedirectURISchemesDesc": {
+    "defaultMessage": "Enter comma-separated URI schemes (without ://) that manually created OAuth 2.0 apps may use for callback URLs, e.g. com.example.app. http and https are always allowed. PKCE is required for any custom-scheme redirect. If empty, only http and https callback URLs are allowed.",
+    "description": "Admin console help text under the Allowed Custom Redirect URI Schemes setting in Integrations > Integration Management; audience is system admins configuring OAuth. 'http', 'https', '://' and 'PKCE' are technical terms - keep them untranslated."
+  },
+  "admin.oauth.allowedRedirectURISchemesPlaceholder": {
+    "defaultMessage": "E.g.: com.example.app, myapp",
+    "description": "Placeholder in the Allowed Custom Redirect URI Schemes text field in the admin console; the example values are literal URI schemes and should not be translated."
+  },
+  "admin.oauth.allowedRedirectURISchemesTitle": {
+    "defaultMessage": "Allowed Custom Redirect URI Schemes:",
+    "description": "Setting label for the list of non-http(s) URI schemes that manually created OAuth 2.0 apps may use for callback URLs; ends with a colon."
   },
   "admin.oauth.dcrDescription": {
     "defaultMessage": "When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. Only enable this if you need third-party applications to register OAuth clients programmatically.",

@@ -202,6 +202,8 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
             );
             break;
         case ErrorPageTypes.OAUTH_INVALID_REDIRECT_URL:
+        case ErrorPageTypes.OAUTH_PKCE_REQUIRED:
+        case ErrorPageTypes.OAUTH_IMPLICIT_NOT_ALLOWED:
         case ErrorPageTypes.OAUTH_INVALID_PARAM:
             errorMessage = (
                 <p>

@@ -517,7 +517,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_oauth_app.callbackUrls.help'
-                                        defaultMessage='The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://.'
+                                        defaultMessage='The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://, or use a custom scheme allowed by your system administrator. Callback URLs that use a custom scheme require PKCE.'
                                     />
                                 </div>
                             </div>
