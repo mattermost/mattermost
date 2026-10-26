@@ -298,8 +298,14 @@ func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, sco
 // RevokeScopedSessionsForPlugin revokes every live session minted by the plugin.
 // It runs when the plugin is disabled; session expiry is the backstop.
 func (a *App) RevokeScopedSessionsForPlugin(rctx request.CTX, pluginID string) *model.AppError {
-	return a.revokeScopedSessions(rctx.WithLogFields(mlog.String("plugin_id", pluginID)), func(scope *model.SessionScope) bool {
-		return scope.CreatedByPluginID == pluginID
+	return a.RevokeScopedSessionsForPlugins(rctx, []string{pluginID})
+}
+
+// RevokeScopedSessionsForPlugins revokes every live session minted by any of the
+// plugins, with one session lookup however many plugins there are.
+func (a *App) RevokeScopedSessionsForPlugins(rctx request.CTX, pluginIDs []string) *model.AppError {
+	return a.revokeScopedSessions(rctx.WithLogFields(mlog.Any("plugin_ids", pluginIDs)), func(scope *model.SessionScope) bool {
+		return slices.Contains(pluginIDs, scope.CreatedByPluginID)
 	})
 }
 
@@ -341,9 +347,13 @@ func (a *App) revokeScopedSessions(rctx request.CTX, match func(*model.SessionSc
 }
 
 func (ch *Channels) revokeScopedSessionsForPlugin(pluginID string) {
+	ch.revokeScopedSessionsForPlugins([]string{pluginID})
+}
+
+func (ch *Channels) revokeScopedSessionsForPlugins(pluginIDs []string) {
 	rctx := request.EmptyContext(ch.srv.Log())
-	if appErr := New(ServerConnector(ch)).RevokeScopedSessionsForPlugin(rctx, pluginID); appErr != nil {
-		rctx.Logger().Error("Failed to revoke scoped sessions for plugin", mlog.String("plugin_id", pluginID), mlog.Err(appErr))
+	if appErr := New(ServerConnector(ch)).RevokeScopedSessionsForPlugins(rctx, pluginIDs); appErr != nil {
+		rctx.Logger().Error("Failed to revoke scoped sessions for plugins", mlog.Any("plugin_ids", pluginIDs), mlog.Err(appErr))
 	}
 }
 

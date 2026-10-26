@@ -46,6 +46,11 @@ func requireContentFlaggingAvailable(c *Context) {
 }
 
 func requireContentFlaggingEnabled(c *Context) {
+	if c.AppContext.Session().IsScoped() {
+		c.Err = web.NewScopedSessionOutOfScopeError("requireContentFlaggingEnabled")
+		return
+	}
+
 	requireContentFlaggingAvailable(c)
 	if c.Err != nil {
 		return

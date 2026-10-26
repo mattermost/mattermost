@@ -372,6 +372,26 @@ func TestScopedSessionMissingObjectsLookOutOfScope(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
+func TestScopedSessionContentReviewerParamIsNotAnOracle(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedAPIFixture(t, th)
+	ctx := context.Background()
+
+	dmFile, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{CreatorId: f.bot.Id, ChannelId: f.botDM.Id, Path: "x/dm.txt", Name: "dm.txt"})
+	require.NoError(t, err)
+
+	routes := []string{
+		"/channels/" + f.botDM.Id,
+		"/channels/" + model.NewId(),
+		"/files/" + dmFile.Id,
+		"/files/" + model.NewId(),
+	}
+	for _, route := range routes {
+		r, err := f.client.DoAPIGet(ctx, route+"?as_content_reviewer=true&flagged_post_id="+f.dmPost.Id, "")
+		requireScopeError(t, model.BuildResponse(r), err)
+	}
+}
+
 func TestScopedSessionUserVisibility(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	f := setupScopedAPIFixture(t, th)

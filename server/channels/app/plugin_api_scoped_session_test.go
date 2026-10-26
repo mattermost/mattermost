@@ -125,4 +125,14 @@ func TestScopedSessionsRevokedOnPluginDisable(t *testing.T) {
 		_, appErr := th.App.GetSession(session.Token)
 		return appErr != nil
 	}, 10*time.Second, 100*time.Millisecond, "scoped session must be revoked when its plugin is disabled")
+
+	t.Run("sync revokes sessions minted after deactivation", func(t *testing.T) {
+		late, appErr := th.App.CreateScopedSession(th.Context, pluginID, f.bot.Id, f.scope(), model.GetMillis()+30*60*1000)
+		require.Nil(t, appErr)
+
+		th.App.ch.syncPluginsActiveState()
+
+		_, appErr = th.App.GetSession(late.Token)
+		require.NotNil(t, appErr)
+	})
 }
