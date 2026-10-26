@@ -153,9 +153,9 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 }
 
 // ProjectLegacyPermissionsWithTemplate is ProjectLegacyPermissions with
-// access_mode taken from EffectiveAccessMode, so a linked field reports its
-// template's mode. template is nil when field isn't linked or its template
-// couldn't be read.
+// access_mode taken from EffectiveAccessMode, so a linked field reports the
+// stricter of its own mode and its template's. template is nil when field
+// isn't linked or its template couldn't be read.
 func ProjectLegacyPermissionsWithTemplate(field, template *PropertyField) *PropertyField {
 	if field.Permissions == nil {
 		return field

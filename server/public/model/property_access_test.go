@@ -255,6 +255,45 @@ func TestEffectiveAccessMode(t *testing.T) {
 		masked := &PropertyField{LinkedFieldID: &sourceOnly.ID, Permissions: &Permissions{Restrictions: public, Masking: &Masking{}}}
 		assert.Equal(t, PropertyAccessModeSharedOnly, EffectiveAccessMode(masked, sourceOnly))
 	})
+
+	// A linked field reports the stricter of its own mode and its template's.
+	unreadable := &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelNone},
+		Option: ReadWrite{Read: PermissionLevelNone},
+	}
+	publicTemplate := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: public}}
+	for _, tc := range []struct {
+		name         string
+		own          *Restrictions
+		template     *PropertyField
+		expectedMode string
+	}{
+		{"own none, template public", unreadable, publicTemplate, PropertyAccessModeSourceOnly},
+		{"own everyone, template shared_only", public, template, PropertyAccessModeSharedOnly},
+		{"own everyone, template public", public, publicTemplate, PropertyAccessModePublic},
+		{"own none, template shared_only", unreadable, template, PropertyAccessModeSourceOnly},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			field := &PropertyField{LinkedFieldID: &tc.template.ID, Permissions: &Permissions{Restrictions: tc.own}}
+			assert.Equal(t, tc.expectedMode, EffectiveAccessMode(field, tc.template))
+		})
+	}
+}
+
+func TestStricterAccessMode(t *testing.T) {
+	for _, tc := range []struct {
+		a, b, expected string
+	}{
+		{PropertyAccessModePublic, PropertyAccessModePublic, PropertyAccessModePublic},
+		{PropertyAccessModePublic, PropertyAccessModeSharedOnly, PropertyAccessModeSharedOnly},
+		{PropertyAccessModeSharedOnly, PropertyAccessModePublic, PropertyAccessModeSharedOnly},
+		{PropertyAccessModeSharedOnly, PropertyAccessModeSourceOnly, PropertyAccessModeSourceOnly},
+		{PropertyAccessModeSourceOnly, PropertyAccessModePublic, PropertyAccessModeSourceOnly},
+		{"bogus", PropertyAccessModePublic, PropertyAccessModeSourceOnly},
+		{PropertyAccessModeSharedOnly, "unrecognised", PropertyAccessModeSourceOnly},
+	} {
+		assert.Equal(t, tc.expected, stricterAccessMode(tc.a, tc.b), "stricterAccessMode(%q, %q)", tc.a, tc.b)
+	}
 }
 
 func TestPropertyFieldReadableByEveryone(t *testing.T) {

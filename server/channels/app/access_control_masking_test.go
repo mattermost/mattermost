@@ -1666,6 +1666,51 @@ func TestHoldingsFieldFor_NoMaskByFieldIDFallsBackToUserSibling(t *testing.T) {
 		assert.False(t, info.IsValueHidden("A"))
 		assert.True(t, info.IsValueHidden("B"), "the other linked user field's holdings must not be consulted")
 	})
+
+	// The shape the conversion gives a master shared_only scheme whose template
+	// never converted to masked: the template stays unmasked with open reads,
+	// and each linked field has its own reads narrowed to none instead. The
+	// linked fields' own mode is source_only, stricter than the template's
+	// public, and that is what the reference must report.
+	t.Run("linked fields with no reads under an unmasked template mask everything", func(t *testing.T) {
+		callerID := model.NewId()
+		tmpl := newTemplate(t)
+		tmpl.Permissions = &model.Permissions{Restrictions: openRestrictions()}
+		_, err := th.Store.PropertyField().Update(groupID, []*model.PropertyField{tmpl}, nil)
+		require.NoError(t, err)
+
+		unreadable := func(t *testing.T, objectType string) *model.PropertyField {
+			t.Helper()
+			created, cErr := th.Store.PropertyField().Create(&model.PropertyField{
+				GroupID:       groupID,
+				Name:          celSafeName(),
+				Type:          model.PropertyFieldTypeSelect,
+				ObjectType:    objectType,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				LinkedFieldID: &tmpl.ID,
+				Attrs:         model.StringInterface{model.PropertyFieldAttributeOptions: options},
+				Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelNone},
+					Option: model.ReadWrite{Read: model.PermissionLevelNone},
+				}},
+			})
+			require.NoError(t, cErr)
+			return created
+		}
+		sibling := unreadable(t, model.PropertyFieldObjectTypeUser)
+		channelField := unreadable(t, model.PropertyFieldObjectTypeChannel)
+		hold(t, callerID, sibling, optA)
+
+		cond := editorView(t, callerID, channelField)
+		assert.Nil(t, cond.Value, "no literal may show on a field nobody may read")
+		assert.True(t, cond.HasMaskedValues)
+
+		info, err := resolve(t, callerID, channelField)
+		require.NoError(t, err)
+		require.Equal(t, model.MaskingFieldAccessSourceOnly, info.Access)
+		assert.True(t, info.IsValueHidden("A"))
+		assert.True(t, info.IsValueHidden("B"))
+	})
 }
 
 // TestAppMaskingResolver_ChannelFieldNamedHoldingsPublic guards the fail-open
@@ -2112,5 +2157,21 @@ func TestEffectiveAccessModeUsingFailsClosedOnTemplateRead(t *testing.T) {
 			return &model.PropertyField{ID: templateID, Permissions: linked.Permissions}, nil
 		})
 		assert.Equal(t, model.PropertyAccessModePublic, mode)
+	})
+
+	t.Run("a template read error keeps a linked field's own source_only", func(t *testing.T) {
+		unreadable := &model.PropertyField{
+			ID:            model.NewId(),
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			LinkedFieldID: &templateID,
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelNone},
+				Option: model.ReadWrite{Read: model.PermissionLevelNone},
+			}},
+		}
+		mode := effectiveAccessModeUsing(unreadable, func(string) (*model.PropertyField, error) {
+			return nil, fmt.Errorf("store unavailable")
+		})
+		assert.Equal(t, model.PropertyAccessModeSourceOnly, mode)
 	})
 }

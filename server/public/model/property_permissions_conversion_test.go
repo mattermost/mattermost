@@ -1113,6 +1113,25 @@ func TestProjectLegacyPermissionsWithTemplate(t *testing.T) {
 	t.Run("a nil template matches ProjectLegacyPermissions", func(t *testing.T) {
 		assert.Equal(t, ProjectLegacyPermissions(linked), ProjectLegacyPermissionsWithTemplate(linked, nil))
 	})
+	t.Run("a shared_only field converted under an unmasked template reports source_only", func(t *testing.T) {
+		// The conversion narrows such a field's own reads to none rather than
+		// masking it, so its own mode is stricter than its public template's.
+		unmasked := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: public}}
+		converted := &PropertyField{
+			ID:            NewId(),
+			ObjectType:    PropertyFieldObjectTypeChannel,
+			LinkedFieldID: &unmasked.ID,
+			Attrs: StringInterface{
+				PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+				PropertyAttrsProtected:  true,
+			},
+		}
+		converted.Permissions = PermissionsFromLegacy(converted, LegacyConversionOpts{ConvertAttrs: true, Template: unmasked.Permissions})
+		require.Nil(t, converted.Permissions.Masking)
+
+		projected := ProjectLegacyPermissionsWithTemplate(converted, unmasked)
+		assert.Equal(t, PropertyAccessModeSourceOnly, projected.Attrs[PropertyAttrsAccessMode])
+	})
 }
 
 func TestProjectLegacyPermissionsRoundTrip(t *testing.T) {

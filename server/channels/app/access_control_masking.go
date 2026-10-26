@@ -145,8 +145,8 @@ func (r *appMaskingResolver) Resolve(objectType, fieldName string) (*model.Maski
 //
 // Access mode is always the reference's own effective mode (see
 // effectiveAccessMode) — whether the attribute is protected is a property of
-// the reference itself, resolved through its template when it is linked and
-// carries no masking of its own.
+// the reference itself, the stricter of its own and its template's when it is
+// linked and carries no masking of its own.
 //
 // Holdings come from the reference's template's mask_by_field_id when it names
 // one (see resolveHoldingsFieldID). A channel field whose template names none
@@ -227,6 +227,8 @@ func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName 
 // A linked field whose template can't be read is reported masked. Its own
 // mode would usually say public, since a linked field never carries masking
 // of its own, and these callers decide from the answer which values to strip.
+// A field whose own tiers already say source_only keeps that, which is
+// stricter still.
 //
 // A field that could hold a permissions object and does not is reported
 // masked rather than public. The backfill fills one in for every PSAv2/v3
@@ -247,6 +249,9 @@ func effectiveAccessModeUsing(field *model.PropertyField, getTemplate func(id st
 	if field.Permissions.Masking == nil && field.LinkSourceID() != "" {
 		t, err := getTemplate(field.LinkSourceID())
 		if err != nil || t == nil {
+			if field.GetAccessMode() == model.PropertyAccessModeSourceOnly {
+				return model.PropertyAccessModeSourceOnly
+			}
 			return model.PropertyAccessModeSharedOnly
 		}
 		template = t

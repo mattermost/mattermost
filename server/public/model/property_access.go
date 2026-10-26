@@ -167,7 +167,7 @@ func IsPropertyFieldProtected(field *PropertyField) bool {
 }
 
 // GetAccessMode returns the field's own access mode -- never a linked
-// field's template; a caller that must follow the template for a linked
+// field's template; a caller that must account for the template of a linked
 // field with no masking of its own uses EffectiveAccessMode.
 //
 // Computed from Permissions when non-nil: a set Masking means shared_only
@@ -196,18 +196,44 @@ func (f *PropertyField) GetAccessMode() string {
 	return PropertyAccessModePublic
 }
 
-// EffectiveAccessMode returns field's access mode, following its template
-// when field is linked and carries Permissions but no Masking of its own: a
-// linked field's Masking is always nil (a masked scheme is declared on the
-// template alone), so GetAccessMode alone would report the linked field's own
-// unmasked tiers even when its scheme is shared_only. template is nil when
-// field isn't linked or its template couldn't be read; field's own mode is
-// reported then.
+// EffectiveAccessMode returns field's access mode, taking its template into
+// account when field is linked and carries Permissions but no Masking of its
+// own: a linked field's Masking is always nil (a masked scheme is declared on
+// the template alone), so GetAccessMode alone would report the linked field's
+// own unmasked tiers even when its scheme is shared_only. Such a field reports
+// the stricter of its own mode and its template's (see stricterAccessMode):
+// its own read tiers still bind, so a field whose reads are none reports
+// source_only even under a public template. template is nil when field isn't
+// linked or its template couldn't be read; field's own mode is reported then.
 func EffectiveAccessMode(field, template *PropertyField) string {
 	if template == nil || field.Permissions == nil || field.Permissions.Masking != nil || field.LinkSourceID() == "" {
 		return field.GetAccessMode()
 	}
-	return template.GetAccessMode()
+	return stricterAccessMode(field.GetAccessMode(), template.GetAccessMode())
+}
+
+// stricterAccessMode returns the stricter of a and b: source_only over
+// shared_only over public. A mode it doesn't recognise counts as source_only,
+// so an unexpected value fails closed.
+func stricterAccessMode(a, b string) string {
+	strictness := func(mode string) int {
+		switch mode {
+		case PropertyAccessModePublic:
+			return 0
+		case PropertyAccessModeSharedOnly:
+			return 1
+		default:
+			return 2
+		}
+	}
+	switch max(strictness(a), strictness(b)) {
+	case 0:
+		return PropertyAccessModePublic
+	case 1:
+		return PropertyAccessModeSharedOnly
+	default:
+		return PropertyAccessModeSourceOnly
+	}
 }
 
 // PropertyFieldReadableByEveryone reports whether every reader may read
