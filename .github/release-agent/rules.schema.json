@@ -111,7 +111,7 @@
       "allOf": [
         {
           "if": {"properties": {"pass_when": {"const": "report_only"}}},
-          "then": {"properties": {"playbook_item": {"type": "null"}, "on_fail": {"const": "report"}}}
+          "then": {"properties": {"on_fail": {"const": "report"}}}
         }
       ]
     }

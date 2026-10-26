@@ -15,10 +15,10 @@ name: Release Agent
 #   test (default) — posts only to the test channel and ticks nothing
 #   live           — posts in each release channel and ticks playbook items
 #
-# A release's channel is the one named "Release: vX.Y" (or "Release: vX.Y (ESR)") that
-# the bot is a member of; its playbook run is the in-progress run in that channel. A
-# person's :no_entry_sign: reaction on the status post marks what it raised so far as
-# false alarms (counted in run.json).
+# A release's channel is the one named "Release: vX.Y" (ESRs: "Release: vX.Y (ESR)" or
+# "Release: vX.Y ESR") that the bot is a member of; its playbook run is the in-progress
+# run in that channel. A person's :no_entry_sign: reaction on the status post marks what
+# it raised so far as false alarms (counted in run.json).
 #
 # Secrets:
 #   RELEASE_AGENT_MM_TOKEN      — Hub bot token (posts, playbook runs, Testing Alerts channel)

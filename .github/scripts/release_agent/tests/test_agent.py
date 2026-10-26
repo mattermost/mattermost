@@ -83,6 +83,7 @@ class LiveRunTest(unittest.TestCase):
     def test_ticks_passing_due_items_only(self):
         ticked = {(run_id, title) for run_id, title in self.svc.hub.closed}
         self.assertEqual(ticked, {
+            ("run122", "Post a list of outstanding release bugs and PRs to the release playbook channel using /release-bugs vX.X in Claude Cowork."),
             ("run122", "Check that Hub was updated to the latest release branch."),
             ("run122", "Ensure that new NOTICE.txt for any new libraries are cherry-picked to the release branch as needed - example PR."),
         })
@@ -92,7 +93,7 @@ class LiveRunTest(unittest.TestCase):
         status = [p for p in self.svc.hub.created if not p["root_id"]]
         self.assertEqual(sorted(p["channel_id"] for p in status), ["c122", "c123"])
         replies = [p for p in self.svc.hub.created if p["root_id"]]
-        self.assertEqual(len(replies), 2)
+        self.assertEqual(len(replies), 3)
         self.assertTrue(all(r["root_id"] in {p["id"] for p in status} for r in replies))
         self.assertIn("Ticked **Ensure that new NOTICE.txt for any new libraries", "\n".join(r["message"] for r in replies))
 
@@ -114,7 +115,7 @@ class LiveRunTest(unittest.TestCase):
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)
         self.assertEqual(self.body["totals"]["checks_run"], 20)
-        self.assertEqual(self.body["totals"]["ticked"], 2)
+        self.assertEqual(self.body["totals"]["ticked"], 3)
         self.assertEqual(self.body["totals"]["alarms_raised"], 2)
         self.assertEqual(self.body["totals"]["false_alarms"], 0)
 
@@ -140,7 +141,7 @@ class ReleaseChannelTest(unittest.TestCase):
         for r in svc.hub.runs:
             r["name"] = "Renamed run"
         body, _ = run(svc)
-        self.assertEqual(len(svc.hub.closed), 2)
+        self.assertEqual(len(svc.hub.closed), 3)
         self.assertEqual(body["releases"][0]["flags"], [])
 
     def test_without_the_channel_the_run_is_found_by_name(self):
@@ -148,24 +149,33 @@ class ReleaseChannelTest(unittest.TestCase):
         svc.hub.channels = []
         svc.hub.runs[0]["name"] = "Self-Hosted Release v12.2"
         body, _ = run(svc)
-        self.assertEqual(len(svc.hub.closed), 2)
+        self.assertEqual(len(svc.hub.closed), 3)
         self.assertEqual(sorted(p["channel_id"] for p in svc.hub.created if not p["root_id"]), ["c122", "c123"])
 
     def test_esr_channel(self):
+        for name in ("Release: v12.2 (ESR)", "Release: v12.2 ESR", "release:  v12.2 esr"):
+            svc = services()
+            svc.hub.channels[0]["display_name"] = name
+            svc.hub.runs[0]["name"] = "Renamed run"
+            body, _ = run(svc)
+            self.assertEqual(body["releases"][0]["flags"], [], name)
+            self.assertEqual(len(svc.hub.closed), 3, name)
+            self.assertIn("c122", [p["channel_id"] for p in svc.hub.created if not p["root_id"]])
+
+    def test_report_is_ticked_only_when_posted_in_the_run_channel(self):
         svc = services()
-        svc.hub.channels[1]["display_name"] = "Release: v12.3 (ESR)"
-        svc.hub.runs[1]["name"] = "Release: v12.3 (ESR)"
-        body, _ = run(svc)
-        self.assertEqual(body["releases"][1]["flags"], [])
-        self.assertEqual(body["releases"][1]["post"], "created")
-        status = [p for p in svc.hub.created if not p["root_id"]]
-        self.assertEqual(sorted(p["channel_id"] for p in status), ["c122", "c123"])
+        cfg = settings()
+        cfg.release_channels = {"v12.2": "elsewhere"}
+        body, _ = agent.run(rules.load_rules(), cfg, svc, TODAY)
+        ticked = [t["task"] for t in body["releases"][0]["ticked"]]
+        self.assertNotIn("open-release-items", ticked)
+        self.assertIn("notice-txt", ticked)
 
     def test_two_channels_with_the_name_are_flagged(self):
         svc = services()
         svc.hub.channels.append({"id": "dup", "display_name": "release: V12.2"})
         body, _ = run(svc)
-        self.assertIn("The bot is in 2 channels named “Release: v12.2” or “Release: v12.2 (ESR)”, so none is used.", body["releases"][0]["flags"])
+        self.assertIn("The bot is in 2 channels named “Release: v12.2” or “Release: v12.2 (ESR)” or “Release: v12.2 ESR”, so none is used.", body["releases"][0]["flags"])
 
 
 class TestModeTest(unittest.TestCase):
@@ -176,6 +186,7 @@ class TestModeTest(unittest.TestCase):
         self.assertEqual({p["channel_id"] for p in svc.hub.created}, {"test-chan"})
         self.assertEqual(len(svc.hub.created), 2)
         self.assertIn("notice-txt", body["releases"][0]["would_tick"])
+        self.assertIn("open-release-items", body["releases"][0]["would_tick"])
         self.assertEqual(body["releases"][0]["ticked"], [])
 
 
@@ -217,7 +228,7 @@ class LogLineTest(unittest.TestCase):
     def test_success(self):
         body, _ = run(services())
         line = log_line(body, [], "success", "https://run", "live")
-        self.assertTrue(line.startswith(":warning: release-agent [live] 2026-11-04: v12.2 T-7 needs attention (post created, ticked 2)"))
+        self.assertTrue(line.startswith(":warning: release-agent [live] 2026-11-04: v12.2 T-7 needs attention (post created, ticked 3)"))
         self.assertTrue(line.endswith("· [run](https://run)"))
 
     def test_failure_without_run_json(self):

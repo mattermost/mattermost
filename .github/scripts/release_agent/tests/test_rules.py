@@ -32,6 +32,7 @@ class RulesFileTest(unittest.TestCase):
         due = {rule["task"]: (rule["due"], sections[rule["playbook_item"]])
                for rule in self.rules["rules"] if rule["playbook_item"]}
         self.assertEqual(due, {
+            "open-release-items": ("feature_complete", "(T-16) Feature Complete"),
             "hub-on-release-branch": ("branch_cut+1", "(T-21 or earlier) Release Branch Cut"),
             "notice-txt": ("feature_complete", "(T-16) Feature Complete"),
             "cherry-picks": ("final_build", "(T-16) Feature Complete"),
@@ -74,9 +75,9 @@ class RulesFileTest(unittest.TestCase):
         self.assertEqual(self.problems_with(pass_when="found"),
                          ["new-regressions: a new_regressions check passes when 'all_have_fix_version', not 'found'"])
 
-    def test_report_only_rules_tick_nothing(self):
+    def test_report_only_rules_never_fail(self):
         broken = copy.deepcopy(self.rules)
-        broken["rules"][0]["playbook_item"] = "Prepare release metrics."
+        broken["rules"][0]["on_fail"] = "needs_attention"
         self.assertTrue(rules.problems(broken, self.schema, self.titles))
 
     def test_rejects_duplicate_task(self):

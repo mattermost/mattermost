@@ -6,7 +6,8 @@
 #
 #   task           stable id, used in run.json
 #   title          what the status post calls the check
-#   playbook_item  checklist item title ticked when the check passes, as it reads on screen
+#   playbook_item  checklist item title ticked when the check passes (for a report, when the
+#                  post carrying it goes to the run's channel), as it reads on screen
 #                  (see playbook-template.yml), or null when no item is only about this check
 #   due            T-N in working days from Release Day, or a calendar milestone key below
 #                  with an optional working-day offset (code_freeze+1). A failing check only
@@ -52,17 +53,18 @@ naming:
   release_channels:
     - "Release: {short_version}"
     - "Release: {short_version} (ESR)"
+    - "Release: {short_version} ESR"
 
 # A reaction with this emoji on a status post, by anyone but the bot, marks everything
 # under Needs attention at the time as a false alarm. run.json counts them.
 false_alarm_emoji: no_entry_sign
 
 rules:
-  # T-16 "Post a list of outstanding release bugs and PRs…" is a daily task, so this
-  # report is posted every run instead of ticking it.
+  # The status post is that list, so the item is ticked when the post first carries it in
+  # the run's channel at Feature Complete; the post keeps it up to date every run after.
   - task: open-release-items
     title: Open release bugs and PRs
-    playbook_item: null
+    playbook_item: Post a list of outstanding release bugs and PRs to the release playbook channel using /release-bugs vX.X in Claude Cowork.
     due: feature_complete
     type: open_release_items
     source: [jira, github]

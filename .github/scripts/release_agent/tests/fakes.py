@@ -86,7 +86,8 @@ class FakeHub:
         return {"id": self.bot_id}
 
     def channels_named(self, display_name):
-        return [c for c in self.channels if c["display_name"].casefold() == display_name.casefold()]
+        wanted = " ".join(display_name.split()).casefold()
+        return [c for c in self.channels if " ".join(c["display_name"].split()).casefold() == wanted]
 
     def reactions(self, post_id):
         return self.post_reactions.get(post_id, [])

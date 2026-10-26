@@ -56,6 +56,12 @@ class FormatPostTest(unittest.TestCase):
         owners = [line for line in text.splitlines() if line.startswith("- **")]
         self.assertEqual(owners, ["- **alice** (1)", "- **Zed** (1)", "- **Unassigned** (1)"])
 
+    def test_report_says_when_its_item_is_done(self):
+        text = posting.format_post(report([
+            outcome("open", posting.REPORT, Result(INFO, "2 open", proof_url="https://jira"), "open_release_items", item="Post the list"),
+        ], ticks=[Tick("open", "Post the list", TICKED)]), date(2026, 11, 4), NAMES)
+        self.assertIn("**Post the list** — 2 open · [Jira filter](https://jira) · done in the playbook", text)
+
     def test_test_mode_says_so(self):
         self.assertIn("Test mode", posting.format_post(report(mode="test"), date(2026, 11, 4), NAMES))
 

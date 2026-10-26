@@ -190,7 +190,8 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
             lines.append(f"- **{outcome.title}**{due} — {outcome.result.summary}")
 
     for outcome in by_state.get(REPORT, []):
-        lines += ["", f"**{outcome.title}** — {outcome.result.summary}{_proof(outcome.result, 'Jira filter')}"]
+        lines += ["", f"**{outcome.title}** — {outcome.result.summary}{_proof(outcome.result, 'Jira filter')}"
+                      f"{_tick_note(ticks, outcome.rule['task'])}"]
         groups = {}
         for item in outcome.result.items:
             groups.setdefault(item.owner or "Unassigned", []).append(item)

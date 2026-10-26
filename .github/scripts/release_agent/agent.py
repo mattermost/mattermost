@@ -163,8 +163,12 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
         report.flags.append(f"Couldn't read the playbook runs: {public_error(err)}")
     report.run = run
 
+    # A report's item asks for the list in the run's channel, so it is ticked only when the
+    # status post goes there.
+    tickable = {posting.OK, posting.REPORT} if run and live_channel(report, settings) == run.get("channel_id") \
+        else {posting.OK}
     passing = [(o.rule, o.result) for o in report.outcomes
-               if o.state == posting.OK and o.rule["playbook_item"] and o.due and today >= o.due]
+               if o.state in tickable and o.rule["playbook_item"] and o.due and today >= o.due]
     if run and passing:
         report.ticks = playbook.tick_items(services.playbooks, run, passing, settings.mode == "live")
         for tick in report.ticks:
@@ -176,14 +180,15 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
     return report
 
 
+def live_channel(report: posting.ReleaseReport, settings: Settings) -> str:
+    return (settings.release_channels.get(report.release.short_version) or report.release_channel
+            or (report.run or {}).get("channel_id", ""))
+
+
 def post_report(report: posting.ReleaseReport, rules: dict, settings: Settings, services: Services,
                 today: date) -> dict:
     release = report.release
-    if settings.mode == "live":
-        channel = (settings.release_channels.get(release.short_version) or report.release_channel
-                   or (report.run or {}).get("channel_id", ""))
-    else:
-        channel = settings.test_channel
+    channel = live_channel(report, settings) if settings.mode == "live" else settings.test_channel
     if not channel:
         report.flags.append(f"There's no {'release' if settings.mode == 'live' else 'test'} channel to post {release.short_version}'s status in.")
         return {"post": "skipped"}

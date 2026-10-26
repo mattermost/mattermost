@@ -43,7 +43,7 @@ class TemplateTest(unittest.TestCase):
         values = template_vars(release(), NAMING, [1, 3])
         self.assertEqual(values["milestone"], "v12.2.0")
         self.assertEqual(values["fix_version"], "v12.2 (November 2026)")
-        self.assertEqual(values["release_channels"], ["Release: v12.2", "Release: v12.2 (ESR)"])
+        self.assertEqual(values["release_channels"], ["Release: v12.2", "Release: v12.2 (ESR)", "Release: v12.2 ESR"])
         self.assertEqual(values["branch"], "release-12.2")
         self.assertEqual(values["rc_tag"], "v12.2.0-rc3")
         self.assertEqual(values["branch_cut"], "2026-10-19")
@@ -52,7 +52,7 @@ class TemplateTest(unittest.TestCase):
         rel = Release(12, 2, {"branch_cut": date(2026, 10, 19)})
         values = template_vars(rel, NAMING, [])
         self.assertNotIn("fix_version", values)
-        self.assertEqual(values["release_channels"], ["Release: v12.2", "Release: v12.2 (ESR)"])
+        self.assertEqual(values["release_channels"], ["Release: v12.2", "Release: v12.2 (ESR)", "Release: v12.2 ESR"])
         ctx = checks.Context(release=rel, today=date(2026, 11, 4), vars=values, has_branch=True, rc_numbers=[],
                              github=FakeGitHub(), jira=FakeJira(), hub=FakeHub(), testing_alerts_channel="alerts")
         with self.assertRaisesRegex(checks.CheckError, r"\{fix_version\} isn't known for this release"):
