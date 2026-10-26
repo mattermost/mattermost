@@ -6,13 +6,12 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {matchPath} from 'react-router-dom';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {Button} from '@mattermost/shared/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import SectionNotice from 'components/section_notice';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -229,7 +228,7 @@ const SharedChannelPostDeleteWarning = ({post}: {post: Post}) => {
                 id: 'delete_post.shared_channel_warning.title',
                 defaultMessage: 'Shared Channel',
             })}
-            text={text}
+            description={text}
         />
     );
 };
