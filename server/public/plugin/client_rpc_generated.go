@@ -7441,6 +7441,62 @@ func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEve
 	return nil
 }
 
+type Z_GetClusterNodeIDArgs struct {
+}
+
+type Z_GetClusterNodeIDReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetClusterNodeID() string {
+	_args := &Z_GetClusterNodeIDArgs{}
+	_returns := &Z_GetClusterNodeIDReturns{}
+	if err := g.client.Call("Plugin.GetClusterNodeID", _args, _returns); err != nil {
+		log.Printf("RPC call to GetClusterNodeID API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetClusterNodeID(args *Z_GetClusterNodeIDArgs, returns *Z_GetClusterNodeIDReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetClusterNodeID() string
+	}); ok {
+		returns.A = hook.GetClusterNodeID()
+	} else {
+		return encodableError(fmt.Errorf("API GetClusterNodeID called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetClusterNodesArgs struct {
+}
+
+type Z_GetClusterNodesReturns struct {
+	A []*model.ClusterInfo
+	B error
+}
+
+func (g *apiRPCClient) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	_args := &Z_GetClusterNodesArgs{}
+	_returns := &Z_GetClusterNodesReturns{}
+	if err := g.client.Call("Plugin.GetClusterNodes", _args, _returns); err != nil {
+		log.Printf("RPC call to GetClusterNodes API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetClusterNodes(args *Z_GetClusterNodesArgs, returns *Z_GetClusterNodesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetClusterNodes() ([]*model.ClusterInfo, error)
+	}); ok {
+		returns.A, returns.B = hook.GetClusterNodes()
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetClusterNodes called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RequestTrialLicenseArgs struct {
 	A string
 	B int

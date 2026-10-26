@@ -237,7 +237,6 @@ jobs:
         id: push
         env:
           BRANCH: ${{ steps.pr.outputs.branch }}
-          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
@@ -248,7 +247,13 @@ jobs:
             echo "::error::Writer produced no file changes."
             exit 1
           fi
-          printf 'docs: AI draft for #%s\n' "$PR_NUMBER" | git commit -F -
+          title_file=".docs-ai/writer/draft-title.txt"
+          if [ ! -s "$title_file" ]; then
+            echo "::error::Writer did not emit a draft title."
+            exit 1
+          fi
+          TITLE=$(tr -d '\n' < "$title_file")
+          printf '%s\n' "$TITLE" | git commit -F -
           if git ls-remote --exit-code origin "refs/heads/${BRANCH}" >/dev/null 2>&1; then
             git push origin "HEAD:refs/heads/${BRANCH}" --force-with-lease
           else
@@ -260,17 +265,21 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: ${{ steps.pr.outputs.branch }}
-          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           REVIEWER: ${{ steps.pr.outputs.reviewer }}
         run: |
           set -euo pipefail
           EXISTING=$(gh pr list --head "$BRANCH" --state open --json number,url --jq 'first // empty')
-          TITLE="docs: AI draft for #${PR_NUMBER}"
+          title_file=".docs-ai/writer/draft-title.txt"
+          if [ ! -s "$title_file" ]; then
+            echo "::error::Writer did not emit a draft title."
+            exit 1
+          fi
+          TITLE=$(tr -d '\n' < "$title_file")
 
           if [ -n "$EXISTING" ]; then
             NUM=$(echo "$EXISTING" | jq -r .number)
             URL=$(echo "$EXISTING" | jq -r .url)
-            gh pr edit "$NUM" --body-file .docs-ai/writer/pr-body.md
+            gh pr edit "$NUM" --title "$TITLE" --body-file .docs-ai/writer/pr-body.md
           else
             URL=$(gh pr create \
               --base master \
@@ -300,6 +309,14 @@ jobs:
           set -euo pipefail
           URL=$(gh pr view "$BRANCH" --json url --jq .url)
           gh pr comment "$PR_NUMBER" --body "Draft documentation PR opened: ${URL}"
+
+      - name: Upload writer trail
+        if: always() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: docs-writer-trail-${{ steps.pr.outputs.pr_number }}
+          path: .docs-ai/writer/trail.json
+          if-no-files-found: ignore
 
   sync:
     name: Mark Docs/Done

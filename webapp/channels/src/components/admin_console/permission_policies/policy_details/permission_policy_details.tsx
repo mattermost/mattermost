@@ -6,6 +6,7 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
@@ -29,7 +30,6 @@ import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import * as Menu from 'components/menu';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
@@ -401,7 +401,7 @@ function PermissionPolicyDetails({
                                     id: 'admin.permission_policies.edit.error.load',
                                     defaultMessage: 'Failed to load policy',
                                 })}
-                                text={serverError}
+                                description={serverError}
                             />
                         </div>
                     </div>
@@ -436,20 +436,16 @@ function PermissionPolicyDetails({
                                 />
                             </div>
 
-                            {/* Info Banner */}
-                            <div className='pp-info-banner'>
-                                <i className='icon icon-information-outline'/>
-                                <div className='pp-info-banner-content'>
-                                    <span className='pp-info-banner-title'>
+                            <div className='pp-info-notice'>
+                                <SectionNotice
+                                    type='info'
+                                    title={
                                         <FormattedMessage
                                             id='admin.permission_policies.edit.info_banner.title'
                                             defaultMessage='The permissions defined in this policy override the {link} when its conditions are met'
                                             values={{
                                                 link: (
-                                                    <BlockableLink
-                                                        to='/admin_console/user_management/permissions'
-                                                        className='pp-info-banner-link'
-                                                    >
+                                                    <BlockableLink to='/admin_console/user_management/permissions'>
                                                         <FormattedMessage
                                                             id='admin.permission_policies.edit.info_banner.link'
                                                             defaultMessage='system permission schemes'
@@ -458,14 +454,14 @@ function PermissionPolicyDetails({
                                                 ),
                                             }}
                                         />
-                                    </span>
-                                    <span className='pp-info-banner-subtitle'>
+                                    }
+                                    description={
                                         <FormattedMessage
                                             id='admin.permission_policies.edit.info_banner.evaluation_order'
                                             defaultMessage='Permissions evaluation order: Permission policies (evaluated first) → System scheme / Team override scheme (fallback when no policy applies).'
                                         />
-                                    </span>
-                                </div>
+                                    }
+                                />
                             </div>
 
                             {noUsableAttributes && (
@@ -478,18 +474,16 @@ function PermissionPolicyDetails({
                                                 defaultMessage='Please add user attributes and values to use Attribute-Based Access Control'
                                             />
                                         }
-                                        text={formatMessage({
+                                        description={formatMessage({
                                             id: 'admin.permission_policies.edit.notice.text',
                                             defaultMessage: 'You haven\'t configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.',
                                         })}
-                                        primaryButton={{
-                                            text: formatMessage({
-                                                id: 'admin.permission_policies.edit.notice.button',
-                                                defaultMessage: 'Configure user attributes',
-                                            }),
-                                            onClick: () => {
-                                                getHistory().push('/admin_console/system_attributes/manage_attributes');
-                                            },
+                                        primaryButtonLabel={formatMessage({
+                                            id: 'admin.permission_policies.edit.notice.button',
+                                            defaultMessage: 'Configure user attributes',
+                                        })}
+                                        onPrimaryAction={() => {
+                                            getHistory().push('/admin_console/system_attributes/manage_attributes');
                                         }}
                                     />
                                 </div>
