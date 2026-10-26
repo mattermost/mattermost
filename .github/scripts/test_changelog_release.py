@@ -71,7 +71,8 @@ class ResolveTest(unittest.TestCase):
         self.assertIn("already has the v12.1 entry", out["reason"])
 
     def test_schedule_stays_on_a_tagged_release_until_its_entry_is_merged(self):
-        tagged = LS_REMOTE + f"\n{'0' * 40}\trefs/tags/v12.1.0\n{'0' * 40}\trefs/heads/release-12.2"
+        tagged = LS_REMOTE + "".join(f"\n{'0' * 40}\t{ref}" for ref in (
+            "refs/tags/v12.1.0", "refs/heads/release-12.2", "refs/tags/v12.2.0-rc1"))
         path = cr.changelog_path("v12.1.0")
         out = cr.resolve({"EVENT_NAME": "schedule"}, tagged, files({path: V12_ENTRY}))
         self.assertEqual((out["run"], out["version"], out["base_ref"]), ("true", "v12.1.0", "v12.0.0"))
@@ -90,9 +91,14 @@ class ResolveTest(unittest.TestCase):
 
         cut = LS_REMOTE + f"\n{'0' * 40}\trefs/heads/release-12.2"
         out = cr.resolve(env, cut, V12_PUBLISHED)
-        self.assertEqual((out["version"], out["base_ref"]), ("v12.2.0", "origin/release-12.1"))
+        self.assertEqual(out, {"run": "false", "reason": "release-12.2 is cut, but v12.2.0-rc1 is not tagged yet."})
 
-        tagged = cut + f"\n{'0' * 40}\trefs/tags/v12.1.0"
+        rc1 = cut + f"\n{'0' * 40}\trefs/tags/v12.2.0-rc1"
+        out = cr.resolve(env, rc1, V12_PUBLISHED)
+        self.assertEqual((out["version"], out["head_ref"], out["base_ref"]),
+                         ("v12.2.0", "origin/release-12.2", "origin/release-12.1"))
+
+        tagged = rc1 + f"\n{'0' * 40}\trefs/tags/v12.1.0"
         out = cr.resolve(env, tagged, V12_PUBLISHED)
         self.assertEqual((out["version"], out["base_ref"], out["base_fetch"]),
                          ("v12.2.0", "v12.1.0", "+refs/tags/v12.1.0:refs/tags/v12.1.0"))
@@ -102,9 +108,11 @@ class ResolveTest(unittest.TestCase):
             cr.resolve({**env, "SCHEDULE_FROM": "next"}, cut, V12_PUBLISHED)
 
     def test_stale_branch_older_than_the_newest_release_is_ignored(self):
-        branches, tags = cr.parse_ls_remote(LS_REMOTE + f"\n{'0' * 40}\trefs/heads/release-11.11")
-        self.assertEqual(cr.pending_release(branches, tags, lambda release: True), (12, 1))
-        self.assertEqual(cr.pending_release(branches, tags), (12, 0))
+        branches, tags, rcs = cr.parse_ls_remote(LS_REMOTE + f"\n{'0' * 40}\trefs/heads/release-11.11")
+        self.assertEqual(rcs, {(12, 1)})
+        self.assertEqual(cr.pending_release(branches, tags, rcs, lambda release: True), (12, 1))
+        self.assertEqual(cr.pending_release(branches, tags, rcs), (12, 0))
+        self.assertIsNone(cr.pending_release(branches, tags, set(), lambda release: True))
 
     def test_dispatched_shorthand_version_is_normalized(self):
         out = cr.resolve({"INPUT_VERSION": "v13.0", "INPUT_MODE": "dry_run"}, LS_REMOTE, files({}))

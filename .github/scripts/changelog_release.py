@@ -8,8 +8,8 @@ anything. Three entry points:
   resolve    - Work out which release a run is for (version, milestone, release type,
                mode, and the git refs to diff) and whether it should run at all.
                Scheduled runs pass no inputs: the release is the one between its
-               release-X.Y branch cut and its changelog entry being merged to master
-               (the vX.Y.0 tag is pushed about five working days before that).
+               vX.Y.0-rc1 tag and its changelog entry being merged to master (the
+               vX.Y.0 tag is pushed about five working days before that).
   reviewers  - Print the reviewers to request for the sections a run touched.
 
 and, imported by generate_changelog.py, ``derived_notes()``: the changes a release
@@ -55,38 +55,49 @@ def short_version(version: str) -> str:
     return f"v{major}.{minor}"
 
 
-def parse_ls_remote(output: str) -> tuple[set, set]:
-    """Return (release branch versions, final release tag versions) as (major, minor) pairs.
+def parse_ls_remote(output: str) -> tuple[set, set, set]:
+    """Return (release branches, final release tags, release candidate tags) as (major, minor) pairs.
 
-    Only vX.Y.0 tags count as a release having shipped; release candidates do not.
+    Only vX.Y.0 tags count as a release having shipped; a vX.Y.0-rcN tag means its
+    release candidates are being built.
     """
-    branches, tags = set(), set()
+    branches, tags, rcs = set(), set(), set()
     for line in output.splitlines():
         ref = line.split("\t")[-1].strip()
         branch = re.fullmatch(r"refs/heads/release-(\d+)\.(\d+)", ref)
         if branch:
             branches.add((int(branch.group(1)), int(branch.group(2))))
-        tag = re.fullmatch(r"refs/tags/v(\d+)\.(\d+)\.0", ref)
+        tag = re.fullmatch(r"refs/tags/v(\d+)\.(\d+)\.0(-rc\d+)?", ref)
         if tag:
-            tags.add((int(tag.group(1)), int(tag.group(2))))
-    return branches, tags
+            (rcs if tag.group(3) else tags).add((int(tag.group(1)), int(tag.group(2))))
+    return branches, tags, rcs
 
 
-def pending_release(branches: set, tags: set, published=lambda release: False,
+def unreleased_branches(branches: set, tags: set, start=(0, 0)) -> list[tuple[int, int]]:
+    """Cut branches with no vX.Y.0 tag, oldest first, from ``start`` on.
+
+    A branch older than the newest tagged release is left out, so an abandoned branch
+    left behind by a cancelled release cannot be picked up forever.
+    """
+    newest_shipped = max(tags) if tags else (0, 0)
+    return sorted(b for b in branches if b not in tags and b > newest_shipped and b >= start)
+
+
+def pending_release(branches: set, tags: set, rcs: set, published=lambda release: False,
                     start=(0, 0)) -> tuple[int, int] | None:
     """The release the changelog is being written for, or None.
 
     That is the newest tagged release while its entry is not on master yet (the final
     build is tagged about five working days before the changelog is merged on release
-    day), else the oldest cut branch with no vX.Y.0 tag. ``published((major, minor))``
-    says whether the entry is on master. A branch older than the newest tagged release
-    is ignored, so an abandoned branch left behind by a cancelled release cannot be
-    picked up forever. Releases before ``start`` are left to be finished by hand.
+    day), else the oldest cut branch with a vX.Y.0-rcN tag and no vX.Y.0 tag: the
+    changelog PR is opened at RC-1, not at the branch cut. ``published((major, minor))``
+    says whether the entry is on master. Releases before ``start`` are left to be
+    finished by hand.
     """
     newest_shipped = max(tags) if tags else (0, 0)
     if newest_shipped in branches and newest_shipped >= start and not published(newest_shipped):
         return newest_shipped
-    candidates = sorted(b for b in branches if b not in tags and b > newest_shipped and b >= start)
+    candidates = [b for b in unreleased_branches(branches, tags, start) if b in rcs]
     return candidates[0] if candidates else None
 
 
@@ -139,7 +150,7 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
     Returns the workflow outputs: ``run`` ("true"/"false") and ``reason``, then version,
     milestone, release_type, mode, changelog, head_ref/head_fetch and base_ref/base_fetch.
     """
-    branches, tags = parse_ls_remote(ls_remote)
+    branches, tags, rcs = parse_ls_remote(ls_remote)
     scheduled = env.get("EVENT_NAME") == "schedule"
 
     if scheduled:
@@ -156,10 +167,14 @@ def resolve(env: dict, ls_remote: str, read_file) -> dict:
 
         start = env.get("SCHEDULE_FROM", "").strip()
         start = parse_version(start)[:2] if start else (0, 0)
-        pending = pending_release(branches, tags, published, start)
+        pending = pending_release(branches, tags, rcs, published, start)
         if not pending:
+            waiting = unreleased_branches(branches, tags, start)
+            if waiting:
+                major, minor = waiting[0]
+                return {"run": "false", "reason": f"release-{major}.{minor} is cut, but v{major}.{minor}.0-rc1 is not tagged yet."}
             since = f" from v{start[0]}.{start[1]} on" if start > (0, 0) else ""
-            return {"run": "false", "reason": f"No release{since} is between its branch cut and its changelog being merged."}
+            return {"run": "false", "reason": f"No release{since} is between its RC-1 and its changelog being merged."}
         version = f"v{pending[0]}.{pending[1]}.0"
         milestone = version
     else:
@@ -807,7 +822,7 @@ def main(argv: list[str]) -> int:
     command = argv[1] if len(argv) > 1 else ""
     if command == "resolve":
         ls_remote = subprocess.run(
-            ["git", "ls-remote", "--heads", "--tags", "origin", "release-*", "v*.0"],
+            ["git", "ls-remote", "--heads", "--tags", "origin", "release-*", "v*.0", "v*.0-rc*"],
             capture_output=True, text=True, check=True,
         ).stdout
         try:
