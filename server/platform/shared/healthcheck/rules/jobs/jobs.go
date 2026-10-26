@@ -84,13 +84,13 @@ var jobFailed = healthcheck.Rule{
 func licensed(s *healthcheck.Snapshot, jobType string) (granted, ok bool) {
 	switch jobType {
 	case model.JobTypeLdapSync:
-		return s.LicenseAllows(func(f *model.Features) *bool { return f.LDAP })
+		return s.LicenseAllows(healthcheck.FeatureLDAP)
 	case model.JobTypeMessageExport:
-		return s.LicenseAllows(func(f *model.Features) *bool { return f.MessageExport })
+		return s.LicenseAllows(healthcheck.FeatureMessageExport)
 	case model.JobTypeElasticsearchPostIndexing, model.JobTypeElasticsearchPostAggregation:
-		return s.LicenseAllows(func(f *model.Features) *bool { return f.Elasticsearch })
+		return s.LicenseAllows(healthcheck.FeatureElasticsearch)
 	case model.JobTypeDataRetention:
-		return s.LicenseAllows(func(f *model.Features) *bool { return f.DataRetention })
+		return s.LicenseAllows(healthcheck.FeatureDataRetention)
 	default:
 		return true, true
 	}
