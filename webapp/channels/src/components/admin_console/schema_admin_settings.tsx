@@ -37,6 +37,7 @@ import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
@@ -387,7 +388,10 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
-                <div className='PluginMetadataPanel__actionsPanel'>
+                <AdminPanel
+                    id='plugin_metadata_panel'
+                    className='PluginMetadataPanel__actionsPanel'
+                >
                     <div className='PluginMetadataPanel__actionsRow'>
                         <div className='PluginMetadataPanel__identity'>
                             <div className='PluginMetadataPanel__details'>
@@ -417,7 +421,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                         )}
                     </div>
                     {this.renderPluginStateError(pluginState, this.props.pluginStatus?.error)}
-                </div>
+                </AdminPanel>
             </div>
         );
     };

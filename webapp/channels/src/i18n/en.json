@@ -8347,6 +8347,14 @@
     "defaultMessage": "Are you sure you want to apply these IP filter changes? There are currently no filters added, so <strong>all IP addresses will have access to the workspace.</strong>",
     "description": "Body of the confirmation modal when applying IP filtering with no rules defined; <strong> wraps the warning that all IPs will be allowed."
   },
+  "admin.ip_filtering.off": {
+    "defaultMessage": "Off",
+    "description": ""
+  },
+  "admin.ip_filtering.on": {
+    "defaultMessage": "On",
+    "description": ""
+  },
   "admin.ip_filtering.rule_name_placeholder": {
     "defaultMessage": "Enter a name for this rule",
     "description": "Placeholder of the rule name input in the add/edit IP filter modal."

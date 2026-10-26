@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime, defineMessage} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, defineMessage, defineMessages} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {Compliance} from '@mattermost/types/compliance';
@@ -13,6 +13,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 
 type Props = {
@@ -330,13 +331,11 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
         }
 
         return (
-            <div className='panel compliance-panel'>
-                <h4>
-                    <FormattedMessage
-                        id='admin.compliance_reports.title'
-                        defaultMessage='Compliance Reports'
-                    />
-                </h4>
+            <AdminPanel
+                id='compliance_reports'
+                className='compliance-panel'
+                title={messages.title}
+            >
                 <div className='row'>
                     <div className='col-sm-6 col-md-4 form-group'>
                         <label htmlFor='desc'>
@@ -453,10 +452,14 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                 <div className='compliance-panel__table'>
                     {content}
                 </div>
-            </div>
+            </AdminPanel>
         );
     }
 }
+
+const messages = defineMessages({
+    title: {id: 'admin.compliance_reports.title', defaultMessage: 'Compliance Reports'},
+});
 
 const style: Record<string, React.CSSProperties> = {
     content: {margin: 10},

@@ -1,12 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Uncapped by the settings width, since log lines are wide
+// Uncapped by the settings width, since log lines are wide.
+// Background/box-shadow are stripped since the AdminPanel inside now owns
+// that chrome; without this the legacy container doubles it up.
 .admin-console .admin-console__wrapper .admin-console__container.ServerLogs {
     display: flex;
     overflow: hidden;
     height: 100%;
     flex-direction: column;
+    background: none;
+    box-shadow: none;
 }
 
 // Body-only AdminPanel around the log viewer. The viewer owns its own toolbar
