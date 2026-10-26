@@ -233,7 +233,13 @@ func setup(t *testing.T, nodes int) *TestHelper {
 	th.newNodes(c)
 
 	// Deploy plugin. After DB reset plugin state is cleared, so we re-deploy every time.
-	err = deployPlugin(ctx, th.AdminClient, len(c.nodes))
+	var nodeIDs []string
+	if th.isCluster() {
+		for _, n := range th.Nodes {
+			nodeIDs = append(nodeIDs, n.ID)
+		}
+	}
+	err = deployPlugin(ctx, th.AdminClient, nodeIDs)
 	require.NoError(t, err, "failed to deploy plugin")
 
 	// Create fresh test data.
@@ -252,9 +258,9 @@ func setup(t *testing.T, nodes int) *TestHelper {
 	return th
 }
 
-// deployPlugin installs and enables the plugin, and waits until it runs on each
-// of the given number of nodes.
-func deployPlugin(ctx context.Context, client *model.Client4, nodes int) error {
+// deployPlugin installs and enables the plugin, and waits until it runs on each of
+// the given cluster nodes, or on the server when no node IDs are given.
+func deployPlugin(ctx context.Context, client *model.Client4, nodeIDs []string) error {
 	f, err := os.Open(pluginBundle) //nolint:gosec
 	if err != nil {
 		return fmt.Errorf("open bundle %s: %w", pluginBundle, err)
@@ -290,7 +296,11 @@ func deployPlugin(ctx context.Context, client *model.Client4, nodes int) error {
 					running[s.ClusterId] = true
 				}
 			}
-			if len(running) >= nodes {
+			ready := len(running) > 0
+			for _, id := range nodeIDs {
+				ready = ready && running[id]
+			}
+			if ready {
 				return nil
 			}
 		}

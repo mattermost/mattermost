@@ -133,6 +133,7 @@ func startContainers(nodes int) (c *mmContainers, err error) {
 		),
 	)
 	if err != nil {
+		_ = nw.Remove(ctx)
 		return nil, fmt.Errorf("failed to start Postgres container: %w", err)
 	}
 
@@ -142,6 +143,7 @@ func startContainers(nodes int) (c *mmContainers, err error) {
 			_ = n.container.Terminate(ctx)
 		}
 		_ = pgC.Terminate(ctx)
+		_ = nw.Remove(ctx)
 	}
 
 	cluster := nodes > 1

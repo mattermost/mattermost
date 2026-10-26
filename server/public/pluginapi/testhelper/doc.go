@@ -29,7 +29,9 @@
 //
 // # Container lifecycle
 //
-// Containers (Postgres + Mattermost) are started once per `go test` invocation via sync.Once.
+// Containers (Postgres + Mattermost) are started once per `go test` invocation and node
+// count, so a test binary that calls both Setup and SetupCluster runs a single server and
+// a cluster side by side, each with its own Postgres, until it exits.
 // Cleanup is handled by the testcontainers-go Ryuk reaper sidecar, which automatically removes
 // containers when the parent process exits — even on crashes. Do not disable Ryuk
 // (TESTCONTAINERS_RYUK_DISABLED must remain false) to prevent container leaks in CI.
