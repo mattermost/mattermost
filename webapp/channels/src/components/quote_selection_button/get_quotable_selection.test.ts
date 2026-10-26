@@ -93,18 +93,29 @@ describe('getQuotableSelection', () => {
         expect(getQuotableSelection(selection)?.text).toBe('dictumst nec.\n\nDiam');
     });
 
-    test('should trim a selection that spills over the rest of the post', () => {
+    test('should only quote the message text of a selection that spills over the rest of the post', () => {
         const selection = select(textOf('second'), 0, textOf('footer'), 3);
 
         expect(getQuotableSelection(selection)?.text).toBe('Diam sapien pellentesque.');
-        expect(selection.focusNode).toBe(document.getElementById('second')!.parentElement);
     });
 
-    test('should keep the direction of a trimmed selection made from right to left', () => {
+    test('should keep the direction of a selection made from right to left that spills over the post', () => {
         const selection = select(textOf('footer'), 3, textOf('second'), 5);
 
         expect(getQuotableSelection(selection)).toMatchObject({text: 'sapien pellentesque.', isBackward: true});
-        expect(selection.anchorNode).toBe(document.getElementById('second')!.parentElement);
+    });
+
+    test('should leave the selection as is so that it can still be copied as a whole', () => {
+        const header = document.querySelector('.post__header')!.firstChild!;
+        const selection = select(header, 0, textOf('second'), 4);
+
+        expect(getQuotableSelection(selection)?.text).toBe('Ullamcorper eu mi, dictumst nec.\n\nDiam');
+        expect({
+            anchorNode: selection.anchorNode,
+            anchorOffset: selection.anchorOffset,
+            focusNode: selection.focusNode,
+            focusOffset: selection.focusOffset,
+        }).toEqual({anchorNode: header, anchorOffset: 0, focusNode: textOf('second'), focusOffset: 4});
     });
 
     test('should trim a triple-click selection that ends at the start of the next post', () => {

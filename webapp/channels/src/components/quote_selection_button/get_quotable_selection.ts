@@ -143,7 +143,7 @@ function isSelectionBackward(selection: Selection) {
  * isn't text from the message of a single post in the center channel, RHS or Threads view.
  *
  * Selections that start in a post's message and spill over the rest of the post without
- * selecting text of another post (such as after a triple click) are trimmed to the message text.
+ * selecting text of another post (such as after a triple click) only quote the message text.
  */
 export function getQuotableSelection(selection: Selection | null): QuotableSelection | null {
     if (!selection || selection.isCollapsed || !selection.rangeCount || !selection.anchorNode || !selection.focusNode) {
@@ -168,25 +168,17 @@ export function getQuotableSelection(selection: Selection | null): QuotableSelec
 
     const isBackward = isSelectionBackward(selection);
 
+    // Only the part of the selection inside the message is quoted. The selection itself is left as is, so that
+    // it can still be copied as a whole, e.g. along with the author's name.
     const quotedRange = range.cloneRange();
-    if (startMessage !== messageElement || endMessage !== messageElement) {
-        if (startMessage !== messageElement) {
-            quotedRange.setStart(messageElement, 0);
-        }
-        if (endMessage !== messageElement) {
-            quotedRange.setEnd(messageElement, messageElement.childNodes.length);
-        }
-
-        // Narrow the selection down to what will be quoted so the user can see it.
-        if (isBackward) {
-            selection.setBaseAndExtent(quotedRange.endContainer, quotedRange.endOffset, quotedRange.startContainer, quotedRange.startOffset);
-        } else {
-            selection.setBaseAndExtent(quotedRange.startContainer, quotedRange.startOffset, quotedRange.endContainer, quotedRange.endOffset);
-        }
+    if (startMessage !== messageElement) {
+        quotedRange.setStart(messageElement, 0);
+    }
+    if (endMessage !== messageElement) {
+        quotedRange.setEnd(messageElement, messageElement.childNodes.length);
     }
 
-    // Unlike Range.toString, Selection.toString keeps line breaks between paragraphs.
-    const plainText = selection.toString();
+    const plainText = quotedRange.toString();
     if (!plainText.trim()) {
         return null;
     }

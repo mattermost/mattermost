@@ -220,3 +220,31 @@ test('does not offer to quote in an archived channel', TAGS, async ({pw}) => {
     await page.waitForTimeout(500);
     await expect(page.getByRole('button', {name: 'Quote selection'})).not.toBeVisible();
 });
+
+/**
+ * @objective Verify that text can be quoted in a channel opened in a pop-out window.
+ */
+test('quotes text selected in a channel pop-out window', TAGS, async ({pw}) => {
+    const {user, userClient, team} = await pw.initSetup();
+    const townSquare = await userClient.getChannelByName(team.id, 'town-square');
+    const post = await userClient.createPost({channel_id: townSquare.id, message: MESSAGE});
+
+    const {channelsPage, page} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    // # Open the channel in a pop-out window
+    const [popout] = await Promise.all([
+        page.waitForEvent('popup'),
+        page.locator('#channel-header').getByRole('button', {name: 'Open in new window'}).click(),
+    ]);
+    const message = popout.locator(`#postMessageText_${post.id}`);
+    await expect(message).toBeVisible();
+
+    // # Select part of the message and quote it
+    await selectTextWithMouse(message, 'Diam sapien pellentesque');
+    await popout.getByRole('button', {name: 'Quote selection'}).click();
+
+    // * Verify the quote is in the pop-out's message box
+    await expect(popout.getByTestId('post_textbox')).toHaveValue('> Diam sapien pellentesque\n\n');
+});

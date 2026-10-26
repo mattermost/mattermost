@@ -303,6 +303,12 @@ describe('canQuoteFromPost', () => {
         expect(canQuoteFromPost(state, dmPost.id, false)).toBe(false);
     });
 
+    test('should not allow quoting a burn-on-read post', () => {
+        const state = withChanges({entities: {posts: {posts: {[rootPost.id]: {...rootPost, type: PostTypes.BURN_ON_READ}}}}});
+
+        expect(canQuoteFromPost(state, rootPost.id, false)).toBe(false);
+    });
+
     test('should not allow quoting into a thread whose root post was deleted', () => {
         const deletedRoot = withChanges({entities: {posts: {posts: {[rootPost.id]: {...rootPost, state: Posts.POST_DELETED}}}}});
         const fakeRoot = withChanges({entities: {posts: {posts: {[rootPost.id]: {...rootPost, type: PostTypes.FAKE_PARENT_DELETED}}}}});

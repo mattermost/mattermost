@@ -7,6 +7,7 @@ import {getChannel, getMyActiveChannelIds, isDeactivatedDirectChannel} from 'mat
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
+import {isBurnOnReadPost} from 'selectors/burn_on_read_posts';
 import {getGlobalItem} from 'selectors/storage';
 
 import {PostTypes, StoragePrefixes} from 'utils/constants';
@@ -159,7 +160,9 @@ export function getPendingQuote(state: GlobalState) {
  */
 export function canQuoteFromPost(state: GlobalState, postId: string, isRHS: boolean): boolean {
     const post = getPost(state, postId);
-    if (!post) {
+
+    // Burn-on-read posts can't be copied, so that they aren't kept around after they're deleted
+    if (!post || isBurnOnReadPost(state, postId)) {
         return false;
     }
 
