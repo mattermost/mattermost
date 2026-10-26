@@ -4624,22 +4624,41 @@ func (s SqlChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) 
 	return slices.Index(permissionList, model.PermissionCreatePost.Id) == -1, nil
 }
 
-func (s SqlChannelStore) GetChannelsInSessionScope(teamID string, resources *model.SessionScopeResources) (model.ChannelList, error) {
+func (s SqlChannelStore) GetChannelIDsInSessionScope(teamID string, resources *model.SessionScopeResources, publicOnly bool) ([]string, error) {
+	query := sessionScopeChannelIDsQuery(s.getQueryBuilder(), resources).OrderBy("Channels.DisplayName", "Channels.Id")
+	if teamID != "" {
+		query = query.Where(sq.Eq{"Channels.TeamId": teamID})
+	}
+	if publicOnly {
+		query = query.Where(sq.Eq{"Channels.Type": model.ChannelTypeOpen})
+	}
+
+	ids := []string{}
+	if err := s.GetReplica().SelectBuilder(&ids, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get channel ids in session scope")
+	}
+	return ids, nil
+}
+
+func (s SqlChannelStore) SearchInTeamInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelList, error) {
 	scopedSQL, scopedArgs, err := sessionScopeChannelIDsQuery(s.getSubQueryBuilder(), resources).ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "channels_in_session_scope_tosql")
+		return nil, errors.Wrap(err, "search_in_team_in_session_scope_tosql")
 	}
 
-	query := s.tableSelectQuery.
-		Where(fmt.Sprintf("Id IN (%s)", scopedSQL), scopedArgs...).
-		OrderBy("DisplayName")
-	if teamID != "" {
-		query = query.Where(sq.Or{sq.Eq{"TeamId": teamID}, sq.Eq{"TeamId": ""}})
+	query := s.getQueryBuilder().Select(channelSliceColumns(true, "Channels")...).
+		From("Channels").
+		Join("PublicChannels c ON (c.Id = Channels.Id)").
+		Where(sq.Eq{"c.TeamId": teamID}).
+		Where(fmt.Sprintf("Channels.Id IN (%s)", scopedSQL), scopedArgs...).
+		OrderBy("c.DisplayName").
+		Limit(100)
+
+	if term != "" {
+		if searchClause := s.searchClause(term); searchClause != nil {
+			query = query.Where(searchClause)
+		}
 	}
 
-	channels := model.ChannelList{}
-	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
-		return nil, errors.Wrap(err, "failed to get channels in session scope")
-	}
-	return channels, nil
+	return s.performSearch(query, term)
 }

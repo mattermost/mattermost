@@ -23,8 +23,6 @@ type SearchStore struct {
 	post         *SearchPostStore
 	fileInfo     *SearchFileInfoStore
 	configValue  atomic.Pointer[model.Config]
-
-	openTeamChannels openTeamChannelsCache
 }
 
 func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cfg *model.Config) *SearchStore {

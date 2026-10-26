@@ -2141,6 +2141,27 @@ func (s *RetryLayerChannelStore) GetByNamesIncludeDeleted(teamID string, names [
 
 }
 
+func (s *RetryLayerChannelStore) GetChannelIDsInSessionScope(teamID string, resources *model.SessionScopeResources, publicOnly bool) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelIDsInSessionScope(teamID, resources, publicOnly)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error) {
 
 	tries := 0
@@ -2314,27 +2335,6 @@ func (s *RetryLayerChannelStore) GetChannelsByUser(userID string, includeDeleted
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelStore) GetChannelsInSessionScope(teamID string, resources *model.SessionScopeResources) (model.ChannelList, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetChannelsInSessionScope(teamID, resources)
 		if err == nil {
 			return result, nil
 		}
@@ -3727,6 +3727,27 @@ func (s *RetryLayerChannelStore) SearchInTeam(teamID string, term string, includ
 	tries := 0
 	for {
 		result, err := s.ChannelStore.SearchInTeam(teamID, term, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) SearchInTeamInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.SearchInTeamInSessionScope(teamID, term, resources)
 		if err == nil {
 			return result, nil
 		}

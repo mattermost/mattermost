@@ -918,6 +918,36 @@ func (_m *ChannelStore) GetByNamesIncludeDeleted(teamID string, names []string, 
 	return r0, r1
 }
 
+// GetChannelIDsInSessionScope provides a mock function with given fields: teamID, resources, publicOnly
+func (_m *ChannelStore) GetChannelIDsInSessionScope(teamID string, resources *model.SessionScopeResources, publicOnly bool) ([]string, error) {
+	ret := _m.Called(teamID, resources, publicOnly)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelIDsInSessionScope")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, *model.SessionScopeResources, bool) ([]string, error)); ok {
+		return rf(teamID, resources, publicOnly)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.SessionScopeResources, bool) []string); ok {
+		r0 = rf(teamID, resources, publicOnly)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *model.SessionScopeResources, bool) error); ok {
+		r1 = rf(teamID, resources, publicOnly)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelMembersForExport provides a mock function with given fields: userID, teamID, includeArchivedChannel
 func (_m *ChannelStore) GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error) {
 	ret := _m.Called(userID, teamID, includeArchivedChannel)
@@ -1181,36 +1211,6 @@ func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, la
 
 	if rf, ok := ret.Get(1).(func(string, bool, int, int, string) error); ok {
 		r1 = rf(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetChannelsInSessionScope provides a mock function with given fields: teamID, resources
-func (_m *ChannelStore) GetChannelsInSessionScope(teamID string, resources *model.SessionScopeResources) (model.ChannelList, error) {
-	ret := _m.Called(teamID, resources)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetChannelsInSessionScope")
-	}
-
-	var r0 model.ChannelList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *model.SessionScopeResources) (model.ChannelList, error)); ok {
-		return rf(teamID, resources)
-	}
-	if rf, ok := ret.Get(0).(func(string, *model.SessionScopeResources) model.ChannelList); ok {
-		r0 = rf(teamID, resources)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.ChannelList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, *model.SessionScopeResources) error); ok {
-		r1 = rf(teamID, resources)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3113,6 +3113,36 @@ func (_m *ChannelStore) SearchInTeam(teamID string, term string, includeDeleted 
 
 	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(teamID, term, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SearchInTeamInSessionScope provides a mock function with given fields: teamID, term, resources
+func (_m *ChannelStore) SearchInTeamInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelList, error) {
+	ret := _m.Called(teamID, term, resources)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchInTeamInSessionScope")
+	}
+
+	var r0 model.ChannelList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, *model.SessionScopeResources) (model.ChannelList, error)); ok {
+		return rf(teamID, term, resources)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, *model.SessionScopeResources) model.ChannelList); ok {
+		r0 = rf(teamID, term, resources)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, *model.SessionScopeResources) error); ok {
+		r1 = rf(teamID, term, resources)
 	} else {
 		r1 = ret.Error(1)
 	}

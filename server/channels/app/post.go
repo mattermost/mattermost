@@ -2325,6 +2325,12 @@ func (a *App) deletePostFiles(rctx request.CTX, postID string) {
 func (a *App) parseAndFetchChannelIdByNameFromInFilter(rctx request.CTX, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
 	cleanChannelName := strings.TrimLeft(channelName, "~")
 
+	// DMs and GMs are never in a session scope, and resolving a DM name would
+	// create the channel, which a read-only session must not do.
+	if strings.HasPrefix(cleanChannelName, "@") && requestScopedSession(rctx, userID) != nil {
+		return nil, errors.New("direct and group channels are not searchable with a scoped session")
+	}
+
 	if strings.HasPrefix(cleanChannelName, "@") && strings.Contains(cleanChannelName, ",") {
 		var userIDs []string
 		users, err := a.GetUsersByUsernames(strings.Split(cleanChannelName[1:], ","), false, nil)

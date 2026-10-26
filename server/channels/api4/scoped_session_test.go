@@ -666,4 +666,72 @@ func TestScopedSessionSearch(t *testing.T) {
 		_, resp, err = f.client.SearchChannels(ctx, unlistedClosed.Id, &model.ChannelSearch{Term: "x"})
 		requireScopeError(t, resp, err)
 	})
+
+	t.Run("channel listing pages over the scope's channels", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		team.AllowOpenInvite = false
+		team.Type = model.TeamInvite
+		_, err := th.App.Srv().Store().Team().Update(team)
+		require.NoError(t, err)
+		th.LinkUserToTeam(t, th.BasicUser, team)
+
+		var listed []string
+		for i := range 5 {
+			channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team.Id)
+			if i%2 == 0 {
+				listed = append(listed, channel.Id)
+			}
+		}
+		session, appErr := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
+			Permissions: model.ScopeReadPermissions,
+			Resources:   model.SessionScopeResources{ChannelIDs: listed},
+		}, model.GetMillis()+30*60*1000)
+		require.Nil(t, appErr)
+		client := th.CreateClient()
+		client.SetToken(session.Token)
+
+		var paged []string
+		for page := range 4 {
+			channels, _, pageErr := client.GetPublicChannelsForTeam(ctx, team.Id, page, 1, "")
+			require.NoError(t, pageErr)
+			if page < len(listed) {
+				require.Len(t, channels, 1, "page %d", page)
+				paged = append(paged, channels[0].Id)
+			} else {
+				require.Empty(t, channels)
+			}
+		}
+		assert.ElementsMatch(t, listed, paged)
+
+		searched, _, err := client.SearchChannels(ctx, team.Id, &model.ChannelSearch{Term: ""})
+		require.NoError(t, err)
+		var ids []string
+		for _, channel := range searched {
+			ids = append(ids, channel.Id)
+		}
+		assert.ElementsMatch(t, listed, ids)
+	})
+
+	t.Run("in:@user does not create a DM", func(t *testing.T) {
+		other := th.CreateUser(t)
+		dmName := model.GetDMNameFromIds(f.bot.Id, other.Id)
+		inFilter := term + " in:@" + other.Username
+
+		results, _, err := f.client.SearchPostsWithParams(ctx, "", &model.SearchParameter{Terms: &inFilter})
+		require.NoError(t, err)
+		assert.Empty(t, results.Posts)
+		_, _, err = f.client.SearchFiles(ctx, f.openTeam.Id, inFilter, false)
+		require.NoError(t, err)
+
+		_, err = th.App.Srv().Store().Channel().GetByName("", dmName, true)
+		require.Error(t, err, "the DM must not exist")
+	})
+
+	t.Run("the open-team grant needs join_public_teams", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+		results, _, err := f.client.SearchPostsWithParams(ctx, "", &model.SearchParameter{Terms: &term})
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{posts[f.triggering.Id].Id}, found(t, results))
+	})
 }
