@@ -288,10 +288,34 @@
     --center-channel-bg-rgb: var(--sidebar-bg-rgb);
     --center-channel-color: var(--sidebar-text);
     --center-channel-color-rgb: var(--sidebar-text-rgb);
+
+    // Derived from the center channel color at the root, and read by the channel tags.
+    --semantic-color-general: var(--sidebar-text-rgb);
     --border-default: solid 1px rgba(var(--sidebar-text-rgb), 0.12);
     --border-light: solid 1px rgba(var(--sidebar-text-rgb), 0.08);
     --border-dark: solid 1px rgba(var(--sidebar-text-rgb), 0.16);
 
     background: var(--sidebar-bg);
     color: var(--sidebar-text);
+}
+
+// With the team sidebar beside it, the rail joins the main panel as its first column: the sidebar's
+// background, the panel's border and rounded corners on the outside, and a divider before the
+// channel list. Without the team sidebar, it stays on the header background.
+body.app__body #root:has(.team-sidebar) {
+    .ProductRail {
+        --product-rail-bg: var(--sidebar-bg);
+
+        border: var(--border-light);
+        border-radius: var(--radius-l) 0 0 var(--radius-l);
+        border-right: 1px solid rgba(var(--sidebar-text-rgb), 0.12);
+        margin-bottom: 4px;
+        background: var(--sidebar-bg);
+    }
+
+    .main-wrapper {
+        border-left: none;
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+    }
 }
