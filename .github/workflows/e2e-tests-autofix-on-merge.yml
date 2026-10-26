@@ -1,6 +1,7 @@
 ---
 # E2E autofix on merge. After each master E2E run, the toolkit's e2e-test-watch action picks
-# the Playwright specs that keep failing on master, and the agent's own PRs that no longer merge.
+# the Playwright specs that keep failing on master. The agent's PRs carry AI/babysit (review
+# feedback, CI) and AI/ConflictsBabysit (merge conflicts), whose automations take them from there.
 # This workflow adds the server images to test with and sends each request to the "E2E Autofix"
 # Cursor automation. Its instructions live in the automation, not in this repository.
 #
@@ -58,7 +59,7 @@ jobs:
              {"name": "playwright-full-fips-master", "test_root": "e2e-tests/playwright/specs"}]
           github-token: ${{ github.token }}
           label: e2e-autofix
-          extra-labels: AI/babysit
+          extra-labels: AI/babysit,AI/ConflictsBabysit
           max-broken-per-run: 10
           max-flaky-per-day: 6
           cause-hold-hours: 4
