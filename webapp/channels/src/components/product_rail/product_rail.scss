@@ -319,3 +319,13 @@ body.app__body #root:has(.team-sidebar) {
         border-top-left-radius: 0;
     }
 }
+
+// In Threads the thread list takes the channel sidebar's place against the panel's left edge, so,
+// like that sidebar, it has square corners there.
+body.app__body #root:has(.ProductRail) #channel_view:has(.GlobalThreads) {
+    &,
+    .GlobalThreads {
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+    }
+}
