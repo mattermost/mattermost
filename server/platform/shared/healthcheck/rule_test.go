@@ -83,7 +83,6 @@ func TestLicensed(t *testing.T) {
 	firing := []Result{Firing("message")}
 	eval := func(*Snapshot) []Result { return firing }
 	nodeEval := func(*Snapshot, *NodeSnapshot) []Result { return firing }
-	cluster := func(f *model.Features) *bool { return f.Cluster }
 
 	testCases := []struct {
 		name     string
@@ -100,17 +99,17 @@ func TestLicensed(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := licensedSnapshot(tc.license)
-			assert.Equal(t, tc.expected, Licensed(cluster, eval)(s))
-			assert.Equal(t, tc.expected, LicensedNode(cluster, nodeEval)(s, &NodeSnapshot{}))
+			assert.Equal(t, tc.expected, Licensed(FeatureCluster, eval)(s))
+			assert.Equal(t, tc.expected, LicensedNode(FeatureCluster, nodeEval)(s, &NodeSnapshot{}))
 		})
 	}
 
 	t.Run("license section missing", func(t *testing.T) {
-		assert.Equal(t, []Result{Unknown(ReasonLicenseUnavailable)}, Licensed(cluster, eval)(&Snapshot{}))
+		assert.Equal(t, []Result{Unknown(ReasonLicenseUnavailable)}, Licensed(FeatureCluster, eval)(&Snapshot{}))
 	})
 
 	t.Run("resolved rule ignores missing license data", func(t *testing.T) {
 		resolved := []Result{Resolved().WithValue(1)}
-		assert.Equal(t, resolved, Licensed(cluster, func(*Snapshot) []Result { return resolved })(&Snapshot{}))
+		assert.Equal(t, resolved, Licensed(FeatureCluster, func(*Snapshot) []Result { return resolved })(&Snapshot{}))
 	})
 }

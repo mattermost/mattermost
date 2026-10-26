@@ -77,8 +77,10 @@ jobs:
               exit 1
             fi
 
-            echo "PR_NUMBER=${INPUT_PR_NUMBER}" >> $GITHUB_OUTPUT
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
+            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
             echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+            echo "BASE_SHA=$(echo "$PR_DATA" | jq -r '.base.sha')" >> $GITHUB_OUTPUT
             echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -111,7 +113,10 @@ jobs:
             fi
 
             echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
+            # Status publication locks use the full tested SHA, never the dispatch ref.
+            COMMIT_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${INPUT_COMMIT_SHA}" --jq '.sha')
+            echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+            echo "BASE_SHA=$(echo "$PR_DATA" | jq -r '.base.sha // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
             echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -125,6 +130,10 @@ jobs:
         id: e2e-check
         uses: ./.github/actions/check-e2e-test-only
         with:
+          # The tested commit, not the PR's current head: a push after the dispatch would
+          # otherwise name an image that isn't built yet, and every worker fails to start.
+          base_sha: ${{ steps.resolve.outputs.BASE_SHA }}
+          head_sha: ${{ steps.resolve.outputs.COMMIT_SHA }}
           pr_number: ${{ steps.resolve.outputs.PR_NUMBER }}
 
 
@@ -285,6 +294,7 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   e2e-playwright:
     needs:
@@ -309,6 +319,7 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
   # Only when subpath-specific server code or test specs changed.
@@ -335,6 +346,7 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   # Enterprise FIPS Edition
   e2e-cypress-fips:
@@ -364,6 +376,7 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   e2e-playwright-fips:
     needs:
@@ -388,3 +401,4 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"

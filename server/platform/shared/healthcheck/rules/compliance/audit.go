@@ -76,6 +76,6 @@ func auditLoggingActive(s *healthcheck.Snapshot) (bool, bool) {
 
 // An unknown license, as in packets from older servers, cannot rule out advanced audit targets.
 func allowAdvancedLogging(s *healthcheck.Snapshot) bool {
-	allowed, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.AdvancedLogging })
+	allowed, ok := s.LicenseFeature(healthcheck.FeatureAdvancedLogging)
 	return !ok || allowed
 }

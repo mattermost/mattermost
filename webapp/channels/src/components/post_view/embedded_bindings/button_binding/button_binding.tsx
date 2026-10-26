@@ -123,6 +123,7 @@ class ButtonBinding extends React.PureComponent<Props, State> {
                 onClick={this.handleClick}
             >
                 <LoadingWrapper
+                    legacy={true}
                     loading={this.state.executing}
                 >
                     <Markdown

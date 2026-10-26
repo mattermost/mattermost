@@ -236,6 +236,7 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label, mmB
                 aria-label={executing ? executingLabel : label}
             >
                 <LoadingWrapper
+                    legacy={true}
                     loading={executing}
                     text={executingLabel}
                 >

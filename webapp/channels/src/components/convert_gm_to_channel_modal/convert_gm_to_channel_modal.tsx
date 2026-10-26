@@ -161,7 +161,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         if (showLoader) {
             subBody = (
                 <div className='loadingIndicator'>
-                    <LoadingSpinner/>
+                    <LoadingSpinner size='32'/>
                 </div>
             );
         } else {
