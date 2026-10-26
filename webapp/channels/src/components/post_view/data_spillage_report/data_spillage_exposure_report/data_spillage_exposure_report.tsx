@@ -10,8 +10,6 @@ import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {Client4} from 'mattermost-redux/client';
 
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-
 import './data_spillage_exposure_report.scss';
 
 type Status = 'idle' | 'generating' | 'error';
@@ -84,7 +82,6 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
 
         switch (status) {
         case 'generating':
-            icon = <LoadingSpinner legacy={true}/>;
             label = (
                 <FormattedMessage
                     id='data_spillage_report.exposure_report.generating.button_text'
@@ -130,6 +127,7 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
                 destructive={destructive}
                 onClick={handleClick}
                 disabled={status === 'generating'}
+                loading={status === 'generating'}
                 data-testid='data-spillage-action-download-exposure-report'
                 leadingIcon={icon}
             >

@@ -29,6 +29,7 @@ export type Props = {
     handleEnterKeyPress?: () => void;
     handleKeydown?: (event?: React.KeyboardEvent<HTMLDivElement>) => void;
     confirmButtonText?: React.ReactNode;
+    isConfirmLoading?: boolean;
     destructive?: boolean;
 
     /**
@@ -121,6 +122,7 @@ export const GenericModal: React.FC<Props> = ({
     handleEnterKeyPress,
     handleKeydown,
     confirmButtonText,
+    isConfirmLoading,
     destructive,
     confirmButtonVariant,
     cancelButtonText,
@@ -233,6 +235,7 @@ export const GenericModal: React.FC<Props> = ({
                 })}
                 onClick={handleConfirmCallback}
                 disabled={isConfirmDisabled}
+                loading={isConfirmLoading}
             >
                 {confirmButtonTextContent}
             </Button>

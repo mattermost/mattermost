@@ -8,8 +8,6 @@ import {FormattedMessage} from 'react-intl';
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-
 import './save_changes_panel.scss';
 
 export type SaveChangesPanelState = 'editing' | 'saved' | 'error' | undefined;
@@ -132,16 +130,12 @@ function SaveChangesPanel({
                     className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleSubmit}
                     disabled={saveButtonDisabled}
+                    loading={saving}
                 >
                     {saving ? (
-                        <LoadingSpinner
-                            legacy={true}
-                            text={
-                                <FormattedMessage
-                                    id='saveChangesPanel.saving'
-                                    defaultMessage='Saving...'
-                                />
-                            }
+                        <FormattedMessage
+                            id='saveChangesPanel.saving'
+                            defaultMessage='Saving...'
                         />
                     ) : (saveButtonText || (
                         <FormattedMessage
