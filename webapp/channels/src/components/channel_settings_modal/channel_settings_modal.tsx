@@ -9,7 +9,7 @@ import React, {
     useRef,
 } from 'react';
 import {useIntl} from 'react-intl';
-import {shallowEqual, useDispatch, useSelector} from 'react-redux';
+import {shallowEqual, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -118,7 +118,6 @@ function ChannelSettingsModal(props: ChannelSettingsModalProps) {
 
 function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement}: ChannelSettingsModalBodyProps) {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch();
     const channelId = channel.id;
     const visiblePluginTabRegistrations = useSelector((state: GlobalState) => {
         const currentChannel = getChannel(state, channelId);
