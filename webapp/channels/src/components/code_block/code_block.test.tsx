@@ -136,6 +136,18 @@ it shouldn't highlight, it's just garbage`;
             expect(screen.queryByRole('heading', {name: 'Heading'})).not.toBeInTheDocument();
         });
 
+        test('should keep the raw source on the block in the raw view so a copy of it pastes back as Markdown', async () => {
+            const {container} = renderWithContext(
+                <CodeBlock
+                    code={markdown}
+                    language='markdown'
+                />,
+            );
+            await actImmediate();
+
+            expect(container.querySelector('.post-code')).toHaveAttribute('data-markdown-source', markdown);
+        });
+
         test.each(['typescript', 'xml', 'html', 'bash'])('should not show the toggle for explicit %p blocks', async (language) => {
             renderWithContext(
                 <CodeBlock

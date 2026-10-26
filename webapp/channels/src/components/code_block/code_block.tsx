@@ -13,7 +13,7 @@ import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_to
 import WrappedCodeLines from 'components/wrapped_code_lines';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
-import {MarkdownViews} from 'utils/constants';
+import {MARKDOWN_SOURCE_ATTRIBUTE, MarkdownViews} from 'utils/constants';
 import type {MarkdownView} from 'utils/constants';
 import {isLikelyMarkdown} from 'utils/is_likely_markdown';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
@@ -157,7 +157,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
     return (
         <div
             className={className}
-            data-markdown-source={showRendered ? code : undefined}
+            {...(isMarkdownSource ? {[MARKDOWN_SOURCE_ATTRIBUTE]: code} : {})}
         >
             <div className='post-code__overlay'>
                 {canToggleMarkdown && (

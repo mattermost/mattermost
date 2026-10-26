@@ -4,6 +4,7 @@
 import {gfm} from '@guyplusplus/turndown-plugin-gfm';
 import TurndownService from 'turndown';
 
+import {MARKDOWN_SOURCE_ATTRIBUTE} from 'utils/constants';
 import {getLanguageFromDisplayName} from 'utils/syntax_highlighting';
 
 /**
@@ -66,7 +67,7 @@ turndownService.addRule('mattermostCodeBlock', {
     filter: (node) => node.nodeName === 'DIV' && node.classList.contains('post-code'),
     replacement: (content, node) => {
         const element = node as HTMLElement;
-        const code = element.getAttribute('data-markdown-source') ?? element.querySelector('code')?.textContent ?? '';
+        const code = element.getAttribute(MARKDOWN_SOURCE_ATTRIBUTE) ?? element.querySelector('code')?.textContent ?? '';
 
         // Only the block's own overlay holds its language; a code block rendered inside Markdown has one of its own
         const overlay = Array.from(element.children).find((child) => child.classList.contains('post-code__overlay'));
