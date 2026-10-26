@@ -134,19 +134,6 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	_, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
-	}
-	return nil
+	_, err = rcs.sendRemoteRequest(req.WithContext(ctx))
+	return err
 }

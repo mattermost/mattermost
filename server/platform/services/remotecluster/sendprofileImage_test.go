@@ -91,7 +91,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 	user := &model.User{
 		Id:       model.NewId(),
-		RemoteId: model.NewPointer(rc.RemoteId),
+		RemoteId: new(rc.RemoteId),
 	}
 
 	provider := testImageProvider{}
@@ -147,6 +147,68 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 		err := service.sendProfileImageToRemote(time.Second*15, task)
 		assert.Error(t, err, "request should error")
 	})
+}
+
+// TestService_sendProfileImageToRemote_ResponseHandling exercises sendProfileImageToRemote against
+// a remote whose reply varies in size, shape and status. The cases cover what the caller makes of
+// each reply, and how much of a reply the remote gets to send before the caller stops reading.
+func TestService_sendProfileImageToRemote_ResponseHandling(t *testing.T) {
+	rs := newResponseServer()
+	defer rs.Close()
+
+	rc := makeRemoteCluster("remote_test_profile_image_response", rs.URL, TestTopics)
+
+	user := &model.User{
+		Id:       model.NewId(),
+		RemoteId: new(rc.RemoteId),
+	}
+
+	mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, rs.URL, false))
+	mockServer.SetUser(user)
+
+	service, err := NewRemoteClusterService(mockServer, newMockApp(t, nil))
+	require.NoError(t, err)
+	service.disablePing = true
+
+	require.NoError(t, service.Start())
+	defer service.Shutdown()
+
+	task := sendProfileImageTask{
+		rc:       rc,
+		userID:   user.Id,
+		provider: testImageProvider{},
+	}
+
+	call := func(timeout time.Duration) error {
+		return service.sendProfileImageToRemote(timeout, task)
+	}
+
+	// The complete reply of a remote that stored the image.
+	reply := []byte(model.MapToJSON(map[string]string{model.STATUS: model.StatusOk}))
+
+	t.Run("complete reply", func(t *testing.T) {
+		rs.setReply(replyBody{prefix: reply})
+		defer rs.awaitIdle(t)
+
+		require.NoError(t, call(defaultCallTimeout))
+	})
+
+	// This call site ignores the reply body, so a reply with no body at all is not an error.
+	assertReplyCases(t, rs, call, sharedReplyCases(reply, true))
+
+	t.Run("connection is available to the calls that follow", func(t *testing.T) {
+		rs.setReply(replyBody{prefix: reply})
+		rs.takeConnectionCount()
+
+		for range 3 {
+			require.NoError(t, call(defaultCallTimeout))
+		}
+
+		assert.Equal(t, 1, rs.takeConnectionCount(),
+			"reading a complete reply to its end should leave the connection for the next call to reuse")
+	})
+
+	assertReplyBytesServedStaysBounded(t, rs, reply, call)
 }
 
 type testImageProvider struct {
