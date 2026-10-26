@@ -1437,6 +1437,14 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 			}
 		}
 
+		// The upload above can outlive the caller's deadline (the filestore write
+		// takes no context); do not start a save once the context is done, or a
+		// timed-out delivery could still post after its caller stopped waiting.
+		if err := rctx.Context().Err(); err != nil {
+			rctx.Logger().Error("Aborting reviewer post after context done", mlog.Err(err), mlog.String("post_id", postId))
+			return createdPosts, nil
+		}
+
 		createdPost, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create assign reviewer post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("post_id", postId))
