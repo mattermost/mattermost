@@ -21,7 +21,7 @@ def report(outcomes=(), flags=(), ticks=(), mode="live"):
 
 
 def outcome(task, state, result=None, kind="notice_txt", item=None, due=None, error=""):
-    rule = {"task": task, "type": kind, "playbook_item": item}
+    rule = {"task": task, "type": kind, "playbook_item": item, "title": item}
     return posting.Outcome(rule, state, result, due, error)
 
 

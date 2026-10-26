@@ -35,11 +35,17 @@
     "naming": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["milestone", "fix_version", "release_channel"],
+      "required": ["milestone", "fix_version", "release_channels"],
       "properties": {
         "milestone": {"type": "string", "minLength": 1},
         "fix_version": {"type": "string", "minLength": 1},
-        "release_channel": {"type": "string", "minLength": 1}
+        "release_channels": {
+          "description": "Display names a release's channel can have, such as the ESR one.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
       }
     },
     "false_alarm_emoji": {"type": "string", "pattern": "^[a-z0-9_+-]+$"},
@@ -53,11 +59,12 @@
     "rule": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["task", "playbook_item", "due", "type", "source", "query", "pass_when", "on_fail"],
+      "required": ["task", "title", "playbook_item", "due", "type", "source", "query", "pass_when", "on_fail"],
       "properties": {
         "task": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+        "title": {"description": "What the status post calls the check.", "type": "string", "minLength": 1},
         "playbook_item": {
-          "description": "The checklist item title in the Cloud & Self-Hosted playbook, or null for report-only tasks.",
+          "description": "The checklist item title in the Cloud & Self-Hosted playbook as it reads on screen, or null to tick nothing.",
           "type": ["string", "null"],
           "minLength": 1
         },

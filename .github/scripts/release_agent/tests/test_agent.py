@@ -75,7 +75,7 @@ class LiveRunTest(unittest.TestCase):
             "e2e-results": "needs_attention",
             "rc-tags": "ok",
             "final-tags": "not_due",
-            "version-go-prs": "needs_attention",
+            "version-go-prs": "not_due",
             "changelog-labels": "ok",
         })
         self.assertEqual(by_task(self.releases["v12.3"])["e2e-results"]["state"], "skipped")
@@ -83,12 +83,8 @@ class LiveRunTest(unittest.TestCase):
     def test_ticks_passing_due_items_only(self):
         ticked = {(run_id, title) for run_id, title in self.svc.hub.closed}
         self.assertEqual(ticked, {
-            ("run122", "Triage new regressions"),
-            ("run122", "Update Hub to the release branch"),
-            ("run122", "Update NOTICE.txt on the release branch"),
-            ("run122", "Confirm RC tags exist in mattermost and enterprise"),
-            ("run122", "Confirm every merged PR has a changelog label"),
-            ("run123", "Triage new regressions"),
+            ("run122", "Check that Hub was updated to the latest release branch."),
+            ("run122", "Ensure that new NOTICE.txt for any new libraries are cherry-picked to the release branch as needed - example PR."),
         })
         self.assertNotIn("cherry-picks", [t["task"] for t in self.releases["v12.2"]["ticked"]])  # passing, not due
 
@@ -96,9 +92,9 @@ class LiveRunTest(unittest.TestCase):
         status = [p for p in self.svc.hub.created if not p["root_id"]]
         self.assertEqual(sorted(p["channel_id"] for p in status), ["c122", "c123"])
         replies = [p for p in self.svc.hub.created if p["root_id"]]
-        self.assertEqual(len(replies), 6)
+        self.assertEqual(len(replies), 2)
         self.assertTrue(all(r["root_id"] in {p["id"] for p in status} for r in replies))
-        self.assertIn("Ticked **Update NOTICE.txt on the release branch**", "\n".join(r["message"] for r in replies))
+        self.assertIn("Ticked **Ensure that new NOTICE.txt for any new libraries", "\n".join(r["message"] for r in replies))
 
     def test_private_details_stay_on_hub(self):
         public = json.dumps(self.body) + step_summary(self.body)
@@ -118,8 +114,8 @@ class LiveRunTest(unittest.TestCase):
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)
         self.assertEqual(self.body["totals"]["checks_run"], 20)
-        self.assertEqual(self.body["totals"]["ticked"], 6)
-        self.assertEqual(self.body["totals"]["alarms_raised"], 3)
+        self.assertEqual(self.body["totals"]["ticked"], 2)
+        self.assertEqual(self.body["totals"]["alarms_raised"], 2)
         self.assertEqual(self.body["totals"]["false_alarms"], 0)
 
     def test_reaction_marks_false_alarms_on_the_next_run(self):
@@ -129,8 +125,8 @@ class LiveRunTest(unittest.TestCase):
         body, _ = run(self.svc)
         v122 = body["releases"][0]
         self.assertEqual((v122["status"], v122["post"]), ("all_good", "updated"))
-        self.assertEqual(sorted(a["what"] for a in v122["false_alarms"]), ["e2e-results", "version-go-prs"])
-        self.assertEqual(body["totals"]["false_alarms"], 2)
+        self.assertEqual(sorted(a["what"] for a in v122["false_alarms"]), ["e2e-results"])
+        self.assertEqual(body["totals"]["false_alarms"], 1)
         post = next(p for p in self.svc.hub.posts["c122"] if p["id"] == post_id)
         self.assertIn("**Marked as false alarms**", post["message"])
 
@@ -144,7 +140,7 @@ class ReleaseChannelTest(unittest.TestCase):
         for r in svc.hub.runs:
             r["name"] = "Renamed run"
         body, _ = run(svc)
-        self.assertEqual(len(svc.hub.closed), 6)
+        self.assertEqual(len(svc.hub.closed), 2)
         self.assertEqual(body["releases"][0]["flags"], [])
 
     def test_without_the_channel_the_run_is_found_by_name(self):
@@ -152,14 +148,24 @@ class ReleaseChannelTest(unittest.TestCase):
         svc.hub.channels = []
         svc.hub.runs[0]["name"] = "Self-Hosted Release v12.2"
         body, _ = run(svc)
-        self.assertEqual(len(svc.hub.closed), 6)
+        self.assertEqual(len(svc.hub.closed), 2)
         self.assertEqual(sorted(p["channel_id"] for p in svc.hub.created if not p["root_id"]), ["c122", "c123"])
+
+    def test_esr_channel(self):
+        svc = services()
+        svc.hub.channels[1]["display_name"] = "Release: v12.3 (ESR)"
+        svc.hub.runs[1]["name"] = "Release: v12.3 (ESR)"
+        body, _ = run(svc)
+        self.assertEqual(body["releases"][1]["flags"], [])
+        self.assertEqual(body["releases"][1]["post"], "created")
+        status = [p for p in svc.hub.created if not p["root_id"]]
+        self.assertEqual(sorted(p["channel_id"] for p in status), ["c122", "c123"])
 
     def test_two_channels_with_the_name_are_flagged(self):
         svc = services()
         svc.hub.channels.append({"id": "dup", "display_name": "release: V12.2"})
         body, _ = run(svc)
-        self.assertIn("The bot is in 2 channels named “Release: v12.2”, so none is used.", body["releases"][0]["flags"])
+        self.assertIn("The bot is in 2 channels named “Release: v12.2” or “Release: v12.2 (ESR)”, so none is used.", body["releases"][0]["flags"])
 
 
 class TestModeTest(unittest.TestCase):
@@ -211,7 +217,7 @@ class LogLineTest(unittest.TestCase):
     def test_success(self):
         body, _ = run(services())
         line = log_line(body, [], "success", "https://run", "live")
-        self.assertTrue(line.startswith(":warning: release-agent [live] 2026-11-04: v12.2 T-7 needs attention (post created, ticked 5)"))
+        self.assertTrue(line.startswith(":warning: release-agent [live] 2026-11-04: v12.2 T-7 needs attention (post created, ticked 2)"))
         self.assertTrue(line.endswith("· [run](https://run)"))
 
     def test_failure_without_run_json(self):

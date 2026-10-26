@@ -1,20 +1,71 @@
-# Checklist item titles of the Cloud & Self-Hosted release playbook on Hub, which rules.yml
-# ticks by title. Refresh it from the playbook's export whenever the playbook changes; the
-# rules test fails if a rule names an item that is not here.
+# Checklist of the Cloud & Self-Hosted release playbook on Hub, which rules.yml ticks by
+# title. Titles are as they read on screen: on Hub, link text such as "this process" is a
+# markdown link, and the agent matches the link text, ignoring the URL, code and bold marks.
+# Item descriptions (the bullets under an item) are left out. Update this file whenever the
+# playbook changes; the rules test fails if a rule names an item that is not here.
 title: Cloud & Self-Hosted Release
 checklists:
-  - title: Release Branch Cut
+  - title: (T-21 or earlier) Release Branch Cut
     items:
-      - title: Merge the version.go PRs
-      - title: Triage new regressions
-  - title: Code Freeze
+      - title: Cut the release branches using this process. Double-check that model/version.go has been updated.
+      - title: Check that Hub was updated to the latest release branch.
+  - title: (T-16) Feature Complete
     items:
-      - title: Update Hub to the release branch
-      - title: Update NOTICE.txt on the release branch
-      - title: Confirm RC tags exist in mattermost and enterprise
-      - title: Confirm E2E results are posted for the latest RC
-      - title: Confirm every merged PR has a changelog label
-  - title: Final Build
+      - title: Post a list of outstanding release bugs and PRs to the release playbook channel using /release-bugs vX.X in Claude Cowork.
+      - title: Ensure that all Resolved tickets for the release get Closed.
+      - title: Fill in the QA feature tracking spreadsheet with all Epics and Story tickets in Resolved status.
+      - title: Run the workflow to create a changelog draft.
+      - title: Check the postgres migrations workflow file for any new Database changes that need to be added to the release notes.
+      - title: Notify CES (Adit) on any changes made to the Support Packet (file 1, file 2) - example issue.
+      - title: Draft a docs PR to update the UI & Accessibility changelog, Important Upgrade Notes, Open Source Components, deploy-rhel.rst, deploy-tar.rst, Deprecated Features list, Release Lifecycle, Desktop compatibility, and ESR/PostgreSQL compatibility table pages, and add the next ESR version to the chart in the ESR docs page.
+      - title: Update software requirements as needed using these guidelines.
+      - title: Ensure that new NOTICE.txt for any new libraries are cherry-picked to the release branch as needed - example PR.
+      - title: Throughout the release cycle, check that any recent backports and regression fixes are cherry-picked to the release.
+      - title: Ask the Docs team (John) to complete release documentation by T-2 deadline for the release milestone.
+      - title: Prepare any needed pre-communications for breaking changes and deprecations using these guidelines.
+      - title: Prepare ESR update comms as needed - instructions.
+      - title: Schedule a Feature Ready Review meeting with these guidelines.
+      - title: Use the "/roadmap-change-review" Claude skill to update the external roadmap deck.
+      - title: Prepare blog outline based on feature highlights.
+  - title: (T-15) RC-1 Cut & QA Qualification Starts
     items:
-      - title: Confirm approved cherry-picks are on the release branch
-      - title: Confirm final tags exist in mattermost and enterprise
+      - title: Cut a Release Candidate using this process and notify the QA team.
+      - title: Ping Alejandro and Dylan to start running loadtests with a link to the Jira ticket (example ticket).
+      - title: Submit the changelog PR for team review - example draft.
+      - title: Draft an email announce based on the blog post draft (example draft).
+      - title: 'Check with Saturn/Yasser that mmctl and e2e tests get done. Follow results at Release: Testing Alerts channel.'
+      - title: Check with Saturn/Yasser that manual tests get done if needed - see guidelines here.
+  - title: (T-6) Code Freeze
+    items:
+      - title: 'Check that the loadtests results were posted in the Developers: Performance Comparisons channel and mark the ticket as resolved (example ticket). Add the benchmarking results to the changelog.'
+      - title: Assess localization readiness and take necessary action based on the process.
+      - title: On the first day of the month, generate a list of contributors from the previous month. Ping John Combs to send out contributor mugs based on the list of contributors.
+  - title: (T-5) Final Release Cut
+    items:
+      - title: Cut the Final release build using this process.
+      - title: Verify that the release tags were added to GitHub (mattermost and enterprise repos).
+      - title: Merge the automated PRs to update version.go - example PR.
+      - title: For ESRs, update the Docker file https://github.com/mattermost/docker/blob/main/env.example.
+  - title: (T-4) Cloud Freemium & Professional Releases
+    items:
+      - title: Ask SRE team to roll out the release to the Freemium and Professional rings.
+  - title: (T-3) Cloud Enterprise Release
+    items:
+      - title: SRE team rolls out the release to the Enterprise ring.
+      - title: Merge changelog PR to the docs release branch and request a review from the Docs team (John) on the docs release branch PR - example PR.
+      - title: Open a doc PR to add the download links, SHA-256 hash, GPG signature, and SBOM.json download links to the version archive.
+  - title: (T-0) Self-Hosted Release
+    items:
+      - title: Run the "Latest" pipeline using this process.
+      - title: Merge the release docs/changelog to master and verify all changes on docs.mattermost.com. Submit a correction docs PR for any incorrect formatting or other errors.
+      - title: Open a PR to update the server upgrade in-product notice - example PR.
+      - title: Prepare release metrics.
+      - title: Close the release in Jira and add new release fix versions in Jira and GitHub (mattermost and enterprise) for the next three releases.
+      - title: Queue the email for the Marketing team.
+      - title: Queue the Twitter announcement for the Marketing team (Rosa) - example tweet.
+      - title: Post upcoming key dates for the next two releases.
+      - title: "Create tickets for next release:"
+      - title: Post in the Announcements channel (example post).
+      - title: Update the GitHub server release description/text - keep the text simple (free of markdown and line breaks).
+      - title: Publish ESR update comms as needed - instructions.
+      - title: Update the Release Highlights deck using the "release-highlights" Claude Cowork skill.

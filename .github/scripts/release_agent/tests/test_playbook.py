@@ -46,6 +46,19 @@ class PlanTickTest(unittest.TestCase):
         self.assertEqual(playbook.plan_tick(self.playbook_run, "  update notice.txt on  the release branch"),
                          (playbook.TICKED, (0, 0)))
 
+    def test_matches_markdown_titles_by_their_text(self):
+        run = checklist_run("r", "v12.2", "c", [
+            ("Ensure that new [NOTICE.txt](https://github.com/x/NOTICE.txt) for any new libraries are cherry-picked "
+             "to the release branch as needed - [example PR](https://github.com/x/pull/1).", "", 0),
+            ("Post a list of outstanding release bugs and PRs to the release playbook channel using "
+             "`/release-bugs vX.X` in **Claude Cowork**.", "", 0),
+        ])
+        self.assertEqual(playbook.plan_tick(run, "Ensure that new NOTICE.txt for any new libraries are cherry-picked "
+                                                 "to the release branch as needed - example PR."), (playbook.TICKED, (0, 0)))
+        self.assertEqual(playbook.plan_tick(run, "Post a list of outstanding release bugs and PRs to the release "
+                                                 "playbook channel using /release-bugs vX.X in Claude Cowork."),
+                         (playbook.TICKED, (0, 1)))
+
     def test_never_changes_handled_items(self):
         self.assertEqual(playbook.plan_tick(self.playbook_run, "Merge the version.go PRs")[0], playbook.ALREADY_DONE)
         self.assertEqual(playbook.plan_tick(self.playbook_run, "Triage new regressions")[0], playbook.HANDLED_BY_PERSON)

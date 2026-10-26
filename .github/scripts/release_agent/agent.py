@@ -84,7 +84,8 @@ def template_vars(release, naming: dict, rc_numbers: list) -> dict:
         base["release_year"] = release.release_day.year
     cut = release.milestones.get("branch_cut") or release.window(0)[0]
     values = {**base, "branch_cut": cut.isoformat()}
-    for key in ("milestone", "fix_version", "release_channel"):
+    values["release_channels"] = [name.format_map(base) for name in naming["release_channels"]]
+    for key in ("milestone", "fix_version"):
         try:
             values[key] = naming[key].format_map(base)
         except KeyError:
@@ -134,13 +135,15 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
             report.flags.append(f"{rule['task']} is due at {rule['due']}, which isn't on the calendar for {release.short_version}.")
         report.outcomes.append(evaluate(ctx, rule, due, today))
 
-    channel_name = ctx.vars["release_channel"]
+    names = ctx.vars["release_channels"]
+    channel_name = ""
     try:
-        channels = services.hub.channels_named(channel_name)
+        channels = list({c["id"]: c for name in names for c in services.hub.channels_named(name)}.values())
         if len(channels) > 1:
-            report.flags.append(f"The bot is in {len(channels)} channels named “{channel_name}”, so none is used.")
+            report.flags.append(f"The bot is in {len(channels)} channels named "
+                                f"{' or '.join(f'“{name}”' for name in names)}, so none is used.")
         elif channels:
-            report.release_channel = channels[0]["id"]
+            report.release_channel, channel_name = channels[0]["id"], channels[0]["display_name"]
     except Exception as err:  # noqa: BLE001
         report.flags.append(f"Couldn't list the bot's channels: {public_error(err)}")
 

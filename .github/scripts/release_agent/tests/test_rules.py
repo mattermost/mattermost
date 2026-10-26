@@ -21,6 +21,25 @@ class RulesFileTest(unittest.TestCase):
             if rule["playbook_item"] is not None:
                 self.assertIn(rule["playbook_item"], self.titles, rule["task"])
 
+    def test_template_matches_the_playbook(self):
+        template = rules.load_yaml(rules.TEMPLATE_PATH)
+        self.assertEqual([len(c["items"]) for c in template["checklists"]], [2, 16, 6, 3, 4, 1, 3, 13])
+        self.assertEqual(len(self.titles), 48)
+
+    def test_items_are_ticked_on_their_playbook_section_day(self):
+        sections = {item["title"]: checklist["title"] for checklist in rules.load_yaml(rules.TEMPLATE_PATH)["checklists"]
+                    for item in checklist["items"]}
+        due = {rule["task"]: (rule["due"], sections[rule["playbook_item"]])
+               for rule in self.rules["rules"] if rule["playbook_item"]}
+        self.assertEqual(due, {
+            "hub-on-release-branch": ("branch_cut+1", "(T-21 or earlier) Release Branch Cut"),
+            "notice-txt": ("feature_complete", "(T-16) Feature Complete"),
+            "cherry-picks": ("final_build", "(T-16) Feature Complete"),
+            "e2e-results": ("feature_complete+2", "(T-15) RC-1 Cut & QA Qualification Starts"),
+            "final-tags": ("final_build", "(T-5) Final Release Cut"),
+            "version-go-prs": ("final_build", "(T-5) Final Release Cut"),
+        })
+
     def test_every_check_has_a_rule(self):
         self.assertEqual({rule["type"] for rule in self.rules["rules"]}, set(CHECKS))
 
@@ -35,6 +54,11 @@ class RulesFileTest(unittest.TestCase):
     def test_rejects_unknown_playbook_item(self):
         self.assertEqual(self.problems_with(playbook_item="Not a real item"),
                          ["new-regressions: playbook_item 'Not a real item' is not in the playbook template"])
+
+    def test_playbook_item_may_keep_markdown(self):
+        self.assertEqual(self.problems_with(playbook_item="Ensure that all Resolved tickets for the release get Closed."), [])
+        self.assertEqual(self.problems_with(playbook_item="Cut the release branches using [this process](https://x). "
+                                                          "Double-check that [model/version.go](https://y) has been updated."), [])
 
     def test_rejects_missing_field(self):
         broken = copy.deepcopy(self.rules)
@@ -52,7 +76,7 @@ class RulesFileTest(unittest.TestCase):
 
     def test_report_only_rules_tick_nothing(self):
         broken = copy.deepcopy(self.rules)
-        broken["rules"][0]["playbook_item"] = "Triage new regressions"
+        broken["rules"][0]["playbook_item"] = "Prepare release metrics."
         self.assertTrue(rules.problems(broken, self.schema, self.titles))
 
     def test_rejects_duplicate_task(self):

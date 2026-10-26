@@ -44,7 +44,7 @@ class Outcome:
 
     @property
     def title(self) -> str:
-        return self.rule.get("playbook_item") or TITLES.get(self.rule["type"], self.rule["task"])
+        return self.rule.get("title") or TITLES.get(self.rule["type"], self.rule["task"])
 
 
 @dataclass

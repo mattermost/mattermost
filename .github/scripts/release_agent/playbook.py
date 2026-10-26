@@ -25,8 +25,13 @@ class Tick:
     summary: str = ""
 
 
+MARKDOWN_LINK = re.compile(r"!?\[([^\]]*)\]\([^)]*\)")
+
+
 def normalize(title: str) -> str:
-    return " ".join((title or "").split()).casefold()
+    """A checklist title as it reads on screen: link text without URLs, no code or bold marks."""
+    text = MARKDOWN_LINK.sub(r"\1", title or "").replace("`", "").replace("**", "")
+    return " ".join(text.split()).casefold()
 
 
 def name_matches(name: str, fragment: str) -> bool:

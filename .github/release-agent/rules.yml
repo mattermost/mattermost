@@ -4,11 +4,14 @@
 # every playbook_item must be a checklist item title in playbook-template.yml (see
 # test_rules.py).
 #
-#   task           stable id, used in run.json and the post
-#   playbook_item  checklist item title ticked when the check passes, or null for report-only
+#   task           stable id, used in run.json
+#   title          what the status post calls the check
+#   playbook_item  checklist item title ticked when the check passes, as it reads on screen
+#                  (see playbook-template.yml), or null when no item is only about this check
 #   due            T-N in working days from Release Day, or a calendar milestone key below
 #                  with an optional working-day offset (code_freeze+1). A failing check only
-#                  needs attention, and a passing one is only ticked, from this day on.
+#                  needs attention, and a passing one is only ticked, from this day on. Each
+#                  due follows the playbook section of its item.
 #   type           the check function (release_agent/checks.py)
 #   source         where the check reads from: jira, github, hub
 #   query          check-specific parameters; strings are formatted with {version} (v12.2.0),
@@ -42,19 +45,25 @@ naming:
   milestone: "v{major}.{minor}.0"
   # The month and year are Release Day's: "v12.0 (October 2026)".
   fix_version: "v{major}.{minor} ({release_month} {release_year})"
-  # The release channel's display name. Live mode posts there, and the release's playbook
-  # run is the in-progress run in that channel (from RELEASE_AGENT_PLAYBOOK_ID when set).
-  # If the bot isn't in a channel with this name, the run is found by name instead.
-  release_channel: "Release: {short_version}"
+  # The release channel's display name; ESRs have their own. Live mode posts in the one
+  # the bot is in, and the release's playbook run is the in-progress run in that channel
+  # (from RELEASE_AGENT_PLAYBOOK_ID when set). If the bot is in neither, the run is found
+  # by name instead.
+  release_channels:
+    - "Release: {short_version}"
+    - "Release: {short_version} (ESR)"
 
 # A reaction with this emoji on a status post, by anyone but the bot, marks everything
 # under Needs attention at the time as a false alarm. run.json counts them.
 false_alarm_emoji: no_entry_sign
 
 rules:
+  # T-16 "Post a list of outstanding release bugs and PRs…" is a daily task, so this
+  # report is posted every run instead of ticking it.
   - task: open-release-items
+    title: Open release bugs and PRs
     playbook_item: null
-    due: branch_cut
+    due: feature_complete
     type: open_release_items
     source: [jira, github]
     query:
@@ -63,9 +72,11 @@ rules:
     pass_when: report_only
     on_fail: report
 
+  # The "Review new bug tickets daily…" bullet of the same item.
   - task: new-regressions
-    playbook_item: Triage new regressions
-    due: branch_cut
+    title: New regressions have a fix version
+    playbook_item: null
+    due: feature_complete
     type: new_regressions
     source: [jira]
     query:
@@ -75,9 +86,11 @@ rules:
     pass_when: all_have_fix_version
     on_fail: needs_attention
 
+  # A working day after the cut, so the day of the cut itself isn't a false alarm.
   - task: hub-on-release-branch
-    playbook_item: Update Hub to the release branch
-    due: code_freeze
+    title: Hub on the release branch
+    playbook_item: Check that Hub was updated to the latest release branch.
+    due: branch_cut+1
     type: hub_release_branch
     source: [hub, github]
     query:
@@ -86,8 +99,9 @@ rules:
     on_fail: needs_attention
 
   - task: notice-txt
-    playbook_item: Update NOTICE.txt on the release branch
-    due: code_freeze
+    title: NOTICE.txt on the release branch
+    playbook_item: Ensure that new NOTICE.txt for any new libraries are cherry-picked to the release branch as needed - example PR.
+    due: feature_complete
     type: notice_txt
     source: [github]
     query:
@@ -97,8 +111,11 @@ rules:
     pass_when: merged_and_on_release_branch
     on_fail: needs_attention
 
+  # A T-16 item that runs "throughout the release cycle", so it is only ticked at the
+  # final build, when the last cherry-picks are in.
   - task: cherry-picks
-    playbook_item: Confirm approved cherry-picks are on the release branch
+    title: Cherry-picks on the release branch
+    playbook_item: Throughout the release cycle, check that any recent backports and regression fixes are cherry-picked to the release.
     due: final_build
     type: cherry_picks
     source: [github]
@@ -109,9 +126,11 @@ rules:
     pass_when: all_on_release_branch
     on_fail: needs_attention
 
+  # RC-1 is cut at T-15, a working day after Feature Complete; results get a day more.
   - task: e2e-results
-    playbook_item: Confirm E2E results are posted for the latest RC
-    due: code_freeze+1
+    title: E2E results for the latest RC
+    playbook_item: "Check with Saturn/Yasser that mmctl and e2e tests get done. Follow results at Release: Testing Alerts channel."
+    due: feature_complete+2
     type: e2e_results
     source: [hub]
     query:
@@ -120,9 +139,11 @@ rules:
     pass_when: found
     on_fail: needs_attention
 
+  # Its item, "Cut a Release Candidate… and notify the QA team", is more than a tag.
   - task: rc-tags
-    playbook_item: Confirm RC tags exist in mattermost and enterprise
-    due: code_freeze
+    title: RC tags in mattermost and enterprise
+    playbook_item: null
+    due: feature_complete+1
     type: release_tags
     source: [github]
     query:
@@ -132,7 +153,8 @@ rules:
     on_fail: needs_attention
 
   - task: final-tags
-    playbook_item: Confirm final tags exist in mattermost and enterprise
+    title: Final tags in mattermost and enterprise
+    playbook_item: Verify that the release tags were added to GitHub (mattermost and enterprise repos).
     due: final_build
     type: release_tags
     source: [github]
@@ -143,8 +165,9 @@ rules:
     on_fail: needs_attention
 
   - task: version-go-prs
-    playbook_item: Merge the version.go PRs
-    due: branch_cut+1
+    title: version.go PRs merged
+    playbook_item: Merge the automated PRs to update version.go - example PR.
+    due: final_build
     type: version_go_prs
     source: [github]
     query:
@@ -153,8 +176,10 @@ rules:
     pass_when: merged
     on_fail: needs_attention
 
+  # No playbook item; changelog labels feed the changelog draft.
   - task: changelog-labels
-    playbook_item: Confirm every merged PR has a changelog label
+    title: Changelog labels
+    playbook_item: null
     due: code_freeze
     type: changelog_labels
     source: [github]
