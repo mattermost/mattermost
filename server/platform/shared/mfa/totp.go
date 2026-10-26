@@ -23,11 +23,7 @@ func ComputeCode(secret string, value int64) int {
 	return code
 }
 
-func authenticateOTP(otpConfig *dgoogauth.OTPConfig, token string) (bool, error) {
-	var (
-		ok  bool
-		err error
-	)
+func authenticateOTP(otpConfig *dgoogauth.OTPConfig, token string) (ok bool, err error) {
 	fips140.WithoutEnforcement(func() {
 		ok, err = otpConfig.Authenticate(token)
 	})
