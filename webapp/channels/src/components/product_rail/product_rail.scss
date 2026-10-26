@@ -329,3 +329,22 @@ body.app__body #root:has(.ProductRail) #channel_view:has(.GlobalThreads) {
         border-top-left-radius: 0;
     }
 }
+
+// Beside the thread list, the thread pane is rounded like the center channel beside the channel
+// sidebar, with the sidebar's colour showing behind its corners.
+body.app__body #root:has(.ProductRail) .GlobalThreads {
+    background: var(--sidebar-bg);
+
+    .ThreadPane,
+    .ThreadList + .no-results__holder {
+        overflow: hidden;
+        border-radius: var(--radius-l) 0 0 var(--radius-l);
+        background: var(--center-channel-bg);
+    }
+
+    // The thread list's tabs take the sidebar's colours, so the active one reads on its background.
+    .ThreadList .Header .Button.is-active {
+        background: rgba(var(--sidebar-text-rgb), 0.16);
+        color: var(--sidebar-text);
+    }
+}
