@@ -35,6 +35,14 @@ export type LogObject = {
     worker: string;
 };
 
+// The node an entry came from. A symbol, so it can't clash with a field the server logged
+// and is left out of JSON.stringify and Object.entries
+export const LogNodeKey: unique symbol = Symbol('node');
+
+export type LogObjectWithNode = LogObject & {
+    [LogNodeKey]: string;
+};
+
 export type LogFilter = {
     serverNames: LogServerNames;
     logLevels: LogLevels;

@@ -75,8 +75,12 @@ const (
 	PostFilenamesMaxRunes = 4000
 	PostHashtagsMaxRunes  = 1000
 	PostMessageMaxRunesV1 = 4000
-	PostMessageMaxBytesV2 = 1048576
+	PostMessageMaxBytesV2 = 65535
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
+	// PostMessageMaxBytesV3 is the size of the message columns on fresh installations. The
+	// server derives the post size limit from the actual Posts.Message column size.
+	PostMessageMaxBytesV3 = 1048576
+	PostMessageMaxRunesV3 = PostMessageMaxBytesV3 / 4
 
 	// Reporting API constants
 	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints

@@ -99,8 +99,7 @@ func (s *SqlDeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID 
 func (s *SqlDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
 	channel, err := s.SqlStore.Channel().Get(channelID, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !stderrors.As(err, &nfErr) {
+		if _, ok := stderrors.AsType[*store.ErrNotFound](err); !ok {
 			return false, errors.Wrapf(err, "SqlDeliveryTrackingStore.IsChannelTrackable failed for channel_id=%s", channelID)
 		}
 		return false, nil
