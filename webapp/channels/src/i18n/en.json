@@ -640,7 +640,7 @@
     "description": "Help text under the Username field on the incoming webhook create/edit form, describing the username the integration posts as."
   },
   "add_oauth_app.callbackUrls.help": {
-    "defaultMessage": "The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://, or use a custom scheme allowed by your system administrator. Callback URLs that use a custom scheme require PKCE.",
+    "defaultMessage": "The redirect URIs to which the service will redirect users after authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://, or use a custom scheme allowed by your system administrator. Callback URLs that use a custom scheme only receive authorization codes and require PKCE.",
     "description": "Help text under the Callback URLs field on the OAuth 2.0 application create/edit form."
   },
   "add_oauth_app.callbackUrlsRequired": {
