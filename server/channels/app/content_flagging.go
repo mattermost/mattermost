@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"maps"
@@ -28,6 +29,10 @@ const (
 	POST_PROP_KEY_FLAGGED_POST_ID = "reported_post_id"
 
 	CONTENT_FLAGGING_REVIEWER_SEARCH_INDIVIDUAL_LIMIT = 50
+
+	// Bounds deletion-report delivery so a blocked file write cannot hold the
+	// removal notification (which waits for the report to land first) forever.
+	deletionReportDeliveryTimeout = time.Minute
 )
 
 func (a *App) ContentFlaggingEnabledForTeam(teamId string) (bool, *model.AppError) {
@@ -611,7 +616,21 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 	if deletionReport != nil {
 		a.Srv().Go(func() {
 			defer close(deletionReportSent)
-			a.sendDeletionReportToReviewers(rctx, flaggedPost.Id, deletionReport, groupId)
+			delivered := make(chan struct{})
+			a.Srv().Go(func() {
+				defer close(delivered)
+				ctx, cancel := context.WithTimeout(rctx.Context(), deletionReportDeliveryTimeout)
+				defer cancel()
+				a.sendDeletionReportToReviewers(rctx.WithContext(ctx), flaggedPost.Id, deletionReport, groupId)
+			})
+			// The deadline bounds context-aware delivery work, but a local file
+			// write that ignores the context can still block past it; release the
+			// waiting notification either way instead of leaking its goroutine.
+			select {
+			case <-delivered:
+			case <-time.After(deletionReportDeliveryTimeout):
+				rctx.Logger().Error("Timed out sending deletion report to reviewers", mlog.String("post_id", flaggedPost.Id), mlog.Duration("timeout", deletionReportDeliveryTimeout))
+			}
 		})
 	} else {
 		close(deletionReportSent)
