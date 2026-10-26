@@ -225,11 +225,20 @@ func testRemoteClusterPermanentDelete(t *testing.T, _ request.CTX, ss store.Stor
 
 	removed := saveRemote(t, "removed_remote")
 	kept := saveRemote(t, "kept_remote")
+	sameNameOtherRemote, err := ss.RemoteCluster().Save(&model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		Name:      removed.Name,
+		SiteURL:   makeSiteURL(),
+		CreatorId: model.NewId(),
+	})
+	require.NoError(t, err)
 
 	require.NoError(t, ss.RemoteCluster().PermanentDelete(removed.RemoteId, removed.Name))
 	require.Equal(t, []string{kept.Name}, namesForRemote(t), "only the row matching both remote id and name is removed")
+	_, err = ss.RemoteCluster().Get(sameNameOtherRemote.RemoteId, true)
+	require.NoError(t, err, "a row with the same name under another remote id is kept")
 
-	_, err := ss.RemoteCluster().Save(&model.RemoteCluster{
+	_, err = ss.RemoteCluster().Save(&model.RemoteCluster{
 		RemoteId:  removed.RemoteId,
 		Name:      removed.Name,
 		SiteURL:   makeSiteURL(),

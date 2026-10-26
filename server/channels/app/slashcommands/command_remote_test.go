@@ -332,8 +332,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": ts.URL + "/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("remote site answering with a non-JSON page replies with a translated invalid response error", func(t *testing.T) {
@@ -346,8 +345,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.invalid_response.app_error")}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("unreachable remote site with markdown in its address replies with the address escaped", func(t *testing.T) {
@@ -360,8 +358,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": escapedURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
 		require.NotContains(t, text, "](")
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	for _, tc := range []struct {
@@ -386,8 +383,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 			text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 			require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T(tc.errorID)}), text)
-			_, appErr := th.App.GetRemoteCluster(remoteID, false)
-			require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+			require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 		})
 	}
 
@@ -407,8 +403,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": ts.URL + "/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("malformed remote site address replies with a translated invalid address error", func(t *testing.T) {
@@ -422,8 +417,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		invalidURL := T("api.remote_cluster.accept_invitation.invalid_url.app_error", map[string]any{"URL": "http://remote.example.com/%7F/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": invalidURL}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("site URL not set", func(t *testing.T) {
