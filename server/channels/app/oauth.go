@@ -36,6 +36,9 @@ const (
 
 const oauthTokenRedacted = "[REDACTED]"
 
+// maxOAuthTokenResponseSize caps how much of a token endpoint response is read.
+const maxOAuthTokenResponseSize = 1024 * 1024
+
 // oauthTokenPattern matches an access_token, refresh_token, or id_token field name (in JSON or
 // form-encoded format, with literal, percent-encoded, or JSON-unicode-escaped underscores) followed
 // by its value. Group 1 captures everything up to and including the value's opening delimiter so it
@@ -1165,7 +1168,7 @@ func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *htt
 	// Read the whole body up front so the error details below always carry the
 	// complete response, regardless of how much the JSON decoder consumes
 	// before it gives up on a malformed one.
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxOAuthTokenResponseSize))
 	var ar *model.AccessResponse
 	if err == nil {
 		err = json.Unmarshal(body, &ar)
