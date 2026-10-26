@@ -705,12 +705,18 @@ var propertyPermissionsBackfillPageSize = 200
 // 3 groups with no Permissions object (see GetFieldsMissingPermissions), paged
 // by (CreateAt, Id) with one cursor across every group, so a startup with
 // nothing to convert reads one empty page. Writes go through the unexported
-// updatePropertyFields, one call per group per page, since that method takes
-// a single group ID.
+// updatePropertyFieldsIfUnchanged, one call per group per page, since that
+// method takes a single group ID.
+//
+// Each write expects the UpdateAt the page read. A field changed in between,
+// by a node still on a release that predates the permissions object, is left
+// unconverted rather than overwritten with the conversion of the copy read
+// before that change; the next startup converts what the change left.
 //
 // Returns the number of fields given a Permissions object; the number left
-// alone, because convertBatch has nothing to give them (which the search
-// already leaves out); and the number that could not be converted. A field that fails is
+// alone, because they changed since the page was read, or because
+// convertBatch has nothing to give them (which the search already leaves
+// out); and the number that could not be converted. A field that fails is
 // logged and left without an object rather than failing the run (see
 // logUnconvertedField). err is only for a failure that stops the run as a
 // whole, such as reading a page of fields.
@@ -737,25 +743,39 @@ func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) 
 		last := fields[len(fields)-1]
 		cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
 
+		// Taken before anything is written: the store sets UpdateAt on each
+		// field it is handed, even in a batch it then refuses.
+		readUpdateAts := make(map[string]int64, len(fields))
+		for _, field := range fields {
+			readUpdateAts[field.ID] = field.UpdateAt
+		}
+
 		convertedFields, convertFailed := backfill.convertBatch(rctx, fields)
 		failed += convertFailed
 		skipped += len(fields) - len(convertedFields) - convertFailed
 
-		// updatePropertyFields takes one group ID, so a page spanning several
-		// groups needs one call per group.
+		// updatePropertyFieldsIfUnchanged takes one group ID, so a page
+		// spanning several groups needs one call per group.
 		byGroup := map[string][]*model.PropertyField{}
 		for _, field := range convertedFields {
 			byGroup[field.GroupID] = append(byGroup[field.GroupID], field)
 		}
 		for groupID, groupFields := range byGroup {
-			if _, _, _, updateErr := ps.updatePropertyFields(rctx, groupID, groupFields); updateErr == nil {
+			if _, _, _, updateErr := ps.updatePropertyFieldsIfUnchanged(rctx, groupID, groupFields, readUpdateAts); updateErr == nil {
 				converted += len(groupFields)
 				continue
 			}
 			// The batch is written all or nothing, so one field the update
 			// refuses holds back the rest. Write them one at a time to find it.
 			for _, field := range groupFields {
-				if _, _, _, updateErr := ps.updatePropertyFields(rctx, groupID, []*model.PropertyField{field}); updateErr != nil {
+				if _, _, _, updateErr := ps.updatePropertyFieldsIfUnchanged(rctx, groupID, []*model.PropertyField{field}, readUpdateAts); updateErr != nil {
+					var conflictErr *store.ErrConflict
+					if errors.As(updateErr, &conflictErr) {
+						rctx.Logger().Warn("Property permissions backfill: field changed since it was read and will be retried on a later restart",
+							mlog.String("field_id", field.ID), mlog.String("group_id", field.GroupID), mlog.Err(updateErr))
+						skipped++
+						continue
+					}
 					logUnconvertedField(rctx, field, updateErr)
 					failed++
 					continue

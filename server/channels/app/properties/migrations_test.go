@@ -6,6 +6,7 @@ package properties
 import (
 	"fmt"
 	"maps"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -2014,5 +2015,100 @@ func TestMigrateBackfillPropertyPermissions_ReadsOnlyFieldsMissingPermissions(t 
 
 	stored, err = th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, unconverted.ID)
 	require.NoError(t, err)
+	assert.NotNil(t, stored.Permissions)
+}
+
+// editBeforeReReadStore wraps a real store.PropertyFieldStore and, the first
+// time GetMany is asked for a specific field ID, fires a caller-supplied
+// trigger before the read -- simulating a node still on a release that
+// predates the permissions object committing a legacy edit to that row after
+// the backfill scanned it, but before the write re-reads it.
+type editBeforeReReadStore struct {
+	store.PropertyFieldStore
+	fieldID string
+	trigger func()
+	fired   bool
+}
+
+func (s *editBeforeReReadStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
+	if !s.fired && slices.Contains(ids, s.fieldID) {
+		s.fired = true
+		s.trigger()
+	}
+	return s.PropertyFieldStore.GetMany(rctx, groupID, ids)
+}
+
+// TestMigrateBackfillPropertyPermissions_ConcurrentLegacyEditIsNotOverwritten
+// covers a rolling upgrade: an old node edits a field the backfill has already
+// read. Writing the conversion of the copy it read would revert that edit, so
+// the field is left unconverted, and the next startup converts what the edit
+// left in place.
+func TestMigrateBackfillPropertyPermissions_ConcurrentLegacyEditIsNotOverwritten(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+
+	raced := createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "raced",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	// In the same group and page, so it is written in the same batch as the
+	// raced field, which the conflict must not hold back.
+	neighbour := createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "neighbour",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+
+	realStore := th.service.fieldStore
+	th.service.fieldStore = &editBeforeReReadStore{
+		PropertyFieldStore: realStore,
+		fieldID:            raced.ID,
+		trigger: func() {
+			// UpdateAt has millisecond resolution: an edit in the same
+			// millisecond as the row it replaces is indistinguishable from it.
+			time.Sleep(2 * time.Millisecond)
+			current, getErr := realStore.Get(th.Context, th.CPAGroupID, raced.ID)
+			require.NoError(t, getErr)
+			require.Nil(t, current.Permissions)
+			current.Name = "raced_renamed_by_old_node"
+			_, updateErr := realStore.Update(th.CPAGroupID, []*model.PropertyField{current}, nil)
+			require.NoError(t, updateErr)
+		},
+	}
+
+	buffer := captureMaskingFailureLog(t, th)
+	converted, skipped, failed, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, converted, "the neighbour must still convert")
+	assert.Equal(t, 1, skipped, "a field that changed since it was read is left for the next startup")
+	assert.Equal(t, 0, failed, "a field that changed since it was read has not failed to convert")
+	requireWarnLogged(t, th, buffer, "changed since it was read")
+
+	stored, err := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, raced.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "raced_renamed_by_old_node", stored.Name, "the concurrent edit must not be overwritten")
+	assert.Nil(t, stored.Permissions, "the field must be left unconverted for the next startup")
+
+	stored, err = th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, neighbour.ID)
+	require.NoError(t, err)
+	assert.NotNil(t, stored.Permissions)
+
+	// The edit only races the first run; the next startup converts the field
+	// as the edit left it.
+	th.service.fieldStore = realStore
+
+	converted, skipped, failed, err = th.service.MigrateBackfillPropertyPermissions(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, converted)
+	assert.Equal(t, 0, skipped)
+	assert.Equal(t, 0, failed)
+
+	stored, err = th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, raced.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "raced_renamed_by_old_node", stored.Name)
 	assert.NotNil(t, stored.Permissions)
 }

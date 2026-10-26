@@ -708,6 +708,16 @@ func (ps *PropertyService) updatePropertyField(rctx request.CTX, groupID string,
 }
 
 func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
+	return ps.updatePropertyFieldsIfUnchanged(rctx, groupID, fields, nil)
+}
+
+// updatePropertyFieldsIfUnchanged is updatePropertyFields for a caller that
+// built fields from its own earlier read and must not write over a change made
+// since. readUpdateAts holds each field's UpdateAt as that read returned it; a
+// field whose stored row has moved on fails the whole call with
+// store.ErrConflict before anything is checked or written. With nil, the only
+// conflict check is against the re-read below, as for updatePropertyFields.
+func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, groupID string, fields []*model.PropertyField, readUpdateAts map[string]int64) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
 	if len(fields) == 0 {
 		return nil, nil, nil, nil
 	}
@@ -733,6 +743,19 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 	existingByID := make(map[string]*model.PropertyField, len(existingFields))
 	for _, ef := range existingFields {
 		existingByID[ef.ID] = ef
+	}
+
+	// Every check below, and the write, would otherwise run against the copy
+	// the caller read rather than the change that replaced it. Once this
+	// holds, the expected UpdateAt the store checks below is the one the
+	// caller read, so the window up to the write is closed too.
+	if readUpdateAts != nil {
+		for _, field := range fields {
+			readUpdateAt, ok := readUpdateAts[field.ID]
+			if existing, found := existingByID[field.ID]; !ok || !found || existing.UpdateAt != readUpdateAt {
+				return nil, nil, nil, store.NewErrConflict("PropertyField", nil, fmt.Sprintf("field %q changed since it was read", field.ID))
+			}
+		}
 	}
 
 	// A field elsewhere in this same call is not yet in the store, so the
