@@ -122,7 +122,7 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('onRowClick call to onCheckToggle', async () => {
+    test('checkbox change calls onCheckToggle', async () => {
         const onCheckToggle = jest.fn();
         renderWithContext(
             <GroupRow
@@ -140,8 +140,34 @@ describe('components/admin_console/group_settings/GroupRow', () => {
             />,
         );
 
-        await userEvent.click(document.getElementById('name_group')!);
+        await userEvent.click(screen.getByRole('checkbox', {name: 'name'}));
         expect(onCheckToggle).toHaveBeenCalledWith('primary_key');
+    });
+
+    test('link action is not swallowed by checkbox selection', async () => {
+        const onCheckToggle = jest.fn();
+        const link = jest.fn().mockReturnValue(Promise.resolve());
+        renderWithContext(
+            <GroupRow
+                primary_key='primary_key'
+                name='name'
+                mattermost_group_id={undefined}
+                has_syncables={undefined}
+                checked={false}
+                failed={false}
+                onCheckToggle={onCheckToggle}
+                actions={{
+                    link,
+                    unlink: jest.fn(),
+                }}
+            />,
+        );
+
+        await userEvent.click(screen.getByText('Not Linked'));
+        await waitFor(() => {
+            expect(link).toHaveBeenCalledWith('primary_key');
+        });
+        expect(onCheckToggle).not.toHaveBeenCalled();
     });
 
     test('linkHandler must run the link action', async () => {

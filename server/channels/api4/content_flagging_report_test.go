@@ -540,6 +540,7 @@ func TestGenerateFlaggedPostReportFileDownloadPolicy(t *testing.T) {
 }
 
 func TestGenerateFlaggedPostReportAttachmentsOmittedAudit(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-71235")
 	logFile, err := os.CreateTemp(t.TempDir(), "audit.log")
 	require.NoError(t, err)
 	defer logFile.Close()

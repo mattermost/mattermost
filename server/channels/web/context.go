@@ -194,6 +194,10 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 }
 
+func (c *Context) SetError(err error) {
+	c.Err = model.AsAppError(err)
+}
+
 func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
 }

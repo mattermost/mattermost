@@ -547,3 +547,29 @@ func TestInitLoggingLogPathEnforcement(t *testing.T) {
 		assert.Contains(t, err.Error(), "ExperimentalAuditSettings.FileName")
 	})
 }
+
+func TestIsLogFilteredByDate(t *testing.T) {
+	filter := &model.LogFilter{
+		DateFrom: "2026-10-21 10:00:00.000 +00:00",
+		DateTo:   "2026-10-21 11:00:00.000 +00:00",
+	}
+
+	for _, tc := range []struct {
+		timestamp string
+		filtered  bool
+	}{
+		{"2026-10-21 09:59:59.999 Z", true},
+		{"2026-10-21 10:00:00.000 Z", false},
+		{"2026-10-21 10:30:00.000 Z", false},
+		{"2026-10-21 11:00:00.000 Z", false},
+		{"2026-10-21 11:00:00.001 Z", true},
+		{"2026-10-21 12:30:00.000 +02:00", false},
+		{"2026-10-21 09:30:00.000 +02:00", true},
+		{"not a timestamp", false},
+	} {
+		t.Run(tc.timestamp, func(t *testing.T) {
+			entry := &model.LogEntry{Timestamp: tc.timestamp}
+			assert.Equal(t, tc.filtered, isLogFilteredByDate(request.TestContext(t), filter, entry))
+		})
+	}
+}

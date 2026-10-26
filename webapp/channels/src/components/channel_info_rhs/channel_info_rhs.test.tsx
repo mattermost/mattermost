@@ -27,7 +27,6 @@ describe('channel_info_rhs', () => {
         currentTeam: {} as Team,
         isFavorite: false,
         isMuted: false,
-        isInvitingPeople: false,
         isMobile: false,
         isInManagedCategory: false,
         canManageMembers: true,

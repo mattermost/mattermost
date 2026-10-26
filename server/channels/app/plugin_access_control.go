@@ -76,8 +76,7 @@ func (a *App) resolvePluginPolicyExistence(rctx request.CTX, where, pluginID, re
 
 	policy, err := a.Srv().Store().AccessControlPolicy().Get(rctx, resourceID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return noPolicy()
 		}
 		// Existence is genuinely unknown; fail closed.
@@ -259,8 +258,7 @@ func pluginPolicyNotFoundError(where string) *model.AppError {
 func (a *App) readStoredPolicyType(rctx request.CTX, where, id string) (string, *model.AppError) {
 	policy, err := a.Srv().Store().AccessControlPolicy().Get(rctx, id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return "", pluginPolicyNotFoundError(where)
 		}
 		return "", model.NewAppError(where, "app.pap.get_policy.app_error", nil, err.Error(), http.StatusInternalServerError)

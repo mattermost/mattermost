@@ -4,13 +4,12 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 
 import {Client4} from 'mattermost-redux/client';
-
-import Toggle from 'components/toggle';
 
 import AddWorkspaceDropdown, {type RemoteToAdd} from './add_workspace_dropdown';
 import type {WorkspaceWithStatus} from './types';
@@ -117,47 +116,33 @@ export default function ShareChannelWithWorkspaces({
 
     return (
         <div className='channel_shared_with_workspaces_container'>
-            <div className='channel_shared_with_workspaces_header'>
-                <div className='channel_shared_with_workspaces_header__text'>
-                    <label
-                        className='Input_legend'
-                        aria-label={heading}
+            <WithTooltip
+                title={formatMessage({
+                    id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip',
+                    defaultMessage: 'No connected workspaces are available',
+                })}
+                hint={formatMessage({
+                    id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip_hint',
+                    defaultMessage: 'Contact your system admin to add one.',
+                })}
+                disabled={hasAvailableWorkspaces}
+            >
+                <div>
+                    <Switch
+                        id='shareChannelWithWorkspacesToggle'
+                        size='medium'
+                        checked={enabled && hasAvailableWorkspaces}
+                        disabled={disabled || !hasAvailableWorkspaces}
+                        onChange={handleToggle}
+                        data-testid='shareChannelWithWorkspacesToggle-button'
+                        tabIndex={hasAvailableWorkspaces && !disabled ? 0 : -1}
+                        semiBold={true}
+                        secondaryLabel={subheading}
                     >
                         {heading}
-                    </label>
-                    <label
-                        className='Input_subheading'
-                        aria-label={subheading}
-                    >
-                        {subheading}
-                    </label>
+                    </Switch>
                 </div>
-                <WithTooltip
-                    title={formatMessage({
-                        id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip',
-                        defaultMessage: 'No connected workspaces are available',
-                    })}
-                    hint={formatMessage({
-                        id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip_hint',
-                        defaultMessage: 'Contact your system admin to add one.',
-                    })}
-                    disabled={hasAvailableWorkspaces}
-                >
-                    <div className='channel_shared_with_workspaces_header__toggle'>
-
-                        <Toggle
-                            id='shareChannelWithWorkspacesToggle'
-                            ariaLabel={heading}
-                            size='btn-md'
-                            onToggle={handleToggle}
-                            toggled={enabled && hasAvailableWorkspaces}
-                            disabled={disabled || !hasAvailableWorkspaces}
-                            tabIndex={hasAvailableWorkspaces && !disabled ? 0 : -1}
-                            toggleClassName='btn-toggle-primary'
-                        />
-                    </div>
-                </WithTooltip>
-            </div>
+            </WithTooltip>
 
             {!hasAvailableWorkspaces && (
                 <div className='channel_shared_with_workspaces_section_body'>

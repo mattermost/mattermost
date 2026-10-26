@@ -13,6 +13,7 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {openModal} from 'actions/views/modals';
 
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
+import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
 
 import {LicenseSkus} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
@@ -54,4 +55,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default withGetCloudSubscription(connect(mapStateToProps, mapDispatchToProps)(FeatureDiscovery));
+export default withGetCloudSubscription(connect(mapStateToProps, mapDispatchToProps)(withOpenStartTrialFormModal(FeatureDiscovery)));

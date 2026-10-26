@@ -6,6 +6,7 @@ import type {Editor} from '@tiptap/react';
 import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import {postMessageOnKeyPress} from 'utils/post_utils';
 
 import WysiwygEditor from './wysiwyg_editor';
 import type {WysiwygEditorHandle} from './wysiwyg_editor';
@@ -177,6 +178,17 @@ describe('WysiwygEditor interactions', () => {
         typeText(editor, ' hello');
 
         expect(editor.getHTML()).toMatch(/https:\/\/mattermost\.com<\/a> hello<\/p>/);
+    });
+
+    test('Enter after an unclosed fence typed as text adds a line instead of sending', () => {
+        const {editor} = renderEditor('');
+        typeText(editor, '``` - [ ] example');
+
+        const draft = serializeToMarkdown(editor);
+        const enter = {key: 'Enter', keyCode: 13} as React.KeyboardEvent;
+
+        expect(draft).toBe('``` - [ ] example');
+        expect(postMessageOnKeyPress(enter, draft, false, true, 0, 0, draft.length)).toEqual({allowSending: false});
     });
 
     describe('switching channels', () => {

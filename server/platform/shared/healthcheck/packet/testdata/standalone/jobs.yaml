@@ -1,4 +1,25 @@
-ldap_sync_jobs: []
+ldap_sync_jobs:
+- id: 4hq1u9xk7pdf5ctwbm3eaoyr8s
+  type: ldap_sync
+  priority: 0
+  create_at: "2026-09-25T09:00:00Z"
+  start_at: "2026-09-25T09:00:04.12Z"
+  last_activity_at: "2026-09-25T09:00:35.807Z"
+  status: error
+  progress: -1
+  data:
+    error: 'LDAP sync worker failed to run. LDAP Result Code 49 "Invalid Credentials": 80090308: LdapErr: DSID-0C09044E, comment: AcceptSecurityContext error, data 52e, v2580'
+- id: 9wz3ffjr6tbydnq5ck1xh8ueoa
+  type: ldap_sync
+  priority: 0
+  create_at: "2026-09-25T08:00:00Z"
+  start_at: "2026-09-25T08:00:03.551Z"
+  last_activity_at: "2026-09-25T08:01:12.09Z"
+  status: success
+  progress: 100
+  data:
+    ldap_groups_count: "12"
+    ldap_users_count: "298"
 data_retention_jobs: []
 message_export_jobs: []
 elastic_post_indexing_jobs: []

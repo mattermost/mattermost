@@ -6,6 +6,7 @@ import type {ChangeEvent, JSX} from 'react';
 import {defineMessage, FormattedMessage, type MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -656,10 +657,10 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                     defaultMessage='Autocomplete'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8 checkbox'>
-                                <input
+                            <div className='col-md-5 col-sm-8'>
+                                <Checkbox
                                     id='autocomplete'
-                                    type='checkbox'
+                                    className='backstage-form__checkbox'
                                     checked={this.state.autocomplete}
                                     onChange={this.updateAutocomplete}
                                 />

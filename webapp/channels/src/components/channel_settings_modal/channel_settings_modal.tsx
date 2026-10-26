@@ -9,7 +9,7 @@ import React, {
     useRef,
 } from 'react';
 import {useIntl} from 'react-intl';
-import {shallowEqual, useSelector, useDispatch} from 'react-redux';
+import {shallowEqual, useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -19,10 +19,6 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense, isChannelPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermissionRBACOnly, haveISystemPermission, isChannelManagementDenied} from 'mattermost-redux/selectors/entities/roles';
 
-import {
-    setShowPreviewOnChannelSettingsHeaderModal,
-    setShowPreviewOnChannelSettingsPurposeModal,
-} from 'actions/views/textbox';
 import {getBasePath, isChannelAccessControlEnabled} from 'selectors/general';
 import {getChannelSettingsTabs} from 'selectors/plugins';
 
@@ -383,9 +379,6 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
     };
 
     const handleHideConfirm = () => {
-        // Reset preview states to false when closing the modal
-        dispatch(setShowPreviewOnChannelSettingsHeaderModal(false));
-        dispatch(setShowPreviewOnChannelSettingsPurposeModal(false));
         setShow(false);
     };
 

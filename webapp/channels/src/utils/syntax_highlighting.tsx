@@ -68,6 +68,10 @@ export function getLanguageName(language: string): string {
     return '';
 }
 
+export function getLanguageFromDisplayName(displayName: string): string {
+    return Object.keys(HighlightedLanguages).find((key) => HighlightedLanguages[key].name === displayName) ?? '';
+}
+
 function getLanguageFromNameOrAlias(name: string) {
     const langName: string = name.toLowerCase();
     if (HighlightedLanguages[langName]) {

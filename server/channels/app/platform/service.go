@@ -64,6 +64,7 @@ type PlatformService struct {
 	clientConfig         atomic.Value
 	clientConfigHash     atomic.Value
 	limitedClientConfig  atomic.Value
+	auditLoggingActive   atomic.Pointer[func() bool]
 
 	isFirstUserAccountLock sync.Mutex
 	isFirstUserAccount     atomic.Bool
