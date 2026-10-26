@@ -9,8 +9,9 @@ import type {UserProfile} from '@mattermost/types/users';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
+import {installA11yFocusShim} from 'tests/helpers/a11y_focus_shim';
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, userEvent, act, fireEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, act, fireEvent, waitFor, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserSettingsGeneral, {UserSettingsGeneralTab} from './user_settings_general';
@@ -441,7 +442,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-        expect(await screen.getByText('Option 1')).toBeInTheDocument();
+        expect(screen.getByRole('combobox', {name: 'Test Attribute'})).toHaveValue('Option 1');
     });
 
     test('should show multiselect Custom Attribute Field with value', async () => {
@@ -469,7 +470,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-        expect(await screen.getByText('Option 2')).toBeInTheDocument();
+        const selections = screen.getByRole('toolbar', {name: 'Test Attribute selections'});
+        expect(within(selections).getByText('Option 2')).toBeInTheDocument();
+        expect(within(selections).queryByText('Option 1')).not.toBeInTheDocument();
     });
 
     test('submitAttribute() should have called saveCustomProfileAttribute', async () => {
@@ -515,7 +518,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(await screen.findByText('Server Error')).toBeInTheDocument();
     });
 
-    test('updateSelectAttribute() should handle single select changes', async () => {
+    test('updateComboboxAttribute() should handle single select changes', async () => {
         const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
         const selectAttribute: UserPropertyField = {
             ...customProfileAttribute,
@@ -545,9 +548,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        const select = await screen.findByText('Select');
-        await userEvent.click(select);
-        await userEvent.click(await screen.findByText('Option 2'));
+        await userEvent.click(screen.getByRole('combobox', {name: 'Test Attribute'}));
+        await userEvent.click(screen.getByRole('option', {name: 'Option 2'}));
+        expect(screen.getByRole('combobox', {name: 'Test Attribute'})).toHaveValue('Option 2');
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
         await userEvent.click(saveButton);
@@ -555,7 +558,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt2');
     });
 
-    test('updateSelectAttribute() should handle multi-select changes', async () => {
+    test('updateComboboxAttribute() should handle multi-select changes', async () => {
         const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
         const multiselectAttribute: UserPropertyField = {
             ...customProfileAttribute,
@@ -585,12 +588,16 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        const select = await screen.findByText('Select');
-        await userEvent.click(select);
-        await userEvent.click(await screen.findByText('Option 1'));
+        const combobox = screen.getByRole('combobox', {name: 'Test Attribute'});
+        await userEvent.click(combobox);
+        await userEvent.click(screen.getByRole('option', {name: 'Option 1'}));
 
-        await userEvent.click(await screen.findByText('Option 1'));
-        await userEvent.click(await screen.findByText('Option 2'));
+        await userEvent.click(combobox);
+        await userEvent.click(screen.getByRole('option', {name: 'Option 2'}));
+
+        const selections = screen.getByRole('toolbar', {name: 'Test Attribute selections'});
+        expect(within(selections).getByText('Option 1')).toBeInTheDocument();
+        expect(within(selections).getByText('Option 2')).toBeInTheDocument();
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
         await userEvent.click(saveButton);
@@ -598,7 +605,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2']);
     });
 
-    test('updateSelectAttribute() should handle clearing selections', async () => {
+    test('updateComboboxAttribute() should handle clearing selections', async () => {
         const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
         const selectAttribute: UserPropertyField = {
             ...customProfileAttribute,
@@ -627,13 +634,18 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
+        renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        const clearIndicator = container.querySelector('.react-select__clear-indicator');
-        expect(clearIndicator).toBeInTheDocument();
+        const combobox = screen.getByRole('combobox', {name: 'Test Attribute'});
+        expect(combobox).toHaveValue('Option 1');
 
-        await userEvent.click(clearIndicator!);
-        await screen.findByText('Select');
+        const clearButton = screen.getByTestId('customProfileAttribute_field1-clear');
+        expect(clearButton).toHaveAccessibleName('Clear Test Attribute');
+        await userEvent.click(clearButton);
+
+        expect(combobox).toHaveValue('');
+        expect(combobox).toHaveAttribute('placeholder', 'Select');
+        expect(screen.queryByTestId('customProfileAttribute_field1-clear')).not.toBeInTheDocument();
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
         await userEvent.click(saveButton);
@@ -752,11 +764,14 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
         // Should show empty select since the option no longer exists
-        expect(await screen.findByText('Select')).toBeInTheDocument();
+        const combobox = screen.getByRole('combobox', {name: 'Test Attribute'});
+        expect(combobox).toHaveValue('');
+        expect(combobox).toHaveAttribute('placeholder', 'Select');
+        expect(screen.queryByTestId('customProfileAttribute_field1-clear')).not.toBeInTheDocument();
 
         // Select a valid option and save
-        await userEvent.click(screen.getByText('Select'));
-        await userEvent.click(await screen.findByText('Option 1'));
+        await userEvent.click(combobox);
+        await userEvent.click(screen.getByRole('option', {name: 'Option 1'}));
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt1');
@@ -796,13 +811,15 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        expect(await screen.findByText('Option 1')).toBeInTheDocument();
-        expect(screen.getByText('opt2')).toBeInTheDocument();
+        const selections = screen.getByRole('toolbar', {name: 'Test Attribute selections'});
+        expect(within(selections).getByText('Option 1')).toBeInTheDocument();
+        expect(within(selections).getByText('opt2')).toBeInTheDocument();
 
         // Add another live option and save. The ghost id must still be
         // emitted -- "just add another option" used to persist a shrink.
-        await userEvent.click(await screen.findByText('Option 1'));
-        await userEvent.click(await screen.findByText('Option 3'));
+        await userEvent.click(screen.getByRole('combobox', {name: 'Test Attribute'}));
+        await userEvent.click(screen.getByRole('option', {name: 'Option 3'}));
+        expect(within(selections).getByText('Option 3')).toBeInTheDocument();
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2', 'opt3']);
@@ -1723,6 +1740,396 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             expect(await screen.findByText(/opt1/)).toBeInTheDocument();
             expect(collapsedRow()).toHaveTextContent('opt1');
             expect(screen.queryByText('2 values selected')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('custom attribute Combobox', () => {
+        const COMBOBOX_ID = 'customProfileAttribute_field1';
+        const OPTIONS = [
+            {id: 'opt1', name: 'Option 1', color: ''},
+            {id: 'opt2', name: 'Option 2', color: ''},
+            {id: 'opt3', name: 'Option 3', color: ''},
+        ];
+
+        const buildField = (type: UserPropertyField['type'], attrs: Partial<UserPropertyField['attrs']> = {}): UserPropertyField => ({
+            ...customProfileAttribute,
+            type,
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: OPTIONS,
+                ...attrs,
+            },
+        });
+
+        const renderEditor = (field: UserPropertyField, value?: string | string[]) => {
+            const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: {}});
+            const customProfileAttributes: Record<string, string | string[]> = value === undefined ? {} : {field1: value};
+            const props = {
+                ...requiredProps,
+                enableCustomProfileAttributes: true,
+                customProfileAttributeFields: [field],
+                user: {...user, custom_profile_attributes: customProfileAttributes},
+                activeSection: 'customAttribute_field1',
+                actions: {...requiredProps.actions, saveCustomProfileAttribute},
+            };
+            const view = renderWithContext(<UserSettingsGeneral {...props}/>);
+            return {...view, saveCustomProfileAttribute};
+        };
+
+        const getCombobox = (name = 'Test Attribute') => screen.getByRole('combobox', {name});
+
+        const getSelections = (name = 'Test Attribute') => screen.queryByRole('toolbar', {name: `${name} selections`});
+
+        const getChipLabels = () => {
+            const selections = getSelections();
+            return selections ? within(selections).queryAllByRole('button').map((chip) => chip.textContent) : [];
+        };
+
+        describe('structure', () => {
+            test('puts the id and test id on the input and derives listbox and option ids from it', async () => {
+                renderEditor(buildField('select'));
+
+                const combobox = getCombobox();
+                expect(combobox).toHaveAttribute('id', COMBOBOX_ID);
+                expect(combobox).toHaveAttribute('data-testid', COMBOBOX_ID);
+                expect(screen.getByTestId(COMBOBOX_ID)).toBe(combobox);
+                expect(document.getElementById(`${COMBOBOX_ID}_input`)).toBeNull();
+
+                await userEvent.click(combobox);
+
+                expect(screen.getByRole('listbox')).toHaveAttribute('id', `${COMBOBOX_ID}-listbox`);
+                const option = screen.getByRole('option', {name: 'Option 1'});
+                expect(option).toHaveAttribute('id', `${COMBOBOX_ID}-listbox-option-opt1`);
+                expect(option).toHaveAttribute('data-testid', `${COMBOBOX_ID}-option-opt1`);
+                expect(screen.getByTestId(`${COMBOBOX_ID}-option-opt3`)).toHaveAccessibleName('Option 3');
+            });
+
+            test('lists options in definition order', async () => {
+                renderEditor(buildField('select', {options: [OPTIONS[2], OPTIONS[0], OPTIONS[1]]}));
+
+                await userEvent.click(getCombobox());
+
+                expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Option 3', 'Option 1', 'Option 2']);
+            });
+
+            test('names the input and clear button after attrs.display_name when set', () => {
+                renderEditor(buildField('select', {display_name: 'Friendly Name'}), 'opt1');
+
+                expect(getCombobox('Friendly Name')).toHaveValue('Option 1');
+                expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toHaveAccessibleName('Clear Friendly Name');
+                expect(screen.queryByRole('combobox', {name: 'Test Attribute'})).not.toBeInTheDocument();
+            });
+
+            test('names the multiselect selections group after attrs.display_name when set', () => {
+                renderEditor(buildField('multiselect', {display_name: 'Friendly Name'}), ['opt1']);
+
+                const selections = screen.getByRole('toolbar', {name: 'Friendly Name selections'});
+                expect(within(selections).getByText('Option 1')).toBeInTheDocument();
+            });
+
+            test('renders a rank field as a single clearable combobox and saves the picked id', async () => {
+                const rankOptions = [
+                    {id: 'senior', name: 'Senior', color: ''},
+                    {id: 'junior', name: 'Junior', color: ''},
+                    {id: 'mid', name: 'Mid', color: ''},
+                ];
+                const {saveCustomProfileAttribute} = renderEditor(buildField('rank', {options: rankOptions}), 'junior');
+
+                const combobox = getCombobox();
+                expect(combobox).toHaveValue('Junior');
+                expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toBeInTheDocument();
+                expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
+
+                await userEvent.click(combobox);
+                expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Senior', 'Junior', 'Mid']);
+                await userEvent.click(screen.getByRole('option', {name: 'Mid'}));
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'mid');
+            });
+
+            test('portals the menu above the modal with z-index 1100', async () => {
+                renderEditor(buildField('select'));
+
+                await userEvent.click(getCombobox());
+
+                let layer: HTMLElement | null = screen.getByRole('listbox');
+                while (layer && !layer.style.zIndex) {
+                    layer = layer.parentElement;
+                }
+                expect(layer?.style.zIndex).toBe('1100');
+            });
+
+            test('shows a field without options as an empty combobox with a no-results message', async () => {
+                renderEditor(buildField('select', {options: undefined}));
+
+                await userEvent.click(getCombobox());
+
+                expect(screen.queryAllByRole('option')).toHaveLength(0);
+                expect(screen.getByText('No results')).toBeInTheDocument();
+            });
+        });
+
+        describe('values', () => {
+            test('shows an empty single field as unset, with the placeholder and no clear button', () => {
+                renderEditor(buildField('select'), '');
+
+                expect(getCombobox()).toHaveValue('');
+                expect(getCombobox()).toHaveAttribute('placeholder', 'Select');
+                expect(screen.queryByTestId(`${COMBOBOX_ID}-clear`)).not.toBeInTheDocument();
+            });
+
+            test('shows a single field holding an array draft as unset', () => {
+                renderEditor(buildField('select'), ['opt1']);
+
+                expect(getCombobox()).toHaveValue('');
+                expect(screen.queryByTestId(`${COMBOBOX_ID}-clear`)).not.toBeInTheDocument();
+            });
+
+            test('keeps a missing single id in state until the user picks, so an untouched Save sends it back', async () => {
+                const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'gone');
+
+                expect(getCombobox()).toHaveValue('');
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'gone');
+            });
+
+            test('renders multiselect chips in stored value order, with raw ids for missing options', () => {
+                renderEditor(buildField('multiselect'), ['opt3', 'gone', 'opt1']);
+
+                expect(getChipLabels()).toEqual(['Option 3', 'gone', 'Option 1']);
+            });
+
+            test('saves missing multiselect ids untouched when the user saves without changes', async () => {
+                const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), ['opt1', 'gone']);
+
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'gone']);
+            });
+
+            test('treats a plain string multiselect value as one selection', async () => {
+                const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), 'opt2');
+
+                expect(getChipLabels()).toEqual(['Option 2']);
+                await userEvent.click(getCombobox());
+                await userEvent.click(screen.getByRole('option', {name: 'Option 3'}));
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt2', 'opt3']);
+            });
+
+            test('shows an empty multiselect with the placeholder, no chips and no clear button, and saves []', async () => {
+                const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), '');
+
+                expect(getCombobox()).toHaveAttribute('placeholder', 'Select');
+                expect(getChipLabels()).toEqual([]);
+                expect(screen.queryByTestId(`${COMBOBOX_ID}-clear`)).not.toBeInTheDocument();
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', []);
+            });
+
+            test('marks selected multiselect rows and toggles one off when clicked again', async () => {
+                const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
+
+                await userEvent.click(getCombobox());
+                expect(screen.getByRole('option', {name: 'Option 1'})).toHaveAttribute('aria-selected', 'true');
+                expect(screen.getByRole('option', {name: 'Option 3'})).toHaveAttribute('aria-selected', 'false');
+
+                await userEvent.click(screen.getByRole('option', {name: 'Option 1'}));
+                expect(getChipLabels()).toEqual(['Option 2']);
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt2']);
+            });
+
+            test('saves [] rather than null after the last multiselect chip is removed', async () => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
+
+                await user.click(getCombobox());
+                await user.keyboard('{Backspace}');
+                expect(getChipLabels()).toEqual(['Option 1']);
+                await user.keyboard('{Backspace}');
+                expect(getChipLabels()).toEqual([]);
+                await user.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', []);
+            });
+        });
+
+        describe('keyboard', () => {
+            installA11yFocusShim();
+
+            let documentKeyDown: jest.Mock;
+
+            beforeEach(() => {
+                documentKeyDown = jest.fn();
+                document.addEventListener('keydown', documentKeyDown);
+            });
+
+            afterEach(() => {
+                document.removeEventListener('keydown', documentKeyDown);
+            });
+
+            const documentKeys = () => documentKeyDown.mock.calls.map(([e]: [KeyboardEvent]) => e.key);
+
+            test('K1: opens a single field with the input focused and the menu expanded', () => {
+                renderEditor(buildField('select'));
+
+                expect(getCombobox()).toHaveFocus();
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'true');
+            });
+
+            test('K2: opens a multiselect with values with focus on the input, not a chip', () => {
+                renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
+
+                expect(getChipLabels()).toEqual(['Option 1', 'Option 2']);
+                expect(getCombobox()).toHaveFocus();
+                expect(getSelections()).not.toContainElement(document.activeElement as HTMLElement);
+            });
+
+            test('K3: ArrowDown then Enter picks without saving, and a second Enter saves the picked id', async () => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField('select'));
+
+                await user.keyboard('{ArrowDown}{Enter}');
+
+                expect(getCombobox()).toHaveValue('Option 2');
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'false');
+                expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+                expect(documentKeys()).not.toContain('Enter');
+
+                await user.keyboard('{Enter}');
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt2');
+            });
+
+            test('K4: Enter on a freshly opened empty field picks the first option without saving', async () => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField('select'));
+
+                await user.keyboard('{Enter}');
+
+                expect(getCombobox()).toHaveValue('Option 1');
+                expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+            });
+
+            test('K5: Escape with the menu open closes it without reaching document, and a second Escape does', async () => {
+                const user = userEvent.setup();
+                renderEditor(buildField('select'), 'opt1');
+
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'true');
+                await user.keyboard('{Escape}');
+
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'false');
+                expect(getCombobox()).toHaveValue('Option 1');
+                expect(documentKeys()).not.toContain('Escape');
+
+                await user.keyboard('{Escape}');
+
+                expect(documentKeys()).toEqual(['Escape']);
+            });
+
+            test('K6: Tab to the clear button then Enter clears without saving, and Save then sends an empty value', async () => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'opt1');
+
+                await user.tab();
+                expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toHaveFocus();
+
+                await user.keyboard('{Enter}');
+
+                expect(getCombobox()).toHaveValue('');
+                expect(getCombobox()).toHaveAttribute('placeholder', 'Select');
+                expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+                expect(documentKeys()).not.toContain('Enter');
+
+                await user.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', '');
+            });
+
+            test('K7: selecting all text, deleting it and tabbing out commits nothing', async () => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'opt1');
+
+                await user.keyboard('{Control>}a{/Control}{Delete}');
+                expect(getCombobox()).toHaveValue('');
+                await user.tab();
+
+                expect(getCombobox()).not.toHaveFocus();
+                expect(getCombobox()).toHaveValue('Option 1');
+                expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+
+                await user.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt1');
+            });
+
+            test('K8: ArrowDown then Enter on a multiselect adds a chip without saving', async () => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'));
+
+                await user.keyboard('{ArrowDown}{Enter}');
+
+                expect(getChipLabels()).toEqual(['Option 2']);
+                expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+                expect(documentKeys()).not.toContain('Enter');
+
+                await user.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt2']);
+            });
+
+            test('K9: Enter on a chip reached by keyboard removes it without saving', async () => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
+
+                // Compass reaches chips by Tab, not by ArrowLeft from the input: Shift+Tab lands on
+                // the roving-tabindex chip (the first), and ArrowRight moves along the group.
+                await user.tab({shift: true});
+                const [firstChip, lastChip] = within(getSelections()!).getAllByRole('button');
+                expect(firstChip).toHaveFocus();
+                await user.keyboard('{ArrowRight}');
+                expect(lastChip).toHaveFocus();
+                expect(lastChip).toHaveTextContent('Option 2');
+
+                await user.keyboard('{Enter}');
+
+                expect(getChipLabels()).toEqual(['Option 1']);
+                expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+                expect(documentKeys()).not.toContain('Enter');
+
+                await user.click(screen.getByRole('button', {name: 'Save'}));
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1']);
+            });
+
+            test('K10: mousedown on the menu outside an option keeps focus on the input, so Escape closes only the menu', async () => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'opt1');
+
+                // The listbox's parent is the menu's scroll area, where a padding or scrollbar click lands.
+                await user.pointer({keys: '[MouseLeft]', target: screen.getByRole('listbox').parentElement!});
+
+                expect(getCombobox()).toHaveFocus();
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'true');
+
+                await user.keyboard('{Escape}');
+
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'false');
+                expect(documentKeys()).not.toContain('Escape');
+                expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+            });
         });
     });
 });
