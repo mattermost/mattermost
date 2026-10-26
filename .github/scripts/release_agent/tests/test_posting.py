@@ -65,34 +65,110 @@ class UpsertPostTest(unittest.TestCase):
         self.hub = FakeHub()
         self.marker = posting.marker(release(), "test")
 
+    def upsert(self, message, props=None):
+        existing = posting.find_post(self.hub, "chan", self.marker, 0)
+        return posting.upsert_post(self.hub, "chan", self.marker, message, existing, props)
+
     def test_creates_then_edits_instead_of_posting_twice(self):
-        action, post = posting.upsert_post(self.hub, "chan", self.marker, "first", 0)
+        action, post = self.upsert("first")
         self.assertEqual(action, "created")
         self.assertEqual(post["props"], {posting.MARKER_PROP: "release-agent:status:v12.2:test"})
         self.hub.add_post("chan", "chatter in between")
 
-        action, again = posting.upsert_post(self.hub, "chan", self.marker, "second", 0)
+        action, again = self.upsert("second")
         self.assertEqual((action, again["id"], again["message"]), ("updated", post["id"], "second"))
         self.assertEqual(len(self.hub.created), 1)
 
     def test_unchanged_text_is_not_edited(self):
-        posting.upsert_post(self.hub, "chan", self.marker, "same", 0)
-        action, _ = posting.upsert_post(self.hub, "chan", self.marker, "same", 0)
+        self.upsert("same", {posting.SEEN_PROP: {"check:a": 1}})
+        action, _ = self.upsert("same", {posting.SEEN_PROP: {"check:a": 1}})
         self.assertEqual(action, "unchanged")
         self.assertEqual(self.hub.patched, [])
+
+    def test_changed_props_are_saved(self):
+        self.upsert("same", {posting.SEEN_PROP: {}})
+        action, post = self.upsert("same", {posting.SEEN_PROP: {"check:a": 1}})
+        self.assertEqual(action, "updated")
+        self.assertEqual(post["props"][posting.SEEN_PROP], {"check:a": 1})
 
     def test_ignores_other_users_and_releases(self):
         self.hub.add_post("chan", "fake", user_id="mallory", props={posting.MARKER_PROP: self.marker})
         self.hub.add_post("chan", "other release", user_id="bot", props={posting.MARKER_PROP: "release-agent:status:v12.3:test"})
-        action, _ = posting.upsert_post(self.hub, "chan", self.marker, "mine", 0)
+        action, _ = self.upsert("mine")
         self.assertEqual(action, "created")
 
     def test_finds_post_on_a_later_page(self):
-        posting.upsert_post(self.hub, "chan", self.marker, "old", 0)
+        self.upsert("old")
         for n in range(450):
             self.hub.add_post("chan", f"msg {n}", create_at=10**14 + n)
-        action, _ = posting.upsert_post(self.hub, "chan", self.marker, "new", 0)
+        action, _ = self.upsert("new")
         self.assertEqual(action, "updated")
+
+
+class FalseAlarmTest(unittest.TestCase):
+    EMOJI = "no_entry_sign"
+
+    def setUp(self):
+        self.report = report([
+            outcome("cherry-picks", posting.NEEDS_ATTENTION, Result(FAIL, "1 missing"), "cherry_picks"),
+            outcome("notice-txt", posting.OK, Result(PASS, "merged")),
+        ], flags=["Calendar and git disagree."])
+        self.alarms = posting.alarm_ids(self.report)
+
+    def reaction(self, at, user="manager", emoji=EMOJI):
+        return {"emoji_name": emoji, "user_id": user, "create_at": at}
+
+    def post(self, seen):
+        return {"props": {posting.SEEN_PROP: seen}}
+
+    def test_alarm_ids_cover_failing_checks_and_flags(self):
+        self.assertEqual(set(self.alarms), {"check:cherry-picks", posting.flag_id("Calendar and git disagree.")})
+
+    def test_first_run_has_no_false_alarms(self):
+        dismissed, seen = posting.false_alarms(None, self.alarms, self.EMOJI, "bot", [], 100)
+        self.assertEqual(dismissed, set())
+        self.assertEqual(seen, {alarm_id: 100 for alarm_id in self.alarms})
+
+    def test_reaction_marks_alarms_raised_before_it(self):
+        existing = self.post({alarm_id: 100 for alarm_id in self.alarms})
+        dismissed, seen = posting.false_alarms(existing, self.alarms, self.EMOJI, "bot", [self.reaction(150)], 200)
+        self.assertEqual(dismissed, set(self.alarms))
+        self.assertEqual(seen, {alarm_id: 100 for alarm_id in self.alarms})
+
+    def test_alarms_raised_after_the_reaction_stay(self):
+        existing = self.post({"check:cherry-picks": 100})
+        dismissed, seen = posting.false_alarms(existing, self.alarms, self.EMOJI, "bot", [self.reaction(150)], 200)
+        self.assertEqual(dismissed, {"check:cherry-picks"})
+        self.assertEqual(seen[posting.flag_id("Calendar and git disagree.")], 200)
+
+    def test_bot_and_other_emoji_reactions_are_ignored(self):
+        existing = self.post({alarm_id: 100 for alarm_id in self.alarms})
+        reactions = [self.reaction(150, user="bot"), self.reaction(150, emoji="+1")]
+        dismissed, _ = posting.false_alarms(existing, self.alarms, self.EMOJI, "bot", reactions, 200)
+        self.assertEqual(dismissed, set())
+
+    def test_resolved_alarm_is_forgotten(self):
+        existing = self.post({"check:gone": 100})
+        _, seen = posting.false_alarms(existing, self.alarms, self.EMOJI, "bot", [], 200)
+        self.assertNotIn("check:gone", seen)
+
+    def test_post_moves_marked_alarms_and_turns_all_good(self):
+        hint = "React with :no_entry_sign:"
+        self.assertIn(hint, posting.format_post(self.report, date(2026, 11, 4), NAMES))
+        self.report.false_alarms = set(self.alarms)
+        text = posting.format_post(self.report, date(2026, 11, 4), NAMES)
+        self.assertFalse(self.report.needs_attention)
+        self.assertIn("· All good", text.splitlines()[0])
+        self.assertNotIn("**Needs attention**", text)
+        self.assertIn("**Marked as false alarms**\n- ~~Cherry-picks on the release branch~~\n- ~~Calendar and git disagree.~~", text)
+        self.assertNotIn(hint, text)
+
+    def test_partly_marked_stays_needs_attention(self):
+        self.report.false_alarms = {"check:cherry-picks"}
+        text = posting.format_post(self.report, date(2026, 11, 4), NAMES)
+        self.assertIn("· Needs attention", text.splitlines()[0])
+        self.assertIn(":triangular_flag_on_post: Calendar and git disagree.", text)
+        self.assertNotIn(":x: **Cherry-picks", text)
 
 
 if __name__ == "__main__":

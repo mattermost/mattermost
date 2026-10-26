@@ -4,7 +4,7 @@
   "title": "Release agent rules",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "calendar", "naming", "rules"],
+  "required": ["version", "calendar", "naming", "false_alarm_emoji", "rules"],
   "properties": {
     "version": {"const": 1},
     "calendar": {
@@ -35,13 +35,14 @@
     "naming": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["milestone", "fix_version", "playbook_run"],
+      "required": ["milestone", "fix_version", "release_channel"],
       "properties": {
         "milestone": {"type": "string", "minLength": 1},
         "fix_version": {"type": "string", "minLength": 1},
-        "playbook_run": {"type": "string", "minLength": 1}
+        "release_channel": {"type": "string", "minLength": 1}
       }
     },
+    "false_alarm_emoji": {"type": "string", "pattern": "^[a-z0-9_+-]+$"},
     "rules": {
       "type": "array",
       "minItems": 1,

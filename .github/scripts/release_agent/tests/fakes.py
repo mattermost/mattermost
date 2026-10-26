@@ -78,10 +78,22 @@ class FakeHub:
         self.bot_id = "bot"
         self.runs = []
         self.closed = []
+        self.channels = []   # channels the bot is in: {"id", "display_name"}
+        self.post_reactions = {}  # post id -> [reaction]
         self._next = 0
 
     def me(self):
         return {"id": self.bot_id}
+
+    def channels_named(self, display_name):
+        return [c for c in self.channels if c["display_name"].casefold() == display_name.casefold()]
+
+    def reactions(self, post_id):
+        return self.post_reactions.get(post_id, [])
+
+    def react(self, post_id, emoji, user_id="manager", create_at=None):
+        self.post_reactions.setdefault(post_id, []).append(
+            {"post_id": post_id, "emoji_name": emoji, "user_id": user_id, "create_at": create_at or 10**14})
 
     def server_version(self):
         return self.version
@@ -116,8 +128,9 @@ class FakeHub:
         raise KeyError(post_id)
 
     # Playbooks
-    def in_progress_runs(self, search_term, playbook_id=""):
-        return [copy.deepcopy(r) for r in self.runs if search_term.lower() in r["name"].lower()]
+    def in_progress_runs(self, search_term="", playbook_id="", channel_id=""):
+        return [copy.deepcopy(r) for r in self.runs
+                if search_term.lower() in r["name"].lower() and channel_id in ("", r["channel_id"])]
 
     def run(self, run_id):
         return copy.deepcopy(next(r for r in self.runs if r["id"] == run_id))

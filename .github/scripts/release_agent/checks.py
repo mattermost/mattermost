@@ -59,9 +59,16 @@ class Context:
         return format_values(rule.get("query") or {}, self.vars)
 
 
+class CheckError(Exception):
+    """A check that can't run, with a message safe for public output."""
+
+
 def format_values(value, variables: dict):
     if isinstance(value, str):
-        return value.format_map(variables)
+        try:
+            return value.format_map(variables)
+        except KeyError as err:
+            raise CheckError(f"{{{err.args[0]}}} isn't known for this release") from None
     if isinstance(value, list):
         return [format_values(v, variables) for v in value]
     if isinstance(value, dict):

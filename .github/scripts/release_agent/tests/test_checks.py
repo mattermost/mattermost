@@ -42,15 +42,26 @@ class TemplateTest(unittest.TestCase):
     def test_vars(self):
         values = template_vars(release(), NAMING, [1, 3])
         self.assertEqual(values["milestone"], "v12.2.0")
-        self.assertEqual(values["fix_version"], "v12.2")
+        self.assertEqual(values["fix_version"], "v12.2 (November 2026)")
+        self.assertEqual(values["release_channel"], "Release: v12.2")
         self.assertEqual(values["branch"], "release-12.2")
         self.assertEqual(values["rc_tag"], "v12.2.0-rc3")
         self.assertEqual(values["branch_cut"], "2026-10-19")
 
+    def test_fix_version_needs_a_release_day(self):
+        rel = Release(12, 2, {"branch_cut": date(2026, 10, 19)})
+        values = template_vars(rel, NAMING, [])
+        self.assertNotIn("fix_version", values)
+        self.assertEqual(values["release_channel"], "Release: v12.2")
+        ctx = checks.Context(release=rel, today=date(2026, 11, 4), vars=values, has_branch=True, rc_numbers=[],
+                             github=FakeGitHub(), jira=FakeJira(), hub=FakeHub(), testing_alerts_channel="alerts")
+        with self.assertRaisesRegex(checks.CheckError, r"\{fix_version\} isn't known for this release"):
+            checks.open_release_items(ctx, RULES["open-release-items"])
+
 
 class OpenReleaseItemsTest(unittest.TestCase):
     def test_groups_jira_and_prs_by_assignee(self):
-        jira = FakeJira({r'fixVersion = "v12\.2"': [issue("MM-1", assignee="Alice"), issue("MM-2")]})
+        jira = FakeJira({r'fixVersion = "v12\.2 \(November 2026\)"': [issue("MM-1", assignee="Alice"), issue("MM-2")]})
         github = FakeGitHub()
         github.searches[r"repo:mattermost/mattermost is:pr is:open milestone:\"v12\.2\.0\""] = [pr(10, login="alice", state="open")]
         github.searches[r"repo:mattermost/enterprise is:pr is:open"] = [pr(20, title="Secret thing", state="open")]
@@ -60,7 +71,9 @@ class OpenReleaseItemsTest(unittest.TestCase):
         self.assertEqual([(i.label, i.owner) for i in result.items],
                          [("MM-1", "Alice"), ("MM-2", "Unassigned"), ("mattermost#10", "alice"), ("enterprise#20", "dev")])
         self.assertEqual([i.public_label for i in result.items], [None, None, "mattermost#10", "(private repo)"])
-        self.assertIn('status != Closed', jira.queries[0])
+        self.assertEqual(jira.queries[0], 'project = MM AND fixVersion = "v12.2 (November 2026)" AND issuetype in '
+                                          '(Bug, Story, Task, "Sub-task") AND status not in (Resolved, Closed) '
+                                          'ORDER BY assignee ASC, priority ASC')
 
 
 class NewRegressionsTest(unittest.TestCase):

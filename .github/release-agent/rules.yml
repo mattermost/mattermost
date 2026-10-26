@@ -13,7 +13,8 @@
 #   source         where the check reads from: jira, github, hub
 #   query          check-specific parameters; strings are formatted with {version} (v12.2.0),
 #                  {short_version} (v12.2), {major}, {minor}, {branch} (release-12.2),
-#                  {milestone}, {fix_version} and {branch_cut} (YYYY-MM-DD)
+#                  {milestone}, {fix_version}, {release_month} (November), {release_year}
+#                  and {branch_cut} (YYYY-MM-DD)
 #   pass_when      what passing means, as the post describes it
 #   on_fail        needs_attention: listed in the post; log_only: run.json and the log only;
 #                  report: report-only tasks, which never fail
@@ -39,10 +40,16 @@ holidays: []
 
 naming:
   milestone: "v{major}.{minor}.0"
-  fix_version: "v{major}.{minor}"
-  # The release's Cloud & Self-Hosted playbook run is the in-progress run whose name
-  # contains this (as a whole word), from the RELEASE_AGENT_PLAYBOOK_ID playbook when set.
-  playbook_run: "{short_version}"
+  # The month and year are Release Day's: "v12.0 (October 2026)".
+  fix_version: "v{major}.{minor} ({release_month} {release_year})"
+  # The release channel's display name. Live mode posts there, and the release's playbook
+  # run is the in-progress run in that channel (from RELEASE_AGENT_PLAYBOOK_ID when set).
+  # If the bot isn't in a channel with this name, the run is found by name instead.
+  release_channel: "Release: {short_version}"
+
+# A reaction with this emoji on a status post, by anyone but the bot, marks everything
+# under Needs attention at the time as a false alarm. run.json counts them.
+false_alarm_emoji: no_entry_sign
 
 rules:
   - task: open-release-items
@@ -51,7 +58,7 @@ rules:
     type: open_release_items
     source: [jira, github]
     query:
-      jql: 'project = MM AND fixVersion = "{fix_version}" AND status != Closed'
+      jql: 'project = MM AND fixVersion = "{fix_version}" AND issuetype in (Bug, Story, Task, "Sub-task") AND status not in (Resolved, Closed) ORDER BY assignee ASC, priority ASC'
       repos: [mattermost/mattermost, mattermost/enterprise]
     pass_when: report_only
     on_fail: report

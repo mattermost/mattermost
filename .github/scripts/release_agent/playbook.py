@@ -34,13 +34,18 @@ def name_matches(name: str, fragment: str) -> bool:
     return re.search(rf"(?<![\w.]){re.escape(fragment)}(?!\w|\.\d)", name or "", re.IGNORECASE) is not None
 
 
-def find_run(runs: list[dict], fragment: str) -> tuple[dict | None, str | None]:
-    """The single in-progress run named for the release, else None and why."""
-    matches = [run for run in runs if name_matches(run.get("name", ""), fragment)]
+def find_run(runs: list[dict], fragment: str, by_name: bool = True) -> tuple[dict | None, str | None]:
+    """The single in-progress run for the release, else None and why.
+
+    ``runs`` are those in the release channel, or with ``by_name`` any that may be named
+    for it, of which only names containing ``fragment`` as a whole word count.
+    """
+    matches = [run for run in runs if not by_name or name_matches(run.get("name", ""), fragment)]
+    where = f"named for {fragment}" if by_name else f"in the {fragment} channel"
     if not matches:
-        return None, f"No in-progress playbook run named for {fragment} was found, so nothing is ticked."
+        return None, f"No in-progress playbook run {where} was found, so nothing is ticked."
     if len(matches) > 1:
-        return None, f"{len(matches)} in-progress playbook runs are named for {fragment}, so nothing is ticked."
+        return None, f"{len(matches)} in-progress playbook runs are {where}, so nothing is ticked."
     return matches[0], None
 
 

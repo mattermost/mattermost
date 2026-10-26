@@ -23,6 +23,13 @@ class FindRunTest(unittest.TestCase):
         self.assertIsNone(run)
         self.assertIn("2 in-progress playbook runs", problem)
 
+    def test_by_channel_takes_any_name(self):
+        run, problem = playbook.find_run([{"id": "a", "name": "Anything"}], "Release: v12.2", by_name=False)
+        self.assertEqual((run["id"], problem), ("a", None))
+        run, problem = playbook.find_run([{"id": "a", "name": "x"}, {"id": "b", "name": "y"}], "Release: v12.2", by_name=False)
+        self.assertIsNone(run)
+        self.assertEqual(problem, "2 in-progress playbook runs are in the Release: v12.2 channel, so nothing is ticked.")
+
 
 class PlanTickTest(unittest.TestCase):
     playbook_run = checklist_run("r", "v12.2", "c", [

@@ -1,11 +1,14 @@
 """The per-release status post on Hub, edited in place rather than reposted."""
 
+import hashlib
 from dataclasses import dataclass, field
 from datetime import date
 
 from . import playbook, workdays
 
 MARKER_PROP = "release_agent_marker"
+# Alarm id -> when the post first raised it (ms), so a reaction only covers what it saw.
+SEEN_PROP = "release_agent_alarms_seen"
 MAX_ITEMS = 15
 MAX_PAGES = 25
 
@@ -53,10 +56,40 @@ class ReleaseReport:
     ticks: list = field(default_factory=list)
     flags: list = field(default_factory=list)
     run: dict | None = None
+    release_channel: str = ""
+    false_alarms: set = field(default_factory=set)
 
     @property
     def needs_attention(self) -> bool:
-        return bool(self.flags) or any(o.state in (NEEDS_ATTENTION, ERROR) for o in self.outcomes)
+        return any(alarm_id not in self.false_alarms for alarm_id in alarm_ids(self))
+
+
+def flag_id(flag: str) -> str:
+    return "flag:" + hashlib.sha1(flag.encode()).hexdigest()[:12]
+
+
+def alarm_ids(report: ReleaseReport) -> dict:
+    """What the post raises under Needs attention: {alarm id: what it is (public-safe)}."""
+    alarms = {f"check:{o.rule['task']}": o.rule["task"] for o in report.outcomes if o.state in (NEEDS_ATTENTION, ERROR)}
+    alarms.update({flag_id(flag): flag for flag in report.flags})
+    return alarms
+
+
+def false_alarms(existing: dict | None, alarms: dict, emoji: str, bot_id: str, reactions: list,
+                 now_ms: int) -> tuple[set, dict]:
+    """(alarm ids marked as false alarms, the seen map to store on the post).
+
+    A person's ``emoji`` reaction on the status post marks every alarm the post had
+    raised by then. Alarms raised later need the reaction removed and added again.
+    """
+    previous = ((existing or {}).get("props") or {}).get(SEEN_PROP) or {}
+    seen = {alarm_id: previous.get(alarm_id, now_ms) for alarm_id in alarms}
+    reacted = [r.get("create_at", 0) for r in reactions or []
+               if r.get("emoji_name") == emoji and r.get("user_id") != bot_id]
+    if not reacted:
+        return set(), seen
+    latest = max(reacted)
+    return {alarm_id for alarm_id, first_seen in seen.items() if first_seen <= latest}, seen
 
 
 def marker(release, mode: str) -> str:
@@ -113,7 +146,7 @@ def next_milestone(release, today: date, names: dict) -> str:
     return f" · Next: {names.get(key, key)} on {_day(day)}"
 
 
-def format_post(report: ReleaseReport, today: date, milestone_names: dict) -> str:
+def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji: str = "no_entry_sign") -> str:
     release = report.release
     headline = "Needs attention" if report.needs_attention else "All good"
     icon = ":large_yellow_circle:" if report.needs_attention else ":large_green_circle:"
@@ -129,8 +162,11 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict) -> st
     for outcome in report.outcomes:
         by_state.setdefault(outcome.state, []).append(outcome)
 
-    attention = by_state.get(NEEDS_ATTENTION, []) + by_state.get(ERROR, [])
-    if attention or report.flags:
+    dismissed = report.false_alarms
+    raised = by_state.get(NEEDS_ATTENTION, []) + by_state.get(ERROR, [])
+    attention = [o for o in raised if f"check:{o.rule['task']}" not in dismissed]
+    flags = [flag for flag in report.flags if flag_id(flag) not in dismissed]
+    if attention or flags:
         lines += ["", "**Needs attention**"]
         for outcome in attention:
             if outcome.state == ERROR:
@@ -138,7 +174,7 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict) -> st
                 continue
             lines.append(f"- :x: **{outcome.title}** — {outcome.result.summary}{_proof(outcome.result)}")
             lines += _items(outcome.result.items)
-        lines += [f"- :triangular_flag_on_post: {flag}" for flag in report.flags]
+        lines += [f"- :triangular_flag_on_post: {flag}" for flag in flags]
 
     if by_state.get(OK):
         lines += ["", "**All good**"]
@@ -161,6 +197,14 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict) -> st
         for owner in sorted(groups, key=lambda name: (name == "Unassigned", name.lower())):
             lines.append(f"- **{owner}** ({len(groups[owner])})")
             lines += _items(groups[owner])
+
+    marked = [o.title for o in raised if f"check:{o.rule['task']}" in dismissed]
+    marked += [flag for flag in report.flags if flag_id(flag) in dismissed]
+    if marked:
+        lines += ["", "**Marked as false alarms**"] + [f"- ~~{what}~~" for what in marked]
+    if attention or flags:
+        lines += ["", f"_Not a real problem? React with :{emoji}: to mark everything under Needs attention "
+                      "as a false alarm. For anything raised after your reaction, remove it and react again._"]
     return "\n".join(lines)
 
 
@@ -177,12 +221,13 @@ def find_post(mattermost, channel_id: str, marker_value: str, since_ms: int) -> 
     return None
 
 
-def upsert_post(mattermost, channel_id: str, marker_value: str, message: str, since_ms: int) -> tuple[str, dict]:
-    """Create the status post, or edit the earlier one when its text changed."""
-    existing = find_post(mattermost, channel_id, marker_value, since_ms)
+def upsert_post(mattermost, channel_id: str, marker_value: str, message: str, existing: dict | None,
+                props: dict | None = None) -> tuple[str, dict]:
+    """Create the status post, or edit ``existing`` (from find_post) when it changed."""
+    props = {**(props or {}), MARKER_PROP: marker_value}
     if existing is None:
-        return "created", mattermost.create_post(channel_id, message, {MARKER_PROP: marker_value})
-    if existing.get("message") == message:
+        return "created", mattermost.create_post(channel_id, message, props)
+    old_props = existing.get("props") or {}
+    if existing.get("message") == message and all(old_props.get(k) == v for k, v in props.items()):
         return "unchanged", existing
-    props = {**(existing.get("props") or {}), MARKER_PROP: marker_value}
-    return "updated", mattermost.patch_post(existing["id"], message, props)
+    return "updated", mattermost.patch_post(existing["id"], message, {**old_props, **props})

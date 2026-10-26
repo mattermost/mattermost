@@ -19,6 +19,8 @@ from .clients import ServiceError  # noqa: E402
 
 MODES = ("test", "live")
 LS_REMOTE_URL = "https://github.com/mattermost/mattermost.git"
+MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August", "September",
+          "October", "November", "December")
 
 
 @dataclass
@@ -60,7 +62,7 @@ def git_ls_remote() -> str:
 
 def public_error(err: Exception) -> str:
     """An error message safe for the public log: the service and status, or the error type."""
-    return str(err) if isinstance(err, ServiceError) else f"unexpected {type(err).__name__}"
+    return str(err) if isinstance(err, (ServiceError, checks.CheckError)) else f"unexpected {type(err).__name__}"
 
 
 def private_error(err: Exception) -> str:
@@ -77,13 +79,16 @@ def template_vars(release, naming: dict, rc_numbers: list) -> dict:
         "minor": release.minor,
         "branch": release.branch,
     }
+    if release.release_day:
+        base["release_month"] = MONTHS[release.release_day.month - 1]
+        base["release_year"] = release.release_day.year
     cut = release.milestones.get("branch_cut") or release.window(0)[0]
-    values = {
-        **base,
-        "milestone": naming["milestone"].format_map(base),
-        "fix_version": naming["fix_version"].format_map(base),
-        "branch_cut": cut.isoformat(),
-    }
+    values = {**base, "branch_cut": cut.isoformat()}
+    for key in ("milestone", "fix_version", "release_channel"):
+        try:
+            values[key] = naming[key].format_map(base)
+        except KeyError:
+            pass  # e.g. no Release Day for the fix version's month; rules using it error out
     if rc_numbers:
         values["rc_tag"] = f"{release.version}-rc{rc_numbers[-1]}"
     return values
@@ -129,10 +134,24 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
             report.flags.append(f"{rule['task']} is due at {rule['due']}, which isn't on the calendar for {release.short_version}.")
         report.outcomes.append(evaluate(ctx, rule, due, today))
 
-    fragment = rules["naming"]["playbook_run"].format_map(ctx.vars)
+    channel_name = ctx.vars["release_channel"]
+    try:
+        channels = services.hub.channels_named(channel_name)
+        if len(channels) > 1:
+            report.flags.append(f"The bot is in {len(channels)} channels named “{channel_name}”, so none is used.")
+        elif channels:
+            report.release_channel = channels[0]["id"]
+    except Exception as err:  # noqa: BLE001
+        report.flags.append(f"Couldn't list the bot's channels: {public_error(err)}")
+
     run = None
     try:
-        found, problem = playbook.find_run(services.playbooks.in_progress_runs(fragment, settings.playbook_id), fragment)
+        if report.release_channel:
+            runs = services.playbooks.in_progress_runs(playbook_id=settings.playbook_id, channel_id=report.release_channel)
+            found, problem = playbook.find_run(runs, channel_name, by_name=False)
+        else:
+            runs = services.playbooks.in_progress_runs(search_term=release.short_version, playbook_id=settings.playbook_id)
+            found, problem = playbook.find_run(runs, release.short_version)
         if problem:
             report.flags.append(problem)
         else:
@@ -158,17 +177,23 @@ def post_report(report: posting.ReleaseReport, rules: dict, settings: Settings, 
                 today: date) -> dict:
     release = report.release
     if settings.mode == "live":
-        channel = settings.release_channels.get(release.short_version) or (report.run or {}).get("channel_id", "")
+        channel = (settings.release_channels.get(release.short_version) or report.release_channel
+                   or (report.run or {}).get("channel_id", ""))
     else:
         channel = settings.test_channel
     if not channel:
         report.flags.append(f"There's no {'release' if settings.mode == 'live' else 'test'} channel to post {release.short_version}'s status in.")
         return {"post": "skipped"}
-    names = rules["calendar"]["milestones"]
-    message = posting.format_post(report, today, names)
     window_start = release.window(0)[0] - timedelta(days=14)
     since_ms = int(datetime(window_start.year, window_start.month, window_start.day, tzinfo=timezone.utc).timestamp() * 1000)
-    action, post = posting.upsert_post(services.hub, channel, posting.marker(release, settings.mode), message, since_ms)
+    marker = posting.marker(release, settings.mode)
+    existing = posting.find_post(services.hub, channel, marker, since_ms)
+    reactions = services.hub.reactions(existing["id"]) if existing else []
+    now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+    report.false_alarms, seen = posting.false_alarms(
+        existing, posting.alarm_ids(report), rules["false_alarm_emoji"], services.hub.me()["id"], reactions, now_ms)
+    message = posting.format_post(report, today, rules["calendar"]["milestones"], rules["false_alarm_emoji"])
+    action, post = posting.upsert_post(services.hub, channel, marker, message, existing, {posting.SEEN_PROP: seen})
     for tick in report.ticks:
         if tick.action == playbook.TICKED:
             proof = f" · [proof]({tick.proof_url})" if tick.proof_url else ""
@@ -235,6 +260,9 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
             "not_ticked": [{"task": t.task, "reason": t.action} for t in report.ticks
                            if t.action not in (playbook.TICKED, playbook.WOULD_TICK)],
             "flags": report.flags,
+            "alarms_raised": len(posting.alarm_ids(report)),
+            "false_alarms": [{"id": alarm_id, "what": what} for alarm_id, what in posting.alarm_ids(report).items()
+                             if alarm_id in report.false_alarms],
         })
     body["totals"] = totals(body)
     return body, details
@@ -252,6 +280,8 @@ def totals(body: dict) -> dict:
         "errors": count(posting.ERROR),
         "ticked": sum(len(r["ticked"]) for r in body["releases"]),
         "flags": len(body["flags"]) + sum(len(r["flags"]) for r in body["releases"]),
+        "alarms_raised": sum(r.get("alarms_raised", 0) for r in body["releases"]),
+        "false_alarms": sum(len(r.get("false_alarms", [])) for r in body["releases"]),
     }
 
 

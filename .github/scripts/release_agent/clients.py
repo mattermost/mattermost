@@ -172,6 +172,15 @@ class Mattermost:
         result = self.http.get(f"/api/v4/channels/{channel_id}/posts", since=since_ms) or {}
         return list((result.get("posts") or {}).values())
 
+    def channels_named(self, display_name: str) -> list[dict]:
+        """The bot's channels, across teams, whose display name is ``display_name``."""
+        wanted = " ".join(display_name.split()).casefold()
+        return [c for c in self.http.get("/api/v4/users/me/channels") or []
+                if not c.get("delete_at") and " ".join((c.get("display_name") or "").split()).casefold() == wanted]
+
+    def reactions(self, post_id: str) -> list[dict]:
+        return self.http.get(f"/api/v4/posts/{post_id}/reactions") or []
+
     def create_post(self, channel_id: str, message: str, props: dict | None = None, root_id: str = "") -> dict:
         body = {"channel_id": channel_id, "message": message, "props": props or {}}
         if root_id:
@@ -193,12 +202,13 @@ class Playbooks:
     def __init__(self, mattermost: Mattermost):
         self.http = mattermost.http
 
-    def in_progress_runs(self, search_term: str, playbook_id: str = "") -> list[dict]:
+    def in_progress_runs(self, search_term: str = "", playbook_id: str = "", channel_id: str = "") -> list[dict]:
         runs, page = [], 0
         while True:
-            params = {"statuses": "InProgress", "search_term": search_term, "page": page, "per_page": 100}
-            if playbook_id:
-                params["playbook_id"] = playbook_id
+            params = {"statuses": "InProgress", "page": page, "per_page": 100}
+            for key, value in (("search_term", search_term), ("playbook_id", playbook_id), ("channel_id", channel_id)):
+                if value:
+                    params[key] = value
             result = self.http.get(f"{self.PREFIX}/runs", **params) or {}
             runs.extend(result.get("items") or [])
             if not result.get("has_more"):

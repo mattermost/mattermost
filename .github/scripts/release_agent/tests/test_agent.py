@@ -34,8 +34,9 @@ def services(jira=None):
     github.tags = {MM: ["v12.2.0-rc1", "v12.2.0-rc2"], ENT: ["v12.2.0-rc1", "v12.2.0-rc2"]}
     github.dates[(MM, "v12.2.0-rc2")] = "2026-11-02T12:00:00Z"
     hub = FakeHub(("12.2.0", "abc"))
-    hub.runs = [checklist_run("run122", "Self-Hosted Release v12.2", "c122", template_items()),
-                checklist_run("run123", "Self-Hosted Release v12.3", "c123", template_items())]
+    hub.channels = [{"id": "c122", "display_name": "Release: v12.2"}, {"id": "c123", "display_name": "Release: v12.3"}]
+    hub.runs = [checklist_run("run122", "Release: v12.2", "c122", template_items()),
+                checklist_run("run123", "Release: v12.3", "c123", template_items())]
     return agent.Services(github=github, jira=jira or FakeJira(), hub=hub, playbooks=hub,
                           fetch_calendar=lambda: fixture("release-dates.ics"), ls_remote=lambda: LS_REMOTE)
 
@@ -118,6 +119,47 @@ class LiveRunTest(unittest.TestCase):
         self.assertEqual(self.body["totals"]["releases"], 2)
         self.assertEqual(self.body["totals"]["checks_run"], 20)
         self.assertEqual(self.body["totals"]["ticked"], 6)
+        self.assertEqual(self.body["totals"]["alarms_raised"], 3)
+        self.assertEqual(self.body["totals"]["false_alarms"], 0)
+
+    def test_reaction_marks_false_alarms_on_the_next_run(self):
+        post_id = self.releases["v12.2"]["post_id"]
+        self.svc.hub.react(post_id, "no_entry_sign")
+        self.svc.hub.react(post_id, "no_entry_sign", user_id="bot")
+        body, _ = run(self.svc)
+        v122 = body["releases"][0]
+        self.assertEqual((v122["status"], v122["post"]), ("all_good", "updated"))
+        self.assertEqual(sorted(a["what"] for a in v122["false_alarms"]), ["e2e-results", "version-go-prs"])
+        self.assertEqual(body["totals"]["false_alarms"], 2)
+        post = next(p for p in self.svc.hub.posts["c122"] if p["id"] == post_id)
+        self.assertIn("**Marked as false alarms**", post["message"])
+
+        again, _ = run(self.svc)
+        self.assertEqual(again["releases"][0]["post"], "unchanged")
+
+
+class ReleaseChannelTest(unittest.TestCase):
+    def test_run_is_found_by_its_release_channel(self):
+        svc = services()
+        for r in svc.hub.runs:
+            r["name"] = "Renamed run"
+        body, _ = run(svc)
+        self.assertEqual(len(svc.hub.closed), 6)
+        self.assertEqual(body["releases"][0]["flags"], [])
+
+    def test_without_the_channel_the_run_is_found_by_name(self):
+        svc = services()
+        svc.hub.channels = []
+        svc.hub.runs[0]["name"] = "Self-Hosted Release v12.2"
+        body, _ = run(svc)
+        self.assertEqual(len(svc.hub.closed), 6)
+        self.assertEqual(sorted(p["channel_id"] for p in svc.hub.created if not p["root_id"]), ["c122", "c123"])
+
+    def test_two_channels_with_the_name_are_flagged(self):
+        svc = services()
+        svc.hub.channels.append({"id": "dup", "display_name": "release: V12.2"})
+        body, _ = run(svc)
+        self.assertIn("The bot is in 2 channels named “Release: v12.2”, so none is used.", body["releases"][0]["flags"])
 
 
 class TestModeTest(unittest.TestCase):
