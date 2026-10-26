@@ -51,8 +51,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// The connection was never established, so the row is removed outright; a soft-deleted
-	// row would keep its primary key and block retrying the same invite with the same name.
+	// A soft-deleted row would keep the (remoteid, name) key and block retrying the same invite.
 	confirmed := false
 	defer func() {
 		if confirmed {
