@@ -26,7 +26,7 @@ var filestoreLocalInCluster = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "FileSettings.Directory",
-	Eval: healthcheck.Licensed(func(f *model.Features) *bool { return f.Cluster },
+	Eval: healthcheck.Licensed(healthcheck.FeatureCluster,
 		healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalFilestoreLocalInCluster)),
 }
 

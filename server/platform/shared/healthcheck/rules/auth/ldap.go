@@ -135,7 +135,9 @@ var ldapRecommendedAtScale = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityThreshold,
 	AppliesToCloud: true,
 	Subject:        "LdapSettings.Enable",
-	Eval:           healthcheck.Single(evalLdapRecommendedAtScale),
+	// Resolves when the license allows none of the providers the remediation names.
+	Eval: healthcheck.Licensed(healthcheck.AnyFeature(healthcheck.FeatureLDAP, healthcheck.FeatureSAML, healthcheck.FeatureOpenID),
+		healthcheck.Single(evalLdapRecommendedAtScale)),
 }
 
 var ldapIDIsEmail = healthcheck.Rule{

@@ -10,13 +10,16 @@ import (
 	"net/http/httptest"
 	"slices"
 	"testing"
+	"time"
 
+	"github.com/mattermost/logr/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 func TestGetLatestVersion(t *testing.T) {
@@ -103,15 +106,17 @@ func TestGetLatestVersion(t *testing.T) {
 type queryLogsCluster struct {
 	testlib.FakeClusterInterface
 	info           *model.ClusterInfo
-	remoteLogs     map[string][]string
+	remoteLogs     map[string]einterfaces.NodeLogs
 	queryLogsErr   *model.AppError
 	queryLogsCalls int
+	lastFilter     *model.LogFilter
 }
 
 func (c *queryLogsCluster) GetMyClusterInfo() *model.ClusterInfo { return c.info }
 
-func (c *queryLogsCluster) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
+func (c *queryLogsCluster) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string]einterfaces.NodeLogs, *model.AppError) {
 	c.queryLogsCalls++
+	c.lastFilter = logFilter
 	if c.queryLogsErr != nil {
 		return nil, c.queryLogsErr
 	}
@@ -128,9 +133,9 @@ func TestQueryLogs(t *testing.T) {
 	t.Run("cluster", func(t *testing.T) {
 		cluster := &queryLogsCluster{
 			info: &model.ClusterInfo{Hostname: "node-1"},
-			remoteLogs: map[string][]string{
-				"node-2": {`{"msg":"from node-2"}`},
-				"node-3": {`{"msg":"from node-3"}`},
+			remoteLogs: map[string]einterfaces.NodeLogs{
+				"node-2": {Lines: []string{`{"msg":"from node-2"}`}},
+				"node-3": {Lines: []string{`{"msg":"from node-3"}`}},
 			},
 		}
 		th := SetupWithClusterMock(t, cluster)
@@ -172,6 +177,18 @@ func TestQueryLogs(t *testing.T) {
 			assert.Equal(t, []string{`{"msg":"from node-2"}`}, logs["node-2"])
 		})
 
+		t.Run("forwards the filter to the cluster", func(t *testing.T) {
+			filter := &model.LogFilter{
+				ServerNames: []string{"node-2"},
+				LogLevels:   []string{"error"},
+				DateFrom:    "2026-01-01 00:00:00.000 +00:00",
+				DateTo:      "2026-01-02 00:00:00.000 +00:00",
+			}
+			_, appErr := th.App.QueryLogs(th.Context, 0, 10, filter)
+			require.Nil(t, appErr)
+			assert.Equal(t, filter, cluster.lastFilter)
+		})
+
 		t.Run("local and remote node", func(t *testing.T) {
 			logs := query(t, "node-1", "node-3")
 			assert.ElementsMatch(t, []string{"node-1", "node-3"}, nodeNames(logs))
@@ -195,6 +212,29 @@ func TestQueryLogs(t *testing.T) {
 
 			logs := query(t)
 			assert.ElementsMatch(t, []string{"default", "node-2", "node-3"}, nodeNames(logs))
+		})
+
+		t.Run("failed node is reported as a single error entry", func(t *testing.T) {
+			cluster.remoteLogs["node-3"] = einterfaces.NodeLogs{Err: model.NewAppError("GetLogs", "ent.cluster.timeout.error", nil, "simulated failure", http.StatusInternalServerError)}
+			t.Cleanup(func() { cluster.remoteLogs["node-3"] = einterfaces.NodeLogs{Lines: []string{`{"msg":"from node-3"}`}} })
+
+			logs := query(t, "node-2", "node-3")
+			assert.Equal(t, []string{`{"msg":"from node-2"}`}, logs["node-2"])
+			require.Len(t, logs["node-3"], 1)
+
+			var entry model.LogEntry
+			require.NoError(t, json.Unmarshal([]byte(logs["node-3"][0]), &entry))
+			assert.Equal(t, "error", entry.Level)
+			// The webapp's parseTimestamp needs exactly this shape to build an ISO-8601 string.
+			assert.Regexp(t, `^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} (Z|[+-]\d{2}:\d{2})$`, entry.Timestamp)
+			ts, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
+			require.NoError(t, err)
+			assert.WithinDuration(t, time.Now(), ts, time.Minute)
+
+			var fields map[string]string
+			require.NoError(t, json.Unmarshal([]byte(logs["node-3"][0]), &fields))
+			assert.Equal(t, "Failed to fetch logs from node", fields["msg"])
+			assert.Contains(t, fields["error"], "simulated failure")
 		})
 
 		t.Run("cluster query error fails the request", func(t *testing.T) {

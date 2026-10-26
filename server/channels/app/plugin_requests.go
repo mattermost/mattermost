@@ -271,8 +271,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	maxBodyBytes := *ch.cfgSvc.Config().ServiceSettings.MaximumPayloadSizeBytes + bytes.MinRead
 	csrfValid, err := validateCSRFForPluginRequest(rctx, w, r, session, cookieAuth, *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement, maxBodyBytes)
 	if err != nil {
-		var maxBytesErr *http.MaxBytesError
-		if errors.As(err, &maxBytesErr) {
+		if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
 			http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
 			return
 		}

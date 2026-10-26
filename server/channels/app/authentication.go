@@ -173,7 +173,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 }
 
 // This to be used for places we check the users password when they are already logged in
-func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError {
+func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password string) error {
 	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
 	claimed, claimErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(user.Id, maxAttempts)
 	if claimErr != nil {
@@ -190,7 +190,7 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
 		}
-		return model.AsAppError(err)
+		return err
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
