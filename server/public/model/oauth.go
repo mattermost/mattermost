@@ -106,13 +106,7 @@ func (a *OAuthApp) IsValid() *AppError {
 	}
 
 	for _, callback := range a.CallbackUrls {
-		// Dynamically registered (DCR) clients may use custom URI schemes such as
-		// cursor://; manually created OAuth apps remain restricted to http/https.
-		valid := IsValidHTTPURL(callback)
-		if a.IsDynamicallyRegistered {
-			valid = IsValidDCRRedirectURI(callback)
-		}
-		if !valid {
+		if !IsValidDCRRedirectURI(callback) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.callback.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -187,6 +181,13 @@ func (a *OAuthApp) GetTokenEndpointAuthMethod() string {
 // IsPublicClient returns true if this is a public client (uses "none" auth method)
 func (a *OAuthApp) IsPublicClient() bool {
 	return a.GetTokenEndpointAuthMethod() == ClientAuthMethodNone
+}
+
+// RequiresPKCE returns true when PKCE is mandatory for an authorization request
+// to redirectURI: public clients always, and any client using a non-http(s)
+// redirect URI since custom schemes can be claimed by other applications.
+func (a *OAuthApp) RequiresPKCE(redirectURI string) bool {
+	return a.IsPublicClient() || !IsHTTPScheme(redirectURI)
 }
 
 // ValidateForGrantType validates the OAuth app for a specific grant type and provided credentials

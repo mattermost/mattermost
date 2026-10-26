@@ -3544,9 +3544,14 @@
     "description": "API error when an endpoint requires a paid license; 'E10' and 'E20' are legacy Mattermost license tier names."
   },
   {
+    "id": "api.oauth.allow_oauth.implicit_custom_scheme.app_error",
+    "translation": "invalid_request: The implicit grant flow cannot be used with a custom-scheme redirect_uri. Use the authorization code flow with PKCE instead.",
+    "description": "OAuth authorization error shown to developers/users when the implicit flow (response_type=token) is requested with a non-http(s) redirect URI; 'invalid_request:' is a standard OAuth error code and 'redirect_uri' and 'PKCE' are technical terms - keep them untranslated."
+  },
+  {
     "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
-    "translation": "PKCE (Proof Key for Code Exchange) is required for public OAuth clients using authorization code flow.",
-    "description": "OAuth authorization error shown to developers/users when a public OAuth client omits PKCE; keep 'PKCE' and the parenthetical expansion technical."
+    "translation": "PKCE is required for public clients and for custom-scheme redirect URIs when using the authorization code flow.",
+    "description": "OAuth authorization error shown to developers/users when a public OAuth client, or any client using a non-http(s) redirect URI, omits PKCE; 'PKCE' is a technical term - keep it untranslated."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -10031,6 +10036,11 @@
     "description": "Placeholder substituted for the token name in the expiring-token warning DM when the personal access token has no description."
   },
   {
+    "id": "app.oauth.callback_scheme_not_allowed.app_error",
+    "translation": "One or more callback URLs use a URI scheme that is not allowed. Callback URLs must start with http:// or https://, or use a custom scheme allowed by the system administrator.",
+    "description": "API error shown when creating or updating an OAuth 2.0 application, or authorizing it, with a callback URL whose scheme is not http/https and is not in the admin-configured allowed redirect URI schemes; 'http://' and 'https://' are literal prefixes."
+  },
+  {
     "id": "app.oauth.delete_app.app_error",
     "translation": "An error occurred while deleting the OAuth2 App.",
     "description": "API error shown (e.g. in System Console / integrations UI) when deleting a registered OAuth 2.0 application fails."
@@ -16123,8 +16133,8 @@
   },
   {
     "id": "model.authorize.validate_pkce.public_client_required.app_error",
-    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients.",
-    "description": "OAuth 2.0 authorization error telling integrators that public (non-confidential) OAuth clients must use PKCE; keep the acronym expansion."
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients and for custom-scheme redirect URIs.",
+    "description": "OAuth 2.0 authorization error telling integrators that public (non-confidential) OAuth clients, and any client using a non-http(s) redirect URI, must use PKCE; keep the acronym expansion."
   },
   {
     "id": "model.authorize.validate_pkce.verification_failed.app_error",
@@ -17405,6 +17415,11 @@
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
     "translation": "Notifications for new flagged post cannot be disabled for reviewers.",
     "description": "Config validation error shown to system admins configuring content flagging; reviewers must always be notified of newly flagged posts, so that notification cannot be turned off."
+  },
+  {
+    "id": "model.config.is_valid.oauth_allowed_redirect_uri_schemes.app_error",
+    "translation": "Allowed OAuth redirect URI schemes contains an invalid entry. Each entry must be a valid URI scheme such as com.example.app (letters, digits, '+', '-' and '.', starting with a letter), cannot be http, https or a dangerous scheme such as javascript, and cannot be empty or whitespace.",
+    "description": "Config validation error shown to system admins for the 'Allowed Custom Redirect URI Schemes' setting in System Console > Integrations > Integration Management; 'http', 'https' and 'javascript' are literal URI schemes."
   },
   {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",

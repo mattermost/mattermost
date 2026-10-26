@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -2482,5 +2483,224 @@ func TestCompleteOAuthUserCreated(t *testing.T) {
 		require.NotNil(t, user)
 		assert.Equal(t, existing.Id, user.Id)
 		assert.False(t, userCreated)
+	})
+}
+
+func TestOAuthCustomRedirectScheme(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	const customCallback = "com.example.app://cb"
+	const codeVerifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+	const codeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+
+	setSchemes := func(schemes ...string) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+			cfg.ServiceSettings.OAuthAllowedRedirectURISchemes = schemes
+		})
+	}
+
+	newApp := func(callbacks ...string) *model.OAuthApp {
+		return &model.OAuthApp{
+			Name:         "customscheme" + model.NewRandomString(10),
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: callbacks,
+		}
+	}
+
+	t.Run("create is rejected when the scheme is not allowlisted", func(t *testing.T) {
+		setSchemes()
+
+		_, appErr := th.App.CreateOAuthApp(newApp(customCallback))
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.oauth.callback_scheme_not_allowed.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		setSchemes("other.app")
+		_, appErr = th.App.CreateOAuthApp(newApp("https://example.com/cb", customCallback))
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.oauth.callback_scheme_not_allowed.app_error", appErr.Id)
+	})
+
+	t.Run("create succeeds when the scheme is allowlisted", func(t *testing.T) {
+		setSchemes(" Com.Example.App ")
+
+		oapp, appErr := th.App.CreateOAuthApp(newApp("https://example.com/cb", customCallback))
+		require.Nil(t, appErr)
+		require.Equal(t, model.StringArray{"https://example.com/cb", customCallback}, oapp.CallbackUrls)
+	})
+
+	t.Run("create with http callbacks does not depend on the allowlist", func(t *testing.T) {
+		setSchemes()
+
+		_, appErr := th.App.CreateOAuthApp(newApp("https://example.com/cb", "http://localhost:3000/cb"))
+		require.Nil(t, appErr)
+	})
+
+	t.Run("update is rejected when the scheme is not allowlisted", func(t *testing.T) {
+		setSchemes()
+		oldApp, appErr := th.App.CreateOAuthApp(newApp("https://example.com/cb"))
+		require.Nil(t, appErr)
+
+		updated := newApp(customCallback)
+		_, appErr = th.App.UpdateOAuthApp(oldApp, updated)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.oauth.callback_scheme_not_allowed.app_error", appErr.Id)
+
+		setSchemes("com.example.app")
+		updated = newApp(customCallback)
+		result, appErr := th.App.UpdateOAuthApp(oldApp, updated)
+		require.Nil(t, appErr)
+		require.Equal(t, model.StringArray{customCallback}, result.CallbackUrls)
+	})
+
+	t.Run("dynamically registered apps are not affected by the allowlist", func(t *testing.T) {
+		setSchemes()
+
+		dcrApp, appErr := th.App.RegisterOAuthClient(th.Context, &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"cursor://anysphere.cursor-mcp/oauth/callback"},
+			ClientName:   new("DCR Custom Scheme"),
+		}, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateOAuthApp(dcrApp, &model.OAuthApp{
+			Name:         dcrApp.Name,
+			CallbackUrls: []string{"other://host/cb"},
+			Homepage:     "https://nowhere.com",
+		})
+		require.Nil(t, appErr)
+	})
+
+	t.Run("dynamically registered apps require PKCE for custom scheme redirects", func(t *testing.T) {
+		setSchemes()
+
+		dcrApp, appErr := th.App.RegisterOAuthClient(th.Context, &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"cursor://anysphere.cursor-mcp/oauth/callback"},
+			ClientName:   new("DCR Custom Scheme"),
+		}, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, dcrApp.ClientSecret)
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.AuthCodeResponseType,
+			ClientId:     dcrApp.Id,
+			RedirectURI:  dcrApp.CallbackUrls[0],
+			Scope:        "user",
+			State:        "state",
+		}
+		_, appErr = th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.oauth.allow_oauth.pkce_required_public.app_error", appErr.Id)
+
+		authRequest.CodeChallenge = codeChallenge
+		authRequest.CodeChallengeMethod = model.PKCECodeChallengeMethodS256
+		redirect, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+		require.True(t, strings.HasPrefix(redirect, "cursor://anysphere.cursor-mcp/oauth/callback?code="), redirect)
+	})
+
+	t.Run("confidential custom scheme app authorization and token exchange", func(t *testing.T) {
+		setSchemes("com.example.app")
+		oapp, appErr := th.App.CreateOAuthApp(newApp(customCallback))
+		require.Nil(t, appErr)
+		require.NotEmpty(t, oapp.ClientSecret)
+		require.False(t, oapp.IsPublicClient())
+
+		authRequest := func() *model.AuthorizeRequest {
+			return &model.AuthorizeRequest{
+				ResponseType: model.AuthCodeResponseType,
+				ClientId:     oapp.Id,
+				RedirectURI:  customCallback,
+				Scope:        "user",
+				State:        "state",
+			}
+		}
+
+		t.Run("code flow without code_challenge is rejected", func(t *testing.T) {
+			_, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest())
+			require.NotNil(t, appErr)
+			require.Equal(t, "api.oauth.allow_oauth.pkce_required_public.app_error", appErr.Id)
+			require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+
+		t.Run("implicit flow is rejected", func(t *testing.T) {
+			req := authRequest()
+			req.ResponseType = model.ImplicitResponseType
+			req.CodeChallenge = codeChallenge
+			req.CodeChallengeMethod = model.PKCECodeChallengeMethodS256
+
+			_, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, req)
+			require.NotNil(t, appErr)
+			require.Equal(t, "api.oauth.allow_oauth.implicit_custom_scheme.app_error", appErr.Id)
+			require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+
+		t.Run("unregistered redirect is rejected", func(t *testing.T) {
+			req := authRequest()
+			req.RedirectURI = "com.example.app://other"
+			req.CodeChallenge = codeChallenge
+			req.CodeChallengeMethod = model.PKCECodeChallengeMethodS256
+
+			_, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, req)
+			require.NotNil(t, appErr)
+			require.Equal(t, "api.oauth.allow_oauth.redirect_callback.app_error", appErr.Id)
+		})
+
+		t.Run("with S256 challenge the code is issued and requires the verifier", func(t *testing.T) {
+			req := authRequest()
+			req.CodeChallenge = codeChallenge
+			req.CodeChallengeMethod = model.PKCECodeChallengeMethodS256
+
+			redirect, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, req)
+			require.Nil(t, appErr)
+			require.True(t, strings.HasPrefix(redirect, customCallback+"?code="), redirect)
+
+			uri, err := url.Parse(redirect)
+			require.NoError(t, err)
+			code := uri.Query().Get("code")
+			require.NotEmpty(t, code)
+
+			_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, customCallback, code, oapp.ClientSecret, "", "", "")
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.authorize.validate_pkce.verifier_required.app_error", appErr.Id)
+
+			resp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, customCallback, code, oapp.ClientSecret, "", codeVerifier, "")
+			require.Nil(t, appErr)
+			require.NotEmpty(t, resp.AccessToken)
+		})
+
+		t.Run("removing the scheme from the allowlist blocks authorization", func(t *testing.T) {
+			req := authRequest()
+			req.CodeChallenge = codeChallenge
+			req.CodeChallengeMethod = model.PKCECodeChallengeMethodS256
+
+			setSchemes()
+			_, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, req)
+			require.NotNil(t, appErr)
+			require.Equal(t, "app.oauth.callback_scheme_not_allowed.app_error", appErr.Id)
+
+			setSchemes("com.example.app")
+			_, appErr = th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, req)
+			require.Nil(t, appErr)
+		})
+	})
+
+	t.Run("confidential app with https redirect keeps optional PKCE", func(t *testing.T) {
+		setSchemes()
+		oapp, appErr := th.App.CreateOAuthApp(newApp("https://example.com/cb"))
+		require.Nil(t, appErr)
+
+		redirect, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, &model.AuthorizeRequest{
+			ResponseType: model.AuthCodeResponseType,
+			ClientId:     oapp.Id,
+			RedirectURI:  "https://example.com/cb",
+			Scope:        "user",
+			State:        "state",
+		})
+		require.Nil(t, appErr)
+		require.True(t, strings.HasPrefix(redirect, "https://example.com/cb?code="), redirect)
 	})
 }

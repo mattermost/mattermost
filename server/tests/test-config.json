@@ -32,6 +32,7 @@
         "EnforceMultifactorAuthentication": false,
         "EnableUserAccessTokens": false,
         "DCRRedirectURIAllowlist": [],
+        "OAuthAllowedRedirectURISchemes": [],
         "AllowCorsFrom": "",
         "AllowCookiesForSubdomains": false,
         "ExtendSessionLengthWithActivity": true,
