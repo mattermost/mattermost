@@ -503,11 +503,7 @@ func TestWrapElasticsearchTemplateError(t *testing.T) {
 		},
 		Status: 400,
 	}
-	// The Elasticsearch client returns a *types.ElasticsearchError, so wrap the
-	// pointer. Going through an error variable keeps go vet's printf check (new
-	// in Go 1.27) from flagging it, since Error is declared on the value type.
-	var originalErr error = original
-	wrapped := fmt.Errorf("request context: %w", originalErr)
+	wrapped := fmt.Errorf("request context: %s", original.Error())
 
 	formatted := wrapElasticsearchTemplateError(wrapped)
 	require.Contains(t, formatted.Error(), "status: 400, failed: [illegal_argument_exception], reason: failed to build posts template")
