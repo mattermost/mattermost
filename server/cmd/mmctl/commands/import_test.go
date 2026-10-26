@@ -172,7 +172,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 		s.Empty(printer.GetErrorLines())
 		s.Require().Len(printer.GetLines(), 3)
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
-		s.Contains(printer.GetLines()[1], "3 user(s) could not be matched")
+		s.Contains(printer.GetLines()[1], "3 import entries could not be matched")
 		s.Contains(printer.GetLines()[2], "import/abc.zip.unmatched-users.csv")
 	})
 

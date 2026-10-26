@@ -538,11 +538,17 @@ func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) e
 
 	printJob(job)
 
-	// Scoped migrations may leave users that could not be matched to an existing
-	// account on this server. Surface the count and report path explicitly rather
-	// than leaving the operator to spot them in the raw Data map.
+	// Scoped migrations may leave entries that couldn't be matched on this server:
+	// unmatched users and memberships skipped for a missing team or channel. The count
+	// is the number of report rows, not distinct users, so phrase it as entries. Surface
+	// it and the report path explicitly rather than leaving the operator to spot them in
+	// the raw Data map.
 	if count := job.Data["unmatched_users_count"]; count != "" && count != "0" {
-		printer.Print(fmt.Sprintf("\n%s user(s) could not be matched to an existing account on this server.", count))
+		noun := "entries"
+		if count == "1" {
+			noun = "entry"
+		}
+		printer.Print(fmt.Sprintf("\n%s import %s could not be matched on this server (unmatched users and skipped team or channel memberships).", count, noun))
 		if reportPath := job.Data["unmatched_users_report"]; reportPath != "" {
 			printer.Print(fmt.Sprintf("See the report for details: %s", reportPath))
 		}

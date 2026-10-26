@@ -9143,7 +9143,7 @@
   {
     "id": "app.import.import_user_teams.team_not_found.error",
     "translation": "Error importing user teams. Team not found.",
-    "description": ""
+    "description": "Returned during a bulk import when a user's team membership references a team that does not exist on the destination server. Only surfaces on non-scoped imports; scoped imports skip the membership and log it in the unmatched-users report instead."
   },
   {
     "id": "app.import.pre_create_sso_user.missing_fields.app_error",

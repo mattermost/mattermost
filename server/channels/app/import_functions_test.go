@@ -2662,7 +2662,7 @@ func TestImportUserTeams(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserTeams(th.Context, user, tc.data, false, &imports.ImportReport{})
+				appErr := th.App.importUserTeams(th.Context, user, user.Username, tc.data, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
@@ -2701,7 +2701,7 @@ func TestImportUserTeams(t *testing.T) {
 		}
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 1 })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 100 })
-		appErr := th.App.importUserTeams(th.Context, user, data, false, &imports.ImportReport{})
+		appErr := th.App.importUserTeams(th.Context, user, user.Username, data, false, &imports.ImportReport{})
 		require.NotNil(t, appErr)
 	})
 
@@ -2728,7 +2728,7 @@ func TestImportUserTeams(t *testing.T) {
 				Name: &th.BasicTeam.Name,
 			},
 		}
-		appErr := th.App.importUserTeams(th.Context, user, data, false, &imports.ImportReport{})
+		appErr := th.App.importUserTeams(th.Context, user, user.Username, data, false, &imports.ImportReport{})
 		require.Nil(t, appErr)
 
 		teamMember, nErr := th.App.Srv().Store().Team().GetMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -2848,7 +2848,7 @@ func TestImportUserChannels(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserChannels(th.Context, user, th.BasicTeam, tc.data, false, &imports.ImportReport{})
+				appErr := th.App.importUserChannels(th.Context, user, user.Username, th.BasicTeam, tc.data, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {

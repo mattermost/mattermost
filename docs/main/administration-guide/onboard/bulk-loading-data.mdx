@@ -1506,10 +1506,10 @@ For clarity, the object is shown using regular JSON formatting, but in the data 
 
 A scoped import (an import produced by a team- or channel-scoped export) can reference users, team memberships, or channel memberships that don't exist on the destination server. When this happens the import doesn't fail: a user that can't be matched to an existing account gets a shell account created (active or deactivated, depending on the `--imported-users` option), and a membership for a team or channel that isn't present on the destination is skipped. Each of these outcomes is recorded so you can review what didn't carry over.
 
-When an import leaves any unmatched users, the [mmctl import process](/administration-guide/manage/mmctl-command-line-tool#mmctl-import-process) and [mmctl import job show](/administration-guide/manage/mmctl-command-line-tool#mmctl-import-job-show) commands print the count and the path to a CSV report:
+`mmctl import process` runs asynchronously and only returns the job ID. Once the job finishes, run [mmctl import job show](/administration-guide/manage/mmctl-command-line-tool#mmctl-import-job-show) to see the count and the path to a CSV report:
 
 ``` sh
-3 user(s) could not be matched to an existing account on this server.
+3 import entries could not be matched on this server (unmatched users and skipped team or channel memberships).
 See the report for details: <import-file>.unmatched-users.csv
 ```
 

@@ -95,6 +95,31 @@ type ImportReport struct {
 	// UnmatchedUsers accumulates one entry per user from the export who was not found
 	// as an existing account on the destination, with the action the import took.
 	UnmatchedUsers unmatchedUsers
+
+	// missingTeams memoizes team names confirmed absent on the destination during a
+	// scoped import. getTeamsByNames consults it so a team referenced by many users
+	// isn't re-resolved against the store once per user. Teams are imported before
+	// users and posts, so a name's absence is stable for the rest of the run.
+	missingTeamsMu sync.Mutex
+	missingTeams   map[string]struct{}
+}
+
+// MarkTeamMissing records teamName as absent on the destination for the rest of the run.
+func (r *ImportReport) MarkTeamMissing(teamName string) {
+	r.missingTeamsMu.Lock()
+	defer r.missingTeamsMu.Unlock()
+	if r.missingTeams == nil {
+		r.missingTeams = make(map[string]struct{})
+	}
+	r.missingTeams[strings.ToLower(teamName)] = struct{}{}
+}
+
+// IsTeamKnownMissing reports whether teamName was already confirmed absent this run.
+func (r *ImportReport) IsTeamKnownMissing(teamName string) bool {
+	r.missingTeamsMu.Lock()
+	defer r.missingTeamsMu.Unlock()
+	_, ok := r.missingTeams[strings.ToLower(teamName)]
+	return ok
 }
 
 // unmatchedUsersCSVHeader is the column order for WriteUnmatchedUsersCSV. Kept as a
