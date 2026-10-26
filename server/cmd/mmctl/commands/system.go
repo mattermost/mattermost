@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -120,7 +119,7 @@ func init() {
 func getBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	sbs, _, err := c.GetServerBusy(context.TODO())
+	sbs, _, err := c.GetServerBusy(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("unable to get busy state: %w", err)
 	}
@@ -136,7 +135,7 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("seconds must be a number > 0")
 	}
 
-	_, err = c.SetServerBusy(context.TODO(), int(seconds))
+	_, err = c.SetServerBusy(cmd.Context(), int(seconds))
 	if err != nil {
 		return fmt.Errorf("unable to set busy state: %w", err)
 	}
@@ -148,7 +147,7 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func clearBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	_, err := c.ClearServerBusy(context.TODO())
+	_, err := c.ClearServerBusy(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("unable to clear busy state: %w", err)
 	}
@@ -162,7 +161,7 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	// use the initial "withClient" connection information as local
 	// mode doesn't need to log in, so we use an endpoint that will
 	// always return a valid response
-	_, resp, err := c.GetPing(context.TODO())
+	_, resp, err := c.GetPing(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("unable to fetch server version: %w", err)
 	}
@@ -174,7 +173,7 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	status, _, err := c.GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+	status, _, err := c.GetPingWithOptions(cmd.Context(), model.SystemPingOptions{
 		FullStatus:    true,
 		RESTSemantics: true,
 	})
@@ -216,7 +215,7 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 
 	printer.Print("Downloading Support Packet")
 
-	data, rFilename, _, err := c.GenerateSupportPacket(context.TODO())
+	data, rFilename, _, err := c.GenerateSupportPacket(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("unable to fetch Support Packet: %w", err)
 	}
@@ -247,7 +246,7 @@ func nukeUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if _, err := c.PermanentDeleteAllUsers(context.TODO()); err != nil {
+	if _, err := c.PermanentDeleteAllUsers(cmd.Context()); err != nil {
 		return err
 	}
 
