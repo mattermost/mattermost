@@ -1,0 +1,1069 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package app
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
+)
+
+func TestResolveActiveTeam(t *testing.T) {
+	th := Setup(t)
+
+	team := func(id, displayName string) *model.Team {
+		return &model.Team{Id: id, DisplayName: displayName}
+	}
+	teamsOrderPref := func(order string) model.Preferences {
+		return model.Preferences{{Category: preferenceTeamsOrder, Name: preferenceTeamsOrder, Value: order}}
+	}
+
+	teams := []*model.Team{team("t1", "Bravo"), team("t2", "Alpha"), team("t3", "Charlie")}
+
+	t.Run("empty teams list returns empty string", func(t *testing.T) {
+		assert.Empty(t, th.App.resolveActiveTeam("", nil, nil, "en"))
+	})
+
+	t.Run("valid hint returns the hinted team", func(t *testing.T) {
+		assert.Equal(t, "t2", th.App.resolveActiveTeam("t2", teams, nil, "en"))
+	})
+
+	t.Run("invalid hint falls through to teams_order pref", func(t *testing.T) {
+		result := th.App.resolveActiveTeam("unknown", teams, teamsOrderPref("t3,t1"), "en")
+		assert.Equal(t, "t3", result)
+	})
+
+	t.Run("teams_order pref skips IDs not in the teams list", func(t *testing.T) {
+		result := th.App.resolveActiveTeam("", teams, teamsOrderPref("missing,t3"), "en")
+		assert.Equal(t, "t3", result)
+	})
+
+	t.Run("no hint and no pref falls back to alphabetical first team", func(t *testing.T) {
+		// "Alpha" < "Bravo" < "Charlie" so t2 wins
+		assert.Equal(t, "t2", th.App.resolveActiveTeam("", teams, nil, "en"))
+	})
+
+	t.Run("single team returned regardless of hint or pref", func(t *testing.T) {
+		single := []*model.Team{team("t1", "OnlyTeam")}
+		assert.Equal(t, "t1", th.App.resolveActiveTeam("", single, nil, "en"))
+	})
+}
+
+func TestFilterAutoclosedDMEntries(t *testing.T) {
+	ch := func(id string) *model.Channel {
+		return &model.Channel{Id: id, Type: model.ChannelTypeDirect}
+	}
+	entry := func(c *model.Channel, lastViewed int64, unread bool) dmEntry {
+		return dmEntry{ch: c, lastViewed: lastViewed, unread: unread}
+	}
+
+	t.Run("channel pinned elsewhere goes to pinned slice not dmCat", func(t *testing.T) {
+		c1 := ch("c1")
+		pinned := map[string]struct{}{"c1": {}}
+		dmCat, pinnedChs := filterAutoclosedDMEntries([]dmEntry{entry(c1, 100, false)}, "", "u1", nil, 20, pinned)
+		assert.Empty(t, dmCat)
+		require.Len(t, pinnedChs, 1)
+		assert.Equal(t, "c1", pinnedChs[0].Id)
+	})
+
+	t.Run("channel with no lastViewed and not unread is excluded", func(t *testing.T) {
+		dmCat, _ := filterAutoclosedDMEntries([]dmEntry{entry(ch("c1"), 0, false)}, "", "u1", nil, 20, nil)
+		assert.Empty(t, dmCat)
+	})
+
+	t.Run("unread channel with no lastViewed is included", func(t *testing.T) {
+		dmCat, _ := filterAutoclosedDMEntries([]dmEntry{entry(ch("c1"), 0, true)}, "", "u1", nil, 20, nil)
+		assert.Len(t, dmCat, 1)
+	})
+
+	t.Run("deactivated user DM excluded when not unread and deactivated after last view", func(t *testing.T) {
+		c := ch("c1")
+		profiles := map[string][]*model.User{"c1": {{Id: "partner", DeleteAt: 500}}}
+		dmCat, _ := filterAutoclosedDMEntries([]dmEntry{entry(c, 100, false)}, "", "u1", profiles, 20, nil)
+		assert.Empty(t, dmCat)
+	})
+
+	t.Run("deactivated user DM included when unread even if deactivated after last view", func(t *testing.T) {
+		c := ch("c1")
+		profiles := map[string][]*model.User{"c1": {{Id: "partner", DeleteAt: 500}}}
+		dmCat, _ := filterAutoclosedDMEntries([]dmEntry{entry(c, 100, true)}, "", "u1", profiles, 20, nil)
+		assert.Len(t, dmCat, 1)
+	})
+
+	t.Run("dmLimit caps the list; unread count sets a floor beyond the limit", func(t *testing.T) {
+		var entries []dmEntry
+		for range 3 { // 3 unreads
+			entries = append(entries, entry(ch(model.NewId()), 100, true))
+		}
+		for range 5 { // 5 read channels
+			entries = append(entries, entry(ch(model.NewId()), 100, false))
+		}
+		// dmLimit=4: 3 unreads preserved + 1 read channel = 4 total
+		dmCat, _ := filterAutoclosedDMEntries(entries, "", "u1", nil, 4, nil)
+		assert.Len(t, dmCat, 4)
+		unreads := 0
+		for _, e := range dmCat {
+			if e.unread {
+				unreads++
+			}
+		}
+		assert.Equal(t, 3, unreads)
+	})
+
+	t.Run("current channel is sorted first", func(t *testing.T) {
+		c1 := ch("c1")
+		current := ch("current")
+		entries := []dmEntry{entry(c1, 200, false), entry(current, 100, false)}
+		dmCat, _ := filterAutoclosedDMEntries(entries, "current", "u1", nil, 20, nil)
+		require.Len(t, dmCat, 2)
+		assert.Equal(t, "current", dmCat[0].ch.Id)
+	})
+}
+
+func TestFilterManuallyClosedDMEntries(t *testing.T) {
+	ch := func(id, name string, chType model.ChannelType) *model.Channel {
+		return &model.Channel{Id: id, Name: name, Type: chType}
+	}
+	entry := func(c *model.Channel, unread bool) dmEntry {
+		return dmEntry{ch: c, unread: unread}
+	}
+	hideDM := func(teammateID string) model.Preferences {
+		return model.Preferences{{Category: model.PreferenceCategoryDirectChannelShow, Name: teammateID, Value: "false"}}
+	}
+	hideGM := func(chID string) model.Preferences {
+		return model.Preferences{{Category: model.PreferenceCategoryGroupChannelShow, Name: chID, Value: "false"}}
+	}
+
+	t.Run("unread DM kept even when hidden by pref", func(t *testing.T) {
+		// DM name "partner__u1": userID is the second part, so teammate = "partner"
+		dm := ch("c1", "partner__u1", model.ChannelTypeDirect)
+		result := filterManuallyClosedDMEntries([]dmEntry{entry(dm, true)}, hideDM("partner"), "u1", nil)
+		assert.Len(t, result, 1)
+	})
+
+	t.Run("read DM hidden by pref is excluded", func(t *testing.T) {
+		dm := ch("c1", "partner__u1", model.ChannelTypeDirect)
+		result := filterManuallyClosedDMEntries([]dmEntry{entry(dm, false)}, hideDM("partner"), "u1", nil)
+		assert.Empty(t, result)
+	})
+
+	t.Run("DM name: userID is first part, teammate is second", func(t *testing.T) {
+		// Name "u1__partner": parts[0]=="u1" matches userID so teammate=parts[1]="partner"
+		dm := ch("c1", "u1__partner", model.ChannelTypeDirect)
+		result := filterManuallyClosedDMEntries([]dmEntry{entry(dm, false)}, hideDM("partner"), "u1", nil)
+		assert.Empty(t, result)
+	})
+
+	t.Run("read GM hidden by pref is excluded", func(t *testing.T) {
+		gm := ch("gm1", "gm1", model.ChannelTypeGroup)
+		result := filterManuallyClosedDMEntries([]dmEntry{entry(gm, false)}, hideGM("gm1"), "u1", nil)
+		assert.Empty(t, result)
+	})
+
+	t.Run("channel pinned elsewhere is kept even when hidden by pref", func(t *testing.T) {
+		dm := ch("c1", "partner__u1", model.ChannelTypeDirect)
+		pinned := map[string]struct{}{"c1": {}}
+		result := filterManuallyClosedDMEntries([]dmEntry{entry(dm, false)}, hideDM("partner"), "u1", pinned)
+		assert.Len(t, result, 1)
+	})
+
+	t.Run("DM with no matching pref is kept", func(t *testing.T) {
+		dm := ch("c1", "other__u1", model.ChannelTypeDirect)
+		result := filterManuallyClosedDMEntries([]dmEntry{entry(dm, false)}, hideDM("partner"), "u1", nil)
+		assert.Len(t, result, 1)
+	})
+}
+
+func TestBuildDirectUnreads(t *testing.T) {
+	dmMember := func(chID string, msgCount, mentionCount, mentionCountRoot, urgentCount, msgCountRoot int64, muted bool) model.ChannelMemberWithTeamData {
+		np := model.StringMap{}
+		if muted {
+			np[model.MarkUnreadNotifyProp] = model.ChannelMarkUnreadMention
+		}
+		return model.ChannelMemberWithTeamData{
+			ChannelMember: model.ChannelMember{
+				ChannelId:          chID,
+				UserId:             "u1",
+				MsgCount:           msgCount,
+				MentionCount:       mentionCount,
+				MentionCountRoot:   mentionCountRoot,
+				UrgentMentionCount: urgentCount,
+				MsgCountRoot:       msgCountRoot,
+				NotifyProps:        np,
+			},
+			TeamName: "", // empty TeamName = DM/GM channel
+		}
+	}
+	chTotals := func(chID string, totalMsgCount, totalMsgCountRoot int64) map[string]*model.Channel {
+		return map[string]*model.Channel{chID: {Id: chID, TotalMsgCount: totalMsgCount, TotalMsgCountRoot: totalMsgCountRoot}}
+	}
+
+	t.Run("returns nil when all counts are zero and no thread counts", func(t *testing.T) {
+		members := model.ChannelMembersWithTeamData{dmMember("c1", 0, 0, 0, 0, 0, false)}
+		assert.Nil(t, buildDirectUnreads("u1", members, chTotals("c1", 0, 0), nil, nil, false, false, 0, 0))
+	})
+
+	t.Run("non-CRT: accumulates MentionCount and sets HasUnreads from unread total minus read count", func(t *testing.T) {
+		members := model.ChannelMembersWithTeamData{dmMember("c1", 3, 2, 0, 0, 0, false)}
+		result := buildDirectUnreads("u1", members, chTotals("c1", 5, 0), nil, nil, false, false, 0, 0)
+		require.NotNil(t, result)
+		assert.Equal(t, int64(2), result.MentionCount)
+		assert.True(t, result.HasUnreads)
+	})
+
+	t.Run("non-CRT: read counter alone (no channel total) must not report HasUnreads", func(t *testing.T) {
+		members := model.ChannelMembersWithTeamData{dmMember("c1", 3, 0, 0, 0, 0, false)}
+		result := buildDirectUnreads("u1", members, chTotals("c1", 3, 0), nil, nil, false, false, 0, 0)
+		assert.Nil(t, result, "caught-up member with no mentions must report no unreads")
+	})
+
+	t.Run("CRT: uses MentionCountRoot and unread total minus MsgCountRoot", func(t *testing.T) {
+		members := model.ChannelMembersWithTeamData{dmMember("c1", 0, 5, 3, 0, 2, false)}
+		result := buildDirectUnreads("u1", members, chTotals("c1", 0, 4), nil, nil, true, false, 0, 0)
+		require.NotNil(t, result)
+		assert.Equal(t, int64(3), result.MentionCount)
+		assert.Equal(t, int64(3), result.MentionCountRoot)
+		assert.True(t, result.HasUnreads)
+	})
+
+	t.Run("muted channel is excluded entirely", func(t *testing.T) {
+		members := model.ChannelMembersWithTeamData{dmMember("c1", 5, 5, 0, 0, 0, true)}
+		assert.Nil(t, buildDirectUnreads("u1", members, chTotals("c1", 10, 0), nil, nil, false, false, 0, 0))
+	})
+
+	t.Run("regular team channel (TeamName != empty) is skipped", func(t *testing.T) {
+		m := dmMember("c1", 5, 5, 0, 0, 0, false)
+		m.TeamName = "someteam"
+		assert.Nil(t, buildDirectUnreads("u1", model.ChannelMembersWithTeamData{m}, chTotals("c1", 10, 0), nil, nil, false, false, 0, 0))
+	})
+
+	t.Run("DM with deactivated user deactivated after last view is excluded", func(t *testing.T) {
+		m := dmMember("c1", 5, 2, 0, 0, 0, false)
+		m.LastViewedAt = 100
+		profiles := map[string][]*model.User{"c1": {{Id: "partner", DeleteAt: 500}}}
+		assert.Nil(t, buildDirectUnreads("u1", model.ChannelMembersWithTeamData{m}, chTotals("c1", 10, 0), profiles, nil, false, false, 0, 0))
+	})
+
+	t.Run("DM with deactivated user deactivated before last view is included", func(t *testing.T) {
+		m := dmMember("c1", 5, 2, 0, 0, 0, false)
+		m.LastViewedAt = 1000
+		profiles := map[string][]*model.User{"c1": {{Id: "partner", DeleteAt: 500}}}
+		result := buildDirectUnreads("u1", model.ChannelMembersWithTeamData{m}, chTotals("c1", 10, 0), profiles, nil, false, false, 0, 0)
+		require.NotNil(t, result)
+		assert.Equal(t, int64(2), result.MentionCount)
+	})
+
+	t.Run("thread counts populate the result even with no channel unreads", func(t *testing.T) {
+		result := buildDirectUnreads("u1", nil, nil, nil, nil, true, true, 3, 1)
+		require.NotNil(t, result)
+		assert.Equal(t, int64(3), result.ThreadMentionCount)
+		assert.Equal(t, int64(1), result.ThreadUrgentMentionCount)
+		assert.True(t, result.ThreadHasUnreads)
+	})
+
+	t.Run("multiple channels accumulate counts", func(t *testing.T) {
+		members := model.ChannelMembersWithTeamData{
+			dmMember("c1", 1, 1, 0, 0, 0, false),
+			dmMember("c2", 1, 2, 0, 0, 0, false),
+		}
+		channels := map[string]*model.Channel{
+			"c1": {Id: "c1", TotalMsgCount: 2},
+			"c2": {Id: "c2", TotalMsgCount: 2},
+		}
+		result := buildDirectUnreads("u1", members, channels, nil, nil, false, false, 0, 0)
+		require.NotNil(t, result)
+		assert.Equal(t, int64(3), result.MentionCount)
+	})
+}
+
+func TestToExperienceUser(t *testing.T) {
+	baseUser := func() *model.User {
+		return &model.User{
+			Id:        "u1",
+			Email:     "real@example.com",
+			FirstName: "First",
+			LastName:  "Last",
+			Props:     model.StringMap{model.UserPropsKeyRemoteEmail: "remote-real@example.com", "other": "kept"},
+		}
+	}
+
+	t.Run("self always keeps Email and Props, including RemoteEmail", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), true, false, false)
+		require.NotNil(t, out)
+		assert.Equal(t, "real@example.com", out.Email)
+		assert.Equal(t, "remote-real@example.com", out.Props[model.UserPropsKeyRemoteEmail])
+	})
+
+	t.Run("non-self with showEmail keeps Email and Props, including RemoteEmail", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), false, true, true)
+		require.NotNil(t, out)
+		assert.Equal(t, "real@example.com", out.Email)
+		assert.Equal(t, "remote-real@example.com", out.Props[model.UserPropsKeyRemoteEmail])
+	})
+
+	t.Run("non-self without showEmail strips Email and Props.RemoteEmail but keeps other props", func(t *testing.T) {
+		u := baseUser()
+		out := toExperienceUser(u, false, false, true)
+		require.NotNil(t, out)
+		assert.Empty(t, out.Email)
+		_, hasRemoteEmail := out.Props[model.UserPropsKeyRemoteEmail]
+		assert.False(t, hasRemoteEmail, "RemoteEmail must be stripped from Props when email visibility is denied")
+		assert.Equal(t, "kept", out.Props["other"])
+		// The source User's own Props must not be mutated by the strip.
+		assert.Equal(t, "remote-real@example.com", u.Props[model.UserPropsKeyRemoteEmail])
+	})
+
+	t.Run("non-self without showEmail and no RemoteEmail prop leaves Props untouched", func(t *testing.T) {
+		u := baseUser()
+		delete(u.Props, model.UserPropsKeyRemoteEmail)
+		out := toExperienceUser(u, false, false, true)
+		require.NotNil(t, out)
+		assert.Equal(t, "kept", out.Props["other"])
+	})
+
+	t.Run("self always keeps FirstName/LastName regardless of showFullName", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), true, false, false)
+		require.NotNil(t, out)
+		assert.Equal(t, "First", out.FirstName)
+		assert.Equal(t, "Last", out.LastName)
+	})
+
+	t.Run("non-self with showFullName keeps FirstName/LastName", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), false, false, true)
+		require.NotNil(t, out)
+		assert.Equal(t, "First", out.FirstName)
+		assert.Equal(t, "Last", out.LastName)
+	})
+
+	t.Run("non-self without showFullName strips FirstName/LastName", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), false, false, false)
+		require.NotNil(t, out)
+		assert.Empty(t, out.FirstName)
+		assert.Empty(t, out.LastName)
+	})
+}
+
+func TestBuildExperienceChannelLists(t *testing.T) {
+	ch := func(id, teamID string, chType model.ChannelType) *model.Channel {
+		return &model.Channel{Id: id, TeamId: teamID, Type: chType, DisplayName: "name-" + id}
+	}
+	member := func(chID string) model.ChannelMemberWithTeamData {
+		return model.ChannelMemberWithTeamData{
+			ChannelMember: model.ChannelMember{ChannelId: chID, UserId: "u1"},
+		}
+	}
+	includeAll := func(_ *model.Channel) bool { return true }
+	onlyTeam := func(teamID string) func(*model.Channel) bool {
+		return func(c *model.Channel) bool { return c.TeamId == teamID }
+	}
+
+	t.Run("changed channel appears as full item", func(t *testing.T) {
+		c1 := ch("c1", "t1", model.ChannelTypeOpen)
+		chList, _ := buildExperienceChannelLists(model.ChannelList{c1}, model.ChannelList{c1}, nil, includeAll, nil)
+		require.Len(t, chList, 1)
+		assert.Equal(t, "c1", chList[0].Id)
+		assert.Equal(t, "name-c1", chList[0].DisplayName) // full item, not slim
+	})
+
+	t.Run("include filter excludes non-matching channels", func(t *testing.T) {
+		c1 := ch("c1", "t1", model.ChannelTypeOpen)
+		c2 := ch("c2", "t2", model.ChannelTypeOpen)
+		all := model.ChannelList{c1, c2}
+		chList, _ := buildExperienceChannelLists(all, all, nil, onlyTeam("t1"), nil)
+		require.Len(t, chList, 1)
+		assert.Equal(t, "c1", chList[0].Id)
+	})
+
+	t.Run("changed member with unchanged channel produces slim companion", func(t *testing.T) {
+		c1 := ch("c1", "t1", model.ChannelTypeOpen)
+		chList, cmList := buildExperienceChannelLists(model.ChannelList{c1}, model.ChannelList{}, model.ChannelMembersWithTeamData{member("c1")}, includeAll, nil)
+		require.Len(t, cmList, 1)
+		require.Len(t, chList, 1)
+		assert.Empty(t, chList[0].DisplayName) // slim item carries no display metadata
+	})
+
+	t.Run("changed member whose channel also changed produces no duplicate channel entry", func(t *testing.T) {
+		c1 := ch("c1", "t1", model.ChannelTypeOpen)
+		chList, _ := buildExperienceChannelLists(model.ChannelList{c1}, model.ChannelList{c1}, model.ChannelMembersWithTeamData{member("c1")}, includeAll, nil)
+		assert.Len(t, chList, 1)
+	})
+
+	t.Run("GM channel gets MemberCount from gmMemberCounts", func(t *testing.T) {
+		gm := ch("gm1", "", model.ChannelTypeGroup)
+		counts := map[string]int64{"gm1": 5}
+		chList, _ := buildExperienceChannelLists(model.ChannelList{gm}, model.ChannelList{gm}, nil, includeAll, counts)
+		require.Len(t, chList, 1)
+		assert.Equal(t, int64(5), chList[0].MemberCount)
+	})
+
+	t.Run("changed member whose channel is excluded by include produces no slim companion", func(t *testing.T) {
+		c1 := ch("c1", "t2", model.ChannelTypeOpen)
+		chList, cmList := buildExperienceChannelLists(model.ChannelList{c1}, model.ChannelList{}, model.ChannelMembersWithTeamData{member("c1")}, onlyTeam("t1"), nil)
+		assert.Len(t, cmList, 1, "member is still included")
+		assert.Empty(t, chList, "no companion because channel excluded by filter")
+	})
+
+	t.Run("changed member for unknown channel produces no slim companion", func(t *testing.T) {
+		chList, cmList := buildExperienceChannelLists(model.ChannelList{}, model.ChannelList{}, model.ChannelMembersWithTeamData{member("unknown")}, includeAll, nil)
+		assert.Len(t, cmList, 1)
+		assert.Empty(t, chList)
+	})
+}
+
+func TestBuildDMLastViewedAt(t *testing.T) {
+	cm := func(chID string, lastViewedAt int64) map[string]*model.ChannelMemberWithTeamData {
+		return map[string]*model.ChannelMemberWithTeamData{
+			chID: {ChannelMember: model.ChannelMember{ChannelId: chID, LastViewedAt: lastViewedAt}},
+		}
+	}
+	pref := func(category, name, value string) model.Preference {
+		return model.Preference{UserId: "u1", Category: category, Name: name, Value: value}
+	}
+
+	t.Run("uses LastViewedAt when no overriding preference", func(t *testing.T) {
+		lva := buildDMLastViewedAt(cm("c1", 500), nil)
+		assert.Equal(t, int64(500), lva["c1"])
+	})
+
+	t.Run("channel_approximate_view_time wins when greater", func(t *testing.T) {
+		prefs := model.Preferences{pref(preferenceChannelApproximateViewTime, "c1", "1000")}
+		lva := buildDMLastViewedAt(cm("c1", 500), prefs)
+		assert.Equal(t, int64(1000), lva["c1"])
+	})
+
+	t.Run("channel_open_time wins when greater", func(t *testing.T) {
+		prefs := model.Preferences{pref(preferenceChannelOpenTime, "c1", "800")}
+		lva := buildDMLastViewedAt(cm("c1", 500), prefs)
+		assert.Equal(t, int64(800), lva["c1"])
+	})
+
+	t.Run("LastViewedAt wins when greater than preference value", func(t *testing.T) {
+		prefs := model.Preferences{pref(preferenceChannelApproximateViewTime, "c1", "200")}
+		lva := buildDMLastViewedAt(cm("c1", 500), prefs)
+		assert.Equal(t, int64(500), lva["c1"])
+	})
+
+	t.Run("invalid preference value is ignored", func(t *testing.T) {
+		prefs := model.Preferences{pref(preferenceChannelApproximateViewTime, "c1", "not-a-number")}
+		lva := buildDMLastViewedAt(cm("c1", 500), prefs)
+		assert.Equal(t, int64(500), lva["c1"])
+	})
+
+	t.Run("preference for unknown channel does not panic", func(t *testing.T) {
+		prefs := model.Preferences{pref(preferenceChannelApproximateViewTime, "unknown", "1000")}
+		lva := buildDMLastViewedAt(cm("c1", 500), prefs)
+		assert.Equal(t, int64(500), lva["c1"])
+		assert.Equal(t, int64(1000), lva["unknown"]) // initialised from pref only
+	})
+}
+
+func TestToExperienceTeamMemberList(t *testing.T) {
+	member := func(teamID string) *model.TeamMember {
+		return &model.TeamMember{TeamId: teamID, UserId: "u1", Roles: "member", SchemeUser: true}
+	}
+
+	t.Run("tombstoned members excluded from Members and appear in RemovedTeamIds", func(t *testing.T) {
+		members := []*model.TeamMember{member("t1"), member("t2")}
+		tombstoned := map[string]struct{}{"t2": {}}
+		result := toExperienceTeamMemberList(members, tombstoned)
+		assert.Len(t, result.Members, 1)
+		assert.Equal(t, "t1", result.Members[0].TeamId)
+		assert.Contains(t, result.RemovedTeamIds, "t2")
+	})
+
+	t.Run("no tombstones: all members included, RemovedTeamIds empty", func(t *testing.T) {
+		members := []*model.TeamMember{member("t1"), member("t2")}
+		result := toExperienceTeamMemberList(members, map[string]struct{}{})
+		assert.Len(t, result.Members, 2)
+		assert.Empty(t, result.RemovedTeamIds)
+	})
+
+	t.Run("tombstone with no matching member still appears in RemovedTeamIds", func(t *testing.T) {
+		tombstoned := map[string]struct{}{"t-ghost": {}}
+		result := toExperienceTeamMemberList(nil, tombstoned)
+		assert.Empty(t, result.Members)
+		assert.Contains(t, result.RemovedTeamIds, "t-ghost")
+	})
+
+	t.Run("member fields are correctly mapped", func(t *testing.T) {
+		m := &model.TeamMember{TeamId: "t1", UserId: "u1", Roles: "team_admin", DeleteAt: 0, SchemeGuest: false, SchemeUser: true, SchemeAdmin: true}
+		result := toExperienceTeamMemberList([]*model.TeamMember{m}, map[string]struct{}{})
+		require.Len(t, result.Members, 1)
+		em := result.Members[0]
+		assert.Equal(t, "t1", em.TeamId)
+		assert.Equal(t, "u1", em.UserId)
+		assert.Equal(t, "team_admin", em.Roles)
+		assert.True(t, em.SchemeAdmin)
+	})
+}
+
+func TestToExperienceTeamUnreads(t *testing.T) {
+	unread := &model.TeamUnread{
+		TeamId:                   "t1",
+		MentionCount:             5,
+		MentionCountRoot:         3,
+		MsgCount:                 10,
+		ThreadMentionCount:       2,
+		ThreadUrgentMentionCount: 1,
+		ThreadCount:              4,
+	}
+
+	t.Run("non-CRT uses full MentionCount", func(t *testing.T) {
+		u := toExperienceTeamUnreads("t1", unread, false)
+		assert.Equal(t, "t1", u.TeamID)
+		assert.Equal(t, int64(5), u.MentionCount)
+		assert.Equal(t, int64(0), u.MentionCountRoot)
+	})
+
+	t.Run("CRT uses MentionCountRoot for both MentionCount and MentionCountRoot", func(t *testing.T) {
+		u := toExperienceTeamUnreads("t1", unread, true)
+		assert.Equal(t, int64(3), u.MentionCount)
+		assert.Equal(t, int64(3), u.MentionCountRoot)
+	})
+
+	t.Run("HasUnreads true when MsgCount > 0", func(t *testing.T) {
+		u := toExperienceTeamUnreads("t1", unread, false)
+		assert.True(t, u.HasUnreads)
+	})
+
+	t.Run("HasUnreads false when MsgCount == 0", func(t *testing.T) {
+		u := toExperienceTeamUnreads("t1", &model.TeamUnread{MsgCount: 0}, false)
+		assert.False(t, u.HasUnreads)
+	})
+
+	t.Run("ThreadHasUnreads true when ThreadCount > 0", func(t *testing.T) {
+		u := toExperienceTeamUnreads("t1", &model.TeamUnread{ThreadCount: 1}, false)
+		assert.True(t, u.ThreadHasUnreads)
+	})
+
+	t.Run("ThreadHasUnreads true when ThreadMentionCount > 0 even with no ThreadCount", func(t *testing.T) {
+		u := toExperienceTeamUnreads("t1", &model.TeamUnread{ThreadMentionCount: 1}, false)
+		assert.True(t, u.ThreadHasUnreads)
+	})
+
+	t.Run("ThreadHasUnreads false when both ThreadCount and ThreadMentionCount are zero", func(t *testing.T) {
+		u := toExperienceTeamUnreads("t1", &model.TeamUnread{}, false)
+		assert.False(t, u.ThreadHasUnreads)
+	})
+
+	t.Run("nil unread returns zero counts with TeamID preserved", func(t *testing.T) {
+		u := toExperienceTeamUnreads("t1", nil, false)
+		assert.Equal(t, "t1", u.TeamID)
+		assert.Equal(t, int64(0), u.MentionCount)
+		assert.False(t, u.HasUnreads)
+		assert.False(t, u.ThreadHasUnreads)
+	})
+}
+
+func TestBuildTombstonedTeamIDs(t *testing.T) {
+	t.Run("soft-deleted membership is tombstoned", func(t *testing.T) {
+		members := []*model.TeamMember{
+			{TeamId: "t1", DeleteAt: 1},
+			{TeamId: "t2", DeleteAt: 0},
+		}
+		result := buildTombstonedTeamIDs(members, nil)
+		assert.Contains(t, result, "t1")
+		assert.NotContains(t, result, "t2")
+	})
+
+	t.Run("archived team is tombstoned", func(t *testing.T) {
+		result := buildTombstonedTeamIDs(nil, []*model.Team{{Id: "t3"}})
+		assert.Contains(t, result, "t3")
+	})
+
+	t.Run("team appearing in both sources is not duplicated", func(t *testing.T) {
+		members := []*model.TeamMember{{TeamId: "t1", DeleteAt: 1}}
+		deleted := []*model.Team{{Id: "t1"}}
+		result := buildTombstonedTeamIDs(members, deleted)
+		assert.Len(t, result, 1)
+	})
+
+	t.Run("nil inputs return empty map", func(t *testing.T) {
+		result := buildTombstonedTeamIDs(nil, nil)
+		assert.Empty(t, result)
+	})
+}
+
+func TestFilterChannelsSince(t *testing.T) {
+	ch := func(id string, updatedAt int64, chType model.ChannelType) *model.Channel {
+		return &model.Channel{Id: id, UpdateAt: updatedAt, Type: chType}
+	}
+	user := func(updatedAt int64) *model.User {
+		return &model.User{Id: model.NewId(), UpdateAt: updatedAt}
+	}
+	const since = int64(100)
+
+	t.Run("regular channel updated after cursor is included", func(t *testing.T) {
+		out := filterChannelsSince(model.ChannelList{ch("c1", 200, model.ChannelTypeOpen)}, nil, since)
+		assert.Len(t, out, 1)
+	})
+
+	t.Run("regular channel updated at or before cursor is excluded", func(t *testing.T) {
+		out := filterChannelsSince(model.ChannelList{ch("c1", 100, model.ChannelTypeOpen)}, nil, since)
+		assert.Empty(t, out)
+	})
+
+	t.Run("DM channel unchanged but member profile updated is included", func(t *testing.T) {
+		dm := ch("dm1", 50, model.ChannelTypeDirect)
+		profiles := map[string][]*model.User{"dm1": {user(200)}}
+		out := filterChannelsSince(model.ChannelList{dm}, profiles, since)
+		assert.Len(t, out, 1)
+	})
+
+	t.Run("GM channel unchanged but member profile updated is included", func(t *testing.T) {
+		gm := ch("gm1", 50, model.ChannelTypeGroup)
+		profiles := map[string][]*model.User{"gm1": {user(50), user(200)}}
+		out := filterChannelsSince(model.ChannelList{gm}, profiles, since)
+		assert.Len(t, out, 1)
+	})
+
+	t.Run("DM channel unchanged and all profiles unchanged is excluded", func(t *testing.T) {
+		dm := ch("dm1", 50, model.ChannelTypeDirect)
+		profiles := map[string][]*model.User{"dm1": {user(50)}}
+		out := filterChannelsSince(model.ChannelList{dm}, profiles, since)
+		assert.Empty(t, out)
+	})
+
+	t.Run("DM channel updated after cursor is included even without profiles", func(t *testing.T) {
+		dm := ch("dm1", 200, model.ChannelTypeDirect)
+		out := filterChannelsSince(model.ChannelList{dm}, nil, since)
+		assert.Len(t, out, 1)
+	})
+
+	t.Run("channel not duplicated when both channel and profile changed", func(t *testing.T) {
+		dm := ch("dm1", 200, model.ChannelTypeDirect)
+		profiles := map[string][]*model.User{"dm1": {user(200)}}
+		out := filterChannelsSince(model.ChannelList{dm}, profiles, since)
+		assert.Len(t, out, 1)
+	})
+}
+
+func TestGetAllChannelMembersForUser(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Seeds past channelMembersPageSize so the pagination loop must cross a page
+	// boundary rather than stopping after the first.
+	const seedCount = channelMembersPageSize + 5
+
+	memberships := make([]*model.ChannelMember, 0, seedCount)
+	for range seedCount {
+		channel, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "dn_" + model.NewId(),
+			Name:        "name_" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		memberships = append(memberships, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      th.BasicUser.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeUser:  true,
+		})
+	}
+	_, err := th.App.Srv().Store().Channel().SaveMultipleMembers(memberships)
+	require.NoError(t, err)
+
+	result, appErr := th.App.getAllChannelMembersForUser(th.Context, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	seededChannelIDs := make(map[string]struct{}, len(memberships))
+	for _, m := range memberships {
+		seededChannelIDs[m.ChannelId] = struct{}{}
+	}
+	found := 0
+	for _, m := range result {
+		if _, ok := seededChannelIDs[m.ChannelId]; ok {
+			found++
+		}
+	}
+	assert.Equal(t, seedCount, found, "all seeded channel memberships must be returned, not just the first page")
+}
+
+func TestGetAllDMGMChannelsForUser(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Seeds past dmChannelsPageSize so the pagination loop must cross a page boundary
+	// rather than silently truncating. Mostly GMs since they're cheap to create.
+	const dmCount = 50
+	const gmCount = dmChannelsPageSize + 5 - dmCount
+
+	seededChannelIDs := make(map[string]struct{}, dmCount+gmCount)
+
+	for range dmCount {
+		partner, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Username: model.NewUsername(),
+			Email:    model.NewId() + "@example.com",
+		})
+		require.NoError(t, err)
+
+		channel, err := th.App.Srv().Store().Channel().SaveDirectChannel(
+			th.Context,
+			&model.Channel{
+				DisplayName: "dn_" + model.NewId(),
+				Name:        model.GetDMNameFromIds(th.BasicUser.Id, partner.Id),
+				Type:        model.ChannelTypeDirect,
+			},
+			&model.ChannelMember{UserId: th.BasicUser.Id, NotifyProps: model.GetDefaultChannelNotifyProps(), SchemeUser: true},
+			&model.ChannelMember{UserId: partner.Id, NotifyProps: model.GetDefaultChannelNotifyProps(), SchemeUser: true},
+		)
+		require.NoError(t, err)
+		seededChannelIDs[channel.Id] = struct{}{}
+	}
+
+	for range gmCount {
+		channel, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        "name_" + model.NewId(),
+			Type:        model.ChannelTypeGroup,
+		}, -1)
+		require.NoError(t, err)
+		seededChannelIDs[channel.Id] = struct{}{}
+
+		_, err = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      th.BasicUser.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeUser:  true,
+		})
+		require.NoError(t, err)
+	}
+
+	result, appErr := th.App.getAllDMGMChannelsForUser(th.Context, th.BasicUser.Id, false)
+	require.Nil(t, appErr)
+
+	found := 0
+	for _, ch := range result {
+		if _, ok := seededChannelIDs[ch.Id]; ok {
+			found++
+		}
+	}
+	assert.Equal(t, dmCount+gmCount, found, "all seeded DM and GM channels must be returned, not just the first page")
+}
+
+func TestEffectiveNameFormat(t *testing.T) {
+	cfgWith := func(locked bool, cfgFormat string) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.TeamSettings.LockTeammateNameDisplay = model.NewPointer(locked)
+		cfg.TeamSettings.TeammateNameDisplay = model.NewPointer(cfgFormat)
+		return cfg
+	}
+	prefWith := func(format string) model.Preferences {
+		return model.Preferences{{Category: model.PreferenceCategoryDisplaySettings, Name: model.PreferenceNameNameFormat, Value: format}}
+	}
+
+	t.Run("locked config wins over user pref", func(t *testing.T) {
+		got := effectiveNameFormat(prefWith(model.ShowUsername), cfgWith(true, model.ShowFullName))
+		assert.Equal(t, model.ShowFullName, got)
+	})
+
+	t.Run("unlocked: user pref wins over config", func(t *testing.T) {
+		got := effectiveNameFormat(prefWith(model.ShowNicknameFullName), cfgWith(false, model.ShowFullName))
+		assert.Equal(t, model.ShowNicknameFullName, got)
+	})
+
+	t.Run("unlocked, no user pref: falls back to config", func(t *testing.T) {
+		got := effectiveNameFormat(nil, cfgWith(false, model.ShowFullName))
+		assert.Equal(t, model.ShowFullName, got)
+	})
+
+	t.Run("no config value at all: falls back to username", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.TeamSettings.LockTeammateNameDisplay = model.NewPointer(false)
+		cfg.TeamSettings.TeammateNameDisplay = nil
+		got := effectiveNameFormat(nil, cfg)
+		assert.Equal(t, model.ShowUsername, got)
+	})
+}
+
+func TestGetDMLimit(t *testing.T) {
+	t.Run("default when no preference set", func(t *testing.T) {
+		assert.Equal(t, 20, getDMLimit(nil))
+	})
+
+	t.Run("uses preference value when present and positive", func(t *testing.T) {
+		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarSettings, Name: model.PreferenceLimitVisibleDmsGms, Value: "5"}}
+		assert.Equal(t, 5, getDMLimit(prefs))
+	})
+
+	t.Run("falls back to default when preference is not a positive int", func(t *testing.T) {
+		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarSettings, Name: model.PreferenceLimitVisibleDmsGms, Value: "0"}}
+		assert.Equal(t, 20, getDMLimit(prefs))
+	})
+
+	t.Run("falls back to default when preference value is not numeric", func(t *testing.T) {
+		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarSettings, Name: model.PreferenceLimitVisibleDmsGms, Value: "not-a-number"}}
+		assert.Equal(t, 20, getDMLimit(prefs))
+	})
+}
+
+func TestMergeChannels(t *testing.T) {
+	ch := func(id string) *model.Channel { return &model.Channel{Id: id} }
+
+	t.Run("dedupes channels present in both lists", func(t *testing.T) {
+		merged := mergeChannels(model.ChannelList{ch("c1"), ch("c2")}, model.ChannelList{ch("c2"), ch("c3")})
+		ids := make([]string, len(merged))
+		for i, c := range merged {
+			ids[i] = c.Id
+		}
+		assert.Equal(t, []string{"c1", "c2", "c3"}, ids)
+	})
+
+	t.Run("empty inputs produce empty output", func(t *testing.T) {
+		merged := mergeChannels(nil, nil)
+		assert.Empty(t, merged)
+	})
+}
+
+func TestGetSidebarVersion(t *testing.T) {
+	t.Run("returns 0 when no matching preference", func(t *testing.T) {
+		assert.Equal(t, int64(0), getSidebarVersion(nil, "team1"))
+	})
+
+	t.Run("returns the version for the given team", func(t *testing.T) {
+		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarVersion, Name: "team1", Value: "42"}}
+		assert.Equal(t, int64(42), getSidebarVersion(prefs, "team1"))
+	})
+
+	t.Run("does not match a different team's version key", func(t *testing.T) {
+		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarVersion, Name: "team2", Value: "42"}}
+		assert.Equal(t, int64(0), getSidebarVersion(prefs, "team1"))
+	})
+}
+
+func TestDmIsUnread(t *testing.T) {
+	member := func(msgCount, mentionCount, mentionCountRoot, msgCountRoot int64, muted bool) *model.ChannelMemberWithTeamData {
+		np := model.StringMap{}
+		if muted {
+			np[model.MarkUnreadNotifyProp] = model.ChannelMarkUnreadMention
+		}
+		return &model.ChannelMemberWithTeamData{
+			ChannelMember: model.ChannelMember{
+				MsgCount:         msgCount,
+				MentionCount:     mentionCount,
+				MentionCountRoot: mentionCountRoot,
+				MsgCountRoot:     msgCountRoot,
+				NotifyProps:      np,
+			},
+		}
+	}
+
+	t.Run("nil channel or member returns false", func(t *testing.T) {
+		assert.False(t, dmIsUnread(nil, member(0, 0, 0, 0, false), false))
+		assert.False(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, nil, false))
+	})
+
+	t.Run("non-CRT: caught-up member (MsgCount == TotalMsgCount) reports no unread", func(t *testing.T) {
+		assert.False(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(5, 0, 0, 0, false), false))
+	})
+
+	t.Run("non-CRT: member behind the channel total reports unread", func(t *testing.T) {
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(3, 0, 0, 0, false), false))
+	})
+
+	t.Run("non-CRT: mention count alone reports unread even if caught up", func(t *testing.T) {
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(5, 1, 0, 0, false), false))
+	})
+
+	t.Run("non-CRT: muted member ignores the message delta but not mentions", func(t *testing.T) {
+		assert.False(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(3, 0, 0, 0, true), false))
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(3, 1, 0, 0, true), false))
+	})
+
+	t.Run("CRT: uses TotalMsgCountRoot/MsgCountRoot and MentionCountRoot", func(t *testing.T) {
+		assert.False(t, dmIsUnread(&model.Channel{TotalMsgCountRoot: 4}, member(0, 0, 0, 4, false), true))
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCountRoot: 4}, member(0, 0, 0, 2, false), true))
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCountRoot: 4}, member(0, 0, 1, 4, false), true))
+	})
+}
+
+func TestSortDMEntries(t *testing.T) {
+	ch := func(id, displayName string, lastPostAt int64) *model.Channel {
+		return &model.Channel{Id: id, DisplayName: displayName, LastPostAt: lastPostAt}
+	}
+
+	t.Run("alphabetical: sorted by display name, case-insensitive", func(t *testing.T) {
+		entries := []dmEntry{{ch: ch("c1", "bob", 0)}, {ch: ch("c2", "Alice", 0)}}
+		sorted := sortDMEntries(entries, model.SidebarCategorySortAlphabetical, nil, "en")
+		assert.Equal(t, "c2", sorted[0].ch.Id)
+		assert.Equal(t, "c1", sorted[1].ch.Id)
+	})
+
+	t.Run("alphabetical: muted channels sort after unmuted regardless of name", func(t *testing.T) {
+		muted := &model.ChannelMemberWithTeamData{}
+		muted.NotifyProps = model.StringMap{model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+		entries := []dmEntry{
+			{ch: ch("c1", "aaa", 0), cm: muted},
+			{ch: ch("c2", "zzz", 0)},
+		}
+		sorted := sortDMEntries(entries, model.SidebarCategorySortAlphabetical, nil, "en")
+		assert.Equal(t, "c2", sorted[0].ch.Id)
+		assert.Equal(t, "c1", sorted[1].ch.Id)
+	})
+
+	t.Run("manual: sorted by explicit sort order map", func(t *testing.T) {
+		entries := []dmEntry{{ch: ch("c1", "", 0)}, {ch: ch("c2", "", 0)}}
+		order := map[string]int{"c2": 0, "c1": 1}
+		sorted := sortDMEntries(entries, model.SidebarCategorySortManual, order, "en")
+		assert.Equal(t, "c2", sorted[0].ch.Id)
+		assert.Equal(t, "c1", sorted[1].ch.Id)
+	})
+
+	t.Run("default (recent): sorted by max(LastPostAt, CreateAt) descending", func(t *testing.T) {
+		entries := []dmEntry{{ch: ch("c1", "", 100)}, {ch: ch("c2", "", 200)}}
+		sorted := sortDMEntries(entries, model.SidebarCategorySortDefault, nil, "en")
+		assert.Equal(t, "c2", sorted[0].ch.Id)
+		assert.Equal(t, "c1", sorted[1].ch.Id)
+	})
+
+	t.Run("recent sorting explicitly: same as default", func(t *testing.T) {
+		entries := []dmEntry{{ch: ch("c1", "", 100)}, {ch: ch("c2", "", 200)}}
+		sorted := sortDMEntries(entries, model.SidebarCategorySortRecent, nil, "en")
+		assert.Equal(t, "c2", sorted[0].ch.Id)
+		assert.Equal(t, "c1", sorted[1].ch.Id)
+	})
+}
+
+func TestBuildStatusSnapshot(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("empty input returns nil", func(t *testing.T) {
+		assert.Nil(t, th.App.buildStatusSnapshot(nil))
+	})
+
+	t.Run("returns statuses keyed by user id with ActiveChannel stripped", func(t *testing.T) {
+		out := th.App.buildStatusSnapshot([]string{th.BasicUser.Id})
+		require.Contains(t, out, th.BasicUser.Id)
+		assert.Equal(t, "", out[th.BasicUser.Id].ActiveChannel)
+	})
+}
+
+func TestSelectVisibleDMGMChannels(t *testing.T) {
+	dm := func(id string) *model.Channel {
+		return &model.Channel{Id: id, Name: "partner__u1", Type: model.ChannelTypeDirect, LastPostAt: 100}
+	}
+
+	t.Run("empty input returns empty output", func(t *testing.T) {
+		out := selectVisibleDMGMChannels("u1", "", nil, nil, nil, nil, nil, 20, false, "en")
+		assert.Empty(t, out)
+	})
+
+	t.Run("channel with no membership and no prior activity is auto-closed", func(t *testing.T) {
+		channels := model.ChannelList{dm("c1")}
+		out := selectVisibleDMGMChannels("u1", "", channels, nil, nil, nil, nil, 20, false, "en")
+		assert.Empty(t, out)
+	})
+
+	t.Run("channel pinned to a non-DM category stays visible even with no activity", func(t *testing.T) {
+		channels := model.ChannelList{dm("c1")}
+		cats := &model.OrderedSidebarCategories{Categories: []*model.SidebarCategoryWithChannels{
+			{SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryChannels}, Channels: []string{"c1"}},
+		}}
+		out := selectVisibleDMGMChannels("u1", "", channels, nil, cats, nil, nil, 20, false, "en")
+		require.Len(t, out, 1)
+		assert.Equal(t, "c1", out[0].Id)
+	})
+
+	t.Run("channel hidden by direct_channel_show preference is excluded when read", func(t *testing.T) {
+		channels := model.ChannelList{dm("c1")}
+		prefs := model.Preferences{{Category: model.PreferenceCategoryDirectChannelShow, Name: "partner", Value: "false"}}
+		out := selectVisibleDMGMChannels("u1", "", channels, nil, nil, prefs, nil, 20, false, "en")
+		assert.Empty(t, out)
+	})
+}
+
+func TestLimitDMChannelsForProfiles(t *testing.T) {
+	dm := func(id string, lastPostAt int64) *model.Channel {
+		return &model.Channel{Id: id, Name: "partner-" + id + "__u1", Type: model.ChannelTypeDirect, LastPostAt: lastPostAt}
+	}
+	unreadMember := func(chID string) model.ChannelMemberWithTeamData {
+		return model.ChannelMemberWithTeamData{ChannelMember: model.ChannelMember{ChannelId: chID, UserId: "u1", MentionCount: 1}}
+	}
+
+	t.Run("under the limit returns the input unchanged", func(t *testing.T) {
+		channels := model.ChannelList{dm("c1", 100), dm("c2", 200)}
+		out := limitDMChannelsForProfiles(channels, nil, nil, nil, 20, false, "")
+		assert.Equal(t, channels, out)
+	})
+
+	t.Run("over the limit keeps unread channels and the most recent read ones", func(t *testing.T) {
+		dmLimit := 2
+		limit := dmLimit * 3 // matches dmProfileFetchLimitMultiplier
+
+		channels := make(model.ChannelList, 0, limit+2)
+		var members model.ChannelMembersWithTeamData
+		// One unread channel, deliberately old, that must survive the cap.
+		channels = append(channels, dm("unread", 1))
+		members = append(members, unreadMember("unread"))
+		// limit+1 read channels with increasing recency; only the newest `limit` survive.
+		for i := range limit + 1 {
+			channels = append(channels, dm(fmt.Sprintf("read-%d", i), int64(1000+i)))
+		}
+
+		out := limitDMChannelsForProfiles(channels, members, nil, nil, dmLimit, false, "")
+
+		ids := make(map[string]struct{}, len(out))
+		for _, ch := range out {
+			ids[ch.Id] = struct{}{}
+		}
+		// 1 unread (always kept) + (limit - 1) most recent read channels.
+		assert.Len(t, out, limit, "unread channel plus the capped read channels")
+		_, hasUnread := ids["unread"]
+		assert.True(t, hasUnread, "unread channel must never be dropped")
+		_, hasOldest := ids["read-0"]
+		assert.False(t, hasOldest, "the least recent read channel beyond the cap must be dropped")
+		_, hasNewest := ids[fmt.Sprintf("read-%d", limit)]
+		assert.True(t, hasNewest, "the most recent read channels must survive the cap")
+	})
+
+	t.Run("channel pinned to another category is kept even when old", func(t *testing.T) {
+		dmLimit := 1
+		limit := dmLimit * 3
+
+		channels := make(model.ChannelList, 0, limit+2)
+		channels = append(channels, dm("pinned", 1))
+		for i := range limit + 1 {
+			channels = append(channels, dm(fmt.Sprintf("read-%d", i), int64(1000+i)))
+		}
+		cats := &model.OrderedSidebarCategories{Categories: []*model.SidebarCategoryWithChannels{
+			{SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryChannels}, Channels: []string{"pinned"}},
+		}}
+
+		out := limitDMChannelsForProfiles(channels, nil, cats, nil, dmLimit, false, "")
+
+		ids := make(map[string]struct{}, len(out))
+		for _, ch := range out {
+			ids[ch.Id] = struct{}{}
+		}
+		_, hasPinned := ids["pinned"]
+		assert.True(t, hasPinned, "channel pinned to another category must never be dropped")
+	})
+
+	t.Run("active channel is kept even when old and unpinned", func(t *testing.T) {
+		dmLimit := 1
+		limit := dmLimit * 3
+
+		channels := make(model.ChannelList, 0, limit+2)
+		channels = append(channels, dm("active", 1))
+		for i := range limit + 1 {
+			channels = append(channels, dm(fmt.Sprintf("read-%d", i), int64(1000+i)))
+		}
+
+		out := limitDMChannelsForProfiles(channels, nil, nil, nil, dmLimit, false, "active")
+
+		ids := make(map[string]struct{}, len(out))
+		for _, ch := range out {
+			ids[ch.Id] = struct{}{}
+		}
+		_, hasActive := ids["active"]
+		assert.True(t, hasActive, "the active channel must never be dropped")
+	})
+}

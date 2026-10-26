@@ -42,6 +42,9 @@ const (
 	// PreferenceCategorySidebarSettings is used to store the user's sidebar settings.
 	// The Name field is the setting name. (ie. PreferenceNameShowUnreadSection or PreferenceLimitVisibleDmsGms)
 	PreferenceCategorySidebarSettings = "sidebar_settings"
+	// PreferenceCategorySidebarVersion tracks the last time a user's sidebar categories
+	// changed for a given team, for experience-API delta sync. The Name field is the team ID.
+	PreferenceCategorySidebarVersion = "sidebar_version"
 	// PreferenceCategoryDisplaySettings is used to store the user's various display settings.
 	// The possible Name fields are:
 	// - PreferenceNameUseMilitaryTime

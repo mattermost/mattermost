@@ -21,6 +21,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     EnableAIRecaps: 'false',
     EnableBrotliCompression: 'false',
     EnableDocs: 'false',
+    EnableExperienceAPI: 'false',
     EnableMFIPluginSignaturePublicKey: 'true',
     EnableMattermostEntry: 'true',
     EnableSharedChannelsDMs: 'false',
