@@ -414,7 +414,8 @@
         "RequirePluginSignature": false,
         "MarketplaceURL": "https://api.integrations.mattermost.com",
         "SignaturePublicKeyFiles": [],
-        "ChimeraOAuthProxyURL": ""
+        "ChimeraOAuthProxyURL": "",
+        "RestrictUnauthenticatedWebappPlugins": true
     },
     "DisplaySettings": {
         "CustomURLSchemes": [],
