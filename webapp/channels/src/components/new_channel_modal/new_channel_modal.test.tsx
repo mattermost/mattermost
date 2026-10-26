@@ -861,7 +861,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         });
         expect(screen.getByText('Plugin Channel')).toBeInTheDocument();
         expect(switchToChannel).not.toHaveBeenCalled();
-        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument();
     });
 
     test('onCreate throws - modal stays open with generic error', async () => {
@@ -952,7 +952,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         await userEvent.click(createButton);
 
         await waitFor(() => {
-            expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(screen.getByLabelText('Loading')).toBeInTheDocument();
             expect(createButton).toBeDisabled();
         });
 
@@ -1055,7 +1055,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
 
         await waitFor(() => {
             expect(screen.getByText('first try failed')).toBeInTheDocument();
-            expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument();
         });
 
         // Typing in the purpose field clears the server error, re-enabling the Create button
@@ -1279,7 +1279,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         await userEvent.click(createButton);
 
         await waitFor(() => {
-            expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(screen.getByLabelText('Loading')).toBeInTheDocument();
         });
 
         // Click "Public Channel" while onCreate is still pending
@@ -1294,7 +1294,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
             resolveOnCreate({status: 'deferred'});
         });
 
-        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument();
         expect(pluginButton.closest('button')).toHaveClass('selected');
     });
 });
