@@ -769,8 +769,7 @@ func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) 
 			// refuses holds back the rest. Write them one at a time to find it.
 			for _, field := range groupFields {
 				if _, _, _, updateErr := ps.updatePropertyFieldsIfUnchanged(rctx, groupID, []*model.PropertyField{field}, readUpdateAts); updateErr != nil {
-					var conflictErr *store.ErrConflict
-					if errors.As(updateErr, &conflictErr) {
+					if _, ok := errors.AsType[*store.ErrConflict](updateErr); ok {
 						rctx.Logger().Warn("Property permissions backfill: field changed since it was read and will be retried on a later restart",
 							mlog.String("field_id", field.ID), mlog.String("group_id", field.GroupID), mlog.Err(updateErr))
 						skipped++

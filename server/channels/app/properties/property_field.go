@@ -640,8 +640,7 @@ func (ps *PropertyService) linkedTemplate(rctx request.CTX, field *model.Propert
 // still be unlinked. Any other read error is returned.
 func (ps *PropertyService) legacyViewTemplate(rctx request.CTX, field *model.PropertyField, templates map[string]*model.PropertyField) (*model.PropertyField, error) {
 	template, err := ps.linkedTemplate(rctx, field, templates)
-	var notFound *store.ErrNotFound
-	if errors.As(err, &notFound) {
+	if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 		return nil, nil
 	}
 	return template, err
