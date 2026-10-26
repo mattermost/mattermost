@@ -3,9 +3,12 @@
 
 import React from 'react';
 
+import {Combobox} from '@mattermost/compass-ui/components/combobox';
+
 import SettingItemMax from 'components/setting_item_max';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {installA11yFocusShim} from 'tests/helpers/a11y_focus_shim';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 
@@ -156,5 +159,132 @@ describe('components/SettingItemMax', () => {
         expect(focusEvent.detail.target).toHaveAttribute('data-testid', 'checked-radio');
 
         document.removeEventListener(A11yCustomEventTypes.FOCUS, focusListener);
+    });
+
+    describe('initial focus', () => {
+        installA11yFocusShim();
+
+        const options = [
+            {value: 'a', label: 'Alpha'},
+            {value: 'b', label: 'Bravo'},
+            {value: 'c', label: 'Charlie'},
+        ];
+
+        test('should focus an empty single Combobox input and open its menu', () => {
+            renderWithContext(
+                <SettingItemMax
+                    {...baseProps}
+                    inputs={[
+                        <Combobox
+                            key='combobox'
+                            aria-label='Attr'
+                            options={options}
+                            value=''
+                            onChange={jest.fn()}
+                        />,
+                    ]}
+                />,
+            );
+
+            const input = screen.getByRole('combobox', {name: 'Attr'});
+            expect(input).toHaveFocus();
+            expect(input).toHaveAttribute('aria-expanded', 'true');
+        });
+
+        test('should focus a single Combobox input with a value and a clear button, not the clear button', () => {
+            renderWithContext(
+                <SettingItemMax
+                    {...baseProps}
+                    inputs={[
+                        <Combobox
+                            key='combobox'
+                            aria-label='Attr'
+                            options={options}
+                            value='b'
+                            clearable={true}
+                            clearButtonProps={{'data-testid': 'attr-clear'}}
+                            onChange={jest.fn()}
+                        />,
+                    ]}
+                />,
+            );
+
+            expect(screen.getByRole('combobox', {name: 'Attr'})).toHaveFocus();
+            expect(screen.getByTestId('attr-clear')).not.toHaveFocus();
+        });
+
+        test('should focus a multiple Combobox input rather than its first chip', () => {
+            renderWithContext(
+                <SettingItemMax
+                    {...baseProps}
+                    inputs={[
+                        <Combobox
+                            key='combobox'
+                            aria-label='Attr'
+                            options={options}
+                            multiple={true}
+                            value={['a', 'b']}
+                            onChange={jest.fn()}
+                        />,
+                    ]}
+                />,
+            );
+
+            const chips = document.querySelectorAll('[data-chip]');
+            expect(chips).toHaveLength(2);
+            expect(chips[0]).toHaveAttribute('tabindex', '0');
+
+            expect(screen.getByRole('combobox', {name: 'Attr'})).toHaveFocus();
+            expect(document.activeElement?.closest('[data-chip]')).toBeNull();
+        });
+
+        test('should keep DOM order, focusing a form-control input placed before a Combobox', () => {
+            renderWithContext(
+                <SettingItemMax
+                    {...baseProps}
+                    inputs={[
+                        <input
+                            key='text'
+                            className='form-control'
+                            aria-label='Text'
+                        />,
+                        <Combobox
+                            key='combobox'
+                            aria-label='Attr'
+                            options={options}
+                            value=''
+                            onChange={jest.fn()}
+                        />,
+                    ]}
+                />,
+            );
+
+            expect(screen.getByRole('textbox', {name: 'Text'})).toHaveFocus();
+            expect(screen.getByRole('combobox', {name: 'Attr'})).toHaveAttribute('aria-expanded', 'false');
+        });
+
+        test('should prefer a Combobox input over a button placed before it', () => {
+            renderWithContext(
+                <SettingItemMax
+                    {...baseProps}
+                    inputs={[
+                        <button key='button'>
+                            {'Pick'}
+                        </button>,
+                        <Combobox
+                            key='combobox'
+                            aria-label='Attr'
+                            options={options}
+                            multiple={true}
+                            value={['a']}
+                            onChange={jest.fn()}
+                        />,
+                    ]}
+                />,
+            );
+
+            expect(screen.getByRole('combobox', {name: 'Attr'})).toHaveFocus();
+            expect(screen.getByRole('button', {name: 'Pick'})).not.toHaveFocus();
+        });
     });
 });
