@@ -36,8 +36,20 @@ RUN mkdir -p /mattermost/.postgresql \
 RUN mkdir -p /var/tmp \
   && chmod 755 /var/tmp
 
+# OpenSSL 3 runtime libraries for prepackaged FIPS plugins.
+# glibc-openssl-fips:16 as of the Go 1.26.10 bump (the final stage below) ships
+# libcrypto.so.4, which the server loads. Playbooks, Agents, and Boards are still
+# built against libcrypto.so.3 and panic on startup when that soname is missing.
+# Copy only the versioned libraries from the last runtime that included them.
+# Do not add an unversioned libcrypto.so symlink; the server and the plugins must
+# each resolve their own ABI.
+FROM cgr.dev/mattermost.com/glibc-openssl-fips:16@sha256:a636adba740bb6a53e55c14f7deb979802bcff2203f4aaecfe6f1d159cdfe3a1 AS openssl3
+
 # Final stage using FIPS runtime image
 FROM cgr.dev/mattermost.com/glibc-openssl-fips:16@sha256:5d573b4d1920860eaa8b04decc84a3698eb6dfd3f3ad3cd387680448cb83bc07
+
+# See the openssl3 stage above.
+COPY --from=openssl3 /usr/lib/libcrypto.so.3 /usr/lib/libssl.so.3 /usr/lib/
 
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
