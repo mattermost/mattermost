@@ -569,6 +569,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
+		if collector := s.platform.LoggerMetricsCollector(); collector != nil {
+			s.Audit.SetMetricsCollector(collector, mlog.DefaultMetricsUpdateFreqMillis)
+		}
 		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}

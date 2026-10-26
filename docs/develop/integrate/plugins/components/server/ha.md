@@ -41,6 +41,70 @@ if cronErr != nil {
 p.backgroundJob = job
 ```
 
+## Discover cluster node identity
+
+From Mattermost v12.2, plugins can discover the cluster topology and identify which node sent a cluster event.
+
+**Get the local node ID**
+
+`API.GetClusterNodeID()` returns the cluster ID of the node the plugin is running on. Use this value to tell other nodes where to send targeted cluster events. It returns an empty string until the node has joined the cluster — for example, when clustering is disabled or the node has not yet started.
+
+```go
+nodeID := p.API.GetClusterNodeID()
+if nodeID == "" {
+    // not running in a cluster
+}
+```
+
+**List connected nodes**
+
+`API.GetClusterNodes()` returns the nodes currently connected to the cluster, including the local node. Every `Id` in the returned list can be passed directly as `PluginClusterEventSendOptions.TargetId`. Nodes that are registered but not yet connected are excluded, because their registration ID cannot be used as a target. The method returns an empty list until this node has joined the cluster, consistent with `GetClusterNodeID()`.
+
+<Note>
+
+`GetClusterNodes()` may query the database on each call. Avoid calling it on hot paths such as per-message hooks.
+
+</Note>
+
+```go
+nodes, err := p.API.GetClusterNodes()
+if err != nil {
+    return err
+}
+for _, node := range nodes {
+    p.API.PublishPluginClusterEvent(
+        model.PluginClusterEvent{Id: "sync", Data: payload},
+        model.PluginClusterEventSendOptions{
+            SendType: model.PluginClusterEventSendTypeReliable,
+            TargetId: node.Id,
+        },
+    )
+}
+```
+
+**Identify the sender of a cluster event**
+
+`PluginClusterEvent.SourceId` is set by the server to the cluster node ID of the sender before the event is delivered to `OnPluginClusterEvent`. Use it to reply to a specific node or to filter events by origin. Events received from nodes running a server version earlier than 12.2 have an empty `SourceId`.
+
+```go
+func (p *Plugin) OnPluginClusterEvent(_ *plugin.Context, ev model.PluginClusterEvent) {
+    if ev.SourceId == "" {
+        // sender is on an older server version or clustering is not active
+        return
+    }
+    // reply to the sender
+    p.API.PublishPluginClusterEvent(
+        model.PluginClusterEvent{Id: "ack", Data: []byte("ok")},
+        model.PluginClusterEventSendOptions{
+            SendType: model.PluginClusterEventSendTypeReliable,
+            TargetId: ev.SourceId,
+        },
+    )
+}
+```
+
+The `pluginapi` wrappers for these methods are `Cluster.GetNodeID()` and `Cluster.GetNodes()`.
+
 ## Test a plugin in high availability mode
 
 The [pluginapi/testhelper](https://github.com/mattermost/mattermost/tree/master/server/public/pluginapi/testhelper) package runs a plugin's integration tests against a real Mattermost server in Docker. `testhelper.SetupCluster(t, n)` starts a cluster of `n` servers instead of a single one, so you can test behavior that spans servers, such as cluster events or state that must not be kept in memory:
