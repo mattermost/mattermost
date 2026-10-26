@@ -10271,6 +10271,22 @@ func (s *TimerLayerRemoteClusterStore) GetBySiteURL(siteURL string) (*model.Remo
 	return result, err
 }
 
+func (s *TimerLayerRemoteClusterStore) PermanentDelete(remoteClusterID string, name string) error {
+	start := time.Now()
+
+	err := s.RemoteClusterStore.PermanentDelete(remoteClusterID, name)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.PermanentDelete", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	start := time.Now()
 

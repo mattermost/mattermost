@@ -20,6 +20,7 @@ func TestRemoteClusterStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("RemoteClusterGetAllNotInChannel", func(t *testing.T) { testRemoteClusterGetAllNotInChannel(t, rctx, ss) })
 	t.Run("RemoteClusterSave", func(t *testing.T) { testRemoteClusterSave(t, rctx, ss) })
 	t.Run("RemoteClusterDelete", func(t *testing.T) { testRemoteClusterDelete(t, rctx, ss) })
+	t.Run("RemoteClusterPermanentDelete", func(t *testing.T) { testRemoteClusterPermanentDelete(t, rctx, ss) })
 	t.Run("RemoteClusterGet", func(t *testing.T) { testRemoteClusterGet(t, rctx, ss) })
 	t.Run("RemoteClusterGetByPluginID", func(t *testing.T) { testRemoteClusterGetByPluginID(t, rctx, ss) })
 	t.Run("RemoteClusterGetAllByPluginID", func(t *testing.T) { testRemoteClusterGetAllByPluginID(t, rctx, ss) })
@@ -194,6 +195,49 @@ func testRemoteClusterSave(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, model.Bitmask(0), rcSaved.Options)
 		require.False(t, rcSaved.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
 	})
+}
+
+func testRemoteClusterPermanentDelete(t *testing.T, _ request.CTX, ss store.Store) {
+	remoteId := model.NewId()
+	saveRemote := func(t *testing.T, name string) *model.RemoteCluster {
+		t.Helper()
+		rc, err := ss.RemoteCluster().Save(&model.RemoteCluster{
+			RemoteId:  remoteId,
+			Name:      name,
+			SiteURL:   makeSiteURL(),
+			CreatorId: model.NewId(),
+		})
+		require.NoError(t, err)
+		return rc
+	}
+	namesForRemote := func(t *testing.T) []string {
+		t.Helper()
+		all, err := ss.RemoteCluster().GetAll(0, 999999, model.RemoteClusterQueryFilter{IncludeDeleted: true})
+		require.NoError(t, err)
+		var names []string
+		for _, rc := range all {
+			if rc.RemoteId == remoteId {
+				names = append(names, rc.Name)
+			}
+		}
+		return names
+	}
+
+	removed := saveRemote(t, "removed_remote")
+	kept := saveRemote(t, "kept_remote")
+
+	require.NoError(t, ss.RemoteCluster().PermanentDelete(removed.RemoteId, removed.Name))
+	require.Equal(t, []string{kept.Name}, namesForRemote(t), "only the row matching both remote id and name is removed")
+
+	_, err := ss.RemoteCluster().Save(&model.RemoteCluster{
+		RemoteId:  removed.RemoteId,
+		Name:      removed.Name,
+		SiteURL:   makeSiteURL(),
+		CreatorId: model.NewId(),
+	})
+	require.NoError(t, err, "the remote id and name can be saved again")
+
+	require.NoError(t, ss.RemoteCluster().PermanentDelete(model.NewId(), "missing_remote"), "deleting a missing row is not an error")
 }
 
 func testRemoteClusterDelete(t *testing.T, rctx request.CTX, ss store.Store) {
