@@ -98,7 +98,11 @@ function webappBundleSource(pluginId: string) {
  * Once initialized, the plugin appends a hidden marker element with test id
  * `testWebappPluginMarkerTestId(id)` and registers the custom route `testWebappPluginRoute(id)`.
  */
-export function buildWebappPluginBundle({id, version = testWebappPluginVersion, preAuth = false}: WebappPluginBundleOptions): File {
+export function buildWebappPluginBundle({
+    id,
+    version = testWebappPluginVersion,
+    preAuth = false,
+}: WebappPluginBundleOptions): File {
     const manifest = {
         id,
         name: `E2E ${id}`,

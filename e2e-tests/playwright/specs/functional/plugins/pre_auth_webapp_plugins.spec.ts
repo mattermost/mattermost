@@ -23,7 +23,9 @@ async function setRestriction(value: boolean) {
 }
 
 async function getWebappPluginsAnonymously(page: Page): Promise<WebappPluginsResponse> {
-    const response = await page.request.get('/api/v4/plugins/webapp', {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+    const response = await page.request.get('/api/v4/plugins/webapp', {
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+    });
     expect(response.ok()).toBe(true);
     return response.json();
 }
@@ -38,12 +40,12 @@ function testPluginIds(plugins: WebappPluginsResponse) {
 // Lets a test detect a full page reload: the flag lives on `window`, so a reload clears it.
 async function markWindow(page: Page) {
     await page.evaluate(() => {
-        (window as any).__e2eNoReload = true;
+        (window as any).e2eNoReloadMarker = true;
     });
 }
 
 async function expectWindowNotReloaded(page: Page) {
-    expect(await page.evaluate(() => (window as any).__e2eNoReload)).toBe(true);
+    expect(await page.evaluate(() => (window as any).e2eNoReloadMarker)).toBe(true);
 }
 
 test.describe('Pre-auth webapp plugins', () => {
@@ -92,22 +94,26 @@ test.describe('Pre-auth webapp plugins', () => {
     /**
      * @objective Verify turning the restriction off restores unauthenticated delivery of every webapp plugin
      */
-    test('returns all webapp plugins to unauthenticated requests when the restriction is off', {tag: '@plugins'}, async ({pw}) => {
-        // # Install the test plugins and turn the restriction off
-        await ensureTestWebappPlugins();
-        await pw.initSetup();
-        await setRestriction(false);
+    test(
+        'returns all webapp plugins to unauthenticated requests when the restriction is off',
+        {tag: '@plugins'},
+        async ({pw}) => {
+            // # Install the test plugins and turn the restriction off
+            await ensureTestWebappPlugins();
+            await pw.initSetup();
+            await setRestriction(false);
 
-        try {
-            // # Request webapp plugins without a session
-            const plugins = await getWebappPluginsAnonymously(pw.loginPage.page);
+            try {
+                // # Request webapp plugins without a session
+                const plugins = await getWebappPluginsAnonymously(pw.loginPage.page);
 
-            // * Verify both test plugins are returned
-            expect(testPluginIds(plugins)).toEqual([postAuthTestPluginId, preAuthTestPluginId].sort());
-        } finally {
-            await setRestriction(true);
-        }
-    });
+                // * Verify both test plugins are returned
+                expect(testPluginIds(plugins)).toEqual([postAuthTestPluginId, preAuthTestPluginId].sort());
+            } finally {
+                await setRestriction(true);
+            }
+        },
+    );
 
     /**
      * @objective Verify the login page loads pre-auth plugins and does not load other plugins
@@ -159,7 +165,9 @@ test.describe('Pre-auth webapp plugins', () => {
 
         // * Verify the post-auth plugin's route renders after redirect
         await expect(page).toHaveURL(new RegExp(`${route}$`));
-        await expect(page.getByTestId(`e2e-route-${postAuthTestPluginId}`)).toHaveText(`e2e route ${postAuthTestPluginId}`);
+        await expect(page.getByTestId(`e2e-route-${postAuthTestPluginId}`)).toHaveText(
+            `e2e route ${postAuthTestPluginId}`,
+        );
 
         // * Verify both plugins are loaded and the page did not reload
         await expect(page.getByTestId(testWebappPluginMarkerTestId(postAuthTestPluginId))).toBeAttached();
