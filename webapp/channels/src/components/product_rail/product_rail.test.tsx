@@ -227,42 +227,38 @@ describe('ProductRail', () => {
         });
     });
 
-    describe('Home', () => {
-        test('should open in Home, ahead of Threads, then Channels and Boards', () => {
-            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id, 'home'));
+    describe('order and boards in Channels', () => {
+        test('should list Channels, Threads, Boards and Docs with no dividers', () => {
+            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
 
-            const items = [...document.querySelectorAll('.ProductRail__item')].map((item) => item.id);
+            const items = [...document.querySelectorAll('.ProductRail > *')].map((item) => item.id);
             expect(items).toEqual([
-                'product-rail-item-home',
-                'product-rail-item-threads',
                 'product-rail-item-channels',
+                'product-rail-item-threads',
                 'product-rail-item-boards',
                 'product-rail-item-docs',
             ]);
-            expect(screen.getByRole('link', {name: /Home/})).toHaveAttribute('aria-current', 'page');
         });
 
-        test('should stay in Home in a board, and remember it there', () => {
-            renderAt('/team-one/channels/roadmap', getBoardsState(roadmap.id, 'home'));
+        test('should stay in Channels on a board while Channels lists boards too, and count their mentions', () => {
+            const state = getBoardsState(roadmap.id);
+            const withBoardsShown = {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    preferences: {
+                        myPreferences: {
+                            'sidebar_settings--show_boards_in_channels': {category: 'sidebar_settings', name: 'show_boards_in_channels', user_id: user.id, value: 'true'},
+                        },
+                    },
+                },
+            };
 
-            expect(screen.getByRole('link', {name: /Home/})).toHaveAttribute('aria-current', 'page');
-            expect(screen.getByRole('link', {name: /Home/})).toHaveAttribute('href', '/team-one/channels/roadmap');
+            renderAt('/team-one/channels/roadmap', withBoardsShown);
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('5');
             expect(screen.getByRole('link', {name: /Boards/})).not.toHaveAttribute('aria-current');
-
-            // Viewed from Home, the board isn't Boards' place to return to.
-            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
-        });
-
-        test('should count mentions in channels and boards together', () => {
-            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id, 'home'));
-
-            expect(screen.getByRole('link', {name: /Home/})).toHaveTextContent('5');
-        });
-
-        test('should not show Home without boards to split off', () => {
-            renderAt('/team-one/channels/town-square', getState());
-
-            expect(screen.queryByRole('link', {name: /Home/})).not.toBeInTheDocument();
         });
     });
 

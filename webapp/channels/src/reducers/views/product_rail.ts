@@ -8,7 +8,7 @@ import {ActionTypes} from 'utils/constants';
 import type {MMAction} from 'types/store';
 import type {ProductRailSection} from 'types/store/views';
 
-function section(state: ProductRailSection = 'home', action: MMAction): ProductRailSection {
+function section(state: ProductRailSection = 'channels', action: MMAction): ProductRailSection {
     switch (action.type) {
     case ActionTypes.SET_PRODUCT_RAIL_SECTION:
         return action.data.section;
@@ -27,10 +27,11 @@ function lastPathByTeam(state: LastPaths = {}, action: MMAction): LastPaths {
         const {tab, teamId, path} = action.data;
 
         // A channel can be filed under Channels before its plugin says it's a board (or the
-        // reverse), so viewing it in one section takes it out of the other.
+        // reverse), so viewing it in the section its kind picks takes it out of the other. A board
+        // viewed in Channels while that lists boards too comes with no section, and stays put.
         const otherSections: Record<string, string> = {channels: 'boards', boards: 'channels'};
         const otherSection = otherSections[tab];
-        const misfiled = otherSection !== undefined && state[otherSection]?.[teamId] === path;
+        const misfiled = action.data.section !== undefined && otherSection !== undefined && state[otherSection]?.[teamId] === path;
 
         if (state[tab]?.[teamId] === path && !misfiled) {
             return state;

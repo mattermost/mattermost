@@ -28335,10 +28335,6 @@
     "defaultMessage": "Docs",
     "description": "Label under the Docs icon in the product navigation rail. A placeholder for now: clicking it does nothing yet."
   },
-  "product_rail.home": {
-    "defaultMessage": "Home",
-    "description": "Label under the Home icon in the product navigation rail. Clicking it shows the full left sidebar, with channels and boards together."
-  },
   "product_rail.teamMenu.buttonLabel": {
     "defaultMessage": "Switch teams",
     "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."
@@ -30511,9 +30507,25 @@
     "defaultMessage": "unreads filter",
     "description": "Accessible label for the unread-channels filter toggle in the channel sidebar."
   },
+  "sidebar_left.channel_filter.menu": {
+    "defaultMessage": "Channel filters",
+    "description": "Accessible name of the menu of view options opened from the filter button above the channel list."
+  },
+  "sidebar_left.channel_filter.menuButton": {
+    "defaultMessage": "Filter channels",
+    "description": "Tooltip and accessible name of the filter button above the channel list while the product navigation rail splits boards from channels. It opens a menu of view options."
+  },
   "sidebar_left.channel_filter.showAllChannels": {
     "defaultMessage": "Show all channels",
     "description": "Tooltip on the sidebar filter toggle when it would disable the unread filter and show all channels again."
+  },
+  "sidebar_left.channel_filter.showBoards": {
+    "defaultMessage": "Show boards",
+    "description": "Checkbox item in the channel filter menu, shown in the Channels view of the product navigation rail. When checked, boards are listed alongside channels instead of only under Boards."
+  },
+  "sidebar_left.channel_filter.unreadsOnly": {
+    "defaultMessage": "Unreads only",
+    "description": "Checkbox item in the channel filter menu. When checked, the channel list shows only unread channels."
   },
   "sidebar_left.channel_navigator.channelSwitcherLabel": {
     "defaultMessage": "Find Channels",

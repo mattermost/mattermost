@@ -181,13 +181,6 @@
         }
     }
 
-    &__divider {
-        width: 32px;
-        height: 1px;
-        flex: 0 0 auto;
-        margin: 4px 0;
-        background: rgba(var(--sidebar-text-rgb), 0.16);
-    }
 
     @media screen and (max-width: 768px) {
         display: none;

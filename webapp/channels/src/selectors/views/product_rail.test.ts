@@ -8,7 +8,7 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 import type {ProductRailSection} from 'types/store/views';
 
-import {filterChannelIdsForSection, getBoardChannelIds, getProductRailSection, toFullListIndex} from './product_rail';
+import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter, getProductRailSection, toFullListIndex} from './product_rail';
 import type {ChannelKindRegistration} from './product_rail';
 
 const channel = TestHelper.getChannelMock({id: 'channel'});
@@ -30,6 +30,7 @@ function getState({enabled = true, registrations = [boardKind], section = 'chann
         entities: {
             general: {config: {FeatureFlagProductRail: enabled ? 'true' : 'false'}},
             channels: {channels: {[channel.id]: channel, [board.id]: board}},
+            preferences: {myPreferences: {}},
         },
         plugins: {components: {ChannelKind: registrations} as unknown as GlobalState['plugins']['components']},
         views: {productRail: {section, lastPathByTeam: {}, lastPathsLoaded: false}},
@@ -103,5 +104,29 @@ describe('toFullListIndex', () => {
 
     test('should place an item first when nothing else is shown', () => {
         expect(toFullListIndex(['a'], full, 'a', 0)).toBe(0);
+    });
+});
+
+describe('getProductRailFilter', () => {
+    test('should narrow Channels to channels by default', () => {
+        expect(getProductRailFilter(getState({section: 'channels'}))).toBe('channels');
+    });
+
+    test('should not narrow Channels while it lists boards too', () => {
+        const state = getState({section: 'channels'});
+        const withBoardsShown = {
+            ...state,
+            entities: {
+                ...state.entities,
+                preferences: {
+                    myPreferences: {
+                        'sidebar_settings--show_boards_in_channels': {category: 'sidebar_settings', name: 'show_boards_in_channels', user_id: 'user', value: 'true'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getProductRailFilter(withBoardsShown)).toBeNull();
+        expect(getProductRailFilter({...withBoardsShown, views: {...withBoardsShown.views, productRail: {...withBoardsShown.views.productRail, section: 'boards'}}})).toBe('boards');
     });
 });

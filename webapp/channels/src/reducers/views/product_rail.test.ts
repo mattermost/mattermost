@@ -58,4 +58,16 @@ describe('productRail reducer', () => {
         expect(initial.lastPathsLoaded).toBe(false);
         expect(productRailReducer(initial, productRailPathsLoaded({})).lastPathsLoaded).toBe(true);
     });
+
+    test('should leave Boards\' path alone for a board viewed in Channels without a section', () => {
+        let state = productRailReducer(initial, productRailPathViewed('boards', 'team1', '/one/channels/roadmap', 'boards'));
+        state = productRailReducer(state, setProductRailSection('channels'));
+        state = productRailReducer(state, productRailPathViewed('channels', 'team1', '/one/channels/roadmap'));
+
+        expect(state.lastPathByTeam).toEqual({
+            boards: {team1: '/one/channels/roadmap'},
+            channels: {team1: '/one/channels/roadmap'},
+        });
+        expect(state.section).toBe('channels');
+    });
 });

@@ -232,8 +232,8 @@ export type ViewsState = {
     };
 };
 
-// Home shows channels and boards together; Channels and Boards each show only their own.
-export type ProductRailSection = 'home' | 'channels' | 'boards';
+// Channels shows channels and DMs, Boards only boards.
+export type ProductRailSection = 'channels' | 'boards';
 
 // A rail item that remembers where the user was: a section, Threads, or a product as `product:<id>`.
 export type ProductRailTab = ProductRailSection | 'threads' | `product:${string}`;

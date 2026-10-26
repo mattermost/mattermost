@@ -131,6 +131,9 @@ export const Preferences = {
 
     // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail has folded the team sidebar into its team menu.
     HIDE_TEAM_SIDEBAR: 'hide_team_sidebar',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail's Channels view also lists boards.
+    SHOW_BOARDS_IN_CHANNELS: 'show_boards_in_channels',
     CLOUD_UPGRADE_BANNER: 'cloud_upgrade_banner',
     CLOUD_TRIAL_BANNER: 'cloud_trial_banner',
     START_TRIAL_MODAL: 'start_trial_modal',

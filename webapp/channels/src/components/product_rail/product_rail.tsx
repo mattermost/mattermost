@@ -7,7 +7,7 @@ import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link, matchPath, useLocation} from 'react-router-dom';
 
-import glyphMap, {FileTextOutlineIcon, HomeVariantOutlineIcon, MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import glyphMap, {FileTextOutlineIcon, MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {getThreadCounts} from 'mattermost-redux/actions/threads';
@@ -27,6 +27,7 @@ import {
     getProductRailLastPaths,
     getProductRailSection,
     getProductRailSectionUnreads,
+    areBoardsShownInChannels,
     areProductRailLastPathsLoaded,
     isTeamSidebarHidden,
 } from 'selectors/views/product_rail';
@@ -36,7 +37,7 @@ import {getProductSwitcherLinkURL, useCurrentProduct} from 'utils/products';
 
 import type {GlobalState} from 'types/store';
 import type {ProductComponent} from 'types/store/plugins';
-import type {ProductRailTab} from 'types/store/views';
+import type {ProductRailSection, ProductRailTab} from 'types/store/views';
 
 import ProductRailTeamMenu from './product_rail_team_menu';
 
@@ -47,11 +48,6 @@ const messages = defineMessages({
         id: 'product_rail.ariaLabel',
         defaultMessage: 'Product navigation',
         description: 'Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards.',
-    },
-    home: {
-        id: 'product_rail.home',
-        defaultMessage: 'Home',
-        description: 'Label under the Home icon in the product navigation rail. Clicking it shows the full left sidebar, with channels and boards together.',
     },
     channels: {
         id: 'product_rail.channels',
@@ -142,11 +138,11 @@ export default function ProductRail() {
     const currentChannelIsBoard = useSelector((state: GlobalState) => getBoardChannelIds(state).has(currentChannelId));
     const firstBoard = useSelector(getFirstBoardInCurrentTeam);
     const teamSidebarHidden = useSelector(isTeamSidebarHidden);
+    const boardsShownInChannels = useSelector(areBoardsShownInChannels);
 
     const currentTeamId = currentTeam?.id ?? '';
     const lastPaths = useSelector(getProductRailLastPaths);
     const lastPathsLoaded = useSelector(areProductRailLastPathsLoaded);
-    const lastHomePath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'home', currentTeamId));
     const lastChannelPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'channels', currentTeamId));
     const lastBoardPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'boards', currentTeamId));
     const lastThreadsPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'threads', currentTeamId));
@@ -161,17 +157,15 @@ export default function ProductRail() {
     // permalinked post, so returning opens the channel rather than re-highlighting a post.
     let viewedTab: ProductRailTab | null = null;
     let viewedPath = pathname;
+    let boardViewedInChannels = false;
     if (channelMatch && currentChannel) {
         const {team, path, identifier} = channelMatch.params;
         const isDirect = currentChannel.type === 'D' || currentChannel.type === 'G';
         const urlMatchesChannel = path === 'messages' ? isDirect : identifier === currentChannel.name;
         if (urlMatchesChannel) {
-            // Home holds channels and boards alike; elsewhere the channel's kind picks the item.
-            if (section === 'home') {
-                viewedTab = 'home';
-            } else {
-                viewedTab = section && currentChannelIsBoard ? 'boards' : 'channels';
-            }
+            // A board opened in Channels while it lists boards too stays under Channels.
+            boardViewedInChannels = section === 'channels' && boardsShownInChannels && currentChannelIsBoard;
+            viewedTab = section && currentChannelIsBoard && !boardViewedInChannels ? 'boards' : 'channels';
             viewedPath = `/${team}/${path}/${identifier}`;
         }
     } else if (inThreads) {
@@ -196,14 +190,14 @@ export default function ProductRail() {
     }, [dispatch, enabled, currentUserId]);
 
     // Remember where the user is under the current item, however they got there (the rail, the
-    // sidebar, a link, the channel switcher). Outside Home, a channel or board also moves the
-    // sidebar to its section; Home stays put, since it shows both.
+    // sidebar, a link, the channel switcher). A channel or board also moves the sidebar to its
+    // section.
     useEffect(() => {
         if (enabled && viewedTab && currentTeamId) {
-            const viewedSection = viewedTab === 'boards' || viewedTab === 'channels' ? viewedTab : undefined;
-            dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section ? viewedSection : undefined));
+            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels;
+            dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
         }
-    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null]);
+    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels]);
 
     // Saved only once the earlier paths are restored, so they're never overwritten unseen.
     useEffect(() => {
@@ -266,70 +260,25 @@ export default function ProductRail() {
         />
     );
 
-    const divider = <div className='ProductRail__divider'/>;
+    // With boards split off, Channels shows the rest of the sidebar; without, it's all of it.
+    let channelsItem;
+    let boardsItem;
+    if (section) {
+        // While Channels lists boards too, its badge counts them as well.
+        const channelsUnreads = boardsShownInChannels ? {
+            mentions: sectionUnreads.channels.mentions + sectionUnreads.boards.mentions,
+            hasUrgent: sectionUnreads.channels.hasUrgent || sectionUnreads.boards.hasUrgent,
+            unread: sectionUnreads.channels.unread || sectionUnreads.boards.unread,
+        } : sectionUnreads.channels;
 
-    // Without boards to split off, there's one channel sidebar, and Channels is the whole of it.
-    if (!section) {
-        return (
-            <nav
-                className='ProductRail'
-                aria-label={formatMessage(messages.ariaLabel)}
-            >
-                {teamSidebarHidden && (
-                    <>
-                        <ProductRailTeamMenu/>
-                        {divider}
-                    </>
-                )}
-                <ProductRailItem
-                    id='product-rail-item-channels'
-                    to={lastChannelPath ?? `/${currentTeam.name}`}
-                    icon={<ProductChannelsIcon size={20}/>}
-                    label={formatMessage(messages.channels)}
-                    active={inChannelsProduct}
-                    mentions={mentionsInTeamMap.get(currentTeam.id) ?? 0}
-                    hasUrgent={teamHasUrgentMap.get(currentTeam.id) ?? false}
-                    unread={unreadTeamsSet.has(currentTeam.id)}
-                />
-                {threadsItem}
-                {divider}
-                {docsItem}
-                {productItems}
-            </nav>
-        );
-    }
+        // Return to the last board, else open the first one. With none to open, Boards still
+        // switches the sidebar so it can say there are none.
+        let boardsPath = lastBoardPath;
+        if (!boardsPath && firstBoard) {
+            boardsPath = `/${currentTeam.name}/channels/${firstBoard.name}`;
+        }
 
-    // Return to the last board, else open the first one. With none to open, Boards still
-    // switches the sidebar so it can say there are none.
-    let boardsPath = lastBoardPath;
-    if (!boardsPath && firstBoard) {
-        boardsPath = `/${currentTeam.name}/channels/${firstBoard.name}`;
-    }
-
-    // Home, the whole sidebar, and Threads lead; then the narrower views, Channels and Boards,
-    // and the products.
-    return (
-        <nav
-            className='ProductRail'
-            aria-label={formatMessage(messages.ariaLabel)}
-        >
-            {teamSidebarHidden && (
-                <>
-                    <ProductRailTeamMenu/>
-                    {divider}
-                </>
-            )}
-            <ProductRailItem
-                id='product-rail-item-home'
-                to={lastHomePath ?? `/${currentTeam.name}`}
-                onClick={() => dispatch(setProductRailSection('home'))}
-                icon={<HomeVariantOutlineIcon size={20}/>}
-                label={formatMessage(messages.home)}
-                active={inChannelsProduct && section === 'home'}
-                {...sectionUnreads.home}
-            />
-            {threadsItem}
-            {divider}
+        channelsItem = (
             <ProductRailItem
                 id='product-rail-item-channels'
                 to={lastChannelPath ?? `/${currentTeam.name}/channels/${defaultChannelName}`}
@@ -337,8 +286,10 @@ export default function ProductRail() {
                 icon={<ProductChannelsIcon size={20}/>}
                 label={formatMessage(messages.channels)}
                 active={inChannelsProduct && section === 'channels'}
-                {...sectionUnreads.channels}
+                {...channelsUnreads}
             />
+        );
+        boardsItem = (
             <ProductRailItem
                 id='product-rail-item-boards'
                 to={boardsPath ?? pathname}
@@ -348,6 +299,31 @@ export default function ProductRail() {
                 active={inChannelsProduct && section === 'boards'}
                 {...sectionUnreads.boards}
             />
+        );
+    } else {
+        channelsItem = (
+            <ProductRailItem
+                id='product-rail-item-channels'
+                to={lastChannelPath ?? `/${currentTeam.name}`}
+                icon={<ProductChannelsIcon size={20}/>}
+                label={formatMessage(messages.channels)}
+                active={inChannelsProduct}
+                mentions={mentionsInTeamMap.get(currentTeam.id) ?? 0}
+                hasUrgent={teamHasUrgentMap.get(currentTeam.id) ?? false}
+                unread={unreadTeamsSet.has(currentTeam.id)}
+            />
+        );
+    }
+
+    return (
+        <nav
+            className='ProductRail'
+            aria-label={formatMessage(messages.ariaLabel)}
+        >
+            {teamSidebarHidden && <ProductRailTeamMenu/>}
+            {channelsItem}
+            {threadsItem}
+            {boardsItem}
             {docsItem}
             {productItems}
         </nav>

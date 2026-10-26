@@ -45,3 +45,16 @@ export function setTeamSidebarHidden(hidden: boolean): ActionFuncAsync {
         }]));
     };
 }
+
+// Lists boards in the Channels view as well, or leaves them to Boards alone.
+export function setBoardsShownInChannels(shown: boolean): ActionFuncAsync {
+    return (dispatch, getState) => {
+        const userId = getCurrentUserId(getState());
+        return dispatch(savePreferences(userId, [{
+            category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
+            name: Preferences.SHOW_BOARDS_IN_CHANNELS,
+            user_id: userId,
+            value: String(shown),
+        }]));
+    };
+}

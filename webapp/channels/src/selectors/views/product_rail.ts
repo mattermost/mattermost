@@ -20,7 +20,7 @@ import type {ProductRailSection, ProductRailTab} from 'types/store/views';
  * A plugin's claim that the channels its matcher accepts are of a kind, such as 'board', as
  * plugins register with registerChannelKind. That API comes with the Boards work, so this reads
  * the registrations without depending on it: until it's in, there are none, and the rail shows no
- * Home or Boards split. Once it is, this can use its ChannelKindRegistration and isBoardChannel.
+ * Boards split. Once it is, this can use its ChannelKindRegistration and isBoardChannel.
  */
 export type ChannelKindRegistration = {
     id: string;
@@ -111,12 +111,23 @@ export function getProductRailSection(state: GlobalState): ProductRailSection | 
     return state.views.productRail.section;
 }
 
-export type ProductRailFilter = Exclude<ProductRailSection, 'home'> | null;
+export type ProductRailFilter = ProductRailSection | null;
 
-/** Which kind of channel the sidebar is narrowed to: Home, like no split at all, shows both. */
+/** Whether the user has chosen to list boards in the Channels view too. */
+export function areBoardsShownInChannels(state: GlobalState): boolean {
+    return getBool(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_BOARDS_IN_CHANNELS, false);
+}
+
+/**
+ * Which kind of channel the sidebar is narrowed to, or null when it shows them all: the rail
+ * doesn't split it, or Channels has been set to list boards too.
+ */
 export function getProductRailFilter(state: GlobalState): ProductRailFilter {
     const section = getProductRailSection(state);
-    return section === 'home' ? null : section;
+    if (section === 'channels' && areBoardsShownInChannels(state)) {
+        return null;
+    }
+    return section;
 }
 
 /** Whether the user has hidden the team sidebar, so the product rail shows a team menu in its place. */
@@ -189,7 +200,6 @@ export const getProductRailSectionUnreads: (state: GlobalState) => Record<Produc
     getBoardChannelIds,
     (currentTeamId, channels, memberships, messageCounts, crtEnabled, boardChannelIds) => {
         const result: Record<ProductRailSection, SectionUnreads> = {
-            home: {mentions: 0, hasUrgent: false, unread: false},
             channels: {mentions: 0, hasUrgent: false, unread: false},
             boards: {mentions: 0, hasUrgent: false, unread: false},
         };
@@ -205,13 +215,6 @@ export const getProductRailSectionUnreads: (state: GlobalState) => Record<Produc
             sectionUnreads.hasUrgent = sectionUnreads.hasUrgent || unreads.hasUrgent;
             sectionUnreads.unread = sectionUnreads.unread || unreads.showUnread;
         }
-
-        // Home holds both.
-        result.home = {
-            mentions: result.channels.mentions + result.boards.mentions,
-            hasUrgent: result.channels.hasUrgent || result.boards.hasUrgent,
-            unread: result.channels.unread || result.boards.unread,
-        };
 
         return result;
     },
