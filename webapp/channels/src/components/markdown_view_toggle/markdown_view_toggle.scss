@@ -62,14 +62,12 @@
     }
 }
 
-// The sliding thumb is the selected background, so cancel the hover/pressed backgrounds IconButton paints. The class is
-// repeated to outrank IconButton's own hover rule, which carries several :not() selectors, whatever order the CSS loads in.
+// The sliding thumb is the selected option's background, so only the pressed option needs its own hover/active
+// background cancelled (it sits on top of the thumb). The unselected option keeps IconButton's normal hover. The
+// class is repeated to outrank IconButton's own hover rule, which carries several :not() selectors, whatever order
+// the CSS loads in.
 .MarkdownViewToggle .MarkdownViewToggle__option.MarkdownViewToggle__option.MarkdownViewToggle__option {
-    &,
-    &:hover:not(:disabled):not(:active),
-    &:active:not(:disabled) {
-        background-color: transparent;
-    }
+    background-color: transparent;
 
     &[aria-pressed='true'] {
         &,
@@ -77,6 +75,7 @@
         &:active:not(:disabled) {
             --icon-button-fg: var(--markdown-view-toggle-active-icon);
 
+            background-color: transparent;
             color: var(--markdown-view-toggle-active-icon);
             cursor: default;
         }

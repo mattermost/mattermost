@@ -187,15 +187,19 @@ h6.markdown__heading {
         }
     }
 
-    .post-code__line-numbers {
+    .post-code__line-numbers,
+    .post-code__line-number {
         min-width: 36px;
-        padding: 0 8px 4px 4px;
         border-right: 1px solid rgba(204, 204, 204, 0.24);
         margin-right: 12px;
         color: #ccc;
         font-family: Menlo, Monaco, Consolas, "Courier New", monospace; // Match the fonts that code elements use
         text-align: right;
         user-select: none;
+    }
+
+    .post-code__line-numbers {
+        padding: 0 8px 4px 4px;
     }
 
     // Markdown source wraps, so each line is its own row with its number on the first row it takes up
@@ -209,15 +213,8 @@ h6.markdown__heading {
     }
 
     .post-code__line-number {
-        min-width: 36px;
         flex-shrink: 0;
         padding: 0 8px 0 4px;
-        border-right: 1px solid rgba(204, 204, 204, 0.24);
-        margin-right: 12px;
-        color: #ccc;
-        font-family: Menlo, Monaco, Consolas, "Courier New", monospace; // Match the fonts that code elements use
-        text-align: right;
-        user-select: none;
     }
 
     .post-code__line-text {

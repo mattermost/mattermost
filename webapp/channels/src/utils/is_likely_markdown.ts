@@ -33,9 +33,10 @@ const CONSTRUCTS: Array<(lines: string[], text: string) => boolean> = [
     hasTable,
     (lines) => lines.some((line) => (/^>[ \t]+\S/).test(line)),
 
-    // The quantifiers are bounded so a huge line of unclosed brackets or asterisks can't make these scan quadratically
-    (lines, text) => (/\[[^\]\n]{1,200}\]\([^)\s]{1,500}\)/).test(text),
-    (lines, text) => (/(\*\*|__)[^\s*_][^\n]{0,200}?\1/).test(text),
+    // The quantifiers are bounded so a huge line of unclosed brackets or asterisks can't make these scan quadratically.
+    // `\r` is excluded alongside `\n` so a match can't span a visual line break on CRLF input.
+    (lines, text) => (/\[[^\]\n\r]{1,200}\]\([^)\s]{1,500}\)/).test(text),
+    (lines, text) => (/(\*\*|__)[^\s*_][^\n\r]{0,200}?\1/).test(text),
 ];
 
 export function isLikelyMarkdown(code: string): boolean {

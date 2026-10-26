@@ -75,7 +75,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
     // Markdown is prose, so wrap it, with a number on each line rather than one column that wrapped lines would knock out of step.
     // Search highlighting is a second copy of the code laid over the first, so searched blocks keep the plain layout.
-    const isMarkdownSource = SyntaxHighlighting.isMarkdownLanguage(usedLanguage);
+    const isMarkdownSource = SyntaxHighlighting.isMarkdownLanguage(usedLanguage) || detectedMarkdown;
     const numberWrappedLines = isMarkdownSource && !searchedContent;
     const wrapLines = !usedLanguage || numberWrappedLines;
 
