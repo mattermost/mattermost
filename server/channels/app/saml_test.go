@@ -150,6 +150,35 @@ func registerMockSaml(t *testing.T, configureErr error) *mocks.SamlInterface {
 	return saml
 }
 
+type samlTestCluster interface {
+	einterfaces.ClusterInterface
+	ClearMessages()
+	SelectMessages(func(*model.ClusterMessage) bool) []*model.ClusterMessage
+}
+
+func setupSamlReload(t *testing.T, cluster samlTestCluster, configureErr error) (*TestHelper, *mocks.SamlInterface) {
+	t.Helper()
+	saml := registerMockSaml(t, configureErr)
+	th := SetupWithClusterMock(t, cluster)
+	// A rotation keeps the filename, so the config listener doesn't reconfigure the SP.
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
+
+	// Discard the ConfigureSP calls and cluster messages from startup.
+	saml.Calls = nil
+	cluster.ClearMessages()
+	return th, saml
+}
+
+func assertSamlReloaded(t *testing.T, saml *mocks.SamlInterface, cluster samlTestCluster) *model.ClusterMessage {
+	t.Helper()
+	saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
+	msgs := cluster.SelectMessages(func(m *model.ClusterMessage) bool {
+		return m.Event == model.ClusterEventReloadSaml
+	})
+	require.Len(t, msgs, 1)
+	return msgs[0]
+}
+
 func TestReloadSaml(t *testing.T) {
 	t.Run("no-op when no SAML interface is registered", func(t *testing.T) {
 		a := &App{ch: &Channels{}}
@@ -163,24 +192,14 @@ func TestReloadSaml(t *testing.T) {
 		"swallows a ConfigureSP error and still broadcasts": errors.New("partial certificate set"),
 	} {
 		t.Run(name, func(t *testing.T) {
-			saml := registerMockSaml(t, configureErr)
-
 			cluster := &testlib.FakeClusterInterface{}
-			th := SetupWithClusterMock(t, cluster)
-
-			// Discard the ConfigureSP calls and cluster messages from startup.
-			saml.Calls = nil
-			cluster.ClearMessages()
+			th, saml := setupSamlReload(t, cluster, configureErr)
 
 			th.App.reloadSaml(request.TestContext(t))
 
-			saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
-			msgs := cluster.SelectMessages(func(m *model.ClusterMessage) bool {
-				return m.Event == model.ClusterEventReloadSaml
-			})
-			require.Len(t, msgs, 1)
-			assert.Equal(t, model.ClusterSendReliable, msgs[0].SendType)
-			assert.False(t, msgs[0].WaitForAllToSend)
+			msg := assertSamlReloaded(t, saml, cluster)
+			assert.Equal(t, model.ClusterSendReliable, msg.SendType)
+			assert.False(t, msg.WaitForAllToSend)
 		})
 	}
 
@@ -220,23 +239,13 @@ func TestSetSamlIdpCertificateFromMetadata(t *testing.T) {
 	})
 
 	t.Run("rotating the certificate reloads the SP and broadcasts to the cluster", func(t *testing.T) {
-		saml := registerMockSaml(t, nil)
-
 		cluster := &testlib.FakeClusterInterface{}
-		th := SetupWithClusterMock(t, cluster)
-		// A rotation keeps the filename, so the config listener doesn't reconfigure the SP.
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
-		saml.Calls = nil
-		cluster.ClearMessages()
+		th, saml := setupSamlReload(t, cluster, nil)
 
 		appErr := th.App.SetSamlIdpCertificateFromMetadata(request.TestContext(t), []byte(base64.StdEncoding.EncodeToString(testCertificateDER(t))))
 		require.Nil(t, appErr)
 
-		saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
-		msgs := cluster.SelectMessages(func(m *model.ClusterMessage) bool {
-			return m.Event == model.ClusterEventReloadSaml
-		})
-		assert.Len(t, msgs, 1)
+		assertSamlReloaded(t, saml, cluster)
 	})
 }
 
@@ -255,26 +264,29 @@ func TestAddSamlIdpCertificate(t *testing.T) {
 	}
 
 	t.Run("stores the certificate, reloads the SP and broadcasts to the cluster", func(t *testing.T) {
-		saml := registerMockSaml(t, nil)
-
 		cluster := &testlib.FakeClusterInterface{}
-		th := SetupWithClusterMock(t, cluster)
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
-		saml.Calls = nil
-		cluster.ClearMessages()
+		th, saml := setupSamlReload(t, cluster, nil)
 
-		certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: testCertificateDER(t)})
+		certPEM := testCertificatePEM(t)
 		appErr := th.App.AddSamlIdpCertificate(request.TestContext(t), samlFileHeader(t, certPEM))
 		require.Nil(t, appErr)
 
 		stored, err := th.App.GetConfigFile(SamlIdpCertificateName)
 		require.NoError(t, err)
 		assert.Equal(t, certPEM, stored)
-		saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
-		msgs := cluster.SelectMessages(func(m *model.ClusterMessage) bool {
-			return m.Event == model.ClusterEventReloadSaml
-		})
-		assert.Len(t, msgs, 1)
+		assertSamlReloaded(t, saml, cluster)
+	})
+
+	t.Run("reloads the SP even if the config can't be sent to the other nodes", func(t *testing.T) {
+		cluster := &configChangeCapturingCluster{}
+		th, saml := setupSamlReload(t, cluster, nil)
+		cluster.err = model.NewAppError("ConfigChanged", "test.peer_unreachable", nil, "", http.StatusInternalServerError)
+
+		appErr := th.App.AddSamlIdpCertificate(request.TestContext(t), samlFileHeader(t, testCertificatePEM(t)))
+		require.NotNil(t, appErr)
+		assert.Equal(t, "test.peer_unreachable", appErr.Id)
+
+		assertSamlReloaded(t, saml, cluster)
 	})
 }
 
@@ -295,11 +307,12 @@ func TestRemoveSamlIdpCertificate(t *testing.T) {
 type configChangeCapturingCluster struct {
 	testlib.FakeClusterInterface
 	sent []bool
+	err  *model.AppError
 }
 
 func (c *configChangeCapturingCluster) ConfigChanged(_, _ *model.Config, sendToOtherServer bool) *model.AppError {
 	c.sent = append(c.sent, sendToOtherServer)
-	return nil
+	return c.err
 }
 
 func testCertificateDER(t *testing.T) []byte {
@@ -314,6 +327,10 @@ func testCertificateDER(t *testing.T) []byte {
 	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
 	require.NoError(t, err)
 	return certDER
+}
+
+func testCertificatePEM(t *testing.T) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: testCertificateDER(t)})
 }
 
 func samlFileHeader(t *testing.T, data []byte) *multipart.FileHeader {
