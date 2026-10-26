@@ -7,11 +7,10 @@ import React, {PureComponent, type JSX} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, FormattedList, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
-import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
-import ReactSelect from 'react-select';
 
+import {Combobox} from '@mattermost/compass-ui/components/combobox';
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
-import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -23,6 +22,18 @@ import {isPropertyFieldSyncedForAuthService} from 'mattermost-redux/utils/proper
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
+import {
+    ATTRIBUTE_COMBOBOX_MODAL_Z_INDEX,
+    fromComboboxMultiChange,
+    fromComboboxSingleChange,
+    getAttributeComboboxClearButtonProps,
+    getAttributeComboboxLabels,
+    getAttributeComboboxWrapperProps,
+    getFallbackSelectedOptions,
+    toComboboxMultiValue,
+    toComboboxOptions,
+    toComboboxSingleValue,
+} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
@@ -115,34 +126,6 @@ const holders = defineMessages({
         defaultMessage: 'Position',
     },
 });
-
-export type SelectOption = {
-    value: string;
-    label: string;
-};
-
-const selectStyles: StylesConfig<SelectOption, true> = {
-    valueContainer: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-        flexWrap: 'wrap',
-        whiteSpace: 'normal',
-    }),
-    multiValue: (baseStyles) => ({
-        ...baseStyles,
-        margin: '2px',
-    }),
-    control: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-    }),
-    multiValueLabel: (baseStyles) => ({
-        ...baseStyles,
-        padding: '2px 6px',
-    }),
-};
 
 export type Props = {
     intl: IntlShape;
@@ -535,25 +518,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         }
     };
 
-    updateSelectAttribute = (selectedOption: OnChangeValue<SelectOption, boolean>, action: ActionMeta<SelectOption>, fieldID: string) => {
-        const attributeValues = {...this.state.customAttributeValues};
-
-        if (!selectedOption) {
-            attributeValues[fieldID] = '';
-        } else if (Array.isArray(selectedOption)) {
-            // Handle multi-select
-            attributeValues[fieldID] = selectedOption.
-                filter((option): option is SelectOption =>
-                    Boolean(option && Object.hasOwn(option, 'value'))).
-                map((option) => option.value);
-        } else if ('value' in selectedOption) {
-            // Handle single select
-            attributeValues[fieldID] = selectedOption.value || '';
-        } else {
-            attributeValues[fieldID] = '';
-        }
-
-        this.setState({customAttributeValues: attributeValues});
+    updateComboboxAttribute = (fieldID: string, value: string | string[]) => {
+        this.setState((prevState) => ({customAttributeValues: {...prevState.customAttributeValues, [fieldID]: value}}));
     };
 
     updateAttribute = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1674,31 +1640,45 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     }
 
                     if (valueRefersToOptions(attribute)) {
-                        const attribOptions: PropertyFieldOption[] = (attribute.attrs!.options as PropertyFieldOption[]) ?? [];
-                        const opts = attribOptions.map((o) => {
-                            return {label: o.name, value: o.id} as SelectOption;
-                        });
+                        const comboboxId = 'customProfileAttribute_' + attribute.id;
+                        const fieldLabel = getUserPropertyFieldLabel(attribute);
+                        const options = toComboboxOptions(attribute.attrs?.options, {testIdPrefix: comboboxId});
+                        const draft = this.state.customAttributeValues[attribute.id];
+                        const multiple = attribute.type === 'multiselect';
+                        const multiValue = toComboboxMultiValue(draft);
+                        const draftSingleValue = toComboboxSingleValue(draft);
+
+                        // A stored id that no longer matches an option shows as unset; state keeps it until the user picks or clears.
+                        const singleValue = options.some((o) => o.value === draftSingleValue) ? draftSingleValue : '';
 
                         inputs.push(
-                            <ReactSelect
-                                isMulti={attribute.type === 'multiselect' ? true : undefined}
+                            // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- key and focus guards only; the Combobox input owns keyboard interaction
+                            <div
                                 key={sectionName}
-                                id={'customProfileAttribute_' + attribute.id}
-                                inputId={'customProfileAttribute_' + attribute.id + '_input'}
-                                className='react-select inlineSelect'
-                                classNamePrefix='react-select'
-                                options={opts}
-                                isClearable={true}
-                                isSearchable={false}
-                                placeholder={formatMessage({
-                                    id: 'user.settings.general.select',
-                                    defaultMessage: 'Select',
-                                })}
-                                components={{IndicatorSeparator: null}}
-                                styles={selectStyles}
-                                value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
-                                onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
-                            />,
+                                {...getAttributeComboboxWrapperProps()}
+                            >
+                                <Combobox
+                                    id={comboboxId}
+                                    data-testid={comboboxId}
+                                    aria-label={fieldLabel}
+                                    options={options}
+                                    multiple={multiple}
+                                    value={multiple ? multiValue : singleValue}
+                                    selectedOptions={multiple ? getFallbackSelectedOptions(multiValue, options) : undefined}
+                                    clearable={true}
+                                    clearButtonProps={getAttributeComboboxClearButtonProps(`${comboboxId}-clear`)}
+                                    placeholder={formatMessage({
+                                        id: 'user.settings.general.select',
+                                        defaultMessage: 'Select',
+                                    })}
+                                    zIndex={ATTRIBUTE_COMBOBOX_MODAL_Z_INDEX}
+                                    {...getAttributeComboboxLabels(this.props.intl, fieldLabel)}
+                                    onChange={(next) => this.updateComboboxAttribute(
+                                        attribute.id,
+                                        multiple ? fromComboboxMultiChange(next) : fromComboboxSingleChange(next),
+                                    )}
+                                />
+                            </div>,
                         );
                     } else {
                         const inputType = attribute.type as string;
