@@ -16,24 +16,32 @@ import (
 
 // DeliverPostNotifications runs the notification pipeline for a post after it was created.
 //
-// With no options.UserIDs, it releases a post created with deferred notifications: the
-// post stops being silent, counts as a new unread message in its channel and thread as of
-// now, and notifies the channel against its current content exactly as if it had just been
-// posted. Releasing is conditional on the post still being deferred, so it happens at most
-// once across concurrent callers and cluster nodes; for a post that is not deferred this is
-// a no-op.
+// With nil options, it releases a post created with deferred notifications: the post stops
+// being silent, counts as a new unread message in its channel and thread as of now, and
+// notifies the channel against its current content exactly as if it had just been posted.
+// Releasing is conditional on the post still being deferred, so it happens at most once
+// across concurrent callers and cluster nodes; for a post that is not deferred, or that is in
+// an archived channel, this is a no-op. An error returned after the release may mean the
+// channel was only partly notified; the post is no longer deferred either way.
 //
 // With options.UserIDs, it notifies only those users, as if each were explicitly mentioned,
 // and leaves the post's deferred state and the channel's message totals untouched. Users
-// who are not active members of the channel, and the post's author, are skipped.
+// who are not active members of the channel, and the post's author, are skipped. This is
+// additive: a later release notifies the channel, including these users, as usual.
 func (a *App) DeliverPostNotifications(rctx request.CTX, postID string, options *model.DeliverPostNotificationsOptions) *model.AppError {
 	if !model.IsValidId(postID) {
 		return model.NewAppError("DeliverPostNotifications", "api.context.invalid_param.app_error", map[string]any{"Name": "post_id"}, "", http.StatusBadRequest)
 	}
 
 	var userIDs []string
-	if options != nil && len(options.UserIDs) > 0 {
-		userIDs = model.RemoveDuplicateStrings(options.UserIDs)
+	if options != nil {
+		if len(options.UserIDs) == 0 {
+			return model.NewAppError("DeliverPostNotifications", "api.context.invalid_param.app_error", map[string]any{"Name": "user_ids"}, "", http.StatusBadRequest)
+		}
+		if len(options.UserIDs) > model.DeliverPostNotificationsMaxUserIDs {
+			return model.NewAppError("DeliverPostNotifications", "app.post.deliver_notifications.too_many_users.app_error", map[string]any{"Max": model.DeliverPostNotificationsMaxUserIDs}, "", http.StatusBadRequest)
+		}
+		userIDs = model.RemoveDuplicateStringsNonSort(options.UserIDs)
 		for _, userID := range userIDs {
 			if !model.IsValidId(userID) {
 				return model.NewAppError("DeliverPostNotifications", "api.context.invalid_param.app_error", map[string]any{"Name": "user_ids"}, "", http.StatusBadRequest)
@@ -46,7 +54,7 @@ func (a *App) DeliverPostNotifications(rctx request.CTX, postID string, options 
 		return appErr
 	}
 
-	if len(userIDs) == 0 {
+	if userIDs == nil {
 		return a.deliverDeferredPostNotifications(rctx, post)
 	}
 
@@ -67,33 +75,25 @@ func (a *App) getPostForNotificationDelivery(rctx request.CTX, postID string) (*
 }
 
 func (a *App) deliverDeferredPostNotifications(rctx request.CTX, post *model.Post) *model.AppError {
-	if !post.HasDeferredNotification() {
+	// The store releases only posts carrying both markers; a post with just one of them
+	// was counted and notified, or not, when it was saved.
+	if !post.HasDeferredNotification() || !post.HasSilentNotification() {
 		return nil
 	}
 
-	released, err := a.Srv().Store().Post().ReleaseDeferredNotification(rctx, post.Id, model.GetMillis())
-	if err != nil {
-		return model.NewAppError("DeliverPostNotifications", "app.post.deliver_notifications.release.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if !released {
-		rctx.Logger().Debug("Deferred post notifications were already delivered", mlog.String("post_id", post.Id))
-		return nil
-	}
-
-	// Notify against the content as it is now, which may have changed since it was read above.
-	post, appErr := a.getPostForNotificationDelivery(rctx, post.Id)
-	if appErr != nil {
-		return appErr
-	}
-
+	// Everything the notification pipeline needs is looked up before releasing, so that
+	// a failed lookup leaves the post deferred for the caller to retry.
 	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return appErr
 	}
 
-	a.Srv().Platform().InvalidateCacheForChannel(channel)
-	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
-	a.invalidateCacheForChannelPosts(channel.Id)
+	// SendNotifications never notifies in archived channels, and releasing would only
+	// count the post as unread there; the post stays deferred until the channel is restored.
+	if channel.DeleteAt > 0 {
+		rctx.Logger().Debug("Not releasing deferred post notifications in an archived channel", mlog.String("post_id", post.Id), mlog.String("channel_id", channel.Id))
+		return nil
+	}
 
 	team, sender, appErr := a.getPostNotificationContext(rctx, post, channel)
 	if appErr != nil {
@@ -102,13 +102,29 @@ func (a *App) deliverDeferredPostNotifications(rctx request.CTX, post *model.Pos
 
 	var parentPostList *model.PostList
 	if post.RootId != "" {
+		var err error
 		parentPostList, err = a.Srv().Store().Post().Get(sqlstore.RequestContextWithMaster(rctx), post.RootId, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 		if err != nil {
 			return model.NewAppError("DeliverPostNotifications", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	post = a.preparePostForNotificationDelivery(rctx, post)
+	// The released row carries the content as it is now, which may have changed since
+	// the post was read above.
+	released, err := a.Srv().Store().Post().ReleaseDeferredNotification(rctx, post.Id, model.GetMillis())
+	if err != nil {
+		return model.NewAppError("DeliverPostNotifications", "app.post.deliver_notifications.release.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if released == nil {
+		rctx.Logger().Debug("Deferred post notifications were already delivered", mlog.String("post_id", post.Id))
+		return nil
+	}
+
+	a.Srv().Platform().InvalidateCacheForChannel(channel)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
+	a.invalidateCacheForChannelPosts(channel.Id)
+
+	post = a.preparePostForNotificationDelivery(rctx, released)
 
 	if _, err := a.SendNotifications(rctx, post, team, channel, sender, parentPostList, false); err != nil {
 		if sendErr, ok := errors.AsType[*model.AppError](err); ok {
@@ -136,16 +152,11 @@ func (a *App) deliverPostNotificationsToUsers(rctx request.CTX, post *model.Post
 		return appErr
 	}
 
-	members, err := a.Srv().Store().Channel().GetMembersByIds(channel.Id, userIDs)
-	if err != nil {
-		return model.NewAppError("DeliverPostNotifications", "app.channel.get_members_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	channelMemberNotifyPropsMap := make(map[string]model.StringMap, len(members))
-	for _, member := range members {
-		channelMemberNotifyPropsMap[member.UserId] = member.NotifyProps
-	}
+	// A plugin typically notifies users it just added to the channel, which a replica or
+	// cache may not reflect yet.
+	masterCtx := sqlstore.RequestContextWithMaster(rctx)
 
-	profiles, err := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, nil, true)
+	profiles, err := a.Srv().Store().User().GetProfileByIds(masterCtx, userIDs, nil, false)
 	if err != nil {
 		return model.NewAppError("DeliverPostNotifications", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -158,18 +169,28 @@ func (a *App) deliverPostNotificationsToUsers(rctx request.CTX, post *model.Post
 
 	recipients := make(model.StringArray, 0, len(userIDs))
 	profileMap := make(map[string]*model.User, len(userIDs))
+	channelMemberNotifyPropsMap := make(map[string]model.StringMap, len(userIDs))
 	for _, userID := range userIDs {
-		_, isMember := channelMemberNotifyPropsMap[userID]
-		profile := activeProfiles[userID]
-		switch {
-		case userID == post.UserId:
+		if userID == post.UserId {
 			rctx.Logger().Debug("Skipping post notification for the post's author", mlog.String("post_id", post.Id), mlog.String("user_id", userID))
-		case profile == nil || !isMember:
-			rctx.Logger().Debug("Skipping post notification for a user who is not an active channel member", mlog.String("post_id", post.Id), mlog.String("channel_id", channel.Id), mlog.String("user_id", userID))
-		default:
-			recipients = append(recipients, userID)
-			profileMap[userID] = profile
+			continue
 		}
+		profile := activeProfiles[userID]
+		if profile == nil {
+			rctx.Logger().Debug("Skipping post notification for a user who is not active", mlog.String("post_id", post.Id), mlog.String("user_id", userID))
+			continue
+		}
+		member, memberErr := a.Srv().Store().Channel().GetMember(masterCtx, channel.Id, userID)
+		if memberErr != nil {
+			if _, ok := errors.AsType[*store.ErrNotFound](memberErr); ok {
+				rctx.Logger().Debug("Skipping post notification for a user who is not a channel member", mlog.String("post_id", post.Id), mlog.String("channel_id", channel.Id), mlog.String("user_id", userID))
+				continue
+			}
+			return model.NewAppError("DeliverPostNotifications", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(memberErr)
+		}
+		recipients = append(recipients, userID)
+		profileMap[userID] = profile
+		channelMemberNotifyPropsMap[userID] = member.NotifyProps
 	}
 	if len(recipients) == 0 {
 		return nil
@@ -206,12 +227,15 @@ func (a *App) deliverPostNotificationsToUsers(rctx request.CTX, post *model.Post
 	participantMemberships := map[string]*model.ThreadMembership{}
 	if post.RootId != "" {
 		if isCRTAllowed {
-			threadFollowers, err := a.Srv().Store().Thread().GetThreadFollowers(post.RootId, true)
-			if err != nil {
-				return model.NewAppError("DeliverPostNotifications", "app.channel.autofollow.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			for _, userID := range threadFollowers {
-				if _, ok := profileMap[userID]; ok {
+			for _, userID := range recipients {
+				membership, err := a.Srv().Store().Thread().GetMembershipForUser(userID, post.RootId)
+				if err != nil {
+					if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+						continue
+					}
+					return model.NewAppError("DeliverPostNotifications", "app.channel.autofollow.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+				if membership.Following {
 					followers.Add(userID)
 				}
 			}
@@ -282,6 +306,8 @@ func (a *App) deliverPostNotificationsToUsers(rctx request.CTX, post *model.Post
 		message.Add("sender_name", notification.GetSenderName(model.ShowUsername, *a.Config().ServiceSettings.EnablePostUsernameOverride))
 		message.Add("team_id", team.Id)
 		message.Add("set_online", false)
+		// The post is not a new message in the channel: clients count the mention only.
+		message.Add("notification_only", true)
 		if hasFiles {
 			message.Add("otherFile", "true")
 		}

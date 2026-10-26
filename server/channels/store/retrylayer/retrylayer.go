@@ -9992,7 +9992,7 @@ func (s *RetryLayerPostStore) RefreshPostStats() error {
 
 }
 
-func (s *RetryLayerPostStore) ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (bool, error) {
+func (s *RetryLayerPostStore) ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (*model.Post, error) {
 
 	tries := 0
 	for {

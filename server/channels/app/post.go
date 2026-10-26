@@ -242,6 +242,13 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			)
 			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.deferred_persistent_notification.app_error", nil, "", http.StatusBadRequest)
 		}
+		if post.Type == model.PostTypeBurnOnRead {
+			rctx.Logger().Warn("Rejected deferred notification post with burn on read",
+				mlog.String("user_id", post.UserId),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.deferred_burn_on_read.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	// Validate recipients counts in case it's not DM
@@ -319,10 +326,19 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			)
 			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.deferred_notification.app_error", nil, "", http.StatusForbidden)
 		}
-		// silent_notification makes every existing suppression path, including shipped
-		// clients, treat the post as silent until DeliverPostNotifications releases it.
-		post.AddProp(model.PostPropsDeferredNotification, true)
-		post.AddProp(model.PostPropsSilentNotification, true)
+		if channel.IsShared() {
+			// The release is local to this server, so users on remote clusters would never be
+			// notified; shared channels notify on create instead.
+			rctx.Logger().Debug("Not deferring notifications for a post in a shared channel",
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channel.Id),
+			)
+		} else {
+			// silent_notification makes every existing suppression path, including shipped
+			// clients, treat the post as silent until DeliverPostNotifications releases it.
+			post.AddProp(model.PostPropsDeferredNotification, true)
+			post.AddProp(model.PostPropsSilentNotification, true)
+		}
 	}
 
 	if rctx.Session().IsOAuth {

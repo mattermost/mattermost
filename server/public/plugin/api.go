@@ -800,18 +800,30 @@ type API interface {
 	// To defer a post's notifications, create it with the model.PostPropsDeferredNotification
 	// prop set to true. The post is then saved silently: it is visible but sends no
 	// notifications and leaves the channel unread state unchanged, and edits keep it that way.
+	// Outgoing webhooks, the MessageHasBeenPosted hook and auto-responses run when the post is
+	// created, so they only ever see the post as created, and are not triggered again. Posts in
+	// shared channels are not deferred: they notify when created, as usual. Burn-on-read posts
+	// cannot be deferred.
 	//
-	// With nil options, or no options.UserIDs, the deferred post is released: it stops being
-	// silent, becomes unread for the channel as of now, and notifies the channel against its
-	// current content as if it had just been posted, including mentions, push, email and
-	// followed threads. Webhooks and auto-responses are not triggered again. Releasing happens
-	// at most once, even across concurrent calls and cluster nodes; calling it for a post that
-	// is not, or is no longer, deferred does nothing and returns nil.
+	// With nil options, the deferred post is released: it stops being silent, becomes unread
+	// as of now for the channel or thread (including for users who viewed it while it was
+	// deferred), and notifies the channel against its current content as if it had just been
+	// posted, including mentions, push, email and followed threads. Releasing happens at most
+	// once, even across concurrent calls and cluster nodes; calling it for a post that is not,
+	// or is no longer, deferred does nothing and returns nil. In an archived channel nothing is
+	// released and nil is returned; the post stays deferred. Everything delivery needs is
+	// looked up before releasing, so an error returned before the release leaves the post
+	// deferred for a retry, but an error from sending the notifications themselves may mean the
+	// channel was only partly notified, and the post is released either way.
 	//
 	// With options.UserIDs, only those users are notified, as if each were explicitly
-	// mentioned, whether or not the post is deferred. The post's deferred state is left
-	// unchanged. Users who are not active members of the post's channel, and the post's author,
-	// are skipped.
+	// mentioned, whether or not the post is deferred. The post's deferred state and the
+	// channel's message counts are left unchanged. Users who are not active members of the
+	// post's channel, and the post's author, are skipped. options.UserIDs must list between 1
+	// and model.DeliverPostNotificationsMaxUserIDs users; otherwise a 400 error is returned.
+	// Scoped delivery is additive: a later release notifies the channel as usual, so a user
+	// notified here who is also notified by the release, for example because they are
+	// mentioned, gets a second notification and a second mention count.
 	//
 	// Returns a 404 error if the post does not exist or was deleted.
 	//

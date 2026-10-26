@@ -437,11 +437,16 @@ type PostStore interface {
 	// removing its deferred_notification and silent_notification props, and applies the
 	// channel and thread bookkeeping that was skipped when it was saved silently, as of
 	// releaseAt: it counts the post in the channel's message totals and advances the
-	// channel's last post times and, for a reply, the thread's last reply time. The
-	// transition is conditional on the post still being deferred, so concurrent callers
-	// release a post at most once; it returns false, changing nothing, when the post is
-	// missing, deleted or not deferred.
-	ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (bool, error)
+	// channel's last post times and, for a reply, the thread's last reply time. Members
+	// other than the author who viewed the channel (for a root post) or the thread (for a
+	// reply) after the post was created have that view moved to just before the post, so
+	// it reads as unread. The transition is conditional on the post still carrying both
+	// markers, so concurrent callers release a post at most once. It returns the released
+	// post, or nil, changing nothing, when the post is missing, deleted or not deferred.
+	//
+	// Update and OverwriteMultiple never add or remove the markers, so a write based on a
+	// copy of the post read before a release cannot undo it.
+	ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (*model.Post, error)
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
 	GetEditHistoryForPost(postID string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)

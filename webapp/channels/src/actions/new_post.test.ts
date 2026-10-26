@@ -530,14 +530,16 @@ describe('actions/new_post', () => {
         const postId = 'deferred_post_id';
 
         let showNotification: jest.SpyInstance;
+        let ding: jest.SpyInstance;
 
         beforeEach(() => {
             showNotification = jest.spyOn(NotificationUtils, 'showNotification').mockReturnValue((async () => ({status: 'success'})) as unknown as ReturnType<typeof NotificationUtils.showNotification>);
-            (NotificationSounds as {ding: typeof NotificationSounds.ding}).ding = jest.fn();
+            ding = jest.spyOn(NotificationSounds, 'ding').mockImplementation(() => {});
         });
 
         afterEach(() => {
             showNotification.mockRestore();
+            ding.mockRestore();
         });
 
         function makeStore(collapsedThreads: boolean) {
@@ -603,8 +605,15 @@ describe('actions/new_post', () => {
             } as unknown as Post;
             const messageProps = {team_id: teamId, channel_type: 'O', channel_display_name: 'Town', channel_name: 'town', sender_name: 'agent', set_online: false} as NewPostActions.NewPostMessageProps;
 
+            const scoped = {
+                ...post,
+                message: 'an early answer',
+                props: {from_bot: 'true'},
+            } as unknown as Post;
+
             return {
                 placeholder: {post: placeholder, props: {...messageProps, post: JSON.stringify(placeholder)}},
+                scoped: {post: scoped, props: {...messageProps, post: JSON.stringify(scoped), mentions: JSON.stringify([currentUserId]), notification_only: true}},
                 released: {post: released, props: {...messageProps, post: JSON.stringify(released), mentions: JSON.stringify([currentUserId]), ...(post.root_id ? {followers: JSON.stringify([currentUserId])} : {})}},
             };
         }
@@ -632,6 +641,33 @@ describe('actions/new_post', () => {
             expect(state.entities.teams.myMembers[teamId].mention_count).toBe(1);
             expect(showNotification).toHaveBeenCalledTimes(1);
             expect(showNotification).toHaveBeenCalledWith(expect.objectContaining({body: '@agent: the final answer', tag: postId}));
+        });
+
+        test('notification-only event adds a mention without counting a new message', async () => {
+            const store = makeStore(false);
+            const {placeholder, scoped, released} = postedEvents({id: postId, channel_id: channelId, user_id: botUserId, root_id: '', create_at: 2000, update_at: 2000, reply_count: 0} as Post);
+
+            await store.dispatch(NewPostActions.completePostReceive(placeholder.post, placeholder.props));
+            await store.dispatch(NewPostActions.completePostReceive(scoped.post, scoped.props));
+
+            let state = store.getState();
+            expect(state.entities.posts.postsInChannel[channelId][0].order).toEqual([postId, rootId]);
+            expect(state.entities.channels.messageCounts[channelId]).toEqual({total: 1, root: 1});
+            expect(state.entities.channels.myMembers[channelId].msg_count).toBe(1);
+            expect(state.entities.channels.myMembers[channelId].mention_count).toBe(1);
+            expect(state.entities.teams.myMembers[teamId].msg_count).toBe(0);
+            expect(state.entities.teams.myMembers[teamId].mention_count).toBe(1);
+            expect(showNotification).toHaveBeenCalledTimes(1);
+            expect(showNotification).toHaveBeenCalledWith(expect.objectContaining({body: '@agent: an early answer', tag: postId}));
+
+            // Matches the server, where releasing after a scoped delivery is additive.
+            await store.dispatch(NewPostActions.completePostReceive(released.post, released.props));
+
+            state = store.getState();
+            expect(state.entities.channels.messageCounts[channelId]).toEqual({total: 2, root: 2});
+            expect(state.entities.channels.myMembers[channelId].mention_count).toBe(2);
+            expect(state.entities.teams.myMembers[teamId].mention_count).toBe(2);
+            expect(showNotification).toHaveBeenCalledTimes(2);
         });
 
         test('collapsed threads reply is not duplicated and does not change the reply count', async () => {

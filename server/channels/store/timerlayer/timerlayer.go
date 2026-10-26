@@ -8064,7 +8064,7 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 	return err
 }
 
-func (s *TimerLayerPostStore) ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (bool, error) {
+func (s *TimerLayerPostStore) ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (*model.Post, error) {
 	start := time.Now()
 
 	result, err := s.PostStore.ReleaseDeferredNotification(rctx, postID, releaseAt)

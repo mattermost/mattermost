@@ -425,7 +425,9 @@ type CreatePostFlags struct {
 	SilentNotification bool
 	// DeferNotification saves the post silently and marks it deferred, so that
 	// notifications can be delivered later against its final content with
-	// DeliverPostNotifications.
+	// DeliverPostNotifications. Outgoing webhooks, the MessageHasBeenPosted hook and
+	// the auto-responder run on create and so only ever see the post as created. It is
+	// ignored in shared channels, where the post notifies on create.
 	DeferNotification   bool
 	FromIncomingWebhook bool
 	FromPlugin          bool
@@ -1628,12 +1630,21 @@ func DefaultUpdatePostOptions() *UpdatePostOptions {
 	}
 }
 
+// DeliverPostNotificationsMaxUserIDs is the most users a single scoped
+// DeliverPostNotifications call can notify.
+const DeliverPostNotificationsMaxUserIDs = 200
+
 // DeliverPostNotificationsOptions controls DeliverPostNotifications. A nil value
 // requests full delivery: the post leaves the deferred state and notifies the
 // channel as if it had just been posted.
 type DeliverPostNotificationsOptions struct {
-	// UserIDs, when non-empty, notifies only these users, as if each were explicitly
-	// mentioned, and leaves the post's deferred state untouched.
+	// UserIDs notifies only these users, as if each were explicitly mentioned, and
+	// leaves the post's deferred state and the channel's message counts untouched. It
+	// must list between 1 and DeliverPostNotificationsMaxUserIDs users.
+	//
+	// Scoped delivery is additive: a later full delivery notifies the channel as usual,
+	// so a user notified here who would also be notified by the full delivery is
+	// notified, and has their mention count incremented, a second time.
 	UserIDs []string `json:"user_ids,omitempty"`
 }
 

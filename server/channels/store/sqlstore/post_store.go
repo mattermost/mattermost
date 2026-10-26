@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
 	sq "github.com/mattermost/squirrel"
@@ -417,6 +418,35 @@ func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
 	return nil
 }
 
+// postPropsUpdateExpr writes :Props over a post's Props, except for the deferred
+// notification markers, which only ReleaseDeferredNotification may clear. Callers build
+// :Props from a copy of the row read earlier, so without this an edit that overlaps a
+// release would write the markers back, and the post would be released, counted, and
+// notified a second time. The expression reads the row under its lock, so it also holds
+// when the release commits while the update waits.
+//
+// It must stay free of "::" casts and JSON literals: sqlx named queries treat ":" as the
+// start of a parameter name.
+const postPropsUpdateExpr = `CASE
+	WHEN Posts.Props @> jsonb_build_object('deferred_notification', true, 'silent_notification', true)
+		THEN COALESCE(NULLIF(CAST(:Props AS jsonb), 'null'), jsonb_build_object()) || jsonb_build_object('deferred_notification', true, 'silent_notification', true)
+	WHEN CAST(:Props AS jsonb) @> jsonb_build_object('deferred_notification', true)
+		THEN (CAST(:Props AS jsonb) - 'deferred_notification' - 'silent_notification') || jsonb_strip_nulls(jsonb_build_object('silent_notification', Posts.Props -> 'silent_notification'))
+	ELSE CAST(:Props AS jsonb)
+END`
+
+// namedGet runs a named statement that returns a single row, with the parameter naming
+// rules NamedExec applies.
+func namedGet(ex interface {
+	Get(dest any, query string, args ...any) error
+}, dest any, query string, arg any) error {
+	query, args, err := sqlx.Named(namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower), arg)
+	if err != nil {
+		return err
+	}
+	return ex.Get(dest, query, args...)
+}
+
 func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	newPost.UpdateAt = model.GetMillis()
 	newPost.PreCommit()
@@ -434,7 +464,8 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 	}
 	newPost.ValidateProps(rctx.Logger())
 
-	if _, err := s.GetMaster().NamedExec(`UPDATE Posts
+	var storedProps model.StringInterface
+	if err := namedGet(s.GetMaster(), &storedProps, `UPDATE Posts
 		SET CreateAt=:CreateAt,
 			UpdateAt=:UpdateAt,
 			EditAt=:EditAt,
@@ -446,7 +477,7 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 			OriginalId=:OriginalId,
 			Message=:Message,
 			Type=:Type,
-			Props=:Props,
+			Props=`+postPropsUpdateExpr+`,
 			Hashtags=:Hashtags,
 			Filenames=:Filenames,
 			FileIds=:FileIds,
@@ -454,8 +485,13 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 			RemoteId=:RemoteId
 		WHERE
 			Id=:Id
+		RETURNING Props
 		`, newPost); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Post with id=%s", newPost.Id)
+		if !errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.Wrapf(err, "failed to update Post with id=%s", newPost.Id)
+		}
+	} else {
+		newPost.SetProps(storedProps)
 	}
 
 	time := model.GetMillis()
@@ -500,7 +536,8 @@ func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) 
 	defer finalizeTransactionX(tx, &err)
 
 	for idx, post := range posts {
-		if _, err2 := tx.NamedExec(`UPDATE Posts
+		var storedProps model.StringInterface
+		if err2 := namedGet(tx, &storedProps, `UPDATE Posts
 				SET CreateAt=:CreateAt,
 					UpdateAt=:UpdateAt,
 					EditAt=:EditAt,
@@ -512,7 +549,7 @@ func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) 
 					OriginalId=:OriginalId,
 					Message=:Message,
 					Type=:Type,
-					Props=:Props,
+					Props=`+postPropsUpdateExpr+`,
 					Hashtags=:Hashtags,
 					Filenames=:Filenames,
 					FileIds=:FileIds,
@@ -520,8 +557,13 @@ func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) 
 					RemoteId=:RemoteId
 				WHERE
 					Id=:Id
+				RETURNING Props
 			`, post); err2 != nil {
-			return nil, idx, errors.Wrapf(err2, "failed to update Post with id=%s", post.Id)
+			if !errors.Is(err2, sql.ErrNoRows) {
+				return nil, idx, errors.Wrapf(err2, "failed to update Post with id=%s", post.Id)
+			}
+		} else {
+			post.SetProps(storedProps)
 		}
 		if post.RootId != "" {
 			if _, err2 := tx.Exec("UPDATE Threads SET LastReplyAt = ? WHERE PostId = ?", updateAt, post.Id); err2 != nil {
@@ -546,40 +588,36 @@ func (s *SqlPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Pos
 	return posts[0], nil
 }
 
-func (s *SqlPostStore) ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (_ bool, err error) {
+func (s *SqlPostStore) ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (_ *model.Post, err error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return false, errors.Wrap(err, "begin_transaction")
+		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	// The deferred_notification containment check is what makes the release happen at
-	// most once: a concurrent caller, or an HA peer, blocks on the row lock and then
-	// matches no row.
+	// The containment check is what makes the release happen at most once: a concurrent
+	// caller, or an HA peer, blocks on the row lock and then matches no row. Both markers
+	// are required because SaveMultiple only left the post out of the message totals if
+	// it was silent.
 	releaseQuery := s.getQueryBuilder().
 		Update("Posts").
 		Set("Props", sq.Expr("Props - ?::text - ?::text", model.PostPropsDeferredNotification, model.PostPropsSilentNotification)).
 		Set("UpdateAt", sq.Expr("GREATEST(UpdateAt + 1, ?)", releaseAt)).
 		Where(sq.Eq{"Id": postID, "DeleteAt": 0}).
-		Where(sq.Expr("Props @> ?::jsonb", fmt.Sprintf(`{%q: true}`, model.PostPropsDeferredNotification))).
-		Suffix("RETURNING ChannelId, RootId, Type")
+		Where(sq.Expr("Props @> ?::jsonb", fmt.Sprintf(`{%q: true, %q: true}`, model.PostPropsDeferredNotification, model.PostPropsSilentNotification))).
+		Suffix("RETURNING " + strings.Join(postSliceColumnsWithName("Posts"), ", ") +
+			", (SELECT COUNT(*) FROM Posts p WHERE p.RootId = (CASE WHEN Posts.RootId = '' THEN Posts.Id ELSE Posts.RootId END) AND p.DeleteAt = 0) AS ReplyCount")
 
-	var released struct {
-		ChannelId string
-		RootId    string
-		Type      string
-	}
+	var released model.Post
 	if err = transaction.GetBuilder(&released, releaseQuery); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
+			return nil, nil
 		}
-		return false, errors.Wrapf(err, "failed to release deferred notification for Post with id=%s", postID)
+		return nil, errors.Wrapf(err, "failed to release deferred notification for Post with id=%s", postID)
 	}
 
-	// Mirrors SaveMultiple, which left the post out of the message totals only because
-	// it was silent.
 	countDelta := 1
-	if (&model.Post{Type: released.Type}).IsJoinLeaveMessage() {
+	if released.IsJoinLeaveMessage() {
 		countDelta = 0
 	}
 	channelQuery := s.getQueryBuilder().
@@ -593,7 +631,7 @@ func (s *SqlPostStore) ReleaseDeferredNotification(rctx request.CTX, postID stri
 			Set("TotalMsgCountRoot", sq.Expr("TotalMsgCountRoot + ?", countDelta))
 	}
 	if _, err = transaction.ExecBuilder(channelQuery); err != nil {
-		return false, errors.Wrapf(err, "failed to update Channel with id=%s", released.ChannelId)
+		return nil, errors.Wrapf(err, "failed to update Channel with id=%s", released.ChannelId)
 	}
 
 	if released.RootId != "" {
@@ -602,7 +640,7 @@ func (s *SqlPostStore) ReleaseDeferredNotification(rctx request.CTX, postID stri
 			Set("LastReplyAt", sq.Expr("GREATEST(LastReplyAt, ?)", releaseAt)).
 			Where(sq.Eq{"PostId": released.RootId})
 		if _, err = transaction.ExecBuilder(threadQuery); err != nil {
-			return false, errors.Wrapf(err, "failed to update Thread with id=%s", released.RootId)
+			return nil, errors.Wrapf(err, "failed to update Thread with id=%s", released.RootId)
 		}
 
 		rootQuery := s.getQueryBuilder().
@@ -610,15 +648,44 @@ func (s *SqlPostStore) ReleaseDeferredNotification(rctx request.CTX, postID stri
 			Set("UpdateAt", sq.Expr("GREATEST(UpdateAt, ?)", releaseAt)).
 			Where(sq.Eq{"Id": released.RootId})
 		if _, err = transaction.ExecBuilder(rootQuery); err != nil {
-			return false, errors.Wrapf(err, "failed to update root Post with id=%s", released.RootId)
+			return nil, errors.Wrapf(err, "failed to update root Post with id=%s", released.RootId)
+		}
+	}
+
+	if countDelta > 0 {
+		// Unread state is computed from CreateAt, so anyone who opened the thread or
+		// channel while the post was deferred would never see it as unread. Rewind their
+		// view to just before it, the way marking a post unread does. Replies only rewind
+		// thread memberships: for users with collapsed threads, a channel view rewound to a
+		// reply would mark root posts they have already read as new.
+		var viewQuery sq.UpdateBuilder
+		if released.RootId != "" {
+			viewQuery = s.getQueryBuilder().
+				Update("ThreadMemberships").
+				Set("LastViewed", released.CreateAt-1).
+				Set("LastUpdated", releaseAt).
+				Where(sq.Eq{"PostId": released.RootId}).
+				Where(sq.NotEq{"UserId": released.UserId}).
+				Where(sq.GtOrEq{"LastViewed": released.CreateAt})
+		} else {
+			viewQuery = s.getQueryBuilder().
+				Update("ChannelMembers").
+				Set("LastViewedAt", released.CreateAt-1).
+				Set("LastUpdateAt", releaseAt).
+				Where(sq.Eq{"ChannelId": released.ChannelId}).
+				Where(sq.NotEq{"UserId": released.UserId}).
+				Where(sq.GtOrEq{"LastViewedAt": released.CreateAt})
+		}
+		if _, err = transaction.ExecBuilder(viewQuery); err != nil {
+			return nil, errors.Wrapf(err, "failed to rewind views of Post with id=%s", released.Id)
 		}
 	}
 
 	if err = transaction.Commit(); err != nil {
-		return false, errors.Wrap(err, "commit_transaction")
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
-	return true, nil
+	return &released, nil
 }
 
 func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {

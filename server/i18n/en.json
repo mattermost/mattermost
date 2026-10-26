@@ -3844,6 +3844,11 @@
     "description": "API error when a reply's root post belongs to a different channel than the one being posted to; 'ChannelId'/'RootId' are API parameter names."
   },
   {
+    "id": "api.post.create_post.deferred_burn_on_read.app_error",
+    "translation": "Burn-on-read posts cannot defer their notifications.",
+    "description": "API error when a burn-on-read post (revealed once, then deleted) asks for deferred notifications, which are held back until the integration delivers them later."
+  },
+  {
     "id": "api.post.create_post.deferred_notification.app_error",
     "translation": "Only bot, webhook, OAuth app, and plugin posts can defer their notifications.",
     "description": "API error when a regular user tries to create a post whose notifications are deferred (held back until the integration delivers them later), which is limited to integrations."
@@ -10744,6 +10749,11 @@
     "id": "app.post.deliver_notifications.release.app_error",
     "translation": "Unable to release the deferred notifications for the post.",
     "description": "Internal error returned to a plugin when the database update that takes a post out of its deferred-notification state (notifications held back until the plugin delivers them) fails."
+  },
+  {
+    "id": "app.post.deliver_notifications.too_many_users.app_error",
+    "translation": "Notifications for a post can be delivered to at most {{.Max}} users at a time.",
+    "description": "API error returned to a plugin that asks to notify more users about a post in a single call than allowed; 'Max' is the limit."
   },
   {
     "id": "app.post.get.app_error",
