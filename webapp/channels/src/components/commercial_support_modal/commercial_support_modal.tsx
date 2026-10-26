@@ -217,7 +217,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 className='DownloadSupportPacket'
                                 onClick={this.downloadSupportPacket}
                             >
-                                { this.state.loading ? <LoadingSpinner/> : <i className='icon icon-download-outline'/> }
+                                { this.state.loading ? <LoadingSpinner legacy={true}/> : <i className='icon icon-download-outline'/> }
                                 <FormattedMessage
                                     id='commercial_support.download_support_packet'
                                     defaultMessage='Download Support Packet'
