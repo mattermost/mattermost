@@ -1265,8 +1265,8 @@ func (s *Server) doSetupCPAToGlobalAttributesMigration(rctx request.CTX) error {
 // that predates the permissions object writes fields without one, from an old
 // node during a rolling upgrade or while rolled back, and the access control
 // hook refuses such a field to everyone. Only fields still missing an object
-// are written, so a startup with nothing to convert reads the fields and
-// writes nothing.
+// are read or written, so a startup with nothing to convert reads one empty
+// page and writes nothing.
 //
 // A field that fails to convert doesn't stop the server: it is logged by ID
 // and stays inaccessible until a later startup converts it.

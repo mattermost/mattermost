@@ -458,6 +458,51 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts mode
 	return fields, nil
 }
 
+// GetFieldsMissingPermissions returns the fields the permissions backfill
+// converts, a page at a time: not deleted, PSAv2 (a non-empty ObjectType), in
+// a group at version 2 or 3, and with a NULL Permissions column -- the only
+// way a field with no permissions object is stored. Pages by (CreateAt, Id)
+// like SearchPropertyFields' directory mode, so a field the caller leaves
+// unconverted does not come back on a later page of the same walk.
+func (s *SqlPropertyFieldStore) GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error) {
+	if perPage < 1 {
+		return nil, errors.New("per page must be positive integer greater than zero")
+	}
+
+	groupIDs := sq.Select("ID").
+		From("PropertyGroups").
+		Where(sq.Eq{"Version": []int{model.PropertyGroupVersionV2, model.PropertyGroupVersionV3}})
+
+	builder := s.tableSelectQuery.
+		Where(sq.Eq{"Permissions": nil}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.NotEq{"ObjectType": ""}).
+		Where(sq.Expr("GroupID IN (?)", groupIDs)).
+		OrderBy("CreateAt ASC, Id ASC").
+		Limit(uint64(perPage))
+
+	if !cursor.IsEmpty() {
+		builder = builder.Where(sq.Or{
+			sq.Gt{"CreateAt": cursor.CreateAt},
+			sq.And{
+				sq.Eq{"CreateAt": cursor.CreateAt},
+				sq.Gt{"Id": cursor.PropertyFieldID},
+			},
+		})
+	}
+
+	fields := []*model.PropertyField{}
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&fields, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_missing_permissions_query")
+	}
+
+	if err := s.hydratePropertyFieldOptions(s.GetReplica(), fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_missing_permissions_hydrate_options")
+	}
+
+	return fields, nil
+}
+
 func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
 	if len(fields) == 0 {
 		return nil, nil

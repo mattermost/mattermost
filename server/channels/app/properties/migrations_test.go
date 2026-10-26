@@ -1549,8 +1549,8 @@ func TestWarnIfMaskedTemplateHoldingsTheBackfillCloses(t *testing.T) {
 }
 
 // TestMigrateBackfillPropertyPermissions_Paging covers the driver on top of
-// convertBatch: paging across groups with no group filter, and idempotency on
-// a second run.
+// convertBatch: paging across groups with one cursor, and idempotency on a
+// second run.
 func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	otherGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
@@ -1589,12 +1589,25 @@ func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
 		assert.NotNil(t, updated.Permissions)
 	}
 
-	// A re-run must find every field already converted rather than reverting
-	// or reconverting it.
+	stored := map[string]int64{}
+	for _, field := range fields {
+		updated, getErr := th.dbStore.PropertyField().Get(th.Context, field.GroupID, field.ID)
+		require.NoError(t, getErr)
+		stored[field.ID] = updated.UpdateAt
+	}
+
+	// A re-run must not even read a field already converted, let alone revert
+	// or reconvert it.
 	converted, skipped, _, err = th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)
 	assert.Equal(t, 0, converted)
-	assert.Equal(t, len(fields), skipped)
+	assert.Equal(t, 0, skipped)
+
+	for _, field := range fields {
+		updated, getErr := th.dbStore.PropertyField().Get(th.Context, field.GroupID, field.ID)
+		require.NoError(t, getErr)
+		assert.Equal(t, stored[field.ID], updated.UpdateAt, "a converted field must not be written again")
+	}
 }
 
 // TestMigrateBackfillPropertyPermissions_OversizedOptions pins the same
@@ -1899,7 +1912,7 @@ func TestMigrateBackfillPropertyPermissionsSkipsFieldsThatFailToConvert(t *testi
 // database created by 11.7: a group that existed then is at version 1 after
 // the upgrade, but a plugin could have put fields with an ObjectType in it.
 // Converting one would fail the group version check on every startup, and the
-// hook doesn't enforce the group anyway, so the backfill skips it.
+// hook doesn't enforce the group anyway, so the backfill doesn't read it.
 func TestMigrateBackfillPropertyPermissionsLeavesVersion1GroupsAlone(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	v1Group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
@@ -1920,7 +1933,7 @@ func TestMigrateBackfillPropertyPermissionsLeavesVersion1GroupsAlone(t *testing.
 	converted, skipped, failed, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)
 	assert.Equal(t, 1, converted)
-	assert.Equal(t, 1, skipped)
+	assert.Equal(t, 0, skipped, "a field in a version 1 group must not be read at all")
 	assert.Equal(t, 0, failed)
 
 	storedV1, err := th.dbStore.PropertyField().Get(th.Context, v1Group.ID, v1Field.ID)
@@ -1931,4 +1944,75 @@ func TestMigrateBackfillPropertyPermissionsLeavesVersion1GroupsAlone(t *testing.
 	storedV2, err := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, v2Field.ID)
 	require.NoError(t, err)
 	assert.NotNil(t, storedV2.Permissions, "a field in a version 2 group in the same run must still convert")
+}
+
+// fetchedFieldsSpyStore wraps a real store.PropertyFieldStore and records the
+// ID of every field a listing the backfill could page through returns.
+type fetchedFieldsSpyStore struct {
+	store.PropertyFieldStore
+	fetched map[string]bool
+}
+
+func (s *fetchedFieldsSpyStore) record(fields []*model.PropertyField) {
+	for _, field := range fields {
+		s.fetched[field.ID] = true
+	}
+}
+
+func (s *fetchedFieldsSpyStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	fields, err := s.PropertyFieldStore.SearchPropertyFields(rctx, opts)
+	s.record(fields)
+	return fields, err
+}
+
+func (s *fetchedFieldsSpyStore) GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error) {
+	fields, err := s.PropertyFieldStore.GetFieldsMissingPermissions(rctx, cursor, perPage)
+	s.record(fields)
+	return fields, err
+}
+
+// TestMigrateBackfillPropertyPermissions_ReadsOnlyFieldsMissingPermissions
+// pins the selection the backfill runs on every startup: a field that already
+// carries a permissions object is not read, so a startup with nothing to
+// convert does not page through every field.
+func TestMigrateBackfillPropertyPermissions_ReadsOnlyFieldsMissingPermissions(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+
+	alreadyConverted, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "already-converted",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+	require.NotNil(t, alreadyConverted.Permissions)
+
+	unconverted := createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "unconverted",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+
+	spy := &fetchedFieldsSpyStore{PropertyFieldStore: th.service.fieldStore, fetched: map[string]bool{}}
+	th.service.fieldStore = spy
+
+	converted, skipped, failed, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, converted)
+	assert.Equal(t, 0, skipped)
+	assert.Equal(t, 0, failed)
+
+	assert.True(t, spy.fetched[unconverted.ID], "the field with no permissions object must be read")
+	assert.False(t, spy.fetched[alreadyConverted.ID], "a field that already carries a permissions object must not be read")
+
+	stored, err := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, alreadyConverted.ID)
+	require.NoError(t, err)
+	assert.Equal(t, alreadyConverted.UpdateAt, stored.UpdateAt, "a field that already carries a permissions object must not be written")
+
+	stored, err = th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, unconverted.ID)
+	require.NoError(t, err)
+	assert.NotNil(t, stored.Permissions)
 }

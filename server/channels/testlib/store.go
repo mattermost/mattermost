@@ -219,6 +219,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	)
 
 	propertyFieldStore.On("SearchPropertyFields", mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil)
+	propertyFieldStore.On("GetFieldsMissingPermissions", mock.Anything, mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil)
 	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("CheckPropertyNameConflict", mock.AnythingOfType("*model.PropertyField"), mock.Anything).Return(model.PropertyFieldTargetLevel(""), nil)

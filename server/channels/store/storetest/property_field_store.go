@@ -34,6 +34,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss, s) })
 	t.Run("DeletePropertyFieldPermissions", func(t *testing.T) { testDeletePropertyFieldPermissions(t, rctx, ss, s) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss, s) })
+	t.Run("GetFieldsMissingPermissions", func(t *testing.T) { testGetFieldsMissingPermissions(t, rctx, ss) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
 	t.Run("CountLinkedFields", func(t *testing.T) { testCountLinkedFields(t, rctx, ss) })
@@ -4154,6 +4155,154 @@ func testUpdateWithLinkedDependents(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, uErr)
 		require.Len(t, result2, 1)
 		require.Equal(t, "Still No OCC Check", result2[0].Name)
+	})
+}
+
+func testGetFieldsMissingPermissions(t *testing.T, rctx request.CTX, ss store.Store) {
+	registerGroup := func(t *testing.T, version int) string {
+		t.Helper()
+		group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: version})
+		require.NoError(t, err)
+		return group.ID
+	}
+	v1GroupID := registerGroup(t, model.PropertyGroupVersionV1)
+	v2GroupID := registerGroup(t, model.PropertyGroupVersionV2)
+	v3GroupID := registerGroup(t, model.PropertyGroupVersionV3)
+
+	createField := func(t *testing.T, field *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		if field.Name == "" {
+			field.Name = "Field-" + model.NewId()
+		}
+		if field.Type == "" {
+			field.Type = model.PropertyFieldTypeText
+		}
+		if field.TargetType == "" {
+			field.TargetType = string(model.PropertyFieldTargetLevelSystem)
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		return created
+	}
+
+	wantV2 := createField(t, &model.PropertyField{GroupID: v2GroupID, ObjectType: model.PropertyFieldObjectTypeUser})
+	wantV2Select := createField(t, &model.PropertyField{
+		GroupID:    v2GroupID,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		Type:       model.PropertyFieldTypeSelect,
+		Attrs: map[string]any{
+			"options": []any{
+				map[string]any{"name": "a"},
+				map[string]any{"name": "b"},
+			},
+		},
+	})
+	wantV3 := createField(t, &model.PropertyField{GroupID: v3GroupID, ObjectType: model.PropertyFieldObjectTypeChannel})
+
+	converted := createField(t, &model.PropertyField{
+		GroupID:    v2GroupID,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		Permissions: &model.Permissions{
+			Grants: []model.Grant{{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+				Allow:    []string{model.PropertyActionValueWrite},
+			}},
+		},
+	})
+	deleted := createField(t, &model.PropertyField{GroupID: v2GroupID, ObjectType: model.PropertyFieldObjectTypeUser})
+	require.NoError(t, ss.PropertyField().Delete(v2GroupID, deleted.ID))
+	psaV1 := createField(t, &model.PropertyField{GroupID: v2GroupID})
+	inV1Group := createField(t, &model.PropertyField{GroupID: v1GroupID, ObjectType: model.PropertyFieldObjectTypeUser})
+	inUnregisteredGroup := createField(t, &model.PropertyField{GroupID: model.NewId(), ObjectType: model.PropertyFieldObjectTypeUser})
+
+	// Other subtests share this database, so only this test's own fields are
+	// asserted on, but every page is walked to check the order holds.
+	fetchAll := func(t *testing.T, cursor model.PropertyFieldSearchCursor, perPage int) []*model.PropertyField {
+		t.Helper()
+		var all []*model.PropertyField
+		for {
+			page, err := ss.PropertyField().GetFieldsMissingPermissions(rctx, cursor, perPage)
+			require.NoError(t, err)
+			require.LessOrEqual(t, len(page), perPage)
+			all = append(all, page...)
+			if len(page) < perPage {
+				return all
+			}
+			last := page[len(page)-1]
+			cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
+		}
+	}
+	byID := func(fields []*model.PropertyField) map[string]*model.PropertyField {
+		m := make(map[string]*model.PropertyField, len(fields))
+		for _, field := range fields {
+			m[field.ID] = field
+		}
+		return m
+	}
+
+	t.Run("returns only live PSAv2 fields with no permissions object in version 2 and 3 groups", func(t *testing.T) {
+		fetched := byID(fetchAll(t, model.PropertyFieldSearchCursor{}, 100))
+
+		for _, want := range []*model.PropertyField{wantV2, wantV2Select, wantV3} {
+			require.Contains(t, fetched, want.ID)
+		}
+		for name, unwanted := range map[string]*model.PropertyField{
+			"already converted":    converted,
+			"soft-deleted":         deleted,
+			"PSAv1":                psaV1,
+			"in a version 1 group": inV1Group,
+			"in no known group":    inUnregisteredGroup,
+		} {
+			require.NotContains(t, fetched, unwanted.ID, "a field %s must not be returned", name)
+		}
+		for _, field := range fetched {
+			require.Nil(t, field.Permissions)
+		}
+	})
+
+	t.Run("returns option-bearing fields hydrated like any other read", func(t *testing.T) {
+		fetched := byID(fetchAll(t, model.PropertyFieldSearchCursor{}, 100))
+		viaGet, err := ss.PropertyField().Get(rctx, v2GroupID, wantV2Select.ID)
+		require.NoError(t, err)
+		require.Equal(t, viaGet, fetched[wantV2Select.ID])
+	})
+
+	t.Run("pages in (CreateAt, Id) order, each field once", func(t *testing.T) {
+		all := fetchAll(t, model.PropertyFieldSearchCursor{}, 1)
+		seen := map[string]bool{}
+		for i, field := range all {
+			require.False(t, seen[field.ID], "field %s returned twice", field.ID)
+			seen[field.ID] = true
+			if i > 0 {
+				prev := all[i-1]
+				require.True(t, prev.CreateAt < field.CreateAt || (prev.CreateAt == field.CreateAt && prev.ID < field.ID),
+					"fields out of (CreateAt, Id) order")
+			}
+		}
+		for _, want := range []*model.PropertyField{wantV2, wantV2Select, wantV3} {
+			require.True(t, seen[want.ID])
+		}
+	})
+
+	t.Run("starts after the cursor", func(t *testing.T) {
+		ids := func(fields []*model.PropertyField) []string {
+			out := make([]string, len(fields))
+			for i, field := range fields {
+				out[i] = field.ID
+			}
+			return out
+		}
+		all := ids(fetchAll(t, model.PropertyFieldSearchCursor{}, 100))
+		at := slices.Index(all, wantV2.ID)
+		require.GreaterOrEqual(t, at, 0)
+
+		after := fetchAll(t, model.PropertyFieldSearchCursor{PropertyFieldID: wantV2.ID, CreateAt: wantV2.CreateAt}, 100)
+		require.Equal(t, all[at+1:], ids(after))
+	})
+
+	t.Run("refuses a page size below one", func(t *testing.T) {
+		_, err := ss.PropertyField().GetFieldsMissingPermissions(rctx, model.PropertyFieldSearchCursor{}, 0)
+		require.Error(t, err)
 	})
 }
 

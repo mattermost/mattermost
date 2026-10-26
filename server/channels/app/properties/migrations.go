@@ -701,18 +701,19 @@ var propertyPermissionsBackfillPageSize = 200
 // (app/migrations.go) runs it on every startup, so a field written by a
 // release that predates the permissions object is converted too.
 //
-// Fields are read with no group filter and paged by (CreateAt, Id), which
-// walks every group with one cursor. Writes go through the unexported
+// Only the fields it would write are read: live PSAv2 fields in version 2 and
+// 3 groups with no Permissions object (see GetFieldsMissingPermissions), paged
+// by (CreateAt, Id) with one cursor across every group, so a startup with
+// nothing to convert reads one empty page. Writes go through the unexported
 // updatePropertyFields, one call per group per page, since that method takes
 // a single group ID.
 //
 // Returns the number of fields given a Permissions object; the number left
-// alone, because they already carried one, because they are PSAv1 (the
-// content flagging group's fields, which cannot carry Permissions at all), or
-// because their group is still at version 1; and the number that could not be
-// converted. A field that fails is logged and left without an object rather
-// than failing the run (see logUnconvertedField). err is only for a failure
-// that stops the run as a whole, such as reading a page of fields.
+// alone, because convertBatch has nothing to give them (which the search
+// already leaves out); and the number that could not be converted. A field that fails is
+// logged and left without an object rather than failing the run (see
+// logUnconvertedField). err is only for a failure that stops the run as a
+// whole, such as reading a page of fields.
 func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) (converted, skipped, failed int, err error) {
 	accessControlGroup, err := ps.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
@@ -723,10 +724,7 @@ func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) 
 
 	var cursor model.PropertyFieldSearchCursor
 	for {
-		fields, searchErr := ps.searchPropertyFields(rctx, "", model.PropertyFieldSearchOpts{
-			PerPage: propertyPermissionsBackfillPageSize,
-			Cursor:  cursor,
-		})
+		fields, searchErr := ps.fieldStore.GetFieldsMissingPermissions(rctx, cursor, propertyPermissionsBackfillPageSize)
 		if searchErr != nil {
 			return converted, skipped, failed, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to search property fields: %w", searchErr)
 		}
@@ -734,6 +732,8 @@ func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) 
 			break
 		}
 
+		// A field left unconverted below still matches the search, so the
+		// cursor moves past the whole page whatever happens to it.
 		last := fields[len(fields)-1]
 		cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
 
