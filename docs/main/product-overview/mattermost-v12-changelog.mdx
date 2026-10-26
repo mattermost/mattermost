@@ -57,10 +57,10 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Introduced a new reusable call options menu component that allows users to start either a Mattermost call or dial a user's phone number for the Calls plugin.
   - Made the system policy indicator banner fully translatable as complete sentences, with locale-aware formatting of policy name lists.
   - Added a "Managed by" indicator to the Applies to > Users card of a Global Attribute synced from AD/LDAP or SAML, showing the sync source and that the values are not editable in Mattermost.
-  - Added attributes to bot accounts: bot managers can set a bot's attribute values from the Add/Edit Bot page, and the bot's profile popover shows them.
+  - Added attributes to [bot accounts](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes): bot managers can set a bot's attribute values from the Add/Edit Bot page, and the bot's profile popover shows them.
   - Prevented burn-on-read messages from being scheduled as weekly recurring posts.
   - Added the Enable File Search setting to the System Console. When file search is disabled, the web app now hides file search and channel files instead of showing empty results.
-  - Clarified the wording of several System Console messages on the [Site health](https://docs.mattermost.com/administration-guide/manage/site-health-dashboard) page and in user attribute sync settings.
+  - Clarified the wording of several System Console messages on the Site health page and in user attribute sync settings.
   - The auto-translation AI Service setting in the System Console now shows when the saved service no longer exists in the Agents plugin, instead of displaying a different service as selected.
   - Completed the missing Brazilian Portuguese web translations, and localized interface and accessibility labels that were English-only.
   - Translated the corrected and newly added English strings into all supported languages.
@@ -70,7 +70,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Added the ``pluginapi/testhelper`` package to the public module, enabling plugin authors to write integration tests using real Mattermost containers via testcontainers-go.
 
 #### Administration
-  - Added the [Built-in Health Dashboard](https://docs.mattermost.com/administration-guide/manage/site-health-dashboard) rule evaluation engine in ``platform/shared/healthcheck``, including deployment gating, panic containment, and deterministic finding fingerprinting.
+  - Added the Built-in Health Dashboard rule evaluation engine in ``platform/shared/healthcheck``, including deployment gating, panic containment, and deterministic finding fingerprinting.
   - Added the ``EnforceLogPathRoot`` feature flag, disabled by default. When enabled, a log or audit file path that resolves outside the logging root (``MM_LOG_PATH``, or the default logs directory) causes the server to refuse to start and is rejected on configuration save, instead of only being logged as an error. Validation now also covers ``LogSettings.FileLocation`` and ``ExperimentalAuditSettings.FileName``.
   - Support packet ``stats.yaml`` now omits failed stat keys instead of serializing them as zero, preserving unknown-vs-zero semantics in packet data.
   - Support packet generation now accumulates and reports all diagnostics, job, and permission collector errors in ``warning.txt`` instead of potentially overwriting earlier errors.
@@ -79,13 +79,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - AD/LDAP and SAML can now sync select and multiselect user attributes. Values from the identity provider are added as options automatically, and options no user holds are removed. An attribute that the identity provider stops sending now clears the user's synced value at the next sync or login instead of keeping the previous value. Only the sync can add, rename, or remove the options of a synced attribute. An attribute linked to both AD/LDAP and SAML is now synced from AD/LDAP only.
   - User attributes can now be synced from OpenID Connect claims at every sign-in, including nested claims (dot paths) and list claims, for use in attribute-based access control. A claim that the provider stops sending clears the attribute. Added ``OpenIdSettings.AdditionalScopes`` to request additional scopes from the OpenID Connect provider, and the ``OpenIdAttributeSync`` feature flag, which is on by default.
   - Added a new Attribute-Based Access Control (ABAC) permission, Create Burn-on-Read Message, so administrators can restrict which users are able to send burn-on-read messages.
-  - Attribute-based access control membership and permission policies apply to [bot accounts](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes) the same way they apply to users. A permission rule that references session attributes denies bots, because access-token sessions do not report session attributes.
   - Added a new "creator" permission level for property fields. It grants the creator of the target object the same access that the "admin" level grants, in addition to everyone the "admin" level already covers.
   - Added ``ElasticsearchSettings.EnableFileIndexing`` configuration setting to stop indexing file attachments in Elasticsearch and OpenSearch.
   - Added bundled product documentation at ``/_documentation`` (root-path installs) and a ``mattermost docs`` CLI to serve it locally when the server is down. SiteURL subpath installs should use ``mattermost docs`` only.
   - Offered the TLS 1.3 hybrid key exchange X25519MLKEM768 when Mattermost terminates TLS.
   - Made the ``/secure-connection remove`` response fully translatable.
-  - Updated how responses from connected remote clusters are read. See [connected workspaces](https://docs.mattermost.com/administration-guide/onboard/connected-workspaces). A reply that cannot be read in full, or is longer than the maximum response size, now counts as a remote cluster message error.
+  - Updated how responses from connected remote clusters are read.
 
 ### Bug Fixes
   - Fixed an issue where multi-byte (CJK) characters were dropped, doubled, or split when typing quickly in the AI Agent rewrite prompt.
