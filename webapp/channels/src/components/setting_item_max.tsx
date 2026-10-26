@@ -105,7 +105,7 @@ const SettingItemMax = ({
         };
 
         if (settingList.current) {
-            const focusableElements: NodeListOf<HTMLElement> = settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-tertiary), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
+            const focusableElements: NodeListOf<HTMLElement> = settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-tertiary), input.form-control, input[role="combobox"], input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"]):not([data-chip])');
             if (focusableElements.length > 0) {
                 a11yFocus(focusableElements[0]);
             } else {
