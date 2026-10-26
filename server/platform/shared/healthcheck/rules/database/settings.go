@@ -31,7 +31,8 @@ var dbNoReadReplica = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    dataSourceReplicasSubject,
-	Eval:       healthcheck.Single(evalDBNoReadReplica),
+	// The store ignores replicas without a license.
+	Eval: healthcheck.Licensed(healthcheck.AnyLicense, healthcheck.Single(evalDBNoReadReplica)),
 }
 
 var dbNoSearchReplica = healthcheck.Rule{
@@ -47,7 +48,7 @@ var dbNoSearchReplica = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    dataSourceSearchReplicasSubject,
-	Eval:       healthcheck.Single(evalDBNoSearchReplica),
+	Eval:       healthcheck.Licensed(healthcheck.AnyLicense, healthcheck.Single(evalDBNoSearchReplica)),
 }
 
 var dbTraceOn = healthcheck.Rule{
@@ -149,7 +150,9 @@ func evalDBNoSearchReplica(s *healthcheck.Snapshot) healthcheck.Result {
 	if !ok {
 		return unknownConfig()
 	}
-	if searching {
+	// The server does not activate Elasticsearch without the license, so search then stays on the database.
+	esLicensed, _ := s.LicenseAllows(healthcheck.FeatureElasticsearch)
+	if searching && esLicensed {
 		return healthcheck.Resolved()
 	}
 
@@ -169,7 +172,12 @@ func evalDBNoSearchReplica(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved().WithValue(float64(posts))
 	}
 
-	return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_no_search_replica.message")).
+	messageID := healthcheck.TranslationId("health.rule.db_no_search_replica.message")
+	if esLicensed {
+		messageID = healthcheck.TranslationId("health.rule.db_no_search_replica.message.elasticsearch")
+	}
+
+	return healthcheck.Firing(messageID).
 		WithDetail("posts", strconv.FormatInt(posts, 10)).
 		WithValue(float64(posts))
 }

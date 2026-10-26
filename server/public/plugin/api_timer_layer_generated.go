@@ -1296,6 +1296,20 @@ func (api *apiTimerLayer) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetClusterNodeID() string {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetClusterNodeID()
+	api.recordTime(startTime, "GetClusterNodeID", true)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetClusterNodes()
+	api.recordTime(startTime, "GetClusterNodes", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)

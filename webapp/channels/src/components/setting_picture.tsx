@@ -304,6 +304,7 @@ export default class SettingPicture extends Component<Props, State> {
                         aria-label={this.props.loadingPicture ? localizeMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'}) : localizeMessage({id: 'setting_picture.save', defaultMessage: 'Save'})}
                     >
                         <LoadingWrapper
+                            legacy={true}
                             loading={this.props.loadingPicture}
                             text={defineMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'})}
                         >

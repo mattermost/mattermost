@@ -116,13 +116,21 @@ func evalPushBadScheme(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
+// pushTestProxyMessage names the hosted service only when the license grants it: the server refuses to send through it otherwise.
+func pushTestProxyMessage(s *healthcheck.Snapshot) string {
+	if hosted, ok := s.LicenseFeature(healthcheck.FeatureMHPNS); ok && hosted {
+		return healthcheck.TranslationId("health.rule.push_test_proxy.message.hosted")
+	}
+	return healthcheck.TranslationId("health.rule.push_test_proxy.message")
+}
+
 func evalPushTestProxy(s *healthcheck.Snapshot) healthcheck.Result {
 	server, ok := pushServer(s)
 	switch {
 	case !ok:
 		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case isTestProxy(server):
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.push_test_proxy.message")).WithDetail("url", server)
+		return healthcheck.Firing(pushTestProxyMessage(s)).WithDetail("url", server)
 	default:
 		return healthcheck.Resolved()
 	}
