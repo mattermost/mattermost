@@ -204,6 +204,7 @@ h6.markdown__heading {
 
     // Markdown source wraps, so each line is its own row with its number on the first row it takes up
     .post-code__wrapped-lines {
+        display: block;
         min-width: 0;
         flex: 1;
     }

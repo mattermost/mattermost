@@ -59,8 +59,10 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
     // Untagged blocks are checked too, but an explicit other language is respected
     const detectedMarkdown = useMemo(() => !usedLanguage && isLikelyMarkdown(code), [usedLanguage, code]);
 
+    const isMarkdownSource = SyntaxHighlighting.isMarkdownLanguage(usedLanguage) || detectedMarkdown;
+
     // Search results highlight matches in the source, which rendering would lose, so they stay raw
-    const canToggleMarkdown = depth === 0 && !searchedContent && (SyntaxHighlighting.isMarkdownLanguage(usedLanguage) || detectedMarkdown);
+    const canToggleMarkdown = depth === 0 && !searchedContent && isMarkdownSource;
 
     // The saved preference is read when the block becomes toggleable, and a click overrides it for this block
     const storedMarkdownView = useMemo(() => (canToggleMarkdown ? LocalStorageStore.getMarkdownCodeBlockView(currentUserId) : MarkdownViews.RAW), [canToggleMarkdown, currentUserId]);
@@ -84,7 +86,6 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
     // Markdown is prose, so wrap it, with a number on each line rather than one column that wrapped lines would knock out of step.
     // Search highlighting is a second copy of the code laid over the first, so searched blocks keep the plain layout.
-    const isMarkdownSource = SyntaxHighlighting.isMarkdownLanguage(usedLanguage) || detectedMarkdown;
     const numberWrappedLines = isMarkdownSource && !searchedContent;
     const wrapLines = !usedLanguage || numberWrappedLines;
 
