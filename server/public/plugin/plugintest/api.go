@@ -2003,6 +2003,54 @@ func (_m *API) GetCloudLimits() (*model.ProductLimits, error) {
 	return r0, r1
 }
 
+// GetClusterNodeID provides a mock function with no fields
+func (_m *API) GetClusterNodeID() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetClusterNodeID")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// GetClusterNodes provides a mock function with no fields
+func (_m *API) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetClusterNodes")
+	}
+
+	var r0 []*model.ClusterInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]*model.ClusterInfo, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []*model.ClusterInfo); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ClusterInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCommand provides a mock function with given fields: commandID
 func (_m *API) GetCommand(commandID string) (*model.Command, error) {
 	ret := _m.Called(commandID)

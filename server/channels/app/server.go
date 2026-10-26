@@ -367,6 +367,9 @@ func NewServer(options ...Option) (*Server, error) {
 			RequiredAttributeEnforcement: func() bool {
 				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
 			},
+			OpenIDAttributeSync: func() bool {
+				return s.Config().FeatureFlags.OpenIdAttributeSync
+			},
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 
@@ -561,20 +564,24 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
 
 	license := s.License()
-	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
+	allowAdvancedLogging := license.HasAdvancedLogging()
 
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
+		if collector := s.platform.LoggerMetricsCollector(); collector != nil {
+			s.Audit.SetMetricsCollector(collector, mlog.DefaultMetricsUpdateFreqMillis)
+		}
 		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}
 	}
+	s.platform.SetAuditLoggingActiveFunc(s.Audit.IsActive)
 
 	if cfg := s.platform.Config(); cfg.AccessControlSettings.EnableAccessControlAuditLogging != nil &&
 		*cfg.AccessControlSettings.EnableAccessControlAuditLogging &&
-		!config.IsAuditLoggingActive(cfg.ExperimentalAuditSettings, allowAdvancedLogging) {
-		mlog.Warn("AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled or configure an advanced audit logging target bound to an audit level.")
+		!s.Audit.IsActive() {
+		s.Log().Warn(accessControlAuditTargetMissingWarning)
 	}
 
 	s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
@@ -591,7 +598,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
-		s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
 	})
 
 	// Keep the push notification server in sync with the license's HPNS entitlement, and let a

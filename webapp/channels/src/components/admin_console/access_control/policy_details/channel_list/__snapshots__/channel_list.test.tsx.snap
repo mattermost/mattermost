@@ -187,17 +187,25 @@ exports[`components/admin_console/access_control/channel_list should match snaps
           <div
             class="ChannelList__autoAddHeader"
           >
-            <input
-              aria-label="Auto-add members"
-              class="header-checkbox"
-              id="auto-add-header-checkbox"
-              type="checkbox"
-            />
-            <span
-              class="header-text"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
+              for="auto-add-header-checkbox"
             >
-              Auto-add members
-            </span>
+              <input
+                class="_checkbox__input_18swc_25"
+                data-testid="auto-add-header-checkbox"
+                id="auto-add-header-checkbox"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                Auto-add members
+              </span>
+            </label>
             <i
               class="icon icon-information-outline ChannelList__autoAddInfoIcon"
             />
@@ -500,17 +508,25 @@ exports[`components/admin_console/access_control/channel_list should match snaps
           <div
             class="ChannelList__autoAddHeader"
           >
-            <input
-              aria-label="Auto-add members"
-              class="header-checkbox"
-              id="auto-add-header-checkbox"
-              type="checkbox"
-            />
-            <span
-              class="header-text"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
+              for="auto-add-header-checkbox"
             >
-              Auto-add members
-            </span>
+              <input
+                class="_checkbox__input_18swc_25"
+                data-testid="auto-add-header-checkbox"
+                id="auto-add-header-checkbox"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                Auto-add members
+              </span>
+            </label>
             <i
               class="icon icon-information-outline ChannelList__autoAddInfoIcon"
             />
@@ -813,17 +829,25 @@ exports[`components/admin_console/access_control/channel_list should match snaps
           <div
             class="ChannelList__autoAddHeader"
           >
-            <input
-              aria-label="Auto-add members"
-              class="header-checkbox"
-              id="auto-add-header-checkbox"
-              type="checkbox"
-            />
-            <span
-              class="header-text"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
+              for="auto-add-header-checkbox"
             >
-              Auto-add members
-            </span>
+              <input
+                class="_checkbox__input_18swc_25"
+                data-testid="auto-add-header-checkbox"
+                id="auto-add-header-checkbox"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                Auto-add members
+              </span>
+            </label>
             <i
               class="icon icon-information-outline ChannelList__autoAddInfoIcon"
             />
@@ -1126,17 +1150,25 @@ exports[`components/admin_console/access_control/channel_list should match snaps
           <div
             class="ChannelList__autoAddHeader"
           >
-            <input
-              aria-label="Auto-add members"
-              class="header-checkbox"
-              id="auto-add-header-checkbox"
-              type="checkbox"
-            />
-            <span
-              class="header-text"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 header-checkbox"
+              for="auto-add-header-checkbox"
             >
-              Auto-add members
-            </span>
+              <input
+                class="_checkbox__input_18swc_25"
+                data-testid="auto-add-header-checkbox"
+                id="auto-add-header-checkbox"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                Auto-add members
+              </span>
+            </label>
             <i
               class="icon icon-information-outline ChannelList__autoAddInfoIcon"
             />

@@ -681,8 +681,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         openFilters();
 
         // Click the "Is Linked" filter checkbox
-        const isLinkedCheckbox = screen.getByText('Is Linked').parentElement!.querySelector('.filter-check')!;
-        await userEvent.click(isLinkedCheckbox);
+        await userEvent.click(screen.getByRole('checkbox', {name: 'Is Linked'}));
 
         // The search string should now include 'is:linked'
         expect(searchInput).toHaveValue('foo is:linked');
@@ -713,7 +712,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         openFilters();
 
         // Click the "Is Linked" filter checkbox to check it
-        const isLinkedCheckbox = screen.getByText('Is Linked').parentElement!.querySelector('.filter-check')!;
+        const isLinkedCheckbox = screen.getByRole('checkbox', {name: 'Is Linked'});
         await userEvent.click(isLinkedCheckbox);
         expect(searchInput).toHaveValue('foo is:linked');
 
