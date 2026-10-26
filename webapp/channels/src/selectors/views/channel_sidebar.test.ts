@@ -240,6 +240,7 @@ describe('getUnreadChannels', () => {
                     unreadFilterEnabled: true,
                 },
                 productRail: {section: 'boards', lastPathByTeam: {}, lastPathsLoaded: false},
+                browser: {windowSize: 'desktopView'},
             },
         } as unknown as GlobalState;
 

@@ -8,7 +8,7 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 import type {ProductRailSection} from 'types/store/views';
 
-import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter, getProductRailSection, toFullListIndex} from './product_rail';
+import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter, getProductRailSection, isTeamSidebarHidden, toFullListIndex} from './product_rail';
 import type {ChannelKindRegistration} from './product_rail';
 
 const channel = TestHelper.getChannelMock({id: 'channel'});
@@ -33,7 +33,7 @@ function getState({enabled = true, registrations = [boardKind], section = 'chann
             preferences: {myPreferences: {}},
         },
         plugins: {components: {ChannelKind: registrations} as unknown as GlobalState['plugins']['components']},
-        views: {productRail: {section, lastPathByTeam: {}, lastPathsLoaded: false}},
+        views: {productRail: {section, lastPathByTeam: {}, lastPathsLoaded: false}, browser: {windowSize: 'desktopView'}},
     };
     return state as GlobalState;
 }
@@ -55,6 +55,11 @@ describe('getProductRailSection', () => {
 
     test('should return null while the rail is off', () => {
         expect(getProductRailSection(getState({enabled: false}))).toBeNull();
+    });
+
+    test('should return null on mobile, where the rail is hidden', () => {
+        const state = getState({section: 'boards'});
+        expect(getProductRailSection({...state, views: {...state.views, browser: {windowSize: 'mobileView'}}} as GlobalState)).toBeNull();
     });
 
     test('should return null without a board registration', () => {
@@ -128,5 +133,31 @@ describe('getProductRailFilter', () => {
 
         expect(getProductRailFilter(withBoardsShown)).toBeNull();
         expect(getProductRailFilter({...withBoardsShown, views: {...withBoardsShown.views, productRail: {...withBoardsShown.views.productRail, section: 'boards'}}})).toBe('boards');
+    });
+});
+
+describe('isTeamSidebarHidden', () => {
+    const withTeamSidebarHidden = (windowSize: string) => {
+        const state = getState();
+        return {
+            ...state,
+            entities: {
+                ...state.entities,
+                preferences: {
+                    myPreferences: {
+                        'sidebar_settings--hide_team_sidebar': {category: 'sidebar_settings', name: 'hide_team_sidebar', user_id: 'user', value: 'true'},
+                    },
+                },
+            },
+            views: {...state.views, browser: {windowSize}},
+        } as unknown as GlobalState;
+    };
+
+    test('should follow the preference on desktop', () => {
+        expect(isTeamSidebarHidden(withTeamSidebarHidden('desktopView'))).toBe(true);
+    });
+
+    test('should keep the team sidebar on mobile, where the rail\'s team menu is hidden', () => {
+        expect(isTeamSidebarHidden(withTeamSidebarHidden('mobileView'))).toBe(false);
     });
 });

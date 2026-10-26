@@ -13,6 +13,8 @@ import {getConfig, isCloudLicense, isProductRailEnabled} from 'mattermost-redux/
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {getIsMobileView} from 'selectors/views/browser';
+
 import * as Menu from 'components/menu';
 
 import {isChannels} from 'utils/products';
@@ -70,8 +72,9 @@ export function SwitchProductMenu(props: Props) {
     const isChannelsProductActive = isChannels(props.productId);
 
     // The product rail lists Channels and every product, so the menu keeps only the rest. The rail
-    // needs a current team, so without one the menu keeps them too.
-    const productRailShown = useSelector(isProductRailEnabled) && Boolean(currentTeam);
+    // needs a current team and isn't shown on mobile, so then the menu keeps them too.
+    const isMobileView = useSelector(getIsMobileView);
+    const productRailShown = useSelector(isProductRailEnabled) && Boolean(currentTeam) && !isMobileView;
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());

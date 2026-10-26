@@ -11,6 +11,8 @@ import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/ent
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
+import {getIsMobileView} from 'selectors/views/browser';
+
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -105,7 +107,8 @@ export const getBoardChannelIds: (state: GlobalState) => Set<string> = (() => {
  * split the sidebar: it's off, or no plugin registers boards, so there's nothing to split.
  */
 export function getProductRailSection(state: GlobalState): ProductRailSection | null {
-    if (!isProductRailEnabled(state) || !hasBoardChannelKind(state)) {
+    // On mobile the rail is hidden, so there'd be no way to switch sections: show everything.
+    if (!isProductRailEnabled(state) || !hasBoardChannelKind(state) || getIsMobileView(state)) {
         return null;
     }
     return state.views.productRail.section;
@@ -132,7 +135,9 @@ export function getProductRailFilter(state: GlobalState): ProductRailFilter {
 
 /** Whether the user has hidden the team sidebar, so the product rail shows a team menu in its place. */
 export function isTeamSidebarHidden(state: GlobalState): boolean {
-    return isProductRailEnabled(state) && getBool(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.HIDE_TEAM_SIDEBAR, false);
+    // On mobile the rail, and its team menu, are hidden, so the team sidebar stays to switch teams.
+    return isProductRailEnabled(state) && !getIsMobileView(state) &&
+        getBool(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.HIDE_TEAM_SIDEBAR, false);
 }
 
 export function getProductRailLastPath(state: GlobalState, tab: ProductRailTab, teamId: string): string | undefined {

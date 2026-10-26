@@ -6,6 +6,7 @@ import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -15,6 +16,8 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
 import type {ProductRailSection} from 'types/store/views';
+
+import './channel_filter.scss';
 
 const messages = defineMessages({
     disableTooltip: {
@@ -47,8 +50,20 @@ const messages = defineMessages({
     },
 });
 
+// The menu item is the control, announced as a checkbox with its state; this only shows that state.
+// It's kept out of the tab order and the accessibility tree, and takes no clicks, since a click on
+// its label would also toggle the item a second time.
 const checkbox = (checked: boolean) => (
-    <i className={classNames('icon', checked ? 'icon-checkbox-marked' : 'icon-checkbox-blank-outline')}/>
+    <span
+        className='SidebarFilters_menuCheckbox'
+        aria-hidden='true'
+    >
+        <Checkbox
+            checked={checked}
+            readOnly={true}
+            tabIndex={-1}
+        />
+    </span>
 );
 
 const shortcut = {

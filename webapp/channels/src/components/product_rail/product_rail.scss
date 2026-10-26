@@ -344,7 +344,7 @@ body.app__body #root:has(.ProductRail) .GlobalThreads {
 
     // The thread list's tabs take the sidebar's colours, so the active one reads on its background.
     .ThreadList .Header .Button.is-active {
-        background: rgba(var(--sidebar-text-rgb), 0.16);
+        background: rgba(var(--sidebar-text-rgb), 0.08);
         color: var(--sidebar-text);
     }
 }
