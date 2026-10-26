@@ -56,7 +56,8 @@ func (a *App) GetMaskedVisualAST(rctx request.CTX, expression string, callerID s
 // reference. For a channel attribute these can come from different fields:
 // the access mode is the channel field's own effective mode (it defines
 // whether the attribute is protected), while holdings are read from the field
-// named by the reference's template's mask_by_field_id — see holdingsFieldFor.
+// named by the reference's template's mask_by_field_id, or failing that the
+// user field linked to the same template — see holdingsFieldFor.
 type maskingHoldings struct {
 	field      *model.PropertyField
 	accessMode string
@@ -147,13 +148,18 @@ func (r *appMaskingResolver) Resolve(objectType, fieldName string) (*model.Maski
 // the reference itself, resolved through its template when it is linked and
 // carries no masking of its own.
 //
-// Holdings are resolved per resolveHoldingsFieldID: from the reference's
-// template's mask_by_field_id, or — if the reference has no template, or the
-// template names none — from the reference itself. Nothing is inferred beyond
-// that declared setting: a channel field whose template names no
-// mask_by_field_id resolves holdings to the channel field itself, which
-// stores no values keyed to a user, so every literal masks (fail closed)
-// until an administrator names the holdings field.
+// Holdings come from the reference's template's mask_by_field_id when it names
+// one (see resolveHoldingsFieldID). A channel field whose template names none
+// falls back to the user-side sibling linked to the same template (see
+// userSiblingField), because users never hold channel-side values directly —
+// the lookup the policy editor made before mask_by_field_id existed, kept so a
+// scheme that never set one still shows its channel attributes. The fallback
+// belongs to policy masking alone: the property read path (AccessControlHook)
+// resolves holdings from mask_by_field_id only. When a channel field is
+// unlinked or has no user sibling, its own (caller-filtered) field is used —
+// for shared_only that yields no visible values (the caller holds nothing
+// channel-side), the fail-closed direction. A user reference's holdings are
+// always its own.
 //
 // A caller's held option names are only pre-filtered onto the holdings field
 // by the read path when that field is itself shared_only. If the reference is
@@ -182,18 +188,30 @@ func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName 
 		return &maskingHoldings{field: field, accessMode: accessMode}, nil
 	}
 
-	holdingsFieldID, appErr := a.resolveHoldingsFieldID(rctx, groupID, field)
+	holdingsFieldID, declared, appErr := a.resolveHoldingsFieldID(rctx, groupID, field)
 	if appErr != nil {
 		return nil, appErr
 	}
-	if holdingsFieldID == field.ID {
+
+	var holdingsField *model.PropertyField
+	switch {
+	case declared && holdingsFieldID != field.ID:
+		holdingsField, appErr = a.GetPropertyField(rctx, groupID, holdingsFieldID)
+		if appErr != nil {
+			return nil, appErr
+		}
+	case !declared && field.LinkedFieldID != nil && *field.LinkedFieldID != "":
+		// An ambiguous sibling errors here, and callers fail the reference
+		// closed on that error.
+		holdingsField, appErr = a.userSiblingField(rctx, groupID, *field.LinkedFieldID)
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+	if holdingsField == nil {
 		return &maskingHoldings{field: field, accessMode: accessMode}, nil
 	}
 
-	holdingsField, appErr := a.GetPropertyField(rctx, groupID, holdingsFieldID)
-	if appErr != nil {
-		return nil, appErr
-	}
 	if accessMode == model.PropertyAccessModeSharedOnly &&
 		a.effectiveAccessMode(rctx, groupID, holdingsField) != model.PropertyAccessModeSharedOnly &&
 		holdingsField.Type.SupportsOptions() {
@@ -300,21 +318,22 @@ func attributeReadActions(field *model.PropertyField) []string {
 // holdings: field's template's mask_by_field_id, or — if field has no
 // template, or the template sets none — field itself. Mirrors
 // AccessControlHook.resolveFieldMasking's holdings resolution
-// (channels/app/properties/masking.go); nothing beyond the declared setting
-// is inferred.
-func (a *App) resolveHoldingsFieldID(rctx request.CTX, groupID string, field *model.PropertyField) (string, *model.AppError) {
+// (channels/app/properties/masking.go). The bool reports whether the answer
+// came from a mask_by_field_id, so holdingsFieldFor can tell an explicit
+// setting, which always wins, from the default it may replace with a sibling.
+func (a *App) resolveHoldingsFieldID(rctx request.CTX, groupID string, field *model.PropertyField) (string, bool, *model.AppError) {
 	target := field
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
 		template, appErr := a.GetPropertyField(rctx, groupID, *field.LinkedFieldID)
 		if appErr != nil {
-			return "", appErr
+			return "", false, appErr
 		}
 		target = template
 	}
 	if target.Permissions != nil && target.Permissions.Masking != nil && target.Permissions.Masking.MaskByFieldID != "" {
-		return target.Permissions.Masking.MaskByFieldID, nil
+		return target.Permissions.Masking.MaskByFieldID, true, nil
 	}
-	return field.ID, nil
+	return field.ID, false, nil
 }
 
 // fieldWithEmptyOptions returns a shallow copy of f with its options hidden, so
@@ -327,6 +346,38 @@ func fieldWithEmptyOptions(f *model.PropertyField) *model.PropertyField {
 	maps.Copy(cp.Attrs, f.Attrs)
 	cp.HideOptions()
 	return &cp
+}
+
+// userSiblingField returns the user-object-type CPA field linked to the same
+// template (linkedFieldID), fetched through rctx so its options are filtered to
+// that caller's holdings. Returns nil when no such field exists.
+func (a *App) userSiblingField(rctx request.CTX, groupID, linkedFieldID string) (*model.PropertyField, *model.AppError) {
+	fields, appErr := a.SearchPropertyFields(rctx, groupID, model.PropertyFieldSearchOpts{
+		ObjectTypes:   []string{model.PropertyFieldObjectTypeUser},
+		LinkedFieldID: linkedFieldID,
+		PerPage:       2,
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+	// The masking decision uses this sibling's held values to gate a channel
+	// field's option names, so it must resolve to exactly one field. Nothing
+	// enforces LinkedFieldID uniqueness at the DB level, so a second match would
+	// make the choice depend on store order and could disclose a value via the
+	// "wrong" sibling. Error on ambiguity rather than guess — the caller fails
+	// this field closed (precompute logs and skips it, masking every value).
+	// PerPage:2 is enough to detect the second match.
+	var match *model.PropertyField
+	for _, f := range fields {
+		if f == nil {
+			continue
+		}
+		if match != nil {
+			return nil, model.NewAppError("userSiblingField", "app.pap.masking.ambiguous_sibling.app_error", map[string]any{"LinkedFieldID": linkedFieldID}, "multiple user fields link the same template", http.StatusInternalServerError)
+		}
+		match = f
+	}
+	return match, nil
 }
 
 func (r *appMaskingResolver) fieldToMaskingInfo(h *maskingHoldings) *model.MaskingFieldInfo {

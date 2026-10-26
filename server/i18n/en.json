@@ -10271,6 +10271,11 @@
     "description": "API error for admins when the server fails to hide (mask) restricted attribute values inside an access control policy expression."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously.",
+    "description": "API error (500) surfaced when resolving attribute-based access control masking: more than one user attribute field points at the same linked template, so the server cannot tell which one governs visibility of the channel attribute. Seen by a system admin editing access rules."
+  },
+  {
     "id": "app.pap.masking.graph_value_unmarshal.app_error",
     "translation": "Could not read the caller's graph field value.",
     "description": "Server error when evaluating attribute-based access control and the requesting user's own value for a hierarchical (graph-type) attribute cannot be read. 'Caller' means the user making the request."

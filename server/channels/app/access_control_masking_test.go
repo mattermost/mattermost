@@ -1451,14 +1451,18 @@ func assertChannelFieldUsesUserHoldings(t *testing.T, fieldType model.PropertyFi
 	assert.True(t, info.IsValueHidden("B"), "value the caller does not hold must be hidden on the channel field")
 }
 
-// TestAppMaskingResolver_NoMaskByFieldIDMasksEverything guards the fail-closed
-// default when a channel field's template names no mask_by_field_id: holdings
-// resolve to the channel field itself, which stores no values keyed to a
-// user, so the overlap is empty and every option masks. Nothing is inferred
-// from "the user field linked to this template" -- that guess stops working
-// the moment a template has two, and there is now a declaration to read
-// instead of one.
-func TestAppMaskingResolver_NoMaskByFieldIDMasksEverything(t *testing.T) {
+// TestHoldingsFieldFor_NoMaskByFieldIDFallsBackToUserSibling covers where a
+// channel field's holdings come from when its template names no
+// mask_by_field_id: the one user field linked to the same template, as the
+// editor resolved it before mask_by_field_id existed, so a scheme that never
+// set one keeps showing the caller its own held values. More than one such
+// field is ambiguous and fails the reference closed rather than letting store
+// order pick. A mask_by_field_id the template does name is used as declared,
+// with no lookup at all. Each case is checked through both the policy editor's
+// prefetch (fetchConditionFields + maskConditionValues) and the resolver the
+// masked-expression paths use, since both read holdings through
+// holdingsFieldFor.
+func TestHoldingsFieldFor_NoMaskByFieldIDFallsBackToUserSibling(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1468,75 +1472,200 @@ func TestAppMaskingResolver_NoMaskByFieldIDMasksEverything(t *testing.T) {
 	require.Nil(t, gErr)
 	groupID := cpaGroup.ID
 
-	callerID := model.NewId()
-
 	optA := model.NewId()
-	options := []any{map[string]any{"id": optA, "name": "A"}}
+	optB := model.NewId()
+	options := []any{
+		map[string]any{"id": optA, "name": "A"},
+		map[string]any{"id": optB, "name": "B"},
+	}
 
-	tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
-		GroupID:    groupID,
-		Name:       celSafeName(),
-		Type:       model.PropertyFieldTypeSelect,
-		ObjectType: model.PropertyFieldObjectTypeTemplate,
-		TargetType: string(model.PropertyFieldTargetLevelSystem),
-		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	// Both reads open, so masking is what filters them rather than the tier.
+	// Fresh per field: Restrictions is a pointer, and two fields must not
+	// share one.
+	openRestrictions := func() *model.Restrictions {
+		return &model.Restrictions{
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+		}
+	}
+
+	newTemplate := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		tmpl, err := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+		})
+		require.NoError(t, err)
+		return tmpl
+	}
+
+	setTemplateMasking := func(t *testing.T, tmpl *model.PropertyField, maskByFieldID string) {
+		t.Helper()
+		tmpl.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: maskByFieldID}}
+		_, err := th.Store.PropertyField().Update(groupID, []*model.PropertyField{tmpl}, nil)
+		require.NoError(t, err)
+	}
+
+	// newField creates a select field of objectType, linked to tmpl when tmpl
+	// is non-nil. A linked field declares no masking of its own -- the
+	// template owns the scheme; an unlinked one masks itself. Store-level
+	// Create rather than the app layer: creating a field that links to a masked
+	// template needs a caller holding field.write on that template, which is
+	// not what this test is about. Reads still filter per caller.
+	newField := func(t *testing.T, objectType string, tmpl *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:     groupID,
+			Name:        celSafeName(),
+			Type:        model.PropertyFieldTypeSelect,
+			ObjectType:  objectType,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Attrs:       model.StringInterface{model.PropertyFieldAttributeOptions: options},
+			Permissions: &model.Permissions{Restrictions: openRestrictions()},
+		}
+		if tmpl != nil {
+			field.LinkedFieldID = &tmpl.ID
+		} else {
+			field.Permissions.Masking = &model.Masking{}
+		}
+		created, err := th.Store.PropertyField().Create(field)
+		require.NoError(t, err)
+		return created
+	}
+
+	// hold records callerID holding optionID on a user field. Written
+	// store-level because the field is protected.
+	hold := func(t *testing.T, callerID string, field *model.PropertyField, optionID string) {
+		t.Helper()
+		_, err := th.Store.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   callerID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"` + optionID + `"`),
+		})
+		require.NoError(t, err)
+	}
+
+	// editorView runs a resource.attributes condition naming both options
+	// through the policy editor's masking and returns what survives.
+	editorView := func(t *testing.T, callerID string, channelField *model.PropertyField) model.Condition {
+		t.Helper()
+		rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
+		conditions := []model.Condition{{
+			Attribute: resourceAttributesPathPrefix + channelField.Name,
+			Operator:  "in",
+			Value:     []any{"A", "B"},
+			ValueType: model.LiteralValue,
+		}}
+		fieldsByKey := th.App.fetchConditionFields(rctxWithCaller, conditions, groupID)
+		th.App.maskConditionValues(rctxWithCaller, callerID, &conditions[0], groupID, fieldsByKey)
+		return conditions[0]
+	}
+
+	resolve := func(t *testing.T, callerID string, channelField *model.PropertyField) (*model.MaskingFieldInfo, error) {
+		t.Helper()
+		resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+		require.Nil(t, rErr)
+		return resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelField.Name)
+	}
+
+	t.Run("the one linked user field supplies the holdings", func(t *testing.T) {
+		callerID := model.NewId()
+		tmpl := newTemplate(t)
+		sibling := newField(t, model.PropertyFieldObjectTypeUser, tmpl)
+		channelField := newField(t, model.PropertyFieldObjectTypeChannel, tmpl)
+		setTemplateMasking(t, tmpl, "")
+		hold(t, callerID, sibling, optA)
+
+		cond := editorView(t, callerID, channelField)
+		assert.Equal(t, []any{"A"}, cond.Value, "the value the caller holds on the linked user field must stay visible")
+		assert.True(t, cond.HasMaskedValues)
+
+		info, err := resolve(t, callerID, channelField)
+		require.NoError(t, err)
+		require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+		assert.False(t, info.IsValueHidden("A"), "the value the caller holds on the linked user field must be visible")
+		assert.True(t, info.IsValueHidden("B"), "a value the caller does not hold must be hidden")
+
+		// The fallback is the editor's alone: the property read path still
+		// resolves the channel field's holdings to the field itself, which
+		// stores no user-keyed values, so its option list stays empty.
+		read, appErr := th.App.GetPropertyField(RequestContextWithCallerID(rctx, callerID), groupID, channelField.ID)
+		require.Nil(t, appErr)
+		assert.Empty(t, extractVisibleOptionNames(read), "the channel field's own read must not pick up the linked user field's holdings")
 	})
-	require.NoError(t, sErr)
 
-	// A user field links the same template, but the template names no
-	// mask_by_field_id -- it must not be picked up as an implicit holdings
-	// source.
-	userField, sErr := th.Store.PropertyField().Create(&model.PropertyField{
-		GroupID:       groupID,
-		Name:          celSafeName(),
-		Type:          model.PropertyFieldTypeSelect,
-		ObjectType:    model.PropertyFieldObjectTypeUser,
-		TargetType:    string(model.PropertyFieldTargetLevelSystem),
-		LinkedFieldID: &tmpl.ID,
-		Attrs: model.StringInterface{
-			model.PropertyFieldAttributeOptions: options,
-			model.PropertyAttrsProtected:        true,
-			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
-			model.PropertyAttrsSourcePluginID:   "com.mattermost.uas-plugin",
-		},
+	t.Run("two linked user fields are ambiguous and fail closed", func(t *testing.T) {
+		callerID := model.NewId()
+		tmpl := newTemplate(t)
+		first := newField(t, model.PropertyFieldObjectTypeUser, tmpl)
+		second := newField(t, model.PropertyFieldObjectTypeUser, tmpl)
+		channelField := newField(t, model.PropertyFieldObjectTypeChannel, tmpl)
+		setTemplateMasking(t, tmpl, "")
+		hold(t, callerID, first, optA)
+		hold(t, callerID, second, optB)
+
+		_, appErr := th.App.holdingsFieldFor(RequestContextWithCallerID(rctx, callerID), groupID, model.PropertyFieldObjectTypeChannel, channelField.Name)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.pap.masking.ambiguous_sibling.app_error", appErr.Id)
+
+		cond := editorView(t, callerID, channelField)
+		assert.Nil(t, cond.Value, "an ambiguous holdings field must mask every value")
+		assert.True(t, cond.HasMaskedValues)
+
+		_, err := resolve(t, callerID, channelField)
+		require.Error(t, err)
 	})
-	require.NoError(t, sErr)
 
-	channelFieldName := celSafeName()
-	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
-		GroupID:       groupID,
-		Name:          channelFieldName,
-		Type:          model.PropertyFieldTypeSelect,
-		ObjectType:    model.PropertyFieldObjectTypeChannel,
-		TargetType:    string(model.PropertyFieldTargetLevelSystem),
-		LinkedFieldID: &tmpl.ID,
-		Attrs: model.StringInterface{
-			model.PropertyFieldAttributeOptions: options,
-			model.PropertyAttrsProtected:        true,
-			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
-		},
+	t.Run("no linked user field masks everything", func(t *testing.T) {
+		callerID := model.NewId()
+		tmpl := newTemplate(t)
+		// A user field holding A exists but links nothing, so it is no
+		// sibling and is never consulted.
+		unlinked := newField(t, model.PropertyFieldObjectTypeUser, nil)
+		channelField := newField(t, model.PropertyFieldObjectTypeChannel, tmpl)
+		setTemplateMasking(t, tmpl, "")
+		hold(t, callerID, unlinked, optA)
+
+		cond := editorView(t, callerID, channelField)
+		assert.Equal(t, []any{}, cond.Value, "with no holdings field every value masks")
+		assert.True(t, cond.HasMaskedValues)
+
+		info, err := resolve(t, callerID, channelField)
+		require.NoError(t, err)
+		require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+		assert.True(t, info.IsValueHidden("A"))
+		assert.True(t, info.IsValueHidden("B"))
 	})
-	require.NoError(t, sErr)
 
-	// Caller holds option A on the user field, but it is never consulted:
-	// the template names no mask_by_field_id, so holdings resolve to the
-	// channel field itself.
-	_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
-		TargetID:   callerID,
-		TargetType: model.PropertyValueTargetTypeUser,
-		GroupID:    groupID,
-		FieldID:    userField.ID,
-		Value:      json.RawMessage(`"` + optA + `"`),
+	// The store only accepts a mask_by_field_id naming a live user field
+	// linked to the template, so a declared holdings field is always one of
+	// the linked user fields; with a second one beside it, the lookup would
+	// fail as ambiguous were it consulted at all.
+	t.Run("a declared mask_by_field_id wins over the other linked user field", func(t *testing.T) {
+		callerID := model.NewId()
+		tmpl := newTemplate(t)
+		named := newField(t, model.PropertyFieldObjectTypeUser, tmpl)
+		other := newField(t, model.PropertyFieldObjectTypeUser, tmpl)
+		channelField := newField(t, model.PropertyFieldObjectTypeChannel, tmpl)
+		setTemplateMasking(t, tmpl, named.ID)
+		hold(t, callerID, named, optA)
+		hold(t, callerID, other, optB)
+
+		cond := editorView(t, callerID, channelField)
+		assert.Equal(t, []any{"A"}, cond.Value, "holdings must come from the declared field alone")
+		assert.True(t, cond.HasMaskedValues)
+
+		info, err := resolve(t, callerID, channelField)
+		require.NoError(t, err)
+		assert.False(t, info.IsValueHidden("A"))
+		assert.True(t, info.IsValueHidden("B"), "the other linked user field's holdings must not be consulted")
 	})
-	require.NoError(t, vErr)
-
-	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
-	require.Nil(t, rErr)
-
-	info, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
-	require.NoError(t, err)
-	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
-	assert.True(t, info.IsValueHidden("A"), "with no mask_by_field_id, holdings resolve to the channel field itself and every option masks")
 }
 
 // TestAppMaskingResolver_ChannelFieldNamedHoldingsPublic guards the fail-open
