@@ -111,21 +111,12 @@ func (s *Session) Scope() (scope *SessionScope, scoped bool) {
 	return &parsed, true
 }
 
-// IsOpenToAllUsers reports whether every user on the server can join the team
-// without an invite. Teams that only some users can join are excluded.
-func (t *Team) IsOpenToAllUsers() bool {
-	return t.AllowOpenInvite &&
-		t.DeleteAt == 0 &&
-		!SafeDereference(t.GroupConstrained) &&
-		t.AllowedDomains == "" &&
-		!t.PolicyEnforced
-}
-
 // SessionScopeAllowsChannel is the single decision of whether a channel is in a
 // session scope. team must be the channel's team, or nil if it isn't known; it
-// is only consulted for the open-team grant. complianceEnabled is
-// ComplianceSettings.Enable, which turns the open-team grant off.
-func SessionScopeAllowsChannel(scope *SessionScope, channel *Channel, team *Team, complianceEnabled bool) bool {
+// is only consulted for the open-team grant. openTeamGrantDisabled turns the
+// open-team grant off. It must be true when ComplianceSettings.Enable is on or
+// when the system_user role lacks join_public_teams.
+func SessionScopeAllowsChannel(scope *SessionScope, channel *Channel, team *Team, openTeamGrantDisabled bool) bool {
 	if scope == nil || channel == nil {
 		return false
 	}
@@ -138,7 +129,7 @@ func SessionScopeAllowsChannel(scope *SessionScope, channel *Channel, team *Team
 	}
 
 	return scope.Resources.OpenTeamPublicChannels &&
-		!complianceEnabled &&
+		!openTeamGrantDisabled &&
 		channel.Type == ChannelTypeOpen &&
 		team != nil &&
 		team.Id == channel.TeamId &&
