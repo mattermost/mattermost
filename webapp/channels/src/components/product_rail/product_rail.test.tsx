@@ -7,11 +7,13 @@ import React from 'react';
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import type {ChannelKindRegistration} from 'selectors/views/product_rail';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
-import type {ChannelKindRegistration, ProductComponent} from 'types/store/plugins';
+import type {ProductComponent} from 'types/store/plugins';
 import type {ProductRailSection} from 'types/store/views';
 
 import ProductRail from './product_rail';
@@ -105,10 +107,13 @@ function getBoardsState(currentChannelId: string, section: ProductRailSection = 
             },
         },
         plugins: {
+
+            // ChannelKind registrations come with the Boards plugin API, which the state type
+            // doesn't know about yet.
             components: {
                 Product: [],
                 ChannelKind: [boardKind],
-            },
+            } as unknown as GlobalState['plugins']['components'],
         },
         views: {
             productRail: {section, lastPathByTeam: {}, lastPathsLoaded: false},

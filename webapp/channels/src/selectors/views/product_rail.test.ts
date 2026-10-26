@@ -6,10 +6,10 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
-import type {ChannelKindRegistration} from 'types/store/plugins';
 import type {ProductRailSection} from 'types/store/views';
 
 import {filterChannelIdsForSection, getBoardChannelIds, getProductRailSection} from './product_rail';
+import type {ChannelKindRegistration} from './product_rail';
 
 const channel = TestHelper.getChannelMock({id: 'channel'});
 const board = TestHelper.getChannelMock({id: 'board'});
@@ -31,7 +31,7 @@ function getState({enabled = true, registrations = [boardKind], section = 'chann
             general: {config: {FeatureFlagProductRail: enabled ? 'true' : 'false'}},
             channels: {channels: {[channel.id]: channel, [board.id]: board}},
         },
-        plugins: {components: {ChannelKind: registrations}},
+        plugins: {components: {ChannelKind: registrations} as unknown as GlobalState['plugins']['components']},
         views: {productRail: {section, lastPathByTeam: {}, lastPathsLoaded: false}},
     };
     return state as GlobalState;

@@ -11,17 +11,44 @@ import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/ent
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
-import {isBoardChannel} from 'utils/channel_kind';
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-import type {ChannelKindRegistration} from 'types/store/plugins';
 import type {ProductRailSection, ProductRailTab} from 'types/store/views';
+
+/**
+ * A plugin's claim that the channels its matcher accepts are of a kind, such as 'board', as
+ * plugins register with registerChannelKind. That API comes with the Boards work, so this reads
+ * the registrations without depending on it: until it's in, there are none, and the rail shows no
+ * Home or Boards split. Once it is, this can use its ChannelKindRegistration and isBoardChannel.
+ */
+export type ChannelKindRegistration = {
+    id: string;
+    pluginId: string;
+    kind: string;
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+};
 
 const emptyRegistrations: ChannelKindRegistration[] = [];
 
 function getChannelKindRegistrations(state: GlobalState): ChannelKindRegistration[] {
-    return state.plugins?.components?.ChannelKind ?? emptyRegistrations;
+    const components = state.plugins?.components as Record<string, unknown> | undefined;
+    return (components?.ChannelKind as ChannelKindRegistration[] | undefined) ?? emptyRegistrations;
+}
+
+// As with registerChannelKind: the first registration whose matcher accepts the channel decides its
+// kind, and a matcher that throws is skipped.
+function isBoardChannel(state: GlobalState, channel: Channel, registrations: ChannelKindRegistration[]): boolean {
+    for (const registration of registrations) {
+        try {
+            if (registration.matcher(state, channel) === true) {
+                return registration.kind === 'board';
+            }
+        } catch {
+            // Treat a failing matcher as not matching.
+        }
+    }
+    return false;
 }
 
 /** Whether a plugin has registered a matcher for board channels. */
@@ -59,7 +86,7 @@ export const getBoardChannelIds: (state: GlobalState) => Set<string> = (() => {
         const result = new Set<string>();
         if (registrations.some((registration) => registration.kind === 'board')) {
             for (const channel of Object.values(channels)) {
-                if (isBoardChannel(state, channel)) {
+                if (isBoardChannel(state, channel, registrations)) {
                     result.add(channel.id);
                 }
             }
