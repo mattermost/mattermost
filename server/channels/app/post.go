@@ -225,6 +225,25 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	if flags.DeferNotification {
+		// A deferred post is saved silent until DeliverPostNotifications releases it, so
+		// asking for it to also be permanently silent, or to notify right away, is contradictory.
+		if flags.SilentNotification || flags.ForceNotification {
+			rctx.Logger().Warn("Rejected deferred notification post with conflicting notification flags",
+				mlog.String("user_id", post.UserId),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.deferred_notification_conflict.app_error", nil, "", http.StatusBadRequest)
+		}
+		if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification {
+			rctx.Logger().Warn("Rejected deferred notification post with persistent notifications",
+				mlog.String("user_id", post.UserId),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.deferred_persistent_notification.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	// Validate recipients counts in case it's not DM
 	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
 		err := a.forEachPersistentNotificationPost(rctx, []*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
@@ -289,6 +308,20 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			)
 			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.silent_notification.app_error", nil, "", http.StatusForbidden)
 		}
+		post.AddProp(model.PostPropsSilentNotification, true)
+	}
+
+	if flags.DeferNotification {
+		if !a.isIntegrationPostAuthor(rctx, user, flags) {
+			rctx.Logger().Warn("Rejected deferred notification post from non-integration author",
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.deferred_notification.app_error", nil, "", http.StatusForbidden)
+		}
+		// silent_notification makes every existing suppression path, including shipped
+		// clients, treat the post as silent until DeliverPostNotifications releases it.
+		post.AddProp(model.PostPropsDeferredNotification, true)
 		post.AddProp(model.PostPropsSilentNotification, true)
 	}
 
@@ -724,7 +757,7 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 }
 
 // isIntegrationPostAuthor decides whether the caller may set integration-only
-// post markers (silent_notification, force_notification). It is deliberately
+// post markers (silent_notification, deferred_notification, force_notification). It is deliberately
 // narrower than model.Session.IsIntegration(): in particular, personal access
 // tokens (Session.IsUserAccessToken()) are NOT considered integrations here.
 //

@@ -116,6 +116,36 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
+func TestDeliverPostNotifications(t *testing.T) {
+	scoped := &model.DeliverPostNotificationsOptions{UserIDs: []string{"userID"}}
+
+	for _, tc := range []struct {
+		name        string
+		options     *model.DeliverPostNotificationsOptions
+		appErr      *model.AppError
+		expectedErr string
+	}{
+		{name: "full delivery", options: nil},
+		{name: "scoped delivery", options: scoped},
+		{name: "failure", options: nil, appErr: newAppError(), expectedErr: "here: id, an error occurred"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			api := &plugintest.API{}
+			defer api.AssertExpectations(t)
+			client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+			api.On("DeliverPostNotifications", "postID", tc.options).Return(tc.appErr)
+
+			err := client.Post.DeliverPostNotifications("postID", tc.options)
+			if tc.expectedErr != "" {
+				require.EqualError(t, err, tc.expectedErr)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestDeletePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}

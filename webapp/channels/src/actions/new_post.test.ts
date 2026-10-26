@@ -9,9 +9,12 @@ import {receivedNewPost} from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import * as NewPostActions from 'actions/new_post';
+import realConfigureStore from 'store';
 
 import mockStore from 'tests/test_store';
 import {Constants} from 'utils/constants';
+import * as NotificationSounds from 'utils/notification_sounds';
+import * as NotificationUtils from 'utils/notifications';
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     ...jest.requireActual('mattermost-redux/actions/channels'),
@@ -513,6 +516,140 @@ describe('actions/new_post', () => {
                 },
             ]);
             expect(testStore.getActions()).toEqual([]);
+        });
+    });
+
+    // A post created with deferred notifications is first broadcast silent, then broadcast
+    // again under the same id once its notifications are released.
+    describe('posted event repeated for a post the client already has', () => {
+        const channelId = 'deferred_channel_id';
+        const teamId = 'team_id';
+        const currentUserId = 'current_user_id';
+        const botUserId = 'bot_user_id';
+        const rootId = 'root_post_id';
+        const postId = 'deferred_post_id';
+
+        let showNotification: jest.SpyInstance;
+
+        beforeEach(() => {
+            showNotification = jest.spyOn(NotificationUtils, 'showNotification').mockReturnValue((async () => ({status: 'success'})) as unknown as ReturnType<typeof NotificationUtils.showNotification>);
+            (NotificationSounds as {ding: typeof NotificationSounds.ding}).ding = jest.fn();
+        });
+
+        afterEach(() => {
+            showNotification.mockRestore();
+        });
+
+        function makeStore(collapsedThreads: boolean) {
+            const rootPost = {id: rootId, channel_id: channelId, user_id: currentUserId, root_id: '', create_at: 1000, update_at: 1000, message: 'question', props: {}, reply_count: 1};
+
+            return realConfigureStore({
+                entities: {
+                    general: {
+                        config: {CollapsedThreads: collapsedThreads ? 'always_on' : 'disabled'},
+                    },
+                    users: {
+                        currentUserId,
+                        profiles: {
+                            [currentUserId]: {id: currentUserId, username: 'me', notify_props: {desktop: 'mention', desktop_threads: 'all', channel: 'true', first_name: 'false', mention_keys: ''}},
+                            [botUserId]: {id: botUserId, username: 'agent', is_bot: true},
+                        },
+                        statuses: {[currentUserId]: 'online'},
+                    },
+                    teams: {
+                        currentTeamId: teamId,
+                        teams: {[teamId]: {id: teamId, name: 'team'}},
+                        myMembers: {[teamId]: {team_id: teamId, user_id: currentUserId, msg_count: 0, msg_count_root: 0, mention_count: 0, mention_count_root: 0}},
+                    },
+                    channels: {
+                        currentChannelId: 'other_channel_id',
+                        channels: {
+                            [channelId]: {id: channelId, team_id: teamId, type: 'O', name: 'town', display_name: 'Town', last_post_at: 1000, last_root_post_at: 1000},
+                            other_channel_id: {id: 'other_channel_id', team_id: teamId, type: 'O', name: 'other', display_name: 'Other'},
+                        },
+                        myMembers: {
+                            [channelId]: {channel_id: channelId, user_id: currentUserId, msg_count: 1, msg_count_root: 1, mention_count: 0, mention_count_root: 0, urgent_mention_count: 0, last_viewed_at: 1000, notify_props: {desktop: 'default', mark_unread: 'all'}},
+                        },
+                        messageCounts: {[channelId]: {total: 1, root: 1}},
+                        manuallyUnread: {},
+                    },
+                    posts: {
+                        posts: {[rootId]: rootPost},
+                        postsInChannel: {[channelId]: [{order: [rootId], recent: true}]},
+                        postsInThread: {},
+                    },
+                    threads: {
+                        threads: collapsedThreads ? {[rootId]: {id: rootId, reply_count: 1, last_reply_at: 1000, participants: [{id: currentUserId}], is_following: true, unread_replies: 0, unread_mentions: 0, post: {channel_id: channelId, user_id: currentUserId}}} : {},
+                    },
+                    preferences: {myPreferences: {}},
+                },
+                views: {
+                    browser: {focused: false},
+                },
+            } as unknown as Parameters<typeof realConfigureStore>[0]);
+        }
+
+        function postedEvents(post: Post) {
+            const placeholder = {
+                ...post,
+                message: 'thinking...',
+                props: {from_bot: 'true', deferred_notification: true, silent_notification: true},
+            } as unknown as Post;
+            const released = {
+                ...post,
+                update_at: post.update_at + 1000,
+                message: 'the final answer',
+                props: {from_bot: 'true'},
+            } as unknown as Post;
+            const messageProps = {team_id: teamId, channel_type: 'O', channel_display_name: 'Town', channel_name: 'town', sender_name: 'agent', set_online: false} as NewPostActions.NewPostMessageProps;
+
+            return {
+                placeholder: {post: placeholder, props: {...messageProps, post: JSON.stringify(placeholder)}},
+                released: {post: released, props: {...messageProps, post: JSON.stringify(released), mentions: JSON.stringify([currentUserId]), ...(post.root_id ? {followers: JSON.stringify([currentUserId])} : {})}},
+            };
+        }
+
+        test('channel post is updated in place and counted as unread once', async () => {
+            const store = makeStore(false);
+            const {placeholder, released} = postedEvents({id: postId, channel_id: channelId, user_id: botUserId, root_id: '', create_at: 2000, update_at: 2000, reply_count: 0} as Post);
+
+            await store.dispatch(NewPostActions.completePostReceive(placeholder.post, placeholder.props));
+
+            let state = store.getState();
+            expect(state.entities.posts.postsInChannel[channelId][0].order).toEqual([postId, rootId]);
+            expect(state.entities.channels.messageCounts[channelId].total).toBe(1);
+            expect(state.entities.channels.myMembers[channelId].mention_count).toBe(0);
+            expect(showNotification).not.toHaveBeenCalled();
+
+            await store.dispatch(NewPostActions.completePostReceive(released.post, released.props));
+
+            state = store.getState();
+            expect(state.entities.posts.postsInChannel[channelId][0].order).toEqual([postId, rootId]);
+            expect(state.entities.posts.posts[postId].message).toBe('the final answer');
+            expect(state.entities.posts.posts[postId].props).not.toHaveProperty('silent_notification');
+            expect(state.entities.channels.messageCounts[channelId]).toEqual({total: 2, root: 2});
+            expect(state.entities.channels.myMembers[channelId].mention_count).toBe(1);
+            expect(state.entities.teams.myMembers[teamId].mention_count).toBe(1);
+            expect(showNotification).toHaveBeenCalledTimes(1);
+            expect(showNotification).toHaveBeenCalledWith(expect.objectContaining({body: '@agent: the final answer', tag: postId}));
+        });
+
+        test('collapsed threads reply is not duplicated and does not change the reply count', async () => {
+            const store = makeStore(true);
+            const {placeholder, released} = postedEvents({id: postId, channel_id: channelId, user_id: botUserId, root_id: rootId, create_at: 2000, update_at: 2000, reply_count: 1} as Post);
+
+            await store.dispatch(NewPostActions.completePostReceive(placeholder.post, placeholder.props));
+            await store.dispatch(NewPostActions.completePostReceive(released.post, released.props));
+
+            const state = store.getState();
+            expect(state.entities.posts.postsInThread[rootId]).toEqual([postId]);
+            expect(state.entities.posts.postsInChannel[channelId][0].order).toEqual([rootId]);
+            expect(state.entities.posts.posts[postId].message).toBe('the final answer');
+            expect(state.entities.posts.posts[rootId].reply_count).toBe(1);
+            expect(state.entities.threads.threads[rootId].reply_count).toBe(1);
+            expect(state.entities.channels.myMembers[channelId].mention_count).toBe(1);
+            expect(showNotification).toHaveBeenCalledTimes(1);
+            expect(showNotification).toHaveBeenCalledWith(expect.objectContaining({body: '@agent: the final answer', tag: postId}));
         });
     });
 });

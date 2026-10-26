@@ -794,6 +794,31 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
+	// DeliverPostNotifications runs the notification pipeline for a post after it was created,
+	// typically once its final content is in place.
+	//
+	// To defer a post's notifications, create it with the model.PostPropsDeferredNotification
+	// prop set to true. The post is then saved silently: it is visible but sends no
+	// notifications and leaves the channel unread state unchanged, and edits keep it that way.
+	//
+	// With nil options, or no options.UserIDs, the deferred post is released: it stops being
+	// silent, becomes unread for the channel as of now, and notifies the channel against its
+	// current content as if it had just been posted, including mentions, push, email and
+	// followed threads. Webhooks and auto-responses are not triggered again. Releasing happens
+	// at most once, even across concurrent calls and cluster nodes; calling it for a post that
+	// is not, or is no longer, deferred does nothing and returns nil.
+	//
+	// With options.UserIDs, only those users are notified, as if each were explicitly
+	// mentioned, whether or not the post is deferred. The post's deferred state is left
+	// unchanged. Users who are not active members of the post's channel, and the post's author,
+	// are skipped.
+	//
+	// Returns a 404 error if the post does not exist or was deleted.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	DeliverPostNotifications(postID string, options *model.DeliverPostNotificationsOptions) *model.AppError
+
 	// GetProfileImage gets user's profile image.
 	//
 	// @tag User

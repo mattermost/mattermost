@@ -5765,6 +5765,35 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 	return nil
 }
 
+type Z_DeliverPostNotificationsArgs struct {
+	A string
+	B *model.DeliverPostNotificationsOptions
+}
+
+type Z_DeliverPostNotificationsReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) DeliverPostNotifications(postID string, options *model.DeliverPostNotificationsOptions) *model.AppError {
+	_args := &Z_DeliverPostNotificationsArgs{postID, options}
+	_returns := &Z_DeliverPostNotificationsReturns{}
+	if err := g.client.Call("Plugin.DeliverPostNotifications", _args, _returns); err != nil {
+		log.Printf("RPC call to DeliverPostNotifications API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeliverPostNotifications(args *Z_DeliverPostNotificationsArgs, returns *Z_DeliverPostNotificationsReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeliverPostNotifications(postID string, options *model.DeliverPostNotificationsOptions) *model.AppError
+	}); ok {
+		returns.A = hook.DeliverPostNotifications(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API DeliverPostNotifications called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetProfileImageArgs struct {
 	A string
 }

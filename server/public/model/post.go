@@ -108,6 +108,7 @@ const (
 	PostPropsPreviewedPost            = "previewed_post"
 	PostPropsForceNotification        = "force_notification"
 	PostPropsSilentNotification       = "silent_notification"
+	PostPropsDeferredNotification     = "deferred_notification"
 	PostPropsChannelMentions          = "channel_mentions"
 	PostPropsCurrentTeamId            = "current_team_id"
 	PostPropsUnsafeLinks              = "unsafe_links"
@@ -418,10 +419,14 @@ func (o *Post) EncodeJSON(w io.Writer) error {
 }
 
 type CreatePostFlags struct {
-	TriggerWebhooks     bool
-	SetOnline           bool
-	ForceNotification   bool
-	SilentNotification  bool
+	TriggerWebhooks    bool
+	SetOnline          bool
+	ForceNotification  bool
+	SilentNotification bool
+	// DeferNotification saves the post silently and marks it deferred, so that
+	// notifications can be delivered later against its final content with
+	// DeliverPostNotifications.
+	DeferNotification   bool
 	FromIncomingWebhook bool
 	FromPlugin          bool
 	// AllowMmBlocksActions permits props.mm_blocks_actions on create. Set only
@@ -640,12 +645,13 @@ func (o *Post) SanitizeProps() {
 		PropsAddChannelMember,
 	}
 
-	// Notification-policy markers (silent_notification, force_notification) are
-	// authorization-load-bearing: they change notification delivery for everyone
-	// in the channel, so they must be stripped on every locally-originated post-
-	// creation path. The server re-injects them in app.CreatePost under verified
-	// authority: silent_notification via isIntegrationPostAuthor, force_notification
-	// via the server-set CreatePostFlags.ForceNotification flag.
+	// Notification-policy markers (silent_notification, deferred_notification,
+	// force_notification) are authorization-load-bearing: they change notification
+	// delivery for everyone in the channel, so they must be stripped on every
+	// locally-originated post-creation path. The server re-injects them in
+	// app.CreatePost under verified authority: silent_notification and
+	// deferred_notification via isIntegrationPostAuthor, force_notification via the
+	// server-set CreatePostFlags.ForceNotification flag.
 	//
 	// The from_* identity markers (from_webhook, from_bot, from_oauth_app,
 	// from_plugin) are stripped here so a regular client cannot forge them;
@@ -673,6 +679,7 @@ func (o *Post) SanitizeProps() {
 		membersToSanitize = append(membersToSanitize,
 			PostPropsForceNotification,
 			PostPropsSilentNotification,
+			PostPropsDeferredNotification,
 			PostPropsFromWebhook,
 			PostPropsFromBot,
 			PostPropsFromOAuthApp,
@@ -696,8 +703,8 @@ func (o *Post) SanitizeProps() {
 
 // SanitizeNonIdentityProps strips PropsAddChannelMember and, for
 // non-federated posts, the notification-policy markers (force_notification,
-// silent_notification) — the same set SanitizeProps stripped before v12 added
-// identity-marker stripping to it.
+// silent_notification, deferred_notification) — the same set SanitizeProps
+// stripped before v12 added identity-marker stripping to it.
 //
 // Use this instead of SanitizeProps on read paths that return an
 // already-persisted post to a client (Threads, CRT notifications, etc.).
@@ -716,6 +723,7 @@ func (o *Post) SanitizeNonIdentityProps() {
 		membersToSanitize = append(membersToSanitize,
 			PostPropsForceNotification,
 			PostPropsSilentNotification,
+			PostPropsDeferredNotification,
 		)
 	}
 	for _, member := range membersToSanitize {
@@ -737,6 +745,7 @@ func (o *Post) SanitizeNonIdentityProps() {
 // updates (see app/integration_action.go).
 var postIdentityPropsPreservedOnUpdate = []string{
 	PostPropsSilentNotification,
+	PostPropsDeferredNotification,
 	PostPropsFromBot,
 	PostPropsFromWebhook,
 	PostPropsFromOAuthApp,
@@ -787,6 +796,7 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 			PostPropsFromWebhook,
 			PostPropsFromPlugin,
 			PostPropsSilentNotification,
+			PostPropsDeferredNotification,
 			PostPropsForceNotification,
 			PostPropsOverrideUsername,
 			PostPropsWebhookDisplayName,
@@ -1120,6 +1130,12 @@ func (o *Post) propsIsValid() error {
 		}
 	}
 
+	if props[PostPropsDeferredNotification] != nil {
+		if _, ok := props[PostPropsDeferredNotification].(bool); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("deferred_notification prop must be a boolean"))
+		}
+	}
+
 	if props[PostPropsAIGeneratedByUserID] != nil {
 		if aiGenUserID, ok := props[PostPropsAIGeneratedByUserID].(string); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a string"))
@@ -1190,6 +1206,14 @@ func (o *Post) HasSilentNotification() bool {
 		return silent
 	}
 	return false
+}
+
+// HasDeferredNotification reports whether the post was saved silently with its
+// notifications deferred until DeliverPostNotifications releases them. A deferred
+// post also carries silent_notification, so every suppression path treats it as silent.
+func (o *Post) HasDeferredNotification() bool {
+	deferred, ok := o.GetProp(PostPropsDeferredNotification).(bool)
+	return ok && deferred
 }
 
 // IsNotificationSuppressed reports whether the post should not trigger delivery-side
@@ -1602,6 +1626,15 @@ func DefaultUpdatePostOptions() *UpdatePostOptions {
 		SafeUpdate:    false,
 		IsRestorePost: false,
 	}
+}
+
+// DeliverPostNotificationsOptions controls DeliverPostNotifications. A nil value
+// requests full delivery: the post leaves the deferred state and notifies the
+// channel as if it had just been posted.
+type DeliverPostNotificationsOptions struct {
+	// UserIDs, when non-empty, notifies only these users, as if each were explicitly
+	// mentioned, and leaves the post's deferred state untouched.
+	UserIDs []string `json:"user_ids,omitempty"`
 }
 
 type PreparePostForClientOpts struct {

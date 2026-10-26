@@ -433,6 +433,15 @@ type PostStore interface {
 	GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error)
 	Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error)
 	OverwriteMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error)
+	// ReleaseDeferredNotification takes a post out of the deferred-notification state,
+	// removing its deferred_notification and silent_notification props, and applies the
+	// channel and thread bookkeeping that was skipped when it was saved silently, as of
+	// releaseAt: it counts the post in the channel's message totals and advances the
+	// channel's last post times and, for a reply, the thread's last reply time. The
+	// transition is conditional on the post still being deferred, so concurrent callers
+	// release a post at most once; it returns false, changing nothing, when the post is
+	// missing, deleted or not deferred.
+	ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (bool, error)
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
 	GetEditHistoryForPost(postID string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)

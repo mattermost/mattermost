@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -48,6 +49,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostsCreatedAt", func(t *testing.T) { testPostStoreGetPostsCreatedAt(t, rctx, ss) })
 	t.Run("Overwrite", func(t *testing.T) { testPostStoreOverwrite(t, rctx, ss) })
 	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, rctx, ss) })
+	t.Run("ReleaseDeferredNotification", func(t *testing.T) { testPostStoreReleaseDeferredNotification(t, rctx, ss) })
 	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, rctx, ss) })
 	t.Run("GetPostsBatchForIndexing", func(t *testing.T) { testPostStoreGetPostsBatchForIndexing(t, rctx, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, rctx, ss) })
@@ -4121,6 +4123,210 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		require.Empty(t, ro5a.Filenames, "Failed to clear Filenames")
 		require.Empty(t, ro5a.FileIds, "Failed to set FileIds")
 	})
+}
+
+func testPostStoreReleaseDeferredNotification(t *testing.T, rctx request.CTX, ss store.Store) {
+	deferredProps := func() model.StringInterface {
+		return model.StringInterface{
+			model.PostPropsDeferredNotification: true,
+			model.PostPropsSilentNotification:   true,
+			"other_prop":                        "kept",
+		}
+	}
+
+	setup := func(t *testing.T) (*model.Channel, *model.Post) {
+		t.Helper()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		root, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   "root",
+		})
+		require.NoError(t, err)
+
+		return channel, root
+	}
+
+	getChannel := func(t *testing.T, channelID string) *model.Channel {
+		t.Helper()
+		channel, err := ss.Channel().Get(channelID, false)
+		require.NoError(t, err)
+		return channel
+	}
+
+	t.Run("releases a deferred root post exactly once across concurrent calls", func(t *testing.T) {
+		channel, _ := setup(t)
+		deferred, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   "deferred",
+			Props:     deferredProps(),
+		})
+		require.NoError(t, err)
+
+		before := getChannel(t, channel.Id)
+		require.Equal(t, int64(1), before.TotalMsgCount, "the deferred post is saved silently and must not be counted yet")
+		require.Equal(t, int64(1), before.TotalMsgCountRoot)
+
+		releaseAt := model.GetMillis() + 10000
+		results := make(chan bool, 2)
+		var wg sync.WaitGroup
+		for range 2 {
+			wg.Go(func() {
+				released, releaseErr := ss.Post().ReleaseDeferredNotification(rctx, deferred.Id, releaseAt)
+				assert.NoError(t, releaseErr)
+				results <- released
+			})
+		}
+		wg.Wait()
+		close(results)
+
+		releasedCount := 0
+		for released := range results {
+			if released {
+				releasedCount++
+			}
+		}
+		require.Equal(t, 1, releasedCount, "only one caller may release the post")
+
+		released, err := ss.Post().ReleaseDeferredNotification(rctx, deferred.Id, releaseAt+1)
+		require.NoError(t, err)
+		require.False(t, released, "a released post is no longer deferred")
+
+		after, err := ss.Post().GetSingle(rctx, deferred.Id, false)
+		require.NoError(t, err)
+		assert.False(t, after.HasDeferredNotification())
+		assert.False(t, after.HasSilentNotification())
+		assert.Equal(t, "kept", after.GetProp("other_prop"))
+		assert.Equal(t, releaseAt, after.UpdateAt)
+
+		afterChannel := getChannel(t, channel.Id)
+		assert.Equal(t, before.TotalMsgCount+1, afterChannel.TotalMsgCount)
+		assert.Equal(t, before.TotalMsgCountRoot+1, afterChannel.TotalMsgCountRoot)
+		assert.Equal(t, releaseAt, afterChannel.LastPostAt)
+		assert.Equal(t, releaseAt, afterChannel.LastRootPostAt)
+	})
+
+	t.Run("releasing a deferred reply advances the thread but not the root totals", func(t *testing.T) {
+		channel, root := setup(t)
+		reply, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			RootId:    root.Id,
+			Message:   "deferred reply",
+			Props:     deferredProps(),
+		})
+		require.NoError(t, err)
+
+		before := getChannel(t, channel.Id)
+		threadBefore, err := ss.Thread().Get(root.Id)
+		require.NoError(t, err)
+		require.Equal(t, reply.CreateAt, threadBefore.LastReplyAt)
+
+		releaseAt := model.GetMillis() + 10000
+		released, err := ss.Post().ReleaseDeferredNotification(rctx, reply.Id, releaseAt)
+		require.NoError(t, err)
+		require.True(t, released)
+
+		afterChannel := getChannel(t, channel.Id)
+		assert.Equal(t, before.TotalMsgCount+1, afterChannel.TotalMsgCount)
+		assert.Equal(t, before.TotalMsgCountRoot, afterChannel.TotalMsgCountRoot)
+		assert.Equal(t, releaseAt, afterChannel.LastPostAt)
+		assert.Equal(t, before.LastRootPostAt, afterChannel.LastRootPostAt)
+
+		threadAfter, err := ss.Thread().Get(root.Id)
+		require.NoError(t, err)
+		assert.Equal(t, releaseAt, threadAfter.LastReplyAt)
+		assert.Equal(t, threadBefore.ReplyCount, threadAfter.ReplyCount)
+
+		rootAfter, err := ss.Post().GetSingle(rctx, root.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, releaseAt, rootAfter.UpdateAt)
+	})
+
+	t.Run("does not count a released join/leave post", func(t *testing.T) {
+		channel, _ := setup(t)
+		deferred, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Type:      model.PostTypeJoinChannel,
+			Message:   "joined",
+			Props:     deferredProps(),
+		})
+		require.NoError(t, err)
+		before := getChannel(t, channel.Id)
+
+		released, err := ss.Post().ReleaseDeferredNotification(rctx, deferred.Id, model.GetMillis()+10000)
+		require.NoError(t, err)
+		require.True(t, released)
+
+		afterChannel := getChannel(t, channel.Id)
+		assert.Equal(t, before.TotalMsgCount, afterChannel.TotalMsgCount)
+		assert.Equal(t, before.TotalMsgCountRoot, afterChannel.TotalMsgCountRoot)
+	})
+
+	for _, tc := range []struct {
+		name  string
+		props model.StringInterface
+		// prepare returns the id to release.
+		prepare func(t *testing.T, post *model.Post) string
+	}{
+		{
+			name:    "post that is only silent",
+			props:   model.StringInterface{model.PostPropsSilentNotification: true},
+			prepare: func(t *testing.T, post *model.Post) string { return post.Id },
+		},
+		{
+			name:    "post with deferred_notification false",
+			props:   model.StringInterface{model.PostPropsDeferredNotification: false, model.PostPropsSilentNotification: true},
+			prepare: func(t *testing.T, post *model.Post) string { return post.Id },
+		},
+		{
+			name:  "deleted deferred post",
+			props: deferredProps(),
+			prepare: func(t *testing.T, post *model.Post) string {
+				require.NoError(t, ss.Post().Delete(rctx, post.Id, model.GetMillis(), model.NewId()))
+				return post.Id
+			},
+		},
+		{
+			name:    "missing post",
+			props:   nil,
+			prepare: func(t *testing.T, post *model.Post) string { return model.NewId() },
+		},
+	} {
+		t.Run("does not release a "+tc.name, func(t *testing.T) {
+			channel, _ := setup(t)
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channel.Id,
+				UserId:    model.NewId(),
+				Message:   "message",
+				Props:     tc.props,
+			})
+			require.NoError(t, err)
+			postID := tc.prepare(t, post)
+			before := getChannel(t, channel.Id)
+
+			released, err := ss.Post().ReleaseDeferredNotification(rctx, postID, model.GetMillis()+10000)
+			require.NoError(t, err)
+			assert.False(t, released)
+
+			afterChannel := getChannel(t, channel.Id)
+			assert.Equal(t, before.TotalMsgCount, afterChannel.TotalMsgCount)
+			assert.Equal(t, before.LastPostAt, afterChannel.LastPostAt)
+
+			afterPost, err := ss.Post().GetSingle(rctx, post.Id, true)
+			require.NoError(t, err)
+			assert.Equal(t, post.GetProp(model.PostPropsSilentNotification), afterPost.GetProp(model.PostPropsSilentNotification))
+		})
+	}
 }
 
 func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {

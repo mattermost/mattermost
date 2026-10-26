@@ -546,6 +546,81 @@ func (s *SqlPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Pos
 	return posts[0], nil
 }
 
+func (s *SqlPostStore) ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (_ bool, err error) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return false, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// The deferred_notification containment check is what makes the release happen at
+	// most once: a concurrent caller, or an HA peer, blocks on the row lock and then
+	// matches no row.
+	releaseQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("Props", sq.Expr("Props - ?::text - ?::text", model.PostPropsDeferredNotification, model.PostPropsSilentNotification)).
+		Set("UpdateAt", sq.Expr("GREATEST(UpdateAt + 1, ?)", releaseAt)).
+		Where(sq.Eq{"Id": postID, "DeleteAt": 0}).
+		Where(sq.Expr("Props @> ?::jsonb", fmt.Sprintf(`{%q: true}`, model.PostPropsDeferredNotification))).
+		Suffix("RETURNING ChannelId, RootId, Type")
+
+	var released struct {
+		ChannelId string
+		RootId    string
+		Type      string
+	}
+	if err = transaction.GetBuilder(&released, releaseQuery); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, errors.Wrapf(err, "failed to release deferred notification for Post with id=%s", postID)
+	}
+
+	// Mirrors SaveMultiple, which left the post out of the message totals only because
+	// it was silent.
+	countDelta := 1
+	if (&model.Post{Type: released.Type}).IsJoinLeaveMessage() {
+		countDelta = 0
+	}
+	channelQuery := s.getQueryBuilder().
+		Update("Channels").
+		Set("LastPostAt", sq.Expr("GREATEST(LastPostAt, ?)", releaseAt)).
+		Set("TotalMsgCount", sq.Expr("TotalMsgCount + ?", countDelta)).
+		Where(sq.Eq{"Id": released.ChannelId})
+	if released.RootId == "" {
+		channelQuery = channelQuery.
+			Set("LastRootPostAt", sq.Expr("GREATEST(LastRootPostAt, ?)", releaseAt)).
+			Set("TotalMsgCountRoot", sq.Expr("TotalMsgCountRoot + ?", countDelta))
+	}
+	if _, err = transaction.ExecBuilder(channelQuery); err != nil {
+		return false, errors.Wrapf(err, "failed to update Channel with id=%s", released.ChannelId)
+	}
+
+	if released.RootId != "" {
+		threadQuery := s.getQueryBuilder().
+			Update("Threads").
+			Set("LastReplyAt", sq.Expr("GREATEST(LastReplyAt, ?)", releaseAt)).
+			Where(sq.Eq{"PostId": released.RootId})
+		if _, err = transaction.ExecBuilder(threadQuery); err != nil {
+			return false, errors.Wrapf(err, "failed to update Thread with id=%s", released.RootId)
+		}
+
+		rootQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("UpdateAt", sq.Expr("GREATEST(UpdateAt, ?)", releaseAt)).
+			Where(sq.Eq{"Id": released.RootId})
+		if _, err = transaction.ExecBuilder(rootQuery); err != nil {
+			return false, errors.Wrapf(err, "failed to update root Post with id=%s", released.RootId)
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return false, errors.Wrap(err, "commit_transaction")
+	}
+
+	return true, nil
+}
+
 func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 	return s.getFlaggedPosts(userId, "", "", offset, limit)
 }
