@@ -1,6 +1,6 @@
 .ProductRail {
-    // Set off from the team sidebar by a darker shade of the theme's sidebar header color.
-    --product-rail-bg: color-mix(in srgb, var(--sidebar-header-bg) 76%, black);
+    // The rail sits on the header's background, like the team sidebar; badges ring themselves in it.
+    --product-rail-bg: var(--sidebar-header-bg);
 
     z-index: 17;
     display: flex;
@@ -9,8 +9,6 @@
     flex-direction: column;
     align-items: center;
     padding: 12px 0;
-    border-radius: var(--radius-l);
-    background: var(--product-rail-bg);
     gap: 4px;
     grid-area: product-rail;
     scrollbar-width: none;
@@ -153,8 +151,8 @@
         width: 40px;
         height: 40px;
 
-        // Room for the cards peeking out below; with the rail's gap, 12px clears them, as above.
-        margin-bottom: 4px;
+        // Sets the team apart from the items below, with room for the Channels badge above its icon.
+        margin-bottom: 16px;
 
         .ProductRail__dot {
             z-index: 2;
