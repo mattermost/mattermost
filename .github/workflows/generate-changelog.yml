@@ -1,7 +1,7 @@
 name: Generate Changelog
 
-# Runs on its own every weekday between the release branch cut and the changelog being
-# merged on release day, and on demand. The scheduled run works out the release itself
+# Runs on its own every weekday from the release's RC-1 (the vX.Y.0-rc1 tag) until the
+# changelog is merged on release day, and on demand. The scheduled run works out the release itself
 # (see the resolve job); its mode comes from the CHANGELOG_SCHEDULE_MODE repository
 # variable and defaults to dry_run, so it previews into the run summary until that
 # variable is set to auto.
@@ -76,11 +76,11 @@ on:
           - dry_run
 
 jobs:
-  # Decides what the run is for. A scheduled run picks the release between its
-  # release-X.Y branch cut and its entry being merged to master: the newest tagged
-  # release until its entry lands (the tag is pushed about five working days before
-  # release day), else the oldest cut branch with no vX.Y.0 tag, from
-  # CHANGELOG_SCHEDULE_FROM on. The diff base is the previous release's vX.Y.0 tag, or
+  # Decides what the run is for. A scheduled run picks the release between its RC-1
+  # and its entry being merged to master: the newest tagged release until its entry
+  # lands (the tag is pushed about five working days before release day), else the
+  # oldest cut branch with a vX.Y.0-rcN tag and no vX.Y.0 tag, from
+  # CHANGELOG_SCHEDULE_FROM on. A cut branch without an RC yet is skipped. The diff base is the previous release's vX.Y.0 tag, or
   # its release branch until that is tagged. It also fails a dispatch whose version and
   # milestone disagree on the major version, which would file one release's notes
   # under another's.
