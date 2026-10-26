@@ -64,13 +64,13 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
     // The saved preference is read when the block becomes toggleable, and a click overrides it for this block
     const storedMarkdownView = useMemo(() => (canToggleMarkdown ? LocalStorageStore.getMarkdownCodeBlockView(currentUserId) : MarkdownViews.RAW), [canToggleMarkdown, currentUserId]);
-    const [chosenMarkdownView, setChosenMarkdownView] = useState<MarkdownView | null>(null);
-    const markdownView = chosenMarkdownView ?? storedMarkdownView;
+    const [chosenMarkdownView, setChosenMarkdownView] = useState<{userId: string; view: MarkdownView} | null>(null);
+    const markdownView = chosenMarkdownView?.userId === currentUserId ? chosenMarkdownView.view : storedMarkdownView;
     const showRendered = canToggleMarkdown && markdownView === MarkdownViews.RENDERED;
 
     const handleMarkdownViewChange = (view: MarkdownView) => {
         LocalStorageStore.setMarkdownCodeBlockView(currentUserId, view);
-        setChosenMarkdownView(view);
+        setChosenMarkdownView({userId: currentUserId, view});
     };
 
     // Markdown is prose, so wrap it, with a number on each line rather than one column that wrapped lines would knock out of step.
