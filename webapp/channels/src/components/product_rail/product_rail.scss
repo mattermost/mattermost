@@ -8,7 +8,7 @@
     width: 72px;
     flex-direction: column;
     align-items: center;
-    padding: 8px 0 12px;
+    padding: 12px 0;
     border-radius: var(--radius-l);
     background: var(--product-rail-bg);
     gap: 4px;
@@ -152,7 +152,9 @@
         display: block;
         width: 40px;
         height: 40px;
-        margin-bottom: 8px;
+
+        // Room for the cards peeking out below; with the rail's gap, 12px clears them, as above.
+        margin-bottom: 4px;
 
         .ProductRail__dot {
             z-index: 2;
