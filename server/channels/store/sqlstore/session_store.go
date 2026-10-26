@@ -179,7 +179,8 @@ func (me SqlSessionStore) GetLRUSessions(rctx request.CTX, userId string, limit 
 func (me SqlSessionStore) GetScopedSessions(rctx request.CTX) ([]*model.Session, error) {
 	builder := me.sessionSelectQuery.
 		Where(sq.Expr("Props->>'" + model.SessionPropScope + "' IS NOT NULL")).
-		Where(sq.Gt{"ExpiresAt": model.GetMillis()})
+		Where(sq.Gt{"ExpiresAt": model.GetMillis()}).
+		OrderBy("CreateAt")
 
 	sessions := []*model.Session{}
 	if err := me.GetMaster().SelectBuilder(&sessions, builder); err != nil {

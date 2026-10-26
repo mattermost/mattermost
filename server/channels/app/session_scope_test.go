@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -226,6 +227,64 @@ func TestSessionScopeComplianceDisablesOpenTeamGrant(t *testing.T) {
 	assert.True(t, ok, "listed channel")
 }
 
+func TestSessionScopeOpenTeamGrantNeedsJoinPublicTeams(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := newScopeFixture(t, th)
+	session := mintScoped(t, th, f.bot.Id, f.scope())
+	rctx := th.Context.WithSession(session)
+	otherOpen := setTeamOpen(t, th, th.CreateTeam(t), true)
+
+	require.True(t, th.App.SessionHasPermissionToTeam(*session, otherOpen.Id, model.PermissionViewTeam))
+	ok, _ := th.App.SessionHasPermissionToChannel(rctx, *session, f.publicOpen.Id, model.PermissionReadChannel)
+	require.True(t, ok)
+
+	th.RemovePermissionFromRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+
+	ok, _ = th.App.SessionHasPermissionToChannel(rctx, *session, f.publicOpen.Id, model.PermissionReadChannel)
+	assert.False(t, ok, "open-team public channel")
+	assert.False(t, th.App.SessionHasPermissionToTeam(*session, otherOpen.Id, model.PermissionViewTeam), "open team without a listed channel")
+	ok, _ = th.App.SessionHasPermissionToChannel(rctx, *session, f.triggering.Id, model.PermissionReadChannel)
+	assert.True(t, ok, "listed channel")
+	assert.True(t, th.App.SessionHasPermissionToTeam(*session, f.closedTeam.Id, model.PermissionViewTeam), "team holding a listed channel")
+}
+
+func TestSessionScopeViewUsersRestrictions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := newScopeFixture(t, th)
+	session := mintScoped(t, th, f.bot.Id, f.scope())
+	rctx := th.Context.WithSession(session)
+
+	restrictions, appErr := th.App.GetViewUsersRestrictions(rctx, f.bot.Id)
+	require.Nil(t, appErr)
+	require.Nil(t, restrictions, "a bot that can see every user still can")
+
+	th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
+	defer th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
+
+	unlistedClosed := setTeamOpen(t, th, th.CreateTeam(t), false)
+	th.LinkUserToTeam(t, f.bot, unlistedClosed)
+	restrictions, appErr = th.App.GetViewUsersRestrictions(rctx, f.bot.Id)
+	require.Nil(t, appErr)
+	require.NotNil(t, restrictions)
+	assert.ElementsMatch(t, []string{f.openTeam.Id}, restrictions.Teams, "only teams the bot is on and the scope can view")
+	assert.ElementsMatch(t, []string{f.triggering.Id, f.extra.Id}, restrictions.Channels, "listed channels, not the bot's DMs or other memberships")
+
+	dmOnly := th.CreateUser(t)
+	_, appErr = th.App.GetOrCreateDirectChannel(th.Context, dmOnly.Id, f.bot.Id)
+	require.Nil(t, appErr)
+
+	canSee, appErr := th.App.UserCanSeeOtherUser(rctx, f.bot.Id, dmOnly.Id)
+	require.Nil(t, appErr)
+	assert.False(t, canSee, "sharing a DM with the bot doesn't make a user visible")
+
+	canSee, appErr = th.App.UserCanSeeOtherUser(th.Context, f.bot.Id, dmOnly.Id)
+	require.Nil(t, appErr)
+	assert.True(t, canSee, "outside a scoped request the bot's memberships still count")
+}
+
 func TestSessionScopeTeamAndSystemChecks(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -238,6 +297,13 @@ func TestSessionScopeTeamAndSystemChecks(t *testing.T) {
 	unlistedClosed := setTeamOpen(t, th, th.CreateTeam(t), false)
 	th.CreateChannel(t, unlistedClosed)
 	assert.False(t, th.App.SessionHasPermissionToTeam(*session, unlistedClosed.Id, model.PermissionViewTeam), "invite-only team without a listed channel")
+
+	listedOnly := f.scope()
+	listedOnly.Resources.OpenTeamPublicChannels = false
+	listedOnlySession := mintScoped(t, th, f.bot.Id, listedOnly)
+	otherOpen := setTeamOpen(t, th, th.CreateTeam(t), true)
+	assert.False(t, th.App.SessionHasPermissionToTeam(*listedOnlySession, otherOpen.Id, model.PermissionViewTeam), "open team without the open-team grant")
+	assert.True(t, th.App.SessionHasPermissionToTeam(*listedOnlySession, f.openTeam.Id, model.PermissionViewTeam), "open team holding a listed channel")
 
 	t.Run("a listed channel that is archived no longer makes its team visible", func(t *testing.T) {
 		team := setTeamOpen(t, th, th.CreateTeam(t), false)
@@ -441,6 +507,43 @@ func TestRevokeScopedSessionsForPlugin(t *testing.T) {
 	assert.Nil(t, appErr, "another plugin's scoped session survives")
 	_, appErr = th.App.GetSession(unscoped.Token)
 	assert.Nil(t, appErr, "unscoped sessions survive")
+
+	t.Run("a failed revocation doesn't stop the rest", func(t *testing.T) {
+		// An OAuth session without access data fails to revoke. It sorts first.
+		broken := &model.Session{UserId: f.bot.Id, IsOAuth: true, ExpiresAt: expiresAt}
+		broken.AddProp(model.SessionPropScope, mine.Props[model.SessionPropScope])
+		_, err := th.App.Srv().Store().Session().Save(th.Context, broken)
+		require.NoError(t, err)
+		time.Sleep(2 * time.Millisecond)
+		next := mintScoped(t, th, f.bot.Id, f.scope())
+
+		appErr := th.App.RevokeScopedSessionsForPlugin(th.Context, scopeTestPluginID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.session.revoke_scoped.app_error", appErr.Id)
+		_, appErr = th.App.GetSession(next.Token)
+		assert.NotNil(t, appErr, "the session after the failure is revoked")
+	})
+
+	t.Run("all scoped sessions", func(t *testing.T) {
+		require.Nil(t, th.App.RevokeAllScopedSessions(th.Context))
+		_, appErr := th.App.GetSession(theirs.Token)
+		assert.NotNil(t, appErr)
+		_, appErr = th.App.GetSession(unscoped.Token)
+		assert.Nil(t, appErr, "unscoped sessions survive")
+	})
+}
+
+func TestScopedSessionsRevokedWhenPluginsAreTurnedOff(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := newScopeFixture(t, th)
+	session := mintScoped(t, th, f.bot.Id, f.scope())
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
+
+	require.Eventually(t, func() bool {
+		_, appErr := th.App.GetSession(session.Token)
+		return appErr != nil
+	}, 10*time.Second, 100*time.Millisecond)
 }
 
 func TestScopedSessionIsUnauthenticatedOnPluginRoutes(t *testing.T) {

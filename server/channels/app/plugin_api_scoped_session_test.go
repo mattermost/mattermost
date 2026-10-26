@@ -35,6 +35,17 @@ func TestPluginAPICreateScopedSession(t *testing.T) {
 		require.Nil(t, api.ExtendSessionExpiry(session.Id, model.GetMillis()+60*60*1000))
 	})
 
+	t.Run("extensions can't pass 24h after creation", func(t *testing.T) {
+		aging, appErr := api.CreateScopedSession(f.bot.Id, f.scope(), model.GetMillis()+30*60*1000)
+		require.Nil(t, appErr)
+		createdAt := model.GetMillis() - 23*60*60*1000
+		_, err := th.SQLStore.GetMaster().Exec("UPDATE Sessions SET CreateAt = $1 WHERE Id = $2", createdAt, aging.Id)
+		require.NoError(t, err)
+
+		require.NotNil(t, api.ExtendSessionExpiry(aging.Id, model.GetMillis()+2*60*60*1000))
+		require.Nil(t, api.ExtendSessionExpiry(aging.Id, createdAt+model.SessionScopeMaxLifetimeMillis))
+	})
+
 	t.Run("plain CreateSession with a scope prop is rejected", func(t *testing.T) {
 		_, appErr := api.CreateSession(&model.Session{UserId: f.bot.Id, Props: model.StringMap{model.SessionPropScope: session.Props[model.SessionPropScope]}})
 		require.NotNil(t, appErr)

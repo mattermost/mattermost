@@ -347,7 +347,7 @@ func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *mo
 		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if session.IsScoped() && expiresAt > model.GetMillis()+model.SessionScopeMaxLifetimeMillis {
+	if session.IsScoped() && expiresAt > session.CreateAt+model.SessionScopeMaxLifetimeMillis {
 		return model.NewAppError("extendSessionExpiry", "app.session.create_scoped.expires_at.app_error", nil, "", http.StatusBadRequest)
 	}
 

@@ -90,7 +90,7 @@ type Handler struct {
 	FileAPI                   bool
 
 	// AllowScopedSession lets scoped sessions reach this handler. Every other
-	// handler rejects them, and so does any path on the hard-deny list.
+	// handler rejects them.
 	AllowScopedSession bool
 
 	cspShaDirective string
@@ -348,7 +348,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
 	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
-	if c.Err == nil && c.AppContext.Session().IsScoped() && (!h.AllowScopedSession || IsScopedSessionHardDeniedPath(r.URL.Path)) {
+	if c.Err == nil && c.AppContext.Session().IsScoped() && !h.AllowScopedSession {
 		c.Err = NewScopedSessionOutOfScopeError("ServeHTTP")
 		c.Err.DetailedError = ScopedSessionRouteDeniedDetail
 	}
@@ -388,7 +388,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.HandleFunc(c, w, r)
 	}
 
-	if c.Err != nil && c.Err.Id == "api.context.permissions.app_error" && c.AppContext.Session().IsScoped() {
+	// A scoped session gets the same error for a missing object as for one out of
+	// its scope, so it can't learn which out-of-scope IDs exist.
+	if c.Err != nil && (c.Err.Id == "api.context.permissions.app_error" || c.Err.StatusCode == http.StatusNotFound) && c.AppContext.Session().IsScoped() {
 		c.Err = NewScopedSessionOutOfScopeError(c.Err.Where).Wrap(c.Err)
 	}
 

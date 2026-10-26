@@ -159,6 +159,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		wg.Wait()
 	} else { // If plugins are disabled, shutdown plugins.
 		pluginsEnvironment.Shutdown()
+		ch.revokeAllScopedSessions()
 	}
 
 	ch.notifyPluginStatusesChanged()

@@ -150,15 +150,13 @@ func TestScopedSessionRouteAllowlist(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	f := setupScopedAPIFixture(t, th)
 
-	for _, route := range scopedSessionAllowedRoutes {
-		_, template, _ := strings.Cut(route, " ")
-		assert.False(t, web.IsScopedSessionHardDeniedPath(template), "allowlisted route %s is on the hard-deny list", route)
-	}
-
 	type routeCase struct {
 		method   string
 		template string
 		path     string
+		// probeMethod is the method sent. HEAD responses have no body to identify
+		// the error by, so HEAD is probed with GET on routes that serve both.
+		probeMethod string
 	}
 	var cases []routeCase
 	seen := map[string]bool{}
@@ -189,7 +187,11 @@ func TestScopedSessionRouteAllowlist(t *testing.T) {
 				continue
 			}
 			seen[key] = true
-			cases = append(cases, routeCase{method: method, template: normalizeRouteTemplate(template), path: path})
+			probeMethod := method
+			if method == http.MethodHead && slices.Contains(methods, http.MethodGet) {
+				probeMethod = http.MethodGet
+			}
+			cases = append(cases, routeCase{method: method, template: normalizeRouteTemplate(template), path: path, probeMethod: probeMethod})
 		}
 		return nil
 	})
@@ -204,7 +206,7 @@ func TestScopedSessionRouteAllowlist(t *testing.T) {
 	baseURL := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port)
 	var reachable []string
 	for _, c := range cases {
-		req, err := http.NewRequest(c.method, baseURL+c.path, strings.NewReader("{}"))
+		req, err := http.NewRequest(c.probeMethod, baseURL+c.path, strings.NewReader("{}"))
 		require.NoError(t, err)
 		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+f.session.Token)
 		resp, err := httpClient.Do(req)
@@ -217,8 +219,7 @@ func TestScopedSessionRouteAllowlist(t *testing.T) {
 			json.Unmarshal(body, &appErr) == nil &&
 			appErr.Id == scopedSessionErrorID &&
 			appErr.DetailedError == web.ScopedSessionRouteDeniedDetail
-		if c.method == http.MethodHead {
-			// HEAD responses have no body to identify the error by.
+		if c.probeMethod == http.MethodHead {
 			routeDenied = resp.StatusCode == http.StatusForbidden
 		}
 		if !routeDenied {
@@ -232,66 +233,29 @@ func TestScopedSessionRouteAllowlist(t *testing.T) {
 	assert.Equal(t, expected, reachable, "routes reachable by a scoped session must match the allowlist exactly")
 }
 
-func TestScopedSessionHardDenyList(t *testing.T) {
-	for _, path := range []string{
-		"/api/v4/users/me/tokens",
-		"/api/v4/users/" + model.NewId() + "/tokens",
-		"/api/v4/users/tokens/search",
-		"/api/v4/users/me/sessions",
-		"/api/v4/users/sessions/revoke/all",
-		"/api/v4/users/login",
-		"/api/v4/users/logout",
-		"/api/v4/users/me/mfa",
-		"/api/v4/users/me/password",
-		"/api/v4/users/me/roles",
-		"/api/v4/oauth/apps",
-		"/api/v4/system/ping",
-		"/api/v4/config",
-		"/api/v4/license",
-		"/api/v4/plugins",
-		"/api/v4/ldap/sync",
-		"/api/v4/saml/certificate/public",
-		"/api/v4/access_control_policies",
-		"/api/v4/websocket",
-		"/subpath/api/v4/users/me/tokens",
-	} {
-		assert.True(t, web.IsScopedSessionHardDeniedPath(path), path)
-	}
-	for _, path := range []string{
-		"/api/v4/users/me",
-		"/api/v4/users/ids",
-		"/api/v4/users/username/tokens",
-		"/api/v4/channels/" + model.NewId() + "/posts",
-		"/plugins/com.example/api",
-	} {
-		assert.False(t, web.IsScopedSessionHardDeniedPath(path), path)
-	}
+func TestScopedSessionRouteFlag(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedAPIFixture(t, th)
 
-	t.Run("hard-deny list overrides the route flag", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		f := setupScopedAPIFixture(t, th)
-
+	for _, allow := range []bool{false, true} {
 		called := false
 		handler := &web.Handler{
 			Srv:                th.Server,
 			HandleFunc:         func(*Context, http.ResponseWriter, *http.Request) { called = true },
 			RequireSession:     true,
-			AllowScopedSession: true,
+			AllowScopedSession: allow,
 		}
 
-		req := httptest.NewRequest(http.MethodGet, "/api/v4/users/me/tokens", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/users/me", nil)
 		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+f.session.Token)
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
-		assert.False(t, called)
-		assert.Equal(t, http.StatusForbidden, rec.Code)
-		assert.Contains(t, rec.Body.String(), scopedSessionErrorID)
-
-		req = httptest.NewRequest(http.MethodGet, "/api/v4/users/me", nil)
-		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+f.session.Token)
-		handler.ServeHTTP(httptest.NewRecorder(), req)
-		assert.True(t, called)
-	})
+		assert.Equal(t, allow, called)
+		if !allow {
+			assert.Equal(t, http.StatusForbidden, rec.Code)
+			assert.Contains(t, rec.Body.String(), scopedSessionErrorID)
+		}
+	}
 }
 
 func TestScopedSessionReads(t *testing.T) {
@@ -384,6 +348,74 @@ func TestScopedSessionReads(t *testing.T) {
 		_, resp, err = f.client.CreateUserAccessToken(ctx, f.bot.Id, "x", 0)
 		requireScopeError(t, resp, err)
 	})
+}
+
+func TestScopedSessionMissingObjectsLookOutOfScope(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedAPIFixture(t, th)
+	ctx := context.Background()
+
+	missing := model.NewId()
+	_, resp, err := f.client.GetChannel(ctx, missing)
+	requireScopeError(t, resp, err)
+	_, resp, err = f.client.GetPost(ctx, missing, "")
+	requireScopeError(t, resp, err)
+	_, resp, err = f.client.GetPostsForChannel(ctx, missing, 0, 10, "", false, false)
+	requireScopeError(t, resp, err)
+	_, resp, err = f.client.GetFileInfo(ctx, missing)
+	requireScopeError(t, resp, err)
+	_, resp, err = f.client.GetTeam(ctx, missing, "")
+	requireScopeError(t, resp, err)
+
+	_, resp, err = th.Client.GetChannel(ctx, missing)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+}
+
+func TestScopedSessionUserVisibility(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedAPIFixture(t, th)
+	ctx := context.Background()
+
+	dmOnly := th.CreateUser(t)
+	_, appErr := th.App.GetOrCreateDirectChannel(th.Context, dmOnly.Id, f.bot.Id)
+	require.Nil(t, appErr)
+	_, _, err := f.client.GetUser(ctx, dmOnly.Id, "")
+	require.NoError(t, err, "every user is visible while system_user has view_members")
+
+	th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+
+	_, resp, err := f.client.GetUser(ctx, dmOnly.Id, "")
+	requireScopeError(t, resp, err)
+	users, _, err := f.client.GetUsersByIds(ctx, []string{dmOnly.Id})
+	require.NoError(t, err)
+	assert.Empty(t, users, "sharing a DM with the bot doesn't make a user visible")
+
+	listedMember := th.CreateUser(t)
+	th.LinkUserToTeam(t, listedMember, f.closedTeam)
+	th.AddUserToChannel(t, listedMember, f.triggering)
+	_, _, err = f.client.GetUser(ctx, listedMember.Id, "")
+	require.NoError(t, err, "members of a listed channel are visible")
+}
+
+func TestScopedSessionOpenTeamGrantNeedsJoinPublicTeams(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedAPIFixture(t, th)
+	ctx := context.Background()
+
+	_, _, err := f.client.GetPostsForChannel(ctx, f.publicOpen.Id, 0, 10, "", false, false)
+	require.NoError(t, err)
+
+	th.RemovePermissionFromRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+
+	_, resp, err := f.client.GetPostsForChannel(ctx, f.publicOpen.Id, 0, 10, "", false, false)
+	requireScopeError(t, resp, err)
+	_, resp, err = f.client.GetChannel(ctx, f.publicOpen.Id)
+	requireScopeError(t, resp, err)
+	_, _, err = f.client.GetChannel(ctx, f.triggering.Id)
+	require.NoError(t, err, "listed channels are unaffected")
 }
 
 func TestScopedSessionDMIsolation(t *testing.T) {

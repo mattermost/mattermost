@@ -1881,7 +1881,8 @@ type API interface {
 
 	// CreateScopedSession creates a session for userID that can only read what
 	// scope allows, expiring at expiresAt (unix milliseconds, at most 24 hours
-	// ahead). scope.Permissions must be a non-empty subset of
+	// ahead; ExtendSessionExpiry can't move it past 24 hours after the session
+	// was created). scope.Permissions must be a non-empty subset of
 	// model.ScopeReadPermissions, and scope.Resources.ChannelIDs must not name
 	// direct or group channels. The server sets scope.CreatedByPluginID to the
 	// calling plugin. Read access is exactly the scope: the user's memberships
