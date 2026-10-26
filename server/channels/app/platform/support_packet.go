@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
@@ -50,6 +51,8 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.server.open_file_descriptors":     {yaml.LineComment(" current open FDs for this process")},
 	"$.server.max_file_descriptors":      {yaml.LineComment(" system limit (ulimit -n)")},
 	"$.server.version":                   {yaml.HeadComment(" Software")},
+
+	"$.config.audit_logging_configured": {yaml.LineComment(" this server's audit check of its current config and license; offline health checks use it")},
 
 	// database: sql.DBStats cumulative counters (lifetime of process; all drivers)
 	"$.database.master_pool_wait_count":                  {yaml.LineComment(" cumulative; total times a goroutine waited for a connection since process start")},
@@ -175,10 +178,14 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.License.Company = license.Customer.Company
 		d.License.Users = model.SafeDereference(license.Features.Users)
 		d.License.SkuShortName = license.SkuShortName
-		d.License.IsTrial = license.IsTrial
+		d.License.IsTrial = license.IsTrialLicense()
 		d.License.IsGovSKU = license.IsGovSku
 		d.License.IsNonProduction = license.IsNonProduction
 		d.License.IsCloud = license.IsCloud()
+		d.License.ExpiresAt = license.ExpiresAt
+		d.License.IsSeatCountEnforced = license.IsSeatCountEnforced
+		d.License.ExtraUsers = license.ExtraUsers
+		d.License.Features = license.Features
 	}
 
 	/* Server */
@@ -237,6 +244,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()
+	d.Config.AuditLoggingConfigured = new(config.IsAuditLoggingActive(ps.Config().ExperimentalAuditSettings, ps.License().HasAdvancedLogging()))
 
 	/* DB */
 	databaseType, schemaVersion, err := ps.DatabaseTypeAndSchemaVersion()
@@ -297,9 +305,11 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 			fail(model.SectionCluster, errors.Wrap(e, "error while getting cluster infos"))
 		} else {
 			d.Cluster.NumberOfNodes = new(max(len(clusterInfo), 1)) // clusterInfo is empty if the node is the only one in the cluster
+			d.Cluster.NumberOfConnectedNodes = new(max(connectedClusterNodes(clusterInfo), 1))
 		}
 	} else {
 		d.Cluster.NumberOfNodes = new(1)
+		d.Cluster.NumberOfConnectedNodes = new(1)
 	}
 
 	/* LDAP */
@@ -368,7 +378,12 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* Email Notifications */
-	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) {
+	// Invitations, verification and password reset emails go through SMTP even with notification emails off.
+	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) ||
+		model.SafeDereference(ps.Config().EmailSettings.RequireEmailVerification) ||
+		model.SafeDereference(ps.Config().ServiceSettings.EnableEmailInvitations) ||
+		model.SafeDereference(ps.Config().EmailSettings.EnableSignInWithEmail) ||
+		model.SafeDereference(ps.Config().EmailSettings.EnableSignInWithUsername) {
 		emailSettings := ps.Config().EmailSettings
 		hostname := utils.GetHostnameFromSiteURL(model.SafeDereference(ps.Config().ServiceSettings.SiteURL))
 		mailCfg := &mail.SMTPConfig{
@@ -440,6 +455,7 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 	diagnostics.Database.ReplicaPoolWaitDurationMs = new(storeDiagnostics.ReplicaPoolWaitDurationMs)
 	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = new(storeDiagnostics.ReplicaConnectionsClosedMaxIdle)
 	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = new(storeDiagnostics.ReplicaConnectionsClosedMaxLifetime)
+	diagnostics.Database.ReplicasOnline = new(storeDiagnostics.ReplicasOnline)
 	diagnostics.Database.CacheHitRatio = storeDiagnostics.CacheHitRatio
 	diagnostics.Database.Deadlocks = storeDiagnostics.Deadlocks
 	diagnostics.Database.TempFiles = storeDiagnostics.TempFiles
@@ -695,4 +711,16 @@ func JSONFile[T any](filename string, v *T, err error) (*model.FileData, error) 
 		Filename: filename,
 		Body:     body,
 	}, err
+}
+
+// connectedClusterNodes counts the gossip members in infos. GetClusterInfos also returns nodes
+// known only from their database registration, and those carry no IP address.
+func connectedClusterNodes(infos []*model.ClusterInfo) int {
+	connected := 0
+	for _, info := range infos {
+		if info != nil && info.IPAddress != "" {
+			connected++
+		}
+	}
+	return connected
 }

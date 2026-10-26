@@ -44,6 +44,26 @@ export async function createNewUserProfile(
 }
 
 /**
+ * `usersLimit` in webapp/channels/src/components/post_view/channel_intro_message/index.ts.
+ * Below it, a channel intro shows only the invite button and drops the favorite, "Set header"
+ * and notification preferences buttons.
+ */
+const CHANNEL_INTRO_ACTIONS_MIN_USERS = 10;
+
+/**
+ * Creates throwaway users until the server has enough of them for a channel intro to render its
+ * action buttons. Specs that drive those buttons must call this: on a reused server the user
+ * count depends on how many specs ran before, so the buttons are otherwise there only by luck.
+ */
+export async function ensureChannelIntroActions(client: Client4) {
+    const {total_users_count: totalUsers} = await client.getTotalUsersStats();
+
+    for (let i = totalUsers; i < CHANNEL_INTRO_ACTIONS_MIN_USERS; i++) {
+        await client.createUser(await createRandomUser('introfill'), '', '');
+    }
+}
+
+/**
  * Marks the tutorial and first-time onboarding task list as already seen for the given
  * user, so they don't cover the UI on their first visit to a channel. Useful for users
  * that aren't created via createNewUserProfile, e.g. SSO-provisioned accounts.

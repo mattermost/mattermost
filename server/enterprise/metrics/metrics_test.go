@@ -5,13 +5,17 @@ package metrics
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/config"
 	seMocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
@@ -401,61 +405,68 @@ func TestServerInfo(t *testing.T) {
 	})
 }
 
-func TestIncrementAccessControlDecision(t *testing.T) {
-	newMetrics := func() *MetricsInterfaceImpl {
-		vec := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "decisions_total"}, []string{"action", "decision"})
-		return &MetricsInterfaceImpl{
-			AccessControlDecisions:        vec,
-			accessControlDecisionCounters: newAccessControlDecisionCounters(vec),
+// loggingMetricsByTarget returns the value of each logging metric series, keyed by metric name and target.
+func loggingMetricsByTarget(t *testing.T, miImpl *MetricsInterfaceImpl) map[string]map[string]float64 {
+	t.Helper()
+
+	families, err := miImpl.Registry.Gather()
+	require.NoError(t, err)
+
+	byName := map[string]map[string]float64{}
+	for _, family := range families {
+		if !strings.HasPrefix(family.GetName(), "mattermost_logging_logger_") {
+			continue
 		}
+		byTarget := map[string]float64{}
+		for _, metric := range family.GetMetric() {
+			for _, label := range metric.GetLabel() {
+				if label.GetName() == "target" {
+					byTarget[label.GetValue()] = metric.GetCounter().GetValue() + metric.GetGauge().GetValue()
+				}
+			}
+		}
+		byName[family.GetName()] = byTarget
 	}
+	return byName
+}
 
-	read := func(t *testing.T, mi *MetricsInterfaceImpl, action, decision string) float64 {
-		t.Helper()
-		m := &prometheusModels.Metric{}
-		require.NoError(t, mi.AccessControlDecisions.WithLabelValues(action, decision).Write(m))
-		return m.Counter.GetValue()
+func TestAuditLoggerMetrics(t *testing.T) {
+	// Metrics and the audit target must be configured before the server starts, because audit
+	// targets are only configured once in NewServer.
+	t.Setenv("MM_METRICSSETTINGS_ENABLE", "true")
+	t.Setenv("MM_METRICSSETTINGS_LISTENADDRESS", ":0")
+	t.Setenv(config.AdditionalAuditTargetsEnv, fmt.Sprintf(
+		`{"audit_file":{"type":"file","format":"json","levels":[{"id":%d,"name":%q}],"options":{"filename":%q}}}`,
+		mlog.LvlAuditAPI.ID, mlog.LvlAuditAPI.Name, filepath.Join(t.TempDir(), "audit.log"),
+	))
+
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+
+	miImpl, ok := th.App.Metrics().(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", th.App.Metrics()))
+
+	const loggedTotal = "mattermost_logging_logger_logged_total"
+	auditTarget := audit.MetricsTargetPrefix + "audit_file"
+	auditQueue := audit.MetricsTargetPrefix + "_logr"
+
+	require.NoError(t, th.App.Srv().Audit.Flush())
+	before := loggingMetricsByTarget(t, miImpl)[loggedTotal]
+
+	th.App.Srv().Audit.LogRecord(mlog.LvlAuditAPI, model.AuditRecord{EventName: "test"})
+	require.NoError(t, th.App.Srv().Audit.Flush())
+
+	metrics := loggingMetricsByTarget(t, miImpl)
+	require.Equal(t, before[auditTarget]+1, metrics[loggedTotal][auditTarget])
+	require.Equal(t, before[auditQueue]+1, metrics[loggedTotal][auditQueue], "audit logger's own queue should be counted separately from the main logger's")
+
+	for _, name := range []string{
+		"mattermost_logging_logger_queue_used",
+		loggedTotal,
+		"mattermost_logging_logger_error_total",
+		"mattermost_logging_logger_dropped_total",
+		"mattermost_logging_logger_blocked_total",
+	} {
+		require.Contains(t, metrics[name], auditTarget, name)
+		require.NotContains(t, metrics[name], "audit_file", "%s: audit targets should not be reported under their unprefixed name", name)
 	}
-
-	t.Run("every known series is exported at 0 before any decision", func(t *testing.T) {
-		mi := newMetrics()
-
-		ch := make(chan prometheus.Metric, 100)
-		mi.AccessControlDecisions.Collect(ch)
-		close(ch)
-		require.Len(t, ch, len(accessControlDecisionActions)*len(accessControlDecisions))
-	})
-
-	t.Run("a known action is counted under its own label", func(t *testing.T) {
-		mi := newMetrics()
-
-		mi.IncrementAccessControlDecision(model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionAllow)
-		mi.IncrementAccessControlDecision(model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionDenyPermissionPolicy)
-		mi.IncrementAccessControlDecision(model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionDenyPermissionPolicy)
-
-		require.Equal(t, 1.0, read(t, mi, model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionAllow))
-		require.Equal(t, 2.0, read(t, mi, model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionDenyPermissionPolicy))
-		require.Equal(t, 0.0, read(t, mi, model.AccessControlPolicyActionChannelWriteAccess, einterfaces.AccessControlDecisionDenyPermissionPolicy))
-	})
-
-	t.Run("an unknown action is counted as other", func(t *testing.T) {
-		mi := newMetrics()
-
-		mi.IncrementAccessControlDecision("some_unknown_action", einterfaces.AccessControlDecisionError)
-
-		require.Equal(t, 1.0, read(t, mi, accessControlDecisionActionOther, einterfaces.AccessControlDecisionError))
-
-		ch := make(chan prometheus.Metric, 100)
-		mi.AccessControlDecisions.Collect(ch)
-		close(ch)
-		require.Len(t, ch, len(accessControlDecisionActions)*len(accessControlDecisions), "an unknown action must not add a series")
-	})
-
-	t.Run("an unlisted decision is still counted", func(t *testing.T) {
-		mi := newMetrics()
-
-		mi.IncrementAccessControlDecision(model.AccessControlPolicyActionMembership, "unlisted")
-
-		require.Equal(t, 1.0, read(t, mi, model.AccessControlPolicyActionMembership, "unlisted"))
-	})
 }

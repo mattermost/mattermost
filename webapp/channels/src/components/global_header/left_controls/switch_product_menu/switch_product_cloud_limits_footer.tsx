@@ -6,6 +6,8 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
+
 import {openModal} from 'actions/views/modals';
 
 import LHSNearingLimitsModal from 'components/cloud_usage_modal/lhs_nearing_limit_modal';
@@ -13,12 +15,11 @@ import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHigh
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import useWords from 'components/common/hooks/useWords';
-import UsagePercentBar from 'components/common/usage_percent_bar';
 import * as Menu from 'components/menu';
 import {dismissMenu} from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {limitThresholds} from 'utils/limits';
+import {getUsageProgressBarProps, limitThresholds} from 'utils/limits';
 
 interface Props {
     isUserAdmin: boolean;
@@ -89,7 +90,7 @@ export default function ProductSwitcherCloudLimitsFooter(props: Props) {
                     {words.description}
                 </div>
                 <div className='footerUsage'>
-                    <UsagePercentBar percent={usagePercent}/>
+                    <ProgressBar {...getUsageProgressBarProps(usagePercent, '155px')}/>
                     <span className='footerUsageLabel'>
                         {words.status}
                     </span>

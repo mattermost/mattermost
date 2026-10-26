@@ -1,0 +1,111 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@use "sass:math";
+
+// Shared by the structured and plain text viewers so both read as the same page
+
+$level-column-width: 56px;
+$timestamp-column-width: 96px;
+$caller-column-width: 200px;
+$node-column-width: 120px;
+$node-column-min-width: 64px;
+$message-column-min-width: 120px;
+$row-padding-x: 24px;
+$column-gap: 12px;
+$expand-indicator-width: 16px;
+
+// Log content only; the chrome around it keeps the admin console's Open Sans
+$mono-font: 'SFMono-Regular', consolas, 'Liberation Mono', menlo, monospace;
+
+// On narrow windows node and caller shrink so the message keeps a readable width
+@mixin node-column {
+    min-width: $node-column-min-width;
+    flex: 0 1 $node-column-width;
+}
+
+@mixin message-column {
+    min-width: $message-column-min-width;
+    flex: 1;
+}
+
+@mixin caller-column {
+    min-width: 60px;
+    flex: 0 1 $caller-column-width;
+}
+
+// Indents the expanded details to line up with the message column
+$details-indent: $row-padding-x + $level-column-width + $column-gap + $timestamp-column-width + $column-gap;
+
+// Below this row width node and caller shrink: every column at its basis plus the gaps, chevron and padding
+$row-shrink-width: $details-indent + $node-column-width + $message-column-min-width + $caller-column-width + 3 * $column-gap + $expand-indicator-width + $row-padding-x;
+
+// The node column's rendered width: flex gives it node / (node + caller) of the row's shortfall
+$details-node-width: clamp($node-column-min-width, $node-column-width - ($row-shrink-width - 100%) * math.div($node-column-width, $node-column-width + $caller-column-width), $node-column-width);
+
+@mixin viewer-shell {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+// Mirrors .adminConsoleListTabletOptionalFoot from the shared admin list table.
+@mixin viewer-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 14px;
+    font-weight: 400;
+    gap: 12px;
+}
+
+@mixin viewer-page-size {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+
+    // Undo the global bootstrap label styling
+    label {
+        margin: 0;
+        font-weight: inherit;
+    }
+
+    select {
+        height: 32px;
+        padding: 0 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-s);
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 14px;
+
+        &:focus-visible {
+            border-color: var(--button-bg);
+            box-shadow: inset 0 0 0 1px var(--button-bg);
+            outline: none;
+        }
+    }
+}
+
+// Loading and empty states
+@mixin viewer-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 14px;
+    gap: 8px;
+    text-align: center;
+
+    .btn-link {
+        height: auto;
+        padding: 0;
+        font-size: 14px;
+    }
+}

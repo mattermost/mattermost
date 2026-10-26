@@ -2546,8 +2546,7 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 
 	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(limit)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("ComputeLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}

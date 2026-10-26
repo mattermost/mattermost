@@ -130,7 +130,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, rctx, ss) })
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, rctx, ss) })
 	t.Run("GetMember", func(t *testing.T) { testGetMember(t, rctx, ss) })
-	t.Run("GetAllChannelMemberRolesForUser", func(t *testing.T) { testGetAllChannelMemberRolesForUser(t, rctx, ss) })
+	t.Run("GetChannelMemberRoles", func(t *testing.T) { testGetChannelMemberRoles(t, rctx, ss) })
 	t.Run("GetMemberLastViewedAt", func(t *testing.T) { testGetMemberLastViewedAt(t, rctx, ss) })
 	t.Run("GetMembersWithLastViewedAtSince", func(t *testing.T) { testGetMembersWithLastViewedAtSince(t, rctx, ss, s) })
 	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, rctx, ss) })
@@ -5351,7 +5351,7 @@ func testUpdateChannelMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Error(t, err, "bad user id - should fail")
 }
 
-func testGetAllChannelMemberRolesForUser(t *testing.T, rctx request.CTX, ss store.Store) {
+func testGetChannelMemberRoles(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamScheme, err := ss.Scheme().Save(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
@@ -5399,10 +5399,27 @@ func testGetAllChannelMemberRolesForUser(t *testing.T, rctx request.CTX, ss stor
 	require.NoError(t, ss.Channel().Delete(archivedChannel.Id, model.GetMillis()))
 	otherUsersChannel := newChannelWithMember(model.ChannelMember{UserId: otherUser.Id, SchemeUser: true})
 
-	memberRoles, err := ss.Channel().GetAllChannelMemberRolesForUser(rctx, user.Id, false)
+	// The other user's channel and a channel that does not exist are not the user's memberships.
+	memberRoles, err := ss.Channel().GetChannelMemberRoles(rctx, user.Id, []string{
+		adminChannel.Id, legacyAdminChannel.Id, archivedChannel.Id, otherUsersChannel.Id, model.NewId(),
+	}, false)
 	require.NoError(t, err)
 	require.Len(t, memberRoles, 3)
 	assert.NotContains(t, memberRoles, otherUsersChannel.Id)
+
+	t.Run("only the requested channels are returned", func(t *testing.T) {
+		onlyAdmin, err := ss.Channel().GetChannelMemberRoles(rctx, user.Id, []string{adminChannel.Id}, false)
+		require.NoError(t, err)
+		require.Len(t, onlyAdmin, 1)
+		assert.Equal(t, memberRoles[adminChannel.Id], onlyAdmin[adminChannel.Id])
+	})
+
+	t.Run("no channels returns an empty map", func(t *testing.T) {
+		none, err := ss.Channel().GetChannelMemberRoles(rctx, user.Id, nil, false)
+		require.NoError(t, err)
+		require.NotNil(t, none)
+		assert.Empty(t, none)
+	})
 
 	t.Run("each membership resolves the same as GetMember", func(t *testing.T) {
 		for _, channelID := range []string{adminChannel.Id, legacyAdminChannel.Id, archivedChannel.Id} {

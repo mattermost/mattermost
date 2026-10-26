@@ -2642,8 +2642,14 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 	return scanRowsIntoMap(rows, scanner, nil)
 }
 
-func (s SqlChannelStore) GetAllChannelMemberRolesForUser(rctx request.CTX, userID string, allowFromCache bool) (_ map[string]store.ChannelMemberRoles, err error) {
-	queryString, args, err := s.allChannelMembersForUserQuery(userID, true).ToSql()
+func (s SqlChannelStore) GetChannelMemberRoles(rctx request.CTX, userID string, channelIDs []string, allowFromCache bool) (_ map[string]store.ChannelMemberRoles, err error) {
+	if len(channelIDs) == 0 {
+		return map[string]store.ChannelMemberRoles{}, nil
+	}
+
+	query := s.allChannelMembersForUserQuery(userID, true).
+		Where(sq.Eq{"ChannelMembers.ChannelId": channelIDs})
+	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_tosql")
 	}

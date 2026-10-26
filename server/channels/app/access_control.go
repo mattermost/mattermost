@@ -801,8 +801,7 @@ func (a *App) ValidatePolicySimulationUsersInScope(rctx request.CTX, teamID, cha
 				return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.context.invalid_param.app_error", map[string]any{"Name": "user_id"}, "", http.StatusBadRequest)
 			}
 			if _, err := a.Srv().Store().Channel().GetMember(rctx, channelID, u.UserID); err != nil {
-				var nfErr *store.ErrNotFound
-				if errors.As(err, &nfErr) {
+				if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 					return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.access_control_policy.simulate.users_out_of_scope.app_error", nil, "user_id="+u.UserID, http.StatusForbidden)
 				}
 				return model.NewAppError("ValidatePolicySimulationUsersInScope", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2233,8 +2232,7 @@ func (a *App) HydrateChannelPolicyActions(rctx request.CTX, ch *model.Channel) *
 	}
 	actions, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicy(rctx, ch.Id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			// Policy was deleted between the channel read and this lookup;
 			// the channel row's PolicyEnforced flag will be reconciled on
 			// the next write. Treat as "no actions" rather than failing.
@@ -2297,8 +2295,7 @@ func (a *App) HydrateTeamPolicyActions(rctx request.CTX, team *model.Team) *mode
 	}
 	actions, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicy(rctx, team.Id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			// Policy was deleted between the team read and this lookup;
 			// treat as "no actions" rather than failing.
 			team.PolicyActions = map[string]bool{}
@@ -2782,8 +2779,7 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 
 	subject, storeErr := a.Srv().Store().Attributes().GetSubject(rctx, userID, group.ID, model.PropertyFieldObjectTypeUser)
 	if storeErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(storeErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](storeErr); ok {
 			subject = &model.Subject{
 				ID:         userID,
 				Type:       "user",
@@ -2871,8 +2867,9 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 //     SchemeGuest → channel_guest.
 //  2. Inspect the Roles tokens on the channel member for the channel role names.
 //
-// The role fields come from the user's cached channel memberships rather than a ChannelMember
-// read, because this runs for every recipient of every channel-scoped websocket event.
+// The role fields come from the cached membership of this one user in this one channel rather
+// than a ChannelMember read, because this runs on the websocket hub for every recipient of
+// every channel-scoped event.
 //
 // Returns ("", nil) when no channel role can be determined — either
 // because the user is not a member of the channel, or because the
@@ -2883,7 +2880,7 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // a fabricated role. Inconsistent-row cases are logged at WARN with the
 // row's flags and Roles for operator triage.
 func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) (string, *model.AppError) {
-	memberRoles, err := a.Srv().Store().Channel().GetAllChannelMemberRolesForUser(rctx, userID, true)
+	memberRoles, err := a.Srv().Store().Channel().GetChannelMemberRoles(rctx, userID, []string{channelID}, true)
 	if err != nil {
 		return "", model.NewAppError("GetSubjectChannelRole", "app.access_control.get_channel_role.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

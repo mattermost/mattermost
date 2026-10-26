@@ -761,3 +761,13 @@ func TestChannelReadAccessLookupsCheckMembershipFirst(t *testing.T) {
 		}
 	})
 }
+
+// stubReadAccessNotGoverned answers the channel_read_access governance checks Publish
+// makes for every channel event, for tests whose mock access control service is about
+// something else. Without it the mock panics inside whatever request publishes one.
+func stubReadAccessNotGoverned(m *mocks.AccessControlServiceInterface) {
+	m.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+		Return(false, nil).Maybe()
+	m.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+		Return(false, nil).Maybe()
+}
