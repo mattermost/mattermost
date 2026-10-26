@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalBanner} from '@mattermost/compass-ui/components/global-banner';
+import classNames from 'classnames';
 import type {ReactNode} from 'react';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -46,6 +47,154 @@ type State = {
     isStringContainingUrl: boolean;
 };
 
+type GlobalBannerType = 'general' | 'warning' | 'danger' | 'info' | 'success';
+
+function mapAnnouncementBarType(type: string): GlobalBannerType {
+    switch (type) {
+    case AnnouncementBarTypes.CRITICAL:
+    case AnnouncementBarTypes.DEVELOPER:
+        return 'danger';
+    case AnnouncementBarTypes.SUCCESS:
+        return 'success';
+    case AnnouncementBarTypes.WARNING:
+        return 'warning';
+    case AnnouncementBarTypes.ADVISOR:
+    case AnnouncementBarTypes.ADVISOR_ACK:
+    case AnnouncementBarTypes.ANNOUNCEMENT:
+        return 'info';
+    default:
+        return 'general';
+    }
+}
+
+function legacyBarClass(type: string): string {
+    if (type === AnnouncementBarTypes.DEVELOPER || type === AnnouncementBarTypes.CRITICAL) {
+        return 'announcement-bar announcement-bar-critical';
+    }
+    if (type === AnnouncementBarTypes.SUCCESS) {
+        return 'announcement-bar announcement-bar-success';
+    }
+    if (type === AnnouncementBarTypes.ADVISOR) {
+        return 'announcement-bar announcement-bar-advisor';
+    }
+    if (type === AnnouncementBarTypes.ADVISOR_ACK) {
+        return 'announcement-bar announcement-bar-advisor-ack';
+    }
+    if (type === AnnouncementBarTypes.GENERAL) {
+        return 'announcement-bar announcement-bar-general';
+    }
+    if (type === AnnouncementBarTypes.WARNING) {
+        return 'announcement-bar announcement-bar-warning';
+    }
+    return 'announcement-bar';
+}
+
+type AnnouncementBarBodyProps = Props & {
+    messageRef: React.RefObject<HTMLDivElement | null>;
+    enableToolTipIfNeeded: () => void;
+    showTooltip: boolean;
+    dismissLabel: string;
+};
+
+function AnnouncementBarBody({
+    messageRef,
+    enableToolTipIfNeeded,
+    showTooltip,
+    dismissLabel,
+    ...props
+}: AnnouncementBarBodyProps) {
+    let message = props.message;
+    if (typeof message === 'string') {
+        message = (
+            <FormattedMarkdownMessage id={message}/>
+        );
+    }
+
+    const messageNode = (
+        <span
+            ref={messageRef}
+            onMouseEnter={enableToolTipIfNeeded}
+        >
+            {message}
+        </span>
+    );
+
+    const announcementIcon = () => {
+        return props.showLinkAsButton &&
+            (props.showCloseButton ? <i className='icon icon-alert-circle-outline'/> : <i className='icon icon-alert-outline'/>);
+    };
+
+    let actionLabel: ReactNode;
+    if (props.showLinkAsButton && props.showCTA && !props.ctaDisabled) {
+        if (props.modalButtonText) {
+            actionLabel = <FormattedMessage {...props.modalButtonText}/>;
+        } else if (props.ctaText) {
+            actionLabel = props.ctaText;
+        }
+    }
+
+    const hasCustomColors = Boolean(props.color && props.textColor);
+    const bannerType = hasCustomColors ? 'general' : mapAnnouncementBarType(props.type);
+
+    let barClass = legacyBarClass(props.type);
+    const barStyle: React.CSSProperties = {};
+    if (hasCustomColors) {
+        barStyle.backgroundColor = props.color;
+        barStyle.color = props.textColor;
+        barClass = 'announcement-bar';
+    }
+
+    if (props.className) {
+        barClass += ` ${props.className}`;
+    }
+
+    const globalBanner = (
+        <GlobalBanner
+            className={classNames(
+                'announcement-bar__compass',
+                hasCustomColors ? 'announcement-bar__compass--custom' : barClass,
+            )}
+            type={bannerType}
+            message={messageNode}
+            leadingIcon={props.icon ? props.icon : announcementIcon()}
+            actionLabel={actionLabel}
+            onAction={actionLabel ? () => props.onButtonClick?.() : undefined}
+            onDismiss={props.showCloseButton ? () => props.handleClose?.() : undefined}
+            dismissLabel={dismissLabel}
+        />
+    );
+
+    let barContent = hasCustomColors ? (
+        <div
+            className={barClass}
+            style={barStyle}
+        >
+            {globalBanner}
+        </div>
+    ) : globalBanner;
+    if (showTooltip) {
+        barContent = (
+            <WithTooltip
+                title={props.tooltipMsg ? props.tooltipMsg : message}
+                className='announcementBarTooltip'
+                delayClose={true}
+            >
+                {barContent}
+            </WithTooltip>
+        );
+    }
+
+    return (
+        <div
+            // eslint-disable-next-line react/no-unknown-property
+            css={{gridArea: 'announcement'}}
+            data-testid={props.id}
+        >
+            {barContent}
+        </div>
+    );
+}
+
 export default class AnnouncementBar extends React.PureComponent<Props, State> {
     messageRef: React.RefObject<HTMLDivElement | null>;
     constructor(props: Props) {
@@ -74,7 +223,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
         if (elm) {
             const enable = elm.offsetWidth < elm.scrollWidth;
             this.setState({showTooltip: enable});
-            if (typeof this.props.message == 'string') {
+            if (typeof this.props.message === 'string') {
                 this.setState({isStringContainingUrl: isStringContainingUrl(this.props.message)});
             }
             return;
@@ -120,130 +269,29 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
         }
     }
 
-    handleClose = (e: any) => {
-        e.preventDefault();
-        if (this.props.handleClose) {
-            this.props.handleClose();
-        }
-    };
-
     render() {
         if (!this.props.message) {
             return null;
         }
 
-        let barClass = 'announcement-bar';
-        const barStyle = {backgroundColor: '', color: ''};
-        const linkStyle = {color: ''};
-        if (this.props.color && this.props.textColor) {
-            barStyle.backgroundColor = this.props.color;
-            barStyle.color = this.props.textColor;
-            linkStyle.color = this.props.textColor;
-        } else if (this.props.type === AnnouncementBarTypes.DEVELOPER) {
-            barClass = 'announcement-bar announcement-bar-critical';
-        } else if (this.props.type === AnnouncementBarTypes.CRITICAL) {
-            barClass = 'announcement-bar announcement-bar-critical';
-        } else if (this.props.type === AnnouncementBarTypes.SUCCESS) {
-            barClass = 'announcement-bar announcement-bar-success';
-        } else if (this.props.type === AnnouncementBarTypes.ADVISOR) {
-            barClass = 'announcement-bar announcement-bar-advisor';
-        } else if (this.props.type === AnnouncementBarTypes.ADVISOR_ACK) {
-            barClass = 'announcement-bar announcement-bar-advisor-ack';
-        } else if (this.props.type === AnnouncementBarTypes.GENERAL) {
-            barClass = 'announcement-bar announcement-bar-general';
-        } else if (this.props.type === AnnouncementBarTypes.WARNING) {
-            barClass = 'announcement-bar announcement-bar-warning';
-        }
-
-        if (this.props.className) {
-            barClass += ` ${this.props.className}`;
-        }
-
-        let closeButton;
-        if (this.props.showCloseButton) {
-            closeButton = (
-                <a
-                    href='#'
-                    className='announcement-bar__close'
-                    style={linkStyle}
-                    onClick={this.handleClose}
-                >
-                    {'×'}
-                </a>
-            );
-        }
-
-        let message = this.props.message;
-        if (typeof message == 'string') {
-            message = (
-                <FormattedMarkdownMessage id={this.props.message as string}/>
-            );
-        }
-
-        const announcementIcon = () => {
-            return this.props.showLinkAsButton &&
-            (this.props.showCloseButton ? <i className='icon icon-alert-circle-outline'/> : <i className='icon icon-alert-outline'/>);
-        };
-
-        let barContent = (<div className='announcement-bar__text'>
-            {this.props.icon ? this.props.icon : announcementIcon()}
-            <span
-                ref={this.messageRef}
-                onMouseEnter={this.enableToolTipIfNeeded}
-            >
-                {message}
-            </span>
-            {
-                this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText &&
-                <Button
-                    onClick={this.props.onButtonClick}
-                    disabled={this.props.ctaDisabled}
-                    emphasis='tertiary'
-                    size='xs'
-                    variant='inverted'
-                >
-                    <FormattedMessage
-                        {...this.props.modalButtonText}
-                    />
-                </Button>
-            }
-            {
-                this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
-                <Button
-                    onClick={this.props.onButtonClick}
-                    disabled={this.props.ctaDisabled}
-                    emphasis='tertiary'
-                    size='xs'
-                    variant='inverted'
-                >
-                    {this.props.ctaText}
-                </Button>
-            }
-        </div>);
-
-        if (this.state.showTooltip) {
-            barContent = (
-                <WithTooltip
-                    title={this.props.tooltipMsg ? this.props.tooltipMsg : message}
-                    className='announcementBarTooltip'
-                    delayClose={true}
-                >
-                    {barContent}
-
-                </WithTooltip>);
-        }
-
         return (
-            <div
-                className={barClass}
-                style={barStyle}
-                // eslint-disable-next-line react/no-unknown-property
-                css={{gridArea: 'announcement'}}
-                data-testid={this.props.id}
-            >
-                {barContent}
-                {closeButton}
-            </div>
+            <AnnouncementBarBodyWithIntl
+                {...this.props}
+                messageRef={this.messageRef}
+                enableToolTipIfNeeded={this.enableToolTipIfNeeded}
+                showTooltip={this.state.showTooltip}
+            />
         );
     }
+}
+
+function AnnouncementBarBodyWithIntl(props: Omit<AnnouncementBarBodyProps, 'dismissLabel'>) {
+    const {formatMessage} = useIntl();
+    const dismissLabel = formatMessage({id: 'general_button.close', defaultMessage: 'Close'});
+    return (
+        <AnnouncementBarBody
+            {...props}
+            dismissLabel={dismissLabel}
+        />
+    );
 }
