@@ -283,31 +283,27 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		_, err = th.Store.System().PermanentDeleteByName(managedCategorySetupDoneKey)
 		require.NoError(t, err)
 
-		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+		// The same boot pins the group at version 2, converts the field and
+		// saves the current flag, and the boot after it has nothing left to do.
+		for range 2 {
+			require.NoError(t, th.Server.doSetupManagedCategoryProperties())
 
-		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
-		require.NoError(t, sysErr)
-		require.Equal(t, "true", data.Value)
+			stored, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+			require.Nil(t, appErr)
+			require.Equal(t, model.PropertyGroupVersionV2, stored.Version)
 
-		// The next boot finds the legacy flag, bumps the group and converts
-		// the field.
-		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+			after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+			require.Nil(t, appErr)
+			require.Len(t, after, 1)
+			require.NotNil(t, after[0].Permissions, "field must be converted")
+			require.NotNil(t,
+				after[0].Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field must carry the managed_category service grant")
 
-		stored, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
-		require.Nil(t, appErr)
-		require.Equal(t, model.PropertyGroupVersionV2, stored.Version)
-
-		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
-		require.Nil(t, appErr)
-		require.Len(t, after, 1)
-		require.NotNil(t, after[0].Permissions, "field must be converted")
-		require.NotNil(t,
-			after[0].Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
-			"field must carry the managed_category service grant")
-
-		data, sysErr = th.Store.System().GetByName(managedCategorySetupDoneKey)
-		require.NoError(t, sysErr)
-		require.Equal(t, managedCategoryMigrationVersion, data.Value)
+			data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
+			require.NoError(t, sysErr)
+			require.Equal(t, managedCategoryMigrationVersion, data.Value)
+		}
 	})
 
 	t.Run("subsequent boot after admin revokes service grant does not put it back", func(t *testing.T) {
