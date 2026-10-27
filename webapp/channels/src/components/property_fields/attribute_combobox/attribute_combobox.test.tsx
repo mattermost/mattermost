@@ -76,7 +76,7 @@ describe('AttributeCombobox', () => {
         expect(input.closest(`[${A11yAttributeNames.SKIP_INITIAL_FOCUS}]`)).not.toBeNull();
     });
 
-    test('puts the id, test id and aria-describedby on the input and portals the menu at the given z-index', async () => {
+    test('puts the id and test id on the input and portals the menu at the given z-index', async () => {
         renderWithContext(
             <AttributeCombobox
                 id='attr-input'
@@ -84,7 +84,6 @@ describe('AttributeCombobox', () => {
                 label='Department'
                 options={OPTIONS}
                 value=''
-                aria-describedby='attr-help'
                 zIndex={ZIndex.MENU}
                 onChange={jest.fn()}
             />,
@@ -93,8 +92,6 @@ describe('AttributeCombobox', () => {
         const input = screen.getByRole('combobox', {name: 'Department'});
         expect(input).toHaveAttribute('id', 'attr-input');
         expect(input).toHaveAttribute('data-testid', TEST_ID);
-        expect(input).toHaveAttribute('aria-describedby', 'attr-help');
-
         await userEvent.click(input);
 
         let layer: HTMLElement | null = screen.getByRole('listbox');

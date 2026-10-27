@@ -70,7 +70,6 @@ export type AttributeComboboxProps = (SingleProps | MultiProps) & {
     disabled?: boolean;
     invalid?: boolean;
     placeholder?: string;
-    'aria-describedby'?: string;
 
     /** Stacking order for the portaled menu, e.g. ZIndex.MENU inside a modal. */
     zIndex?: number;
@@ -122,7 +121,6 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
                 id={id}
                 data-testid={testId}
                 aria-label={label}
-                aria-describedby={props['aria-describedby']}
                 options={comboboxOptions}
                 multiple={props.multiple}
                 value={props.multiple ? values : props.value}
