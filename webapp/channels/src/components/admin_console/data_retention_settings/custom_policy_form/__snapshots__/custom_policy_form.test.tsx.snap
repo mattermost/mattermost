@@ -464,51 +464,88 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                             Channels
                           </div>
                           <div
-                            class="FilterList_item"
+                            class="FilterList_items"
                           >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="public"
-                                  name="public"
-                                  type="checkbox"
-                                />
-                                Public
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                                  for="public"
+                                >
+                                  <input
+                                    class="_checkbox__input_18swc_25"
+                                    id="public"
+                                    name="public"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_18swc_44"
+                                  />
+                                  <span
+                                    class="_checkbox__label_18swc_120"
+                                  >
+                                    Public
+                                  </span>
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="private"
-                                  name="private"
-                                  type="checkbox"
-                                />
-                                Private
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                                  for="private"
+                                >
+                                  <input
+                                    class="_checkbox__input_18swc_25"
+                                    id="private"
+                                    name="private"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_18swc_44"
+                                  />
+                                  <span
+                                    class="_checkbox__label_18swc_120"
+                                  >
+                                    Private
+                                  </span>
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="deleted"
-                                  name="deleted"
-                                  type="checkbox"
-                                />
-                                Archived
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                                  for="deleted"
+                                >
+                                  <input
+                                    class="_checkbox__input_18swc_25"
+                                    id="deleted"
+                                    name="deleted"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_18swc_44"
+                                  />
+                                  <span
+                                    class="_checkbox__label_18swc_120"
+                                  >
+                                    Archived
+                                  </span>
+                                </label>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -849,8 +886,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                       id="loadingSpinner"
                     >
                       <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                     </span>
                     Loading
@@ -1051,51 +1090,88 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                             Channels
                           </div>
                           <div
-                            class="FilterList_item"
+                            class="FilterList_items"
                           >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="public"
-                                  name="public"
-                                  type="checkbox"
-                                />
-                                Public
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                                  for="public"
+                                >
+                                  <input
+                                    class="_checkbox__input_18swc_25"
+                                    id="public"
+                                    name="public"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_18swc_44"
+                                  />
+                                  <span
+                                    class="_checkbox__label_18swc_120"
+                                  >
+                                    Public
+                                  </span>
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="private"
-                                  name="private"
-                                  type="checkbox"
-                                />
-                                Private
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                                  for="private"
+                                >
+                                  <input
+                                    class="_checkbox__input_18swc_25"
+                                    id="private"
+                                    name="private"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_18swc_44"
+                                  />
+                                  <span
+                                    class="_checkbox__label_18swc_120"
+                                  >
+                                    Private
+                                  </span>
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="deleted"
-                                  name="deleted"
-                                  type="checkbox"
-                                />
-                                Archived
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                                  for="deleted"
+                                >
+                                  <input
+                                    class="_checkbox__input_18swc_25"
+                                    id="deleted"
+                                    name="deleted"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_18swc_44"
+                                  />
+                                  <span
+                                    class="_checkbox__label_18swc_120"
+                                  >
+                                    Archived
+                                  </span>
+                                </label>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1141,8 +1217,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                       id="loadingSpinner"
                     >
                       <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                     </span>
                     Loading

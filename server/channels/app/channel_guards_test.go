@@ -66,7 +66,7 @@ func (c *captureClusterMock) GetClusterStats(rctx request.CTX) ([]*model.Cluster
 func (c *captureClusterMock) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	return nil, nil
 }
-func (c *captureClusterMock) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
+func (c *captureClusterMock) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string]einterfaces.NodeLogs, *model.AppError) {
 	return nil, nil
 }
 func (c *captureClusterMock) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {

@@ -51,8 +51,10 @@ exports[`components/SingleImageView permalink preview should render with permali
                         id="loadingSpinner"
                       >
                         <span
-                          class="fa fa-spinner fa-fw fa-pulse spinner"
-                          title="Loading Icon"
+                          aria-label="Loading Icon"
+                          class="_spinner_3elm7_10 spinner"
+                          role="status"
+                          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                         />
                       </span>
                       <span
@@ -171,8 +173,10 @@ exports[`components/SingleImageView should match snapshot 1`] = `
                         id="loadingSpinner"
                       >
                         <span
-                          class="fa fa-spinner fa-fw fa-pulse spinner"
-                          title="Loading Icon"
+                          aria-label="Loading Icon"
+                          class="_spinner_3elm7_10 spinner"
+                          role="status"
+                          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                         />
                       </span>
                       <span
@@ -272,7 +276,7 @@ exports[`components/SingleImageView should match snapshot 2`] = `
           >
             <div
               class="file-preview__button"
-              style="display: block;"
+              style=""
             >
               <figure
                 class="image-loaded-container"
@@ -372,8 +376,10 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
                         id="loadingSpinner"
                       >
                         <span
-                          class="fa fa-spinner fa-fw fa-pulse spinner"
-                          title="Loading Icon"
+                          aria-label="Loading Icon"
+                          class="_spinner_3elm7_10 spinner"
+                          role="status"
+                          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                         />
                       </span>
                       <span
@@ -475,7 +481,7 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
           >
             <div
               class="file-preview__button"
-              style="display: block;"
+              style=""
             >
               <figure
                 class="image-loaded-container"
@@ -556,7 +562,7 @@ exports[`components/SingleImageView should set loaded state on callback of onIma
           >
             <div
               class="file-preview__button"
-              style="display: block;"
+              style=""
             >
               <figure
                 class="image-loaded-container"

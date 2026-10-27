@@ -276,6 +276,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     aria-label={isMember ? this.props.intl.formatMessage({id: 'more_channels.view', defaultMessage: 'View'}) : this.props.intl.formatMessage({id: 'joinChannel.JoinButton', defaultMessage: 'Join'})}
                 >
                     <LoadingWrapper
+                        legacy={true}
                         loading={this.state.joiningChannel === channel.id}
                         text={messages.joiningButton}
                     >
@@ -300,6 +301,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 aria-label={this.props.intl.formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
             >
                 <LoadingWrapper
+                    legacy={true}
                     loading={this.state.requestingChannel === channel.id}
                     text={messages.requesting}
                 >
@@ -321,6 +323,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 aria-label={this.props.intl.formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'})}
             >
                 <LoadingWrapper
+                    legacy={true}
                     loading={this.state.withdrawingChannel === channel.id}
                     text={messages.withdrawing}
                 >
@@ -946,7 +949,7 @@ const messages = defineMessages({
     },
     channelPurpose: {
         id: 'more_channels.channel_purpose',
-        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}',
+        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
     },
     joiningButton: {
         id: 'joinChannel.joiningButton',

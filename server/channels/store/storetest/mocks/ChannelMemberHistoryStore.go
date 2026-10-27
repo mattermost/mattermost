@@ -292,6 +292,24 @@ func (_m *ChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(re
 	return r0, r1, r2
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *ChannelMemberHistoryStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewChannelMemberHistoryStore creates a new instance of ChannelMemberHistoryStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewChannelMemberHistoryStore(t interface {

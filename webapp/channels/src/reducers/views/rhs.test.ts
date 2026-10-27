@@ -3,11 +3,14 @@
 
 import type {AnyAction} from 'redux';
 
-import {SearchTypes} from 'mattermost-redux/action_types';
+import {SearchTypes, UserTypes} from 'mattermost-redux/action_types';
 
 import rhsReducer from 'reducers/views/rhs';
 
 import {ActionTypes, RHSStates} from 'utils/constants';
+import {defaultMentionFilters} from 'utils/mention_search';
+
+import type {MentionFilters} from 'types/store/rhs';
 
 describe('Reducers.RHS', () => {
     const initialState = {
@@ -33,6 +36,7 @@ describe('Reducers.RHS', () => {
         editChannelMembers: false,
         shouldFocusRHS: false,
         searchTeam: null,
+        mentionFilters: defaultMentionFilters,
     };
 
     test('Initial state', () => {
@@ -298,6 +302,70 @@ describe('Reducers.RHS', () => {
             ...initialState,
             searchTeam: 'team_id',
         });
+    });
+
+    test('should keep searchTeam when moving to a search or mention state', () => {
+        for (const state of [RHSStates.SEARCH, RHSStates.MENTION]) {
+            const nextState = rhsReducer(
+                {searchTeam: 'team_id'},
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state,
+                },
+            );
+
+            expect(nextState.searchTeam).toEqual('team_id');
+        }
+    });
+
+    test('should hold the mention filters while the panel is showing mentions', () => {
+        const filters: MentionFilters = {channelIds: ['channel1'], mentionTypes: ['direct'], date: 'today'};
+
+        const set = rhsReducer(
+            {},
+            {
+                type: ActionTypes.UPDATE_RHS_MENTION_FILTERS,
+                filters,
+            },
+        );
+
+        expect(set.mentionFilters).toEqual(filters);
+
+        const stillMentions = rhsReducer(
+            {mentionFilters: filters},
+            {
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.MENTION,
+            },
+        );
+
+        expect(stillMentions.mentionFilters).toEqual(filters);
+    });
+
+    test('should clear the mention filters when the panel moves to anything else', () => {
+        const filters: MentionFilters = {channelIds: ['channel1'], mentionTypes: ['direct'], date: 'today'};
+
+        for (const action of [
+            {type: ActionTypes.UPDATE_RHS_STATE, state: RHSStates.SEARCH},
+            {type: UserTypes.LOGOUT_SUCCESS},
+        ]) {
+            const nextState = rhsReducer({mentionFilters: filters}, action);
+
+            expect(nextState.mentionFilters).toEqual(defaultMentionFilters);
+        }
+    });
+
+    test('should clear searchTeam when moving to a state that is not a search', () => {
+        const nextState = rhsReducer(
+            {searchTeam: 'team_id'},
+            {
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.PIN,
+                channelId: '123',
+            },
+        );
+
+        expect(nextState.searchTeam).toBeNull();
     });
 
     test('should match select_post state', () => {
@@ -647,6 +715,7 @@ describe('Reducers.RHS', () => {
             editChannelMembers: false,
             shouldFocusRHS: false,
             searchTeam: null,
+            mentionFilters: defaultMentionFilters,
         };
 
         const nextState = rhsReducer(state, {type: ActionTypes.SUPPRESS_RHS});
