@@ -195,15 +195,15 @@ export async function editSelectAttribute(
     await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).click();
 
-    // The Combobox input carries the field-scoped id and opens its menu on focus,
-    // which the section does on open. Clicking it opens the menu if it is closed
-    // and leaves an open menu open.
+    // The Combobox input carries the field-scoped id. Its menu stays closed when the
+    // section opens and opens when the input is clicked.
+    // A closed menu stays mounted at opacity 0, so check aria-expanded rather than visibility.
     const input = page.locator(`#customProfileAttribute_${fieldId}`);
+    await expect(input).toHaveAttribute('aria-expanded', 'false');
     await input.scrollIntoViewIfNeeded();
     await input.click();
 
     // The menu is portaled out of the modal; its listbox id is derived from the input id.
-    // A closed menu stays mounted at opacity 0, so wait on aria-expanded rather than visibility.
     await expect(input).toHaveAttribute('aria-expanded', 'true');
     const listbox = page.locator(`#customProfileAttribute_${fieldId}-listbox`);
     await listbox.getByRole('option').nth(optionIndex).click();
@@ -235,10 +235,11 @@ export async function editMultiselectAttribute(
 
     const input = page.locator(`#customProfileAttribute_${fieldId}`);
     const listbox = page.locator(`#customProfileAttribute_${fieldId}-listbox`);
+    await expect(input).toHaveAttribute('aria-expanded', 'false');
 
     for (const index of optionIndices) {
-        // The menu closes after each pick; clicking the input reopens it
-        // (and is a no-op when it is already open, as on section open).
+        // The menu stays closed when the section opens and closes after each pick;
+        // clicking the input opens it.
         await input.scrollIntoViewIfNeeded();
         await input.click();
         await expect(input).toHaveAttribute('aria-expanded', 'true');

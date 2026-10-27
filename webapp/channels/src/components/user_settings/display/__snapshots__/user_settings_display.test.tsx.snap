@@ -391,7 +391,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal a11y--active a11y--focused"
+          class="section-max form-horizontal "
         >
           <h4
             class="col-sm-12 section-title"
@@ -403,7 +403,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="sectionContent col-sm-10 col-sm-offset-2"
           >
             <div
-              class="setting-list"
+              class="setting-list a11y--active a11y--focused"
               tabindex="-1"
             >
               <div
@@ -990,7 +990,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal a11y--active a11y--focused"
+          class="section-max form-horizontal "
         >
           <h4
             class="col-sm-12 section-title"
@@ -1002,7 +1002,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="sectionContent col-sm-10 col-sm-offset-2"
           >
             <div
-              class="setting-list"
+              class="setting-list a11y--active a11y--focused"
               tabindex="-1"
             >
               <div
@@ -1363,7 +1363,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal a11y--active a11y--focused"
+          class="section-max form-horizontal "
         >
           <h4
             class="col-sm-12 section-title"
@@ -1375,7 +1375,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="sectionContent col-sm-10 col-sm-offset-2"
           >
             <div
-              class="setting-list"
+              class="setting-list a11y--active a11y--focused"
               tabindex="-1"
             >
               <div
@@ -2188,7 +2188,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal a11y--active a11y--focused"
+          class="section-max form-horizontal "
         >
           <h4
             class="col-sm-12 section-title"
@@ -2200,7 +2200,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="sectionContent col-sm-10 col-sm-offset-2"
           >
             <div
-              class="setting-list"
+              class="setting-list a11y--active a11y--focused"
               tabindex="-1"
             >
               <div
@@ -3811,7 +3811,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal a11y--active a11y--focused"
+          class="section-max form-horizontal "
         >
           <h4
             class="col-sm-12 section-title"
@@ -3823,7 +3823,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="sectionContent col-sm-10 col-sm-offset-2"
           >
             <div
-              class="setting-list"
+              class="setting-list a11y--active a11y--focused"
               tabindex="-1"
             >
               <div
@@ -4521,7 +4521,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal a11y--active a11y--focused"
+          class="section-max form-horizontal "
         >
           <h4
             class="col-sm-12 section-title"
@@ -4533,7 +4533,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="sectionContent col-sm-10 col-sm-offset-2"
           >
             <div
-              class="setting-list"
+              class="setting-list a11y--active a11y--focused"
               tabindex="-1"
             >
               <div

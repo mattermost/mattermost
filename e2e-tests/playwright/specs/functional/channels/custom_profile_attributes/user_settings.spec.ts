@@ -187,8 +187,9 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
 });
 
 /**
- * @objective Verify that keyboard use of a select custom profile attribute stays inside its dropdown:
- * Escape with the menu open closes the menu but not the profile modal, and Enter on an option picks it
+ * @objective Verify that a select custom profile attribute's menu stays closed when its section opens and
+ * opens on click, and that keyboard use stays inside its dropdown: Escape with the menu open closes the menu
+ * but not the profile modal, and Enter on an option picks it
  * without saving the section, which only saves when Save is clicked.
  *
  * @precondition
@@ -213,11 +214,18 @@ test(
         await editButton.scrollIntoViewIfNeeded();
         await editButton.click();
 
-        // * The Combobox input is focused and its menu opened on its own
+        // * The menu stays closed when the section opens, and the input isn't focused
         const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        await expect(input).toHaveAttribute('aria-expanded', 'false');
+        await expect(input).not.toBeFocused();
+        const valueBefore = await input.inputValue();
+
+        // # Click the input
+        await input.click();
+
+        // * The menu opens with the input focused
         await expect(input).toBeFocused();
         await expect(input).toHaveAttribute('aria-expanded', 'true');
-        const valueBefore = await input.inputValue();
 
         // # Press Escape with the menu open
         await page.keyboard.press('Escape');
@@ -282,7 +290,12 @@ test(
         await editButton.scrollIntoViewIfNeeded();
         await editButton.click();
 
+        // * The menu stays closed when the section opens
         const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        await expect(input).toHaveAttribute('aria-expanded', 'false');
+
+        // # Click the input to open the menu
+        await input.click();
         await expect(input).toBeFocused();
         await expect(input).toHaveAttribute('aria-expanded', 'true');
 

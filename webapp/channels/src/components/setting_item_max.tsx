@@ -122,9 +122,11 @@ const SettingItemMax = ({
             // Prefer form controls over footer Save/Cancel (Compass Buttons no longer use .btn).
             // Include [tabindex]:not([tabindex="-1"]) so react-select (and similar) receive
             // Edit→expand focus; .setting-list itself uses tabindex="-1" and is excluded.
-            // Compass Combobox inputs have no tabindex, and its chips must never take initial focus.
+            // Compass Combobox opens its menu whenever its input gains focus, so neither the input
+            // (no tabindex, so not matched here) nor its chips, chip remove buttons, or clear button
+            // take initial focus; a section with only a Combobox focuses .setting-list instead.
             const formControls = Array.from(settingList.current.querySelectorAll<HTMLElement>(
-                'input.form-control, input[role="combobox"], input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"]):not([data-chip])',
+                'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"]):not([data-chip])',
             )).filter((el) => !el.closest('.setting-list-item__buttons'));
             if (formControls.length > 0) {
                 a11yFocus(formControls[0]);
@@ -133,12 +135,14 @@ const SettingItemMax = ({
                     'button:not(#saveSetting):not(#cancelSetting)',
                 );
                 const focusableButton = Array.from(buttons).find(
-                    (button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className),
+                    (button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className) &&
+                        !button.closest('[data-chip], [data-combobox-clear]'),
                 );
                 if (focusableButton) {
                     a11yFocus(focusableButton);
                 } else {
-                    a11yFocus(settingList.current);
+                    // The <section> isn't focusable; .setting-list (tabindex -1) keeps focus in the section.
+                    a11yFocus(settingList.current.querySelector<HTMLElement>('.setting-list') ?? settingList.current);
                 }
             }
         }

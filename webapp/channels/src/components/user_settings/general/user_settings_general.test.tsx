@@ -1978,25 +1978,116 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
             const documentKeys = () => documentKeyDown.mock.calls.map(([e]: [KeyboardEvent]) => e.key);
 
-            test('K1: opens a single field with the input focused and the menu expanded', () => {
+            const getSettingList = () => document.querySelector('.setting-list');
+
+            const expectClosed = () => {
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'false');
+                expect(screen.queryAllByRole('option')).toHaveLength(0);
+            };
+
+            const expectOpen = () => {
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'true');
+                expect(screen.getAllByRole('option').length).toBeGreaterThan(0);
+            };
+
+            // Compass opens on any input focus, so a focused, closed field is reached by clicking then Escape.
+            const focusClosedField = async (user: ReturnType<typeof userEvent.setup>) => {
+                await user.click(getCombobox());
+                await user.keyboard('{Escape}');
+                expect(getCombobox()).toHaveFocus();
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'false');
+            };
+
+            test('K1: opens a single field with the menu closed and focus in the section, not on the input', () => {
                 renderEditor(buildField('select'));
 
-                expect(getCombobox()).toHaveFocus();
-                expect(getCombobox()).toHaveAttribute('aria-expanded', 'true');
+                expect(getSettingList()).toHaveFocus();
+                expectClosed();
             });
 
-            test('K2: opens a multiselect with values with focus on the input, not a chip', () => {
+            test('K2: opens a multiselect with values with the menu closed and no chip focused', () => {
                 renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
 
                 expect(getChipLabels()).toEqual(['Option 1', 'Option 2']);
-                expect(getCombobox()).toHaveFocus();
+                expect(getSettingList()).toHaveFocus();
                 expect(getSelections()).not.toContainElement(document.activeElement as HTMLElement);
+                expectClosed();
             });
 
-            test('K3: ArrowDown then Enter picks without saving, and a second Enter saves the picked id', async () => {
+            test.each(['select', 'multiselect'] as const)('K2b: clicking a %s input opens its menu', async (type) => {
+                const user = userEvent.setup();
+                renderEditor(buildField(type), type === 'multiselect' ? ['opt1'] : 'opt1');
+                expectClosed();
+
+                await user.click(getCombobox());
+
+                expect(getCombobox()).toHaveFocus();
+                expect(document.activeElement?.closest('[data-chip]')).toBeNull();
+                expectOpen();
+            });
+
+            test.each([
+                ['select', '{ArrowDown}'],
+                ['select', '{ArrowUp}'],
+                ['select', '{Alt>}{ArrowDown}{/Alt}'],
+                ['multiselect', '{ArrowDown}'],
+                ['multiselect', '{ArrowUp}'],
+                ['multiselect', '{Alt>}{ArrowDown}{/Alt}'],
+            ] as const)('K2c: %s %s on a focused, closed input opens the menu', async (type, keys) => {
+                const user = userEvent.setup();
+                renderEditor(buildField(type));
+                await focusClosedField(user);
+
+                await user.keyboard(keys);
+
+                expectOpen();
+            });
+
+            test.each(['select', 'multiselect'] as const)('K2d: typing in a focused, closed %s input opens a filtered menu', async (type) => {
+                const user = userEvent.setup();
+                renderEditor(buildField(type));
+                await focusClosedField(user);
+
+                await user.keyboard('3');
+
+                expect(getCombobox()).toHaveAttribute('aria-expanded', 'true');
+                expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Option 3']);
+            });
+
+            test.each([
+                ['select', 'opt1'],
+                ['multiselect', ['opt1', 'opt2']],
+            ] as const)('K2e: Enter right after a %s section opens saves the stored value', async (type, value) => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField(type), value as string | string[]);
+
+                await user.keyboard('{Enter}');
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', value);
+            });
+
+            test.each([
+                ['select', 'opt1'],
+                ['multiselect', ['opt1', 'opt2']],
+            ] as const)('K2f: Enter on a focused, closed %s input saves', async (type, value) => {
+                const user = userEvent.setup();
+                const {saveCustomProfileAttribute} = renderEditor(buildField(type), value as string | string[]);
+                await focusClosedField(user);
+
+                await user.keyboard('{Enter}');
+
+                expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
+                expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', value);
+            });
+
+            test('K3: ArrowDown opens, ArrowDown then Enter picks without saving, and a second Enter saves the picked id', async () => {
                 const user = userEvent.setup();
                 const {saveCustomProfileAttribute} = renderEditor(buildField('select'));
+                await focusClosedField(user);
 
+                await user.keyboard('{ArrowDown}');
+                expectOpen();
                 await user.keyboard('{ArrowDown}{Enter}');
 
                 expect(getCombobox()).toHaveValue('Option 2');
@@ -2010,11 +2101,12 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt2');
             });
 
-            test('K4: Enter on a freshly opened empty field picks the first option without saving', async () => {
+            test('K4: Enter on an explicitly opened empty field picks the first option without saving', async () => {
                 const user = userEvent.setup();
                 const {saveCustomProfileAttribute} = renderEditor(buildField('select'));
+                await focusClosedField(user);
 
-                await user.keyboard('{Enter}');
+                await user.keyboard('{ArrowDown}{Enter}');
 
                 expect(getCombobox()).toHaveValue('Option 1');
                 expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
@@ -2024,6 +2116,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 const user = userEvent.setup();
                 renderEditor(buildField('select'), 'opt1');
 
+                await user.click(getCombobox());
                 expect(getCombobox()).toHaveAttribute('aria-expanded', 'true');
                 await user.keyboard('{Escape}');
 
@@ -2040,6 +2133,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 const user = userEvent.setup();
                 const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'opt1');
 
+                await user.tab();
+                expect(getCombobox()).toHaveFocus();
                 await user.tab();
                 expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toHaveFocus();
 
@@ -2060,6 +2155,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 const user = userEvent.setup();
                 const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'opt1');
 
+                await user.click(getCombobox());
                 await user.keyboard('{Control>}a{/Control}{Delete}');
                 expect(getCombobox()).toHaveValue('');
                 await user.tab();
@@ -2073,10 +2169,11 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt1');
             });
 
-            test('K8: ArrowDown then Enter on a multiselect adds a chip without saving', async () => {
+            test('K8: ArrowDown then Enter on an opened multiselect adds a chip without saving', async () => {
                 const user = userEvent.setup();
                 const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'));
 
+                await user.click(getCombobox());
                 await user.keyboard('{ArrowDown}{Enter}');
 
                 expect(getChipLabels()).toEqual(['Option 2']);
@@ -2093,9 +2190,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 const user = userEvent.setup();
                 const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
 
-                // Compass reaches chips by Tab, not by ArrowLeft from the input: Shift+Tab lands on
-                // the roving-tabindex chip (the first), and ArrowRight moves along the group.
-                await user.tab({shift: true});
+                // Chips come before the input, so Tab from the section lands on the roving-tabindex
+                // chip (the first), and ArrowRight moves along the group.
+                await user.tab();
                 const [firstChip, lastChip] = within(getSelections()!).getAllByRole('button');
                 expect(firstChip).toHaveFocus();
                 await user.keyboard('{ArrowRight}');
@@ -2117,6 +2214,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             test('K10: mousedown on the menu outside an option keeps focus on the input, so Escape closes only the menu', async () => {
                 const user = userEvent.setup();
                 const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'opt1');
+
+                await user.click(getCombobox());
 
                 // The listbox's parent is the menu's scroll area, where a padding or scrollbar click lands.
                 await user.pointer({keys: '[MouseLeft]', target: screen.getByRole('listbox').parentElement!});

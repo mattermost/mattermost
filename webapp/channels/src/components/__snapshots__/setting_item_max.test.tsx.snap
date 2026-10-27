@@ -3,7 +3,7 @@
 exports[`components/SettingItemMax should match snapshot 1`] = `
 <DocumentFragment>
   <section
-    class="section-max form-horizontal a11y--active a11y--focused"
+    class="section-max form-horizontal "
   >
     <h4
       class="col-sm-12 section-title"
@@ -15,7 +15,7 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
       class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        class="setting-list"
+        class="setting-list a11y--active a11y--focused"
         tabindex="-1"
       >
         <div
@@ -68,7 +68,7 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
 exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
 <DocumentFragment>
   <section
-    class="section-max form-horizontal a11y--active a11y--focused"
+    class="section-max form-horizontal "
   >
     <h4
       class="col-sm-12 section-title"
@@ -80,7 +80,7 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
       class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        class="setting-list"
+        class="setting-list a11y--active a11y--focused"
         tabindex="-1"
       >
         <div
@@ -133,7 +133,7 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
 exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
 <DocumentFragment>
   <section
-    class="section-max form-horizontal a11y--active a11y--focused"
+    class="section-max form-horizontal "
   >
     <h4
       class="col-sm-12 section-title"
@@ -145,7 +145,7 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
       class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        class="setting-list"
+        class="setting-list a11y--active a11y--focused"
         tabindex="-1"
       >
         <div
@@ -286,7 +286,7 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
 exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
 <DocumentFragment>
   <section
-    class="section-max form-horizontal a11y--active a11y--focused"
+    class="section-max form-horizontal "
   >
     <h4
       class="col-sm-12 section-title"
@@ -298,7 +298,7 @@ exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
       class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        class="setting-list"
+        class="setting-list a11y--active a11y--focused"
         tabindex="-1"
       >
         <div
