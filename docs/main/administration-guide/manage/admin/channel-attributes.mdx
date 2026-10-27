@@ -1,0 +1,140 @@
+---
+title: "Channel attributes"
+---
+
+<PlanAvailability slug="ent-adv" />
+
+From Mattermost v12.0, system admins can define attributes once in **System Console \> System Attributes \> Attribute Management**, then apply those attributes to channels. Channel attributes provide structured information about a channel, such as its classification, department, region, or project.
+
+Channel attribute values can be displayed in the channel header, the channel banner, and Channel Info. In this release, channel attributes are informational and aren't evaluated by access policies.
+
+<Note>
+
+Channel attributes require a Mattermost Enterprise Advanced license and the `ChannelAttributes` feature flag (`MM_FEATUREFLAGS_CHANNELATTRIBUTES`). The feature flag is disabled by default. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
+
+</Note>
+
+## Apply an attribute to channels
+
+Before a value can be assigned to a channel, the global attribute must have a **Channels** resource:
+
+1. Go to **System Console \> System Attributes \> Attribute Management**.
+2. Create a global attribute, or select an existing attribute.
+3. In **Applies to**, select **Add resource**, then select **Channels**.
+4. Configure how the attribute behaves:
+   - **Changing the value** controls whether a channel's value can be changed at any time, can only be raised or lowered, or can't be changed after its first value is set. Raising and lowering are available only for **Ranked** attributes.
+   - **Display location \> Header** displays the value as a label beside the channel name.
+   - **Display location \> Banner** makes the value available to the channel banner.
+5. Select **Save**.
+
+You can select both display locations. Channel Info isn't a selectable display location because channel attributes are always available there. Attributes without values aren't displayed to channel members.
+
+Removing the **Channels** resource makes every channel value stored for the attribute inaccessible. Adding the resource again creates a new channel field and doesn't restore those values.
+
+## Set channel attribute values
+
+Users with the **Manage Channel Roles** permission can set channel attribute values. This includes system admins, team admins, and channel admins by default. Regular channel members can view values that have been set, but can't add or change them.
+
+Values managed by an external integration can't be changed in Mattermost. An attribute configured so its value can't be changed becomes locked after its first value is saved.
+
+### From Channel Info
+
+To manage values directly from a channel:
+
+1. Open the channel.
+2. Select the **View Info** icon to open Channel Info.
+3. In **Channel Attributes**, select an existing attribute to change its value, or select **Add attribute** to set an optional attribute that doesn't have a value.
+
+Changes made in Channel Info are saved immediately.
+
+### From Channel Settings
+
+To manage values together with the channel's other information:
+
+1. Select the channel name, then select **Channel Settings**.
+2. Select **Info**.
+3. In **Channel Attributes**, add or change values.
+4. Select **Save**.
+
+Changes made in Channel Settings remain pending until you select **Save**. Channel attributes aren't available for direct message or group message channels.
+
+## Display attributes in the channel header
+
+When **Header** is selected as a display location, each set value appears as a label beside the channel name. Select a label to open Channel Info.
+
+If the labels don't fit in the available space, Mattermost replaces the remaining labels with a **+N** indicator. Open the indicator to review the remaining values or to view all attributes in Channel Info.
+
+Multiselect attributes display one label for each selected value. Unset attributes don't appear in the header.
+
+## Display attributes in the channel banner
+
+When **Banner** is selected as a display location, the attribute can contribute its value to the channel banner.
+
+For a channel that has never customized its banner text, Mattermost creates the initial banner content from the banner attributes that have values. When multiple attributes contribute values, Mattermost separates them with a middle dot.
+
+Users with permission to manage channel banners can customize the result by going to **Channel Settings \> Configuration \> Channel Banner**:
+
+- Attribute references appear as tokens in the banner text editor.
+- Use the attribute control to insert other channel attribute tokens.
+- Combine tokens with text to add context around attribute values.
+- Remove a token to stop displaying that attribute in the banner. This doesn't clear the channel attribute value.
+- Use the preview to review the resolved banner before saving.
+
+If a referenced attribute doesn't have a value, its token produces no text. Mattermost also removes adjacent single- or double-character separators, such as `·`, `.`, `/`, or `?`, where possible. The banner isn't displayed when no text remains after resolving its tokens.
+
+Disabling **Channel Banner** suppresses the attribute-driven banner for that channel without clearing its attribute values. Enabling it again restores the saved banner template.
+
+For more information about channel banner permissions and configuration, see [Display channel banners](/end-user-guide/collaborate/display-channel-banners).
+
+## Classification Markings and channel attributes
+
+When Classification Markings are enabled, Mattermost represents **Classification** as a **Ranked** global attribute. This brings channel classification into the same resource and display model as other channel attributes.
+
+### Manage the Classification attribute
+
+The Classification row appears in **System Console \> System Attributes \> Attribute Management**:
+
+- Its display name, unique name, type, levels, ranks, and colors are read-only in Attribute Management.
+- Select **Open Classification Markings** to manage presets, levels, ranks, colors, and the global classification banner under **System Console \> Site Configuration \> Classification Markings**.
+- Select the Classification row to manage the resources it applies to and its channel behavior.
+
+When Classification Markings are enabled, Mattermost adds the **Channels** resource to Classification and selects **Banner** as its default display location. A system admin can also enable **Header** or remove **Banner**.
+
+Removing the Classification **Channels** resource makes the classification values assigned to channels inaccessible. Adding it again doesn't restore those values. Saving Classification Markings while the feature remains enabled doesn't automatically re-add a Channels resource that a system admin removed. Disabling and re-enabling Classification Markings creates the default Channels resource again.
+
+### Assign a classification to a channel
+
+When the `ChannelAttributes` feature flag is enabled, classification is assigned through the channel attribute editor:
+
+- Use Channel Info to assign a value immediately.
+- Use **Channel Settings \> Info** to assign a value and save it with the rest of the channel information.
+
+The standalone **Classification** section previously available under **Channel Settings \> Configuration** is hidden to avoid providing two controls for the same value.
+
+Classification markings are informational only. Assigning a classification doesn't control access to the channel, its messages, or its files.
+
+This release establishes channel attributes as display metadata only. Evaluating channel attributes in access policies is outside the current scope.
+
+### Classification banner behavior
+
+When Classification has **Banner** selected and the channel has a classification value:
+
+- Classification is included by default when the channel has never saved custom banner text. Existing custom banner templates aren't changed automatically.
+- The selected classification level's color becomes the banner background color.
+- Mattermost automatically uses a contrasting text color so the banner remains readable.
+- The classification color takes precedence over a custom banner color while the Classification token remains in the banner text.
+
+Channel banner managers can add text or other attribute tokens around Classification. Removing the Classification token from the banner doesn't clear the channel's classification value, but it does return control of the banner color to the channel. Classification can continue to appear in Channel Info and, when configured, in the channel header.
+
+Disabling the channel banner hides all attribute-driven banner content, including Classification, without clearing the channel's attribute values or saved banner template.
+
+### Existing Classification Markings deployments
+
+When upgrading an existing deployment:
+
+- Existing classification levels and channel classification values are preserved.
+- Classification levels are represented as Ranked attribute options.
+- Existing classification banners continue to display.
+- After `ChannelAttributes` is enabled, channel admins assign and update classifications from Channel Info or **Channel Settings \> Info**.
+
+System admins should review the Classification **Channels** resource in Attribute Management before changing and saving its display settings.

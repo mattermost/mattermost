@@ -1,0 +1,22 @@
+---
+title: "(Optional) Use an Image proxy"
+---
+<PlanAvailability slug="all-commercial" />
+
+Mattermost clients will use the image proxy to load all external images. The Mattermost server will use the image proxy when possible, but will not use it when requesting content that may not be an image, such as for [image previews of plaintext URLs](https://github.com/mattermost/mattermost/issues/11857).
+
+Configure an image proxy by going to **System Console \> Environment \> Image Proxy**.
+
+## Local image proxy
+
+The local image proxy is available as part of the Mattermost server deployment. When using the local image proxy, images are served to clients through the server which helps anonymize users. If SSL is enabled on the server, it provides a secure connection. This method does not offer any caching behavior.
+
+<Note>
+
+With the local image proxy enabled, requests for images hosted on the local network are now affected by the `AllowUntrustedInternalConnections` setting. See [documentation](/administration-guide/configure/environment-configuration-settings#allow-untrusted-internal-connections) for more information or if you are seeing unintentionally blocked images.
+
+</Note>
+
+## atmos/camo image proxy
+
+From Mattermost v12.0, the `atmos/camo` image proxy is no longer supported, and the **Remote Image Proxy URL** and **Remote Image Proxy Options** settings have been removed. If **Image Proxy Type** is set to `atmos/camo`, the server automatically changes it to `local` on startup and logs a warning. If image proxying is enabled, the Mattermost server then fetches external images itself, so it must be able to reach the hosts that images are loaded from. See the [forum post](https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-atmos-camo-is-no-longer-supported-as-an-image-proxy/25980) for details.
