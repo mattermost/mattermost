@@ -592,8 +592,14 @@ func TestMigration000223(t *testing.T) {
 	_, err = store.GetMaster().ExecNoTimeout(upSQL)
 	require.NoError(t, err)
 	applyOptionIndexes(t)
-	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000236_attribute_live_views.up.sql"))
-	require.NoError(t, err, "re-applying 000236 up")
+	for _, name := range []string{
+		"000236_attribute_live_views.up.sql",
+		"000237_create_userattributeview_target_index.up.sql",
+		"000238_create_channelattributeview_target_index.up.sql",
+	} {
+		_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, name))
+		require.NoError(t, err, "re-applying %s", name)
+	}
 	require.True(t, tableExists(t, store, "PropertyOptions"), "up should recreate PropertyOptions")
 	require.True(t, tableExists(t, store, "PropertyOptionEdges"), "up should recreate PropertyOptionEdges")
 

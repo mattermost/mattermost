@@ -9,12 +9,20 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/lib/pq"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+)
+
+// Postgres error codes for a REFRESH ... CONCURRENTLY the view cannot take: no
+// usable unique index, and a view that was never populated.
+const (
+	pgObjectNotInPrerequisiteState = "55000"
+	pgFeatureNotSupported          = "0A000"
 )
 
 type SqlAttributesStore struct {
@@ -103,12 +111,34 @@ func (s *SqlAttributesStore) RefreshAttributes() error {
 	// unspecified (map iteration) and does not matter: each REFRESH is its own
 	// independent statement.
 	for _, view := range attributeViewsByObjectType {
-		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view); err != nil {
+		if err := s.refreshAttributeView(view); err != nil {
 			return errors.Wrapf(err, "error refreshing materialized view %s", view)
 		}
 	}
 
 	return nil
+}
+
+// refreshAttributeView refreshes one view CONCURRENTLY, so readers of the old
+// contents are never blocked; that needs the unique index migrations 000237 and
+// 000238 create. A plain refresh, which takes an exclusive lock for its whole
+// duration, is the fallback when Postgres refuses the concurrent one because
+// the index is missing (a failed CONCURRENTLY build leaves none, and recreating
+// the view drops it) or the view was never populated: a refresh that always
+// failed would leave the bulk readers on a stale view indefinitely.
+func (s *SqlAttributesStore) refreshAttributeView(view string) error {
+	_, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW CONCURRENTLY " + view)
+	if err == nil {
+		return nil
+	}
+
+	var pqErr *pq.Error
+	if !errors.As(err, &pqErr) || (pqErr.Code != pgObjectNotInPrerequisiteState && pqErr.Code != pgFeatureNotSupported) {
+		return err
+	}
+
+	_, err = s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view)
+	return err
 }
 
 // GetSubject reads one subject's attributes through the live view rather than

@@ -467,3 +467,7 @@ channels/db/migrations/postgres/000235_create_property_values_groupid_fieldid_in
 channels/db/migrations/postgres/000235_create_property_values_groupid_fieldid_index.up.sql
 channels/db/migrations/postgres/000236_attribute_live_views.down.sql
 channels/db/migrations/postgres/000236_attribute_live_views.up.sql
+channels/db/migrations/postgres/000237_create_userattributeview_target_index.down.sql
+channels/db/migrations/postgres/000237_create_userattributeview_target_index.up.sql
+channels/db/migrations/postgres/000238_create_channelattributeview_target_index.down.sql
+channels/db/migrations/postgres/000238_create_channelattributeview_target_index.up.sql

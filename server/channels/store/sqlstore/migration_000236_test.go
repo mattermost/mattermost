@@ -22,6 +22,15 @@ func viewExists(t *testing.T, s *SqlStore, name string) bool {
 	return count > 0
 }
 
+func uniqueIndexExists(t *testing.T, s *SqlStore, name string) bool {
+	t.Helper()
+	var count int
+	err := s.GetMaster().Get(&count,
+		"SELECT COUNT(*) FROM pg_indexes WHERE lower(indexname) = lower($1) AND indexdef ILIKE 'CREATE UNIQUE INDEX%'", name)
+	require.NoError(t, err)
+	return count > 0
+}
+
 func matviewReadsLiveView(t *testing.T, s *SqlStore, matview, liveView string) bool {
 	t.Helper()
 	var definition string
@@ -38,7 +47,9 @@ func matviewReadsLiveView(t *testing.T, s *SqlStore, matview, liveView string) b
 // views without changing what the materialized views hold: after up, both
 // materialized views read their live view and hold exactly its rows; down
 // restores the self-contained 000223 bodies with the same rows and drops the
-// live views; and up again brings the live views back.
+// live views; and up again brings the live views back. It also covers the
+// unique indexes 000237 and 000238 add for REFRESH ... CONCURRENTLY, and the
+// plain-refresh fallback for a view that has lost its index.
 func TestMigration000236(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
@@ -51,9 +62,17 @@ func TestMigration000236(t *testing.T) {
 	require.NoError(t, err)
 	defer store.Close()
 
-	views := []struct{ matview, liveView, objectType, targetType string }{
-		{"UserAttributeView", "UserAttributeLiveView", model.PropertyFieldObjectTypeUser, model.PropertyValueTargetTypeUser},
-		{"ChannelAttributeView", "ChannelAttributeLiveView", model.PropertyFieldObjectTypeChannel, model.PropertyValueTargetTypeChannel},
+	views := []struct{ matview, liveView, index, indexUp, objectType, targetType string }{
+		{
+			"UserAttributeView", "UserAttributeLiveView",
+			"idx_userattributeview_target", "000237_create_userattributeview_target_index.up.sql",
+			model.PropertyFieldObjectTypeUser, model.PropertyValueTargetTypeUser,
+		},
+		{
+			"ChannelAttributeView", "ChannelAttributeLiveView",
+			"idx_channelattributeview_target", "000238_create_channelattributeview_target_index.up.sql",
+			model.PropertyFieldObjectTypeChannel, model.PropertyValueTargetTypeChannel,
+		},
 	}
 
 	group, err := store.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
@@ -118,13 +137,19 @@ func TestMigration000236(t *testing.T) {
 		require.True(t, viewExists(t, store, v.liveView), "%s should exist after migration", v.liveView)
 		require.True(t, matviewExists(t, store, v.matview), "%s should exist after migration", v.matview)
 		require.True(t, matviewReadsLiveView(t, store, v.matview, v.liveView), "%s should be built on %s", v.matview, v.liveView)
+		require.True(t, uniqueIndexExists(t, store, v.index), "%s should have its unique index", v.matview)
 		before[v.matview] = rowsFingerprint(t, v.matview)
 		require.Equal(t, before[v.matview], rowsFingerprint(t, v.liveView), "%s should hold exactly the live view's rows", v.matview)
 	}
 
+	// Down recreates the materialized views, which drops their indexes, so the
+	// refresh after it can only succeed through the plain-refresh fallback.
 	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000236_attribute_live_views.down.sql"))
 	require.NoError(t, err)
-	require.NoError(t, store.Attributes().RefreshAttributes())
+	for _, v := range views {
+		require.False(t, uniqueIndexExists(t, store, v.index), "recreating %s should drop its index", v.matview)
+	}
+	require.NoError(t, store.Attributes().RefreshAttributes(), "a view without its unique index must still refresh")
 	for _, v := range views {
 		require.False(t, viewExists(t, store, v.liveView), "down should drop %s", v.liveView)
 		require.True(t, matviewExists(t, store, v.matview), "down should keep %s", v.matview)
@@ -133,6 +158,12 @@ func TestMigration000236(t *testing.T) {
 
 	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000236_attribute_live_views.up.sql"))
 	require.NoError(t, err)
+	for _, v := range views {
+		_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, v.indexUp))
+		require.NoError(t, err, "applying %s", v.indexUp)
+		require.True(t, uniqueIndexExists(t, store, v.index), "%s should restore the unique index", v.indexUp)
+	}
+	require.NoError(t, store.Attributes().RefreshAttributes(), "the concurrent refresh should succeed with the indexes back")
 	for _, v := range views {
 		require.True(t, viewExists(t, store, v.liveView), "up should recreate %s", v.liveView)
 		require.True(t, matviewReadsLiveView(t, store, v.matview, v.liveView), "up should rebuild %s on %s", v.matview, v.liveView)
