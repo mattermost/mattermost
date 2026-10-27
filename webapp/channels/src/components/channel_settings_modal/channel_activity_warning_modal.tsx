@@ -94,7 +94,7 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
                     defaultMessage='Save and apply'
                 />
             }
-            confirmButtonVariant='destructive'
+            destructive={true}
             confirmDisabled={!acknowledgeRisk}
             onConfirm={handleConfirm}
             onCancel={handleCancel}

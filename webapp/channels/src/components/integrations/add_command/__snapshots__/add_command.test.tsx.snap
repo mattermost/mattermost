@@ -292,18 +292,26 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/test/integrations/commands"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveCommand"
             type="submit"
           >
-            <span>
-              Save
+            <span
+              class="_button__label_we8pe_31"
+            >
+              <span>
+                Save
+              </span>
             </span>
           </button>
         </div>
