@@ -125,9 +125,9 @@ describe('window.Components exposes ABAC policy editors', () => {
     });
 });
 
-describe('window.Components exposes the tooltip', () => {
+describe('window.WebappUtils.components exposes the published components', () => {
     test('WithTooltip is defined, so plugins show core tooltips', () => {
-        expect((window as any).Components.WithTooltip).toBeDefined();
+        expect((window as any).WebappUtils.components.WithTooltip).toBeDefined();
     });
 });
 

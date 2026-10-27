@@ -296,6 +296,9 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
     useEffect(() => {
         if (channelTypePluginId && !activePluginOption && firstOptionId) {
             setType(firstOptionId);
+
+            // As on a type change: the gate belonged to the option that went away.
+            setPluginCanCreate(true);
         }
     }, [channelTypePluginId, activePluginOption, firstOptionId]);
 
