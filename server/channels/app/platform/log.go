@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/mattermost/logr/v2"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -87,12 +88,21 @@ func (ps *PlatformService) Logger() *mlog.Logger {
 	return ps.logger
 }
 
-func (ps *PlatformService) EnableLoggingMetrics() {
+// LoggerMetricsCollector returns the collector for logger metrics, or nil if metrics are disabled.
+func (ps *PlatformService) LoggerMetricsCollector() mlog.MetricsCollector {
 	if ps.metrics == nil || ps.metricsIFace == nil {
+		return nil
+	}
+	return ps.metricsIFace.GetLoggerMetricsCollector()
+}
+
+func (ps *PlatformService) EnableLoggingMetrics() {
+	collector := ps.LoggerMetricsCollector()
+	if collector == nil {
 		return
 	}
 
-	ps.logger.SetMetricsCollector(ps.metricsIFace.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+	ps.logger.SetMetricsCollector(collector, mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
 	if err := ps.initLogging(); err != nil {
@@ -105,7 +115,7 @@ func (ps *PlatformService) EnableLoggingMetrics() {
 
 // RemoveUnlicensedLogTargets removes any unlicensed log target types.
 func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
-	if license != nil && *license.Features.AdvancedLogging {
+	if license.HasAdvancedLogging() {
 		// advanced logging enabled via license; no need to remove any targets
 		return
 	}
@@ -355,7 +365,8 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 		dateTo = time.Now()
 	}
 
-	timestamp, err := time.Parse(model.LogFilterDateLayout, entry.Timestamp)
+	// Entries use mlog's layout, which writes UTC as "Z" rather than "+00:00".
+	timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
 	if err != nil {
 		rctx.Logger().Debug("Cannot parse timestamp, skipping")
 		return false

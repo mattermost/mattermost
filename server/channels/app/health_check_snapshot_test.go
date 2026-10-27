@@ -218,6 +218,8 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		cfg.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
 		cfg.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
 		cfg.SqlSettings.QueryTimeout = model.NewPointer(60)
+		cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		cfg.ComplianceSettings.Directory = model.NewPointer("")
 		cfg.MetricsSettings.Enable = model.NewPointer(true)
 	})
 	// Without it the permissions collector fails and the packet carries a warning.txt.
@@ -311,6 +313,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		}
 	}
 	for code, want := range map[string]healthcheck.State{
+		"COMPLIANCE_NO_DIR":     healthcheck.StateFiring,
 		"DB_QUERY_TIMEOUT_HIGH": healthcheck.StateFiring,
 		"JOB_FAILED":            healthcheck.StateFiring,
 		"JOB_STUCK":             healthcheck.StateFiring,

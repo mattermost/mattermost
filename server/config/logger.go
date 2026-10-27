@@ -4,7 +4,10 @@
 package config
 
 import (
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"os"
@@ -13,6 +16,9 @@ import (
 	"strings"
 
 	"github.com/mattermost/logr/v2"
+	logrcfg "github.com/mattermost/logr/v2/config"
+	"github.com/mattermost/logr/v2/formatters"
+	"github.com/mattermost/logr/v2/targets"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -82,15 +88,15 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 	var err error
 
 	// add the simple audit config
-	if *auditSettings.FileEnabled {
-		targetCfg, err = makeSimpleFileTarget(*auditSettings.FileName, "error", true)
+	if model.SafeDereference(auditSettings.FileEnabled) {
+		targetCfg, err = makeSimpleFileTarget(model.SafeDereference(auditSettings.FileName), "error", true)
 		if err != nil {
 			return nil, err
 		}
 
 		// apply audit specific levels. Cloned so the target can never alias, and mutate,
-		// the package-level slice shared with auditLevelIDs and IsAuditLevelActive.
-		targetCfg.Levels = slices.Clone(basicAuditFileLevels)
+		// the shared mlog slice.
+		targetCfg.Levels = slices.Clone(mlog.MLvlAuditGeneral)
 
 		// apply audit specific formatting
 		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": false, "disable_msg": true, "disable_stacktrace": true, "disable_level": true}`)
@@ -109,89 +115,208 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 	return cfg, nil
 }
 
-// basicAuditFileLevels is the fixed set of levels bound to the built-in `_defAudit` file
-// target created from ExperimentalAuditSettings.FileEnabled.
+// auditLevelIDs is the set of mlog level IDs for general audit logging (mlog.MLvlAuditGeneral),
+// which are also the levels bound to the built-in `_defAudit` file target.
 //
 // audit-delivery is deliberately excluded: it produces one record per post per recipient,
-// which is far too high volume for the basic single-file audit sink. An admin opts in by
-// adding a target for it via ExperimentalAuditSettings.AdvancedLoggingJSON.
-var basicAuditFileLevels = []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}
-
-// auditLevelIDs is the set of mlog level IDs the basic audit file target consumes
-// (audit-api, audit-content, audit-permissions, audit-cli).
-//
-// This is derived from basicAuditFileLevels rather than mlog.MLvlAuditAll on purpose: a
-// config whose only audit target is bound to audit-delivery is not emitting general audit
-// records, so IsAuditLoggingActive must still report false for it.
+// which is far too high volume for the basic single-file audit sink, and a config whose only
+// audit target is bound to it is not emitting general audit records, so IsAuditLoggingActive
+// must still report false for it.
 var auditLevelIDs = func() map[logr.LevelID]struct{} {
-	m := make(map[logr.LevelID]struct{}, len(basicAuditFileLevels))
-	for _, l := range basicAuditFileLevels {
+	m := make(map[logr.LevelID]struct{}, len(mlog.MLvlAuditGeneral))
+	for _, l := range mlog.MLvlAuditGeneral {
 		m[l.ID] = struct{}{}
 	}
 	return m
 }()
 
-// IsAuditLoggingActive reports whether the server is actually emitting audit logs to at
-// least one sink, given the audit settings and whether advanced logging is licensed.
-//
-// It returns true when basic file auditing is enabled, or when the advanced audit logging
-// config defines at least one target bound to an audit level. A valid advanced-logging
-// config that routes nothing to an audit level returns false.
-func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool) bool {
-	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled {
-		return true
-	}
+// AdditionalAuditTargetsEnv names the environment variable whose audit targets the server
+// adds on top of ExperimentalAuditSettings, whether or not advanced logging is licensed.
+const AdditionalAuditTargetsEnv = "MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL"
 
-	if !allowAdvancedLogging {
-		return false
+// AdditionalAuditConfig returns the audit targets defined by AdditionalAuditTargetsEnv, or nil
+// when it is unset.
+func AdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
+	additionalJSON := strings.TrimSpace(os.Getenv(AdditionalAuditTargetsEnv))
+	if additionalJSON == "" {
+		return nil, nil
 	}
 
 	cfg := make(mlog.LoggerConfiguration)
-	if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &cfg); err != nil {
+	if err := json.Unmarshal([]byte(additionalJSON), &cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// EffectiveAuditConfig returns the audit targets the server configures: the basic `_defAudit`
+// file target, the advanced config from configSrc, then AdditionalAuditTargetsEnv. Later
+// targets replace earlier ones of the same name.
+func EffectiveAuditConfig(auditSettings model.ExperimentalAuditSettings, configSrc LogConfigSrc) (mlog.LoggerConfiguration, error) {
+	cfg, err := MloggerConfigFromAuditConfig(auditSettings, configSrc)
+	if err != nil {
+		return nil, fmt.Errorf("invalid config for audit, %w", err)
+	}
+
+	cfgAdditional, err := AdditionalAuditConfig()
+	if err != nil {
+		return nil, fmt.Errorf("invalid additional config for audit, %w", err)
+	}
+	cfg.Append(cfgAdditional)
+
+	return cfg, nil
+}
+
+// IsAuditLoggingActive reports whether the audit settings configure at least one sink for
+// audit logs, given whether advanced logging is licensed.
+//
+// It returns true when the effective audit config has at least one target bound to an
+// audit level. A config that routes nothing to an audit level returns false, and so does
+// any config the server would fail to apply, even though logr keeps the targets it added
+// before reaching the failing one.
+//
+// This only inspects config. A running server should ask its audit logger instead
+// (audit.Audit.IsActive), since targets that fail to start and config edits made since
+// startup are not reflected here.
+func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool) bool {
+	var configSrc LogConfigSrc
+	if dsn := auditSettings.GetAdvancedLoggingConfig(); allowAdvancedLogging && !utils.IsEmptyJSON(dsn) {
+		src, err := newJSONSrc(dsn)
+		if err != nil {
+			return false
+		}
+		configSrc = src
+	}
+
+	cfg, err := EffectiveAuditConfig(auditSettings, configSrc)
+	if err != nil {
+		return false
+	}
+
+	if err := validateAuditTargets(cfg); err != nil {
 		return false
 	}
 
 	for _, target := range cfg {
-		for _, level := range target.Levels {
-			if _, ok := auditLevelIDs[level.ID]; ok {
-				return true
-			}
+		// logr builds no target for type "none", so nothing it is bound to gets written.
+		if strings.EqualFold(target.Type, "none") {
+			continue
+		}
+		if slices.ContainsFunc(target.Levels, func(l mlog.Level) bool {
+			_, ok := auditLevelIDs[l.ID]
+			return ok
+		}) {
+			return true
 		}
 	}
 
 	return false
 }
 
-// IsAuditLevelActive reports whether records logged at the given audit level would actually
-// reach a sink.
-//
-// Unlike IsAuditLoggingActive, basic file auditing only counts when the requested level is
-// one the built-in `_defAudit` target is bound to. Enabling
-// ExperimentalAuditSettings.FileEnabled does not make audit-delivery active, for example.
-func IsAuditLevelActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool, level mlog.Level) bool {
-	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled &&
-		slices.ContainsFunc(basicAuditFileLevels, func(l mlog.Level) bool { return l.ID == level.ID }) {
-		return true
-	}
-
-	if !allowAdvancedLogging {
-		return false
-	}
-
-	cfg := make(mlog.LoggerConfiguration)
-	if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &cfg); err != nil {
-		return false
-	}
-
-	for _, target := range cfg {
-		for _, targetLevel := range target.Levels {
-			if targetLevel.ID == level.ID {
-				return true
-			}
+// validateAuditTargets applies the checks logr's ConfigureTargets makes when audit.Configure
+// builds cfg, so a target the server would reject is not counted as active. It validates each
+// target's type, options and format directly rather than building the targets, which would
+// allocate a logger and dial syslog servers on every check.
+func validateAuditTargets(cfg mlog.LoggerConfiguration) error {
+	for name, target := range cfg {
+		if strings.EqualFold(target.Type, "none") {
+			continue
+		}
+		if err := validateAuditTargetOptions(target.Type, target.Options); err != nil {
+			return fmt.Errorf("invalid audit target %s: %w", name, err)
+		}
+		if err := validateAuditTargetFormat(target.Format, target.FormatOptions); err != nil {
+			return fmt.Errorf("invalid format for audit target %s: %w", name, err)
 		}
 	}
+	return nil
+}
 
-	return false
+func validateAuditTargetOptions(targetType string, options json.RawMessage) error {
+	switch strings.ToLower(targetType) {
+	case "console":
+		var opts logrcfg.ConsoleOptions
+		if len(options) != 0 {
+			if err := json.Unmarshal(options, &opts); err != nil {
+				return err
+			}
+		}
+		switch opts.Out {
+		case "", "stdout", "stderr":
+			return nil
+		default:
+			return fmt.Errorf("invalid console target option %q", opts.Out)
+		}
+	case "file":
+		var opts targets.FileOptions
+		if err := unmarshalTargetOptions(options, &opts); err != nil {
+			return err
+		}
+		return opts.CheckValid()
+	case "tcp":
+		var opts targets.TcpOptions
+		if err := unmarshalTargetOptions(options, &opts); err != nil {
+			return err
+		}
+		return opts.CheckValid()
+	case "syslog":
+		var opts targets.SyslogOptions
+		if err := unmarshalTargetOptions(options, &opts); err != nil {
+			return err
+		}
+		if err := opts.CheckValid(); err != nil {
+			return err
+		}
+		if opts.TLS {
+			return validateInlineCert(opts.Cert)
+		}
+		return nil
+	default:
+		return fmt.Errorf("target type %q is unrecognized", targetType)
+	}
+}
+
+func unmarshalTargetOptions(options json.RawMessage, opts any) error {
+	if len(options) == 0 {
+		return errors.New("missing target options")
+	}
+	return json.Unmarshal(options, opts)
+}
+
+// validateInlineCert rejects a base64 cert that does not hold a PEM certificate. Any other value
+// is a file path on the server's filesystem (or the server's default cert when empty), which
+// can't be checked from here: offline Support Packet evaluation runs on another machine.
+func validateInlineCert(cert string) error {
+	der, err := base64.StdEncoding.DecodeString(cert)
+	if cert == "" || err != nil {
+		return nil
+	}
+	if !x509.NewCertPool().AppendCertsFromPEM(der) {
+		return errors.New("cannot parse cert")
+	}
+	return nil
+}
+
+func validateAuditTargetFormat(format string, options json.RawMessage) error {
+	var formatter interface{ CheckValid() error }
+	switch strings.ToLower(format) {
+	case "json":
+		formatter = &formatters.JSON{}
+	case "plain":
+		formatter = &formatters.Plain{}
+	case "gelf":
+		formatter = &formatters.Gelf{}
+	default:
+		return fmt.Errorf("format %q is unrecognized", format)
+	}
+
+	if len(options) == 0 {
+		return nil
+	}
+	if err := json.Unmarshal(options, formatter); err != nil {
+		return err
+	}
+	return formatter.CheckValid()
 }
 
 func GetLogFileLocation(fileLocation string) string {

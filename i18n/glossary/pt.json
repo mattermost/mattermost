@@ -466,5 +466,28 @@
   "server": {
     "target": "servidor",
     "note": "Masculine: o servidor, plural servidores."
+  },
+  "health dashboard": {
+    "target": "Saúde do site",
+    "note": "Same as the page title ('Site health'); feminine, capitalized as a page name: 'a Saúde do site'."
+  },
+  "health finding": {
+    "target": "ocorrência",
+    "note": "Feminine; plural 'ocorrências'. Where the dashboard context is not clear (server errors), use 'ocorrência da Saúde do site'."
+  },
+  "Agents plugin": {
+    "target": "plugin Agents",
+    "note": "Masculine: 'o plugin Agents', 'no plugin Agents'. 'Agents' stays English."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name kept in English, masculine: 'o Hosted Push Notification Service', 'do Mattermost Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English, masculine: 'o Test Push Notification Service'. The acronym TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

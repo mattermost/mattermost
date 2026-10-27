@@ -1459,6 +1459,158 @@ func TestPluginAPIReceiveSharedChannelReactionSyncMsg(t *testing.T) {
 	})
 }
 
+func TestPluginAPIReceiveSharedChannelAcknowledgementSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.acknowledgement-sync-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+	ackStore := th.App.Srv().Store().PostAcknowledgement()
+
+	remoteUserID := model.NewId()
+	userMsg := model.NewSyncMsg(channel.Id)
+	userMsg.Users = map[string]*model.User{
+		remoteUserID: {
+			Id:       remoteUserID,
+			Username: "acker-" + model.NewId()[:8],
+			Email:    model.NewId() + "@remote.test",
+			RemoteId: new(rc.RemoteId),
+		},
+	}
+	_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, userMsg)
+	require.NoError(t, err)
+
+	syncAck := func(t *testing.T, userID, postID string, acknowledgedAt int64) model.SyncResponse {
+		t.Helper()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Acknowledgements = []*model.PostAcknowledgement{{
+			UserId:         userID,
+			PostId:         postID,
+			ChannelId:      channel.Id,
+			AcknowledgedAt: acknowledgedAt,
+		}}
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+		return resp
+	}
+
+	isActive := func(t *testing.T, userID, postID string) bool {
+		t.Helper()
+		acks, err := ackStore.GetForPost(postID)
+		require.NoError(t, err)
+		for _, a := range acks {
+			if a.UserId == userID {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Acknowledgements the sender would include when syncing this channel back to the remote.
+	sentBackToRemote := func(t *testing.T, postID string) bool {
+		t.Helper()
+		acks, err := ackStore.GetForPostSince(postID, 0, rc.RemoteId, true)
+		require.NoError(t, err)
+		return len(acks) > 0
+	}
+
+	t.Run("re-sent active acknowledgement is not rewritten", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		firstAckAt := model.GetMillis() - 1000
+		syncAck(t, remoteUserID, post.Id, firstAckAt)
+
+		resp := syncAck(t, remoteUserID, post.Id, model.GetMillis())
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		assert.True(t, isActive(t, remoteUserID, post.Id))
+		stored, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, firstAckAt, stored.AcknowledgedAt)
+	})
+
+	t.Run("removed acknowledgement the receiver never had is not created", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+
+		resp := syncAck(t, remoteUserID, post.Id, 0)
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		assert.False(t, isActive(t, remoteUserID, post.Id))
+		_, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr)
+	})
+
+	t.Run("removal withdraws an active acknowledgement", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		syncAck(t, remoteUserID, post.Id, model.GetMillis())
+		require.True(t, isActive(t, remoteUserID, post.Id))
+
+		resp := syncAck(t, remoteUserID, post.Id, 0)
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		assert.False(t, isActive(t, remoteUserID, post.Id))
+		withdrawn, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Zero(t, withdrawn.AcknowledgedAt)
+		assert.False(t, sentBackToRemote(t, post.Id))
+	})
+
+	t.Run("re-sent removal of a withdrawn acknowledgement is a no-op", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		syncAck(t, remoteUserID, post.Id, model.GetMillis())
+		syncAck(t, remoteUserID, post.Id, 0)
+		before, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.NoError(t, err)
+
+		resp := syncAck(t, remoteUserID, post.Id, 0)
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		withdrawn, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Zero(t, withdrawn.AcknowledgedAt)
+		after, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, before.UpdateAt, after.UpdateAt)
+	})
+
+	t.Run("acknowledgement re-sent after removal is active again", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		syncAck(t, remoteUserID, post.Id, model.GetMillis()-1000)
+		syncAck(t, remoteUserID, post.Id, 0)
+		require.False(t, isActive(t, remoteUserID, post.Id))
+
+		reAckAt := model.GetMillis()
+		resp := syncAck(t, remoteUserID, post.Id, reAckAt)
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		assert.True(t, isActive(t, remoteUserID, post.Id))
+		stored, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, reAckAt, stored.AcknowledgedAt)
+		assert.False(t, sentBackToRemote(t, post.Id))
+	})
+
+	t.Run("acknowledgement from a user not belonging to the remote is rejected", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+
+		resp := syncAck(t, th.BasicUser.Id, post.Id, model.GetMillis())
+
+		assert.Equal(t, []string{post.Id}, resp.AcknowledgementErrors)
+		assert.False(t, isActive(t, th.BasicUser.Id, post.Id))
+	})
+
+	t.Run("removal cannot withdraw a local user's acknowledgement", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		_, appErr := th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		syncAck(t, th.BasicUser.Id, post.Id, 0)
+
+		assert.True(t, isActive(t, th.BasicUser.Id, post.Id))
+	})
+}
+
 func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
 	th := setupSharedChannels(t).InitBasic(t)
 

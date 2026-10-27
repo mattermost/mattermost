@@ -10,6 +10,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -336,6 +338,9 @@ license:
   expires_at: 1821866400000
   features:
     metrics: true
+    compliance: true
+    data_retention: true
+    message_export: true
 server:
   os: linux
   hostname: mm.example.com
@@ -354,10 +359,10 @@ notifications:
   email:
     status: OK
 `,
-		model.SupportPacketStatsFileName:   "registered_users: 300\nactive_users: 300\nsingle_channel_guests: 0\nposts: 1000\n",
+		model.SupportPacketStatsFileName:   "registered_users: 100\nactive_users: 100\nsingle_channel_guests: 0\nposts: 1000\n",
+		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
 		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
 		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
-		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
 	}
 }
 
@@ -372,6 +377,7 @@ func healthTestPacketConfig() string {
 	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
 	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
 	cfg.RateLimitSettings.Enable = model.NewPointer(true)
+	cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
 	cfg.MetricsSettings.Enable = model.NewPointer(true)
 
 	b, err := json.Marshal(cfg)
@@ -497,6 +503,37 @@ Version
 		s.Equal("PushNotificationServer does not use https://", findings[1].Title)
 		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[1].FirstSeenAt)
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
+	})
+
+	s.Run("audit logging is judged by the server that generated the packet, not this machine", func() {
+		var cfg model.Config
+		s.Require().NoError(json.Unmarshal([]byte(healthTestPacketConfig()), &cfg))
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(false)
+		noAuditTargets, err := json.Marshal(cfg)
+		s.Require().NoError(err)
+
+		reportsAuditLogOff := func(serverAuditActive bool) bool {
+			files := healthTestPacketFiles()
+			files[model.SupportPacketDiagnosticsFileName] += "config:\n  audit_logging_configured: " + strconv.FormatBool(serverAuditActive) + "\n"
+			files[model.SupportPacketStatsFileName] = "registered_users: 6000\n"
+			files[model.SupportPacketConfigFileName] = string(noAuditTargets)
+
+			printer.Clean()
+			printer.SetFormat(printer.FormatJSON)
+			cmd := newTestCmd(s.T(), HealthCheckCmd)
+			s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
+			s.Require().NoError(healthCheckRunE(cmd, []string{}))
+			s.Require().Len(printer.GetLines(), 1)
+			list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+			s.Require().True(ok)
+			return slices.ContainsFunc(list.Findings, func(f *model.HealthFinding) bool { return f.Code == "AUDIT_LOG_OFF" })
+		}
+
+		s.True(reportsAuditLogOff(false))
+		s.False(reportsAuditLogOff(true), "the server audits through targets its config doesn't show")
+
+		s.T().Setenv("MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL", `{"audit": {"type": "file", "format": "json", "levels": [{"id": 100, "name": "audit-api"}], "options": {"filename": "audit.log"}}}`)
+		s.True(reportsAuditLogOff(false), "audit targets on the evaluating machine say nothing about the server")
 	})
 
 	s.Run("packet warnings follow the disclaimer and contain no em dash", func() {

@@ -47,7 +47,7 @@ var (
 )
 
 func withLicenseFeatures(s *healthcheck.Snapshot, features *model.Features) *healthcheck.Snapshot {
-	diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{Features: features}}
+	diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, Features: features}}
 	licensed := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{{
 		Hostname:    "app-1",
 		IsLeader:    true,
@@ -120,8 +120,8 @@ func TestPushIDOnlyAndPushServerCodesFireTogether(t *testing.T) {
 		cfg.EmailSettings.PushNotificationContents = new(model.FullNotification)
 	}), &model.Features{IDLoadedPushNotifications: new(true)})
 
-	assert.Equal(t, healthcheck.StateFiring, evalPushIDOnly(snapshot)[0].State)
-	assert.Equal(t, healthcheck.StateFiring, evalPushTestProxy(snapshot)[0].State)
+	assert.Equal(t, healthcheck.StateFiring, pushIDOnly.Eval(snapshot)[0].State)
+	assert.Equal(t, healthcheck.StateFiring, pushTestProxy.Eval(snapshot)[0].State)
 	assert.NotEqual(t, pushIDOnly.Subject, pushTestProxy.Subject)
 }
 
