@@ -42,6 +42,45 @@ Alternatively, you can configure Redis in the `config.json` file:
 }
 ```
 
+### Secure Redis connections with TLS
+
+From Mattermost v12.2, Mattermost can connect to Redis over TLS, including mutual TLS where Mattermost presents a client certificate. TLS applies to both the cache and the cluster messages that Mattermost sends through Redis in high availability deployments.
+
+1.  Configure your Redis server to accept TLS connections. See the [Redis TLS documentation](https://redis.io/docs/latest/operate/oss_and_stack/management/security/encryption/) for details.
+2.  Copy the certificate files to the same path on every Mattermost server. Mattermost reads these files from each server's local filesystem, not from file storage.
+3.  Go to **System Console \> Environment \> Cache Settings** and set **Enable TLS** to **true**.
+4.  (Optional) Enter **TLS CA Certificate Path** if the Redis server's certificate isn't signed by a CA your operating system trusts.
+5.  (Optional) Enter **TLS Client Certificate Path** and **TLS Client Key Path** if your Redis server requires client certificates (for example, `tls-auth-clients yes`). Both must be set together.
+6.  Save your configuration and restart the Mattermost server.
+
+Alternatively, add the TLS settings to the `CacheSettings` section of the `config.json` file:
+
+``` json
+"CacheSettings": {
+    "CacheType": "redis",
+    "RedisAddress": "redis.example.com:6379",
+    "RedisPassword": "",
+    "RedisDB": 0,
+    "RedisEnableTLS": true,
+    "RedisTLSSkipVerify": false,
+    "RedisTLSCA": "/etc/mattermost/redis/ca.crt",
+    "RedisTLSClientCert": "/etc/mattermost/redis/client.crt",
+    "RedisTLSClientKey": "/etc/mattermost/redis/client.key"
+}
+```
+
+If Mattermost can't read a certificate file or complete the TLS handshake, the server fails to start and logs the reason.
+
+<Warning>
+
+Setting **Skip TLS Verification** to **true** disables verification of the Redis server's certificate, which exposes connections to interception. Use it only for testing.
+
+</Warning>
+
+Certificates are read when the server starts. After rotating certificates, restart each Mattermost server.
+
+AWS ElastiCache supports in-transit encryption. When it's enabled, set **Enable TLS** to **true**. No CA certificate path is needed because ElastiCache certificates are signed by a publicly trusted CA.
+
 ## Deploy with AWS ElastiCache
 
 For enterprise-scale deployments, AWS ElastiCache for Redis provides a fully managed Redis service that simplifies deployment, operation, and scaling.
