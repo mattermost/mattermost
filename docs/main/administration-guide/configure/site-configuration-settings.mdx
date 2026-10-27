@@ -754,11 +754,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '51%'}} />
+<col style={{width: '48%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>The <strong>Max users per team</strong> is the maximum total number of users per team, | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> | including activated and deactivated users. | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>MaxUsersPerTeam</code> &gt; <code>50</code> | | - Environment variable: <code>MM_TEAMSETTINGS_MAXUSERSPERTEAM</code> | In Mattermost, a team of people should be a small organization with a | | specific goal. In the physical world, a team could sit around a single | | table. The default maximum (50) should be enough for most teams, but | | with appropriate <a href="https://docs.mattermost.com/install/             |                                                                             |software-hardware-requirements.html">hardware</a>, this limit can be increased to | | thousands of users. | | | | <a href={useBaseUrl('/end-user-guide/collaborate/collaborate-within-channels')}>Channels</a> | are another way of organizing communications within teams on various topics. | | | | Numerical input. Default is <strong>50</strong> self-hosted deployments, and <strong>10000</strong> | | for Cloud deployments. | |</td>
+<td><p>The maximum number of active users per team. Deactivated users and users removed from the team aren't counted toward this limit.</p><p>With appropriate <a href={useBaseUrl('/deployment-guide/software-hardware-requirements')}>hardware</a>, a team can grow to thousands of users. <a href={useBaseUrl('/end-user-guide/collaborate/collaborate-within-channels')}>Channels</a> are another way of organizing communications within teams on various topics.</p><p>Numerical input. Default is <strong>50</strong> for self-hosted deployments, and <strong>10000</strong> for Cloud deployments.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>MaxUsersPerTeam</code> &gt; <code>50</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_MAXUSERSPERTEAM</code></li></ul></td>
 </tr>
 </tbody>
 </table>
