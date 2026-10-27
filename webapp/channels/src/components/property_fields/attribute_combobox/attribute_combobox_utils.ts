@@ -98,7 +98,12 @@ export function attributeComboboxMouseDownGuard(e: MouseEvent<HTMLElement>): voi
     }
 }
 
+// Marks a wrapper whose Combobox must not take SettingItemMax's initial focus:
+// Combobox opens its menu whenever its input gains focus.
+export const ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE = 'data-attribute-combobox';
+
 export type AttributeComboboxWrapperProps = {
+    [ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE]: '';
     onKeyDown: (e: KeyboardEvent<HTMLElement>) => void;
     onMouseDown: (e: MouseEvent<HTMLElement>) => void;
 };
@@ -108,6 +113,7 @@ export type AttributeComboboxWrapperProps = {
 // stops seeing Escape.
 export function getAttributeComboboxWrapperProps(): AttributeComboboxWrapperProps {
     return {
+        [ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE]: '',
         onKeyDown: attributeComboboxKeyGuard,
         onMouseDown: attributeComboboxMouseDownGuard,
     };

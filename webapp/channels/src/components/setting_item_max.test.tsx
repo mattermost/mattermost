@@ -4,7 +4,9 @@
 import React from 'react';
 
 import {Combobox} from '@mattermost/compass-ui/components/combobox';
+import type {ComboboxProps} from '@mattermost/compass-ui/components/combobox';
 
+import {ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE} from 'components/property_fields/attribute_combobox';
 import SettingItemMax from 'components/setting_item_max';
 
 import {installA11yFocusShim} from 'tests/helpers/a11y_focus_shim';
@@ -170,6 +172,12 @@ describe('components/SettingItemMax', () => {
             {value: 'c', label: 'Charlie'},
         ];
 
+        const MarkedCombobox = (props: ComboboxProps) => (
+            <div {...{[ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE]: ''}}>
+                <Combobox {...props}/>
+            </div>
+        );
+
         const getSettingList = () => document.querySelector('.setting-list');
 
         const expectClosed = (combobox: HTMLElement) => {
@@ -182,7 +190,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <Combobox
+                        <MarkedCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -204,7 +212,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <Combobox
+                        <MarkedCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -227,7 +235,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <Combobox
+                        <MarkedCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -255,7 +263,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <Combobox
+                        <MarkedCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -284,7 +292,7 @@ describe('components/SettingItemMax', () => {
                     {...baseProps}
                     submit={submit}
                     inputs={[
-                        <Combobox
+                        <MarkedCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -311,7 +319,7 @@ describe('components/SettingItemMax', () => {
                             className='form-control'
                             aria-label='Text'
                         />,
-                        <Combobox
+                        <MarkedCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -331,7 +339,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <Combobox
+                        <MarkedCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -360,7 +368,7 @@ describe('components/SettingItemMax', () => {
                         <button key='button'>
                             {'Pick'}
                         </button>,
-                        <Combobox
+                        <MarkedCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}

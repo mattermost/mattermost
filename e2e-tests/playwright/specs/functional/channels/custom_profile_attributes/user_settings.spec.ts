@@ -214,8 +214,9 @@ test(
         await editButton.scrollIntoViewIfNeeded();
         await editButton.click();
 
-        // * The menu stays closed when the section opens, and the input isn't focused
+        // * The menu stays closed when the section opens, with focus on the section's setting list
         const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        await expect(page.locator('.setting-list', {has: input})).toBeFocused();
         await expect(input).toHaveAttribute('aria-expanded', 'false');
         await expect(input).not.toBeFocused();
         const valueBefore = await input.inputValue();
@@ -290,8 +291,9 @@ test(
         await editButton.scrollIntoViewIfNeeded();
         await editButton.click();
 
-        // * The menu stays closed when the section opens
+        // * The menu stays closed when the section opens, with focus on the section's setting list
         const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        await expect(page.locator('.setting-list', {has: input})).toBeFocused();
         await expect(input).toHaveAttribute('aria-expanded', 'false');
 
         // # Click the input to open the menu

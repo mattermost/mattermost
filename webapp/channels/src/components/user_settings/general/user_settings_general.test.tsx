@@ -2081,6 +2081,31 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', value);
             });
 
+            test('K2g: Tab from the expanded section into a single input opens the menu, as Compass opens on focus', async () => {
+                const user = userEvent.setup();
+                renderEditor(buildField('select'), 'opt1');
+                expect(getSettingList()).toHaveFocus();
+                expectClosed();
+
+                await user.tab();
+
+                expect(getCombobox()).toHaveFocus();
+                expectOpen();
+            });
+
+            test('K2h: Tab from an expanded multiselect with values lands on the first chip with the menu closed', async () => {
+                const user = userEvent.setup();
+                renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
+                expect(getSettingList()).toHaveFocus();
+
+                await user.tab();
+
+                const [firstChip] = within(getSelections()!).getAllByRole('button');
+                expect(firstChip).toHaveFocus();
+                expect(firstChip).toHaveTextContent('Option 1');
+                expectClosed();
+            });
+
             test('K3: ArrowDown opens, ArrowDown then Enter picks without saving, and a second Enter saves the picked id', async () => {
                 const user = userEvent.setup();
                 const {saveCustomProfileAttribute} = renderEditor(buildField('select'));

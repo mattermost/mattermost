@@ -3,6 +3,7 @@
 
 export {
     ATTRIBUTE_COMBOBOX_MODAL_Z_INDEX,
+    ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE,
     attributeComboboxKeyGuard,
     attributeComboboxMouseDownGuard,
     fromComboboxMultiChange,

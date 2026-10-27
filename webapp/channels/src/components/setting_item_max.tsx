@@ -9,6 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import {Button} from '@mattermost/compass-ui/components/button';
 import type {ButtonVariant} from '@mattermost/shared/components/button';
 
+import {ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE} from 'components/property_fields/attribute_combobox';
 import SaveButton from 'components/save_button';
 
 import Constants from 'utils/constants';
@@ -122,12 +123,13 @@ const SettingItemMax = ({
             // Prefer form controls over footer Save/Cancel (Compass Buttons no longer use .btn).
             // Include [tabindex]:not([tabindex="-1"]) so react-select (and similar) receive
             // Edit→expand focus; .setting-list itself uses tabindex="-1" and is excluded.
-            // Compass Combobox opens its menu whenever its input gains focus, so neither the input
-            // (no tabindex, so not matched here) nor its chips, chip remove buttons, or clear button
-            // take initial focus; a section with only a Combobox focuses .setting-list instead.
+            // Compass Combobox opens its menu whenever its input gains focus, so nothing inside an
+            // attribute Combobox wrapper (input, chips, chip remove buttons, clear button) takes
+            // initial focus; a section with only a Combobox focuses .setting-list instead.
+            const skipInitialFocus = `[${ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE}]`;
             const formControls = Array.from(settingList.current.querySelectorAll<HTMLElement>(
-                'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"]):not([data-chip])',
-            )).filter((el) => !el.closest('.setting-list-item__buttons'));
+                'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])',
+            )).filter((el) => !el.closest('.setting-list-item__buttons') && !el.closest(skipInitialFocus));
             if (formControls.length > 0) {
                 a11yFocus(formControls[0]);
             } else {
@@ -136,7 +138,7 @@ const SettingItemMax = ({
                 );
                 const focusableButton = Array.from(buttons).find(
                     (button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className) &&
-                        !button.closest('[data-chip], [data-combobox-clear]'),
+                        !button.closest(skipInitialFocus),
                 );
                 if (focusableButton) {
                     a11yFocus(focusableButton);

@@ -11,6 +11,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import {act, render, screen, userEvent} from 'tests/react_testing_utils';
 
 import {
+    ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE,
     attributeComboboxKeyGuard,
     attributeComboboxMouseDownGuard,
     fromComboboxMultiChange,
@@ -221,6 +222,28 @@ describe('attributeComboboxMouseDownGuard', () => {
         attributeComboboxMouseDownGuard(e);
 
         expect(e.preventDefault).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('getAttributeComboboxWrapperProps', () => {
+    test('returns the key and mousedown guards and the wrapper marker attribute', () => {
+        expect(ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE).toBe('data-attribute-combobox');
+        expect(getAttributeComboboxWrapperProps()).toEqual({
+            'data-attribute-combobox': '',
+            onKeyDown: attributeComboboxKeyGuard,
+            onMouseDown: attributeComboboxMouseDownGuard,
+        });
+    });
+
+    test('puts the marker attribute on the rendered wrapper element', () => {
+        render(
+            <div
+                data-testid='wrapper'
+                {...getAttributeComboboxWrapperProps()}
+            />,
+        );
+
+        expect(screen.getByTestId('wrapper')).toHaveAttribute('data-attribute-combobox', '');
     });
 });
 
