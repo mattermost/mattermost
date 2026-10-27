@@ -10,6 +10,29 @@ export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classifi
 
 export type ChannelDisplayLocation = 'display_label_header' | 'display_banner_top';
 
+// Menu labels of the listing's source filter, in the order the menu offers them.
+export type ListingSourceFilter = 'All' | 'Managed here' | 'LDAP' | 'SAML' | 'OpenID' | 'Plugin';
+
+// Menu labels of the listing's resource-type filter.
+export type ListingResourceTypeFilter = 'All' | 'Users' | 'Channels' | 'Posts';
+
+// Test ids of the listing's search, filters and paging footer. The search input
+// exists today; the rest are the ids the filter and pagination UI must use.
+export const LISTING_TEST_IDS = {
+    search: 'global-attributes-search',
+    sourceFilter: 'global-attributes-source-filter',
+    resourceTypeFilter: 'global-attributes-resource-type-filter',
+    pagination: 'global-attributes-pagination',
+    paginationPrev: 'global-attributes-pagination-prev',
+    paginationNext: 'global-attributes-pagination-next',
+    paginationPage: 'global-attributes-pagination-page',
+    paginationTotal: 'global-attributes-pagination-total',
+    empty: 'global-attributes-empty',
+    emptySearch: 'global-attributes-empty-search',
+} as const;
+
+const LISTING_SEARCH_ROUTE = '/api/v4/properties/groups/access_control/attributes/search';
+
 // The switch is a visually hidden checkbox under its <label>, which takes the
 // pointer, so the click goes to the label.
 async function setToggle(toggle: Locator, on: boolean) {
@@ -152,6 +175,119 @@ export default class GlobalAttributes {
 
     get saveButton() {
         return this.container.getByTestId('saveSetting');
+    }
+
+    async gotoListing() {
+        await this.container.page().goto(GLOBAL_ATTRIBUTES_PATH);
+        await expect(this.container.page().getByTestId(LISTING_TEST_IDS.search)).toBeVisible();
+    }
+
+    get searchInput() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.search);
+    }
+
+    get sourceFilter() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.sourceFilter);
+    }
+
+    get resourceTypeFilter() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.resourceTypeFilter);
+    }
+
+    get pagination() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.pagination);
+    }
+
+    get previousPageButton() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.paginationPrev);
+    }
+
+    get nextPageButton() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.paginationNext);
+    }
+
+    get pageIndicator() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.paginationPage);
+    }
+
+    get totalCount() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.paginationTotal);
+    }
+
+    get emptyState() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.empty);
+    }
+
+    get emptySearchState() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.emptySearch);
+    }
+
+    /**
+     * Every listing row currently rendered.
+     */
+    get rows() {
+        const page = this.container.page();
+        return page.locator('tr').filter({has: page.getByTestId('global-attribute-name')});
+    }
+
+    /**
+     * The row whose Attribute cell shows `label` (the display name, or the
+     * internal name when the field has none).
+     */
+    rowByLabel(label: string) {
+        const page = this.container.page();
+        return page.locator('tr').filter({
+            has: page.getByTestId('global-attribute-name').filter({hasText: label}),
+        });
+    }
+
+    /**
+     * Resolves once the listing endpoint answers a request
+     * (the term is debounced client-side, so waiting on the response is what
+     * proves the results reflect it).
+     */
+    private waitForListingResponse() {
+        return this.container
+            .page()
+            .waitForResponse((response) => response.url().includes(LISTING_SEARCH_ROUTE) && response.ok());
+    }
+
+    async search(term: string) {
+        const response = this.waitForListingResponse();
+        await this.searchInput.fill(term);
+        await response;
+    }
+
+    async clearSearch() {
+        const response = this.waitForListingResponse();
+        await this.searchInput.clear();
+        await response;
+    }
+
+    async selectSourceFilter(source: ListingSourceFilter) {
+        const response = this.waitForListingResponse();
+        await this.sourceFilter.click();
+        await this.container.page().getByRole('menuitemradio', {name: source, exact: true}).click();
+        await response;
+    }
+
+    async selectResourceTypeFilter(resourceType: ListingResourceTypeFilter) {
+        const response = this.waitForListingResponse();
+        await this.resourceTypeFilter.click();
+        await this.container.page().getByRole('menuitemradio', {name: resourceType, exact: true}).click();
+        await response;
+    }
+
+    async goToNextPage() {
+        const response = this.waitForListingResponse();
+        await this.nextPageButton.click();
+        await response;
+    }
+
+    async goToPreviousPage() {
+        const response = this.waitForListingResponse();
+        await this.previousPageButton.click();
+        await response;
     }
 
     async gotoNewAttribute() {
