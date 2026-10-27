@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -17,8 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
-
-const attributeViewRefreshInterval = 30 * time.Second
 
 const accessControlChildPolicySearchLimit = 1000
 
@@ -2758,8 +2755,9 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 }
 
 // BuildAccessControlSubject creates a fully populated Subject with user attributes and
-// scoped roles for use in AccessEvaluation calls. It also ensures the materialized
-// attribute view is refreshed periodically (at most once per attributeViewRefreshInterval).
+// scoped roles for use in AccessEvaluation calls. The attributes are read live
+// (AttributesStore.GetSubject), so they reflect every committed write without a refresh
+// of the attribute materialized views.
 //
 // channelID is optional: when non-empty, the channel-scoped role for the user is resolved
 // from ChannelMember and appended to Subject.ScopedRoles so v0.4 channel resource policy
@@ -2768,8 +2766,6 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 //
 // Team join evaluations pass channelID="" — no channel role exists at join time.
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
-	a.refreshAttributeViewIfStale(rctx)
-
 	// Group is the cached lookup; GetPropertyGroup reads the store on every call,
 	// and subjects are built on hot paths such as websocket delivery.
 	group, err := a.Srv().propertyService.Group(model.AccessControlPropertyGroupName)
@@ -2982,50 +2978,4 @@ func ResolveSystemRole(roles string) string {
 		return model.SystemUserRoleId
 	}
 	return model.SystemUserRoleId
-}
-
-// invalidateAttributeViewCache forces the next refreshAttributeViewIfStale call to refresh.
-//
-// Deliberately not rate-limited: the REFRESH happens on the read side, so a bulk writer with no
-// evaluations in between still costs one refresh, while deferring a write loses it — a client asks
-// for a render decision once per change event and never re-asks.
-//
-// The marker is node-local and the matview shared, so in HA only the writing node gets live
-// visibility; elsewhere the bound stays the periodic one until this grows a cluster message.
-func (a *App) invalidateAttributeViewCache() {
-	ch := a.Srv().Channels()
-
-	if ch.attributeViewRefreshMut.TryLock() {
-		ch.attributeViewRefreshLast = time.Time{}
-		ch.attributeViewRefreshMut.Unlock()
-	} else {
-		// The in-flight refresh may have read the DB before this write landed, and it will
-		// overwrite the timer on completion, so flag a follow-up for the next caller.
-		ch.attributeViewNeedsRefresh.Store(true)
-	}
-}
-
-// refreshAttributeViewIfStale refreshes the attribute materialized views if the
-// last refresh was more than attributeViewRefreshInterval ago. The refresh is
-// non-blocking: if another goroutine is already refreshing, this call returns
-// immediately.
-func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
-	ch := a.Srv().Channels()
-
-	if !ch.attributeViewRefreshMut.TryLock() {
-		return
-	}
-	defer ch.attributeViewRefreshMut.Unlock()
-
-	needsRefresh := ch.attributeViewNeedsRefresh.Swap(false)
-	if !needsRefresh && time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
-		return
-	}
-
-	if err := a.Srv().Store().Attributes().RefreshAttributes(); err != nil {
-		rctx.Logger().Warn("Failed to refresh attribute materialized view", mlog.Err(err))
-		return
-	}
-
-	ch.attributeViewRefreshLast = time.Now()
 }
