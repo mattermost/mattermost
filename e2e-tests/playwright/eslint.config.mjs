@@ -77,6 +77,16 @@ export default [
                 },
             ],
             'import/no-unresolved': 'off',
+
+            // Playwright resolves toHaveURL('/path') against baseURL, which drops the subpath in subpath mode.
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector:
+                        "CallExpression[callee.property.name='toHaveURL'] > :matches(Literal[value=/^\\//], TemplateLiteral:first-child[quasis.0.value.raw=/^\\//])",
+                    message: "toHaveURL('/path') drops the server subpath. Use toHavePath('/path') instead.",
+                },
+            ],
         },
     },
 ];

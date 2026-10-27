@@ -50,6 +50,11 @@ on:
         description: "Comma-separated alias tags for description"
         type: string
         required: false
+      server_deploy:
+        description: "Value for PW_SERVER_DEPLOY (e.g. 'subpath'); empty for a standard deployment"
+        type: string
+        required: false
+        default: ""
 
       enable_reporting:
         type: boolean
@@ -269,12 +274,13 @@ jobs:
       # server. Optional sidecar services (openldap/keycloak/elasticsearch/opensearch/minio/
       # azurite) are left off on this release — related specs are not part of the suite here.
       PW_USE_TESTCONTAINERS: "true"
-      PW_TESTCONTAINERS_SERVICES: ""
+      PW_TESTCONTAINERS_SERVICES: "nginx"
       # Keeps the server alive across this worker's per-spec dispatch invocations instead of
       # tearing down after each — otherwise ci/prepare-playwright's own global-teardown call would
       # stop the server that ci/dispatch-run needs next. ci/testcontainers-teardown does the final
       # teardown once the whole queue is done.
       PW_TESTCONTAINERS_REUSE: "true"
+      PW_SERVER_DEPLOY: "${{ inputs.server_deploy }}"
     steps:
       - name: ci/checkout-actions
         # Sparse-checkout just .github/actions from the triggering ref (master)

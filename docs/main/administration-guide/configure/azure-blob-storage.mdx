@@ -1,0 +1,200 @@
+---
+title: "Configure Azure Blob Storage as the Mattermost file store"
+---
+<PlanAvailability slug="all-commercial" />
+
+Mattermost can store user uploads -- attachments, profile images, plugin assets, emoji, compliance exports -- in an Azure Storage account. This guide walks an administrator through the steps to provision the Azure side and point a Mattermost server at it via the System Console.
+
+## Prerequisites
+
+- An Azure subscription with a storage account and a container already created.
+- Either the Azure portal, or the [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) (`az`) installed and signed in with `az login`. Both are documented below.
+- A Mattermost deployment (v11.9 or later) with System Console access for a System Admin account.
+
+If you plan to migrate existing files from another backend, take a backup of the current storage location (S3 bucket, local disk, etc.) before changing the configuration. Switching the file driver does not migrate existing files automatically.
+
+## Step 1: Choose an authentication mode
+
+Mattermost supports two ways for the server to authenticate to Azure. Pick the one that fits how the server runs:
+
+- **Shared key**: the server signs each request with the [Storage Account access key](/administration-guide/configure/environment-configuration-settings#azure-storage-account-key). Works anywhere Mattermost runs (on-premises, non-Azure cloud, local development) because it does not depend on the host having an Azure identity. The trade-off is that the key is a long-lived secret stored in `config.json`.
+- **Default credential (Microsoft Entra ID)**: the server obtains a token from Microsoft Entra ID and signs requests with it. No long-lived secret in Mattermost configuration. This is the recommended mode for deployments running on Azure, where the host environment already provides an identity (managed identity on Azure VM / App Service / AKS, workload identity for federated workloads, or a service principal).
+
+The Azure-side setup differs slightly between the two modes. Follow the subsection that matches your choice; you can switch modes later by changing the [Azure authentication](/administration-guide/configure/environment-configuration-settings#azure-authentication) setting in the System Console.
+
+### Option A: Shared key
+
+Retrieve the Storage Account access key.
+
+**Azure portal**
+
+1. Open the storage account, then **Security + networking** > **Access keys**.
+2. Select **Show** next to `key1` (or `key2`) and copy the value.
+
+**Azure CLI**
+
+```bash
+az storage account keys list \
+    --account-name acmemattermost \
+    --resource-group mm-prod-files \
+    --query "[0].value" -o tsv
+```
+
+<Note>
+
+Treat the shared key as a secret -- anyone with it has full access to the storage account (every container and all data it holds). A shared key can't be scoped to a single container, to specific operations, or to a resource group; if you need least-privilege access, use [Option B: Default credential (Microsoft Entra ID)](#option-b-default-credential-microsoft-entra-id) with a container-scoped **Storage Blob Data Contributor** role instead. Azure provides two keys so you can rotate without downtime: update Mattermost to `key2`, regenerate `key1`, then swap on the next rotation cycle. Plan a rotation cadence that matches your organisation's policy.
+
+</Note>
+
+### Option B: Default credential (Microsoft Entra ID)
+
+The server uses `DefaultAzureCredential` from the Azure SDK, which discovers a working identity at runtime in this order. The first source that returns a token is used.
+
+1. `EnvironmentCredential` -- service-principal environment variables.
+2. `WorkloadIdentityCredential` -- federated workload identity.
+3. `ManagedIdentityCredential` -- the platform-provided managed identity.
+4. `AzureCLICredential` -- the signed-in `az` session, useful for local development.
+
+Whichever identity the SDK selects, **that** identity needs **Storage Blob Data Contributor** (or a custom role with the equivalent `read/write/list/delete` data-plane actions) on the storage account or container. Without it, `TestConnection` returns `AuthorizationPermissionMismatch`.
+
+Pick the identity source that matches the host:
+
+| Host | Identity source |
+|:---|:---|
+| Azure VM, App Service, AKS, Container Apps | Assign a **system-assigned** or **user-assigned managed identity** to the compute resource. `DefaultAzureCredential` resolves to `ManagedIdentityCredential` with no extra configuration. For user-assigned identities, set `AZURE_CLIENT_ID` in the server's environment so the SDK picks the right one. |
+| AKS with workload-identity federation | Annotate the Mattermost `ServiceAccount` with the client ID and configure the OIDC issuer per the [AKS workload identity guide](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview). `DefaultAzureCredential` resolves to `WorkloadIdentityCredential`. |
+| Non-Azure host or container | Create a service principal and set `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, and `AZURE_CLIENT_SECRET` (or `AZURE_CLIENT_CERTIFICATE_PATH`) in the server's environment. `DefaultAzureCredential` resolves to `EnvironmentCredential`. |
+| Local development on an admin's workstation | Sign in with `az login`. `DefaultAzureCredential` resolves to `AzureCLICredential`. |
+
+To prepare the account you're going to use, you'll need to assign the role from the Azure Portal or using the Azure CLI, as shown below (substitute the principal of the identity Mattermost will authenticate as):
+
+```bash
+STORAGE_ACCOUNT_ID=$(az storage account show \
+    --name acmemattermost \
+    --resource-group mm-prod-files \
+    --query id -o tsv)
+
+# For a managed identity (system-assigned on a VM/App Service/AKS pod):
+az role assignment create \
+    --assignee-object-id "<principalId-of-the-managed-identity>" \
+    --assignee-principal-type ServicePrincipal \
+    --role "Storage Blob Data Contributor" \
+    --scope "$STORAGE_ACCOUNT_ID"
+
+# For a service principal:
+az role assignment create \
+    --assignee "<appId-of-the-service-principal>" \
+    --role "Storage Blob Data Contributor" \
+    --scope "$STORAGE_ACCOUNT_ID"
+```
+
+<Note>
+
+Granting the role requires **User Access Administrator** or **Owner** on the storage account; `Contributor` is not enough. Plan to have an administrator with that role run the `az role assignment create` step. If you scope the role to a single container instead of the whole storage account, replace `--scope "$STORAGE_ACCOUNT_ID"` with `--scope "$STORAGE_ACCOUNT_ID/blobServices/default/containers/<container>"`.
+
+</Note>
+
+<Tip>
+
+Azure RBAC role assignments can take 30-120 seconds to propagate. If the first `TestConnection` returns `AuthorizationPermissionMismatch` immediately after the role assignment, wait a minute and retry before assuming a misconfiguration.
+
+</Tip>
+
+<Note>
+
+Mattermost holds the credential, not the token. Microsoft Entra ID access tokens are short-lived, but the Azure SDK caches each token and refreshes it automatically before it expires, so routine token rotation never interrupts file access while the server is running. Access stops only if the underlying identity or its authorization changes or is removed.
+
+</Note>
+
+## Step 2: Configure Mattermost
+
+Sign in as a System Admin and open **System Console > Environment > File Storage**.
+
+1. **File storage system**: select **Azure Blob Storage**. The Azure-specific fields appear and the S3/local fields are hidden.
+2. **Azure cloud**: select the Azure cloud that hosts the storage account:
+
+   - **Azure Commercial** (default): the global Azure cloud (`{account}.blob.core.windows.net`). Only the storage account name is required.
+   - **Azure Government**: the US Government cloud (`{account}.blob.core.usgovcloudapi.net`). Only the storage account name is required.
+   - **Custom Endpoint**: any other Azure cloud (for example, Azure China), an Azurite emulator, or a reverse proxy. Provide the full Blob service URL via **Azure endpoint** below.
+
+3. **Azure Storage account**: the storage account name (for example, `acmemattermost`).
+4. **Azure container**: the container name (for example, `mattermost`).
+5. **Azure path prefix**: optional. Set this if you want Mattermost to write under a sub-path inside the container, for example `prod/`. Leave empty to use the container root.
+6. **Azure authentication**: select the mode you set up in step 1:
+
+   - **Shared key** (default): Mattermost signs each request with the Storage Account access key. Choose this if you completed [Option A: Shared key](#option-a-shared-key).
+   - **Default credential (Microsoft Entra ID)**: Mattermost authenticates as the identity provided by the host environment. Choose this if you completed [Option B: Default credential (Microsoft Entra ID)](#option-b-default-credential-microsoft-entra-id). The **Azure Storage account key** field below is hidden because the access key is not used in this mode.
+
+7. **Azure Storage account key** (visible only when **Azure authentication** is **Shared key**): paste the shared key from [Option A: Shared key](#option-a-shared-key).
+8. **Azure endpoint** (visible only when **Azure cloud** is set to **Custom Endpoint**): the full Blob service URL, including scheme and storage account. Mattermost passes this URL to the Azure SDK unchanged, so the storage account must already be embedded in the hostname (vhost-style, for example `https://acmemattermost.blob.core.chinacloudapi.cn/`) or in the path (path-style, for example `http://localhost:10000/devstoreaccount1/` for Azurite). The chosen authentication mode signs against the host this URL points at, so the host must serve the storage account named above.
+9. **Enable secure Azure Blob Storage connections** (visible only when **Azure cloud** is **Azure Commercial** or **Azure Government**): keep this enabled (the default). The Custom Endpoint cloud determines the scheme from the **Azure endpoint** URL, so this toggle is hidden for that mode.
+10. **Azure request timeout (milliseconds)**: default is `30000` (30 seconds). Increase only if your network needs more time for large objects.
+
+Save the settings and click **Test Connection**. Mattermost issues a no-op write/read/delete against the configured container using the credentials submitted in the form. A green `Connection was successful` message confirms the credentials, container name, and endpoint all work. A red error message includes the underlying reason; common ones are listed in [Troubleshooting](#troubleshooting).
+
+<Warning>
+
+**Restart required.** The Mattermost server caches the file storage backend at startup and does not re-create it when the file storage configuration changes. After saving, restart every Mattermost server in the deployment (`systemctl restart mattermost`, recycle the container, or roll the deployment in your cluster) for the new driver to take effect. **Test Connection** works before the restart because it builds a temporary backend from the submitted form values.
+
+</Warning>
+
+<Warning>
+
+Switching the file driver does **not** migrate existing files. If you are moving an existing deployment from Amazon S3, see [Migrate existing files from Amazon S3](#migrate-existing-files-from-amazon-s3) below before changing the driver. For migrations from local disk, copy the directory contents into the Azure container using `azcopy` ([docs](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10)). In either case, files uploaded before the switch are unreachable once the driver changes unless they are present at the same key in the destination.
+
+</Warning>
+
+## Step 3: Verify
+
+1. After the restart, reload the System Console or any channel.
+2. Upload an attachment in any channel. A small image is a good test, because Mattermost stores three blobs for an image (original, preview, thumbnail), which exercises the upload path more thoroughly than a plain file.
+3. The post should render the attachment and preview as usual.
+4. In the Azure portal, open the container and confirm new blobs appeared under the path `<YYYYMMDD>/teams/<team>/channels/<channel>/users/<user>/<file_id>/` (the same layout the local-disk and S3 backends use). For an image you will see `<name>.<ext>`, `<name>_preview.<ext>`, and `<name>_thumb.<ext>`.
+
+## Migrate existing files from Amazon S3
+
+If you are switching an existing deployment from S3 to Azure Blob Storage, the file content must be present in the Azure container at the same key Mattermost would have written to. Mattermost itself does not move files between backends, so this is an out-of-band copy that you run once before flipping the driver.
+
+Mattermost writes blobs at the same relative path on every backend:
+
+```text
+{path-prefix}/{YYYYMMDD}/teams/{teamID}/channels/{channelID}/users/{userID}/{fileID}/{filename}
+```
+
+This means a straight key-for-key copy from the S3 bucket to the Azure container is sufficient. If you use `AmazonS3PathPrefix` on the S3 side, set `AzurePathPrefix` to the same value on the Azure side (or rewrite the prefix during the copy).
+
+There are multiple ways to accomplish this. The recommended way is using the [Azure Storage Mover service](https://learn.microsoft.com/en-us/azure/storage-mover/cloud-to-cloud-migration), which provides a cloud-to-cloud migration from Amazon S3 to Azure Blob Storage.
+
+There are alternative tools that can also help, like [rclone](https://rclone.org/azureblob/) and [AzCopy](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-s3).
+
+## (Optional) Configure the export backend
+
+Compliance and data exports can be stored separately from regular file uploads. The **File Storage (Exports)** section directly below **File Storage** in the System Console mirrors the fields above and accepts the same Azure credentials. Customers typically point exports at a different container (or a different account) so the export retention policy can differ from regular uploads. The export target is an independent backend with its own driver and credentials, so it doesn't have to use the same provider as regular uploads; e.g., you can keep uploads on Amazon S3 and send exports to Azure Blob Storage, or the reverse.
+
+See [Enable dedicated export filestore target](/administration-guide/configure/environment-configuration-settings#enable-dedicated-export-filestore-target) for the full list of `ExportAzure*` keys.
+
+## Troubleshooting
+
+| Symptom | Likely cause |
+|:---|:---|
+| `AuthenticationFailed` on **Test Connection** | When **Azure authentication** is **Shared key**: wrong account name or shared key. Confirm both in the **Access keys** blade of the Azure portal. When **Azure authentication** is **Default credential**: no identity source was available -- the host has no managed identity, the workload-identity federation is not set up, and no `AZURE_TENANT_ID` / `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` environment variables are set. |
+| `AuthorizationPermissionMismatch` on **Test Connection** | Only applies when **Azure authentication** is **Default credential**. The identity the SDK selected does not hold a data-plane role on the storage account. Grant **Storage Blob Data Contributor** to that identity per [Option B: Default credential (Microsoft Entra ID)](#option-b-default-credential-microsoft-entra-id), then wait 30-120 seconds for the role assignment to propagate. |
+| `ContainerNotFound` | Container name is wrong or was created under a different storage account. |
+| `connection refused` or TLS errors | When **Azure cloud** is **Custom Endpoint**, the **Azure endpoint** URL points at a host that isn't reachable or uses the wrong scheme. When **Azure cloud** is **Azure Commercial** or **Azure Government**, **Enable secure Azure Blob Storage connections** is disabled in front of a TLS-only destination. |
+| **Test Connection** succeeds but uploads in channels fail | Check **System Console > Reporting > Server Logs** for the Azure error returned by the SDK. The most common cause is a forgotten server restart after **Save**. |
+| Files uploaded before the switch are no longer visible | The existing files are still on the previous backend. For S3 migrations, follow [Migrate existing files from Amazon S3](#migrate-existing-files-from-amazon-s3) to copy the bucket into the Azure container at matching keys. For other backends, copy the contents into the Azure container with `azcopy` (or equivalent) and confirm the destination path matches the layout Mattermost uses. |
+
+## Reference
+
+Each Azure setting is documented in detail in [Environment configuration settings](/administration-guide/configure/environment-configuration-settings#file-storage):
+
+- [File storage system](/administration-guide/configure/environment-configuration-settings#file-storage-system) (`FileSettings.DriverName`)
+- [Azure Storage account](/administration-guide/configure/environment-configuration-settings#azure-storage-account) (`FileSettings.AzureStorageAccount`)
+- [Azure container](/administration-guide/configure/environment-configuration-settings#azure-container) (`FileSettings.AzureContainer`)
+- [Azure path prefix](/administration-guide/configure/environment-configuration-settings#azure-path-prefix) (`FileSettings.AzurePathPrefix`)
+- [Azure authentication](/administration-guide/configure/environment-configuration-settings#azure-authentication) (`FileSettings.AzureAuthMode`)
+- [Azure Storage account key](/administration-guide/configure/environment-configuration-settings#azure-storage-account-key) (`FileSettings.AzureAccessKey`)
+- [Azure cloud](/administration-guide/configure/environment-configuration-settings#azure-cloud) (`FileSettings.AzureCloud`)
+- [Azure endpoint](/administration-guide/configure/environment-configuration-settings#azure-endpoint) (`FileSettings.AzureEndpoint`)
+- [Enable secure Azure Blob Storage connections](/administration-guide/configure/environment-configuration-settings#enable-secure-azure-blob-storage-connections) (`FileSettings.AzureSSL`)
+- [Azure request timeout](/administration-guide/configure/environment-configuration-settings#azure-request-timeout) (`FileSettings.AzureRequestTimeoutMilliseconds`)
