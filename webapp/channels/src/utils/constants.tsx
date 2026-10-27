@@ -110,6 +110,8 @@ export const Preferences = {
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
     COLLAPSE_DISPLAY_DEFAULT: 'false',
+    COLLAPSE_CATEGORY_WITH_UNREADS: 'collapse_category_with_unreads',
+    COLLAPSE_CATEGORY_WITH_UNREADS_DEFAULT: 'false',
     AVAILABILITY_STATUS_ON_POSTS: 'availability_status_on_posts',
     AVAILABILITY_STATUS_ON_POSTS_DEFAULT: 'true',
     USE_MILITARY_TIME: 'use_military_time',

@@ -33067,6 +33067,14 @@
     "defaultMessage": "Clock Display",
     "description": "Setting title in Settings > Display choosing between 12-hour and 24-hour time format."
   },
+  "user.settings.display.collapseCategoryWithUnreadsDescription": {
+    "defaultMessage": "When enabled, collapsing a sidebar category hides all of its channels, including unread channels and channels with mentions. The channel you are viewing stays visible.",
+    "description": "Help text for the Settings > Display option that lets a collapsed left-sidebar channel category also hide its unread and muted-with-mention channels."
+  },
+  "user.settings.display.collapseCategoryWithUnreadsTitle": {
+    "defaultMessage": "Collapse category with unread channels",
+    "description": "Setting title in Settings > Display, with On/Off options, for whether collapsing a left-sidebar channel category also hides its unread channels."
+  },
   "user.settings.display.collapseDesc": {
     "defaultMessage": "Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.",
     "description": "Help text for the image preview default setting; /expand and /collapse are literal slash command names, do not translate them."
