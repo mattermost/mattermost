@@ -281,7 +281,6 @@ describe('key guard with a real Combobox', () => {
         };
 
         return (
-            // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- key and focus guards only; the Combobox input owns keyboard interaction
             <div {...wrapperProps}>
                 <Combobox
                     aria-label='Field'

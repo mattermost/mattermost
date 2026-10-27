@@ -90,8 +90,6 @@ export function attributeComboboxKeyGuard(e: KeyboardEvent<HTMLElement>): void {
 // (scrollbar, padding) would move focus off the input while the menu stays
 // open, so the next Escape would bypass the key guard and close the modal.
 // React still delivers portal events here, so prevent the focus move.
-// Wrap only the Combobox: any other portaled content under this wrapper also
-// loses mousedown focus.
 export function attributeComboboxMouseDownGuard(e: MouseEvent<HTMLElement>): void {
     if (!e.currentTarget.contains(e.target as Node)) {
         e.preventDefault();
@@ -103,9 +101,8 @@ export type AttributeComboboxWrapperProps = {
     onMouseDown: (e: MouseEvent<HTMLElement>) => void;
 };
 
-// Spread on the element that wraps only the Combobox. Both guards are needed:
-// without the mousedown guard, focus can leave the input and the key guard
-// stops seeing Escape.
+// Spread on an element that wraps only the Combobox: the mousedown guard also
+// affects any other portaled content rendered under the wrapper.
 export function getAttributeComboboxWrapperProps(): AttributeComboboxWrapperProps {
     return {
         onKeyDown: attributeComboboxKeyGuard,
