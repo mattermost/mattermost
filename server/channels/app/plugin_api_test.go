@@ -5838,4 +5838,30 @@ func TestPluginThreadFollowing(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, "plugin.api.thread.invalid_thread_id.app_error", appErr.Id)
 	})
+
+	t.Run("rejects a user that does not exist", func(t *testing.T) {
+		unknownID := model.NewId()
+		appErr := api.SetThreadFollowing(unknownID, root.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, followers, unknownID)
+	})
+
+	t.Run("leaves out a deactivated follower", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		require.Nil(t, api.SetThreadFollowing(user.Id, root.Id, true))
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, true))
+
+		_, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Contains(t, followers, th.BasicUser2.Id)
+		assert.NotContains(t, followers, user.Id)
+	})
 }
