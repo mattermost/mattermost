@@ -2088,11 +2088,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows team and account creation using Entra ID OpenID Connect authentication. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</li></ul><dl><dt>- <strong>false</strong>: <strong>(Default)</strong> Disables Entra ID OpenID Connect authentication. | - <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Enable</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_OFFICE365SETTINGS_ENABLE</code> |</div></dd></dl><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. |</p></td>
+<td><ul><li><strong>true</strong>: Allows team and account creation using Entra ID OpenID Connect authentication.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables Entra ID OpenID Connect authentication.</li></ul><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_ENABLE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2101,11 +2103,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting holds the Directory (tenant) ID set for Mattermost through the Microsoft Azure Portal. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>DirectoryId</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OFFICE365SETTINGS_DIRECTORYID</code></dt><dd><div class="line-block">                                                                   |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting holds the Directory (tenant) ID set for Mattermost through the Microsoft Azure Portal.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>DirectoryId</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_DIRECTORYID</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2114,11 +2118,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting is prepopulated with the Discovery Endpoint for Entra ID OpenID Connect. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>DiscoveryEndpoint</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OFFICE365SETTINGS_DISCOVERYENDPOINT</code></dt><dd><div class="line-block">                                                                                                                   |</div></dd></dl><p>String input. Default is <code>https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration</code> | |</p></td>
+<td><p>The System Console fills in this setting from the <strong>Directory (tenant) ID</strong>, as <code>https://login.microsoftonline.com/&#123;directory_id&#125;/v2.0/.well-known/openid-configuration</code>, and it can't be changed there. When no directory ID is set, it uses <code>https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration</code>.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>DiscoveryEndpoint</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_DISCOVERYENDPOINT</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2127,11 +2133,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the <strong>Application (client) ID</strong> generated through the Microsoft Azure Portal. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Id</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OFFICE365SETTINGS_ID</code></dt><dd><div class="line-block">                                                          |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the <strong>Application (client) ID</strong> generated through the Microsoft Azure Portal.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Id</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_ID</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2140,11 +2148,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the <strong>Client Secret</strong> generated through the Microsoft Azure Portal. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Secret</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OFFICE365SETTINGS_SECRET</code></dt><dd><div class="line-block">                                                               |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the <strong>Client Secret</strong> generated through the Microsoft Azure Portal.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Secret</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_SECRET</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2153,12 +2163,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '57%'}} />
-<col style={{width: '42%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td colspan="2"><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the Entra ID OpenID token as the Mattermost username. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment. | - <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></dt><dd><div class="line-block">- Environment variable: <code>MM_OFFICE365SETTINGS_USEPREFERREDUSERNAME</code></div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the Entra ID OpenID token as the Mattermost username.</li><li><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
 </tr>
 </tbody>
 </table>
