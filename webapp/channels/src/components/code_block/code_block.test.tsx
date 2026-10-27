@@ -5,6 +5,8 @@ import React from 'react';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
+import MarkdownToggleContext from 'components/markdown_view_toggle/markdown_toggle_context';
+
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import * as Utils from 'utils/utils';
@@ -20,6 +22,12 @@ const actImmediate = () =>
                 });
             }),
     );
+
+const ToggleableCodeBlock = (props: React.ComponentProps<typeof CodeBlock>) => (
+    <MarkdownToggleContext.Provider value={true}>
+        <CodeBlock {...props}/>
+    </MarkdownToggleContext.Provider>
+);
 
 describe('codeBlock', () => {
     test('should render typescript code block with syntax highlighting', async () => {
@@ -121,7 +129,7 @@ it shouldn't highlight, it's just garbage`;
 
         test.each(['markdown', 'md', 'mkd', 'MD'])('should show the toggle and default to raw for %s', async (language) => {
             const {container} = renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={markdown}
                     language={language}
                 />,
@@ -132,12 +140,48 @@ it shouldn't highlight, it's just garbage`;
             expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'false');
             expect(container.querySelector('.hljs code')).toBeInTheDocument();
             expect(container.querySelector('.post-code')).toHaveClass('post-code--wrap');
-            expect(container.querySelectorAll('.post-code__line-number')).toHaveLength(3);
+            expect(container.querySelectorAll('.post-code__line')).toHaveLength(3);
             expect(screen.queryByRole('heading', {name: 'Heading'})).not.toBeInTheDocument();
         });
 
-        test('should keep the raw source on the block in the raw view so a copy of it pastes back as Markdown', async () => {
+        test('should only keep the raw source on the block while it is rendered, since it is in the DOM otherwise', async () => {
             const {container} = renderWithContext(
+                <ToggleableCodeBlock
+                    code={markdown}
+                    language='markdown'
+                />,
+            );
+            await actImmediate();
+            expect(container.querySelector('.post-code')).not.toHaveAttribute('data-markdown-source');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
+
+            expect(container.querySelector('.post-code')).toHaveAttribute('data-markdown-source', markdown);
+        });
+
+        test('should keep every markdown block on the same view when one is toggled', async () => {
+            renderWithContext(
+                <>
+                    <ToggleableCodeBlock
+                        code={markdown}
+                        language='markdown'
+                    />
+                    <ToggleableCodeBlock
+                        code={markdown}
+                        language='md'
+                    />
+                </>,
+            );
+            await actImmediate();
+
+            await userEvent.click(screen.getAllByRole('button', {name: 'Preview'})[0]);
+
+            expect(screen.getAllByRole('heading', {level: 1, name: 'Heading'})).toHaveLength(2);
+            expect(screen.getAllByRole('button', {name: 'Preview'}).every((button) => button.getAttribute('aria-pressed') === 'true')).toBe(true);
+        });
+
+        test('should not offer the toggle outside of a surface that turns it on', async () => {
+            renderWithContext(
                 <CodeBlock
                     code={markdown}
                     language='markdown'
@@ -145,12 +189,12 @@ it shouldn't highlight, it's just garbage`;
             );
             await actImmediate();
 
-            expect(container.querySelector('.post-code')).toHaveAttribute('data-markdown-source', markdown);
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
         });
 
         test.each(['typescript', 'xml', 'html', 'bash'])('should not show the toggle for explicit %p blocks', async (language) => {
             renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={markdown}
                     language={language}
                 />,
@@ -162,7 +206,7 @@ it shouldn't highlight, it's just garbage`;
 
         test('should offer the toggle for untagged blocks that look like markdown', async () => {
             const {container} = renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={markdown}
                     language=''
                 />,
@@ -180,7 +224,7 @@ it shouldn't highlight, it's just garbage`;
 
         test('should not offer the toggle for untagged blocks that are not markdown', async () => {
             renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={'# install\nnpm install\n# build\nnpm run build'}
                     language=''
                 />,
@@ -192,7 +236,7 @@ it shouldn't highlight, it's just garbage`;
 
         test('should render the markdown when toggled and switch back to raw', async () => {
             const {container} = renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={markdown}
                     language='markdown'
                 />,
@@ -217,7 +261,7 @@ it shouldn't highlight, it's just garbage`;
         test('should keep copying the raw source while rendered', async () => {
             const spy = jest.spyOn(Utils, 'copyToClipboard');
             renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={markdown}
                     language='markdown'
                 />,
@@ -232,7 +276,7 @@ it shouldn't highlight, it's just garbage`;
 
         test('should apply the remembered choice to later code blocks', async () => {
             const first = renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={markdown}
                     language='markdown'
                 />,
@@ -242,7 +286,7 @@ it shouldn't highlight, it's just garbage`;
             first.unmount();
 
             renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={markdown}
                     language='markdown'
                 />,
@@ -253,9 +297,9 @@ it shouldn't highlight, it's just garbage`;
         });
 
         test('should not offer rendering for search results so highlighted matches stay visible', async () => {
-            LocalStorageStore.setMarkdownCodeBlockView('', 'rendered');
+            LocalStorageStore.setMarkdownView('code_block', '', 'rendered');
             renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={markdown}
                     language='markdown'
                     searchedContent='<div class="post-code__search-highlighting">x</div>'
@@ -268,9 +312,9 @@ it shouldn't highlight, it's just garbage`;
         });
 
         test('should apply the saved preference when a block becomes markdown after it was first rendered', async () => {
-            LocalStorageStore.setMarkdownCodeBlockView('', 'rendered');
+            LocalStorageStore.setMarkdownView('code_block', '', 'rendered');
             const {rerender} = renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code='plain text'
                     language=''
                 />,
@@ -279,7 +323,7 @@ it shouldn't highlight, it's just garbage`;
             expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
 
             rerender(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={markdown}
                     language=''
                 />,
@@ -292,7 +336,7 @@ it shouldn't highlight, it's just garbage`;
 
         test('should not offer a second toggle for a markdown fence inside rendered markdown', async () => {
             renderWithContext(
-                <CodeBlock
+                <ToggleableCodeBlock
                     code={'Outer\n\n```markdown\n# Inner\n```'}
                     language='markdown'
                 />,

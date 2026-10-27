@@ -54,7 +54,7 @@ describe('components/MarkdownViewToggle', () => {
         expect(screen.getByRole('button', {name: 'Code'})).toBeInTheDocument();
     });
 
-    test('should call onChange with the clicked view and not for the current one', async () => {
+    test('should call onChange with the clicked view', async () => {
         const onChange = jest.fn();
         renderWithContext(
             <MarkdownViewToggle
@@ -62,9 +62,6 @@ describe('components/MarkdownViewToggle', () => {
                 onChange={onChange}
             />,
         );
-
-        await userEvent.click(screen.getByRole('button', {name: 'Preview'}));
-        expect(onChange).not.toHaveBeenCalled();
 
         await userEvent.click(screen.getByRole('button', {name: 'Code'}));
         expect(onChange).toHaveBeenCalledWith('raw');

@@ -3,43 +3,51 @@
 
 import React, {useMemo} from 'react';
 
-import * as SyntaxHighlighting from 'utils/syntax_highlighting';
-
 type Props = {
     html: string;
 };
 
-// Rebuilds highlighted HTML as React elements instead of injecting it, so nothing but text and class-only spans can ever
-// reach the DOM, however the markup was produced. The parser doesn't run scripts or load resources.
-function renderHighlightedNodes(nodes: NodeListOf<ChildNode>): React.ReactNode[] {
-    return Array.from(nodes).map((node, index) => {
-        if (node.nodeType === Node.TEXT_NODE) {
-            return node.textContent;
-        }
+// What a node contributes to each source line it spans. A span that runs across lines (like a fenced block in Markdown)
+// is closed on one line and reopened on the next, each time with the same class.
+type Lines = React.ReactNode[][];
 
+// Rebuilds highlighted HTML as React elements, one list per source line, instead of injecting it. The parser doesn't run
+// scripts or load resources, and only text and class-only spans are ever turned back into elements, so nothing else
+// can reach the DOM however the markup was produced.
+function splitIntoLines(nodes: NodeListOf<ChildNode>, nextKey: () => number): Lines {
+    const lines: Lines = [[]];
+
+    for (const node of Array.from(nodes)) {
+        let covered: Lines;
         if (node instanceof HTMLSpanElement) {
-            return (
+            const className = node.getAttribute('class') ?? undefined;
+            covered = splitIntoLines(node.childNodes, nextKey).map((children) => [
                 <span
-                    key={index}
-                    className={node.getAttribute('class') ?? undefined}
+                    key={nextKey()}
+                    className={className}
                 >
-                    {renderHighlightedNodes(node.childNodes)}
-                </span>
-            );
+                    {children}
+                </span>,
+            ]);
+        } else {
+            covered = (node.textContent ?? '').split(/\r\n|\n|\r/).map((text) => (text ? [text] : []));
         }
 
-        return node.textContent;
-    });
-}
+        lines[lines.length - 1].push(...covered[0]);
+        lines.push(...covered.slice(1));
+    }
 
-function renderHighlightedLine(line: string): React.ReactNode[] {
-    return renderHighlightedNodes(new DOMParser().parseFromString(line, 'text/html').body.childNodes);
+    return lines;
 }
 
 // Renders each line as its own row so a line number stays beside the first row of its line when the line wraps.
-// Rows are spans (laid out by CSS) because a code element can only hold phrasing content.
+// Rows are spans (laid out by CSS) because a code element can only hold phrasing content, and the numbers are CSS
+// counters so they aren't part of the text a copy of the block would read.
 const WrappedCodeLines = ({html}: Props) => {
-    const lines = useMemo(() => SyntaxHighlighting.splitHighlightedLines(html), [html]);
+    const lines = useMemo(() => {
+        let key = 0;
+        return splitIntoLines(new DOMParser().parseFromString(html, 'text/html').body.childNodes, () => key++);
+    }, [html]);
 
     return (
         <code className='post-code__wrapped-lines'>
@@ -48,8 +56,7 @@ const WrappedCodeLines = ({html}: Props) => {
                     key={index}
                     className='post-code__line'
                 >
-                    <span className='post-code__line-number'>{index + 1}</span>
-                    <span className='post-code__line-text'>{renderHighlightedLine(line)}</span>
+                    <span className='post-code__line-text'>{line}</span>
                 </span>
             ))}
         </code>

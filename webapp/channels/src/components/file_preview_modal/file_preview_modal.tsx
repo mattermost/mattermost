@@ -11,19 +11,15 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getFileDownloadUrl, getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
-import LocalStorageStore from 'stores/local_storage_store';
-
 import ArchivedPreview from 'components/archived_preview';
 import AudioVideoPreview from 'components/audio_video_preview';
-import CodePreview, {hasSupportedLanguage} from 'components/code_preview';
+import CodePreview, {canToggleMarkdownPreview, hasSupportedLanguage} from 'components/code_preview';
 import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
 import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
 
-import Constants, {FileTypes, MarkdownViews, ZoomSettings} from 'utils/constants';
-import type {MarkdownView} from 'utils/constants';
+import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as Utils from 'utils/utils';
 
 import type {FilePreviewComponent} from 'types/store/plugins';
@@ -43,7 +39,6 @@ const KeyCodes = Constants.KeyCodes;
 
 export type Props = {
     canDownloadFiles: boolean;
-    currentUserId: string;
     enablePublicLink: boolean;
 
     /**
@@ -82,8 +77,9 @@ type State = {
     scale: Record<number, number>;
     translate: Record<number, Translate>;
     isDragging: boolean;
-    content: string;
-    markdownView: MarkdownView;
+
+    // Reported by CodePreview for one file, so it is only read while that file is the one shown
+    content: {fileId: string; text: string} | null;
 };
 
 // Pure helper for cursor-aware zoom math. Given current scale + translate,
@@ -135,8 +131,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 return acc;
             }, {}),
             isDragging: false,
-            content: '',
-            markdownView: LocalStorageStore.getMarkdownFilePreviewView(this.props.currentUserId),
+            content: null,
         };
     }
 
@@ -239,13 +234,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         window.removeEventListener('blur', this.endDrag);
     }
 
-    componentDidUpdate(prevProps: Props) {
-        // The modal isn't remounted on an account switch, so the stored preference must be re-read for the new user
-        if (prevProps.currentUserId !== this.props.currentUserId) {
-            this.setState({markdownView: LocalStorageStore.getMarkdownFilePreviewView(this.props.currentUserId)});
-        }
-    }
-
     static getDerivedStateFromProps(props: Props, state: State) {
         const updatedState: Partial<State> = {};
         const currentFile = props.fileInfos[state.imageIndex];
@@ -273,11 +261,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             updatedState.prevFileInfosCount = props.fileInfos.length;
             updatedState.prevFileIds = nextFileIds;
 
-            // The content belongs to the file that was shown, so drop it when that file is swapped out underneath us
-            if (nextFileIds[state.imageIndex] !== state.prevFileIds[state.imageIndex]) {
-                updatedState.content = '';
-            }
-
             // Reconcile scale/translate per index: preserve entries whose
             // file identity is unchanged; reset to the new file's default
             // when the identity at that index changed (or is brand new).
@@ -299,9 +282,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     }
 
     showImage = (id: number) => {
-        // Content belongs to the previously shown file until CodePreview reports the new one. Showing the same file
-        // again (e.g. arrow keys in a single-file preview) isn't re-reported, so its content must be kept.
-        this.setState((prev) => ({imageIndex: id, content: id === prev.imageIndex ? prev.content : ''}));
+        this.setState({imageIndex: id});
 
         const imageHeight = window.innerHeight - 100;
         this.setState({imageHeight});
@@ -550,13 +531,11 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         this.setState({show: false});
     };
 
-    getContent = (content: string) => {
-        this.setState({content});
-    };
-
-    handleMarkdownViewChange = (markdownView: MarkdownView) => {
-        LocalStorageStore.setMarkdownFilePreviewView(this.props.currentUserId, markdownView);
-        this.setState({markdownView});
+    getContent = (text: string) => {
+        const fileInfo = this.props.fileInfos[this.state.imageIndex];
+        if (fileInfo) {
+            this.setState({content: {fileId: FilePreviewModal.getFileIdentity(fileInfo), text}});
+        }
     };
 
     handleBgClose = (e: React.MouseEvent) => {
@@ -571,6 +550,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
 
         const fileInfo = this.props.fileInfos[this.state.imageIndex];
+        const fileText = this.state.content?.fileId === FilePreviewModal.getFileIdentity(fileInfo) ? this.state.content.text : '';
 
         // Determine file type using helper method
         const fileType = this.getFileTypeFromFileInfo(fileInfo);
@@ -581,7 +561,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         let fileDownloadUrl;
         let isExternalFile;
         let canCopyContent = false;
-        let isMarkdownFile = false;
+        let canToggleMarkdown = false;
         if (isFileInfo(fileInfo)) {
             showPublicLink = true;
             fileName = fileInfo.name;
@@ -673,13 +653,13 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 } else if (hasSupportedLanguage(fileInfo)) {
                     dialogClassName += ' modal-code';
                     canCopyContent = true;
-                    isMarkdownFile = SyntaxHighlighting.isMarkdownLanguage(SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension) ?? '');
+                    canToggleMarkdown = canToggleMarkdownPreview(fileInfo.extension, this.props.isMobileView);
                     content = (
                         <CodePreview
                             fileInfo={fileInfo as FileInfo}
                             fileUrl={fileUrl}
                             getContent={this.getContent}
-                            renderMarkdown={isMarkdownFile && !this.props.isMobileView && this.state.markdownView === MarkdownViews.RENDERED}
+                            isMobileView={this.props.isMobileView}
                         />
                     );
                 } else {
@@ -768,10 +748,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     handlePrev={this.handlePrev}
                                     handleNext={this.handleNext}
                                     handleModalClose={this.handleModalClose}
-                                    content={this.state.content}
-                                    showMarkdownToggle={isMarkdownFile && this.state.content !== ''}
-                                    markdownView={this.state.markdownView}
-                                    onMarkdownViewChange={this.handleMarkdownViewChange}
+                                    content={fileText}
+                                    showMarkdownToggle={canToggleMarkdown && fileText !== ''}
                                 />
                                 {zoomBar}
                             </Modal.Title>
@@ -798,7 +776,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     canCopyContent={canCopyContent}
                                     isExternalFile={isExternalFile}
                                     handleModalClose={this.handleModalClose}
-                                    content={this.state.content}
+                                    content={fileText}
                                 />
                             }
                         </div>

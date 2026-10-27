@@ -8,31 +8,41 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import FileInfoPreview from 'components/file_info_preview';
 import Markdown from 'components/markdown';
+import {useMarkdownView} from 'components/markdown_view_toggle/use_markdown_view';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WrappedCodeLines from 'components/wrapped_code_lines';
 
-import Constants from 'utils/constants';
+import Constants, {MarkdownViews} from 'utils/constants';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 
 import type {LinkInfo} from './file_preview_modal/types';
+
+import './code_preview.scss';
 
 type Props = {
     fileInfo: FileInfo;
     fileUrl: string;
     getContent?: (code: string) => void;
-    renderMarkdown?: boolean;
+    isMobileView?: boolean;
 };
 
 export function hasSupportedLanguage(fileInfo: FileInfo | LinkInfo) {
     return Boolean(SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension));
 }
 
+// Whether the file is Markdown that can be switched between its source and its rendered output. The modal uses it to
+// show the toggle and CodePreview uses it to honor the choice, so the two can't disagree.
+export function canToggleMarkdownPreview(extension: string, isMobileView: boolean) {
+    return !isMobileView && SyntaxHighlighting.isMarkdownLanguage(SyntaxHighlighting.getLanguageFromFileExtension(extension) ?? '');
+}
+
 const CodePreview = ({
     fileInfo,
     fileUrl,
     getContent,
-    renderMarkdown = false,
+    isMobileView = false,
 }: Props) => {
+    const [markdownView] = useMarkdownView('file_preview');
     const [codeInfo, setCodeInfo] = useState({
         code: '',
         lang: '',
@@ -143,7 +153,7 @@ const CodePreview = ({
     // box each view's content gets — and the modal header already shows the file name.
     const isMarkdownFile = SyntaxHighlighting.isMarkdownLanguage(codeInfo.lang);
 
-    if (renderMarkdown && isMarkdownFile) {
+    if (markdownView === MarkdownViews.RENDERED && canToggleMarkdownPreview(fileInfo.extension, isMobileView)) {
         return (
             <div className='code-preview code-preview--markdown code-preview--fixed-size'>
                 <div className='code-preview__markdown'>

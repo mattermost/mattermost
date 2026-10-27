@@ -27,17 +27,22 @@ function hasTable(lines: string[]) {
     return lines.some((line, i) => i > 0 && line.includes('-') && TABLE_DIVIDER.test(line.trim()) && lines[i - 1].includes('|'));
 }
 
-const CONSTRUCTS: Array<(lines: string[], text: string) => boolean> = [
-    hasHeading,
-    hasList,
-    hasTable,
-    (lines) => lines.some((line) => (/^>[ \t]+\S/).test(line)),
+// The quantifiers are bounded so a huge line of unclosed brackets or asterisks can't make the inline checks scan
+// quadratically. `\r` is excluded alongside `\n` so a match can't span a visual line break on CRLF input.
+function hasQuote(lines: string[]) {
+    return lines.some((line) => (/^>[ \t]+\S/).test(line));
+}
 
-    // The quantifiers are bounded so a huge line of unclosed brackets or asterisks can't make these scan quadratically.
-    // `\r` is excluded alongside `\n` so a match can't span a visual line break on CRLF input.
-    (lines, text) => (/\[[^\]\n\r]{1,200}\]\([^)\s]{1,500}\)/).test(text),
-    (lines, text) => (/(\*\*|__)[^\s*_][^\n\r]{0,200}?\1/).test(text),
-];
+function hasLink(text: string) {
+    return (/\[[^\]\n\r]{1,200}\]\([^)\s]{1,500}\)/).test(text);
+}
+
+function hasStrong(text: string) {
+    return (/(\*\*|__)[^\s*_][^\n\r]{0,200}?\1/).test(text);
+}
+
+const LINE_CONSTRUCTS = [hasHeading, hasList, hasTable, hasQuote];
+const TEXT_CONSTRUCTS = [hasLink, hasStrong];
 
 export function isLikelyMarkdown(code: string): boolean {
     if (!code || code.length > MAX_LENGTH) {
@@ -51,12 +56,15 @@ export function isLikelyMarkdown(code: string): boolean {
     }
 
     let found = 0;
-    for (const hasConstruct of CONSTRUCTS) {
-        if (hasConstruct(lines, code)) {
-            found++;
-            if (found >= MIN_CONSTRUCTS) {
-                return true;
-            }
+    for (const hasConstruct of LINE_CONSTRUCTS) {
+        if (hasConstruct(lines) && ++found >= MIN_CONSTRUCTS) {
+            return true;
+        }
+    }
+
+    for (const hasConstruct of TEXT_CONSTRUCTS) {
+        if (hasConstruct(code) && ++found >= MIN_CONSTRUCTS) {
+            return true;
         }
     }
 

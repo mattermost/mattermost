@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 .MarkdownViewToggle {
     --markdown-view-toggle-segment: 32px;
     --markdown-view-toggle-track: rgba(var(--center-channel-color-rgb), 0.08);
@@ -21,11 +23,9 @@
         --markdown-view-toggle-segment: 36px;
     }
 
-    // Always-dark surfaces: feed the inverted IconButton style fixed light colors instead of sidebar theme colors,
-    // and keep the selected state as subtle as the other header icons' hover state
+    // Always-dark surfaces (which also get .icon-buttons-on-dark): keep the selected state as subtle as the other header
+    // icons' hover state
     &.onDark {
-        --sidebar-text: white;
-        --sidebar-text-rgb: 255, 255, 255;
         --markdown-view-toggle-track: rgba(255, 255, 255, 0.08);
         --markdown-view-toggle-thumb: rgba(255, 255, 255, 0.08);
         --markdown-view-toggle-thumb-border: transparent;
@@ -64,9 +64,8 @@
 
 // The sliding thumb is the selected option's background, so only the pressed option needs its own hover/active
 // background cancelled (it sits on top of the thumb). The unselected option keeps IconButton's normal hover. The
-// class is repeated to outrank IconButton's own hover rule, which carries several :not() selectors, whatever order
-// the CSS loads in.
-.MarkdownViewToggle .MarkdownViewToggle__option.MarkdownViewToggle__option.MarkdownViewToggle__option {
+// class is repeated to outrank IconButton's own hover rule.
+.MarkdownViewToggle #{mixins.outrank('.MarkdownViewToggle__option', 3)} {
     background-color: transparent;
 
     &[aria-pressed='true'] {

@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import LocalStorageStore from 'stores/local_storage_store';
-
 import FilePreviewModal, {computeZoomAtCursor} from 'components/file_preview_modal/file_preview_modal';
 
 import {act, render} from 'tests/react_testing_utils';
@@ -31,6 +29,7 @@ jest.mock('components/code_preview', () => ({
         return <div>{'Code Preview'}</div>;
     },
     hasSupportedLanguage: () => true,
+    canToggleMarkdownPreview: jest.requireActual('components/code_preview').canToggleMarkdownPreview,
 }));
 jest.mock('components/file_info_preview', () => () => <div>{'File Info Preview'}</div>);
 jest.mock('components/loading_image_preview', () => () => <div>{'Loading Image Preview'}</div>);
@@ -42,6 +41,7 @@ jest.mock('components/file_preview_modal/file_preview_modal_footer/file_preview_
     <div>{'File Preview Modal Footer'}</div>
 ));
 const mockHeader = jest.fn();
+const lastHeaderContent = () => mockHeader.mock.calls[mockHeader.mock.calls.length - 1][0].content;
 jest.mock('components/file_preview_modal/file_preview_modal_header/file_preview_modal_header', () => (props: unknown) => {
     mockHeader(props);
     return <div>{'File Preview Modal Header'}</div>;
@@ -54,7 +54,6 @@ describe('components/FilePreviewModal', () => {
         fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', extension: 'jpg'})],
         startIndex: 0,
         canDownloadFiles: true,
-        currentUserId: 'current_user_id',
         enablePublicLink: true,
         isMobileView: false,
         post: TestHelper.getPostMock(),
@@ -495,7 +494,6 @@ describe('FilePreviewModal instance behavior', () => {
         fileInfos: [TestHelper.getFileInfoMock({id: 'img_1', extension: 'png'})],
         startIndex: 0,
         canDownloadFiles: true,
-        currentUserId: 'current_user_id',
         enablePublicLink: true,
         isMobileView: false,
         post: TestHelper.getPostMock(),
@@ -734,7 +732,7 @@ describe('FilePreviewModal instance behavior', () => {
             };
             const {ref, rerender} = mountModal(initial);
             act(() => {
-                ref.current?.setState({content: 'loaded'});
+                ref.current?.setState({content: {fileId: 'f:a', text: 'loaded'}});
             });
 
             rerender(
@@ -744,7 +742,7 @@ describe('FilePreviewModal instance behavior', () => {
                     fileInfos={[initial.fileInfos[0], TestHelper.getFileInfoMock({id: 'c', extension: 'png'})]}
                 />,
             );
-            expect(ref.current?.state.content).toBe('loaded');
+            expect(lastHeaderContent()).toBe('loaded');
 
             rerender(
                 <FilePreviewModal
@@ -753,7 +751,7 @@ describe('FilePreviewModal instance behavior', () => {
                     fileInfos={[TestHelper.getFileInfoMock({id: 'd', extension: 'png'}), initial.fileInfos[1]]}
                 />,
             );
-            expect(ref.current?.state.content).toBe('');
+            expect(lastHeaderContent()).toBe('');
         });
 
         test('seeds default scale/translate for brand-new indexes when the list grows', () => {
@@ -788,7 +786,6 @@ describe('FilePreviewModal markdown view', () => {
         fileInfos: [TestHelper.getFileInfoMock({id: 'md_1', extension: 'md'})],
         startIndex: 0,
         canDownloadFiles: true,
-        currentUserId: 'current_user_id',
         enablePublicLink: true,
         isMobileView: false,
         post: TestHelper.getPostMock(),
@@ -818,13 +815,6 @@ describe('FilePreviewModal markdown view', () => {
         mockHeader.mockClear();
     });
 
-    test('should render markdown files as rendered by default', () => {
-        mountMarkdownModal();
-
-        expect(lastCodePreviewProps().renderMarkdown).toBe(true);
-        expect(lastHeaderProps().markdownView).toBe('rendered');
-    });
-
     test('should only offer the toggle once the file content has loaded', () => {
         const {ref} = mountMarkdownModal();
         expect(lastHeaderProps().showMarkdownToggle).toBe(false);
@@ -836,34 +826,23 @@ describe('FilePreviewModal markdown view', () => {
         expect(lastHeaderProps().showMarkdownToggle).toBe(true);
     });
 
-    test('should switch to raw, keep the source for copying, and remember the choice', () => {
+    test('should keep the source for copying', () => {
         const {ref} = mountMarkdownModal();
         act(() => {
             ref.current?.getContent('# Title');
         });
 
+        expect(lastHeaderProps().content).toBe('# Title');
+    });
+
+    test('should neither offer the toggle nor render markdown in the mobile view', () => {
+        const {ref} = mountMarkdownModal({...mdProps, isMobileView: true});
         act(() => {
-            lastHeaderProps().onMarkdownViewChange('raw');
+            ref.current?.getContent('# Title');
         });
 
-        expect(lastCodePreviewProps().renderMarkdown).toBe(false);
-        expect(lastHeaderProps().markdownView).toBe('raw');
-        expect(lastHeaderProps().content).toBe('# Title');
-        expect(LocalStorageStore.getMarkdownFilePreviewView('current_user_id')).toBe('raw');
-    });
-
-    test('should start raw when the stored choice is raw', () => {
-        LocalStorageStore.setMarkdownFilePreviewView('current_user_id', 'raw');
-
-        mountMarkdownModal();
-
-        expect(lastCodePreviewProps().renderMarkdown).toBe(false);
-    });
-
-    test('should not render markdown in the mobile view', () => {
-        mountMarkdownModal({...mdProps, isMobileView: true});
-
-        expect(lastCodePreviewProps().renderMarkdown).toBe(false);
+        expect(lastCodePreviewProps().isMobileView).toBe(true);
+        expect(lastHeaderProps().showMarkdownToggle).toBe(false);
     });
 
     test('should not offer the toggle for non-markdown code files', () => {
@@ -872,7 +851,6 @@ describe('FilePreviewModal markdown view', () => {
             ref.current?.getContent('const a = 1;');
         });
 
-        expect(lastCodePreviewProps().renderMarkdown).toBe(false);
         expect(lastHeaderProps().showMarkdownToggle).toBe(false);
     });
 
@@ -890,7 +868,7 @@ describe('FilePreviewModal markdown view', () => {
             ref.current?.handleNext();
         });
 
-        expect(ref.current?.state.content).toBe('');
+        expect(lastHeaderProps().content).toBe('');
     });
 
     test('should keep the file content when the same file is shown again', () => {
@@ -904,6 +882,6 @@ describe('FilePreviewModal markdown view', () => {
         });
 
         expect(ref.current?.state.imageIndex).toBe(0);
-        expect(ref.current?.state.content).toBe('# Title');
+        expect(lastHeaderProps().content).toBe('# Title');
     });
 });

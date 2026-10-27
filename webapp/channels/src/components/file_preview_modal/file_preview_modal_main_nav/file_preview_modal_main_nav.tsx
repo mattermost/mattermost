@@ -68,7 +68,7 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
         </WithTooltip>
     );
     return (
-        <div className='file_preview_modal_main_nav'>
+        <div className='file_preview_modal_main_nav icon-buttons-on-dark'>
             {leftArrow}
             <span
                 className='modal-bar-file-count'

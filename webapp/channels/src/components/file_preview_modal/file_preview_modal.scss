@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 @keyframes file-preview-modal-fade-in {
     from {
         opacity: 0;
@@ -84,6 +86,6 @@
 
 // Compass's inverted IconButton hover is 8% white, which is faint on the always-black header and footer, so use the
 // stronger 16% the header buttons had before. The extra specificity is needed to win over the IconButton's own hover rule.
-:is(.file-preview-modal-main-actions__actions, .file_preview_modal_main_nav) :is(button, a).file-preview-modal__icon-button.file-preview-modal__icon-button:hover:not(:disabled):not(:active) {
+:is(.file-preview-modal-main-actions__actions, .file_preview_modal_main_nav) :is(button, a)#{mixins.outrank('.file-preview-modal__icon-button')}:hover:not(:disabled):not(:active) {
     background-color: rgba(255, 255, 255, 0.16);
 }

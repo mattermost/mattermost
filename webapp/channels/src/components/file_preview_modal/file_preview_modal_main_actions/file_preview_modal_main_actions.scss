@@ -1,9 +1,5 @@
 .file-preview-modal-main-actions {
     &__actions {
-        // The header and footer are always black, so give the inverted IconButton style fixed light colors
-        --sidebar-text: white;
-        --sidebar-text-rgb: 255, 255, 255;
-
         z-index: 999;
         display: flex;
         flex-direction: row;

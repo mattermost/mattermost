@@ -49,17 +49,22 @@ const options = [
     {value: MarkdownViews.RAW, glyph: <CodeTagsIcon/>, message: messages.raw},
 ] as const;
 
+// How each size maps onto the IconButtons it is made of
+const sizes = {
+    default: {size: 'small', padding: 'default'},
+    compact: {size: 'small', padding: 'compact'},
+    large: {size: 'medium', padding: 'compact'},
+} as const;
+
 const MarkdownViewToggle = ({view, onChange, appearance = 'default', size = 'default', className}: Props) => {
     const intl = useIntl();
     const onDark = appearance === 'onDark';
-    const compact = size === 'compact';
-    const large = size === 'large';
 
     return (
         <div
             role='group'
             aria-label={intl.formatMessage(messages.group)}
-            className={classNames('MarkdownViewToggle', {onDark, compact, large, raw: view === MarkdownViews.RAW}, className)}
+            className={classNames('MarkdownViewToggle', {'icon-buttons-on-dark': onDark, onDark, [size]: size !== 'default', raw: view === MarkdownViews.RAW}, className)}
         >
             <span
                 className='MarkdownViewToggle__thumb'
@@ -76,13 +81,12 @@ const MarkdownViewToggle = ({view, onChange, appearance = 'default', size = 'def
                     >
                         <IconButton
                             className='MarkdownViewToggle__option'
-                            size={large ? 'medium' : 'small'}
-                            padding={compact || large ? 'compact' : 'default'}
+                            {...sizes[size]}
                             style={onDark ? 'inverted' : 'default'}
                             icon={<Icon glyph={glyph}/>}
                             aria-label={label}
                             aria-pressed={pressed}
-                            onClick={pressed ? undefined : () => onChange(value)}
+                            onClick={() => onChange(value)}
                         />
                     </WithTooltip>
                 );

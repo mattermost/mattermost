@@ -81,7 +81,7 @@ export const MarkdownViews = {
     RAW: 'raw',
 } as const;
 
-// Holds a code block's raw Markdown so a copy of it can be pasted back as Markdown, whichever view is showing
+// Holds a code block's raw Markdown while it is shown rendered, since the source isn't in the DOM then
 export const MARKDOWN_SOURCE_ATTRIBUTE = 'data-markdown-source';
 
 export type MarkdownView = typeof MarkdownViews[keyof typeof MarkdownViews];

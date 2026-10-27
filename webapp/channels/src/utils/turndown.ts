@@ -61,13 +61,23 @@ turndownService.addRule('emphasisReset', {
     replacement: (content) => content,
 });
 
+// Code that wraps is laid out as one row per source line with no line break between them, so the rows are rejoined
+function getCodeText(block: HTMLElement) {
+    const rows = block.querySelectorAll('.post-code__line');
+    if (rows.length) {
+        return Array.from(rows, (row) => row.textContent).join('\n');
+    }
+
+    return block.querySelector('code')?.textContent ?? '';
+}
+
 // Mattermost renders code blocks alongside a copy button, a language label and a column of line numbers, none of
 // which are part of the code itself.
 turndownService.addRule('mattermostCodeBlock', {
     filter: (node) => node.nodeName === 'DIV' && node.classList.contains('post-code'),
     replacement: (content, node) => {
         const element = node as HTMLElement;
-        const code = element.getAttribute(MARKDOWN_SOURCE_ATTRIBUTE) ?? element.querySelector('code')?.textContent ?? '';
+        const code = element.getAttribute(MARKDOWN_SOURCE_ATTRIBUTE) ?? getCodeText(element);
 
         // Only the block's own overlay holds its language; a code block rendered inside Markdown has one of its own
         const overlay = Array.from(element.children).find((child) => child.classList.contains('post-code__overlay'));

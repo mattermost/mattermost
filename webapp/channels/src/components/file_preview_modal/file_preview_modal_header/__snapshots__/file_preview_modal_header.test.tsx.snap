@@ -31,7 +31,7 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </div>
     </div>
     <div
-      class="file_preview_modal_main_nav"
+      class="file_preview_modal_main_nav icon-buttons-on-dark"
     >
       <button
         aria-label="Previous file"
@@ -108,7 +108,7 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </button>
     </div>
     <div
-      class="file-preview-modal-main-actions__actions"
+      class="file-preview-modal-main-actions__actions icon-buttons-on-dark"
     >
       <button
         aria-label="Copy code"
@@ -221,7 +221,7 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     class="file-preview-modal-header"
   >
     <div
-      class="file-preview-modal-main-actions__actions"
+      class="file-preview-modal-main-actions__actions icon-buttons-on-dark"
     >
       <button
         aria-label="Close"
@@ -257,7 +257,7 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </button>
     </div>
     <div
-      class="file_preview_modal_main_nav"
+      class="file_preview_modal_main_nav icon-buttons-on-dark"
     >
       <button
         aria-label="Previous file"

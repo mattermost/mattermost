@@ -188,7 +188,7 @@ h6.markdown__heading {
     }
 
     .post-code__line-numbers,
-    .post-code__line-number {
+    .post-code__line::before {
         min-width: 36px;
         border-right: 1px solid rgba(204, 204, 204, 0.24);
         margin-right: 12px;
@@ -202,20 +202,24 @@ h6.markdown__heading {
         padding: 0 8px 4px 4px;
     }
 
-    // Markdown source wraps, so each line is its own row with its number on the first row it takes up
+    // Markdown source wraps, so each line is its own row with its number (a counter, so it isn't part of the text)
+    // on the first row it takes up
     .post-code__wrapped-lines {
         display: block;
         min-width: 0;
         flex: 1;
+        counter-reset: post-code-line;
     }
 
     .post-code__line {
         display: flex;
-    }
+        counter-increment: post-code-line;
 
-    .post-code__line-number {
-        flex-shrink: 0;
-        padding: 0 8px 0 4px;
+        &::before {
+            flex-shrink: 0;
+            padding: 0 8px 0 4px;
+            content: counter(post-code-line);
+        }
     }
 
     .post-code__line-text {

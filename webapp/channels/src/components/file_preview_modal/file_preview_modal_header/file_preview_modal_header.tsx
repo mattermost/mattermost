@@ -6,8 +6,6 @@ import React, {memo} from 'react';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
-import type {MarkdownView} from 'utils/constants';
-
 import FilePreviewModalInfo from '../file_preview_modal_info/file_preview_modal_info';
 import FilePreviewModalMainActions from '../file_preview_modal_main_actions/file_preview_modal_main_actions';
 import FilePreviewModalMainNav from '../file_preview_modal_main_nav/file_preview_modal_main_nav';
@@ -33,8 +31,6 @@ interface Props {
     handleModalClose: () => void;
     content: string;
     showMarkdownToggle?: boolean;
-    markdownView?: MarkdownView;
-    onMarkdownViewChange?: (view: MarkdownView) => void;
 }
 
 const FilePreviewModalHeader: React.FC<Props> = ({post, totalFiles, fileIndex, ...actionProps}: Props) => {

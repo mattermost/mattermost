@@ -19,9 +19,9 @@ import {getFilePublicLink as selectFilePublicLink} from 'mattermost-redux/select
 import CopyButton from 'components/copy_button';
 import ExternalLink from 'components/external_link';
 import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_toggle';
+import {useMarkdownView} from 'components/markdown_view_toggle/use_markdown_view';
 
-import {FileTypes, MarkdownViews} from 'utils/constants';
-import type {MarkdownView} from 'utils/constants';
+import {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -47,8 +47,6 @@ interface Props {
     handleModalClose: () => void;
     content: string;
     showMarkdownToggle?: boolean;
-    markdownView?: MarkdownView;
-    onMarkdownViewChange?: (view: MarkdownView) => void;
 }
 
 const FilePreviewModalMainActions: React.FC<Props> = ({
@@ -64,10 +62,9 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
     handleModalClose,
     content,
     showMarkdownToggle = false,
-    markdownView = MarkdownViews.RENDERED,
-    onMarkdownViewChange,
 }: Props) => {
     const intl = useIntl();
+    const [markdownView, setMarkdownView] = useMarkdownView('file_preview');
 
     const selectedFilePublicLink = useSelector((state: GlobalState) => selectFilePublicLink(state)?.link);
     const dispatch = useDispatch();
@@ -158,9 +155,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
                     href={fileURL}
                     location='file_preview_modal_main_actions'
                     download={filename}
-                >
-                    {null}
-                </ExternalLink>
+                />
             </IconButton>
         </WithTooltip>
     );
@@ -174,18 +169,18 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
         />
     );
 
-    const markdownToggle = onMarkdownViewChange && (
+    const markdownToggle = (
         <MarkdownViewToggle
             key='markdownToggle'
             appearance='onDark'
             size='large'
             view={markdownView}
-            onChange={onMarkdownViewChange}
+            onChange={setMarkdownView}
         />
     );
 
     return (
-        <div className='file-preview-modal-main-actions__actions'>
+        <div className='file-preview-modal-main-actions__actions icon-buttons-on-dark'>
             {!showOnlyClose && showMarkdownToggle && markdownToggle}
             {!showOnlyClose && canCopyContent && copy}
             {!showOnlyClose && enablePublicLink && showPublicLink && publicLink}

@@ -123,32 +123,30 @@ describe('stores/LocalStorageStore', () => {
             localStorage.clear();
         });
 
-        test('file preview defaults to rendered and persists per user', () => {
-            expect(LocalStorageStore.getMarkdownFilePreviewView('userId1')).toEqual('rendered');
+        test('falls back to the given view and persists per user', () => {
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId1', 'rendered')).toEqual('rendered');
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId1', 'raw')).toEqual('raw');
 
-            LocalStorageStore.setMarkdownFilePreviewView('userId1', 'raw');
+            LocalStorageStore.setMarkdownView('file_preview', 'userId1', 'raw');
 
-            expect(LocalStorageStore.getMarkdownFilePreviewView('userId1')).toEqual('raw');
-            expect(LocalStorageStore.getMarkdownFilePreviewView('userId2')).toEqual('rendered');
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId1', 'rendered')).toEqual('raw');
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId2', 'rendered')).toEqual('rendered');
         });
 
-        test('code block defaults to raw and persists per user', () => {
-            expect(LocalStorageStore.getMarkdownCodeBlockView('userId1')).toEqual('raw');
+        test('ignores a stored value that is not a view', () => {
+            LocalStorageStore.setItem('markdown_code_block_view:userId1', 'bogus');
 
-            LocalStorageStore.setMarkdownCodeBlockView('userId1', 'rendered');
-
-            expect(LocalStorageStore.getMarkdownCodeBlockView('userId1')).toEqual('rendered');
-            expect(LocalStorageStore.getMarkdownCodeBlockView('userId2')).toEqual('raw');
+            expect(LocalStorageStore.getMarkdownView('code_block', 'userId1', 'raw')).toEqual('raw');
         });
 
         test('surfaces are stored independently', () => {
-            LocalStorageStore.setMarkdownFilePreviewView('userId1', 'raw');
+            LocalStorageStore.setMarkdownView('file_preview', 'userId1', 'raw');
 
-            expect(LocalStorageStore.getMarkdownCodeBlockView('userId1')).toEqual('raw');
+            expect(LocalStorageStore.getMarkdownView('code_block', 'userId1', 'rendered')).toEqual('rendered');
 
-            LocalStorageStore.setMarkdownCodeBlockView('userId1', 'rendered');
+            LocalStorageStore.setMarkdownView('code_block', 'userId1', 'rendered');
 
-            expect(LocalStorageStore.getMarkdownFilePreviewView('userId1')).toEqual('raw');
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId1', 'rendered')).toEqual('raw');
         });
     });
 });
