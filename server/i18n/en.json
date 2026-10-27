@@ -11241,6 +11241,11 @@
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."
   },
   {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Unable to search the global attributes.",
+    "description": "API error returned when the Global Attributes listing in the System Console cannot be loaded."
+  },
+  {
     "id": "app.property_field.self_writable_holdings.app_error",
     "translation": "This field is the holdings source for its masked template, so its value write level cannot be '{{.ValueWrite}}'. The people the template filters could otherwise edit their own holdings and widen what they can see.",
     "description": "API error when an admin or integration saves a property field that its masked template reads each person's own values ('holdings') from, with a value write level that lets regular members edit it. ValueWrite is a permission level such as 'member' or 'everyone'."

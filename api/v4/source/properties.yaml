@@ -403,8 +403,9 @@
 
         ##### Permissions
 
-        Must have read access to a User Management section of the System
-        Console.
+        Must have read access to any User Management section of the System
+        Console (`sysconsole_read_user_management_*`). An Enterprise licence
+        is required; without one the request is refused with 403.
       operationId: SearchGlobalAttributes
       requestBody:
         required: true
@@ -532,8 +533,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}":
     patch:
       tags:
