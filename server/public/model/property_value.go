@@ -157,7 +157,9 @@ func (p PropertyValueSearchCursor) IsValid() error {
 // UpdateAt, tombstones are included automatically, and pagination must use
 // Cursor.UpdateAt (Cursor.CreateAt is used in the default directory mode).
 type PropertyValueSearchOpts struct {
-	GroupID        string
+	GroupID string
+	// IDs, when set, limits the search to the values with these IDs.
+	IDs            []string
 	TargetType     string
 	TargetIDs      []string
 	FieldID        string
