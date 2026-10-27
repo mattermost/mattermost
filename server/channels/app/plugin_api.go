@@ -903,7 +903,10 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 		return nil, appErr
 	}
 
-	silent := post.HasSilentNotification()
+	deferred := post.HasDeferredNotification()
+	// A deferred post is stored silent too, so a plugin re-posting a copy of one carries
+	// both markers; deferred wins rather than failing as a contradictory request.
+	silent := post.HasSilentNotification() && !deferred
 	// Display-identity props (override_username/override_icon_url/
 	// override_icon_emoji/webhook_display_name) are not captured here: plugins
 	// don't get them re-injected by CreatePost (scoped to FromIncomingWebhook
@@ -919,6 +922,7 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 		SetOnline:          true,
 		FromPlugin:         true,
 		SilentNotification: silent,
+		DeferNotification:  deferred,
 	})
 	if post != nil {
 		post = post.ForPlugin()
@@ -1009,6 +1013,10 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
+}
+
+func (api *PluginAPI) DeliverPostNotifications(postID string, options *model.DeliverPostNotificationsOptions) *model.AppError {
+	return api.app.DeliverPostNotifications(api.ctx, postID, options)
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {

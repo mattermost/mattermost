@@ -184,6 +184,87 @@ func TestPostIsNotificationSuppressed(t *testing.T) {
 	require.True(t, post3.HasForceNotification())
 }
 
+func TestPostHasDeferredNotification(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		props    StringInterface
+		expected bool
+	}{
+		{name: "no props", props: nil, expected: false},
+		{name: "true", props: StringInterface{PostPropsDeferredNotification: true}, expected: true},
+		{name: "false", props: StringInterface{PostPropsDeferredNotification: false}, expected: false},
+		{name: "string true is not a boolean", props: StringInterface{PostPropsDeferredNotification: "true"}, expected: false},
+		{name: "silent alone is not deferred", props: StringInterface{PostPropsSilentNotification: true}, expected: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			post := &Post{Message: "test", Props: tc.props}
+			assert.Equal(t, tc.expected, post.HasDeferredNotification())
+		})
+	}
+}
+
+func TestPostDeferredNotificationSanitization(t *testing.T) {
+	remoteID := "remote-cluster-1"
+	emptyRemoteID := ""
+
+	for _, tc := range []struct {
+		name      string
+		remoteID  *string
+		sanitize  func(*Post)
+		preserved bool
+	}{
+		{name: "SanitizeProps strips it from local posts", sanitize: (*Post).SanitizeProps},
+		{name: "SanitizeProps strips it when RemoteId is empty", remoteID: &emptyRemoteID, sanitize: (*Post).SanitizeProps},
+		{name: "SanitizeProps keeps it on federated posts", remoteID: &remoteID, sanitize: (*Post).SanitizeProps, preserved: true},
+		{name: "SanitizeNonIdentityProps strips it from local posts", sanitize: (*Post).SanitizeNonIdentityProps},
+		{name: "SanitizeNonIdentityProps keeps it on federated posts", remoteID: &remoteID, sanitize: (*Post).SanitizeNonIdentityProps, preserved: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			post := &Post{
+				Message:  "test",
+				RemoteId: tc.remoteID,
+				Props:    StringInterface{PostPropsDeferredNotification: true},
+			}
+
+			tc.sanitize(post)
+
+			if tc.preserved {
+				assert.Equal(t, true, post.GetProp(PostPropsDeferredNotification))
+			} else {
+				assert.Nil(t, post.GetProp(PostPropsDeferredNotification))
+			}
+		})
+	}
+}
+
+func TestPostPreserveIdentityPropsFromKeepsDeferredNotification(t *testing.T) {
+	t.Run("an edit keeps the deferred markers of the original post", func(t *testing.T) {
+		oldPost := &Post{Props: StringInterface{
+			PostPropsDeferredNotification: true,
+			PostPropsSilentNotification:   true,
+		}}
+		edited := &Post{Message: "final answer"}
+		edited.SanitizeProps()
+		edited.PreserveIdentityPropsFrom(oldPost)
+
+		assert.True(t, edited.HasDeferredNotification())
+		assert.True(t, edited.HasSilentNotification())
+	})
+
+	t.Run("an edit cannot make a post deferred", func(t *testing.T) {
+		oldPost := &Post{}
+		edited := &Post{Message: "edit", Props: StringInterface{
+			PostPropsDeferredNotification: true,
+			PostPropsSilentNotification:   true,
+		}}
+		edited.SanitizeProps()
+		edited.PreserveIdentityPropsFrom(oldPost)
+
+		assert.False(t, edited.HasDeferredNotification())
+		assert.False(t, edited.HasSilentNotification())
+	})
+}
+
 func TestPostChannelMentions(t *testing.T) {
 	post := Post{Message: "~a ~b ~b ~c/~d."}
 	assert.Equal(t, []string{"a", "b", "c", "d"}, post.ChannelMentions())
@@ -376,13 +457,15 @@ func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 	post3 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PostPropsSilentNotification: true,
-			PostPropsForceNotification:  NewId(),
+			PostPropsSilentNotification:   true,
+			PostPropsDeferredNotification: true,
+			PostPropsForceNotification:    NewId(),
 		},
 	}
 	keys3 := post3.ContainsIntegrationsReservedProps()
-	require.Len(t, keys3, 2)
+	require.Len(t, keys3, 3)
 	require.Contains(t, keys3, PostPropsSilentNotification)
+	require.Contains(t, keys3, PostPropsDeferredNotification)
 	require.Contains(t, keys3, PostPropsForceNotification)
 }
 
@@ -1536,6 +1619,12 @@ func TestPost_PropsIsValid(t *testing.T) {
 			},
 			wantErr: "",
 		},
+		"valid deferred_notification": {
+			props: StringInterface{
+				PostPropsDeferredNotification: true,
+			},
+			wantErr: "",
+		},
 		"valid multiple props": {
 			props: StringInterface{
 				PostPropsFromWebhook:              "true",
@@ -1740,6 +1829,12 @@ func TestPost_PropsIsValid(t *testing.T) {
 				PostPropsForceNotification: "true",
 			},
 			wantErr: "force_notification prop must be a boolean",
+		},
+		"invalid deferred_notification type": {
+			props: StringInterface{
+				PostPropsDeferredNotification: "true",
+			},
+			wantErr: "deferred_notification prop must be a boolean",
 		},
 	}
 

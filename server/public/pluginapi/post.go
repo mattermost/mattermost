@@ -88,6 +88,16 @@ func (p *PostService) UpdatePostWithOptions(post *model.Post, options *model.Upd
 	return nil
 }
 
+// DeliverPostNotifications runs the notification pipeline for a post created with the
+// model.PostPropsDeferredNotification prop, once its final content is in place. With
+// options.UserIDs, it notifies only those users instead. See
+// plugin.API.DeliverPostNotifications for the full behavior.
+//
+// Minimum server version: 12.2
+func (p *PostService) DeliverPostNotifications(postID string, options *model.DeliverPostNotificationsOptions) error {
+	return normalizeAppErr(p.api.DeliverPostNotifications(postID, options))
+}
+
 // DeletePost deletes a post.
 //
 // Minimum server version: 5.2

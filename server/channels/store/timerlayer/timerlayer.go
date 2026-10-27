@@ -8064,6 +8064,22 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 	return err
 }
 
+func (s *TimerLayerPostStore) ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.ReleaseDeferredNotification(rctx, postID, releaseAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.ReleaseDeferredNotification", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 	start := time.Now()
 

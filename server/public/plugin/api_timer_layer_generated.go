@@ -860,6 +860,13 @@ func (api *apiTimerLayer) UpdatePostWithOptions(post *model.Post, options *model
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) DeliverPostNotifications(postID string, options *model.DeliverPostNotificationsOptions) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeliverPostNotifications(postID, options)
+	api.recordTime(startTime, "DeliverPostNotifications", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetProfileImage(userID string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetProfileImage(userID)
