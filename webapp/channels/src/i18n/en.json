@@ -2951,6 +2951,14 @@
     "defaultMessage": "0",
     "description": "Placeholder example value ('0') for the Redis Database input on the System Console caching page."
   },
+  "admin.cacheSettings.redisEnableTLS": {
+    "defaultMessage": "Enable TLS",
+    "description": "Admin console setting label (toggle) on the System Console Cache Settings page that enables TLS for Redis connections."
+  },
+  "admin.cacheSettings.redisEnableTLSDesc": {
+    "defaultMessage": "When true, connections to the Redis server use TLS.",
+    "description": "Help text for the setting that enables TLS for Redis connections on the System Console Cache Settings page."
+  },
   "admin.cacheSettings.redisPassword": {
     "defaultMessage": "Redis Password",
     "description": "Admin console field label on the Cache Settings page for the Redis authentication password."
@@ -2958,6 +2966,38 @@
   "admin.cacheSettings.redisPasswordDesc": {
     "defaultMessage": "The password of the Redis server.",
     "description": "Help text for the Redis Password setting on the System Console caching page."
+  },
+  "admin.cacheSettings.redisTLSCA": {
+    "defaultMessage": "TLS CA Certificate Path",
+    "description": "Admin console setting label on the System Console Cache Settings page for the file path of the CA certificate used to verify the Redis server."
+  },
+  "admin.cacheSettings.redisTLSCADesc": {
+    "defaultMessage": "Path on the server to a PEM-encoded CA certificate used to verify the Redis server. Leave blank to use the system trust store.",
+    "description": "Help text for the Redis TLS CA certificate path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
+  },
+  "admin.cacheSettings.redisTLSClientCert": {
+    "defaultMessage": "TLS Client Certificate Path",
+    "description": "Admin console setting label on the System Console Cache Settings page for the file path of the client certificate used for mutual TLS with Redis."
+  },
+  "admin.cacheSettings.redisTLSClientCertDesc": {
+    "defaultMessage": "Path on the server to a PEM-encoded client certificate for mutual TLS.",
+    "description": "Help text for the Redis TLS client certificate path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
+  },
+  "admin.cacheSettings.redisTLSClientKey": {
+    "defaultMessage": "TLS Client Key Path",
+    "description": "Admin console setting label on the System Console Cache Settings page for the file path of the private key for the Redis client certificate."
+  },
+  "admin.cacheSettings.redisTLSClientKeyDesc": {
+    "defaultMessage": "Path on the server to the PEM-encoded private key for the client certificate.",
+    "description": "Help text for the Redis TLS client key path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
+  },
+  "admin.cacheSettings.redisTLSSkipVerify": {
+    "defaultMessage": "Skip TLS Verification",
+    "description": "Admin console setting label (toggle) on the System Console Cache Settings page that disables verification of the Redis server certificate."
+  },
+  "admin.cacheSettings.redisTLSSkipVerifyDesc": {
+    "defaultMessage": "When true, the Redis server certificate is not verified. Not recommended for production.",
+    "description": "Help text for the setting that disables Redis server certificate verification on the System Console Cache Settings page."
   },
   "admin.cacheSettings.title": {
     "defaultMessage": "Cache Settings",

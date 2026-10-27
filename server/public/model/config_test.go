@@ -272,6 +272,40 @@ func TestCacheSettingsIsValid(t *testing.T) {
 
 		assert.Nil(t, settings.isValid())
 	})
+	t.Run("redis tls client cert and key", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			enableTLS bool
+			cert      string
+			key       string
+			valid     bool
+		}{
+			"neither":            {enableTLS: true, valid: true},
+			"both":               {enableTLS: true, cert: "client.crt", key: "client.key", valid: true},
+			"cert only":          {enableTLS: true, cert: "client.crt"},
+			"key only":           {enableTLS: true, key: "client.key"},
+			"cert only, tls off": {enableTLS: false, cert: "client.crt", valid: true},
+		} {
+			t.Run(name, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:          NewPointer(CacheTypeRedis),
+					RedisAddress:       NewPointer("localhost:6379"),
+					RedisDB:            NewPointer(0),
+					RedisEnableTLS:     NewPointer(tc.enableTLS),
+					RedisTLSClientCert: NewPointer(tc.cert),
+					RedisTLSClientKey:  NewPointer(tc.key),
+				}
+				settings.SetDefaults()
+
+				appErr := settings.isValid()
+				if tc.valid {
+					assert.Nil(t, appErr)
+					return
+				}
+				require.NotNil(t, appErr)
+				assert.Equal(t, "model.config.is_valid.redis_tls_client_cert_key.app_error", appErr.Id)
+			})
+		}
+	})
 }
 
 func TestAnnouncementSettingsIsValid(t *testing.T) {

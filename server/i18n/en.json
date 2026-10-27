@@ -17442,6 +17442,11 @@
     "description": "Config validation error shown to system admins for the web server read timeout setting."
   },
   {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert and RedisTLSClientKey must be set together.",
+    "description": "Config validation error shown to system admins; 'RedisTLSClientCert' and 'RedisTLSClientKey' are config setting names and should not be translated."
+  },
+  {
     "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
     "translation": "Invalid report a problem link. Must be a valid URL and start with http:// or https://.",
     "description": "Config validation error shown to system admins for the 'Report a Problem' link setting (URL users are sent to for support); 'http://'/'https://' are literal scheme prefixes."

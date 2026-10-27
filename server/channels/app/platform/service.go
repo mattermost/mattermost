@@ -6,6 +6,7 @@ package platform
 import (
 	"context"
 	"crypto/ecdsa"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"hash/maphash"
@@ -253,12 +254,18 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	if *cacheConfig.CacheType == model.CacheTypeLRU {
 		ps.cacheProvider = cache.NewProvider()
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
+		var tlsConfig *tls.Config
+		tlsConfig, err = cache.NewRedisTLSConfig(&cacheConfig)
+		if err != nil {
+			return nil, fmt.Errorf("unable to configure Redis TLS: %w", err)
+		}
 		ps.cacheProvider, err = cache.NewRedisProvider(
 			&cache.RedisOptions{
 				RedisAddr:        *cacheConfig.RedisAddress,
 				RedisPassword:    *cacheConfig.RedisPassword,
 				RedisDB:          *cacheConfig.RedisDB,
 				RedisCachePrefix: *cacheConfig.RedisCachePrefix,
+				TLSConfig:        tlsConfig,
 				DisableCache:     *cacheConfig.DisableClientCache,
 			},
 		)
