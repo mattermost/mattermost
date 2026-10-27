@@ -1513,15 +1513,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         });
                     }
 
-                    // Handle single select
                     const option = attribOptions.find((o) => o.id === attributeValue);
-                    if (option) {
-                        return {label: option?.name, value: option?.id};
-                    }
-                    if (optionsOmitted) {
-                        return {label: attributeValue, value: attributeValue};
-                    }
-                    return '';
+                    return {label: option?.name ?? attributeValue, value: attributeValue};
                 }
 
                 return attributeValue as string;
@@ -1630,50 +1623,24 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
                     if (valueRefersToOptions(attribute)) {
                         const comboboxId = 'customProfileAttribute_' + attribute.id;
-                        const options = attribute.attrs?.options;
                         const draft = this.state.customAttributeValues[attribute.id];
-                        const comboboxProps = {
-                            id: comboboxId,
-                            testId: comboboxId,
-                            label: getUserPropertyFieldLabel(attribute),
-                            options,
-                            placeholder: formatMessage({
-                                id: 'user.settings.general.select',
-                                defaultMessage: 'Select',
-                            }),
-                            zIndex: COMBOBOX_Z_INDEX_IN_MODAL,
-                        };
 
-                        if (attribute.type === 'multiselect') {
-                            let multiValue: string[] = [];
-                            if (Array.isArray(draft)) {
-                                multiValue = draft;
-                            } else if (draft) {
-                                multiValue = [draft];
-                            }
-
-                            inputs.push(
-                                <AttributeCombobox
-                                    key={sectionName}
-                                    {...comboboxProps}
-                                    multiple={true}
-                                    value={multiValue}
-                                    onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
-                                />,
-                            );
-                        } else {
-                            // A stored id that no longer matches an option shows as unset; state keeps it until the user picks or clears.
-                            const singleValue = typeof draft === 'string' && options?.some((o) => o.id === draft) ? draft : '';
-
-                            inputs.push(
-                                <AttributeCombobox
-                                    key={sectionName}
-                                    {...comboboxProps}
-                                    value={singleValue}
-                                    onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
-                                />,
-                            );
-                        }
+                        inputs.push(
+                            <AttributeCombobox
+                                key={sectionName}
+                                id={comboboxId}
+                                testId={comboboxId}
+                                label={getUserPropertyFieldLabel(attribute)}
+                                options={attribute.attrs?.options ?? []}
+                                placeholder={formatMessage({
+                                    id: 'user.settings.general.select',
+                                    defaultMessage: 'Select',
+                                })}
+                                zIndex={COMBOBOX_Z_INDEX_IN_MODAL}
+                                {...(attribute.type === 'multiselect' ? {multiple: true, value: draft} : {value: typeof draft === 'string' ? draft : ''})}
+                                onChange={(value: string | string[]) => this.updateComboboxAttribute(attribute.id, value)}
+                            />,
+                        );
                     } else {
                         const inputType = attribute.type as string;
                         inputs.push(
