@@ -345,8 +345,8 @@ func TestGetWebappPluginsUnauthenticated(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, id, manifest.Id)
 		t.Cleanup(func() {
-			_, err := th.SystemAdminClient.RemovePlugin(context.Background(), id)
-			require.NoError(t, err)
+			_, removeErr := th.SystemAdminClient.RemovePlugin(context.Background(), id)
+			require.NoError(t, removeErr)
 		})
 
 		_, err = th.SystemAdminClient.EnablePlugin(context.Background(), id)
