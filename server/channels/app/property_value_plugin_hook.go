@@ -57,8 +57,10 @@ func clonePropertyValues(values []*model.PropertyValue) []*model.PropertyValue {
 // storedPropertyValues reads the stored values of a target in a group, in pages, up to
 // propertyValuesHookMaxScanned. keep selects the values to return; nil keeps all of them. It reads
 // the store directly: the hook is a server-to-plugin notification, so values are not filtered for
-// the requesting user. A read error is logged and returns what was read so far.
+// the requesting user. It reads the master, since a replica may not have the write just before
+// this one yet. A read error is logged and returns what was read so far.
 func (a *App) storedPropertyValues(rctx request.CTX, groupID string, target propertyValuesTarget, keep func(*model.PropertyValue) bool) []*model.PropertyValue {
+	masterCtx := store.RequestContextWithMaster(rctx)
 	opts := model.PropertyValueSearchOpts{
 		GroupID:    groupID,
 		TargetType: target.targetType,
@@ -67,7 +69,7 @@ func (a *App) storedPropertyValues(rctx request.CTX, groupID string, target prop
 	}
 	var kept []*model.PropertyValue
 	for scanned := 0; scanned < propertyValuesHookMaxScanned; {
-		page, err := a.Srv().Store().PropertyValue().SearchPropertyValues(rctx, opts)
+		page, err := a.Srv().Store().PropertyValue().SearchPropertyValues(masterCtx, opts)
 		if err != nil {
 			rctx.Logger().Warn("Failed to read previous property values for plugins", mlog.String("group_id", groupID), mlog.String("target_id", target.targetID), mlog.Err(err))
 			return kept
@@ -96,16 +98,9 @@ func (a *App) previousPropertyValues(rctx request.CTX, groupID string, values []
 	}
 	fieldsByTarget := map[propertyValuesTarget]map[string]bool{}
 	var targets []propertyValuesTarget
-	var ids []string
 	for _, v := range values {
-		if v == nil {
-			continue
-		}
-		if v.TargetID == "" {
-			// An update may name the value by ID alone.
-			if model.IsValidId(v.ID) {
-				ids = append(ids, v.ID)
-			}
+		// A value without a target fails validation, so its write never reaches the hook.
+		if v == nil || v.TargetID == "" {
 			continue
 		}
 		t := propertyValuesTarget{v.TargetType, v.TargetID}
@@ -121,14 +116,6 @@ func (a *App) previousPropertyValues(rctx request.CTX, groupID string, values []
 		previous = append(previous, a.storedPropertyValues(rctx, groupID, t, func(v *model.PropertyValue) bool {
 			return fields[v.FieldID]
 		})...)
-	}
-	if len(ids) > 0 {
-		byID, err := a.Srv().Store().PropertyValue().GetMany(groupID, ids)
-		if err != nil {
-			rctx.Logger().Warn("Failed to read previous property values for plugins", mlog.String("group_id", groupID), mlog.Err(err))
-		} else {
-			previous = append(previous, clonePropertyValues(byID)...)
-		}
 	}
 	return previous
 }

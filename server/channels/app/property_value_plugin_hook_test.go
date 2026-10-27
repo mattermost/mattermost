@@ -9,9 +9,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestPropertyValuesHookCalls(t *testing.T) {
@@ -85,6 +89,27 @@ func TestPreviousPropertyValuesWithoutPlugins(t *testing.T) {
 
 	values := []*model.PropertyValue{{TargetType: "post", TargetID: model.NewId(), GroupID: model.NewId(), FieldID: model.NewId()}}
 	assert.Nil(t, th.App.previousPropertyValues(th.Context, values[0].GroupID, values), "no plugin implements the hook, so nothing is read")
+}
+
+func TestStoredPropertyValuesReadsMaster(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	groupID, targetID, fieldID := model.NewId(), model.NewId(), model.NewId()
+	stored := &model.PropertyValue{ID: model.NewId(), GroupID: groupID, TargetType: "post", TargetID: targetID, FieldID: fieldID, Value: json.RawMessage(`"a"`)}
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	mockValueStore := storemocks.PropertyValueStore{}
+	mockStore.On("PropertyValue").Return(&mockValueStore)
+	// A replica may not have the write just before this one yet, so the read must go to the master.
+	mockValueStore.On("SearchPropertyValues", mock.MatchedBy(func(rctx request.CTX) bool {
+		return store.HasMaster(rctx.Context())
+	}), mock.Anything).Return([]*model.PropertyValue{stored}, nil).Once()
+
+	previous := th.App.storedPropertyValues(th.Context, groupID, propertyValuesTarget{"post", targetID}, nil)
+	require.Len(t, previous, 1)
+	assert.Equal(t, stored.ID, previous[0].ID)
+	mockValueStore.AssertExpectations(t)
 }
 
 // hookPropertyValuesCall is one PropertyValuesHaveBeenUpdated call as the test plugin records it.

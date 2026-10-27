@@ -553,7 +553,9 @@ type Hooks interface {
 	// values of the same fields as they were just before the write, and only for fields that had a
 	// value then. Match the two by FieldID: a field in values but not in previousValues got its
 	// first value, and a field in previousValues but not in values was deleted. A write whose value
-	// equals the stored one is still reported. A batch spanning several targets invokes the hook
+	// equals the stored one is still reported. previousValues are read just before the write but
+	// outside its transaction, so two concurrent writes to the same field may both report the same
+	// previous value. A batch spanning several targets invokes the hook
 	// once per target, and at most 100 values per invocation. Deleting all values of a field is not
 	// reported.
 	//
