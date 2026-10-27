@@ -745,10 +745,9 @@
     padding-top: 28px;
     background: variables.$black;
 
-    .fa {
-        color: variables.$white;
-        font-size: 20px;
-        opacity: 0.73;
+    // TODO(compass-design#142): replace with a dedicated Spinner color token once Compass Spinner exposes one.
+    .spinner {
+        --center-channel-color-rgb: 255, 255, 255;
     }
 }
 

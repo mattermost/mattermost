@@ -3,9 +3,9 @@
 
 import React, {useState} from 'react';
 
-import {LogLevelEnum} from '@mattermost/types/admin';
+import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
-import {renderWithContext, fireEvent, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import LogList, {loadPrefs} from './log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
@@ -21,6 +21,20 @@ function makeLog(msg: string, timestamp: string, level = LogLevelEnum.INFO): Log
         timestamp,
         worker: `worker ${msg}`,
     };
+}
+
+function makeNodeLog(node: string, msg: string, timestamp = '2026-03-12T10:00:01.000Z', level = LogLevelEnum.INFO): LogObjectWithAdditionalInfo {
+    return {...makeLog(msg, timestamp, level), [LogNodeKey]: node};
+}
+
+function makeFailedNodeLog(node: string, timestamp = '2026-03-12 10:00:02.000 +00:00'): LogObjectWithAdditionalInfo {
+    return {
+        timestamp,
+        level: LogLevelEnum.ERROR,
+        msg: 'Failed to fetch logs from node',
+        error: 'connection refused',
+        [LogNodeKey]: node,
+    } as unknown as LogObjectWithAdditionalInfo;
 }
 
 // Entries one second apart, oldest first, so the sort order is unambiguous
@@ -48,6 +62,9 @@ const baseProps = {
     activeTimePreset: null,
     onTimePreset: jest.fn(),
     onClearTimePreset: jest.fn(),
+    nodes: [] as string[],
+    selectedNode: '',
+    onSelectedNodeChange: jest.fn(),
 };
 
 // Holds the levels the way Logs does, since LogList only renders them
@@ -71,6 +88,18 @@ function renderList(logs: LogObjectWithAdditionalInfo[]) {
     );
 }
 
+type ListProps = Omit<React.ComponentProps<typeof LogList>, 'enabledLevels' | 'onEnabledLevelsChange'>;
+
+function renderListWith(props: Partial<ListProps>) {
+    return renderWithContext(
+        <StatefulLogList
+            {...baseProps}
+            logs={[]}
+            {...props}
+        />,
+    );
+}
+
 function pressKey(key: string) {
     fireEvent.keyDown(screen.getByRole('list'), {key});
 }
@@ -87,6 +116,14 @@ function focusedRow(): Element | null {
 
 function focusedRowMessage(): string | undefined {
     return focusedRow()?.querySelector('.LogRow__message')?.textContent ?? undefined;
+}
+
+function rowNodes(): string[] {
+    return Array.from(document.querySelectorAll('.LogRow__node')).map((el) => el.textContent ?? '');
+}
+
+function openNodeMenu() {
+    fireEvent.click(screen.getByLabelText('Open menu to select a node'));
 }
 
 function rowMessages(): string[] {
@@ -423,6 +460,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 wrapText: false,
                 enabledLevels: ['error', 'warn', 'info', 'debug'],
                 sortAsc: false,
+                node: '',
             });
         });
 
@@ -435,6 +473,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 wrapText: true,
                 enabledLevels: ['error', 'warn', 'info', 'debug'],
                 sortAsc: false,
+                node: '',
             });
         });
 
@@ -444,6 +483,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 wrapText: 'yes',
                 enabledLevels: ['nope'],
                 sortAsc: 'maybe',
+                node: 42,
             }));
 
             renderList([first]);
@@ -453,7 +493,288 @@ describe('components/admin_console/server_logs/LogList', () => {
                 wrapText: true,
                 enabledLevels: ['error', 'warn', 'info', 'debug'],
                 sortAsc: false,
+                node: '',
             });
+        });
+    });
+
+    describe('stored node', () => {
+        test('should restore the stored node', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({node: 'node-b'}));
+
+            expect(loadPrefs().node).toBe('node-b');
+        });
+
+        test('should load prefs saved before the node existed as all nodes', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50, wrapText: false, enabledLevels: ['error'], sortAsc: true}));
+
+            expect(loadPrefs()).toEqual({pageSize: 50, wrapText: false, enabledLevels: ['error'], sortAsc: true, node: ''});
+        });
+
+        test('should save the selected node', () => {
+            renderListWith({logs: [makeNodeLog('node-b', 'b')], nodes: ['node-a', 'node-b'], selectedNode: 'node-b'});
+
+            expect(storedPrefs().node).toBe('node-b');
+        });
+    });
+
+    describe('nodes', () => {
+        beforeEach(pinAscendingSort);
+
+        test('should hide the node selector and node column with a single node', () => {
+            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default']});
+
+            expect(screen.queryByLabelText('Node')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Open menu to select a node')).not.toBeInTheDocument();
+            expect(rowNodes()).toEqual([]);
+            expect(document.querySelector('.LogViewer__header-node')).toBeNull();
+            expect(document.querySelector('.LogRow--with-node')).toBeNull();
+            expect(rowMessages()).toEqual(['a']);
+        });
+
+        test('should hide the node selector before any node is known', () => {
+            renderListWith({logs: [makeLog('untagged', '2026-03-12T10:00:01.000Z')]});
+
+            expect(screen.queryByLabelText('Open menu to select a node')).not.toBeInTheDocument();
+            expect(rowMessages()).toEqual(['untagged']);
+        });
+
+        test('should show the node selector and node column with two or more nodes', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'a', '2026-03-12T10:00:01.000Z'), makeNodeLog('node-b', 'b', '2026-03-12T10:00:02.000Z')],
+                nodes: ['node-a', 'node-b'],
+            });
+
+            expect(screen.getByLabelText('Node')).toHaveValue('All nodes');
+            expect(rowNodes()).toEqual(['node-a', 'node-b']);
+            expect(document.querySelector('.LogViewer__header-node')).toHaveTextContent('Node');
+
+            openNodeMenu();
+            expect(within(screen.getByRole('menu', {name: 'Node menu'})).getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual(['All nodes', 'node-a', 'node-b']);
+            expect(screen.getByRole('menuitemradio', {name: 'All nodes'})).toHaveAttribute('aria-checked', 'true');
+            expect(screen.getByRole('menuitemradio', {name: 'node-a'})).toHaveAttribute('aria-checked', 'false');
+        });
+
+        test('should keep the node selector while a node is selected, even if it is the only node known', () => {
+            renderListWith({logs: [makeNodeLog('node-b', 'b')], nodes: ['node-b'], selectedNode: 'node-b'});
+
+            expect(screen.getByLabelText('Node')).toHaveValue('node-b');
+            expect(rowNodes()).toEqual([]);
+            expect(document.querySelector('.LogViewer__header-node')).toBeNull();
+
+            openNodeMenu();
+            expect(screen.getByRole('menuitemradio', {name: 'node-b'})).toHaveAttribute('aria-checked', 'true');
+        });
+
+        test('should report the picked node, and an empty node for all nodes', async () => {
+            const onSelectedNodeChange = jest.fn();
+            const logs = [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')];
+            const {unmount} = renderListWith({logs, nodes: ['node-a', 'node-b'], onSelectedNodeChange});
+
+            openNodeMenu();
+            fireEvent.click(screen.getByRole('menuitemradio', {name: 'node-b'}));
+            await waitFor(() => expect(onSelectedNodeChange).toHaveBeenCalledWith('node-b'));
+            unmount();
+
+            onSelectedNodeChange.mockClear();
+            renderListWith({logs, nodes: ['node-a', 'node-b'], selectedNode: 'node-b', onSelectedNodeChange});
+
+            openNodeMenu();
+            fireEvent.click(screen.getByRole('menuitemradio', {name: 'All nodes'}));
+            await waitFor(() => expect(onSelectedNodeChange).toHaveBeenCalledWith(''));
+        });
+
+        test('should only show the selected node\'s entries', () => {
+            renderListWith({
+                logs: [
+                    makeNodeLog('node-a', 'a 1', '2026-03-12T10:00:01.000Z'),
+                    makeNodeLog('node-b', 'b 1', '2026-03-12T10:00:02.000Z'),
+                    makeNodeLog('node-a', 'a 2', '2026-03-12T10:00:03.000Z'),
+                ],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-a',
+            });
+
+            expect(rowMessages()).toEqual(['a 1', 'a 2']);
+            expect(document.querySelector('.LogViewer__footer-info')).toHaveTextContent('Showing 1 - 2 of 2');
+        });
+
+        test('should count only the selected node\'s entries per level', () => {
+            renderListWith({
+                logs: [
+                    makeNodeLog('node-a', 'a', '2026-03-12T10:00:01.000Z', LogLevelEnum.ERROR),
+                    makeNodeLog('node-b', 'b', '2026-03-12T10:00:02.000Z', LogLevelEnum.ERROR),
+                ],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-b',
+            });
+
+            openLevelsMenu();
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+        });
+
+        test('should search the node name with two or more nodes', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'a', '2026-03-12T10:00:01.000Z'), makeNodeLog('node-b', 'b', '2026-03-12T10:00:02.000Z')],
+                nodes: ['node-a', 'node-b'],
+                search: 'node-b',
+            });
+
+            expect(rowMessages()).toEqual(['b']);
+            expect(document.querySelector('.LogRow__node mark')).toHaveTextContent('node-b');
+        });
+
+        test('should search a node field the server logged', () => {
+            renderListWith({
+                logs: [
+                    {...makeNodeLog('node-a', 'A node has joined the cluster'), node: 'node-b'},
+                    makeNodeLog('node-a', 'other'),
+                ],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-a',
+                search: 'node-b',
+            });
+
+            expect(rowMessages()).toEqual(['A node has joined the cluster']);
+        });
+
+        test('should not search the node name with a single node', () => {
+            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default'], search: 'default'});
+
+            expect(rowMessages()).toEqual([]);
+            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+        });
+
+        test('should offer to clear the selected node when it has no entries', () => {
+            const onSelectedNodeChange = jest.fn();
+            renderListWith({logs: [], nodes: ['node-a', 'node-b'], selectedNode: 'node-b', onSelectedNodeChange});
+
+            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+            fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+            expect(onSelectedNodeChange).toHaveBeenCalledWith('');
+        });
+
+        test('should keep identical lines from different nodes as separate rows', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'same'), makeNodeLog('node-b', 'same')],
+                nodes: ['node-a', 'node-b'],
+            });
+
+            expect(rowNodes()).toEqual(['node-a', 'node-b']);
+        });
+
+        test('should render a failed node as an error row', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'fine'), makeFailedNodeLog('node-b')],
+                nodes: ['node-a', 'node-b'],
+            });
+
+            const row = screen.getByText('Failed to fetch logs from node').closest('.LogRow');
+            expect(row).toHaveClass('LogRow--error-bg');
+            expect(row?.querySelector('.LogRow__node')).toHaveTextContent('node-b');
+
+            fireEvent.click(row!.querySelector('.LogRow__main')!);
+            expect(screen.getByText('connection refused')).toBeInTheDocument();
+        });
+
+        test('should count a failed node as an error', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'fine'), makeFailedNodeLog('node-b')],
+                nodes: ['node-a', 'node-b'],
+            });
+
+            openLevelsMenu();
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+            expect(levelMenuItem('Info')).toHaveTextContent('Info1');
+        });
+    });
+
+    describe('time range', () => {
+        beforeEach(() => {
+            pinAscendingSort();
+            jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-03-12T10:10:00.000Z'));
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        // The failed-node entry is older than the cutoff on purpose
+        const timeRangeLogs = [
+            makeLog('old', '2026-03-12T10:04:59.000Z'),
+            makeLog('recent', '2026-03-12T10:05:30.000Z'),
+            makeLog('unparseable', 'not a timestamp'),
+            makeFailedNodeLog('node-b', '2026-03-12 09:00:00.000 +00:00'),
+        ];
+
+        test('should drop entries older than the active time range', () => {
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5});
+
+            expect(rowMessages().sort()).toEqual(['Failed to fetch logs from node', 'recent', 'unparseable']);
+            expect(document.querySelector('.LogViewer__footer-info')).toHaveTextContent('of 3');
+        });
+
+        test('should keep an entry exactly at the cutoff', () => {
+            renderListWith({logs: [makeLog('edge', '2026-03-12T10:05:00.000Z')], activeTimePreset: 5});
+
+            expect(rowMessages()).toEqual(['edge']);
+        });
+
+        test('should parse the server timestamp format against the cutoff', () => {
+            renderListWith({
+                logs: [
+                    makeLog('old', '2026-03-12 12:04:59.000 +02:00'),
+                    makeLog('recent', '2026-03-12 12:05:30.000 +02:00'),
+                    makeLog('old utc', '2026-03-12 10:04:59.000 Z'),
+                    makeLog('recent utc', '2026-03-12 10:05:45.000 Z'),
+                ],
+                activeTimePreset: 5,
+            });
+
+            expect(rowMessages()).toEqual(['recent', 'recent utc']);
+        });
+
+        test('should count only entries in the time range per level', () => {
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5});
+
+            openLevelsMenu();
+            expect(levelMenuItem('Info')).toHaveTextContent('Info2');
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+        });
+
+        test('should count only entries in the time range as the search total', () => {
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, search: 'recent'});
+
+            expect(screen.getByText(/of 1 entries matching your filters \(3 total\)/)).toBeInTheDocument();
+        });
+
+        test('should show every entry without a time range', () => {
+            renderListWith({logs: timeRangeLogs, activeTimePreset: null});
+
+            expect(rowMessages()).toHaveLength(4);
+        });
+
+        test('should still hide a failed node when errors are turned off', () => {
+            pinAscendingSort({enabledLevels: ['info']});
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5});
+
+            expect(rowMessages()).not.toContain('Failed to fetch logs from node');
+            expect(rowMessages().sort()).toEqual(['recent', 'unparseable']);
+        });
+
+        test('should apply the time range and the selected node together', () => {
+            renderListWith({
+                logs: [
+                    makeNodeLog('node-a', 'a old', '2026-03-12T10:00:00.000Z'),
+                    makeNodeLog('node-a', 'a recent', '2026-03-12T10:09:00.000Z'),
+                    makeNodeLog('node-b', 'b recent', '2026-03-12T10:09:00.000Z'),
+                ],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-a',
+                activeTimePreset: 5,
+            });
+
+            expect(rowMessages()).toEqual(['a recent']);
         });
     });
 
