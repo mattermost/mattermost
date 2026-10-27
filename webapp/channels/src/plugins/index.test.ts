@@ -411,4 +411,21 @@ describe('plugin synchronization', () => {
         await ensureAuthenticatedPluginsLoaded();
         expect(getWebappPlugins).toHaveBeenCalledTimes(3);
     });
+
+    test('ensureAuthenticatedPluginsLoaded re-synchronizes after a failed fetch for the same session', async () => {
+        const getWebappPlugins = jest.spyOn(Client4, 'getWebappPlugins').
+            mockRejectedValueOnce(new Error('network error')).
+            mockResolvedValue([]);
+
+        // The fetch made right after login fails.
+        setCurrentUserId('user3');
+        await loadPluginsIfNecessary();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(1);
+
+        await ensureAuthenticatedPluginsLoaded();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(2);
+
+        await ensureAuthenticatedPluginsLoaded();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(2);
+    });
 });

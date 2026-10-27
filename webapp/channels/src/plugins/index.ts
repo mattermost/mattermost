@@ -136,15 +136,18 @@ let lastFetchedForUserId: string | undefined;
 // getPlugins queries the server for all enabled plugins
 export function getPlugins(): ActionFuncAsync<ClientPluginManifest[]> {
     return async (dispatch, getState) => {
-        lastFetchedForUserId = getCurrentUserId(getState()) || '';
+        const userId = getCurrentUserId(getState()) || '';
 
         let plugins;
         try {
             plugins = await Client4.getWebappPlugins();
         } catch (error) {
+            // An unknown session makes ensureAuthenticatedPluginsLoaded fetch again.
+            lastFetchedForUserId = '';
             return {error};
         }
 
+        lastFetchedForUserId = userId;
         dispatch({type: ActionTypes.RECEIVED_WEBAPP_PLUGINS, data: plugins});
 
         return {data: plugins};
