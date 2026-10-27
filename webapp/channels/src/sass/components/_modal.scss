@@ -762,7 +762,7 @@
     display: flex;
     flex-direction: column;
 
-    >div:not([data-simplebar]) {
+    >div:not(.Scrollbars) {
         overflow: auto;
         min-height: 100%;
     }

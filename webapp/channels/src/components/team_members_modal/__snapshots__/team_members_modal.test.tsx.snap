@@ -111,85 +111,70 @@ exports[`components/TeamMembersModal should match snapshot 1`] = `
                   class="more-modal__list"
                 >
                   <div
-                    data-simplebar="init"
+                    class="Scrollbars"
+                    data-overlayscrollbars="host"
+                    data-overlayscrollbars-initialize=""
                     style="--scrollbar-color: var(undefined);"
                   >
                     <div
-                      class="simplebar-wrapper"
+                      class="os-size-observer"
                     >
                       <div
-                        class="simplebar-height-auto-observer-wrapper"
-                      >
-                        <div
-                          class="simplebar-height-auto-observer"
-                        />
-                      </div>
+                        class="os-size-observer-listener"
+                      />
+                    </div>
+                    <div
+                      data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+                      style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
+                      tabindex="-1"
+                    >
                       <div
-                        class="simplebar-mask"
+                        class="loading-screen"
+                        data-testid="loading-screen"
+                        style="position: relative;"
                       >
                         <div
-                          class="simplebar-offset"
-                          style="right: 0px; bottom: 0px;"
+                          class="loading__content"
                         >
-                          <div
-                            aria-label="scrollable content"
-                            class="simplebar-content-wrapper"
-                            role="region"
-                            style="height: auto; overflow-x: hidden; overflow-y: hidden;"
-                            tabindex="-1"
+                          <span
+                            class="LoadingSpinner with-text"
+                            data-testid="loadingSpinner"
+                            id="loadingSpinner"
                           >
-                            <div
-                              class="simplebar-content"
-                            >
-                              <div
-                                class="loading-screen"
-                                data-testid="loading-screen"
-                                style="position: relative;"
-                              >
-                                <div
-                                  class="loading__content"
-                                >
-                                  <span
-                                    class="LoadingSpinner with-text"
-                                    data-testid="loadingSpinner"
-                                    id="loadingSpinner"
-                                  >
-                                    <span
-                                      aria-label="Loading Icon"
-                                      class="_spinner_3elm7_10 spinner"
-                                      role="status"
-                                      style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
-                                    />
-                                    Loading
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                            <span
+                              aria-label="Loading Icon"
+                              class="_spinner_3elm7_10 spinner"
+                              role="status"
+                              style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                            />
+                            Loading
+                          </span>
                         </div>
                       </div>
-                      <div
-                        class="simplebar-placeholder"
-                        style="width: 0px; height: 0px;"
-                      />
                     </div>
                     <div
-                      class="simplebar-track simplebar-horizontal"
-                      style="visibility: hidden;"
+                      class="os-scrollbar os-scrollbar-horizontal os-theme-mattermost os-scrollbar-auto-hide os-scrollbar-auto-hide-hidden os-scrollbar-handle-interactive os-scrollbar-track-interactive os-scrollbar-cornerless os-scrollbar-unusable"
+                      style="--os-scroll-percent: 0; --os-viewport-percent: 0; --os-scroll-direction: 0;"
                     >
                       <div
-                        class="simplebar-scrollbar"
-                        style="width: 0px; display: none;"
-                      />
+                        class="os-scrollbar-track"
+                      >
+                        <div
+                          class="os-scrollbar-handle"
+                        />
+                      </div>
                     </div>
                     <div
-                      class="simplebar-track simplebar-vertical"
-                      style="visibility: hidden;"
+                      class="os-scrollbar os-scrollbar-vertical os-theme-mattermost os-scrollbar-auto-hide os-scrollbar-auto-hide-hidden os-scrollbar-handle-interactive os-scrollbar-track-interactive os-scrollbar-cornerless os-scrollbar-unusable"
+                      style="--os-scroll-percent: 0; --os-viewport-percent: 0; --os-scroll-direction: 0;"
                     >
                       <div
-                        class="simplebar-scrollbar"
-                        style="height: 0px; display: none;"
-                      />
+                        class="os-scrollbar-track"
+                      >
+                        <div
+                          class="os-scrollbar-handle"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

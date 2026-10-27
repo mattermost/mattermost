@@ -33,7 +33,7 @@ describe('Scrollbars', () => {
         );
 
         // Simulate scrolling to verify the onScroll handler is attached correctly - fireEvent used because userEvent doesn't support scroll events
-        fireEvent.scroll(document.querySelector('.simplebar-content-wrapper')!);
+        fireEvent.scroll(document.querySelector('[data-overlayscrollbars-viewport]')!);
 
         expect(onScroll).toHaveBeenCalled();
     });
@@ -50,6 +50,6 @@ describe('Scrollbars', () => {
             </Scrollbars>,
         );
 
-        expect(scrollElement).toBe(document.querySelector('.simplebar-content-wrapper'));
+        expect(scrollElement).toBe(document.querySelector('[data-overlayscrollbars-viewport]'));
     });
 });

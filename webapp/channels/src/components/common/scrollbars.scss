@@ -1,21 +1,18 @@
-.simplebar-track {
-    // Prevent clicking or dragging the scrollbar from interacting with elements behind it
-    pointer-events: all;
-}
-
-.simplebar-track .simplebar-scrollbar::before {
-    width: 6px;
-    border-radius: 2px;
-
-    // Defaults to sidebar text BG, but it can be overridden by the Scrollbars component
-    background-color: rgba(var(--scrollbar-color, var(--sidebar-text-rgb)), 0.32);
-}
-
-.simplebar-track .simplebar-scrollbar.simplebar-visible::before {
-    opacity: 1;
-}
-
-[data-simplebar] {
+.Scrollbars {
     // Ensures that scrollbar divs never overflow their flexbox parents
     min-height: 0;
+}
+
+.os-theme-mattermost {
+    // Defaults to sidebar text BG, but it can be overridden by the Scrollbars component
+    --os-handle-bg: rgba(var(--scrollbar-color, var(--sidebar-text-rgb)), 0.32);
+    --os-handle-bg-hover: var(--os-handle-bg);
+    --os-handle-bg-active: var(--os-handle-bg);
+    --os-handle-border-radius: 2px;
+    --os-handle-perpendicular-size: 6px;
+    --os-handle-perpendicular-size-hover: 6px;
+    --os-handle-perpendicular-size-active: 6px;
+    --os-padding-axis: 2px;
+    --os-padding-perpendicular: 2px;
+    --os-size: 10px;
 }

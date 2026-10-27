@@ -2,11 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {useMergeRefs} from '@floating-ui/react';
-import React, {useCallback, useRef} from 'react';
-import SimpleBar from 'simplebar-react';
+import {ClickScrollPlugin, OverlayScrollbars, type PartialOptions} from 'overlayscrollbars';
+import {useOverlayScrollbars} from 'overlayscrollbars-react';
+import React, {useCallback, useEffect, useRef} from 'react';
 
-import 'simplebar-react/dist/simplebar.min.css';
+import 'overlayscrollbars/overlayscrollbars.css';
 import './scrollbars.scss';
+
+OverlayScrollbars.plugin(ClickScrollPlugin);
+
+const options: PartialOptions = {
+    scrollbars: {
+        theme: 'os-theme-mattermost',
+        autoHide: 'move',
+        clickScroll: true,
+    },
+};
 
 export type ScrollbarsProps = {
     children: React.ReactNode;
@@ -19,9 +30,25 @@ const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
     color,
     onScroll,
 }, ref) => {
+    const hostRef = useRef<HTMLDivElement>(null);
+    const viewportRef = useRef<HTMLDivElement>(null);
+
+    const [initialize] = useOverlayScrollbars({options});
+
+    // Rendering the viewport ourselves keeps the scrollable element available to the ref on mount
+    useEffect(() => {
+        initialize({
+            target: hostRef.current!,
+            elements: {
+                viewport: viewportRef.current,
+                content: viewportRef.current,
+            },
+        });
+    }, [initialize]);
+
     const removeListener = useRef<() => void>(undefined);
 
-    // We can't pass scroll handlers directly to SimpleBar, so we have to attach it to the DOM element directly
+    // Callers expect a native scroll event rather than a React synthetic one
     const setScrollRef = useCallback((el: HTMLDivElement) => {
         removeListener.current?.();
         removeListener.current = undefined;
@@ -33,19 +60,24 @@ const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
         }
     }, [onScroll]);
 
-    const mergedRef = useMergeRefs<HTMLElement>([ref, setScrollRef]);
+    const mergedRef = useMergeRefs<HTMLElement>([ref, viewportRef, setScrollRef]);
 
     return (
-        <SimpleBar
-            autoHide={true}
-            scrollableNodeProps={{ref: mergedRef}}
+        <div
+            ref={hostRef}
+            className='Scrollbars'
+            data-overlayscrollbars-initialize=''
             style={{
                 '--scrollbar-color': `var(${color})`,
             } as React.CSSProperties}
-            tabIndex={-1}
         >
-            {children}
-        </SimpleBar>
+            <div
+                ref={mergedRef}
+                tabIndex={-1}
+            >
+                {children}
+            </div>
+        </div>
     );
 });
 Scrollbars.displayName = 'Scrollbars';

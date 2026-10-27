@@ -55,7 +55,7 @@ describe('Channel settings', () => {
 
         // # Nudge the scrollbar slightly to make the "More Unreads" pills appear
         // @hmhealey - They seem to appear automatically on a regular browser, but not when running under Cypress
-        cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo(0, 1);
+        cy.get('#SidebarContainer [data-overlayscrollbars-viewport]').scrollTo(0, 1);
 
         // * The bottom "More Unreads" pill should be visible and the top one should not
         cy.get('#unreadIndicatorTop').should('not.be.visible');
@@ -81,7 +81,7 @@ describe('Channel settings', () => {
         cy.get(`#sidebarItem_${channelNames[lastChannelIndex]}`).should('not.be.visible');
 
         // # Scroll somewhere to the middle of the list
-        cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo(0, 200);
+        cy.get('#SidebarContainer [data-overlayscrollbars-viewport]').scrollTo(0, 200);
 
         // * Both "More Unreads" pills should now be visible
         cy.get('#unreadIndicatorTop').should('be.visible');
