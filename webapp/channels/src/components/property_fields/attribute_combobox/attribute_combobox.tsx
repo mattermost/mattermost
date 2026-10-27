@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
+import {defineMessages, useIntl} from 'react-intl';
 
 import {Combobox} from '@mattermost/compass-ui/components/combobox';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
-
-import {useComboboxLabels} from 'components/widgets/combobox';
 
 import {A11yAttributeNames} from 'utils/constants';
 
@@ -16,6 +15,34 @@ import {
     clearButtonKeyGuard,
     toComboboxOptions,
 } from './attribute_combobox_utils';
+
+const messages = defineMessages({
+    listbox: {
+        id: 'property_fields.attribute_combobox.listbox',
+        defaultMessage: 'Options',
+        description: 'Accessible name of an attribute dropdown\'s option list when no field name is available.',
+    },
+    clear: {
+        id: 'property_fields.attribute_combobox.clear',
+        defaultMessage: 'Clear {label}',
+        description: 'Accessible name of the button that clears a single-value attribute. {label} is the attribute name.',
+    },
+    selections: {
+        id: 'property_fields.attribute_combobox.selections',
+        defaultMessage: '{label} selections',
+        description: 'Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name.',
+    },
+    empty: {
+        id: 'property_fields.attribute_combobox.empty',
+        defaultMessage: 'No results',
+        description: 'Shown in an attribute dropdown when no option matches the typed text.',
+    },
+    loading: {
+        id: 'property_fields.attribute_combobox.loading',
+        defaultMessage: 'Loading…',
+        description: 'Shown in an attribute dropdown while options load.',
+    },
+});
 
 type SingleProps = {
     multiple?: false;
@@ -45,14 +72,21 @@ export type AttributeComboboxProps = (SingleProps | MultiProps) & {
     placeholder?: string;
     'aria-describedby'?: string;
 
-    /** Stacking order for the portaled menu, e.g. COMBOBOX_Z_INDEX_IN_MODAL inside a modal. */
+    /** Stacking order for the portaled menu, e.g. ZIndex.MENU inside a modal. */
     zIndex?: number;
 };
 
 export function AttributeCombobox(props: AttributeComboboxProps) {
     const {label, options, id, testId, disabled, invalid, placeholder, zIndex} = props;
 
-    const labels = useComboboxLabels(label);
+    const {formatMessage} = useIntl();
+    const labels = useMemo(() => ({
+        listboxLabel: formatMessage(messages.listbox),
+        clearLabel: formatMessage(messages.clear, {label}),
+        selectionsLabel: formatMessage(messages.selections, {label}),
+        emptyMessage: formatMessage(messages.empty),
+        loadingMessage: formatMessage(messages.loading),
+    }), [formatMessage, label]);
     const comboboxOptions = useMemo(() => toComboboxOptions(options, testId), [options, testId]);
 
     const values = useMemo(() => {

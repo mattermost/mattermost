@@ -17,9 +17,7 @@ import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
-import {COMBOBOX_Z_INDEX_IN_POPOVER} from 'components/widgets/combobox';
-
-import {Preferences} from 'utils/constants';
+import {Preferences, ZIndex} from 'utils/constants';
 import {dateRangeOrder, defaultMentionFilters, mentionTypeOrder} from 'utils/mention_search';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
@@ -153,7 +151,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                             value={draftTeamId ?? ALL_TEAMS_VALUE}
                             onChange={selectTeam}
                             portalContainer={portalContainer}
-                            zIndex={COMBOBOX_Z_INDEX_IN_POPOVER}
+                            zIndex={ZIndex.POPOVER}
                         />
                     </div>
                 )}
@@ -173,7 +171,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                         emptyMessage={noChannelsLabel}
                         menuItemProps={{secondaryLabelPosition: 'inline'}}
                         portalContainer={portalContainer}
-                        zIndex={COMBOBOX_Z_INDEX_IN_POPOVER}
+                        zIndex={ZIndex.POPOVER}
                     />
                 </div>
             </div>

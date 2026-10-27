@@ -5,10 +5,8 @@ import React, {useState} from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {COMBOBOX_Z_INDEX_IN_MODAL} from 'components/widgets/combobox';
-
 import {act, renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
-import {A11yAttributeNames} from 'utils/constants';
+import {A11yAttributeNames, ZIndex} from 'utils/constants';
 
 import {AttributeCombobox} from './attribute_combobox';
 
@@ -87,7 +85,7 @@ describe('AttributeCombobox', () => {
                 options={OPTIONS}
                 value=''
                 aria-describedby='attr-help'
-                zIndex={COMBOBOX_Z_INDEX_IN_MODAL}
+                zIndex={ZIndex.MENU}
                 onChange={jest.fn()}
             />,
         );
@@ -103,7 +101,7 @@ describe('AttributeCombobox', () => {
         while (layer && !layer.style.zIndex) {
             layer = layer.parentElement;
         }
-        expect(layer?.style.zIndex).toBe(String(COMBOBOX_Z_INDEX_IN_MODAL));
+        expect(layer?.style.zIndex).toBe(String(ZIndex.MENU));
     });
 
     test('lists options in definition order with per-option test IDs', async () => {
@@ -137,6 +135,20 @@ describe('AttributeCombobox', () => {
 
             expect(screen.getByRole('combobox', {name: 'Department'})).toHaveValue('Option 2');
             expect(screen.getByTestId(`${TEST_ID}-clear`)).toHaveAccessibleName('Clear Department');
+        });
+
+        test('inserts the field name literally into the clear label', () => {
+            renderWithContext(
+                <AttributeCombobox
+                    testId={TEST_ID}
+                    label='R&D {team} <b>'
+                    options={OPTIONS}
+                    value='opt1'
+                    onChange={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByTestId(`${TEST_ID}-clear`)).toHaveAccessibleName('Clear R&D {team} <b>');
         });
 
         test('renders a value missing from options with its raw id', () => {

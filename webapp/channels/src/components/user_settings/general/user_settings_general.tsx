@@ -27,11 +27,10 @@ import GraphProfileAttribute from 'components/property_fields/graph/graph_profil
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
-import {COMBOBOX_Z_INDEX_IN_MODAL} from 'components/widgets/combobox';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
+import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors, ZIndex} from 'utils/constants';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 import {validHttpUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
@@ -1636,7 +1635,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                     id: 'user.settings.general.select',
                                     defaultMessage: 'Select',
                                 })}
-                                zIndex={COMBOBOX_Z_INDEX_IN_MODAL}
+                                zIndex={ZIndex.MENU}
                                 {...(attribute.type === 'multiselect' ? {multiple: true, value: draft} : {value: typeof draft === 'string' ? draft : ''})}
                                 onChange={(value: string | string[]) => this.updateComboboxAttribute(attribute.id, value)}
                             />,

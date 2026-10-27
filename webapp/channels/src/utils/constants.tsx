@@ -602,6 +602,13 @@ export const CloudProductToSku = {
     [CloudProducts.ENTERPRISE]: LicenseSkus.Enterprise,
 };
 
+// Mirrors the --z-index-* variables in sass/base/_css_variables.scss, for
+// components that take a numeric zIndex prop such as Compass Combobox.
+export const ZIndex = {
+    MENU: 1100,
+    POPOVER: 1200,
+} as const;
+
 export const A11yClassNames = {
     REGION: 'a11y__region',
     SECTION: 'a11y__section',
