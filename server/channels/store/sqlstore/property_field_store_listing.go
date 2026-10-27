@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
@@ -14,55 +15,72 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// SQL predicates over a field's stored Attrs, mirroring the webapp's
-// getSourceKind, getPropertyFieldSyncSources and getFieldOwners. Each is
-// wrapped so a missing or mistyped key reads as false rather than NULL, which
+// listingDisplayNameSQL is the label a listing row shows and sorts by.
+const listingDisplayNameSQL = "COALESCE(NULLIF(Attrs->>'" + model.PropertyFieldAttrDisplayName + "', ''), Name)"
+
+// The predicates below read a field's stored Attrs, mirroring the webapp's
+// getSourceKind, getPropertyFieldSyncSources and getFieldOwners. Each ends in
+// IS TRUE so a missing or mistyped key reads as false rather than NULL, which
 // would otherwise drop the row from a negated filter.
-const (
-	listingPluginSourceSQL = "COALESCE((jsonb_typeof(Attrs->'" + model.PropertyAttrsSourcePluginID + "') = 'string' AND Attrs->>'" + model.PropertyAttrsSourcePluginID + "' <> '' AND (Attrs->'" + model.PropertyAttrsProtected + "' = 'true'::jsonb OR COALESCE(Protected, FALSE))), FALSE)"
 
-	listingDisplayNameSQL = "COALESCE(NULLIF(Attrs->>'" + model.PropertyFieldAttrDisplayName + "', ''), Name)"
-)
-
-func listingSyncMappingSQL(source string) string {
-	attr := model.PropertySyncSourceAttr(source)
-	return "COALESCE((jsonb_typeof(Attrs->'" + attr + "') = 'string' AND Attrs->>'" + attr + "' <> ''), FALSE)"
+func attrIsNonEmptyString(table, key string) sq.Sqlizer {
+	return sq.Expr("(jsonb_typeof("+table+".Attrs->?) = 'string' AND "+table+".Attrs->>? <> '') IS TRUE", key, key)
 }
 
-func listingAnyOwnerSQL(alias string) string {
-	owners := alias + ".Attrs->'" + model.PropertyAttrsOwners + "'"
-	return "COALESCE((jsonb_typeof(" + owners + ") = 'array' AND " + owners + " <> '[]'::jsonb), FALSE)"
+func ownersIsNonEmpty(table string) sq.Sqlizer {
+	return sq.Expr("(jsonb_typeof("+table+".Attrs->?) = 'array' AND "+table+".Attrs->? <> '[]'::jsonb) IS TRUE",
+		model.PropertyAttrsOwners, model.PropertyAttrsOwners)
 }
 
-func listingPluginOwnerSQL(alias string) string {
-	return "COALESCE(" + alias + ".Attrs->'" + model.PropertyAttrsOwners + "' @> '[{\"type\":\"" + model.PropertyOwnerTypePlugin + "\"}]'::jsonb, FALSE)"
+func ownersHasPlugin(table string) sq.Sqlizer {
+	return sq.Expr("("+table+".Attrs->? @> ?::jsonb) IS TRUE",
+		model.PropertyAttrsOwners, `[{"type":"`+model.PropertyOwnerTypePlugin+`"}]`)
 }
 
-// listingRowOwnerSQL applies an owners predicate to the field that carries a
-// row's owners: a user field's own Attrs, or for a template the live user
-// field linked to it. Rows of any other object type have no owners.
-func listingRowOwnerSQL(ownerPredicate func(alias string) string) string {
-	return "CASE" +
-		" WHEN ObjectType = '" + model.PropertyFieldObjectTypeUser + "' THEN " + ownerPredicate("PropertyFields") +
-		" WHEN ObjectType = '" + model.PropertyFieldObjectTypeTemplate + "' THEN EXISTS (" +
-		"SELECT 1 FROM PropertyFields lf WHERE lf.LinkedFieldID = PropertyFields.ID AND lf.DeleteAt = 0 AND lf.ObjectType = '" + model.PropertyFieldObjectTypeUser + "' AND " + ownerPredicate("lf") + ")" +
-		" ELSE FALSE END"
+// liveLinkedChild matches a template with a live linked field of the given
+// object type, optionally also satisfying extra predicates on that field (lf).
+func liveLinkedChild(objectType string, extra ...sq.Sqlizer) sq.Sqlizer {
+	cond := sq.And{
+		sq.Expr("lf.LinkedFieldID = PropertyFields.ID"),
+		sq.Eq{"lf.DeleteAt": 0, "lf.ObjectType": objectType},
+	}
+	return sq.Expr("EXISTS (SELECT 1 FROM PropertyFields lf WHERE ?)", append(cond, extra...))
+}
+
+// rowOwners applies an owners predicate to the field that carries a row's
+// owners: a user field's own Attrs, or for a template the live user field
+// linked to it. Rows of any other object type have no owners.
+func rowOwners(predicate func(table string) sq.Sqlizer) sq.Sqlizer {
+	return sq.Or{
+		sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeUser}, predicate("PropertyFields")},
+		sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeTemplate}, liveLinkedChild(model.PropertyFieldObjectTypeUser, predicate("lf"))},
+	}
 }
 
 func listingSourceCondition(source string) sq.Sqlizer {
-	pluginSQL := "(" + listingPluginSourceSQL + " OR " + listingRowOwnerSQL(listingPluginOwnerSQL) + ")"
+	pluginSource := sq.And{
+		attrIsNonEmptyString("PropertyFields", model.PropertyAttrsSourcePluginID),
+		sq.Or{
+			sq.Expr("(Attrs->? = 'true'::jsonb) IS TRUE", model.PropertyAttrsProtected),
+			sq.Eq{"Protected": true},
+		},
+	}
 
 	switch source {
 	case model.GlobalAttributeSourcePlugin:
-		return sq.Expr(pluginSQL)
+		return sq.Or{pluginSource, rowOwners(ownersHasPlugin)}
 	case model.GlobalAttributeSourceManaged:
-		clauses := []string{"NOT " + pluginSQL, "NOT " + listingRowOwnerSQL(listingAnyOwnerSQL)}
-		for _, syncSource := range model.PropertySyncSources() {
-			clauses = append(clauses, "NOT "+listingSyncMappingSQL(syncSource))
+		// Any owner already covers a plugin owner.
+		managed := sq.And{
+			sq.Expr("NOT (?)", pluginSource),
+			sq.Expr("NOT (?)", rowOwners(ownersIsNonEmpty)),
 		}
-		return sq.Expr("(" + strings.Join(clauses, " AND ") + ")")
+		for _, syncSource := range model.PropertySyncSources() {
+			managed = append(managed, sq.Expr("NOT (?)", attrIsNonEmptyString("PropertyFields", model.PropertySyncSourceAttr(syncSource))))
+		}
+		return managed
 	default:
-		return sq.Expr(listingSyncMappingSQL(source))
+		return attrIsNonEmptyString("PropertyFields", model.PropertySyncSourceAttr(source))
 	}
 }
 
@@ -75,7 +93,7 @@ func listingWhere(opts model.GlobalAttributeListingOpts) sq.Sqlizer {
 			sq.And{
 				sq.Eq{"ObjectType": opts.AllowedResourceTypes},
 				sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelSystem)},
-				sq.Expr("COALESCE(LinkedFieldID, '') = ''"),
+				sq.Or{sq.Eq{"LinkedFieldID": nil}, sq.Eq{"LinkedFieldID": ""}},
 			},
 		},
 	}
@@ -86,34 +104,19 @@ func listingWhere(opts model.GlobalAttributeListingOpts) sq.Sqlizer {
 
 	if opts.Term != "" {
 		pattern := "%" + sanitizeSearchTerm(opts.Term, "*") + "%"
-		where = append(where, sq.Expr(
-			"(LOWER("+listingDisplayNameSQL+") LIKE LOWER(?) ESCAPE '*' OR LOWER(Name) LIKE LOWER(?) ESCAPE '*')",
-			pattern, pattern,
-		))
+		where = append(where, sq.Or{
+			sq.Expr("LOWER(Attrs->>?) LIKE LOWER(?) ESCAPE '*'", model.PropertyFieldAttrDisplayName, pattern),
+			sq.Expr("LOWER(Name) LIKE LOWER(?) ESCAPE '*'", pattern),
+		})
 	}
 
 	if opts.ResourceType != "" {
 		// A template is a resource type through its live linked fields, anything
 		// else through its own object type.
 		where = append(where, sq.Or{
-			sq.And{
-				sq.Eq{"ObjectType": model.PropertyFieldObjectTypeTemplate},
-				sq.Expr("EXISTS (SELECT 1 FROM PropertyFields lf WHERE lf.LinkedFieldID = PropertyFields.ID AND lf.DeleteAt = 0 AND lf.ObjectType = ?)", opts.ResourceType),
-			},
-			sq.And{
-				sq.NotEq{"ObjectType": model.PropertyFieldObjectTypeTemplate},
-				sq.Eq{"ObjectType": opts.ResourceType},
-			},
+			sq.Eq{"ObjectType": opts.ResourceType},
+			sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeTemplate}, liveLinkedChild(opts.ResourceType)},
 		})
-		// A resource type the caller is not allowed never lists, however the
-		// field comes to carry it.
-		allowed := false
-		for _, resourceType := range opts.AllowedResourceTypes {
-			allowed = allowed || resourceType == opts.ResourceType
-		}
-		if !allowed {
-			where = append(where, sq.Expr("1 = 0"))
-		}
 	}
 
 	if opts.Source != "" {
@@ -130,6 +133,12 @@ func listingWhere(opts model.GlobalAttributeListingOpts) sq.Sqlizer {
 func (s *SqlPropertyFieldStore) SearchGlobalAttributeListing(rctx request.CTX, opts model.GlobalAttributeListingOpts) ([]*model.PropertyField, int64, error) {
 	if err := opts.IsValid(); err != nil {
 		return nil, 0, fmt.Errorf("opts is invalid: %w", err)
+	}
+
+	// A resource type the caller is not allowed never lists, however the field
+	// comes to carry it.
+	if opts.ResourceType != "" && !slices.Contains(opts.AllowedResourceTypes, opts.ResourceType) {
+		return []*model.PropertyField{}, 0, nil
 	}
 
 	where := listingWhere(opts)
@@ -152,7 +161,7 @@ func (s *SqlPropertyFieldStore) SearchGlobalAttributeListing(rctx request.CTX, o
 			return nil, 0, errors.Wrap(err, "property_field_search_global_attribute_listing_query")
 		}
 
-		if err := s.hydratePropertyFieldOptions(s.GetReplica(), fields); err != nil {
+		if err := s.hydratePropertyFieldOptions(db, fields); err != nil {
 			return nil, 0, errors.Wrap(err, "property_field_search_global_attribute_listing_hydrate_options")
 		}
 	}
