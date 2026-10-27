@@ -219,8 +219,9 @@ func TestManagedCategoryFieldsRequireGroupAtV2(t *testing.T) {
 	require.Len(t, fields, 1)
 	require.Equal(t, model.ManagedCategoryPropertyFieldName, fields[0].Name)
 
-	// The state an affected server booted into.
-	require.NoError(t, th.App.Srv().Store().PropertyGroup().SetVersion(groupName, model.PropertyGroupVersionV2+1))
+	// A version the endpoint will not serve, as an affected server booted into.
+	// That was version 3, but the endpoint serves V3 now, so use one past it.
+	require.NoError(t, th.App.Srv().Store().PropertyGroup().SetVersion(groupName, model.PropertyGroupVersionV3+1))
 
 	_, resp, err = th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, model.PropertyValueTargetTypeChannel, search)
 	require.Error(t, err)
