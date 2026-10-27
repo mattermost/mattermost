@@ -123,3 +123,61 @@ func TestGlobalAttributeListingJSON(t *testing.T) {
 		assert.Equal(t, false, conflict["exact"])
 	})
 }
+
+func TestGlobalAttributeListingOptsIsValid(t *testing.T) {
+	valid := func() GlobalAttributeListingOpts {
+		return GlobalAttributeListingOpts{GroupID: NewId(), Limit: 10}
+	}
+
+	t.Run("minimal opts", func(t *testing.T) {
+		o := valid()
+		require.NoError(t, o.IsValid())
+	})
+
+	t.Run("fully populated", func(t *testing.T) {
+		o := valid()
+		o.Term = "x"
+		o.Source = GlobalAttributeSourcePlugin
+		o.ResourceType = PropertyFieldObjectTypeChannel
+		o.AllowedResourceTypes = []string{PropertyFieldObjectTypeUser, PropertyFieldObjectTypeChannel}
+		o.ExcludeIDs = []string{NewId()}
+		o.Offset = 20
+		require.NoError(t, o.IsValid())
+	})
+
+	t.Run("missing group id", func(t *testing.T) {
+		o := valid()
+		o.GroupID = ""
+		assert.Error(t, o.IsValid())
+	})
+
+	t.Run("unknown source", func(t *testing.T) {
+		o := valid()
+		o.Source = "ssh"
+		assert.Error(t, o.IsValid())
+	})
+
+	t.Run("unknown resource type", func(t *testing.T) {
+		o := valid()
+		o.ResourceType = PropertyFieldObjectTypeTemplate
+		assert.Error(t, o.IsValid())
+	})
+
+	t.Run("unknown allowed resource type", func(t *testing.T) {
+		o := valid()
+		o.AllowedResourceTypes = []string{PropertyFieldObjectTypeTemplate}
+		assert.Error(t, o.IsValid())
+	})
+
+	t.Run("negative offset", func(t *testing.T) {
+		o := valid()
+		o.Offset = -1
+		assert.Error(t, o.IsValid())
+	})
+
+	t.Run("limit below one", func(t *testing.T) {
+		o := valid()
+		o.Limit = 0
+		assert.Error(t, o.IsValid())
+	})
+}

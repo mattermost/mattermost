@@ -122,3 +122,43 @@ type GlobalAttributeListing struct {
 	Rows       []*GlobalAttributeListingRow `json:"rows"`
 	TotalCount int64                        `json:"total_count"`
 }
+
+// GlobalAttributeListingOpts selects one page of the Global Attributes listing
+// rows from the store. AllowedResourceTypes bounds which unlinked resource
+// fields are rows at all, and ExcludeIDs removes fields the caller has decided
+// to hide, such as the Classification template when Classification Markings is
+// unreachable. Empty Source or ResourceType means no filter on that facet.
+type GlobalAttributeListingOpts struct {
+	GroupID              string
+	Term                 string
+	Source               string
+	ResourceType         string
+	AllowedResourceTypes []string
+	ExcludeIDs           []string
+	Offset               int
+	Limit                int
+}
+
+func (o *GlobalAttributeListingOpts) IsValid() error {
+	if o.GroupID == "" {
+		return fmt.Errorf("group id is required")
+	}
+	if o.Source != "" && !slices.Contains(globalAttributeListingSources, o.Source) {
+		return fmt.Errorf("invalid source %q", o.Source)
+	}
+	if o.ResourceType != "" && !slices.Contains(globalAttributeListingResourceTypes, o.ResourceType) {
+		return fmt.Errorf("invalid resource_type %q", o.ResourceType)
+	}
+	for _, resourceType := range o.AllowedResourceTypes {
+		if !slices.Contains(globalAttributeListingResourceTypes, resourceType) {
+			return fmt.Errorf("invalid allowed resource type %q", resourceType)
+		}
+	}
+	if o.Offset < 0 {
+		return fmt.Errorf("invalid offset %d", o.Offset)
+	}
+	if o.Limit < 1 {
+		return fmt.Errorf("invalid limit %d", o.Limit)
+	}
+	return nil
+}
