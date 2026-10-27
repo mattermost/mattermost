@@ -325,7 +325,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
-        expect(getLogs.mock.calls[1][0].logLevels).toEqual(['error', 'warn', 'info']);
+        expect(getLogs.mock.calls[1][0].logLevels).toEqual(['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog']);
     });
 
     test('should recompute the time preset when switching back to structured logs', async () => {
@@ -575,7 +575,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
         expect(getLogs.mock.calls[0][0].serverNames).toEqual([]);
-        expect(getLogs.mock.calls[0][0].logLevels).toEqual(['error']);
+        expect(getLogs.mock.calls[0][0].logLevels).toEqual(['panic', 'fatal', 'critical', 'error']);
     });
 
     test('should let a restored node that never returns be switched back to all nodes', async () => {

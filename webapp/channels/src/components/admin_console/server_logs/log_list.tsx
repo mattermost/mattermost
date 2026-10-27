@@ -23,7 +23,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {LogObjectWithAdditionalInfo} from './types';
-import {formatLogValue, presetStartMs} from './utils';
+import {LEVEL_GROUPS, formatLogValue, levelGroup, presetStartMs} from './utils';
 
 import './log_list.scss';
 
@@ -76,7 +76,6 @@ const SEARCH_DEBOUNCE_MS = 200;
 // Rows are focused programmatically by the keyboard navigation below
 const ROW_FOCUS_SELECTOR = '.LogRow__main';
 
-const LEVEL_ORDER = ['error', 'warn', 'info', 'debug'] as const;
 const LEVEL_LABELS = defineMessages({
     error: {id: 'admin.logs.level.error', defaultMessage: 'Error'},
     warn: {id: 'admin.logs.level.warn', defaultMessage: 'Warn'},
@@ -106,7 +105,7 @@ type StoredPrefs = {
 const DEFAULT_PREFS: StoredPrefs = {
     pageSize: DEFAULT_PAGE_SIZE,
     wrapText: true,
-    enabledLevels: [...LEVEL_ORDER],
+    enabledLevels: [...LEVEL_GROUPS],
     sortAsc: false,
     node: '',
 };
@@ -127,7 +126,7 @@ export function loadPrefs(): StoredPrefs {
     }
 
     const levels = Array.isArray(stored.enabledLevels) ? stored.enabledLevels.filter(
-        (level): level is string => LEVEL_ORDER.includes(level as typeof LEVEL_ORDER[number]),
+        (level): level is string => LEVEL_GROUPS.includes(level as typeof LEVEL_GROUPS[number]),
     ) : [];
 
     return {
@@ -254,20 +253,24 @@ export default function LogList({
     const levelCounts = useMemo(() => {
         const counts: Record<string, number> = {error: 0, warn: 0, info: 0, debug: 0};
         for (const log of scopedLogs) {
-            if (log.level in counts) {
-                counts[log.level]++;
+            const group = levelGroup(log.level);
+            if (group) {
+                counts[group]++;
             }
         }
         return counts;
     }, [scopedLogs]);
 
-    const allLevelsEnabled = useMemo(() => LEVEL_ORDER.every((level) => enabledLevels.has(level)), [enabledLevels]);
+    const allLevelsEnabled = useMemo(() => LEVEL_GROUPS.every((level) => enabledLevels.has(level)), [enabledLevels]);
 
     const processedLogs = useMemo(() => {
         let filtered = scopedLogs;
 
         if (!allLevelsEnabled) {
-            filtered = filtered.filter((log) => enabledLevels.has(log.level));
+            filtered = filtered.filter((log) => {
+                const group = levelGroup(log.level);
+                return group !== undefined && enabledLevels.has(group);
+            });
         }
 
         if (search) {
@@ -345,14 +348,14 @@ export default function LogList({
     }, [setEnabledLevels]);
 
     const enableAllLevels = useCallback(() => {
-        setEnabledLevels(new Set<string>(LEVEL_ORDER));
+        setEnabledLevels(new Set<string>(LEVEL_GROUPS));
     }, [setEnabledLevels]);
 
     // Ctrl/Cmd-click a level pill to show only that level; ctrl/cmd-click it again to restore all.
     const soloLevel = useCallback((level: string) => {
         setEnabledLevels((prev) => {
             if (prev.size === 1 && prev.has(level)) {
-                return new Set<string>(LEVEL_ORDER);
+                return new Set<string>(LEVEL_GROUPS);
             }
             return new Set([level]);
         });
@@ -424,7 +427,7 @@ export default function LogList({
     }, [visibleLogs, rowKeys, focusedIndex, focusRow]);
 
     const activePresetLabel = timePresets.find((preset) => preset.minutes === activeTimePreset)?.label;
-    const enabledLevelCount = LEVEL_ORDER.filter((level) => enabledLevels.has(level)).length;
+    const enabledLevelCount = LEVEL_GROUPS.filter((level) => enabledLevels.has(level)).length;
 
     // One selector for on/off and the interval, so picking an interval turns polling on
     const setLiveTail = (interval: number | null) => {
@@ -531,7 +534,7 @@ export default function LogList({
                     width: '260px',
                 }}
             >
-                {LEVEL_ORDER.map((level) => (
+                {LEVEL_GROUPS.map((level) => (
                     <Menu.Item
                         key={level}
                         id={`serverLogsLevel-${level}`}

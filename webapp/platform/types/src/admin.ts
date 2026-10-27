@@ -13,12 +13,20 @@ import type {Team} from './teams';
 import type {UserAccessToken, UserProfile} from './users';
 import type {RelationOneToOne, IDMappedObjects} from './utilities';
 
+// The levels the server writes to its log file
 export enum LogLevelEnum {
-    SILLY = 'silly',
-    DEBUG = 'debug',
-    INFO = 'info',
-    WARN = 'warn',
+    PANIC = 'panic',
+    FATAL = 'fatal',
+    CRITICAL = 'critical',
     ERROR = 'error',
+    WARN = 'warn',
+    INFO = 'info',
+    STDLOG = 'stdlog',
+    DEBUG = 'debug',
+    TRACE = 'trace',
+
+    /** @deprecated The server never logs this level. */
+    SILLY = 'silly',
 }
 
 export type LogServerNames = string[];

@@ -4,10 +4,8 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {LogLevelEnum} from '@mattermost/types/admin';
 import type {
     LogFilter,
-    LogLevels,
     LogServerNames,
 } from '@mattermost/types/admin';
 
@@ -20,7 +18,7 @@ import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
 import useLogPolling from './use_log_polling';
-import {presetStartMs} from './utils';
+import {LEVEL_GROUPS, groupLevels, presetStartMs} from './utils';
 
 import './logs.scss';
 
@@ -82,7 +80,6 @@ function presetStart(minutes: number): string {
 }
 
 const ALL_SERVER_NAMES: LogServerNames = [];
-const LOG_LEVELS: LogLevels = [LogLevelEnum.ERROR, LogLevelEnum.WARN, LogLevelEnum.INFO, LogLevelEnum.DEBUG];
 
 const PLAIN_LOGS_PER_PAGE = 1000;
 
@@ -156,10 +153,10 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
                 await actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE);
                 return;
             }
-            const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
+            const allLevels = LEVEL_GROUPS.every((group) => enabledLevels.has(group));
             await actions.getLogs({
                 serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES,
-                logLevels: allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level)),
+                logLevels: allLevels ? [] : LEVEL_GROUPS.filter((group) => enabledLevels.has(group)).flatMap(groupLevels),
                 dateFrom: activeTimePreset === null ? '' : presetStart(activeTimePreset),
                 dateTo: '',
                 search,

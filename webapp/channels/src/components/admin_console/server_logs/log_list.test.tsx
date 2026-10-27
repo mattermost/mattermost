@@ -268,6 +268,23 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(levelMenuItem('Debug')).toHaveTextContent('Debug1');
         });
 
+        test('should count and filter the levels each group covers', () => {
+            renderList([
+                ...mixedLevels,
+                makeLog('a fatal error', '2026-03-12T10:00:05.000Z', LogLevelEnum.FATAL),
+                makeLog('a trace line', '2026-03-12T10:00:06.000Z', LogLevelEnum.TRACE),
+                makeLog('a std log line', '2026-03-12T10:00:07.000Z', LogLevelEnum.STDLOG),
+            ]);
+            openLevelsMenu();
+
+            expect(levelMenuItem('Error')).toHaveTextContent('Error2');
+            expect(levelMenuItem('Info')).toHaveTextContent('Info2');
+            expect(levelMenuItem('Debug')).toHaveTextContent('Debug2');
+
+            fireEvent.click(levelMenuItem('Debug'));
+            expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a fatal error', 'a std log line']);
+        });
+
         test('should hide and restore a level when it is unchecked', () => {
             renderList(mixedLevels);
             openLevelsMenu();
