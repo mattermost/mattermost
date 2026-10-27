@@ -73,6 +73,17 @@ describe('Client4', () => {
             expect(result).toEqual([]);
         });
 
+        test('searchGlobalAttributes should POST the search body to the access_control listing route', async () => {
+            const search = {term: 'clear', source: 'ldap' as const, resource_type: 'channel' as const, page: 1, per_page: 20};
+            const listing = {rows: [], total_count: 0};
+            nock(client.getBaseRoute()).
+                post('/properties/groups/access_control/attributes/search', search).
+                reply(200, listing);
+
+            const result = await client.searchGlobalAttributes(search);
+            expect(result).toEqual(listing);
+        });
+
         test('getPropertyFieldOptionsRoute should build correct URL', () => {
             expect(client.getPropertyFieldOptionsRoute('access_control', 'user', 'field123')).toBe(
                 'http://mattermost.example.com/api/v4/properties/groups/access_control/user/fields/field123/options',

@@ -381,6 +381,159 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/properties/groups/access_control/attributes/search":
+    post:
+      tags:
+        - properties
+      summary: Search the Global Attributes listing
+      description: >
+        Returns one page of the Global Attributes listing: every access_control
+        template, plus every system-level user, channel, or post field linked
+        to no template. Each row carries the values derived from the fields
+        linked to it (the resources it applies to, its owners, its source, and
+        any user attribute whose name it collides with).
+
+
+        Rows are sorted by display name (falling back to the field name),
+        ignoring case. Resource types this server does not offer (channels
+        below Enterprise Advanced or with channel attributes disabled, posts
+        with post attributes disabled) are left out of rows and of
+        `applies_to`, and the Classification Markings template is left out
+        unless Classification Markings is available.
+
+        ##### Permissions
+
+        Must have read access to a User Management section of the System
+        Console.
+      operationId: SearchGlobalAttributes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                term:
+                  type: string
+                  description: >
+                    Case-insensitive substring matched against the display
+                    name and the field name.
+                source:
+                  type: string
+                  enum:
+                    - managed
+                    - plugin
+                    - ldap
+                    - saml
+                    - openid
+                  description: >
+                    Keep only rows from this source. `plugin` matches a field
+                    created by a plugin or owned by one; `ldap`, `saml`, and
+                    `openid` match a field synced from that identity source;
+                    `managed` matches a field with no plugin, sync source, or
+                    owner. Omit for every source.
+                resource_type:
+                  type: string
+                  enum:
+                    - user
+                    - channel
+                    - post
+                  description: >
+                    Keep only rows that apply to this resource type. Omit for
+                    every resource type.
+                page:
+                  type: integer
+                  default: 0
+                  description: The page to select, starting at 0.
+                per_page:
+                  type: integer
+                  default: 50
+                  maximum: 200
+                  description: The number of rows per page.
+      responses:
+        "200":
+          description: Listing page retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rows:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          $ref: "#/components/schemas/PropertyField"
+                        applies_to:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - user
+                              - channel
+                              - post
+                        owners:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              type:
+                                type: string
+                                enum:
+                                  - plugin
+                                  - service
+                                  - role
+                                  - user
+                              scopes:
+                                type: array
+                                items:
+                                  type: string
+                        source_kind:
+                          type: string
+                          enum:
+                            - plugin
+                            - external
+                            - managed
+                        sync_sources:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - ldap
+                              - saml
+                              - openid
+                        is_classification:
+                          type: boolean
+                          description: Whether the row is the Classification Markings template.
+                        name_conflict:
+                          type: object
+                          description: >
+                            A live user field sharing this row's name, ignoring
+                            case, without belonging to it. Absent when there is
+                            none.
+                          properties:
+                            field:
+                              $ref: "#/components/schemas/PropertyField"
+                            owner_template:
+                              $ref: "#/components/schemas/PropertyField"
+                            exact:
+                              type: boolean
+                              description: Whether the names also match in case.
+                  total_count:
+                    type: integer
+                    format: int64
+                    description: The number of rows matching the search across every page.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}":
     patch:
       tags:
