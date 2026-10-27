@@ -49,6 +49,21 @@ Further information on the available Redux Actions is documented here: [Redux Ac
 
 Some best practices for working with the webapp component of a plugin are documented here: [Best Practices](/developers/integrate/plugins/components/webapp/best-practices)
 
+## Loading before login with pre_auth
+
+Some plugins must run before users log in, such as those that provide custom login buttons, authentication handlers, or logged-out custom routes. To enable your plugin to load on the login page and other pre-authentication pages, set the `webapp.pre_auth` field to `true` in your plugin manifest:
+
+```json
+{
+  "webapp": {
+    "bundle_path": "webapp/dist/main.js",
+    "pre_auth": true
+  }
+}
+```
+
+When the System Console setting **Restrict Plugins Available Before Login** is enabled (which is the default for new installations), only plugins declaring `pre_auth` will be available to unauthenticated users. If this setting is disabled, all enabled plugins are available before login. For more details, see [Restrict plugins available before login](/administration-guide/configure/plugins-configuration-settings#restrict-plugins-available-before-login).
+
 ## React and JSX runtime compatibility
 
 Plugins that render inside Mattermost must use the host's React, ReactDOM, and JSX runtime. See [React JSX runtime compatibility](/developers/integrate/plugins/components/webapp/react-jsx-runtime) to configure the host exports and require Mattermost 12.0 or later.
