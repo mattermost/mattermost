@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -33,6 +34,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -1927,6 +1929,290 @@ func TestPluginUpdatePostAlwaysStripsUsernameIconOverride(t *testing.T) {
 	assert.Nil(t, updated.GetProp(model.PostPropsOverrideIconURL))
 }
 
+func TestPluginUpdatePostWithOptions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	createPost := func(t *testing.T, userID, message string) *model.Post {
+		t.Helper()
+		post, appErr := api.CreatePost(&model.Post{
+			Message:   message,
+			ChannelId: th.BasicChannel.Id,
+			UserId:    userID,
+		})
+		require.Nil(t, appErr)
+		return post
+	}
+
+	requireUnchanged := func(t *testing.T, post *model.Post) {
+		t.Helper()
+		stored, appErr := api.GetPost(post.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Message, stored.Message)
+		assert.Equal(t, post.UpdateAt, stored.UpdateAt)
+		assert.Equal(t, post.FileIds, stored.FileIds)
+	}
+
+	t.Run("attaches a file uploaded by the file creator", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		require.Nil(t, appErr)
+		require.Len(t, infos, 1)
+		assert.Equal(t, file.Id, infos[0].Id)
+		assert.Equal(t, post.Id, infos[0].PostId)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+	})
+
+	t.Run("attaches the file creator's file to another user's post", func(t *testing.T) {
+		post := createPost(t, th.BasicUser2.Id, "someone else's card")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+		assert.Equal(t, th.BasicUser2.Id, updated.UserId)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+	})
+
+	t.Run("plugin UpdatePost drops a file uploaded by a user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.Message = "edited without a session user"
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePost(edit)
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited without a session user", updated.Message)
+		assert.Empty(t, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.PostId)
+	})
+
+	t.Run("does not attach another user's file", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		file := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.Message = "edited"
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited", updated.Message)
+		assert.Empty(t, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.PostId)
+	})
+
+	t.Run("removes files", func(t *testing.T) {
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		post, appErr := api.CreatePost(&model.Post{
+			Message:   "with file",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{file.Id},
+		})
+		require.Nil(t, appErr)
+		require.Equal(t, model.StringArray{file.Id}, post.FileIds)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Empty(t, updated.FileIds)
+
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		require.Nil(t, appErr)
+		assert.Empty(t, infos)
+	})
+
+	t.Run("rejects an invalid user id", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		edit := post.Clone()
+		edit.Message = "should not land"
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: "not-a-valid-id"})
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "plugin.api.update_post_with_options.invalid_file_creator.app_error", appErr.Id)
+		requireUnchanged(t, post)
+	})
+
+	t.Run("rejects an unknown user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		edit := post.Clone()
+		edit.Message = "should not land"
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: model.NewId()})
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		requireUnchanged(t, post)
+	})
+
+	t.Run("attaches a file uploaded by a deactivated user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		user := th.CreateUser(t)
+		file := th.CreateFileInfo(t, user.Id, "", th.BasicChannel.Id)
+		deactivated, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.NotZero(t, deactivated.DeleteAt)
+
+		edit := post.Clone()
+		edit.Message = "edited"
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: deactivated.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited", updated.Message)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+	})
+
+	t.Run("attaches a file uploaded with no user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser2.Id, "card")
+		file := th.CreateFileInfo(t, model.UploadNoUserID, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+		assert.Equal(t, model.UploadNoUserID, stored.CreatorId)
+	})
+
+	t.Run("updates message and props like UpdatePost", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "original")
+		edit := post.Clone()
+		edit.Message = "edited message"
+		edit.AddProp("card_id", "card-1")
+		edit.AddProp(model.PostPropsOverrideUsername, "spoofed")
+
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited message", updated.Message)
+		assert.Equal(t, "card-1", updated.GetProp("card_id"))
+		assert.Nil(t, updated.GetProp(model.PostPropsOverrideUsername))
+		assert.NotZero(t, updated.EditAt)
+
+		stored, appErr := api.GetPost(post.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited message", stored.Message)
+		assert.Equal(t, "card-1", stored.GetProp("card_id"))
+		assert.Nil(t, stored.GetProp(model.PostPropsOverrideUsername))
+	})
+
+	t.Run("rejects invalid mm_blocks_actions", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		edit := post.Clone()
+		edit.Message = "should not land"
+		edit.AddProp(model.PostPropsMmBlocksActions, "nope")
+
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{
+			FileCreatorID:              th.BasicUser.Id,
+			AllowMmBlocksActionsUpdate: true,
+		})
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "plugin.api.update_post.mm_blocks_actions.app_error", appErr.Id)
+		requireUnchanged(t, post)
+	})
+
+	t.Run("safe update changes the message and leaves files", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "original")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.Message = "edited safely"
+		edit.FileIds = model.StringArray{file.Id}
+		edit.AddProp("card_id", "should-not-land")
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{
+			SafeUpdate:    true,
+			FileCreatorID: th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited safely", updated.Message)
+		assert.Empty(t, updated.FileIds)
+		assert.Nil(t, updated.GetProp("card_id"))
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.PostId)
+	})
+}
+
+func TestPluginUpdatePostWithOptionsRunsMessageWillBeUpdated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, _, activationErrs := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+			newPost.Message = newPost.Message + "|session=" + c.SessionId
+			return newPost, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, activationErrs[0])
+
+	api := th.SetupPluginAPI()
+	created, appErr := api.CreatePost(&model.Post{
+		Message:   "message_",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	edit := created.Clone()
+	edit.Message = "edited_"
+	updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+	require.Nil(t, appErr)
+	assert.Equal(t, "edited_|session=", updated.Message)
+}
+
 func TestPluginCreatePostSilentNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2105,6 +2391,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 				return nil, err.Error()
 			}
 			req.Header.Add("Mattermost-User-Id", "userid")
+			req.Header.Add("Mattermost-Plugin-ID", "com.mattermost.server")
 			resp := p.API.PluginHTTP(req)
 			if resp == nil {
 				return nil, "Nil resp"
@@ -2165,6 +2452,17 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	assert.Equal(t, "ok", ret)
 }
 
+type flushObservingRecorder struct {
+	*httptest.ResponseRecorder
+	flushed chan struct{}
+	once    sync.Once
+}
+
+func (w *flushObservingRecorder) Flush() {
+	w.ResponseRecorder.Flush()
+	w.once.Do(func() { close(w.flushed) })
+}
+
 func TestInterpluginPluginHTTPContext(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -2193,6 +2491,20 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 
 		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
+			case "/core-identity":
+				_, _ = w.Write([]byte(r.Header.Get("Mattermost-Plugin-ID")))
+			case "/core-wait":
+				defer func() { p.events <- "core-wait:exited" }()
+				p.events <- "core-wait:started"
+				<-r.Context().Done()
+				p.events <- "core-wait:" + r.Context().Err().Error()
+			case "/core-stream":
+				defer func() { p.events <- "core-stream:exited" }()
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("start"))
+				w.(http.Flusher).Flush()
+				<-r.Context().Done()
+				p.events <- "core-stream:" + r.Context().Err().Error()
 			case "/deadline-expire":
 				deadline, ok := r.Context().Deadline()
 				if !ok || time.Until(deadline) <= 0 || time.Until(deadline) > 5*time.Second {
@@ -2247,7 +2559,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 		}
 
 		func main() {
-			plugin.ClientMain(&MyPlugin{events: make(chan string, 1)})
+			plugin.ClientMain(&MyPlugin{events: make(chan string, 8)})
 		}
 		`,
 			// The caller plugin exercises PluginHTTP from the other side of the RPC boundary.
@@ -2256,6 +2568,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 
 		import (
 			"context"
+			"errors"
 			"fmt"
 			"io"
 			"net/http"
@@ -2286,6 +2599,16 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 
 		type MyPlugin struct {
 			plugin.MattermostPlugin
+		}
+
+		type readEntry struct {
+			io.ReadCloser
+			entered chan struct{}
+		}
+
+		func (r *readEntry) Read(p []byte) (int, error) {
+			close(r.entered)
+			return r.ReadCloser.Read(p)
 		}
 
 		func (p *MyPlugin) expectServerEvent(expected string) error {
@@ -2377,24 +2700,42 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 
 			// After headers, cancellation reaches both the response body and the remote handler.
 			streamCtx, streamCancel := context.WithCancel(context.Background())
+			defer streamCancel()
 			req, _ = http.NewRequestWithContext(streamCtx, http.MethodGet, "/contextserver/stream", nil)
 			resp = p.API.PluginHTTP(req)
 			if resp == nil {
 				return nil, "stream response is nil"
 			}
+			defer resp.Body.Close()
 			firstChunk := make([]byte, len("start"))
 			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil || string(firstChunk) != "start" {
 				return nil, fmt.Sprintf("initial stream read: %q, %v", firstChunk, err)
 			}
-			streamCancel()
+			streamProbe := &readEntry{ReadCloser: resp.Body, entered: make(chan struct{})}
+			resp.Body = streamProbe
 			readErrCh := make(chan error, 1)
 			go func() {
 				_, readErr := resp.Body.Read(make([]byte, 1))
 				readErrCh <- readErr
 			}()
 			select {
+			case <-streamProbe.entered:
+			case <-time.After(testTimeout):
+				streamCancel()
+				_ = resp.Body.Close()
+				return nil, "stream read did not start"
+			}
+			select {
+			case readErr := <-readErrCh:
+				streamCancel()
+				_ = resp.Body.Close()
+				return nil, fmt.Sprintf("stream read ended before cancellation: %v", readErr)
+			case <-time.After(50 * time.Millisecond):
+			}
+			streamCancel()
+			select {
 			case err = <-readErrCh:
-				if err != context.Canceled {
+				if !errors.Is(err, context.Canceled) {
 					return nil, fmt.Sprintf("stream cancellation error: %v", err)
 				}
 			case <-time.After(testTimeout):
@@ -2405,29 +2746,44 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 				return nil, err.Error()
 			}
 
-			streamDeadlineCtx, streamDeadlineCancel := context.WithTimeout(context.Background(), time.Second)
+			streamDeadlineCtx, streamDeadlineCancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer streamDeadlineCancel()
 			req, _ = http.NewRequestWithContext(streamDeadlineCtx, http.MethodGet, "/contextserver/stream", nil)
 			resp = p.API.PluginHTTP(req)
 			if resp == nil {
 				return nil, "deadline stream response is nil"
 			}
+			defer resp.Body.Close()
 			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil || string(firstChunk) != "start" {
 				return nil, fmt.Sprintf("deadline stream initial read: %q, %v", firstChunk, err)
 			}
+			deadlineProbe := &readEntry{ReadCloser: resp.Body, entered: make(chan struct{})}
+			resp.Body = deadlineProbe
 			readErrCh = make(chan error, 1)
 			go func() {
-				for {
-					_, readErr := resp.Body.Read(make([]byte, 1))
-					if readErr != nil {
-						readErrCh <- readErr
-						return
-					}
-				}
+				_, readErr := resp.Body.Read(make([]byte, 1))
+				readErrCh <- readErr
 			}()
 			select {
+			case <-deadlineProbe.entered:
+			case <-time.After(testTimeout):
+				streamDeadlineCancel()
+				_ = resp.Body.Close()
+				return nil, "deadline stream read did not start"
+			}
+			if streamDeadlineCtx.Err() != nil {
+				return nil, fmt.Sprintf("deadline stream read started after expiry: %v", streamDeadlineCtx.Err())
+			}
+			select {
+			case readErr := <-readErrCh:
+				return nil, fmt.Sprintf("deadline stream read ended before expiry: %v", readErr)
+			case <-time.After(50 * time.Millisecond):
+			}
+			select {
 			case err = <-readErrCh:
-				if err != context.DeadlineExceeded && err != io.EOF {
+				// The remote deadline can close the stream before the caller
+				// observes its own deadline; both contexts are checked below.
+				if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, io.EOF) {
 					return nil, fmt.Sprintf("stream deadline error: %v", err)
 				}
 			case <-time.After(testTimeout):
@@ -2541,7 +2897,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 		th.App.ServeInternalPluginRequest("", httptest.NewRecorder(), req, "", "contextserver")
 		close(requestDone)
 	}()
-	requireServerEvent := func(expected string) {
+	requireServerEvent := func(t *testing.T, expected string) {
 		eventCtx, eventCancel := context.WithTimeout(context.Background(), testTimeout)
 		defer eventCancel()
 		eventRequest, eventErr := http.NewRequestWithContext(eventCtx, http.MethodGet, "/event", nil)
@@ -2551,7 +2907,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 		require.Equal(t, expected, eventRecorder.Body.String())
 	}
 
-	requireServerEvent("direct:started")
+	requireServerEvent(t, "direct:started")
 	cancelRequest()
 	select {
 	case <-requestDone:
@@ -2559,9 +2915,92 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 		require.FailNow(t, "direct server-to-plugin cancellation timed out")
 	}
 
-	requireServerEvent("direct:" + context.Canceled.Error())
+	requireServerEvent(t, "direct:"+context.Canceled.Error())
 	_, writeErr := bodyWriter.Write([]byte("late"))
 	require.ErrorIs(t, writeErr, io.ErrClosedPipe)
+
+	identityRequest, err := http.NewRequest(http.MethodGet, "/core-identity", nil)
+	require.NoError(t, err)
+	identityRequest.Header.Set("Mattermost-Plugin-ID", "forged-plugin")
+	identityRecorder := httptest.NewRecorder()
+	th.App.ServeInternalPluginRequest("", identityRecorder, identityRequest, "", "contextserver")
+	require.Equal(t, "com.mattermost.server", identityRecorder.Body.String())
+
+	for _, test := range []struct {
+		name     string
+		path     string
+		deadline bool
+		stream   bool
+	}{
+		{"cancel-before-headers", "/core-wait", false, false},
+		{"deadline-before-headers", "/core-wait", true, false},
+		{"cancel-during-stream", "/core-stream", false, true},
+		{"deadline-during-stream", "/core-stream", true, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var ctx context.Context
+			var cancel context.CancelFunc
+			if test.deadline {
+				ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+			} else {
+				ctx, cancel = context.WithCancel(context.Background())
+			}
+			defer cancel()
+			request, requestErr := http.NewRequestWithContext(ctx, http.MethodGet, test.path, nil)
+			require.NoError(t, requestErr)
+			writer := &flushObservingRecorder{ResponseRecorder: httptest.NewRecorder(), flushed: make(chan struct{})}
+			done := make(chan struct{})
+			go func() {
+				th.App.ServeInternalPluginRequest("", writer, request, "", "contextserver")
+				close(done)
+			}()
+
+			if test.stream {
+				select {
+				case <-writer.flushed:
+				case <-time.After(testTimeout):
+					require.FailNow(t, "core stream did not flush its first chunk")
+				}
+				require.Equal(t, "start", writer.Body.String())
+			} else {
+				requireServerEvent(t, "core-wait:started")
+			}
+			require.NoError(t, ctx.Err(), "stage must be reached before cancellation or deadline")
+			if test.deadline {
+				select {
+				case <-ctx.Done():
+				case <-time.After(testTimeout):
+					require.FailNow(t, "core deadline did not expire")
+				}
+				require.ErrorIs(t, ctx.Err(), context.DeadlineExceeded)
+			} else {
+				cancel()
+			}
+			select {
+			case <-done:
+			case <-time.After(testTimeout):
+				require.FailNow(t, "core dispatch did not finish after cancellation")
+			}
+			stage := "core-wait"
+			if test.stream {
+				stage = "core-stream"
+			}
+			reason := context.Canceled
+			if test.deadline {
+				reason = context.DeadlineExceeded
+			}
+			requireServerEvent(t, stage+":"+reason.Error())
+			requireServerEvent(t, stage+":exited")
+		})
+	}
+
+	// Cancellation and stream closure leave the receiver usable.
+	okRequest, err := http.NewRequest(http.MethodPost, "/ok", strings.NewReader("reuse"))
+	require.NoError(t, err)
+	okRecorder := httptest.NewRecorder()
+	th.App.ServeInternalPluginRequest("", okRecorder, okRequest, "", "contextserver")
+	require.Equal(t, http.StatusCreated, okRecorder.Code)
+	require.Equal(t, "reuse", okRecorder.Body.String())
 }
 
 func TestInterpluginPluginHTTPCancellationWithLegacyDestination(t *testing.T) {
@@ -5258,5 +5697,86 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 
 		_, err := api.GetPropertyGroup("no_such_group")
 		require.Error(t, err)
+	})
+}
+
+// clusterWithNodes is a fake cluster that reports a node ID and node list, and
+// whether this node has joined.
+type clusterWithNodes struct {
+	testlib.FakeClusterInterface
+	id     string
+	nodes  []*model.ClusterInfo
+	joined atomic.Bool
+}
+
+func (c *clusterWithNodes) GetClusterId() string { return c.id }
+
+func (c *clusterWithNodes) GetMyClusterInfo() *model.ClusterInfo {
+	if !c.joined.Load() {
+		return nil
+	}
+	return &model.ClusterInfo{Id: c.id}
+}
+
+func (c *clusterWithNodes) GetClusterInfos() ([]*model.ClusterInfo, error) { return c.nodes, nil }
+
+func TestPluginAPICluster(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("no cluster implementation", func(t *testing.T) {
+		th := Setup(t)
+		api := th.SetupPluginAPI()
+
+		assert.Empty(t, api.GetClusterNodeID())
+		nodes, err := api.GetClusterNodes()
+		require.NoError(t, err)
+		assert.Empty(t, nodes)
+	})
+
+	cluster := &clusterWithNodes{
+		id: "node1",
+		nodes: []*model.ClusterInfo{
+			{Id: "node1", Hostname: "10.0.0.1", IPAddress: "10.0.0.1:8074"},
+			{Id: "node2", Hostname: "10.0.0.2", IPAddress: "10.0.0.2:8074"},
+			{Id: "registration", Hostname: "10.0.0.3"}, // registered, not connected
+		},
+	}
+	th := SetupWithClusterMock(t, cluster)
+	api := th.SetupPluginAPI()
+
+	// Enterprise builds always register a cluster implementation, even when
+	// clustering is disabled or hasn't started.
+	t.Run("not joined", func(t *testing.T) {
+		assert.Empty(t, api.GetClusterNodeID())
+		nodes, err := api.GetClusterNodes()
+		require.NoError(t, err)
+		assert.Empty(t, nodes)
+	})
+
+	t.Run("joined", func(t *testing.T) {
+		cluster.joined.Store(true)
+		defer cluster.joined.Store(false)
+
+		assert.Equal(t, "node1", api.GetClusterNodeID())
+		nodes, err := api.GetClusterNodes()
+		require.NoError(t, err)
+		assert.Equal(t, cluster.nodes[:2], nodes, "only connected nodes")
+	})
+
+	t.Run("published events carry the source node", func(t *testing.T) {
+		cluster.ClearMessages()
+		err := api.PublishPluginClusterEvent(
+			model.PluginClusterEvent{Id: "event", Data: []byte("data")},
+			model.PluginClusterEventSendOptions{SendType: model.PluginClusterEventSendTypeReliable, TargetId: "node2"},
+		)
+		require.NoError(t, err)
+
+		msgs := cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventPluginEvent
+		})
+		require.Len(t, msgs, 1)
+		assert.Equal(t, "pluginid", msgs[0].Props["PluginID"])
+		assert.Equal(t, "event", msgs[0].Props["EventID"])
+		assert.Equal(t, "node1", msgs[0].Props["SourceID"])
 	})
 }

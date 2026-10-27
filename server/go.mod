@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.26.7
+go 1.26.10
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -45,7 +45,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.10.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
-	github.com/mattermost/logr/v2 v2.0.22 // v2.0.23 defaults to sync.Map level cache; clear() fills 65535 entries
+	github.com/mattermost/logr/v2 v2.0.24
 	github.com/mattermost/mattermost-plugin-ai v1.14.2
 	github.com/mattermost/mattermost/server/public v0.5.0
 	github.com/mattermost/morph v1.1.0
@@ -55,6 +55,7 @@ require (
 	github.com/mholt/archives v0.1.5
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.4.1
+	github.com/molecule-man/go-brrr v1.3.0
 	github.com/opensearch-project/opensearch-go/v4 v4.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.25.0
@@ -65,6 +66,7 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
+	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/splitio/go-client/v6 v6.10.0
 	github.com/stretchr/testify v1.12.1
@@ -204,7 +206,6 @@ require (
 	github.com/sorairolake/lzip-go v0.3.8 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
-	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/splitio/go-split-commons/v9 v9.1.0 // indirect
 	github.com/splitio/go-toolkit/v5 v5.5.1 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect

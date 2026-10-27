@@ -253,6 +253,7 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                             disabled={this.props.disabled}
                         >
                             <LoadingWrapper
+                                legacy={true}
                                 loading={this.state.busy}
                                 text={
                                     this.props.loadingText ||

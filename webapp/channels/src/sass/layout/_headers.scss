@@ -725,7 +725,7 @@
     .channel-intro__actions {
         display: flex;
         justify-content: center;
-        gap: 4px;
+        gap: var(--spacing-xs);
     }
 }
 
