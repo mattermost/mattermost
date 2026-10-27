@@ -76,6 +76,8 @@ func (ms *mockSuite) HasChannelReadAccessGoverned(rctx request.CTX, userID strin
 	return true
 }
 
+func (ms *mockSuite) WarmChannelAccessSubject(session *model.Session) {}
+
 func (ms *mockSuite) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }

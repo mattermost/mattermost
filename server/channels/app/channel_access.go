@@ -832,6 +832,25 @@ func (a *App) HasChannelReadAccessByID(rctx request.CTX, userID, channelID strin
 	})
 }
 
+// WarmChannelAccessSubject builds a new websocket connection's ABAC subject off the hub. The
+// read-access broadcast hook builds the same subject on the hub for the connection's first
+// governed event; doing it here first puts the user's attributes, user record and session
+// attributes in their caches, so that build reads only memory. It runs when the connection
+// registers, on a goroutine of its own.
+func (a *App) WarmChannelAccessSubject(session *model.Session) {
+	if session == nil || session.UserId == "" || !a.ChannelAccessEnforcementActive() {
+		return
+	}
+
+	rctx := request.EmptyContext(a.Log()).WithSession(session)
+	if _, appErr := a.BuildAccessControlSubjectForSession(rctx, ""); appErr != nil {
+		rctx.Logger().Debug("Failed to warm the ABAC subject for a new websocket connection",
+			mlog.String("user_id", session.UserId),
+			mlog.Err(appErr),
+		)
+	}
+}
+
 // HasChannelReadAccessGoverned is HasChannelReadAccessByID for a caller that has already worked
 // out the channel's governance: the channel_read_access broadcast hook, whose publisher loaded
 // the channel once and found it governed, non-exempt, and byChannelPolicy or not. Skipping the

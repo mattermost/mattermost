@@ -241,6 +241,11 @@ func (_m *SuiteIFace) UserCanSeeOtherUser(rctx request.CTX, userID string, other
 	return r0, r1
 }
 
+// WarmChannelAccessSubject provides a mock function with given fields: session
+func (_m *SuiteIFace) WarmChannelAccessSubject(session *model.Session) {
+	_m.Called(session)
+}
+
 // NewSuiteIFace creates a new instance of SuiteIFace. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewSuiteIFace(t interface {
