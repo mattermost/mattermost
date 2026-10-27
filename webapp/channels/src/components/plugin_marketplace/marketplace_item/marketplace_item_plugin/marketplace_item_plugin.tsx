@@ -323,6 +323,7 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
                 disabled={this.props.installing}
             >
                 <LoadingWrapper
+                    legacy={true}
                     loading={this.props.installing}
                     text={defineMessage({id: 'marketplace_modal.installing', defaultMessage: 'Installing...'})}
                 >

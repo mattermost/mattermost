@@ -6985,11 +6985,6 @@
     "description": "API error when an audit log request asks for more records per page than allowed; admin-facing."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error deleting the audits.",
-    "description": "Internal error when deleting a user's audit log entries fails during permanent account deletion."
-  },
-  {
     "id": "app.audit.save.saving.app_error",
     "translation": "We encountered an error saving the audit.",
     "description": "API error returned when the server fails to save an audit log record."
@@ -7488,11 +7483,6 @@
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Unable to delete the channel.",
     "description": "API error returned when permanently deleting a channel from the database fails."
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the channel member.",
-    "description": "Internal error when removing a user's channel memberships fails during permanent account deletion."
   },
   {
     "id": "app.channel.pinned_posts.app_error",
@@ -8531,11 +8521,6 @@
     "description": "API error returned when a plugin blocks saving a message draft; {{.Reason}} is the explanation supplied by the plugin."
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete drafts for user.",
-    "description": "Internal error when deleting a user's message drafts fails during permanent account deletion."
-  },
-  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Rate limiter is not set up.",
     "description": "Internal API error when the email invitation rate limiter component is not initialized; technical message."
@@ -8751,11 +8736,6 @@
     "description": "API error returned when a file record points to a path that no longer exists in file storage."
   },
   {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete attachments of the user.",
-    "description": "Internal error when deleting a user's file attachments fails during permanent account deletion."
-  },
-  {
     "id": "app.file_info.permanent_delete_for_post.app_error",
     "translation": "Failed to permanently delete file for post.",
     "description": "Internal API error when permanently deleting the file records of a post fails (used when purging flagged posts)."
@@ -8824,11 +8804,6 @@
     "id": "app.group.no_rows",
     "translation": "no matching group found",
     "description": "Lowercase error detail returned when a user group lookup finds no match; 'group' is a Mattermost user group."
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\".",
-    "description": "Internal error when removing a user from user groups fails during permanent account deletion; {{.UserId}} is the user's ID."
   },
   {
     "id": "app.group.uniqueness_error",
@@ -10086,11 +10061,6 @@
     "description": "API error when listing all registered OAuth 2.0 applications fails; admin-facing."
   },
   {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Unable to remove the authorization code.",
-    "description": "Internal error when deleting a user's OAuth authorization codes fails during permanent account deletion."
-  },
-  {
     "id": "app.oauth.remove_access_data.app_error",
     "translation": "Unable to remove the access token.",
     "description": "Internal error when deleting an OAuth access token from the database fails."
@@ -10881,11 +10851,6 @@
     "description": "API error returned when permanently deleting all posts of a channel fails."
   },
   {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Unable to select the posts to delete for the user.",
-    "description": "Internal error when selecting a user's posts for deletion fails during permanent account deletion."
-  },
-  {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Failed to permanently delete post.",
     "description": "Internal/admin error when permanently (hard) deleting a post from the database fails."
@@ -11019,11 +10984,6 @@
     "id": "app.preference.get_category.app_error",
     "translation": "We encountered an error while finding preferences.",
     "description": "API error returned when loading a category of user preferences (settings) fails."
-  },
-  {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error while deleting preferences.",
-    "description": "Internal error when deleting a user's preferences fails during permanent account deletion."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -11216,6 +11176,11 @@
     "description": "API error when a requested custom property field (attribute definition) does not exist."
   },
   {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "An attribute can't be linked to an OpenID Connect claim while OpenID Connect attribute sync is turned off.",
+    "description": "API error (400) when an admin links a custom attribute to an OpenID Connect claim, or changes the claim, while the OpenIdAttributeSync feature flag is off. 'OpenID Connect' is a product name and should stay as-is."
+  },
+  {
     "id": "app.property_field.options.create.app_error",
     "translation": "Unable to add the property field options.",
     "description": "Server error when adding new selectable options to a custom property field fails in the database."
@@ -11261,9 +11226,14 @@
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."
   },
   {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "An attribute synced from OpenID Connect can't also be synced from AD/LDAP or SAML.",
+    "description": "API error (400) when an admin links one custom attribute to both an OpenID Connect claim and an AD/LDAP or SAML attribute. 'OpenID Connect', 'AD/LDAP' and 'SAML' should stay as-is."
+  },
+  {
     "id": "app.property_field.sync_source_unlinked.app_error",
     "translation": "The attribute is no longer synced from this source, so its sync cannot change it.",
-    "description": "Error returned when the AD/LDAP or SAML sync tries to change an attribute an administrator unlinked from that source while the sync was running."
+    "description": "Error returned when the AD/LDAP, SAML or OpenID Connect sync tries to change an attribute an administrator unlinked from that source while the sync was running."
   },
   {
     "id": "app.property_field.synced_options_locked.app_error",
@@ -11509,11 +11479,6 @@
     "id": "app.reaction.get_for_post.app_error",
     "translation": "Unable to get reactions for post.",
     "description": "API error returned when loading the emoji reactions on a post fails."
-  },
-  {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete reactions for user.",
-    "description": "Internal error when deleting a user's emoji reactions fails during permanent account deletion."
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -11900,11 +11865,6 @@
       "other": "Failed to send {{.Count}} scheduled posts."
     },
     "description": "Header line of the bot's direct message notifying a user their scheduled posts failed to send; {{.Count}} is the number of failed posts, with singular/plural forms."
-  },
-  {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete scheduled posts for user.",
-    "description": "Internal error when deleting a user's scheduled posts fails during permanent account deletion."
   },
   {
     "id": "app.scheduled_post.private_channel",
@@ -12777,9 +12737,19 @@
     "description": "Internal error when permanently deleting a user account from the database fails; admin-facing."
   },
   {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Unable to delete user.",
-    "description": "API error wrapping an internal failure while permanently deleting a user account."
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "The account has been deactivated and partly deleted. Running the delete again is safe and will finish it.",
+    "description": "Admin-facing error returned when permanently deleting a user fails partway through, after the account was already deactivated."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "This pass deleted the maximum of {{.Max}} posts. The account has been deactivated and partly deleted. Run the delete again to continue.",
+    "description": "Admin-facing error returned when permanently deleting a user stops after removing the per-run post limit; the admin is told to run the same delete again. {{.Max}} is the number of posts deleted per run."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Unable to finish deleting {{.Count}} users: {{.Usernames}}. Run the command again to continue.",
+    "description": "Admin-facing error returned by the delete-all-users command when some users could not be fully deleted. {{.Count}} is the number of users and {{.Usernames}} is a comma-separated list of their usernames."
   },
   {
     "id": "app.user.promote_guest.user_update.app_error",
@@ -13192,19 +13162,9 @@
     "description": "API error returned when deleting a channel's incoming webhooks fails (happens while deleting the channel)."
   },
   {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Unable to delete the webhook.",
-    "description": "Internal error when deleting a user's incoming webhooks fails during permanent account deletion; 'webhook' is an integration term."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
     "translation": "Unable to delete the webhook.",
     "description": "API error returned when deleting a channel's outgoing webhooks fails (happens while deleting the channel)."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Unable to delete the webhook.",
-    "description": "Internal error when deleting a user's outgoing webhooks fails during permanent account deletion; 'webhook' is an integration term."
   },
   {
     "id": "app.webhooks.save_incoming.app_error",
@@ -13435,6 +13395,11 @@
     "id": "ent.cluster.save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file.",
     "description": "Error shown to admins trying to change settings from the System Console when the server runs in High Availability mode; 'System Console' is the admin UI and 'ReadOnlyConfig' is a config setting name that should stay untranslated."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Failed to send cluster request",
+    "description": "Log/error message for admins when a node in a high-availability cluster cannot send a request to another node."
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -14382,6 +14347,21 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "No audit log target is active and this workspace has {{.users}} registered users. Administrative actions, logins and configuration changes leave no separate audit trail. This is a compliance and forensic gap, not a stability risk.",
+    "description": "Health dashboard finding detail when audit logging is off on a large workspace; {{.users}} is the number of registered users. An 'audit log target' is a destination (such as a file) that audit records are written to."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "If your organization has audit requirements (financial services, healthcare, defense, regulated public sector), enable audit logging in System Console > Compliance > Audit Logging, or add a target for the audit levels to ExperimentalAuditSettings.AdvancedLoggingJSON, and configure rotation. Otherwise this can be ignored.",
+    "description": "Health dashboard fix-it step for disabled audit logging; 'System Console > Compliance > Audit Logging' is a navigation path and 'ExperimentalAuditSettings.AdvancedLoggingJSON' is a config setting path that should not be translated."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Audit logging disabled",
+    "description": "Health dashboard finding title when no audit log target is active."
+  },
+  {
     "id": "health.rule.bind_privileged_port.message",
     "translation": "ServiceSettings.ListenAddress binds port {{.port}}, which is below 1024. On Linux, a Mattermost server that does not run as root can bind this port only through the CAP_NET_BIND_SERVICE file capability on its binary. A package upgrade replaces the binary and clears that capability, so the server can fail to start after the next upgrade with \"bind: permission denied\". The configuration cannot show how the capability is granted, so this warning stays even after you grant it through the systemd unit.",
     "description": "Health dashboard finding detail when the server listens on a privileged port (below 1024); {{.port}} is the port number. 'ServiceSettings.ListenAddress' is a config setting path, 'CAP_NET_BIND_SERVICE' is a Linux capability name and 'bind: permission denied' is a literal error message; do not translate them."
@@ -14497,6 +14477,21 @@
     "description": "Health dashboard finding title when cluster nodes run different Mattermost versions."
   },
   {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory is empty, so compliance reports are written to a compliance folder under the server's working directory. They are lost when the server is upgraded or its container is rebuilt.",
+    "description": "Health dashboard finding detail when compliance monitoring is on but its report directory is empty; 'ComplianceSettings.Directory' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Set Compliance Report Directory in System Console > Compliance > Compliance Monitoring (ComplianceSettings.Directory) to a persistent, writable path.",
+    "description": "Health dashboard fix-it step for an empty compliance report directory; 'System Console > Compliance > Compliance Monitoring' is a navigation path and 'ComplianceSettings.Directory' is a config setting path that should not be translated."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Compliance monitoring enabled but Directory is empty",
+    "description": "Health dashboard finding title when compliance monitoring is turned on but the compliance report directory is empty."
+  },
+  {
     "id": "health.rule.db_ha_failover_storm_risk.message",
     "translation": "Each node keeps a pool of up to MaxOpenConns connections to the primary. With {{.nodes}} nodes and MaxOpenConns={{.max_open}}, a database failover can produce up to {{.burst}} simultaneous connection attempts to the newly promoted primary, and the DataSource host does not look like a connection pooler. If that exceeds the database's max_connections, it rejects connections ('sorry, too many clients already') and recovery takes longer.",
     "description": "Health dashboard finding detail for the risk of a reconnection burst after a database failover in a cluster; {{.nodes}}, {{.max_open}}, {{.data_sources}} and {{.burst}} are numbers. 'MaxOpenConns', 'DataSource' and 'max_connections' are setting names and 'sorry, too many clients already' is a literal PostgreSQL error; do not translate them."
@@ -14562,9 +14557,14 @@
     "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment; {{.posts}} is the number of posts."
   },
   {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "With {{.posts}} posts and database search, the primary and replicas absorb full-text scans. This causes CPU pressure and search timeouts at this scale. Your license includes Elasticsearch, which takes search off the database entirely.",
+    "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment whose license includes Elasticsearch; {{.posts}} is the number of posts. 'Elasticsearch' is a product name and should not be translated."
+  },
+  {
     "id": "health.rule.db_no_search_replica.remediation",
-    "translation": "Enable Elasticsearch search (preferred) or configure SqlSettings.DataSourceSearchReplicas.",
-    "description": "Health dashboard fix-it step when search runs on the database without a search replica. 'Elasticsearch' is a product name and 'SqlSettings.DataSourceSearchReplicas' is a setting name; do not translate them."
+    "translation": "Configure SqlSettings.DataSourceSearchReplicas.",
+    "description": "Health dashboard fix-it step when search runs on the database without a search replica. 'SqlSettings.DataSourceSearchReplicas' is a setting name and should not be translated."
   },
   {
     "id": "health.rule.db_no_search_replica.title",
@@ -14792,6 +14792,21 @@
     "description": "Health dashboard finding title when the Elasticsearch or OpenSearch cluster runs a major version the server does not support."
   },
   {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout is {{.value}} seconds. It limits how long the export waits to connect to the Global Relay SMTP server, and under 30 seconds a slow connection fails the delivery.",
+    "description": "Health dashboard finding detail when the Global Relay SMTP connection timeout is under 30 seconds; {{.value}} is the configured timeout in seconds. 'GlobalRelaySettings.SMTPServerTimeout' is a config setting path and 'Global Relay' is a product name; neither should be translated."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Raise MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout to at least 30 seconds. The default is 1800.",
+    "description": "Health dashboard fix-it step for a low Global Relay SMTP timeout; 'MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "Global Relay SMTPServerTimeout is under 30 seconds",
+    "description": "Health dashboard finding title when the Global Relay message export SMTP timeout is under 30 seconds; 'Global Relay' is a product name and 'SMTPServerTimeout' is a config setting name, neither should be translated."
+  },
+  {
     "id": "health.rule.filestore_local_in_cluster.message",
     "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory is {{.directory}}. In a cluster this directory must be a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node, or files uploaded to one node are not visible on the others. The configuration cannot show whether the directory is shared, and a node can pass the file storage connection test while writing to its own local disk.",
     "description": "Health dashboard finding detail when a high availability cluster stores files in a local directory that may or may not be a shared mount; {{.directory}} is the configured directory. 'FileSettings.DriverName', 'ClusterSettings.Enable' and 'FileSettings.Directory' are config setting paths, 'local' is a setting value, and NFS, EFS, GlusterFS and CephFS are shared file system names; do not translate them."
@@ -14900,6 +14915,146 @@
     "id": "health.rule.job_wedged_at_zero.title",
     "translation": "Job in progress with no progress or activity for more than an hour",
     "description": "Health dashboard finding title when a background job is in progress but has neither reported progress nor recorded activity for over an hour."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute is {{.attribute}}. Mattermost links each account to its directory entry by this attribute, so when a user's email changes (marriage, rebrand, department move) the link breaks and the user can no longer reach their existing account.",
+    "description": "Health dashboard finding detail when the AD/LDAP ID attribute is an email attribute. {{.attribute}} is the configured attribute name. 'IdAttribute', 'objectGUID', 'entryUUID' and the command 'mmctl ldap idmigrate' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Switch IdAttribute to a stable attribute such as objectGUID (AD) or entryUUID (OpenLDAP), then migrate existing accounts with mmctl ldap idmigrate.",
+    "description": "Health dashboard fix-it step when the AD/LDAP ID attribute is an email attribute. 'IdAttribute', 'objectGUID', 'entryUUID' and the command 'mmctl ldap idmigrate' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP IdAttribute is an email attribute",
+    "description": "Health dashboard finding title when the AD/LDAP ID attribute is an email attribute. 'IdAttribute', 'objectGUID', 'entryUUID' and the command 'mmctl ldap idmigrate' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Port 636 conventionally expects implicit TLS (LDAPS), but ConnectionSecurity is None or STARTTLS. This combination is usually a misconfiguration, but it can be valid behind a TLS-terminating proxy. Verify that LDAP sign-in and sync are succeeding.",
+    "description": "Health dashboard finding detail when the AD/LDAP port is 636 but the connection security is None or STARTTLS. 'ConnectionSecurity', 'None', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "If LDAP sign-in or sync is failing, set ConnectionSecurity to TLS for port 636. If they are working, no change is needed.",
+    "description": "Health dashboard fix-it step when the AD/LDAP port is 636 but the connection security is None or STARTTLS. 'ConnectionSecurity', 'None', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "LDAP port 636 configured without ConnectionSecurity=TLS",
+    "description": "Health dashboard finding title when the AD/LDAP port is 636 but the connection security is None or STARTTLS. 'ConnectionSecurity', 'None', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Port 389 is conventionally plaintext or STARTTLS, while implicit TLS (LDAPS) conventionally uses 636. This combination is usually a misconfiguration, but it can be valid behind a TLS-terminating proxy or a deliberately reconfigured server. Verify that LDAP sign-in and sync are succeeding.",
+    "description": "Health dashboard finding detail when the AD/LDAP port is 389 but the connection security is TLS. 'ConnectionSecurity', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "If LDAP sign-in or sync is failing, use port 636 for TLS or switch ConnectionSecurity to STARTTLS for port 389. If they are working, no change is needed.",
+    "description": "Health dashboard fix-it step when the AD/LDAP port is 389 but the connection security is TLS. 'ConnectionSecurity', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "LDAP port 389 configured with ConnectionSecurity=TLS",
+    "description": "Health dashboard finding title when the AD/LDAP port is 389 but the connection security is TLS. 'ConnectionSecurity', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "The leader node's LDAP test (connect, bind and a user search) failed, so LDAP sign-in and sync may be failing.",
+    "description": "Health dashboard finding detail when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Check the error details, then confirm LdapServer, LdapPort, ConnectionSecurity and the bind credentials, and that the Mattermost servers can reach the LDAP server. Use Test Connection on the AD/LDAP page to check again.",
+    "description": "Health dashboard fix-it step when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "LDAP connection test failed",
+    "description": "Health dashboard finding title when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout is {{.timeout}} seconds. Tight timeouts cause spurious LDAP sign-in and sync failures on slow directories.",
+    "description": "Health dashboard finding detail when the AD/LDAP query timeout is shorter than 10 seconds. {{.timeout}} is the configured timeout in seconds. 'QueryTimeout' and 'LdapSettings.QueryTimeout' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Raise LdapSettings.QueryTimeout to 60 seconds (the default).",
+    "description": "Health dashboard fix-it step when the AD/LDAP query timeout is shorter than 10 seconds. 'QueryTimeout' and 'LdapSettings.QueryTimeout' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP QueryTimeout is below 10 seconds",
+    "description": "Health dashboard finding title when the AD/LDAP query timeout is shorter than 10 seconds. 'QueryTimeout' and 'LdapSettings.QueryTimeout' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "{{.users}} active user accounts are managed manually. Mattermost recommends single sign-on once a workspace has more than 100 users: manual account management at this scale leads to stale accounts, onboarding lag, and offboarding drift, each of which is a security and licensing risk.",
+    "description": "Health dashboard finding detail when a workspace with more than 100 users uses no single sign-on provider (AD/LDAP, SAML, GitLab, Google, Office 365 or OpenID Connect). {{.users}} is the number of active user accounts. 'AD/LDAP', 'SAML' and 'OpenID Connect' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Connect Mattermost to your identity provider: AD/LDAP if you run a directory, otherwise SAML or OpenID Connect.",
+    "description": "Health dashboard fix-it step when a workspace with more than 100 users uses no single sign-on provider (AD/LDAP, SAML, GitLab, Google, Office 365 or OpenID Connect). 'AD/LDAP', 'SAML' and 'OpenID Connect' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Over 100 users with no single sign-on",
+    "description": "Health dashboard finding title when a workspace with more than 100 users uses no single sign-on provider (AD/LDAP, SAML, GitLab, Google, Office 365 or OpenID Connect). 'AD/LDAP', 'SAML' and 'OpenID Connect' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost does not verify the LDAP server's TLS certificate, so connections to the directory are open to man-in-the-middle attacks. This is acceptable only for development and testing.",
+    "description": "Health dashboard finding detail when AD/LDAP certificate verification is turned off. 'SkipCertificateVerification' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Install the LDAP server's CA chain on the Mattermost servers and set SkipCertificateVerification to false.",
+    "description": "Health dashboard fix-it step when AD/LDAP certificate verification is turned off. 'SkipCertificateVerification' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP SkipCertificateVerification is enabled",
+    "description": "Health dashboard finding title when AD/LDAP certificate verification is turned off. 'SkipCertificateVerification' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes is {{.interval_minutes}}, and recent LDAP sync runs averaged {{.avg_run_seconds}} seconds, {{.duty_pct}}% of the interval. Long runs on a short interval keep database load elevated and can add replica lag.",
+    "description": "Health dashboard finding detail when each AD/LDAP sync run takes at least a quarter of the sync interval. {{.interval_minutes}} is the sync interval in minutes, {{.avg_run_seconds}} the average run length in seconds and {{.duty_pct}} the percentage of the interval. 'SyncIntervalMinutes', 'LdapSettings.UserFilter' and 'BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "No LDAP sync run with a measurable duration was found.",
+    "description": "Health dashboard reason shown when the AD/LDAP sync duration check found no finished sync runs to measure, so its status is unknown."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Narrow LdapSettings.UserFilter and BaseDN to scope the directory walk, or lengthen SyncIntervalMinutes. Aim for sync runs that take less than 25% of the interval.",
+    "description": "Health dashboard fix-it step when each AD/LDAP sync run takes at least a quarter of the sync interval. 'SyncIntervalMinutes', 'LdapSettings.UserFilter' and 'BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "LDAP sync runs for a large share of its interval",
+    "description": "Health dashboard finding title when each AD/LDAP sync run takes at least a quarter of the sync interval. 'SyncIntervalMinutes', 'LdapSettings.UserFilter' and 'BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "LDAP sync searches the directory from BaseDN, so with it empty the sync cannot find the users it should update.",
+    "description": "Health dashboard finding detail when AD/LDAP sync is enabled but no base DN is set. 'BaseDN' and 'LdapSettings.BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Set LdapSettings.BaseDN to the directory root you want to sync.",
+    "description": "Health dashboard fix-it step when AD/LDAP sync is enabled but no base DN is set. 'BaseDN' and 'LdapSettings.BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "LDAP sync enabled but BaseDN is empty",
+    "description": "Health dashboard finding title when AD/LDAP sync is enabled but no base DN is set. 'BaseDN' and 'LdapSettings.BaseDN' are config or product names and should not be translated."
   },
   {
     "id": "health.rule.license_expired.message",
@@ -15117,9 +15272,14 @@
     "description": "Health dashboard finding detail when the push notification server is push-test.mattermost.com, Mattermost's test push proxy that is not meant for production; 'SLA' means service level agreement."
   },
   {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com is the Mattermost test push proxy. It has no SLA, limited throughput, and is not intended for production use. Your license includes the Mattermost Hosted Push Notification Service: set PushNotificationServer to https://global.push.mattermost.com.",
+    "description": "Health dashboard finding detail when the push notification server is push-test.mattermost.com on a server whose license includes the hosted push service; 'SLA' means service level agreement, 'Mattermost Hosted Push Notification Service' is a product name and 'PushNotificationServer' is a config setting name, do not translate them."
+  },
+  {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Switch to https://push.mattermost.com (the production Hosted Push Notification Service included with Enterprise) or to a self-hosted push proxy.",
-    "description": "Health dashboard fix-it step for a server using the test push proxy; 'Hosted Push Notification Service' is a Mattermost product name."
+    "translation": "Point PushNotificationServer at a production push proxy: a self-hosted Mattermost Push Proxy serving your own builds of the mobile apps.",
+    "description": "Health dashboard fix-it step for a server using the test push proxy; 'PushNotificationServer' is a config setting name and 'Mattermost Push Proxy' is a product name, do not translate them."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -15157,6 +15317,111 @@
     "description": "Health dashboard finding title when RateLimitSettings.MemoryStoreSize is below the number of registered users."
   },
   {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds is {{.value}}. The data retention job pauses this long between delete batches to give the database time to serve live traffic. Under 100 ms, large deletions can slow the database for everyone.",
+    "description": "Health dashboard finding detail when the data retention pause between delete batches is under 100 milliseconds; {{.value}} is the configured pause in milliseconds. 'TimeBetweenBatchesMilliseconds' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Raise DataRetentionSettings.TimeBetweenBatchesMilliseconds to at least 100 (the default) in the configuration.",
+    "description": "Health dashboard fix-it step for a data retention batch pause under 100 milliseconds; 'DataRetentionSettings.TimeBetweenBatchesMilliseconds' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "Data retention TimeBetweenBatchesMilliseconds is under 100",
+    "description": "Health dashboard finding title when the data retention pause between delete batches is under 100 milliseconds; 'TimeBetweenBatchesMilliseconds' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Assertions travel unencrypted at the SAML layer. TLS still protects the connection, so this is not a baseline security failure, but if your IdP supports assertion encryption, enabling it adds defense in depth.",
+    "description": "Health dashboard finding detail when SAML assertion encryption is turned off. 'SamlSettings.Encrypt' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "If your IdP supports assertion encryption, enable SamlSettings.Encrypt and configure the service provider private key and public certificate.",
+    "description": "Health dashboard fix-it step when SAML assertion encryption is turned off. 'SamlSettings.Encrypt' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "SAML assertion encryption is disabled",
+    "description": "Health dashboard finding title when SAML assertion encryption is turned off. 'SamlSettings.Encrypt' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost keys SAML accounts by email address, either because IdAttribute is empty or because it names an email attribute. When a user's email changes at the IdP, the link to their existing account breaks.",
+    "description": "Health dashboard finding detail when the SAML ID attribute is empty or an email attribute. 'IdAttribute', 'SamlSettings.IdAttribute' and 'objectGUID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Configure the IdP to send a stable identifier (such as objectGUID or an immutable ID), then set SamlSettings.IdAttribute to that attribute's name. Existing accounts move to the new identifier on their own: at each user's next sign-in, Mattermost finds the account by email and stores the new ID.",
+    "description": "Health dashboard fix-it step when the SAML ID attribute is empty or an email attribute. 'IdAttribute', 'SamlSettings.IdAttribute' and 'objectGUID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML IdAttribute is empty or an email attribute",
+    "description": "Health dashboard finding title when the SAML ID attribute is empty or an email attribute. 'IdAttribute', 'SamlSettings.IdAttribute' and 'objectGUID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute is {{.attribute}}. Usernames, uids and user principal names are often recycled across employees, and when that happens the second person inherits the first person's Mattermost account.",
+    "description": "Health dashboard finding detail when the SAML ID attribute is a username, uid or user principal name that the identity provider can reassign. {{.attribute}} is the configured attribute name. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Prefer an identifier that is never reassigned, such as objectGUID (AD) or an immutable ID (Microsoft Entra ID), and review the IdP policy on identifier reuse.",
+    "description": "Health dashboard fix-it step when the SAML ID attribute is a username, uid or user principal name that the identity provider can reassign. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML IdAttribute can be reassigned at the IdP",
+    "description": "Health dashboard finding title when the SAML ID attribute is a username, uid or user principal name that the identity provider can reassign. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "The leader node's SAML check of the IdP certificate and IdP URL failed, so SAML sign-in is likely broken.",
+    "description": "Health dashboard finding detail when the SAML configuration check run by the server failed: the IdP certificate is missing, invalid or expired, or the IdP URL is missing or invalid. 'IdpCertificateFile' and 'IdpURL' are config names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Check the error details, then fix the IdP certificate (IdpCertificateFile) or the IdP URL (IdpURL) in the SAML settings. If the certificate expired, upload the IdP's current signing certificate.",
+    "description": "Health dashboard fix-it step when the SAML configuration check run by the server failed: the IdP certificate is missing, invalid or expired, or the IdP URL is missing or invalid. 'IdpCertificateFile' and 'IdpURL' are config names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "SAML configuration check failed",
+    "description": "Health dashboard finding title when the SAML configuration check run by the server failed: the IdP certificate is missing, invalid or expired, or the IdP URL is missing or invalid. 'IdpCertificateFile' and 'IdpURL' are config names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO uses the SHA-1 signature algorithm, which is deprecated. SSO works today, but some identity providers are beginning to reject SHA-1, so this is a compatibility and security improvement to schedule, particularly before any IdP change or upgrade.",
+    "description": "Health dashboard finding detail when SAML uses the SHA-1 signature algorithm. 'SamlSettings.SignatureAlgorithm' and 'RSAwithSHA256' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "When convenient, and in coordination with your IdP, set SamlSettings.SignatureAlgorithm to RSAwithSHA256.",
+    "description": "Health dashboard fix-it step when SAML uses the SHA-1 signature algorithm. 'SamlSettings.SignatureAlgorithm' and 'RSAwithSHA256' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML SignatureAlgorithm is SHA-1",
+    "description": "Health dashboard finding title when SAML uses the SHA-1 signature algorithm. 'SamlSettings.SignatureAlgorithm' and 'RSAwithSHA256' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost accepts SAML responses without verifying your IdP's signature, so it cannot tell a genuine authentication response from a forged one.",
+    "description": "Health dashboard finding detail when SAML signature verification is turned off. 'SamlSettings.Verify' and 'AssertionConsumerServiceURL' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Set SamlSettings.Verify to true and make sure AssertionConsumerServiceURL is set. Enable it in coordination with your IdP and test sign-in, since verification requires the IdP certificate to be configured correctly.",
+    "description": "Health dashboard fix-it step when SAML signature verification is turned off. 'SamlSettings.Verify' and 'AssertionConsumerServiceURL' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "SAML signature verification is disabled",
+    "description": "Health dashboard finding title when SAML signature verification is turned off. 'SamlSettings.Verify' and 'AssertionConsumerServiceURL' are config or product names and should not be translated."
+  },
+  {
     "id": "health.rule.scale_es_recommended.message",
     "translation": "The workspace has {{.posts}} posts and search runs against the database. Elasticsearch is recommended above 2,500,000 posts and required above 5,000,000.",
     "description": "Health dashboard finding detail when database search is used at more than 2,500,000 and at most 5,000,000 posts; {{.posts}} is the post count."
@@ -15188,12 +15453,17 @@
   },
   {
     "id": "health.rule.search_unavailable.message",
-    "translation": "Database search is disabled and Elasticsearch searching is off. Searches return no results.",
-    "description": "Health dashboard finding detail when neither the database nor Elasticsearch or OpenSearch serves search."
+    "translation": "Database search is disabled and Elasticsearch searching is off. Searches return no results. Enabling searching with Elasticsearch or OpenSearch also restores search.",
+    "description": "Health dashboard finding detail when neither the database nor Elasticsearch or OpenSearch serves search. 'Elasticsearch' and 'OpenSearch' are product names and should not be translated."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Database search is disabled and the license does not include Elasticsearch, so Elasticsearch settings have no effect. Searches return no results.",
+    "description": "Health dashboard finding detail when database search is disabled on a server whose license does not include Elasticsearch. 'Elasticsearch' is a product name and should not be translated."
   },
   {
     "id": "health.rule.search_unavailable.remediation",
-    "translation": "Set SqlSettings.DisableDatabaseSearch to false in config.json (or MM_SQLSETTINGS_DISABLEDATABASESEARCH=false), or enable searching with Elasticsearch or OpenSearch.",
+    "translation": "Set SqlSettings.DisableDatabaseSearch to false in config.json (or MM_SQLSETTINGS_DISABLEDATABASESEARCH=false).",
     "description": "Health dashboard fix-it step when search is fully disabled; 'SqlSettings.DisableDatabaseSearch', 'config.json' and 'MM_SQLSETTINGS_DISABLEDATABASESEARCH=false' are literal names and should not be translated."
   },
   {
@@ -15245,6 +15515,21 @@
     "id": "health.rule.seats_over_deployed.title",
     "translation": "More users than licensed seats",
     "description": "Health dashboard finding title when more users take a seat than the license covers."
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Sessions expire on a fixed schedule regardless of activity, so active users are signed out. Most deployments benefit from keeping active users signed in.",
+    "description": "Health dashboard finding detail when sessions are not extended while users are active. 'ExtendSessionLengthWithActivity' and 'ServiceSettings.ExtendSessionLengthWithActivity' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Enable ServiceSettings.ExtendSessionLengthWithActivity unless your security policy forbids it.",
+    "description": "Health dashboard fix-it step when sessions are not extended while users are active. 'ExtendSessionLengthWithActivity' and 'ServiceSettings.ExtendSessionLengthWithActivity' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity is disabled",
+    "description": "Health dashboard finding title when sessions are not extended while users are active. 'ExtendSessionLengthWithActivity' and 'ServiceSettings.ExtendSessionLengthWithActivity' are config or product names and should not be translated."
   },
   {
     "id": "health.rule.site_url_empty.message",
@@ -16832,6 +17117,11 @@
     "description": "Config validation error shown to system admins configuring Microsoft Intune MAM when the tenant ID is not in UUID format."
   },
   {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Redis cache prefix must not contain ':', '*', '?', '[', ']' or '\\'.",
+    "description": "Config validation error shown to system admins; 'Redis cache prefix' is the setting that namespaces this server's keys and cluster messages in a Redis instance shared with other servers."
+  },
+  {
     "id": "model.config.is_valid.invalid_redis_db.app_error",
     "translation": "Redis DB must have a value greater or equal to zero.",
     "description": "Config validation error shown to system admins; 'Redis DB' is the numeric Redis database index setting."
@@ -17350,6 +17640,11 @@
     "id": "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
     "translation": "Invalid replica monitor interval for SQL settings. Must be a positive number.",
     "description": "Configuration validation error shown when saving the System Console or starting the server with a zero or negative SqlSettings.ReplicaMonitorIntervalSeconds (database replica health check interval)."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Additional scopes must be OAuth scope names separated by spaces, at most {{.MaxLength}} characters in total.",
+    "description": "Config validation error shown to system admins when the OpenID Connect 'Additional scopes' setting holds characters a scope name can't contain or is too long; {{.MaxLength}} is the character limit."
   },
   {
     "id": "model.config.is_valid.storage_class.app_error",
@@ -18975,6 +19270,11 @@
     "id": "plugin.api.update_post.mm_blocks_actions.app_error",
     "translation": "Invalid mm_blocks_actions in plugin post update.",
     "description": "Error returned to plugins when a post update contains invalid 'mm_blocks_actions' data (interactive blocks); developer-facing, keep the property name untranslated."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Invalid file creator.",
+    "description": "Error returned to plugins when UpdatePostWithOptions is called with a FileCreatorID that is not a valid Mattermost user id; developer-facing."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",

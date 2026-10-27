@@ -6,6 +6,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {shallowEqual, useDispatch, useSelector} from 'react-redux';
 
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import {GenericModal} from '@mattermost/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Board} from '@mattermost/types/boards';
@@ -44,7 +45,6 @@ import useClassificationMarkings from 'components/common/hooks/useClassification
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import type {TextboxElement} from 'components/textbox';
-import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -550,6 +550,7 @@ const NewChannelModal = () => {
     if (isSubmitting) {
         confirmButtonText = (
             <LoadingSpinner
+                legacy={true}
                 text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
             />
         );
@@ -602,34 +603,18 @@ const NewChannelModal = () => {
                         className='new-channel-modal-discoverable'
                         data-testid='new-channel-discoverable-section'
                     >
-                        <div className='channel_banner_header'>
-                            <div className='channel_banner_header__text'>
-                                <label
-                                    className='Input_legend'
-                                    aria-label={discoverableTitle}
-                                >
-                                    {discoverableTitle}
-                                </label>
-                                <label
-                                    className='Input_subheading'
-                                    aria-label={discoverableDescription}
-                                >
-                                    {discoverableDescription}
-                                </label>
-                            </div>
-                            <div className='channel_banner_header__toggle'>
-                                <Toggle
-                                    id='newChannelDiscoverableToggle'
-                                    overrideTestId={true}
-                                    ariaLabel={discoverableTitle}
-                                    size='btn-md'
-                                    toggled={discoverable}
-                                    onToggle={() => setDiscoverable((v) => !v)}
-                                    tabIndex={0}
-                                    toggleClassName='btn-toggle-primary'
-                                />
-                            </div>
-                        </div>
+                        <Switch
+                            id='newChannelDiscoverableToggle'
+                            size='medium'
+                            checked={discoverable}
+                            onChange={() => setDiscoverable((v) => !v)}
+                            data-testid='newChannelDiscoverableToggle'
+                            tabIndex={0}
+                            semiBold={true}
+                            secondaryLabel={discoverableDescription}
+                        >
+                            {discoverableTitle}
+                        </Switch>
                     </div>
                 )}
                 {showDefaultCategorySelector && (
@@ -701,13 +686,14 @@ const NewChannelModal = () => {
                                     />
                                 </h4>
                             </div>
-                            <Toggle
+                            <Switch
                                 id='channelClassificationToggle'
-                                toggled={classificationEnabled}
-                                onToggle={() => setClassificationEnabled(!classificationEnabled)}
-                                toggleClassName='btn-toggle-primary'
-                                size='btn-md'
-                                ariaLabel={formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'})}
+                                size='medium'
+                                checked={classificationEnabled}
+                                onChange={() => setClassificationEnabled(!classificationEnabled)}
+                                data-testid='channelClassificationToggle-button'
+                                tabIndex={0}
+                                aria-label={formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'})}
                             />
                         </div>
                         <p className='new-channel-modal-classification__description'>

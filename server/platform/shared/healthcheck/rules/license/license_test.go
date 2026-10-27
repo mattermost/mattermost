@@ -220,11 +220,11 @@ func TestExpiryRules(t *testing.T) {
 	t.Run("firing results carry the expiry date", func(t *testing.T) {
 		t.Parallel()
 
-		expired := evalLicenseExpired(expiringIn(-3 * day))[0]
+		expired := evalLicenseExpired(expiringIn(-3 * day))
 		assert.Equal(t, "health.rule.license_expired.message", expired.MessageID)
 		assert.Equal(t, "2026-09-22", expired.Details["expires_at"])
 
-		expiring := evalLicenseExpiring(expiringIn(20 * day))[0]
+		expiring := evalLicenseExpiring(expiringIn(20 * day))
 		assert.Equal(t, "health.rule.license_expiring.message", expiring.MessageID)
 		assert.Equal(t, "2026-10-15", expiring.Details["expires_at"])
 	})
@@ -238,11 +238,11 @@ func TestExpiryRules(t *testing.T) {
 			return s
 		}
 
-		expired := evalLicenseExpired(trial(-3 * day))[0]
+		expired := evalLicenseExpired(trial(-3 * day))
 		assert.Equal(t, "health.rule.license_expired.message.trial", expired.MessageID)
 		assert.Equal(t, "2026-09-22", expired.Details["expires_at"])
 
-		expiring := evalLicenseExpiring(trial(20 * day))[0]
+		expiring := evalLicenseExpiring(trial(20 * day))
 		assert.Equal(t, "health.rule.license_expiring.message.trial", expiring.MessageID)
 		assert.Equal(t, "2026-10-15", expiring.Details["expires_at"])
 	})

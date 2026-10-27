@@ -135,6 +135,7 @@ function SaveChangesPanel({
                 >
                     {saving ? (
                         <LoadingSpinner
+                            legacy={true}
                             text={
                                 <FormattedMessage
                                     id='saveChangesPanel.saving'
