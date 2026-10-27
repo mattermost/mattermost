@@ -34,6 +34,10 @@ func (w *StoreTestWrapper) GetMaster() storetest.SqlXExecutor {
 	return w.orig.GetMaster()
 }
 
+func (w *StoreTestWrapper) BeginMaster() (storetest.SqlXTx, error) {
+	return w.orig.GetMaster().Begin()
+}
+
 func (w *StoreTestWrapper) DriverName() string {
 	return w.orig.DriverName()
 }
@@ -233,6 +237,15 @@ func (w *sqlxDBWrapper) ExecBuilder(builder Builder) (sql.Result, error) {
 	}
 
 	return w.Exec(query, args...)
+}
+
+func (w *sqlxDBWrapper) ExecBuilderCtx(ctx context.Context, builder Builder) (sql.Result, error) {
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	return w.ExecContext(ctx, query, args...)
 }
 
 func (w *sqlxDBWrapper) ExecNoTimeout(query string, args ...any) (sql.Result, error) {

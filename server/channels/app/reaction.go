@@ -88,6 +88,8 @@ func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*
 		}
 	}
 
+	a.enqueueBotReactionEvents(rctx, model.BotEventTypeReactionAdded, reaction, post, channel)
+
 	if post.RootId == "" {
 		if appErr := a.ResolvePersistentNotification(rctx, post, reaction.UserId); appErr != nil {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
@@ -155,6 +157,8 @@ func (a *App) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) 
 	if _, err := a.Srv().Store().Reaction().Delete(reaction); err != nil {
 		return model.NewAppError("DeleteReactionForPost", "app.reaction.delete_all_with_emoji_name.get_reactions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.enqueueBotReactionEvents(rctx, model.BotEventTypeReactionRemoved, reaction, post, channel)
 
 	// The post is always modified since the UpdateAt always changes
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)

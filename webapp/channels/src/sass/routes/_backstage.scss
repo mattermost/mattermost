@@ -523,7 +523,8 @@
     }
 }
 
-.bot-token__status {
+.bot-token__status,
+.bot-event-subscription__status {
     display: inline-block;
     padding: 1px 6px;
     border-radius: 4px;

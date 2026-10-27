@@ -60,6 +60,8 @@ Use the RESTful API `POST /bots` to create a bot. You must have permissions to c
 
 See our [API documentation](https://api.mattermost.com/#tag/bots) to learn more about creating and managing bots through the API.
 
+To receive the messages and reactions a bot is a recipient of, see [bot event subscriptions](/developers/integrate/reference/bot-accounts/event-subscriptions).
+
 To authorize your bot via RESTful API use `curl -i -H 'authorization: Bearer <Access Token>' http://localhost:8065/api/v4/users/me`. **Access Token** is not the `Token ID` and won't be visible again once created.
 
 ### Command line interface (CLI)

@@ -13,6 +13,11 @@ import type {BotCreateWarnings} from './bot_create_warnings';
 import {BOT_CREATE_WARNINGS_PARAM, serializeBotCreateWarnings} from './bot_create_warnings';
 import Bots from './bots';
 
+jest.mock('mattermost-redux/actions/bots', () => ({
+    ...jest.requireActual('mattermost-redux/actions/bots'),
+    getBotEventSubscription: jest.fn(() => () => Promise.resolve({data: null})),
+}));
+
 const TITLE = 'Bot account created, but some settings were not saved';
 const TOKEN = "An access token could not be created. Create one from this bot's Create New Token option, or ask a System Admin if you don't have permission.";
 const ATTRS = 'Attributes could not be saved. Edit the bot to add them again.';

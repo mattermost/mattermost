@@ -30,8 +30,15 @@ import (
 
 type SqlStore interface {
 	GetMaster() SqlXExecutor
+	BeginMaster() (SqlXTx, error)
 	DriverName() string
 	GetQueryPlaceholder() sq.PlaceholderFormat
+}
+
+type SqlXTx interface {
+	Exec(query string, args ...any) (sql.Result, error)
+	Commit() error
+	Rollback() error
 }
 
 type SqlXExecutor interface {

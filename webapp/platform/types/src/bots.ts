@@ -22,3 +22,20 @@ export type BotPatch = {
     display_name: string;
     description: string;
 };
+
+export type BotEventSubscriptionMode = 'push' | 'pull';
+export type BotEventDisabledReason = '' | 'delivery_failures' | 'callback_gone';
+
+export type BotEventSubscription = {
+    bot_user_id: string;
+    mode: BotEventSubscriptionMode;
+    callback_url: string;
+    secret?: string;
+    ignore_bot_authors: boolean;
+    enabled: boolean;
+    disabled_reason: BotEventDisabledReason;
+    last_delivered_at: number;
+};
+
+export type BotEventSubscriptionPatch = Partial<Pick<BotEventSubscription, 'mode' | 'callback_url' | 'ignore_bot_authors'>>;
+export type BotWithEventSubscription = Bot & {event_subscription: BotEventSubscription};

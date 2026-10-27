@@ -366,6 +366,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.InitUser()
 	api.InitBot()
+	api.InitBotEventSubscription()
 	api.InitTeam()
 	api.InitChannel()
 	api.InitPost()

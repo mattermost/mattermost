@@ -383,6 +383,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 		}
 
+		a.enqueueBotPostEvents(rctx, post, team, channel, sender, profileMap, mentions, followers, isCRTAllowed)
+
 		notificationsForCRT = &CRTNotifiers{}
 		if isCRTAllowed && post.RootId != "" {
 			for uid := range followers {

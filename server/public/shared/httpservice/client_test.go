@@ -111,6 +111,7 @@ func TestNewTransportForInternalConnections(t *testing.T) {
 		_, err := c.Get(mockHTTP.URL)
 		require.IsType(t, &url.Error{}, err)
 		require.Contains(t, err.(*url.Error).Err.Error(), "address forbidden")
+		require.ErrorIs(t, err, ErrAddressForbidden)
 	})
 
 	t.Run("allows a host named in the allowlist", func(t *testing.T) {

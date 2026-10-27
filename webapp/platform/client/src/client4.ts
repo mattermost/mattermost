@@ -9,7 +9,7 @@ import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
-import type {Bot, BotPatch} from '@mattermost/types/bots';
+import type {Bot, BotEventSubscription, BotEventSubscriptionPatch, BotPatch, BotWithEventSubscription} from '@mattermost/types/bots';
 import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
@@ -525,6 +525,10 @@ export default class Client4 {
 
     getBotRoute(botUserId: string) {
         return `${this.getBotsRoute()}/${botUserId}`;
+    }
+
+    getBotEventSubscriptionRoute(botUserId: string) {
+        return `${this.getBotRoute(botUserId)}/event_subscription`;
     }
 
     getGroupsRoute() {
@@ -4686,6 +4690,48 @@ export default class Client4 {
     assignBot = (botUserId: string, newOwnerId: string) => {
         return this.doFetch<Bot>(
             `${this.getBotRoute(botUserId)}/assign/${newOwnerId}`,
+            {method: 'post'},
+        );
+    };
+
+    createBotWithEventSubscription = (bot: Partial<Bot>, eventSubscription: BotEventSubscriptionPatch) => {
+        return this.doFetch<BotWithEventSubscription>(
+            `${this.getBotsRoute()}`,
+            {method: 'post', body: JSON.stringify({...bot, event_subscription: eventSubscription})},
+        );
+    };
+
+    getBotEventSubscription = (botUserId: string) => {
+        return this.doFetch<BotEventSubscription>(
+            this.getBotEventSubscriptionRoute(botUserId),
+            {method: 'get'},
+        );
+    };
+
+    upsertBotEventSubscription = (botUserId: string, patch: BotEventSubscriptionPatch) => {
+        return this.doFetch<BotEventSubscription>(
+            this.getBotEventSubscriptionRoute(botUserId),
+            {method: 'put', body: JSON.stringify(patch)},
+        );
+    };
+
+    deleteBotEventSubscription = (botUserId: string) => {
+        return this.doFetch<StatusOK>(
+            this.getBotEventSubscriptionRoute(botUserId),
+            {method: 'delete'},
+        );
+    };
+
+    regenerateBotEventSubscriptionSecret = (botUserId: string) => {
+        return this.doFetch<BotEventSubscription>(
+            `${this.getBotEventSubscriptionRoute(botUserId)}/regenerate_secret`,
+            {method: 'post'},
+        );
+    };
+
+    enableBotEventSubscription = (botUserId: string) => {
+        return this.doFetch<BotEventSubscription>(
+            `${this.getBotEventSubscriptionRoute(botUserId)}/enable`,
             {method: 'post'},
         );
     };

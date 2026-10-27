@@ -4004,6 +4004,163 @@ components:
         owner_id:
           description: The user id of the user that currently owns this bot.
           type: string
+    BotEventSubscriptionPatch:
+      description: Fields to create or change a bot event subscription with.
+      type: object
+      properties:
+        mode:
+          description: >
+            How events are delivered. Required when creating.
+          type: string
+          enum:
+            - push
+            - pull
+        callback_url:
+          description: Where events are sent in `push` mode. Must be empty in `pull` mode.
+          type: string
+        ignore_bot_authors:
+          description: Whether events caused by other bots are skipped. Defaults to true.
+          type: boolean
+    BotEventSubscription:
+      description: The subscription through which a bot receives events.
+      type: object
+      properties:
+        bot_user_id:
+          type: string
+        mode:
+          type: string
+          enum:
+            - push
+            - pull
+        callback_url:
+          type: string
+        secret:
+          description: Only present when the subscription was created or its secret regenerated.
+          type: string
+        ignore_bot_authors:
+          type: boolean
+        enabled:
+          type: boolean
+        disabled_reason:
+          description: Why the subscription is disabled, empty while it is enabled. `delivery_failures` and `callback_gone` are set by the server in push mode.
+          type: string
+        consecutive_failures:
+          type: integer
+        last_delivered_at:
+          description: The time in milliseconds events were last acknowledged.
+          type: integer
+          format: int64
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        backlog_size:
+          description: The number of events waiting to be received. Only present when getting a subscription.
+          type: integer
+          format: int64
+    BotEvent:
+      description: An event delivered to a bot.
+      type: object
+      properties:
+        event_id:
+          type: string
+        type:
+          type: string
+          enum:
+            - post_dm
+            - post_gm
+            - post_mention
+            - post_thread_reply
+            - reaction_added
+            - reaction_removed
+        created_at:
+          description: The time in milliseconds the event was created, by the database clock.
+          type: integer
+          format: int64
+        bot_user_id:
+          type: string
+        team:
+          description: The team of the channel. Null for direct and group messages.
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        channel:
+          type: object
+          properties:
+            id:
+              type: string
+            type:
+              type: string
+            name:
+              type: string
+            display_name:
+              type: string
+        sender:
+          description: The user who wrote the post or added or removed the reaction.
+          type: object
+          properties:
+            id:
+              type: string
+            username:
+              type: string
+            is_bot:
+              type: boolean
+        post:
+          description: >
+            The post. Reaction events only contain `id`, `root_id` and `user_id`.
+          type: object
+          properties:
+            id:
+              type: string
+            root_id:
+              type: string
+            user_id:
+              type: string
+            channel_id:
+              type: string
+            message:
+              type: string
+            type:
+              type: string
+            props:
+              type: object
+            file_ids:
+              type: array
+              items:
+                type: string
+            create_at:
+              type: integer
+              format: int64
+        reaction:
+          description: Only present on reaction events.
+          type: object
+          properties:
+            emoji_name:
+              type: string
+            user_id:
+              type: string
+            post_id:
+              type: string
+            create_at:
+              type: integer
+              format: int64
+    BotEventList:
+      description: A page of bot events.
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/BotEvent"
+        next_cursor:
+          description: Pass as `cursor` to acknowledge these events and get the ones that follow.
+          type: string
     Server_Busy:
       type: object
       properties:

@@ -325,6 +325,11 @@
     "description": "Message a bot sends to a mobile user asking to be added to teams and channels; instructs them to use the browser or the Mattermost Desktop App because mobile cannot do it."
   },
   {
+    "id": "api.bot_event.pull.not_bot_session.app_error",
+    "translation": "Only the bot itself can pull its events.",
+    "description": "API error when a session other than the bot's own requests the bot's pending events; 'bot' is a bot account and events are the notifications of posts and reactions it subscribed to."
+  },
+  {
     "id": "api.channel.add_guest.added",
     "translation": "%v added to the channel as guest by %v.",
     "description": "System message posted in a channel when a guest is added; first %v is the added guest's username, second %v is the username of the member who added them."
@@ -7053,6 +7058,86 @@
     "id": "app.bot.update_bot_active.protected_bot.app_error",
     "translation": "Cannot disable a system-owned bot.",
     "description": "API error (403) shown to a system admin who tries to deactivate a bot account that Mattermost itself owns and manages (for example a built-in system bot), which is not permitted."
+  },
+  {
+    "id": "app.bot_event.pull.ack.app_error",
+    "translation": "Unable to acknowledge the bot events.",
+    "description": "Server error when saving the position up to which a bot has received its events fails; 'bot' is a bot account and acknowledging means marking events as received."
+  },
+  {
+    "id": "app.bot_event.pull.disabled.app_error",
+    "translation": "The event subscription of this bot is disabled.",
+    "description": "API error when a bot pulls its events while its event subscription is disabled; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
+  },
+  {
+    "id": "app.bot_event.pull.get.app_error",
+    "translation": "Unable to get the bot events.",
+    "description": "Server error when loading the pending events of a bot fails; 'bot' is a bot account and events are the notifications of posts and reactions it subscribed to."
+  },
+  {
+    "id": "app.bot_event.pull.wrong_mode.app_error",
+    "translation": "The event subscription of this bot does not use pull delivery.",
+    "description": "API error when a bot pulls its events but its event subscription delivers them by push instead; 'bot' is a bot account."
+  },
+  {
+    "id": "app.bot_event_subscription.delete.app_error",
+    "translation": "Unable to delete the bot event subscription.",
+    "description": "Server error when deleting the event subscription of a bot fails; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
+  },
+  {
+    "id": "app.bot_event_subscription.disabled_callback_gone.dm",
+    "translation": "Event delivery for bot account @{{.BotUsername}} has been turned off because its callback URL on {{.CallbackHost}} responded \"410 Gone\". New events are kept for up to 7 days. When the receiver is ready, turn delivery back on in **Integrations > Bot Accounts**.",
+    "description": "Direct message from the system bot to a bot's owner saying event delivery to the bot's callback URL was turned off because the URL answered with HTTP status 410 Gone. {{.BotUsername}} is the bot's username, {{.CallbackHost}} the host and port of the callback URL. 'Integrations > Bot Accounts' is a menu path; match the translated UI labels. Keep the Markdown ** markers."
+  },
+  {
+    "id": "app.bot_event_subscription.disabled_delivery_failures.dm",
+    "translation": "Event delivery for bot account @{{.BotUsername}} has been turned off because its callback URL on {{.CallbackHost}} has not accepted an event for more than 24 hours. New events are kept for up to 7 days. Fix the receiver, then turn delivery back on in **Integrations > Bot Accounts**. Delivery resumes from the first event that was not delivered.",
+    "description": "Direct message from the system bot to a bot's owner saying event delivery to the bot's callback URL was turned off after more than 24 hours of failures. {{.BotUsername}} is the bot's username, {{.CallbackHost}} the host and port of the callback URL. 'Integrations > Bot Accounts' is a menu path; match the translated UI labels. Keep the Markdown ** markers."
+  },
+  {
+    "id": "app.bot_event_subscription.get.app_error",
+    "translation": "Unable to get the bot event subscription.",
+    "description": "Server error when loading the event subscription of a bot fails; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
+  },
+  {
+    "id": "app.bot_event_subscription.not_found.app_error",
+    "translation": "The bot does not have an event subscription.",
+    "description": "API error when the event subscription of a bot is requested but none exists; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
+  },
+  {
+    "id": "app.bot_event_subscription.save.app_error",
+    "translation": "Unable to create the bot event subscription.",
+    "description": "Server error when creating the event subscription of a bot fails; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
+  },
+  {
+    "id": "app.bot_event_subscription.system_owned.app_error",
+    "translation": "System bots cannot have an event subscription.",
+    "description": "API error when an event subscription is requested for a system-owned bot such as the system bot; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
+  },
+  {
+    "id": "app.bot_event_subscription.update.app_error",
+    "translation": "Unable to update the bot event subscription.",
+    "description": "Server error when updating the event subscription of a bot fails; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
+  },
+  {
+    "id": "app.bot_event_subscription.url_verification.address_forbidden.app_error",
+    "translation": "The callback URL resolves to a restricted internal network address. A System Admin must add it to ServiceSettings.AllowedUntrustedInternalConnections before it can be used.",
+    "description": "API error when setting a bot's push callback URL that points to a restricted internal network address; ServiceSettings.AllowedUntrustedInternalConnections is a System Console configuration setting name and must not be translated."
+  },
+  {
+    "id": "app.bot_event_subscription.url_verification.bad_challenge.app_error",
+    "translation": "The callback URL did not return the verification challenge. Respond with JSON containing the same \"challenge\" value that was sent.",
+    "description": "API error when a bot's push callback URL does not echo back the verification challenge. 'challenge' is a JSON field name in the request and must not be translated."
+  },
+  {
+    "id": "app.bot_event_subscription.url_verification.bad_status.app_error",
+    "translation": "The callback URL responded with HTTP status {{.StatusCode}}. It must respond with a 2xx status.",
+    "description": "API error when a bot's push callback URL answers the verification request with a non-2xx HTTP status. {{.StatusCode}} is the numeric HTTP status code returned by that URL."
+  },
+  {
+    "id": "app.bot_event_subscription.url_verification.request_failed.app_error",
+    "translation": "Unable to connect to the callback URL, or it did not respond in time.",
+    "description": "API error when the server cannot reach a bot's push callback URL while verifying it; 'callback URL' is the address that receives the bot's events."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -16165,6 +16250,51 @@
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Invalid username.",
     "description": "API validation error when creating or updating a bot account whose username does not meet the username format rules."
+  },
+  {
+    "id": "model.bot_event_subscription.is_valid.bot_user_id.app_error",
+    "translation": "Invalid bot user id for the event subscription.",
+    "description": "Validation error when an event subscription has an invalid bot user id; 'bot' is a bot account and an event subscription is how it receives posts and reactions."
+  },
+  {
+    "id": "model.bot_event_subscription.is_valid.callback_url.app_error",
+    "translation": "Push delivery requires a valid http or https callback URL of at most 2048 characters.",
+    "description": "Validation error when a push event subscription has a missing, invalid or too long callback URL; the callback URL is where events are sent."
+  },
+  {
+    "id": "model.bot_event_subscription.is_valid.callback_url_pull.app_error",
+    "translation": "Pull delivery must not have a callback URL.",
+    "description": "Validation error when a pull event subscription also specifies a callback URL; pull means the bot fetches its events itself."
+  },
+  {
+    "id": "model.bot_event_subscription.is_valid.create_at.app_error",
+    "translation": "The event subscription must have a creation time.",
+    "description": "Validation error when an event subscription has no creation timestamp."
+  },
+  {
+    "id": "model.bot_event_subscription.is_valid.disabled_reason.app_error",
+    "translation": "The disabled reason of the event subscription is too long.",
+    "description": "Validation error when the reason an event subscription was disabled exceeds the maximum length."
+  },
+  {
+    "id": "model.bot_event_subscription.is_valid.mode.app_error",
+    "translation": "The event subscription mode must be push or pull.",
+    "description": "Validation error when an event subscription has an unknown delivery mode; push sends events to a callback URL and pull lets the bot fetch them."
+  },
+  {
+    "id": "model.bot_event_subscription.is_valid.mode_required.app_error",
+    "translation": "The event subscription mode is required.",
+    "description": "Validation error when creating an event subscription without a delivery mode; push sends events to a callback URL and pull lets the bot fetch them."
+  },
+  {
+    "id": "model.bot_event_subscription.is_valid.secret.app_error",
+    "translation": "The event subscription secret is invalid.",
+    "description": "Validation error when the secret of an event subscription does not have the required length; the secret is used to verify that events come from the server."
+  },
+  {
+    "id": "model.bot_event_subscription.is_valid.update_at.app_error",
+    "translation": "The event subscription must have an update time.",
+    "description": "Validation error when an event subscription has no update timestamp."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",

@@ -241,6 +241,10 @@ func (c *Client4) botRoute(botUserId string) clientRoute {
 	return c.botsRoute().Join(botUserId)
 }
 
+func (c *Client4) botEventSubscriptionRoute(botUserId string) clientRoute {
+	return c.botRoute(botUserId).Join("event_subscription")
+}
+
 func (c *Client4) teamsRoute() clientRoute {
 	return newClientRoute("teams")
 }
@@ -2239,6 +2243,100 @@ func (c *Client4) AssignBot(ctx context.Context, botUserId, newOwnerId string) (
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*Bot](r)
+}
+
+// UpsertBotEventSubscription creates or updates the bot's event subscription. A create
+// responds with 201 and includes the secret; an update responds with 200 and omits it.
+func (c *Client4) UpsertBotEventSubscription(ctx context.Context, botUserId string, patch *BotEventSubscriptionPatch) (*BotEventSubscription, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.botEventSubscriptionRoute(botUserId), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*BotEventSubscription](r)
+}
+
+// GetBotEventSubscription fetches the bot's event subscription, including its backlog size.
+func (c *Client4) GetBotEventSubscription(ctx context.Context, botUserId string) (*BotEventSubscription, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.botEventSubscriptionRoute(botUserId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*BotEventSubscription](r)
+}
+
+// DeleteBotEventSubscription deletes the bot's event subscription and its pending events.
+func (c *Client4) DeleteBotEventSubscription(ctx context.Context, botUserId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.botEventSubscriptionRoute(botUserId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// RegenerateBotEventSubscriptionSecret replaces the subscription secret and returns the new one.
+func (c *Client4) RegenerateBotEventSubscriptionSecret(ctx context.Context, botUserId string) (*BotEventSubscription, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.botEventSubscriptionRoute(botUserId).Join("regenerate_secret"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*BotEventSubscription](r)
+}
+
+// EnableBotEventSubscription re-enables a disabled event subscription.
+func (c *Client4) EnableBotEventSubscription(ctx context.Context, botUserId string) (*BotEventSubscription, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.botEventSubscriptionRoute(botUserId).Join("enable"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*BotEventSubscription](r)
+}
+
+// GetBotEvents pulls the bot's pending events. A non-empty cursor acknowledges every event
+// up to it. Empty cursor and zero limit or waitSeconds are omitted from the request.
+func (c *Client4) GetBotEvents(ctx context.Context, botUserId, cursor string, limit, waitSeconds int) (*BotEventList, *Response, error) {
+	query := url.Values{}
+	if cursor != "" {
+		query.Set("cursor", cursor)
+	}
+	if limit > 0 {
+		query.Set("limit", strconv.Itoa(limit))
+	}
+	if waitSeconds > 0 {
+		query.Set("wait", strconv.Itoa(waitSeconds))
+	}
+
+	r, err := c.doAPIGetWithQuery(ctx, c.botRoute(botUserId).Join("events"), query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*BotEventList](r)
+}
+
+// CreateBotWithEventSubscription creates a bot together with its event subscription. The
+// response carries the subscription secret, which is not retrievable afterwards.
+func (c *Client4) CreateBotWithEventSubscription(ctx context.Context, patch *BotPatchWithEventSubscription) (*BotWithEventSubscription, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.botsRoute(), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	// BotWithEventSubscription only marshals; the bot fields are flat next to event_subscription.
+	type botWithSubscription struct {
+		Bot
+		EventSubscription *BotEventSubscription `json:"event_subscription"`
+	}
+	decoded, resp, err := DecodeJSONFromResponse[*botWithSubscription](r)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &BotWithEventSubscription{Bot: &decoded.Bot, EventSubscription: decoded.EventSubscription}, resp, nil
 }
 
 // Team Section

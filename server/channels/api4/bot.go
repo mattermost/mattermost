@@ -24,7 +24,7 @@ func (api *API) InitBot() {
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	var botPatch *model.BotPatch
+	var botPatch *model.BotPatchWithEventSubscription
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
 	if err != nil || botPatch == nil {
 		c.SetInvalidParamWithErr("bot", err)
@@ -34,11 +34,14 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	bot := &model.Bot{
 		OwnerId: c.AppContext.Session().UserId,
 	}
-	bot.Patch(botPatch)
+	bot.Patch(&botPatch.BotPatch)
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateBot, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "bot", bot)
+	if botPatch.EventSubscription != nil {
+		model.AddEventParameterAuditableToAuditRec(auditRec, "event_subscription", botPatch.EventSubscription)
+	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateBot) {
 		c.SetPermissionError(model.PermissionCreateBot)
@@ -57,6 +60,11 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if botPatch.EventSubscription != nil {
+		createBotWithEventSubscription(c, w, bot, botPatch.EventSubscription, auditRec)
+		return
+	}
+
 	createdBot, appErr := c.App.CreateBot(c.AppContext, bot)
 	if appErr != nil {
 		c.Err = appErr
@@ -69,6 +77,32 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdBot); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// createBotWithEventSubscription creates a bot and its event subscription. The
+// creator becomes the owner, so this mirrors the owner branch of
+// SessionHasPermissionToManageBot, and OAuth sessions are rejected because the
+// response carries the subscription secret.
+func createBotWithEventSubscription(c *Context, w http.ResponseWriter, bot *model.Bot, patch *model.BotEventSubscriptionPatch, auditRec *model.AuditRecord) {
+	if c.AppContext.Session().IsOAuth || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageBots) {
+		c.SetPermissionError(model.PermissionManageBots)
+		return
+	}
+
+	createdBot, sub, appErr := c.App.CreateBotWithEventSubscription(c.AppContext, bot, patch)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventObjectType("bot")
+	auditRec.AddEventResultState(createdBot)
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(&model.BotWithEventSubscription{Bot: createdBot, EventSubscription: sub}); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

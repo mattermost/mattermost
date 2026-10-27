@@ -120,6 +120,46 @@ func (_m *Store) Bot() store.BotStore {
 	return r0
 }
 
+// BotEvent provides a mock function with no fields
+func (_m *Store) BotEvent() store.BotEventStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for BotEvent")
+	}
+
+	var r0 store.BotEventStore
+	if rf, ok := ret.Get(0).(func() store.BotEventStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.BotEventStore)
+		}
+	}
+
+	return r0
+}
+
+// BotEventSubscription provides a mock function with no fields
+func (_m *Store) BotEventSubscription() store.BotEventSubscriptionStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for BotEventSubscription")
+	}
+
+	var r0 store.BotEventSubscriptionStore
+	if rf, ok := ret.Get(0).(func() store.BotEventSubscriptionStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.BotEventSubscriptionStore)
+		}
+	}
+
+	return r0
+}
+
 // Channel provides a mock function with no fields
 func (_m *Store) Channel() store.ChannelStore {
 	ret := _m.Called()

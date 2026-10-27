@@ -150,4 +150,9 @@ type MetricsInterface interface {
 	ObserveAutoTranslateWorkerTaskDuration(elapsed float64)
 	AddAutoTranslateRecoveryStuckFound(count float64)
 	IncrementAutoTranslateNormHash(result string)
+
+	// Bot event subscription metrics
+	IncrementBotEventsEnqueued(eventType string)
+	AddBotEventsDelivered(mode string, count int)
+	IncrementBotEventsDeliveryFailures(reason string)
 }

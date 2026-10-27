@@ -2279,6 +2279,9 @@ func (a *App) permanentDeleteUserData(rctx request.CTX, userID string) error {
 	if err := ss.Audit().PermanentDeleteByUser(userID); err != nil {
 		return err
 	}
+	if err := ss.BotEventSubscription().Delete(rctx, userID); err != nil {
+		return err
+	}
 	if err := ss.Bot().PermanentDelete(userID); err != nil {
 		return err
 	}
@@ -3051,6 +3054,11 @@ func (a *App) ConvertBotToUser(rctx request.CTX, bot *model.Bot, userPatch *mode
 	appErr := a.Srv().Store().Bot().PermanentDelete(bot.UserId)
 	if appErr != nil {
 		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	// The conversion has already committed, so a failure here must not fail it.
+	if err := a.Srv().Store().BotEventSubscription().Delete(rctx, bot.UserId); err != nil {
+		rctx.Logger().Warn("Failed to delete bot event subscription of converted bot", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
 	}
 
 	return user, nil

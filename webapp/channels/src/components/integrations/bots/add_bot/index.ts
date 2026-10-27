@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {createBot, patchBot} from 'mattermost-redux/actions/bots';
+import {createBot, createBotWithEventSubscription, deleteBotEventSubscription, getBotEventSubscription, patchBot, upsertBotEventSubscription} from 'mattermost-redux/actions/bots';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {updateUserRoles, uploadProfileImage, setDefaultProfileImage, createUserAccessToken, getCustomProfileAttributeValues, updateUserCustomProfileAttributeValues} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
@@ -46,6 +46,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         manageBots: haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS}),
         manageOthersBots: haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}),
     });
+    const eventDeliveryEnabled = bot ? true : haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS});
     return {
         maxFileSize: parseInt(config.MaxFileSize!, 10),
         maxLifetimeDays: Number.isFinite(maxLifetimeDays) ? maxLifetimeDays : 0,
@@ -54,6 +55,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         editingUserHasManageSystem: haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}),
         user,
         attributesEnabled,
+        eventDeliveryEnabled,
         attributeFields: attributesEnabled ? getCustomProfileAttributes(state) : EMPTY_FIELDS,
         canManageRoles: haveISystemPermission(state, {permission: Permissions.MANAGE_ROLES}),
     };
@@ -63,6 +65,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             createBot,
+            createBotWithEventSubscription,
             patchBot,
             uploadProfileImage,
             setDefaultProfileImage,
@@ -71,6 +74,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getCustomProfileAttributeFields,
             getCustomProfileAttributeValues,
             updateUserCustomProfileAttributeValues,
+            getBotEventSubscription,
+            upsertBotEventSubscription,
+            deleteBotEventSubscription,
         }, dispatch),
     };
 }

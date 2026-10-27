@@ -196,12 +196,15 @@ export function getBotCreateRedirectUrl(
     botUserId: string,
     token: string | undefined,
     warnings: Omit<BotCreateWarnings, 'tokenFailed'>,
+    secret?: string,
 ): string {
     const serialized = serializeBotCreateWarnings({...warnings, tokenFailed: !token});
     const param = serialized ? `${BOT_CREATE_WARNINGS_PARAM}=${serialized}` : '';
 
-    if (!token) {
+    if (!token && !secret) {
         return `/${teamName}/integrations/bots${param ? `?${param}` : ''}`;
     }
-    return `/${teamName}/integrations/confirm?type=bots&id=${botUserId}&token=${token}${param ? `&${param}` : ''}`;
+    const tokenParam = token ? `&token=${token}` : '';
+    const secretParam = secret ? `&secret=${encodeURIComponent(secret)}` : '';
+    return `/${teamName}/integrations/confirm?type=bots&id=${botUserId}${tokenParam}${secretParam}${param ? `&${param}` : ''}`;
 }

@@ -510,6 +510,10 @@ func (a *App) PermanentDeleteBot(rctx request.CTX, botUserId string) *model.AppE
 		return model.NewAppError("PermanentDeleteBot", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if err := a.Srv().Store().BotEventSubscription().Delete(rctx, botUserId); err != nil {
+		return model.NewAppError("PermanentDeleteBot", "app.bot_event_subscription.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	// Sessions are cached in memory by token, so clearing the cache is required
 	// to stop the deleted bot's access tokens from continuing to authenticate.
 	a.ClearSessionCacheForUser(botUserId)

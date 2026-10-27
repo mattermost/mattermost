@@ -46,6 +46,7 @@ const (
 	MetricsSubsystemClientsDesktopApp  = "desktopapp"
 	MetricsSubsystemAccessControl      = "access_control"
 	MetricsSubsystemAutoTranslation    = "autotranslation"
+	MetricsSubsystemBotEvents          = "bot_events"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -255,6 +256,10 @@ type MetricsInterfaceImpl struct {
 	AutoTranslateWorkerTaskDuration      prometheus.Histogram
 	AutoTranslateRecoveryStuckFound      prometheus.Counter
 	AutoTranslateNormHashCounter         *prometheus.CounterVec
+
+	BotEventsEnqueuedCounter        *prometheus.CounterVec
+	BotEventsDeliveredCounter       *prometheus.CounterVec
+	BotEventsDeliveryFailureCounter *prometheus.CounterVec
 }
 
 func init() {
@@ -560,6 +565,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventPluginEvent,
 		model.ClusterEventInvalidateCacheForTermsOfService,
 		model.ClusterEventBusyStateChanged,
+		model.ClusterEventBotEventsAvailable,
 	} {
 		m.ClusterEventMap[event] = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(event)})
 	}
@@ -1745,6 +1751,42 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.AutoTranslateNormHashCounter)
 
+	m.BotEventsEnqueuedCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemBotEvents,
+			Name:        "enqueued_total",
+			Help:        "Bot events written to the outbox.",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"type"},
+	)
+	m.Registry.MustRegister(m.BotEventsEnqueuedCounter)
+
+	m.BotEventsDeliveredCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemBotEvents,
+			Name:        "delivered_total",
+			Help:        "Bot events delivered (push: acknowledged with 2xx; pull: returned to the client).",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"mode"},
+	)
+	m.Registry.MustRegister(m.BotEventsDeliveredCounter)
+
+	m.BotEventsDeliveryFailureCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemBotEvents,
+			Name:        "delivery_failures_total",
+			Help:        "Failed push delivery attempts.",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"reason"},
+	)
+	m.Registry.MustRegister(m.BotEventsDeliveryFailureCounter)
+
 	return m
 }
 
@@ -2407,6 +2449,18 @@ func (mi *MetricsInterfaceImpl) AddAutoTranslateRecoveryStuckFound(count float64
 
 func (mi *MetricsInterfaceImpl) IncrementAutoTranslateNormHash(result string) {
 	mi.AutoTranslateNormHashCounter.With(prometheus.Labels{"result": result}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementBotEventsEnqueued(eventType string) {
+	mi.BotEventsEnqueuedCounter.With(prometheus.Labels{"type": eventType}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) AddBotEventsDelivered(mode string, count int) {
+	mi.BotEventsDeliveredCounter.With(prometheus.Labels{"mode": mode}).Add(float64(count))
+}
+
+func (mi *MetricsInterfaceImpl) IncrementBotEventsDeliveryFailures(reason string) {
+	mi.BotEventsDeliveryFailureCounter.With(prometheus.Labels{"reason": reason}).Inc()
 }
 
 func (mi *MetricsInterfaceImpl) ClearMobileClientSessionMetadata() {

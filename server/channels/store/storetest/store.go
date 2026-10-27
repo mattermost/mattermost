@@ -82,6 +82,8 @@ type Store struct {
 	ViewStore                       mocks.ViewStore
 	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
 	HealthFindingStore              mocks.HealthFindingStore
+	BotEventStore                   mocks.BotEventStore
+	BotEventSubscriptionStore       mocks.BotEventSubscriptionStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -203,6 +205,12 @@ func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
 func (s *Store) HealthFinding() store.HealthFindingStore {
 	return &s.HealthFindingStore
 }
+func (s *Store) BotEvent() store.BotEventStore {
+	return &s.BotEventStore
+}
+func (s *Store) BotEventSubscription() store.BotEventSubscriptionStore {
+	return &s.BotEventSubscriptionStore
+}
 func (s *Store) View() store.ViewStore {
 	return &s.ViewStore
 }
@@ -272,5 +280,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ViewStore,
 		&s.ChannelJoinRequestStore,
 		&s.HealthFindingStore,
+		&s.BotEventStore,
+		&s.BotEventSubscriptionStore,
 	)
 }

@@ -148,4 +148,33 @@ describe('Actions.Bots', () => {
         const state = store.getState();
         expect(0).toEqual(Object.keys(state.entities.bots.accounts).length);
     });
+
+    describe('event subscriptions', () => {
+        const subscription = {bot_user_id: 'bot1', mode: 'push', callback_url: 'https://example.com/hook', secret: 's3cret', ignore_bot_authors: true, enabled: true, disabled_reason: '', last_delivered_at: 0};
+
+        it('createBotWithEventSubscription keeps the subscription and secret out of the store', async () => {
+            const bot = TestHelper.fakeBot();
+            nock(Client4.getBaseRoute()).
+                post('/bots').
+                reply(201, {...bot, event_subscription: subscription});
+
+            const result = await store.dispatch(BotActions.createBotWithEventSubscription(bot, {mode: 'push', callback_url: subscription.callback_url}));
+
+            expect(result.data?.eventSubscription.secret).toBe('s3cret');
+            const stored = store.getState().entities.bots.accounts[bot.user_id];
+            expect(stored.username).toBe(bot.username);
+            expect(JSON.stringify(store.getState())).not.toContain('s3cret');
+        });
+
+        it.each([403, 404])('getBotEventSubscription returns null data on %i', async (status) => {
+            nock(Client4.getBotRoute('bot1')).
+                get('/event_subscription').
+                reply(status, {message: 'nope', status_code: status});
+
+            const result = await store.dispatch(BotActions.getBotEventSubscription('bot1'));
+
+            expect(result).toEqual({data: null});
+            expect(store.getState().errors).toEqual([]);
+        });
+    });
 });

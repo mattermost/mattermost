@@ -3,11 +3,14 @@
 
 import {TestHelper} from 'utils/test_helper';
 
+import {eventDeliveryState, planEventDeliveryChange} from './bot_event_delivery';
+import type {EventDeliveryState} from './bot_event_delivery';
 import {botSaveMessages, loadBotAttributeValues, saveBotCreate, saveBotEdit, validateBotForm} from './bot_save_flow';
 import type {BotSaveActions} from './bot_save_flow';
 
 const buildActions = (overrides: Partial<BotSaveActions> = {}): BotSaveActions => ({
     createBot: jest.fn().mockResolvedValue({data: TestHelper.getBotMock({user_id: 'bot-user-id'})}),
+    createBotWithEventSubscription: jest.fn().mockResolvedValue({data: {bot: TestHelper.getBotMock({user_id: 'bot-user-id'}), eventSubscription: {mode: 'push', secret: 'whsec'}}}),
     patchBot: jest.fn().mockResolvedValue({data: TestHelper.getBotMock({user_id: 'bot-user-id'})}),
     uploadProfileImage: jest.fn().mockResolvedValue({data: true}),
     setDefaultProfileImage: jest.fn().mockResolvedValue({data: true}),
@@ -16,6 +19,9 @@ const buildActions = (overrides: Partial<BotSaveActions> = {}): BotSaveActions =
     getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: []}),
     getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
     updateUserCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
+    getBotEventSubscription: jest.fn().mockResolvedValue({data: null}),
+    upsertBotEventSubscription: jest.fn().mockResolvedValue({data: {mode: 'push', secret: 'whsec'}}),
+    deleteBotEventSubscription: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
     ...overrides,
 });
 
@@ -80,6 +86,7 @@ describe('bot_save_flow', () => {
             pictureFile: null,
             roleUpdate: {currentRoles: 'system_user', choice: MEMBER},
             attributeChanges: {},
+            eventDelivery: {kind: 'none'} as const,
         };
 
         test('an image failure is reported with context and later steps still run', async () => {
@@ -132,6 +139,59 @@ describe('bot_save_flow', () => {
         });
     });
 
+    describe('saveBotEdit event delivery', () => {
+        const base = {
+            botUserId: 'bot-user-id',
+            patch: {username: 'testbot'},
+            pictureFile: null,
+            attributeChanges: {},
+        };
+        const patch = {mode: 'push' as const, callback_url: 'https://example.com/hook', ignore_bot_authors: true};
+
+        test('an upsert returns the secret only for push', async () => {
+            const upsertReturning = (data: object) => buildActions({upsertBotEventSubscription: jest.fn().mockResolvedValue({data})});
+
+            const push = await saveBotEdit(buildActions(), {...base, eventDelivery: {kind: 'upsert', patch}});
+            const pushWithoutSecret = await saveBotEdit(upsertReturning({mode: 'push'}), {...base, eventDelivery: {kind: 'upsert', patch}});
+            const pull = await saveBotEdit(upsertReturning({mode: 'pull', secret: 'whsec'}), {...base, eventDelivery: {kind: 'upsert', patch: {...patch, mode: 'pull'}}});
+
+            expect(push).toMatchObject({ok: true, failures: [], eventSecret: 'whsec'});
+            expect(pushWithoutSecret).toMatchObject({ok: true, failures: []});
+            expect(pull).toMatchObject({ok: true, failures: []});
+            expect('eventSecret' in pushWithoutSecret && pushWithoutSecret.eventSecret).toBeFalsy();
+            expect('eventSecret' in pull && pull.eventSecret).toBeFalsy();
+        });
+
+        test('a saved change is returned so the form can adopt it', async () => {
+            const actions = buildActions();
+
+            const deleted = await saveBotEdit(actions, {...base, eventDelivery: {kind: 'delete'}});
+            const upserted = await saveBotEdit(actions, {...base, eventDelivery: {kind: 'upsert', patch}});
+
+            expect(deleted).toMatchObject({savedSubscription: null});
+            expect(upserted).toMatchObject({savedSubscription: {secret: undefined}});
+        });
+    });
+
+    describe('planEventDeliveryChange', () => {
+        const existing = {bot_user_id: 'bot-user-id', mode: 'push' as const, callback_url: 'https://example.com/hook', ignore_bot_authors: true, enabled: true, disabled_reason: '' as const, last_delivered_at: 0};
+        const pushState = eventDeliveryState(existing);
+
+        test.each<[string, EventDeliveryState, unknown]>([
+            ['not ready', {...pushState, loaded: false}, {kind: 'none'}],
+            ['none without a subscription', eventDeliveryState(null), {kind: 'none'}],
+            ['none with a subscription', {...pushState, mode: 'none'}, {kind: 'delete'}],
+            ['unchanged', pushState, {kind: 'none'}],
+            ['URL (trimmed) unchanged', {...pushState, callbackUrl: ` ${existing.callback_url} `}, {kind: 'none'}],
+            ['URL change', {...pushState, callbackUrl: 'https://example.com/other'}, {kind: 'upsert', patch: {mode: 'push', callback_url: 'https://example.com/other', ignore_bot_authors: true}}],
+            ['ignore flag change', {...pushState, ignoreBotAuthors: false}, {kind: 'upsert', patch: {mode: 'push', callback_url: existing.callback_url, ignore_bot_authors: false}}],
+            ['push to pull omits the URL', {...pushState, mode: 'pull'}, {kind: 'upsert', patch: {mode: 'pull', ignore_bot_authors: true}}],
+            ['new push subscription', {...eventDeliveryState(null), mode: 'push', callbackUrl: 'https://example.com/new'}, {kind: 'upsert', patch: {mode: 'push', callback_url: 'https://example.com/new', ignore_bot_authors: true}}],
+        ])('%s', (_name, state, expected) => {
+            expect(planEventDeliveryChange(state)).toEqual(expected);
+        });
+    });
+
     describe('saveBotCreate', () => {
         const base = {
             bot: {username: 'testbot'},
@@ -179,6 +239,13 @@ describe('bot_save_flow', () => {
             const result = await saveBotCreate(actions, {...base, roleUpdate: {currentRoles: 'system_user', choice: ADMIN}, attributeChanges: {dept: 'Eng'}});
 
             expect(result).toEqual({ok: true, redirectUrl: `${CONFIRM_URL}&bot_warnings=roles,attributes`});
+        });
+
+        test('a subscription failure stops immediately', async () => {
+            const actions = buildActions({createBotWithEventSubscription: jest.fn().mockResolvedValue({error: {message: 'Bad URL'}})});
+
+            await expect(saveBotCreate(actions, {...base, eventSubscription: {mode: 'pull'}})).resolves.toEqual({ok: false, error: 'Bad URL'});
+            expect(actions.createUserAccessToken).not.toHaveBeenCalled();
         });
 
         test('a create failure stops immediately', async () => {

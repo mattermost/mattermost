@@ -35,6 +35,8 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as Utils from 'utils/utils';
 
+import BotEventSubscriptionStatus from './bot_event_subscription_status';
+
 const copyTokenMessage = defineMessage({id: 'integrations.copy_token', defaultMessage: 'Copy Token'});
 
 export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile): boolean {
@@ -821,6 +823,7 @@ export default class Bot extends React.PureComponent<Props, State> {
         const regenerateToken = this.props.accessTokens[this.state.regeneratingTokenId];
         const regenerateExpiryError = this.getExpiryValidationError(this.state.regenerateExpiryPreset, this.state.regenerateCustomExpiryDate);
         const imageURL = Utils.imageURLForUser(this.props.user.id, this.props.user.last_picture_update);
+        const showEventDelivery = ownerUsername !== 'plugin' && !isProtectedBot && this.props.bot.delete_at === 0;
 
         return (
             <div className='backstage-list__item'>
@@ -844,6 +847,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                     <div className='light small'>
                         {managedBy}
                     </div>
+                    {showEventDelivery && <BotEventSubscriptionStatus botUserId={this.props.bot.user_id}/>}
                     {this.state.serverError && (
                         <div className='has-error mt-2'>
                             {this.state.serverError}

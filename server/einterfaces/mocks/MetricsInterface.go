@@ -22,6 +22,11 @@ func (_m *MetricsInterface) AddAutoTranslateRecoveryStuckFound(count float64) {
 	_m.Called(count)
 }
 
+// AddBotEventsDelivered provides a mock function with given fields: mode, count
+func (_m *MetricsInterface) AddBotEventsDelivered(mode string, count int) {
+	_m.Called(mode, count)
+}
+
 // AddMemCacheHitCounter provides a mock function with given fields: cacheName, amount
 func (_m *MetricsInterface) AddMemCacheHitCounter(cacheName string, amount float64) {
 	_m.Called(cacheName, amount)
@@ -85,6 +90,16 @@ func (_m *MetricsInterface) IncrementAccessControlCacheInvalidation() {
 // IncrementAutoTranslateNormHash provides a mock function with given fields: result
 func (_m *MetricsInterface) IncrementAutoTranslateNormHash(result string) {
 	_m.Called(result)
+}
+
+// IncrementBotEventsDeliveryFailures provides a mock function with given fields: reason
+func (_m *MetricsInterface) IncrementBotEventsDeliveryFailures(reason string) {
+	_m.Called(reason)
+}
+
+// IncrementBotEventsEnqueued provides a mock function with given fields: eventType
+func (_m *MetricsInterface) IncrementBotEventsEnqueued(eventType string) {
+	_m.Called(eventType)
 }
 
 // IncrementChannelIndexCounter provides a mock function with no fields
