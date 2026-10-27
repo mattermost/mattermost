@@ -7,9 +7,9 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
-import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {useFocusTrap} from '../hooks/useFocusTrap';
@@ -33,7 +33,14 @@ export type Props = {
     handleEnterKeyPress?: () => void;
     handleKeydown?: (event?: React.KeyboardEvent<HTMLDivElement>) => void;
     confirmButtonText?: React.ReactNode;
-    confirmButtonVariant?: ButtonVariant;
+    isConfirmLoading?: boolean;
+    destructive?: boolean;
+
+    /**
+     * @deprecated Use `destructive` instead. Kept temporarily for out-of-repo consumers
+     * of `@mattermost/components` that still pass the pre-Compass prop name.
+     */
+    confirmButtonVariant?: 'primary' | 'secondary' | 'tertiary' | 'destructive' | string;
     cancelButtonText?: React.ReactNode;
     isConfirmDisabled?: boolean;
     id?: string;
@@ -119,6 +126,8 @@ export const GenericModal: React.FC<Props> = ({
     handleEnterKeyPress,
     handleKeydown,
     confirmButtonText,
+    isConfirmLoading,
+    destructive,
     confirmButtonVariant,
     cancelButtonText,
     isConfirmDisabled,
@@ -208,7 +217,8 @@ export const GenericModal: React.FC<Props> = ({
     // Build confirm button if provided.
     let confirmButtonElement;
     if (handleConfirm) {
-        const buttonTypeClass = confirmButtonVariant === 'destructive' ? 'delete' : 'confirm';
+        const isDestructive = destructive ?? confirmButtonVariant === 'destructive';
+        const buttonTypeClass = isDestructive ? 'delete' : 'confirm';
         let confirmButtonTextContent: React.ReactNode = (
             <FormattedMessage
                 id='generic_modal.confirm'
@@ -223,12 +233,13 @@ export const GenericModal: React.FC<Props> = ({
                 autoFocus={autoFocusConfirmButton}
                 type='submit'
                 emphasis='primary'
-                variant={confirmButtonVariant}
+                destructive={isDestructive}
                 className={classNames('GenericModal__button', buttonTypeClass, {
                     disabled: isConfirmDisabled,
                 })}
                 onClick={handleConfirmCallback}
                 disabled={isConfirmDisabled}
+                loading={isConfirmLoading}
             >
                 {confirmButtonTextContent}
             </Button>

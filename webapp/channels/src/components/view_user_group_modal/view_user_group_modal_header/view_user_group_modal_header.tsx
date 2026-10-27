@@ -10,9 +10,9 @@ import {
     ArrowLeftIcon,
     CloseIcon,
 } from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {Group} from '@mattermost/types/groups';
@@ -146,8 +146,9 @@ const ViewUserGroupModalHeader = ({
         if (permissionToJoinGroup) {
             return (
                 <Button
-                    emphasis='secondary'
-                    size='sm'
+                    emphasis='tertiary'
+                    size='small'
+                    className='mr-2'
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage
@@ -164,8 +165,8 @@ const ViewUserGroupModalHeader = ({
         if (permissionToRestoreGroup) {
             return (
                 <Button
-                    emphasis='secondary'
-                    size='sm'
+                    emphasis='tertiary'
+                    size='small'
                     onClick={restoreGroup}
                 >
                     <FormattedMessage

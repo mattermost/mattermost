@@ -4,6 +4,9 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import ExternalLink from 'components/external_link';
@@ -317,28 +320,33 @@ export default function PlainLogList({
                     </button>
                 </WithTooltip>
                 <div className='PlainLogViewer__filters-spacer'/>
-                <button
-                    type='button'
-                    className='btn btn-sm btn-tertiary'
+                <Button
+                    emphasis='tertiary'
+                    size='medium'
                     onClick={onReload}
+                    leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
                 >
-                    <i className='icon icon-refresh'/>
                     <FormattedMessage
                         id='admin.logs.reload'
                         defaultMessage='Reload'
                     />
-                </button>
-                <ExternalLink
-                    location='download_plain_logs'
-                    className='btn btn-sm btn-primary'
-                    href={downloadUrl}
+                </Button>
+                <Button
+                    asChild={true}
+                    emphasis='primary'
+                    size='medium'
+                    leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
                 >
-                    <i className='icon icon-download-outline'/>
-                    <FormattedMessage
-                        id='admin.logs.download'
-                        defaultMessage='Download'
-                    />
-                </ExternalLink>
+                    <ExternalLink
+                        location='download_plain_logs'
+                        href={downloadUrl}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.download'
+                            defaultMessage='Download'
+                        />
+                    </ExternalLink>
+                </Button>
             </div>
 
             <div
@@ -463,9 +471,9 @@ export default function PlainLogList({
                             defaultMessage='Lines'
                         />
                     </button>
-                    <button
-                        type='button'
-                        className={`btn btn-sm ${wrapText ? 'btn-tertiary' : 'btn-quaternary'}`}
+                    <Button
+                        emphasis={wrapText ? 'tertiary' : 'quaternary'}
+                        size='small'
                         onClick={() => setWrapText(!wrapText)}
                         aria-pressed={wrapText}
                     >
@@ -473,7 +481,7 @@ export default function PlainLogList({
                             id='admin.logs.wrap'
                             defaultMessage='Wrap text'
                         />
-                    </button>
+                    </Button>
                     <button
                         type='button'
                         className='btn btn-sm btn-quaternary'

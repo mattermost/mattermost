@@ -9,12 +9,10 @@ import {
     AlertCircleOutlineIcon,
     CloseIcon,
 } from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './save_changes_panel.scss';
 
@@ -119,7 +117,7 @@ function SaveChangesPanel({
                 <Button
                     data-testid='SaveChangesPanel__cancel-btn'
                     emphasis='tertiary'
-                    size='sm'
+                    size='small'
                     className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleCancel}
                     disabled={saving}
@@ -134,19 +132,16 @@ function SaveChangesPanel({
                 <Button
                     data-testid='SaveChangesPanel__save-btn'
                     emphasis='primary'
-                    size='sm'
-                    className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error', 'btn-force-disabled': saving})}
+                    size='small'
+                    className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleSubmit}
                     disabled={saveButtonDisabled}
+                    loading={saving}
                 >
                     {saving ? (
-                        <LoadingSpinner
-                            text={
-                                <FormattedMessage
-                                    id='saveChangesPanel.saving'
-                                    defaultMessage='Saving...'
-                                />
-                            }
+                        <FormattedMessage
+                            id='saveChangesPanel.saving'
+                            defaultMessage='Saving...'
                         />
                     ) : (saveButtonText || (
                         <FormattedMessage

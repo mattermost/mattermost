@@ -86,9 +86,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Add policy
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Add policy
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -122,8 +127,10 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       id="loadingSpinner"
                     >
                       <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                     </span>
                     Loading
@@ -152,10 +159,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               disabled=""
+              type="button"
             >
-              Run Deletion Job Now
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Run Deletion Job Now
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -317,9 +329,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Add policy
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Add policy
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -353,8 +370,10 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       id="loadingSpinner"
                     >
                       <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                     </span>
                     Loading
@@ -463,9 +482,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Run Deletion Job Now
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Run Deletion Job Now
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -627,9 +651,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Add policy
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Add policy
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -663,8 +692,10 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       id="loadingSpinner"
                     >
                       <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                     </span>
                     Loading
@@ -773,9 +804,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Run Deletion Job Now
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Run Deletion Job Now
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -937,9 +973,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Add policy
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Add policy
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -973,8 +1014,10 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       id="loadingSpinner"
                     >
                       <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                     </span>
                     Loading
@@ -1003,9 +1046,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Run Deletion Job Now
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Run Deletion Job Now
+              </span>
             </button>
             <hr
               class="Card__hr"

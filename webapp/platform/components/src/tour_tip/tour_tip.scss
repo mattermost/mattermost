@@ -35,52 +35,6 @@ $z-index-tour-tips-backdrop: 1250;
         }
 
         .btn {
-            &.btn-primary {
-                background: var(--button-color);
-                color: var(--button-bg) !important;
-
-                &:hover:not(.disabled) {
-                    background:
-                        linear-gradient(
-                            0deg,
-                            rgba(var(--button-bg-rgb), 0.08) 0%,
-                            rgba(var(--button-bg-rgb), 0.08) 100%
-                        ),
-                        var(--button-color);
-                }
-
-                &:active {
-                    background:
-                        linear-gradient(
-                            0deg,
-                            rgba(var(--button-bg-rgb), 0.16) 0%,
-                            rgba(var(--button-bg-rgb), 0.16) 100%
-                        ),
-                        var(--button-color);
-                }
-
-                &:focus {
-                    box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-                }
-            }
-
-            &.btn-tertiary {
-                background: rgba(var(--button-color-rgb), 0.08);
-                color: var(--button-color);
-
-                &:hover {
-                    background: rgba(var(--button-color-rgb), 0.12);
-                }
-
-                &:active {
-                    background: rgba(var(--button-color-rgb), 0.16);
-                }
-
-                &:focus {
-                    box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-                }
-            }
-
             &.btn-icon {
                 margin-right: -8px;
                 margin-left: 1.2rem;
@@ -268,8 +222,41 @@ $z-index-tour-tips-backdrop: 1250;
 
     &__btn-ctr {
         display: flex;
+        align-items: center;
         flex-grow: 1;
         justify-content: flex-end;
+
+        // The 8px used to come from the global `.btn + .btn` rule in
+        // _buttons.scss, which the Compass buttons no longer match.
+        gap: 8px;
+
+        #tipNextButton {
+            --button-fg: var(--button-bg);
+
+            background-color: var(--button-color);
+
+            &:hover:not(:disabled) {
+                background-color: rgba(var(--button-color-rgb), 0.92);
+            }
+
+            &:active:not(:disabled) {
+                background-color: rgba(var(--button-color-rgb), 0.88);
+            }
+        }
+
+        #tipPreviousButton {
+            --button-fg: var(--button-color);
+
+            background-color: rgba(var(--button-color-rgb), 0.08);
+
+            &:hover:not(:disabled) {
+                background-color: rgba(var(--button-color-rgb), 0.12);
+            }
+
+            &:active:not(:disabled) {
+                background-color: rgba(var(--button-color-rgb), 0.16);
+            }
+        }
     }
 
     &__dot-ctr {
@@ -333,6 +320,15 @@ $z-index-tour-tips-backdrop: 1250;
         color: rgba(var(--button-color-rgb), 0.9);
         font-size: 12px;
         gap: 0.25em;
+
+        // Sits on the --button-bg tip box, so the link takes the brand
+        // foreground. This has to land on the button itself -- Compass declares
+        // --button-fg on the element, which beats any value inherited from a
+        // container -- and appearance='inverted' is no use here because it
+        // resolves to --sidebar-text, which is dark on Quartz.
+        .tour-tip__opt-out {
+            --button-fg: var(--button-color);
+        }
     }
 
     &__backdrop {

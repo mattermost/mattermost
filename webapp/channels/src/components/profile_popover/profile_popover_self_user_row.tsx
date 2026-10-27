@@ -8,9 +8,9 @@ import {useDispatch} from 'react-redux';
 import {
     SendIcon,
 } from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {openModal} from 'actions/views/modals';
@@ -62,7 +62,7 @@ const ProfilePopoverSelfUserRow = ({
             <Button
                 type='button'
                 emphasis='primary'
-                size='sm'
+                size='small'
                 onClick={handleEditAccountSettings}
             >
                 <i

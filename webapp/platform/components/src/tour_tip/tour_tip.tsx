@@ -18,9 +18,9 @@ import React, {useId, useRef, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {TourTipBackdrop} from './tour_tip_backdrop';
@@ -59,6 +59,10 @@ type Props = {
     tourSteps?: Record<string, number>;
     nextBtn?: JSX.Element;
     prevBtn?: JSX.Element;
+
+    // Compass icon slots. Keep these off the label so Button can size and align them.
+    nextTrailingIcon?: React.ReactNode;
+    prevLeadingIcon?: React.ReactNode;
     imageURL?: string;
     singleTip?: boolean;
     showOptOut?: boolean;
@@ -108,6 +112,8 @@ export const TourTip = ({
     pulsatingDotPlacement,
     nextBtn,
     prevBtn,
+    nextTrailingIcon,
+    prevLeadingIcon,
     className,
     offset: tipOffset = [-18, 4],
     placement = 'right-start',
@@ -225,7 +231,8 @@ export const TourTip = ({
                             <Button
                                 id='tipPreviousButton'
                                 emphasis='tertiary'
-                                size='sm'
+                                size='small'
+                                leadingIcon={prevLeadingIcon}
                                 onClick={handlePrevious}
                             >
                                 {prevBtn}
@@ -235,7 +242,8 @@ export const TourTip = ({
                             <Button
                                 id='tipNextButton'
                                 emphasis='primary'
-                                size='sm'
+                                size='small'
+                                trailingIcon={nextTrailingIcon}
                                 onClick={handleNext}
                             >
                                 {nextBtn}
@@ -250,9 +258,9 @@ export const TourTip = ({
                             defaultMessage='Seen this before? '
                         />
                         <Button
+                            className='tour-tip__opt-out'
                             emphasis='link'
-                            variant='inverted'
-                            size='xs'
+                            size='x-small'
                             onClick={handleSkip}
                         >
                             <FormattedMessage
