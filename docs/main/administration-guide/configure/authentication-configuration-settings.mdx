@@ -1024,11 +1024,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables sign-in with SAML. See <a href={useBaseUrl('/administration-guide/onboard/sso-saml')}>SAML Single Sign-On</a> to learn more. | - System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Disables sign-in with SAML. | - <code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>Enable</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_SAMLSETTINGS_ENABLE</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: Enables sign-in with SAML. See <a href={useBaseUrl('/administration-guide/onboard/sso-saml')}>SAML Single Sign-On</a> to learn more.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables sign-in with SAML.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SAMLSETTINGS_ENABLE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1361,11 +1363,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>(Optional) This setting determines the SAML Assertion attribute used to apply a Guest role to users in Mattermost. | - System Config path: <strong>Authentication &gt; SAML 2.0</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>GuestAttribute</code>|</div></dd><dt>See the <a href={useBaseUrl('/administration-guide/onboard/guest-accounts')}>Guest Accounts documentation</a> for more information. | - Environment variable: <code>MM_SAMLSETTINGS_GUESTATTRIBUTE</code></dt><dd><div class="line-block">                                                                |</div></dd></dl><p>String input. | |</p></td>
+<td><p>(Optional) This setting determines the SAML Assertion attribute used to apply a Guest role to users in Mattermost.</p><p>See the <a href={useBaseUrl('/administration-guide/onboard/guest-accounts')}>Guest Accounts documentation</a> for more information.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>GuestAttribute</code></li><li>Environment variable: <code>MM_SAMLSETTINGS_GUESTATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
