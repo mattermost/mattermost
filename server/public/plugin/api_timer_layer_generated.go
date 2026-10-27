@@ -853,6 +853,13 @@ func (api *apiTimerLayer) UpdatePost(post *model.Post) (*model.Post, *model.AppE
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePostWithOptions(post, options)
+	api.recordTime(startTime, "UpdatePostWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) DeliverPostNotifications(postID string, options *model.DeliverPostNotificationsOptions) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeliverPostNotifications(postID, options)

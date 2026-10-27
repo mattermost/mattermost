@@ -794,6 +794,21 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
+	// UpdatePostWithOptions updates a post using the supplied options.
+	// UpdatePost is the same edit with SafeUpdate false, no file creator, and
+	// AllowMmBlocksActionsUpdate set only when the post carries a valid
+	// mm_blocks_actions value. This method uses the options as given.
+	// FileCreatorID selects newly added files: a file attaches when its
+	// creator is that id, or when it was uploaded with UploadFile (creator
+	// "nouser"). A file that cannot be attached is omitted and the rest of
+	// the edit is saved. Nil options match the zero value. The plugin
+	// authorizes the edit. Permissions, hooks, and the returned post match
+	// UpdatePost: no session is created.
+	//
+	// @tag Post
+	// Minimum server version: 12.1
+	UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError)
+
 	// DeliverPostNotifications runs the notification pipeline for a post after it was created,
 	// typically once its final content is in place.
 	//

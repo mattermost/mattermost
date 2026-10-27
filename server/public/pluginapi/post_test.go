@@ -116,6 +116,44 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
+func TestUpdatePostWithOptions(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		now := model.GetMillis()
+		options := &model.UpdatePostOptions{FileCreatorID: "userID"}
+		in := &model.Post{
+			Id: "postID",
+		}
+		out := in.Clone()
+		out.UpdateAt = now
+		api.On("UpdatePostWithOptions", in, options).Return(out, nil)
+
+		err := client.Post.UpdatePostWithOptions(in, options)
+		require.NoError(t, err)
+		require.Equal(t, out, in)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		options := &model.UpdatePostOptions{FileCreatorID: "userID"}
+		in := &model.Post{
+			Id: "postID",
+		}
+		out := in.Clone()
+		api.On("UpdatePostWithOptions", in, options).Return(nil, newAppError())
+
+		err := client.Post.UpdatePostWithOptions(in, options)
+		require.EqualError(t, err, "here: id, an error occurred")
+		assert.Equal(t, out, in)
+	})
+}
+
 func TestDeliverPostNotifications(t *testing.T) {
 	scoped := &model.DeliverPostNotificationsOptions{UserIDs: []string{"userID"}}
 

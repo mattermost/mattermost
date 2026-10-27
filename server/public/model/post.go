@@ -1587,15 +1587,23 @@ func (o *Post) CleanPost() *Post {
 }
 
 type UpdatePostOptions struct {
-	SafeUpdate    bool
+	// SafeUpdate limits the edit to the message. The stored pin, reactions,
+	// props, and file ids are left unchanged. When false, those fields are
+	// taken from the incoming post, then adjusted by the rules below.
+	SafeUpdate bool
+
+	// IsRestorePost puts back files that an earlier edit removed from this
+	// post. Those file rows are soft-deleted, so the normal upload lookup
+	// would not find them. RestorePostVersion sets this. It does not attach
+	// a file that was never on the post.
 	IsRestorePost bool
 
 	// AllowMmBlocksActionsUpdate grants the caller permission to add,
 	// remove, or modify the mm_blocks_actions prop. Without it,
 	// non-integration sessions cannot change mm_blocks_actions and the
-	// prop is reset to its prior value. Set only from trusted paths (e.g.
-	// the post-action integration response handler which has already
-	// validated the incoming value).
+	// prop is reset to its prior value. Set from trusted paths: the
+	// post-action integration response handler, which has already validated
+	// the incoming value, and PluginAPI.UpdatePostWithOptions.
 	AllowMmBlocksActionsUpdate bool
 
 	// AllowIdentityPropsUpdate grants the caller permission to change the
@@ -1604,9 +1612,9 @@ type UpdatePostOptions struct {
 	// UpdatePost restores those props from the prior post — so a regular
 	// user editing a bot's post cannot strip or replace the bot's identity,
 	// but it also blocks the bot from updating its own identity. Shared
-	// Channels federation receive (the only production caller) sets this
-	// to true, paired with a genuine RemoteId, to forward the remote's new
-	// override values into the saved post. SanitizeProps still strips the
+	// Channels federation receive sets this to true, paired with a genuine
+	// RemoteId, to forward the remote's new override values into the saved
+	// post. SanitizeProps still strips the
 	// props on the incoming payload for a non-federated post — UpdatePost
 	// captures the values BEFORE that strip and re-applies them after
 	// PreserveIdentityPropsFrom when this flag is set.
@@ -1615,18 +1623,39 @@ type UpdatePostOptions struct {
 	// supplied" and the prior post's value is preserved. This means a
 	// hypothetical non-federated opted-in caller cannot CLEAR an override
 	// via UpdatePost this way — only set it to a new non-empty value.
-	// The one real caller (federation receive) is not subject to this
-	// limitation: for a federated post, SanitizeProps leaves the remote's
+	// Federation receive is not subject to this limitation: for a federated
+	// post, SanitizeProps leaves the remote's
 	// complete prop set untouched (including a prop's absence), so a
 	// remote genuinely clearing an override propagates via the payload
 	// itself, not through this empty-string mechanism.
 	AllowIdentityPropsUpdate bool
+
+	// FileCreatorID, when set, selects newly added files by that creator
+	// instead of the session user. Files uploaded with no user (creator
+	// "nouser") still attach. Empty keeps the session-user lookup. This
+	// does not change who the edit is attributed to.
+	FileCreatorID string
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {
 	return &UpdatePostOptions{
 		SafeUpdate:    false,
 		IsRestorePost: false,
+	}
+}
+
+// Copy returns a copy of the options. Each field is assigned so a later
+// reference field is copied here instead of shared by a struct assignment.
+func (o *UpdatePostOptions) Copy() *UpdatePostOptions {
+	if o == nil {
+		return nil
+	}
+	return &UpdatePostOptions{
+		SafeUpdate:                 o.SafeUpdate,
+		IsRestorePost:              o.IsRestorePost,
+		AllowMmBlocksActionsUpdate: o.AllowMmBlocksActionsUpdate,
+		AllowIdentityPropsUpdate:   o.AllowIdentityPropsUpdate,
+		FileCreatorID:              o.FileCreatorID,
 	}
 }
 

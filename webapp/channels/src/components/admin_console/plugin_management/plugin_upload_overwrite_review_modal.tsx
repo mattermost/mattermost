@@ -143,7 +143,7 @@ export default function PluginUploadOverwriteReviewModal({show, conflict, onConf
             show={show}
             title={title}
             message={renderReviewMessage(conflict)}
-            confirmButtonVariant={direction === 'downgrade' ? 'destructive' : undefined}
+            destructive={direction === 'downgrade'}
             confirmButtonText={overwriteButton}
             onConfirm={onConfirm}
             onCancel={onCancel}

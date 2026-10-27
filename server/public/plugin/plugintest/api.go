@@ -6429,6 +6429,38 @@ func (_m *API) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return r0, r1
 }
 
+// UpdatePostWithOptions provides a mock function with given fields: post, options
+func (_m *API) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	ret := _m.Called(post, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePostWithOptions")
+	}
+
+	var r0 *model.Post
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Post, *model.UpdatePostOptions) (*model.Post, *model.AppError)); ok {
+		return rf(post, options)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Post, *model.UpdatePostOptions) *model.Post); ok {
+		r0 = rf(post, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Post, *model.UpdatePostOptions) *model.AppError); ok {
+		r1 = rf(post, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // UpdatePreferencesForUser provides a mock function with given fields: userID, preferences
 func (_m *API) UpdatePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
 	ret := _m.Called(userID, preferences)

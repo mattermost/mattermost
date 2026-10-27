@@ -70,6 +70,24 @@ func (p *PostService) UpdatePost(post *model.Post) error {
 	return nil
 }
 
+// UpdatePostWithOptions updates a post using the supplied options.
+// Nil options match the zero value.
+//
+// Minimum server version: 12.1
+func (p *PostService) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) error {
+	updatedPost, appErr := p.api.UpdatePostWithOptions(post, options)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
+
+	err := updatedPost.ShallowCopy(post)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeliverPostNotifications runs the notification pipeline for a post created with the
 // model.PostPropsDeferredNotification prop, once its final content is in place. With
 // options.UserIDs, it notifies only those users instead. See
