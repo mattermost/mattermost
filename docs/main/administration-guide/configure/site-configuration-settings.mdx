@@ -100,11 +100,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>Text that will be shown below the <strong>Custom brand image</strong> on the login page. | - System Config path: <strong>Site Configuration &gt; Customization</strong> | You can format this text using the same <a href={useBaseUrl('/end-user-guide/collaborate/format-messages')}>Markdown formatting</a> | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>CustomBrandText</code> as in Mattermost messages. | - Environment variable: <code>MM_TEAMSETTINGS_CUSTOMBRANDTEXT</code> | | | String input. Maximum 500 characters. <a href="#enable-custom-branding">Enable custom branding</a> | | must be set to <strong>true</strong> to display the text. | |</td>
+<td><p>Text that will be shown below the <strong>Custom brand image</strong> on the login page. You can format this text using the same <a href={useBaseUrl('/end-user-guide/collaborate/format-messages')}>Markdown formatting</a> as in Mattermost messages.</p><p>String input. Maximum 500 characters. <a href="#enable-custom-branding">Enable custom branding</a> must be set to <strong>true</strong> to display the text.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>CustomBrandText</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_CUSTOMBRANDTEXT</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -481,11 +483,13 @@ This setting is applicable to self-hosted deployments only.
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>Specify the minimum version of the Mattermost Desktop App required to connect to this server | - System Config path: <strong>Site Configuration &gt; Customization</strong> | (e.g., <code>5.10.0</code>). Users connecting with a Desktop App version below this minimum are shown | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>MinimumDesktopAppVersion</code> | an update required screen and cannot use the application until they update. | - Environment variable: <code>MM_SERVICESETTINGS_MINIMUMDESKTOPAPPVERSION</code> | | | The update screen includes a download link configured via the | | <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#mattermost-apps-download-page-link')}>Mattermost apps download page link</a> setting. | | | Must be a valid semantic version (e.g., <code>5.0.0</code>). Leave blank to allow all Desktop App | | versions to connect. | | | | String input. Default is empty (no minimum enforced). | |</td>
+<td><p>Specify the minimum version of the Mattermost Desktop App required to connect to this server (e.g., <code>5.10.0</code>). Users connecting with a Desktop App version below this minimum are shown an update required screen and cannot use the application until they update.</p><p>The update screen includes a download link configured via the <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#mattermost-apps-download-page-link')}>Mattermost apps download page link</a> setting.</p><p>Must be a valid semantic version (e.g., <code>5.0.0</code>). Leave blank to allow all Desktop App versions to connect.</p><p>String input. Default is empty (no minimum enforced).</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>MinimumDesktopAppVersion</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_MINIMUMDESKTOPAPPVERSION</code></li></ul></td>
 </tr>
 </tbody>
 </table>
