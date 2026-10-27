@@ -19,15 +19,14 @@ Organizations bound by data sovereignty or compliance rules often can't run sens
 ## Out-of-Band Incident Response
 
 During an incident, Microsoft 365 may be unavailable, or the systems under attack may not be trustworthy.
-
+ 
 **Benefits**
-
-- **Keep working when primary systems are down.** Run a separate, out-of-band Mattermost instance for incident communication and coordination.
-- **Follow a clear plan.** Use [Playbooks](https://docs.mattermost.com/end-user-guide/workflow-automation/workflow-automation-index) for repeatable triage, escalation, and resolution.
-- **Keep identity centralized.** Sign in with [Entra ID](https://docs.mattermost.com/administration-guide/onboard/sso-entraid) using OpenID Connect, or [SAML](https://docs.mattermost.com/administration-guide/onboard/sso-saml-entraid). 
-- **Stay aware of enterprise activity.** [Microsoft Teams Sync](https://docs.mattermost.com/integrations-guide/microsoft-teams-sync) forwards Teams chat notifications to Mattermost. It requires an Azure OAuth app and a paid Azure subscription for metered APIs.
-- **Meet quickly.** Start Teams meetings from a Mattermost channel with [Microsoft Teams Meetings](https://docs.mattermost.com/integrations-guide/microsoft-teams-meetings), and connect your calendar with [Microsoft Calendar](https://docs.mattermost.com/integrations-guide/microsoft-calendar).
+ 
+- **Keep working when primary systems are down.** Run a separate, out-of-band Mattermost instance for incident communication and coordination. See [Deploy for Out-of-Band (OOB) Communications](https://docs.mattermost.com/deployment-guide/deployment-scenarios/deploy-oob).
+- **Sign in without depending on Microsoft.** If Microsoft 365 or Entra ID is unavailable, Entra ID sign-in won't work. Pre-provision responder accounts with a secondary identity provider that doesn't rely on your primary SSO, or with locally stored credentials and MFA, so responders can reach the out-of-band instance during an outage. The OOB deployment guide describes this setup.
+- **Follow a clear plan.** Use [Playbooks](https://docs.mattermost.com/end-user-guide/workflow-automation/workflow-automation-index) for repeatable triage, escalation, and resolution. Playbooks run on your own Mattermost instance, so they keep working when Microsoft services don't.
 - **Protect mobile notifications.** Use [ID-only push notifications](https://docs.mattermost.com/administration-guide/configure/push-notification-server-configuration-settings#id-only-push-notifications) so notifications carry no message content.
+- **Use Microsoft integrations when they're available.** [Entra ID sign-in](https://docs.mattermost.com/administration-guide/onboard/sso-entraid) (OpenID Connect, or [SAML](https://docs.mattermost.com/administration-guide/onboard/sso-saml-entraid)), [Microsoft Teams Sync](https://docs.mattermost.com/integrations-guide/microsoft-teams-sync), [Microsoft Teams Meetings](https://docs.mattermost.com/integrations-guide/microsoft-teams-meetings), and [Microsoft Calendar](https://docs.mattermost.com/integrations-guide/microsoft-calendar) depend on Microsoft services, so plan on them being unavailable during a Microsoft outage. Teams Sync forwards Teams chat notifications to Mattermost and requires an Azure OAuth app and a paid Azure subscription for metered APIs.
 
 ## External Collaboration with Full Control
 
@@ -35,11 +34,11 @@ Partners, contractors, and allies often aren't on your Microsoft tenant, which c
 
 **Benefits**
 
-- **Share channels with partners.** Use [connected workspaces](https://docs.mattermost.com/administration-guide/onboard/connected-workspaces) to share channels between your Mattermost server and a partner's Mattermost server (Entry, Enterprise, and Enterprise Advanced).
+- **Share channels with partners.** Use [connected workspaces](https://docs.mattermost.com/administration-guide/onboard/connected-workspaces) to share channels between your Mattermost server and a partner's Mattermost server. Mattermost synchronizes shared content to the partner’s server. That partner controls its own storage and access.
 - **Govern each side separately.** Each server controls its own channel permissions and access, and you can require [custom Terms of Service](https://docs.mattermost.com/administration-guide/comply/custom-terms-of-service).
 
 :::note
-Connected workspaces link Mattermost servers to each other. They don't connect directly to Microsoft Teams tenants.
+Connected workspaces link Mattermost servers to each other. They don't connect directly to Microsoft Teams tenants. Shared channel content is also stored on your partner's server, where the partner controls storage and access.
 :::
 
 ## AI Inside Your Boundary
