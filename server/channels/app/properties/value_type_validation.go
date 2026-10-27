@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // ValueTypeValidationHook refuses a value whose JSON does not fit its field's
@@ -123,7 +124,11 @@ func (h *ValueTypeValidationHook) validate(rctx request.CTX, values []*model.Pro
 
 // fieldsOfGroup returns those of the fields the group holds. When some are not
 // in it, the rest are read one at a time, so their values are still checked.
+// The fields are read from the master: a replica that hasn't caught up with a
+// field just created as, or changed to, a checked type would let a value of the
+// wrong shape through.
 func (h *ValueTypeValidationHook) fieldsOfGroup(rctx request.CTX, groupID string, fieldIDs []string) ([]*model.PropertyField, error) {
+	rctx = store.RequestContextWithMaster(rctx)
 	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err == nil {
 		return fields, nil

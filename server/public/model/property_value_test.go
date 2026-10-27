@@ -416,7 +416,7 @@ func TestValidatePropertyValueForFieldType(t *testing.T) {
 		for _, raw := range []string{``, `null`, ` null `, `0`, `-3`, `2.5`, `1e3`, `-0.000001`, `1.7976931348623157e308`} {
 			assert.NoError(t, ValidatePropertyValueForFieldType(PropertyFieldTypeNumber, json.RawMessage(raw)), "value %q", raw)
 		}
-		for _, raw := range []string{`"3"`, `""`, `"NaN"`, `"Infinity"`, `NaN`, `Infinity`, `true`, `[]`, `[1]`, `{}`, `1e400`, `-1e400`, `1 2`, `01x`} {
+		for _, raw := range []string{`"3"`, `""`, `"NaN"`, `"Infinity"`, `NaN`, `Infinity`, `true`, `[]`, `[1]`, `{}`, `1e400`, `-1e400`, `1 2`, `01x`, `1 ]`, `1}`, `1,`} {
 			assert.Error(t, ValidatePropertyValueForFieldType(PropertyFieldTypeNumber, json.RawMessage(raw)), "value %q", raw)
 		}
 	})

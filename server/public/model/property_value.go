@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"math"
 	"net/http"
 	"strconv"
@@ -311,7 +312,7 @@ func ValidatePropertyValueForFieldType(fieldType PropertyFieldType, raw json.Raw
 		if err := dec.Decode(&v); err != nil {
 			return errors.Wrap(err, "a number field's value must be a JSON number")
 		}
-		if dec.More() {
+		if _, err := dec.Token(); err != io.EOF {
 			return errors.New("a number field's value must be a single JSON number")
 		}
 		n, ok := v.(json.Number)
