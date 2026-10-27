@@ -119,7 +119,7 @@ class LiveRunTest(unittest.TestCase):
         self.assertEqual(self.body["totals"]["releases"], 2)
         self.assertEqual(self.body["totals"]["checks_run"], 22)
         self.assertEqual(self.body["totals"]["ticked"], 3)
-        self.assertEqual(self.body["totals"]["alarms_raised"], 2)
+        self.assertEqual(self.body["totals"]["alarms_raised"], 3)
         self.assertEqual(self.body["totals"]["false_alarms"], 0)
 
     def test_reaction_marks_false_alarms_on_the_next_run(self):
