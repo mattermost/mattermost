@@ -35,7 +35,7 @@
                 type:
                   type: string
                   description: The type of property field
-                  enum: [text, select, multiselect, date, user, multiuser]
+                  enum: [text, select, multiselect, date, user, multiuser, number]
                 attrs:
                   type: object
                   description: Additional attributes for the property field
