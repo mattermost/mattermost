@@ -5627,6 +5627,14 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 			require.Equal(t, int64(7), total)
 		})
 
+		t.Run("drops an asterisk, the escape character, from the term", func(t *testing.T) {
+			names, _ := f.search(rctx, listingTerm("*"))
+			require.Len(t, names, 7)
+
+			names, _ = f.search(rctx, listingTerm("plain*_name"))
+			require.Equal(t, []string{"plain_name"}, names)
+		})
+
 		t.Run("treats a percent sign literally", func(t *testing.T) {
 			names, _ := f.search(rctx, listingTerm("%"))
 			require.Equal(t, []string{"percent"}, names)
@@ -5807,6 +5815,41 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 			}
 			require.ElementsMatch(t, []string{"service_owned_template", "service_owned_user", "role_owned_user", "user_owned_user"}, missing)
 		})
+	})
+
+	t.Run("source edge cases", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		// The protected column counts like the protected attr.
+		f.field(model.PropertyFieldObjectTypeUser, "protected_column_user", withAttrs(map[string]any{
+			model.PropertyAttrsSourcePluginID: "com.example.plugin",
+		}), func(pf *model.PropertyField) {
+			pf.Protected = true
+			pf.PermissionField = model.NewPointer(model.PermissionLevelNone)
+		})
+
+		// One plugin-owned linked user field is enough.
+		twoChildren := f.template("two_children_template")
+		f.linked(twoChildren, model.PropertyFieldObjectTypeUser, "plain_child")
+		f.linked(twoChildren, model.PropertyFieldObjectTypeUser, "owned_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+
+		// Values of the wrong JSON type read as unset.
+		f.template("numeric_ldap_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: 123}))
+		f.field(model.PropertyFieldObjectTypePost, "numeric_plugin_post", withAttrs(map[string]any{
+			model.PropertyAttrsSourcePluginID: 5,
+			model.PropertyAttrsProtected:      true,
+		}))
+		f.field(model.PropertyFieldObjectTypeUser, "object_owners_user", withAttrs(map[string]any{model.PropertyAttrsOwners: map[string]any{}}))
+		f.field(model.PropertyFieldObjectTypeUser, "empty_owners_user", withAttrs(map[string]any{model.PropertyAttrsOwners: []any{}}))
+
+		names, _ := f.search(rctx, listingSource(model.GlobalAttributeSourcePlugin))
+		require.Equal(t, []string{"protected_column_user", "two_children_template"}, names)
+
+		names, _ = f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP))
+		require.Empty(t, names)
+
+		names, _ = f.search(rctx, listingSource(model.GlobalAttributeSourceManaged))
+		require.Equal(t, []string{"empty_owners_user", "numeric_ldap_template", "numeric_plugin_post", "object_owners_user"}, names)
 	})
 
 	t.Run("resource type", func(t *testing.T) {
