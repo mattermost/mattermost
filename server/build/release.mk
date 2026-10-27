@@ -184,7 +184,7 @@ package-prep: setup-go-work
 	@# Resource directories
 	mkdir -p $(DIST_PATH)/config
 	cp -L config/README.md $(DIST_PATH)/config
-	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go run ./scripts/config_generator
+	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json $(GO) run $(if $(filter true,$(FIPS_ENABLED)),-tags requirefips) ./scripts/config_generator
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	rm -rf $(DIST_PATH)/templates/*.mjml $(DIST_PATH)/templates/partials/
