@@ -6,7 +6,20 @@
 -- UserAttributeView keeps the existing user-scoped definition; ChannelAttributeView
 -- is the identical shape scoped to channels. The two SELECTs differ only in the
 -- pf.ObjectType filter.
-DROP MATERIALIZED VIEW IF EXISTS AttributeView;
+--
+-- AttributeView itself is left in place rather than dropped. Upgraded code
+-- never reads it, but a server still running a release from before this
+-- migration -- the last ESR, 11.10 -- reads and refreshes it, and during a
+-- rolling upgrade such servers keep serving while the upgraded one works
+-- through the migrations that follow. Dropping it here would fail every one of
+-- their attribute reads until 000236 brought it back. 000236 rebuilds it to
+-- resolve options from PropertyOptions, since this definition stops resolving
+-- them once upgraded code writes a field.
+--
+-- This migration did drop AttributeView as first shipped, in v12.0.0, v12.0.1
+-- and v12.1.0-rc1 through rc2. v12.0.2 and v12.1.0 amended it to keep the view,
+-- and added 000236, which also recreates the view on a database that one of
+-- those earlier releases already migrated.
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS UserAttributeView AS
 SELECT
