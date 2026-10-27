@@ -13397,6 +13397,11 @@
     "description": "Error shown to admins trying to change settings from the System Console when the server runs in High Availability mode; 'System Console' is the admin UI and 'ReadOnlyConfig' is a config setting name that should stay untranslated."
   },
   {
+    "id": "ent.cluster.send.error",
+    "translation": "Failed to send cluster request",
+    "description": "Log/error message for admins when a node in a high-availability cluster cannot send a request to another node."
+  },
+  {
     "id": "ent.cluster.timeout.error",
     "translation": "Timed out waiting for cluster response",
     "description": "Log/error message for admins when a node in a high-availability cluster does not answer a request in time."
@@ -14552,9 +14557,14 @@
     "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment; {{.posts}} is the number of posts."
   },
   {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "With {{.posts}} posts and database search, the primary and replicas absorb full-text scans. This causes CPU pressure and search timeouts at this scale. Your license includes Elasticsearch, which takes search off the database entirely.",
+    "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment whose license includes Elasticsearch; {{.posts}} is the number of posts. 'Elasticsearch' is a product name and should not be translated."
+  },
+  {
     "id": "health.rule.db_no_search_replica.remediation",
-    "translation": "Enable Elasticsearch search (preferred) or configure SqlSettings.DataSourceSearchReplicas.",
-    "description": "Health dashboard fix-it step when search runs on the database without a search replica. 'Elasticsearch' is a product name and 'SqlSettings.DataSourceSearchReplicas' is a setting name; do not translate them."
+    "translation": "Configure SqlSettings.DataSourceSearchReplicas.",
+    "description": "Health dashboard fix-it step when search runs on the database without a search replica. 'SqlSettings.DataSourceSearchReplicas' is a setting name and should not be translated."
   },
   {
     "id": "health.rule.db_no_search_replica.title",
@@ -15262,9 +15272,14 @@
     "description": "Health dashboard finding detail when the push notification server is push-test.mattermost.com, Mattermost's test push proxy that is not meant for production; 'SLA' means service level agreement."
   },
   {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com is the Mattermost test push proxy. It has no SLA, limited throughput, and is not intended for production use. Your license includes the Mattermost Hosted Push Notification Service: set PushNotificationServer to https://global.push.mattermost.com.",
+    "description": "Health dashboard finding detail when the push notification server is push-test.mattermost.com on a server whose license includes the hosted push service; 'SLA' means service level agreement, 'Mattermost Hosted Push Notification Service' is a product name and 'PushNotificationServer' is a config setting name, do not translate them."
+  },
+  {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Switch to https://push.mattermost.com (the production Hosted Push Notification Service included with Enterprise) or to a self-hosted push proxy.",
-    "description": "Health dashboard fix-it step for a server using the test push proxy; 'Hosted Push Notification Service' is a Mattermost product name."
+    "translation": "Point PushNotificationServer at a production push proxy: a self-hosted Mattermost Push Proxy serving your own builds of the mobile apps.",
+    "description": "Health dashboard fix-it step for a server using the test push proxy; 'PushNotificationServer' is a config setting name and 'Mattermost Push Proxy' is a product name, do not translate them."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -15438,12 +15453,17 @@
   },
   {
     "id": "health.rule.search_unavailable.message",
-    "translation": "Database search is disabled and Elasticsearch searching is off. Searches return no results.",
-    "description": "Health dashboard finding detail when neither the database nor Elasticsearch or OpenSearch serves search."
+    "translation": "Database search is disabled and Elasticsearch searching is off. Searches return no results. Enabling searching with Elasticsearch or OpenSearch also restores search.",
+    "description": "Health dashboard finding detail when neither the database nor Elasticsearch or OpenSearch serves search. 'Elasticsearch' and 'OpenSearch' are product names and should not be translated."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Database search is disabled and the license does not include Elasticsearch, so Elasticsearch settings have no effect. Searches return no results.",
+    "description": "Health dashboard finding detail when database search is disabled on a server whose license does not include Elasticsearch. 'Elasticsearch' is a product name and should not be translated."
   },
   {
     "id": "health.rule.search_unavailable.remediation",
-    "translation": "Set SqlSettings.DisableDatabaseSearch to false in config.json (or MM_SQLSETTINGS_DISABLEDATABASESEARCH=false), or enable searching with Elasticsearch or OpenSearch.",
+    "translation": "Set SqlSettings.DisableDatabaseSearch to false in config.json (or MM_SQLSETTINGS_DISABLEDATABASESEARCH=false).",
     "description": "Health dashboard fix-it step when search is fully disabled; 'SqlSettings.DisableDatabaseSearch', 'config.json' and 'MM_SQLSETTINGS_DISABLEDATABASESEARCH=false' are literal names and should not be translated."
   },
   {
@@ -17095,6 +17115,11 @@
     "id": "model.config.is_valid.intune_tenant_id_format.app_error",
     "translation": "Intune MAM Tenant ID must be a valid UUID.",
     "description": "Config validation error shown to system admins configuring Microsoft Intune MAM when the tenant ID is not in UUID format."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Redis cache prefix must not contain ':', '*', '?', '[', ']' or '\\'.",
+    "description": "Config validation error shown to system admins; 'Redis cache prefix' is the setting that namespaces this server's keys and cluster messages in a Redis instance shared with other servers."
   },
   {
     "id": "model.config.is_valid.invalid_redis_db.app_error",
@@ -19245,6 +19270,11 @@
     "id": "plugin.api.update_post.mm_blocks_actions.app_error",
     "translation": "Invalid mm_blocks_actions in plugin post update.",
     "description": "Error returned to plugins when a post update contains invalid 'mm_blocks_actions' data (interactive blocks); developer-facing, keep the property name untranslated."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Invalid file creator.",
+    "description": "Error returned to plugins when UpdatePostWithOptions is called with a FileCreatorID that is not a valid Mattermost user id; developer-facing."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",

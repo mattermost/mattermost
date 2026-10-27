@@ -382,14 +382,16 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	logsJSON := make(map[string][]any)
 	var result any
 	for node, logLines := range logs {
+		entries := make([]any, 0, len(logLines))
 		for _, log := range logLines {
 			err = json.Unmarshal([]byte(log), &result)
 			if err != nil {
 				c.Logger.Warn("Error parsing log line in Server Logs", mlog.String("from_node", node), mlog.Err(err))
 			} else {
-				logsJSON[node] = append(logsJSON[node], result)
+				entries = append(entries, result)
 			}
 		}
+		logsJSON[node] = entries
 	}
 
 	auditRec.AddMeta("page", c.Params.Page)

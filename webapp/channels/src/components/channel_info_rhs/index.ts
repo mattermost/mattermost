@@ -19,9 +19,8 @@ import {muteChannel, unmuteChannel} from 'actions/channel_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
-import {isModalOpen} from 'selectors/views/modals';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import {Constants} from 'utils/constants';
 import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -44,7 +43,6 @@ function mapStateToProps(state: GlobalState) {
     const isArchived = isCurrentChannelArchived(state);
     const isFavorite = isCurrentChannelFavorite(state);
     const isMuted = isCurrentChannelMuted(state);
-    const isInvitingPeople = isModalOpen(state, ModalIdentifiers.CHANNEL_INVITE) || isModalOpen(state, ModalIdentifiers.CREATE_DM_CHANNEL);
     const isMobile = getIsMobileView(state);
 
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
@@ -62,7 +60,6 @@ function mapStateToProps(state: GlobalState) {
         isArchived,
         isFavorite,
         isMuted,
-        isInvitingPeople,
         isMobile,
         isInManagedCategory,
         canManageMembers,

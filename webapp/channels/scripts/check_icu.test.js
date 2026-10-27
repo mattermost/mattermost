@@ -131,6 +131,34 @@ describe('check_icu', () => {
         });
 
         test.each([
+            ['null', 'null\n'],
+            ['a number', '5\n'],
+            ['a string', '"Bonjour"\n'],
+            ['an array', '[]\n'],
+        ])('reports a catalog that is %s, and checks the rest', (_label, text) => {
+            const {code, stderr} = check({'a.b': 'Hello {name}'}, {'de.json': text, 'fr.json': {'a.b': 'Bonjour'}});
+
+            expect(code).toBe(1);
+            expect(stderr).toContain('de.json: not a JSON object of key -> message');
+            expect(stderr).toContain('fr.json:a.b:');
+        });
+
+        // Root reads a file whatever its mode.
+        (process.getuid?.() === 0 ? test.skip : test)('reports a catalog it cannot read, and checks the rest', () => {
+            const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-icu-'));
+            fs.writeFileSync(path.join(dir, 'en.json'), JSON.stringify({'a.b': {defaultMessage: 'Hello {name}'}}));
+            fs.writeFileSync(path.join(dir, 'de.json'), '{\n  "a.b": "Hallo {name}"\n}\n');
+            fs.chmodSync(path.join(dir, 'de.json'), 0);
+            fs.writeFileSync(path.join(dir, 'fr.json'), '{\n  "a.b": "Bonjour"\n}\n');
+
+            const result = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
+
+            expect(result.status).toBe(1);
+            expect(result.stderr).toContain('de.json: cannot read: EACCES');
+            expect(result.stderr).toContain('fr.json:a.b:');
+        });
+
+        test.each([
             ['null', null],
             ['a number', 5],
             ['an object', {nested: 'x'}],
@@ -490,6 +518,11 @@ describe('check_icu', () => {
             const malformed = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
             expect(malformed.status).toBe(2);
             expect(malformed.stderr).toContain('cannot read');
+
+            fs.writeFileSync(path.join(dir, 'en.json'), '[]');
+            const notObject = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
+            expect(notObject.status).toBe(2);
+            expect(notObject.stderr).toContain('not a JSON object');
         });
 
         test('exits 2 when the directory holds no locale catalogs', () => {

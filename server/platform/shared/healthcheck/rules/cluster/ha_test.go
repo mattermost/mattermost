@@ -215,11 +215,11 @@ func TestClusterSingleNode(t *testing.T) {
 			diag.Cluster.NumberOfConnectedNodes = nil
 		})), diagUnknown},
 		{"cluster section failed", configSnapshot(haEnabled, clusterFailed()), diagUnknown},
-		{"cluster section absent", configSnapshot(haEnabled, func() *healthcheck.NodeSnapshot {
+		{"cluster section unrecorded in an older packet", configSnapshot(haEnabled, func() *healthcheck.NodeSnapshot {
 			node := leaderNode(nodes(1))
 			delete(node.Diagnostics.Errors, model.SectionCluster)
 			return node
-		}()), diagUnknown},
+		}()), firing(singleNodeMessage, nil)},
 		{"leader without cluster diagnostics", configSnapshot(haEnabled), diagUnknown},
 		{"no leader", configSnapshot(haEnabled, diagNode("app-2.example.com", false, nodes(1))), licenseUnknown},
 		{"leader without diagnostics", configSnapshot(haEnabled, &healthcheck.NodeSnapshot{IsLeader: true}), licenseUnknown},
@@ -252,6 +252,9 @@ func TestClusterBadAdvertise(t *testing.T) {
 		{"::", true},
 		{"localhost", true},
 		{"LOCALHOST", true},
+		{"localhost.", true},
+		{"node.localhost", true},
+		{"[::1]", true},
 	}
 
 	for _, tc := range testCases {
@@ -288,11 +291,11 @@ func TestClusterConfigWritable(t *testing.T) {
 		{"read-only does not read the source", configSnapshot(haEnabled), resolved},
 		{"file store", configSnapshot(writable, leaderNode(fileSource)), firing(configWritableMessage, nil)},
 		{"database store", configSnapshot(writable, leaderNode(nil)), resolved},
-		{"config source absent", configSnapshot(writable, func() *healthcheck.NodeSnapshot {
+		{"config source unrecorded in an older packet", configSnapshot(writable, func() *healthcheck.NodeSnapshot {
 			node := leaderNode(fileSource)
 			delete(node.Diagnostics.Errors, model.SectionConfigSource)
 			return node
-		}()), diagUnknown},
+		}()), firing(configWritableMessage, nil)},
 		{"empty source from an older packet", configSnapshot(writable, leaderNode(source(""))), diagUnknown},
 		{"leader without config source", configSnapshot(writable), diagUnknown},
 		{"no leader", configSnapshot(writable, diagNode("app-2.example.com", false, fileSource)), licenseUnknown},
