@@ -138,7 +138,9 @@ func TestStoredPropertyValuesPaging(t *testing.T) {
 	t.Run("reads past full pages to find a field's value", func(t *testing.T) {
 		th, mockValueStore := setup(t)
 		wanted := valueOf(model.NewId())
+		// Five full pages, 1,000 values, come before the wanted one.
 		mockValueStore.On("SearchPropertyValues", mock.Anything, firstPage).Return(fullPage(), nil).Once()
+		mockValueStore.On("SearchPropertyValues", mock.Anything, nextPage).Return(fullPage(), nil).Times(4)
 		mockValueStore.On("SearchPropertyValues", mock.Anything, nextPage).Return([]*model.PropertyValue{wanted}, nil).Once()
 
 		previous := th.App.storedPropertyValues(th.Context, groupID, propertyValuesTarget{"post", targetID}, map[string]bool{wanted.FieldID: true})
