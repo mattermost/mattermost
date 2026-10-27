@@ -1,0 +1,73 @@
+# Grafana Loki configuration for Mattermost log aggregation
+# This is a production-ready config for a single-instance deployment
+# colocated with an existing Grafana/Prometheus monitoring server.
+#
+# Install location: /opt/loki/loki-config.yaml
+# Data directory:   /opt/loki/data/
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9095
+  log_level: info
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /opt/loki/data
+  storage:
+    filesystem:
+      chunks_directory: /opt/loki/data/chunks
+      rules_directory: /opt/loki/data/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+# ---------------------------------------------------------------------------
+# Retention settings
+# ---------------------------------------------------------------------------
+# Loki requires retention to be specified in hours (h). The default here
+# is 14 days. To change it, update retention_period below.
+#
+# Common values:
+#   336h   = 14 days  (default)
+#   720h   = 30 days
+#   2160h  = 90 days
+#   8760h  = 365 days
+# ---------------------------------------------------------------------------
+limits_config:
+  retention_period: 336h          # 14 days (336 hours) — adjust as needed
+  metric_aggregation_enabled: true
+  allow_structured_metadata: true
+
+compactor:
+  working_directory: /opt/loki/data/compactor
+  compaction_interval: 10m
+  retention_enabled: true         # must be true for retention_period to apply
+  retention_delete_delay: 2h
+  retention_delete_worker_count: 150
+  delete_request_store: filesystem
+
+schema_config:
+  configs:
+    - from: "2024-01-01"
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 100
+
+ruler:
+  alertmanager_url: http://localhost:9093
+
+frontend:
+  encoding: protobuf
