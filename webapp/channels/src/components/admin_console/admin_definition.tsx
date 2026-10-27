@@ -2010,7 +2010,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: adminDefinitionMessages.redis_tls_skip_verify_desc,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
-                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
                                 it.not(it.stateIsTrue('CacheSettings.RedisEnableTLS')),
                             ),
                         },
@@ -2021,7 +2020,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: adminDefinitionMessages.redis_tls_ca_desc,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
-                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
                                 it.not(it.stateIsTrue('CacheSettings.RedisEnableTLS')),
                             ),
                         },
@@ -2032,7 +2030,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: adminDefinitionMessages.redis_tls_client_cert_desc,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
-                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
                                 it.not(it.stateIsTrue('CacheSettings.RedisEnableTLS')),
                             ),
                         },
@@ -2043,7 +2040,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: adminDefinitionMessages.redis_tls_client_key_desc,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
-                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
                                 it.not(it.stateIsTrue('CacheSettings.RedisEnableTLS')),
                             ),
                         },
