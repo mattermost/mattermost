@@ -1688,11 +1688,13 @@ Disabling this configuration setting in larger deployments may improve server pe
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: <strong>(Default)</strong> <a href={useBaseUrl('/end-user-guide/collaborate/share-links')}>Share links to Mattermost messages</a> | - System Config path: <strong>Site Configuration &gt; Posts</strong> will generate a preview for any users that have access to the original message. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnablePermalinkPreviews</code> &gt; <code>true</code> |</li><li><strong>false</strong>: Share links do not generate a preview. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEPERMALINKPREVIEWS</code> |</li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> <a href={useBaseUrl('/end-user-guide/collaborate/share-links')}>Share links to Mattermost messages</a> will generate a preview for any users that have access to the original message.</li><li><strong>false</strong>: Share links do not generate a preview.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnablePermalinkPreviews</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEPERMALINKPREVIEWS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
