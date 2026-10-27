@@ -3,7 +3,7 @@
 
 import {act} from '@testing-library/react';
 import type {Editor} from '@tiptap/react';
-import React from 'react';
+import React, {useState} from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {postMessageOnKeyPress} from 'utils/post_utils';
@@ -191,6 +191,32 @@ describe('WysiwygEditor interactions', () => {
         expect(postMessageOnKeyPress(enter, draft, false, true, 0, 0, draft.length)).toEqual({allowSending: false});
     });
 
+    test('Enter sends text typed just before it', () => {
+        jest.useFakeTimers();
+        const onSend = jest.fn();
+        const ref = React.createRef<WysiwygEditorHandle>();
+        const Composer = () => {
+            const [message, setMessage] = useState('');
+            return (
+                <WysiwygEditor
+                    ref={ref}
+                    value={message}
+                    onChange={setMessage}
+                    onSubmit={() => onSend(message)}
+                    channelId='c1'
+                />
+            );
+        };
+        renderWithContext(<Composer/>);
+        const editor = ref.current!.getEditor()!;
+
+        typeText(editor, 'x.fjfj');
+        press(editor, 'Enter');
+
+        expect(onSend).toHaveBeenCalledWith('x.fjfj');
+        jest.useRealTimers();
+    });
+
     describe('switching channels', () => {
         const switchTo = (rerender: (ui: React.ReactElement) => void, ref: React.RefObject<WysiwygEditorHandle | null>, value: string, channelId: string) => {
             rerender(
@@ -258,12 +284,67 @@ describe('WysiwygEditor interactions', () => {
             jest.useRealTimers();
         });
 
-        test('keeps the content when only the value changes within the same channel', () => {
-            const {editor, rerender, ref} = renderEditor('typed text', 'c1');
+        test('loads the draft again when switching back to its channel', () => {
+            const {editor, rerender, ref} = renderEditor('my draft', 'c1');
 
-            switchTo(rerender, ref, 'typed text more', 'c1');
+            switchTo(rerender, ref, '', 'c2');
+            switchTo(rerender, ref, 'my draft', 'c1');
 
-            expect(editor.getHTML()).toBe('<p>typed text</p>');
+            expect(editor.getHTML()).toBe('<p>my draft</p>');
+            expect(editor.state.selection.from).toBe(endOfText(editor, 'my draft'));
+        });
+    });
+
+    describe('following the value', () => {
+        test('puts the cursor at the end of a message opened for editing', () => {
+            const {editor} = renderEditor('first line\n\nmy message');
+
+            expect(editor.state.selection.from).toBe(endOfText(editor, 'my message'));
+        });
+
+        test('shows a message changed outside the editor, like an AI rewrite', () => {
+            const {editor, rerender, ref} = renderEditor('typed text');
+
+            rerender(
+                <WysiwygEditor
+                    ref={ref}
+                    {...baseProps}
+                    value='rewritten text'
+                    channelId='c1'
+                />,
+            );
+
+            expect(editor.getHTML()).toBe('<p>rewritten text</p>');
+        });
+
+        test('keeps the cursor in place when its own change comes back as the value', () => {
+            jest.useFakeTimers();
+            const onChange = jest.fn();
+            const ref = React.createRef<WysiwygEditorHandle>();
+            const render = (value: string) => (
+                <WysiwygEditor
+                    ref={ref}
+                    onSubmit={jest.fn()}
+                    onChange={onChange}
+                    value={value}
+                    channelId='c1'
+                />
+            );
+            const {rerender} = renderWithContext(render(''));
+            const editor = ref.current!.getEditor()!;
+            act(() => {
+                editor.commands.setTextSelection(1);
+            });
+            typeText(editor, 'hello');
+            act(() => {
+                editor.commands.setTextSelection(3);
+                jest.runAllTimers();
+            });
+
+            rerender(render(onChange.mock.lastCall[0]));
+
+            expect(editor.state.selection.from).toBe(3);
+            jest.useRealTimers();
         });
     });
 });
