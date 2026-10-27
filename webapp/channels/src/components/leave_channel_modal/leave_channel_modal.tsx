@@ -9,6 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import ConfirmModal from 'components/confirm_modal';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import Constants from 'utils/constants';
 
 type Props = {
@@ -25,6 +26,7 @@ type Props = {
 
 const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, onExited}: Props) => {
     const [show, setShow] = useState(true);
+    const isBoard = useIsBoardChannel(channel);
 
     const handleSubmit = () => {
         if (channel) {
@@ -61,7 +63,15 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
         channel?.type === Constants.OPEN_CHANNEL && Boolean(channel.policy_enforced);
 
     if (isPolicyEnforcedPublicChannel && channel?.display_name) {
-        const title = (
+        const title = isBoard ? (
+            <FormattedMessage
+                id='leave_policy_channel_modal.title.board'
+                defaultMessage='Leave {channel} board'
+                values={{
+                    channel: channel.display_name,
+                }}
+            />
+        ) : (
             <FormattedMessage
                 id='leave_policy_channel_modal.title'
                 defaultMessage='Leave {channel} channel'
@@ -71,12 +81,20 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
             />
         );
 
-        const muteSentence = !isMuted && (
-            <FormattedMessage
-                id='leave_policy_channel_modal.mute_hint'
-                defaultMessage='To stay a member without notifications, you can mute this channel instead.'
-            />
-        );
+        let muteSentence;
+        if (!isMuted) {
+            muteSentence = isBoard ? (
+                <FormattedMessage
+                    id='leave_policy_channel_modal.mute_hint.board'
+                    defaultMessage='To stay a member without notifications, you can mute this board instead.'
+                />
+            ) : (
+                <FormattedMessage
+                    id='leave_policy_channel_modal.mute_hint'
+                    defaultMessage='To stay a member without notifications, you can mute this channel instead.'
+                />
+            );
+        }
 
         const leaveButton = (
             <button
@@ -85,10 +103,17 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                 onClick={handleSubmit}
                 id='confirmModalButton'
             >
-                <FormattedMessage
-                    id='leave_policy_channel_modal.leave'
-                    defaultMessage='Leave channel'
-                />
+                {isBoard ? (
+                    <FormattedMessage
+                        id='leave_policy_channel_modal.leave.board'
+                        defaultMessage='Leave board'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='leave_policy_channel_modal.leave'
+                        defaultMessage='Leave channel'
+                    />
+                )}
             </button>
         );
 
@@ -146,10 +171,17 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
             >
                 <div className='LeavePolicyChannelModal__body'>
                     <p>
-                        <FormattedMessage
-                            id='leave_policy_channel_modal.message'
-                            defaultMessage="You're part of this channel's membership policy. If you leave, you will not be automatically re-added."
-                        />
+                        {isBoard ? (
+                            <FormattedMessage
+                                id='leave_policy_channel_modal.message.board'
+                                defaultMessage="You're part of this board's membership policy. If you leave, you will not be automatically re-added."
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='leave_policy_channel_modal.message'
+                                defaultMessage="You're part of this channel's membership policy. If you leave, you will not be automatically re-added."
+                            />
+                        )}
                     </p>
                     {muteSentence && <p>{muteSentence}</p>}
                 </div>
@@ -159,7 +191,47 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
 
     let title;
     let message;
-    if (channel && channel.display_name) {
+    if (channel && channel.display_name && isBoard) {
+        if (channel.type === Constants.PRIVATE_CHANNEL) {
+            title = (
+                <FormattedMessage
+                    id='leave_private_channel_modal.title.board'
+                    defaultMessage='Leave Private Board {channel}'
+                    values={{
+                        channel: <b>{channel.display_name}</b>,
+                    }}
+                />
+            );
+            message = (
+                <FormattedMessage
+                    id='leave_private_channel_modal.message.board'
+                    defaultMessage='Are you sure you wish to leave the private board {channel}? You must be re-invited in order to re-join this board in the future.'
+                    values={{
+                        channel: <b>{channel.display_name}</b>,
+                    }}
+                />
+            );
+        } else {
+            title = (
+                <FormattedMessage
+                    id='leave_public_channel_modal.title.board'
+                    defaultMessage='Leave Board {channel}'
+                    values={{
+                        channel: <b>{channel.display_name}</b>,
+                    }}
+                />
+            );
+            message = (
+                <FormattedMessage
+                    id='leave_public_channel_modal.message.board'
+                    defaultMessage='Are you sure you wish to leave the board {channel}? You can re-join this board in the future if you change your mind.'
+                    values={{
+                        channel: <b>{channel.display_name}</b>,
+                    }}
+                />
+            );
+        }
+    } else if (channel && channel.display_name) {
         if (channel.type === Constants.PRIVATE_CHANNEL) {
             title = (
                 <FormattedMessage
@@ -205,7 +277,12 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
         }
     }
 
-    const button = (
+    const button = isBoard ? (
+        <FormattedMessage
+            id='leave_private_channel_modal.leave.board'
+            defaultMessage='Yes, leave board'
+        />
+    ) : (
         <FormattedMessage
             id='leave_private_channel_modal.leave'
             defaultMessage='Yes, leave channel'

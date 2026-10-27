@@ -35,6 +35,7 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
@@ -132,6 +133,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     // hard gate. Permission-only policies (e.g. file upload) must not flip
     // either branch, which is why we read the membership action key
     // specifically instead of the broad policy_enforced flag.
+    const isBoard = useIsBoardChannel(props.channel);
     const isMembershipPolicy = isMembershipPolicyEnforced(props.channel);
     const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
     const isPolicyRecommendedPublic = isMembershipPolicy && props.channel.type === Constants.OPEN_CHANNEL;
@@ -618,7 +620,10 @@ const ChannelInviteModalComponent = (props: Props) => {
                                             id: 'channel_invite.recommended_tag',
                                             defaultMessage: 'Recommended',
                                         })}
-                                        tooltipTitle={props.intl.formatMessage({
+                                        tooltipTitle={isBoard ? props.intl.formatMessage({
+                                            id: 'channel_invite.recommended_tag.tooltip.board',
+                                            defaultMessage: 'Matches the suggested membership for this board',
+                                        }) : props.intl.formatMessage({
                                             id: 'channel_invite.recommended_tag.tooltip',
                                             defaultMessage: 'Matches the suggested membership for this channel',
                                         })}
@@ -657,7 +662,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 selectedItemRef={selectedItemRef}
             />
         );
-    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds]);
+    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds, isBoard]);
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
@@ -828,6 +833,62 @@ const ChannelInviteModalComponent = (props: Props) => {
         />
     );
 
+    let policyBannerTitle;
+    let policyBannerMessage;
+    if (channel.type === Constants.OPEN_CHANNEL && isBoard) {
+        policyBannerTitle = (
+            <FormattedMessage
+                id='channel_invite.policy_recommended.title.board'
+                defaultMessage='This board has recommended members based on user attributes'
+            />
+        );
+        policyBannerMessage = (
+            <FormattedMessage
+                id='channel_invite.policy_recommended.description.board'
+                defaultMessage='A membership policy suggests who should be members of this board. You can still add anyone who can join a public board.'
+            />
+        );
+    } else if (channel.type === Constants.OPEN_CHANNEL) {
+        policyBannerTitle = (
+            <FormattedMessage
+                id='channel_invite.policy_recommended.title'
+                defaultMessage='This channel has recommended members based on user attributes'
+            />
+        );
+        policyBannerMessage = (
+            <FormattedMessage
+                id='channel_invite.policy_recommended.description'
+                defaultMessage='A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.'
+            />
+        );
+    } else if (isBoard) {
+        policyBannerTitle = (
+            <FormattedMessage
+                id='channel_invite.policy_enforced.title.board'
+                defaultMessage='Board access is restricted by user attributes'
+            />
+        );
+        policyBannerMessage = (
+            <FormattedMessage
+                id='channel_invite.policy_enforced.description.board'
+                defaultMessage='Only people who match the specified access rules can be selected and added to this board.'
+            />
+        );
+    } else {
+        policyBannerTitle = (
+            <FormattedMessage
+                id='channel_invite.policy_enforced.title'
+                defaultMessage='Channel access is restricted by user attributes'
+            />
+        );
+        policyBannerMessage = (
+            <FormattedMessage
+                id='channel_invite.policy_enforced.description'
+                defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
+            />
+        );
+    }
+
     const inviteGuestLink = (
         <InviteModalLink
             id='inviteAsGuestLink'
@@ -870,28 +931,8 @@ const ChannelInviteModalComponent = (props: Props) => {
                         <AlertBanner
                             mode='info'
                             variant='app'
-                            title={channel.type === Constants.OPEN_CHANNEL ? (
-                                <FormattedMessage
-                                    id='channel_invite.policy_recommended.title'
-                                    defaultMessage='This channel has recommended members based on user attributes'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='channel_invite.policy_enforced.title'
-                                    defaultMessage='Channel access is restricted by user attributes'
-                                />
-                            )}
-                            message={channel.type === Constants.OPEN_CHANNEL ? (
-                                <FormattedMessage
-                                    id='channel_invite.policy_recommended.description'
-                                    defaultMessage='A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='channel_invite.policy_enforced.description'
-                                    defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
-                                />
-                            )}
+                            title={policyBannerTitle}
+                            message={policyBannerMessage}
                         >
                             {accessControlTags}
                         </AlertBanner>
@@ -902,6 +943,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     <TeamWarningBanner
                         guests={guestsNotInTeam}
                         teamId={channel.team_id}
+                        channelId={channel.id}
                         users={usersNotInTeam}
                     />
                     {(props.emailInvitationsEnabled && props.canInviteGuests && !isPolicyEnforcedPrivate) && inviteGuestLink}

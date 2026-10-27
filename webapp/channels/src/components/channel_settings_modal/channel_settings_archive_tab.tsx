@@ -12,6 +12,8 @@ import {deleteChannel} from 'actions/views/channel';
 
 import ConfirmationModal from 'components/confirm_modal';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+
 type ChannelSettingsArchiveTabProps = {
     channel: Channel;
     onHide: () => void;
@@ -23,6 +25,7 @@ function ChannelSettingsArchiveTab({
 }: ChannelSettingsArchiveTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const isBoard = useIsBoardChannel(channel);
 
     const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
 
@@ -40,45 +43,77 @@ function ChannelSettingsArchiveTab({
 
     return (
         <div className='ChannelSettingsModal__archiveTab'>
-            <FormattedMessage
-                id='channel_settings.archive.warning'
-                defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
-            />
+            {isBoard ? (
+                <FormattedMessage
+                    id='channel_settings.archive.warning.board'
+                    defaultMessage="Archiving a board removes it from the user interface, but doesn't permanently delete the board. New messages can't be posted to archived boards."
+                />
+            ) : (
+                <FormattedMessage
+                    id='channel_settings.archive.warning'
+                    defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
+                />
+            )}
             <Button
                 type='button'
                 variant='destructive'
                 onClick={handleArchiveChannel}
                 id='channelSettingsArchiveChannelButton'
-                aria-label={`Archive channel ${channel.display_name}`}
+                aria-label={isBoard ? `Archive board ${channel.display_name}` : `Archive channel ${channel.display_name}`}
             >
-                <FormattedMessage
-                    id='channel_settings.archive.button'
-                    defaultMessage='Archive this channel'
-                />
+                {isBoard ? (
+                    <FormattedMessage
+                        id='channel_settings.archive.button.board'
+                        defaultMessage='Archive this board'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='channel_settings.archive.button'
+                        defaultMessage='Archive this channel'
+                    />
+                )}
             </Button>
 
             {showArchiveConfirmModal && (
                 <ConfirmationModal
                     id='archiveChannelConfirmModal'
                     show={true}
-                    title={formatMessage({id: 'channel_settings.modal.archiveTitle', defaultMessage: 'Archive channel?'})}
+                    title={isBoard ? formatMessage({id: 'channel_settings.modal.archiveTitle.board', defaultMessage: 'Archive board?'}) : formatMessage({id: 'channel_settings.modal.archiveTitle', defaultMessage: 'Archive channel?'})}
                     message={
                         <div>
                             <p>
-                                <FormattedMessage
-                                    id='deleteChannelModal.canViewArchivedChannelsWarning'
-                                    defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
-                                />
+                                {isBoard ? (
+                                    <FormattedMessage
+                                        id='deleteChannelModal.canViewArchivedChannelsWarning.board'
+                                        defaultMessage='This will archive the board from the team. Board contents will still be accessible by board members.'
+                                    />
+                                ) : (
+                                    <FormattedMessage
+                                        id='deleteChannelModal.canViewArchivedChannelsWarning'
+                                        defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
+                                    />
+                                )}
                             </p>
                             <p>
-                                <FormattedMessage
-                                    id='deleteChannelModal.confirmArchive'
-                                    defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
-                                    values={{
-                                        display_name: channel.display_name,
-                                        strong: (chunks) => <strong>{chunks}</strong>,
-                                    }}
-                                />
+                                {isBoard ? (
+                                    <FormattedMessage
+                                        id='deleteChannelModal.confirmArchive.board'
+                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> board?'
+                                        values={{
+                                            display_name: channel.display_name,
+                                            strong: (chunks) => <strong>{chunks}</strong>,
+                                        }}
+                                    />
+                                ) : (
+                                    <FormattedMessage
+                                        id='deleteChannelModal.confirmArchive'
+                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                                        values={{
+                                            display_name: channel.display_name,
+                                            strong: (chunks) => <strong>{chunks}</strong>,
+                                        }}
+                                    />
+                                )}
                             </p>
                         </div>
                     }

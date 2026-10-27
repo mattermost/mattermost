@@ -78,6 +78,31 @@ describe('components/post_view/PostAddChannelMember', () => {
         generateMentionsSpy.mockRestore();
     });
 
+    test('says board for a post in a board', () => {
+        renderWithContext(
+            <PostAddChannelMember
+                {...requiredProps}
+                isBoard={true}
+            />,
+        );
+
+        expect(screen.getByText(/they are not in the board\. Would you like to/)).toBeInTheDocument();
+        expect(screen.getByText('add them to the board')).toBeInTheDocument();
+        expect(screen.queryByText(/not in the channel/)).not.toBeInTheDocument();
+    });
+
+    test('says private board for a post in a private board', () => {
+        renderWithContext(
+            <PostAddChannelMember
+                {...requiredProps}
+                channelType='P'
+                isBoard={true}
+            />,
+        );
+
+        expect(screen.getByText('add them to this private board')).toBeInTheDocument();
+    });
+
     test('should match snapshot, empty postId', () => {
         const props: Props = {
             ...requiredProps,

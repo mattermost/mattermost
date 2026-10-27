@@ -36,6 +36,7 @@ describe('components/PostMarkdown', () => {
         mentionKeys: [{key: 'a'}, {key: 'b'}, {key: 'c'}],
         channelId: 'channel-id',
         channel: TestHelper.getChannelMock(),
+        isBoard: false,
         currentTeam: TestHelper.getTeamMock(),
         hideGuestTags: false,
         isMilitaryTime: false,

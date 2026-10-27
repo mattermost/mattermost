@@ -43,6 +43,8 @@ import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbo
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+
 import type {GlobalState} from 'types/store';
 
 import ShareChannelWithWorkspaces from './share_channel_with_workspaces';
@@ -108,6 +110,7 @@ function ChannelSettingsConfigurationTab({
 }: Props) {
     const {formatMessage, formatList} = useIntl();
     const dispatch = useDispatch();
+    const isBoard = useIsBoardChannel(channel);
 
     const [formError, setFormError] = useState('');
     const [requireConfirm, setRequireConfirm] = useState(false);
@@ -121,11 +124,11 @@ function ChannelSettingsConfigurationTab({
     }, []);
 
     // Channel banner section
-    const bannerHeading = formatMessage({id: 'channel_banner.label.name', defaultMessage: 'Channel Banner'});
-    const bannerSubHeading = formatMessage({id: 'channel_banner.label.subtext', defaultMessage: 'When enabled, a customized banner will display at the top of the channel.'});
+    const bannerHeading = isBoard ? formatMessage({id: 'channel_banner.label.name.board', defaultMessage: 'Board Banner'}) : formatMessage({id: 'channel_banner.label.name', defaultMessage: 'Channel Banner'});
+    const bannerSubHeading = isBoard ? formatMessage({id: 'channel_banner.label.subtext.board', defaultMessage: 'When enabled, a customized banner will display at the top of the board.'}) : formatMessage({id: 'channel_banner.label.subtext', defaultMessage: 'When enabled, a customized banner will display at the top of the channel.'});
     const bannerTextSettingTitle = formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'});
     const bannerColorSettingTitle = formatMessage({id: 'channel_banner.banner_color.label', defaultMessage: 'Banner color'});
-    const bannerTextPlaceholder = formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'});
+    const bannerTextPlaceholder = isBoard ? formatMessage({id: 'channel_banner.banner_text.placeholder.board', defaultMessage: 'Board banner text'}) : formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'});
     const bannerPreviewSettingTitle = formatMessage({id: 'channel_banner.banner_preview.label', defaultMessage: 'Preview'});
 
     const {enabled: channelAttributesEnabled} = useChannelAttributes();
@@ -370,7 +373,10 @@ function ChannelSettingsConfigurationTab({
             // With attributes on, emptiness is derived below instead: an author
             // clearing the text is on their way to turning the banner off, and a
             // stored error would outlive the condition that raised it.
-            setFormError(formatMessage({
+            setFormError(isBoard ? formatMessage({
+                id: 'channel_settings.save_changes_panel.banner_text.required_error.board',
+                defaultMessage: 'Board banner text cannot be empty when enabled',
+            }) : formatMessage({
                 id: 'channel_settings.save_changes_panel.banner_text.required_error',
                 defaultMessage: 'Channel banner text cannot be empty when enabled',
             }));
@@ -379,7 +385,7 @@ function ChannelSettingsConfigurationTab({
             resetFormErrors();
             setCharacterLimitExceeded(false);
         }
-    }, [channelAttributesEnabled, formatMessage, resetFormErrors]);
+    }, [channelAttributesEnabled, formatMessage, isBoard, resetFormErrors]);
 
     const handleBannerColorChange = useCallback((color: string) => {
         setUpdatedChannelBanner((prev) => ({
@@ -396,7 +402,7 @@ function ChannelSettingsConfigurationTab({
 
     // Auto-translation section
     const autoTranslationHeading = formatMessage({id: 'channel_translation.label.name', defaultMessage: 'Auto-translation'});
-    const autoTranslationSubHeading = formatMessage({id: 'channel_translation.label.subtext', defaultMessage: 'When enabled, messages in this channel will be translated to members\' own languages. Members can opt-out of this from the channel menu to view the original message instead.'});
+    const autoTranslationSubHeading = isBoard ? formatMessage({id: 'channel_translation.label.subtext.board', defaultMessage: 'When enabled, messages in this board will be translated to members\' own languages. Members can opt-out of this from the board menu to view the original message instead.'}) : formatMessage({id: 'channel_translation.label.subtext', defaultMessage: 'When enabled, messages in this channel will be translated to members\' own languages. Members can opt-out of this from the channel menu to view the original message instead.'});
 
     const initialIsChannelAutotranslated = useSelector((state: GlobalState) => isChannelAutotranslatedSelector(state, channel.id));
     const [isChannelAutotranslated, setIsChannelAutotranslated] = useState(initialIsChannelAutotranslated);
@@ -408,7 +414,10 @@ function ChannelSettingsConfigurationTab({
 
     // Join/leave messages section
     const joinLeaveMessagesHeading = formatMessage({id: 'channel_settings.join_leave_messages.label.name', defaultMessage: 'Join/Leave System Messages'});
-    const joinLeaveMessagesSubHeading = formatMessage({
+    const joinLeaveMessagesSubHeading = isBoard ? formatMessage({
+        id: 'channel_settings.join_leave_messages.label.subtext.board',
+        defaultMessage: 'When enabled, join and leave system messages are shown in this board for all users. When disabled, they are hidden regardless of account-wide Advanced settings. Stored messages reappear if you turn this back on.',
+    }) : formatMessage({
         id: 'channel_settings.join_leave_messages.label.subtext',
         defaultMessage: 'When enabled, join and leave system messages are shown in this channel for all users. When disabled, they are hidden regardless of account-wide Advanced settings. Stored messages reappear if you turn this back on.',
     });
@@ -475,17 +484,24 @@ function ChannelSettingsConfigurationTab({
             {count: removeCount},
         );
 
-        const removeSharingModalMessage = formatMessage(
+        const removeSharingModalValues = {
+            count: removeCount,
+            channelName: channelDisplayName,
+            workspaceNames: workspaceNamesFormatted,
+            b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+        };
+        const removeSharingModalMessage = isBoard ? formatMessage(
+            {
+                id: 'channel_settings.remove_sharing_confirm.message.board',
+                defaultMessage: 'This will unshare the board <b>{channelName}</b> with the <b>{workspaceNames}</b> connected {count, plural, one {workspace} other {workspaces}}. Are you sure you want to unshare?',
+            },
+            removeSharingModalValues,
+        ) : formatMessage(
             {
                 id: 'channel_settings.remove_sharing_confirm.message',
                 defaultMessage: 'This will unshare the channel <b>{channelName}</b> with the <b>{workspaceNames}</b> connected {count, plural, one {workspace} other {workspaces}}. Are you sure you want to unshare?',
             },
-            {
-                count: removeCount,
-                channelName: channelDisplayName,
-                workspaceNames: workspaceNamesFormatted,
-                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
-            },
+            removeSharingModalValues,
         );
 
         return {
@@ -497,6 +513,7 @@ function ChannelSettingsConfigurationTab({
         channel.name,
         formatList,
         formatMessage,
+        isBoard,
         savedSharing.remotes,
         workspaceRemotes,
     ]);
@@ -592,10 +609,17 @@ function ChannelSettingsConfigurationTab({
         if (bannerEnabledOnSave && bannerTextInvalid) {
             // Naming the toggle as the way out is only honest while it can be reached.
             const canTurnBannerOff = channelAttributesEnabled && !bannerLockedByClassification && !bannerRequiredByAttribute;
-            setFormError(canTurnBannerOff ? formatMessage({
-                id: 'channel_settings.save_changes_panel.banner_text.empty_error',
-                defaultMessage: 'Add banner text, or turn off the channel banner.',
-            }) : formatMessage({
+            let emptyBannerError;
+            if (canTurnBannerOff) {
+                emptyBannerError = isBoard ? formatMessage({
+                    id: 'channel_settings.save_changes_panel.banner_text.empty_error.board',
+                    defaultMessage: 'Add banner text, or turn off the board banner.',
+                }) : formatMessage({
+                    id: 'channel_settings.save_changes_panel.banner_text.empty_error',
+                    defaultMessage: 'Add banner text, or turn off the channel banner.',
+                });
+            }
+            setFormError(emptyBannerError ?? formatMessage({
                 id: 'channel_settings.error_banner_text_required',
                 defaultMessage: 'Banner text is required',
             }));
@@ -717,7 +741,10 @@ function ChannelSettingsConfigurationTab({
                 handleServerError(lastError as ServerError);
             }
             if (errorCount > 1) {
-                setFormError(formatMessage({
+                setFormError(isBoard ? formatMessage({
+                    id: 'channel_settings.sharing_errors.board',
+                    defaultMessage: 'There have been errors while sharing the board with some workspaces. Please try again.',
+                }) : formatMessage({
                     id: 'channel_settings.sharing_errors',
                     defaultMessage: 'There have been errors while sharing the channel with some workspaces. Please try again.',
                 }));
@@ -745,6 +772,7 @@ function ChannelSettingsConfigurationTab({
         classificationEnabled,
         dispatch,
         formatMessage,
+        isBoard,
         handleServerError,
         hasAutoTranslationChanges,
         hasBannerChanges,
@@ -886,6 +914,7 @@ function ChannelSettingsConfigurationTab({
                         onRemotesChange={handleWorkspaceRemotesChange}
                         enabled={sharingEnabled}
                         onToggle={handleSharingToggle}
+                        isBoard={isBoard}
                     />
                 </>
             )}
@@ -904,7 +933,10 @@ function ChannelSettingsConfigurationTab({
                         data-testid='channelClassificationToggle-button'
                         tabIndex={0}
                         semiBold={true}
-                        secondaryLabel={formatMessage({
+                        secondaryLabel={isBoard ? formatMessage({
+                            id: 'channel_settings.classification.description.board',
+                            defaultMessage: 'When enabled, a classification level can be set for the board with configurable indicators.',
+                        }) : formatMessage({
                             id: 'channel_settings.classification.description',
                             defaultMessage: 'When enabled, a classification level can be set for the channel with configurable indicators.',
                         })}
@@ -998,12 +1030,20 @@ function ChannelSettingsConfigurationTab({
                                                 disabled={bannerLockedByClassification}
                                                 hasError={characterLimitExceeded}
                                                 maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                                isBoard={isBoard}
                                             />
                                             <p className='setting_help'>
-                                                <FormattedMessage
-                                                    id='channel_banner.banner_text.help'
-                                                    defaultMessage='Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.'
-                                                />
+                                                {isBoard ? (
+                                                    <FormattedMessage
+                                                        id='channel_banner.banner_text.help.board'
+                                                        defaultMessage='Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the board. The banner is hidden if there is no text available.'
+                                                    />
+                                                ) : (
+                                                    <FormattedMessage
+                                                        id='channel_banner.banner_text.help'
+                                                        defaultMessage='Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.'
+                                                    />
+                                                )}
                                             </p>
                                         </>
                                     ) : (

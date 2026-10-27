@@ -35,6 +35,7 @@ import {clearComposerPlaceholderErrors} from 'components/advanced_text_editor/co
 import {compassIconForName} from 'components/channel_type_icon';
 import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
 
+import {clearLoggedChannelKindErrors} from 'utils/channel_kind';
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
@@ -78,11 +79,13 @@ import type {
     AIActionMenuItemComponent,
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
+    ChannelKindRegistration,
     ChannelIntroRegistration,
     ChannelViewRegistration,
     ComposerPlaceholderRegistration,
     ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
+import {CHANNEL_KINDS} from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 
@@ -1518,6 +1521,40 @@ export default class PluginRegistry {
             pluginId: this.id,
             matcher,
             iconName,
+        });
+        return id;
+    });
+
+    /**
+     * Register a kind for matching channels, which the webapp then names with that kind's own
+     * words: a 'board' is a board everywhere the webapp would say channel ("Board Settings",
+     * "Leave Board", "Add a board header", "joined the board"). Each such string is its own
+     * translated message beside the channel one.
+     *
+     * `matcher` receives the full GlobalState and a Channel, as for registerChannelIconOverride;
+     * throws are caught and treated as no-match, and the first match wins. `kind` must be one the
+     * webapp knows: 'board'. Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerChannelKind = reArg(['matcher', 'kind'], ({matcher, kind}: {
+        matcher: ChannelKindRegistration['matcher'];
+        kind: ChannelKindRegistration['kind'];
+    }) => {
+        if (!(CHANNEL_KINDS as readonly string[]).includes(kind)) {
+            // eslint-disable-next-line no-console
+            console.error(`ChannelKind: plugin '${this.id}' supplied unknown kind '${kind}' — registration ignored.`);
+            return generateId();
+        }
+        if (this.isActive()) {
+            clearLoggedChannelKindErrors(this.id);
+        }
+        const id = generateId();
+        this.dispatchPluginComponentWithData('ChannelKind', {
+            id,
+            pluginId: this.id,
+            matcher,
+            kind,
         });
         return id;
     });

@@ -185,12 +185,107 @@ const postTypeMessage = {
     }),
 };
 
+// For a board: the channel messages above, saying "board", each its own message.
+const postTypeBoardMessage = {
+    [JOIN_CHANNEL]: defineMessages({
+        one: {
+            id: 'combined_system_message.joined_channel.one.board',
+            defaultMessage: '{firstUser} **joined the board**.',
+        },
+        one_you: {
+            id: 'combined_system_message.joined_channel.one_you.board',
+            defaultMessage: 'You **joined the board**.',
+        },
+        two: {
+            id: 'combined_system_message.joined_channel.two.board',
+            defaultMessage: '{firstUser} and {secondUser} **joined the board**.',
+        },
+        many_expanded: {
+            id: 'combined_system_message.joined_channel.many_expanded.board',
+            defaultMessage: '{users} and {lastUser} **joined the board**.',
+        },
+    }),
+    [ADD_TO_CHANNEL]: defineMessages({
+        one: {
+            id: 'combined_system_message.added_to_channel.one.board',
+            defaultMessage: '{firstUser} **added to the board** by {actor}.',
+        },
+        one_you: {
+            id: 'combined_system_message.added_to_channel.one_you.board',
+            defaultMessage: 'You were **added to the board** by {actor}.',
+        },
+        two: {
+            id: 'combined_system_message.added_to_channel.two.board',
+            defaultMessage: '{firstUser} and {secondUser} **added to the board** by {actor}.',
+        },
+        many_expanded: {
+            id: 'combined_system_message.added_to_channel.many_expanded.board',
+            defaultMessage: '{users} and {lastUser} were **added to the board** by {actor}.',
+        },
+    }),
+    [REMOVE_FROM_CHANNEL]: defineMessages({
+        one: {
+            id: 'combined_system_message.removed_from_channel.one.board',
+            defaultMessage: '{firstUser} was **removed from the board**.',
+        },
+        one_you: {
+            id: 'combined_system_message.removed_from_channel.one_you.board',
+            defaultMessage: 'You were **removed from the board**.',
+        },
+        two: {
+            id: 'combined_system_message.removed_from_channel.two.board',
+            defaultMessage: '{firstUser} and {secondUser} were **removed from the board**.',
+        },
+        many_expanded: {
+            id: 'combined_system_message.removed_from_channel.many_expanded.board',
+            defaultMessage: '{users} and {lastUser} were **removed from the board**.',
+        },
+    }),
+    [LEAVE_CHANNEL]: defineMessages({
+        one: {
+            id: 'combined_system_message.left_channel.one.board',
+            defaultMessage: '{firstUser} **left the board**.',
+        },
+        one_you: {
+            id: 'combined_system_message.left_channel.one_you.board',
+            defaultMessage: 'You **left the board**.',
+        },
+        two: {
+            id: 'combined_system_message.left_channel.two.board',
+            defaultMessage: '{firstUser} and {secondUser} **left the board**.',
+        },
+        many_expanded: {
+            id: 'combined_system_message.left_channel.many_expanded.board',
+            defaultMessage: '{users} and {lastUser} **left the board**.',
+        },
+    }),
+    [JOIN_LEAVE_CHANNEL]: defineMessages({
+        one: {
+            id: 'combined_system_message.join_left_channel.one.board',
+            defaultMessage: '{firstUser} **joined and left the board**.',
+        },
+        one_you: {
+            id: 'combined_system_message.join_left_channel.one_you.board',
+            defaultMessage: 'You **joined and left the board**.',
+        },
+        two: {
+            id: 'combined_system_message.join_left_channel.two.board',
+            defaultMessage: '{firstUser} and {secondUser} **joined and left the board**.',
+        },
+        many_expanded: {
+            id: 'combined_system_message.join_left_channel.many_expanded.board',
+            defaultMessage: '{users} and {lastUser} **joined and left the board**.',
+        },
+    }),
+};
+
 export type Props = {
     allUserIds: string[];
     allUsernames: string[];
     currentUserId: string;
     currentUsername: string;
     intl: IntlShape;
+    isBoard?: boolean;
     messageData: MessageData[];
     showJoinLeave: boolean;
     userProfiles: UserProfile[];
@@ -301,7 +396,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
             singleline: true,
         };
 
-        const selectedPostTypeMessage = secureGetFromRecord(postTypeMessage, postType);
+        const selectedPostTypeMessage = (this.props.isBoard && secureGetFromRecord(postTypeBoardMessage, postType)) || secureGetFromRecord(postTypeMessage, postType);
         if (!selectedPostTypeMessage) {
             return <></>;
         }
@@ -312,6 +407,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
                     actor={actor}
                     expandedLocale={selectedPostTypeMessage.many_expanded}
                     formatOptions={options}
+                    isBoard={this.props.isBoard}
                     postType={postType}
                     usernames={usernames}
                 />

@@ -28,6 +28,7 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -57,6 +58,7 @@ function ChannelSettingsAccessRulesTab({
     showTabSwitchError,
 }: ChannelSettingsAccessRulesTabProps) {
     const {formatMessage} = useIntl();
+    const isBoard = useIsBoardChannel(channel);
 
     // Get access control settings and current user from Redux state
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
@@ -694,6 +696,10 @@ function ChannelSettingsAccessRulesTab({
         return unsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED;
     }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
 
+    const publicSubtitle = isBoard ? formatMessage({id: 'channel_settings.access_rules.subtitle_public.board', defaultMessage: 'Define who this board is recommended for. The board stays open to everyone.'}) : formatMessage({id: 'channel_settings.access_rules.subtitle_public', defaultMessage: 'Define who this channel is recommended for. The channel stays open to everyone.'});
+    const privateSubtitle = isBoard ? formatMessage({id: 'channel_settings.access_rules.subtitle.board', defaultMessage: 'Select user attributes and values as rules to restrict board membership'}) : formatMessage({id: 'channel_settings.access_rules.subtitle', defaultMessage: 'Select user attributes and values as rules to restrict channel membership'});
+    const accessRulesSubtitle = channel.type === Constants.OPEN_CHANNEL ? publicSubtitle : privateSubtitle;
+
     return (
         <div className='ChannelSettingsModal__accessRulesTab'>
             {/* Display system policies indicator if any are applied */}
@@ -719,13 +725,7 @@ function ChannelSettingsAccessRulesTab({
                     })}
                 </h3>
                 <p className='ChannelSettingsModal__accessRulesSubtitle'>
-                    {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
-                        id: 'channel_settings.access_rules.subtitle_public',
-                        defaultMessage: 'Define who this channel is recommended for. The channel stays open to everyone.',
-                    }) : formatMessage({
-                        id: 'channel_settings.access_rules.subtitle',
-                        defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
-                    })}
+                    {accessRulesSubtitle}
                 </p>
             </div>
 
@@ -795,6 +795,12 @@ function ChannelSettingsAccessRulesTab({
                     {(() => {
                         const isPublic = channel.type === Constants.OPEN_CHANNEL;
                         if (autoSyncMembers) {
+                            if (isPublic && isBoard) {
+                                return formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync_enabled_public_description.board',
+                                    defaultMessage: 'Users who match these rules will be added to this board. They can leave anytime and won\'t be re-added.',
+                                });
+                            }
                             if (isPublic) {
                                 return formatMessage({
                                     id: 'channel_settings.access_rules.auto_sync_enabled_public_description',
@@ -807,6 +813,12 @@ function ChannelSettingsAccessRulesTab({
                             });
                         }
 
+                        if (isPublic && isBoard) {
+                            return formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync_disabled_public_description.board',
+                                defaultMessage: 'This board will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.',
+                            });
+                        }
                         if (isPublic) {
                             return formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync_disabled_public_description',
@@ -850,12 +862,17 @@ function ChannelSettingsAccessRulesTab({
                         defaultMessage='Cannot save access rules'
                     />
                 }
-                message={
+                message={isBoard ? (
+                    <FormattedMessage
+                        id='channel_settings.access_rules.error.self_exclusion_message.board'
+                        defaultMessage="You cannot set this rule because it would remove you from the board. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues."
+                    />
+                ) : (
                     <FormattedMessage
                         id='channel_settings.access_rules.error.self_exclusion_message'
                         defaultMessage="You cannot set this rule because it would remove you from the channel. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues."
                     />
-                }
+                )}
                 confirmButtonText={
                     <FormattedMessage
                         id='channel_settings.access_rules.error.back_to_editing'
@@ -889,6 +906,7 @@ function ChannelSettingsAccessRulesTab({
                 autoSyncEnabled={autoSyncMembers}
                 isStacked={true}
                 willShowActivityWarning={shouldShowActivityWarning}
+                isBoard={isBoard}
             />
 
             {/* Activity warning modal */}
@@ -897,6 +915,7 @@ function ChannelSettingsAccessRulesTab({
                 isOpen={showActivityWarningModal}
                 onClose={handleActivityWarningClose}
                 onConfirm={handleActivityWarningContinue}
+                isBoard={isBoard}
             />
         </div>
     );

@@ -74,6 +74,7 @@ export type PluginsState = {
         SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
         ChannelTypeOption: ChannelTypeOptionComponent[];
         ChannelIconOverride: ChannelIconOverrideRegistration[];
+        ChannelKind: ChannelKindRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
         ChannelView: ChannelViewRegistration[];
@@ -475,6 +476,15 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
 export type ChannelIconOverrideRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     iconName: IconGlyphTypes;
+};
+
+/** The kinds of channel the webapp has its own wording for; a channel matching none is a channel. */
+export const CHANNEL_KINDS = ['board'] as const;
+export type ChannelKind = typeof CHANNEL_KINDS[number];
+
+export type ChannelKindRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    kind: ChannelKind;
 };
 
 export type ChannelComposerBannerComponent = PluginComponent & {

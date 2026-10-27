@@ -16,6 +16,7 @@ import {openModal} from 'actions/views/modals';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import {
     Constants,
     ModalIdentifiers,
@@ -83,6 +84,7 @@ export default function ChannelHeaderText(props: Props) {
 
 function AddChannelHeaderTextButton({channel}: {channel: Channel}) {
     const dispatch = useDispatch();
+    const isBoard = useIsBoardChannel(channel);
 
     function handleClick() {
         dispatch(openModal({
@@ -97,10 +99,17 @@ function AddChannelHeaderTextButton({channel}: {channel: Channel}) {
             className='header-placeholder style--none'
             onClick={handleClick}
         >
-            <FormattedMessage
-                id='channel_header.headerText.addNewButton'
-                defaultMessage='Add a channel header'
-            />
+            {isBoard ? (
+                <FormattedMessage
+                    id='channel_header.headerText.addNewButton.board'
+                    defaultMessage='Add a board header'
+                />
+            ) : (
+                <FormattedMessage
+                    id='channel_header.headerText.addNewButton'
+                    defaultMessage='Add a channel header'
+                />
+            )}
             <i
                 className='icon icon-pencil-outline edit-icon'
                 aria-hidden={true}

@@ -27,6 +27,7 @@ import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 import * as Menu from 'components/menu';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import {Constants} from 'utils/constants';
 import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 
@@ -54,6 +55,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
 
     const user = useSelector(getCurrentUser);
     const channel = useSelector(getCurrentChannel);
+    const isBoard = useIsBoardChannel(channel);
     const isDefault = useSelector(isCurrentChannelDefault);
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const isMuted = useSelector(isCurrentChannelMuted);
@@ -70,7 +72,12 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const isGroup = (channel.type === Constants.GM_CHANNEL);
 
     let channelTitle: ReactNode = channel.display_name;
-    let ariaLabel = intl.formatMessage({
+    let ariaLabel = isBoard ? intl.formatMessage({
+        id: 'channel_header.otherchannel.board',
+        defaultMessage: '{displayName} Board Menu',
+    }, {
+        displayName: channel.display_name,
+    }) : intl.formatMessage({
         id: 'channel_header.otherchannel',
         defaultMessage: '{displayName} Channel Menu',
     }, {

@@ -25,6 +25,9 @@ type Props = {
     onRemotesChange: React.Dispatch<React.SetStateAction<WorkspaceWithStatus[]>>;
     enabled: boolean;
     onToggle?: (enabled: boolean) => void;
+
+    /** Whether the channel being shared is a board, so the section says "board" rather than "channel". */
+    isBoard?: boolean;
 };
 
 const emptyRemotes: RemoteClusterInfo[] = [];
@@ -35,6 +38,7 @@ export default function ShareChannelWithWorkspaces({
     onRemotesChange,
     enabled,
     onToggle,
+    isBoard = false,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -104,7 +108,10 @@ export default function ShareChannelWithWorkspaces({
         id: 'channel_settings.share_channel_with_workspaces.title',
         defaultMessage: 'Share with connected workspaces',
     });
-    const subheading = formatMessage({
+    const subheading = isBoard ? formatMessage({
+        id: 'channel_settings.share_channel_with_workspaces.description.board',
+        defaultMessage: 'Collaborate with trusted organizations in this board.',
+    }) : formatMessage({
         id: 'channel_settings.share_channel_with_workspaces.description',
         defaultMessage: 'Collaborate with trusted organizations in this channel.',
     });
@@ -154,12 +161,25 @@ export default function ShareChannelWithWorkspaces({
             {hasAvailableWorkspaces && enabled && (
                 <div className='channel_shared_with_workspaces_section_body'>
                     <span className='ShareChannelWithWorkspaces__listHeader'>
-                        {remotes.length > 0 ? (
+                        {remotes.length > 0 && isBoard && (
+                            <FormattedMessage
+                                id='channel_settings.share_channel_with_workspaces.workspaces_label.board'
+                                defaultMessage='Workspaces this board is shared with'
+                            />
+                        )}
+                        {remotes.length > 0 && !isBoard && (
                             <FormattedMessage
                                 id='channel_settings.share_channel_with_workspaces.workspaces_label'
                                 defaultMessage='Workspaces this channel is shared with'
                             />
-                        ) : (
+                        )}
+                        {remotes.length === 0 && isBoard && (
+                            <FormattedMessage
+                                id='channel_settings.share_channel_with_workspaces.workspaces_label_empty.board'
+                                defaultMessage='This board is not shared with any connected workspaces yet.'
+                            />
+                        )}
+                        {remotes.length === 0 && !isBoard && (
                             <FormattedMessage
                                 id='channel_settings.share_channel_with_workspaces.workspaces_label_empty'
                                 defaultMessage='This channel is not shared with any connected workspaces yet.'
