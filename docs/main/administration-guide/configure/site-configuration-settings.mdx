@@ -2252,11 +2252,13 @@ With self-hosted deployments, you can access the following configuration setting
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows users to create <a href={useBaseUrl('/end-user-guide/collaborate/share-files-in-messages')}>public links</a> to files attached to Mattermost messages. | - System Config path: <strong>Site Configuration &gt; Public Links</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Prevents users from creating public links to files and disables all previously created links. | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnablePublicLink</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_FILESETTINGS_ENABLEPUBLICLINK</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: Allows users to create <a href={useBaseUrl('/end-user-guide/collaborate/share-files-in-messages')}>public links</a> to files attached to Mattermost messages.</li><li><strong>false</strong>: <strong>(Default)</strong> Prevents users from creating public links to files and disables all previously created links.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Public Links</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnablePublicLink</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_FILESETTINGS_ENABLEPUBLICLINK</code></li></ul></td>
 </tr>
 </tbody>
 </table>
