@@ -291,8 +291,8 @@ func (ps *PlatformService) configFileDirs() []string {
 	}
 
 	dirs := []string{filepath.Dir(file)}
-	if real, err := filepath.EvalSymlinks(file); err == nil && filepath.Dir(real) != dirs[0] {
-		dirs = append(dirs, filepath.Dir(real))
+	if resolved, err := filepath.EvalSymlinks(file); err == nil && filepath.Dir(resolved) != dirs[0] {
+		dirs = append(dirs, filepath.Dir(resolved))
 	}
 	return dirs
 }
