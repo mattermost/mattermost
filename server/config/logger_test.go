@@ -5,10 +5,14 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -321,11 +325,20 @@ func TestValidateLogFilePath(t *testing.T) {
 
 // deliveryTargetJSON is an advanced logging config whose only target is bound to the
 // audit-delivery level.
-var deliveryTargetJSON = json.RawMessage(`{"my-delivery":{"type":"file","levels":[{"id":104,"name":"audit-delivery"}],"options":{"filename":"delivery.log"}}}`)
+var deliveryTargetJSON = json.RawMessage(`{"my-delivery":{"type":"file","format":"json","levels":[{"id":104,"name":"audit-delivery"}],"options":{"filename":"delivery.log"}}}`)
+
+// noneAuditTargetJSON binds audit-api and audit-delivery to a target of type "none", which
+// logr never builds.
+const noneAuditTargetJSON = `{"a":{"type":"none","levels":[{"id":100,"name":"audit-api"},{"id":104,"name":"audit-delivery"}]}}`
+
+func setAdditionalAuditTargets(t *testing.T, value string) {
+	t.Helper()
+	t.Setenv(AdditionalAuditTargetsEnv, value)
+}
 
 func TestIsAuditLoggingActive(t *testing.T) {
-	auditTargetJSON := json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`)
-	stdTargetJSON := json.RawMessage(`{"my-log":{"type":"file","levels":[{"id":4,"name":"info"}],"options":{"filename":"info.log"}}}`)
+	auditTargetJSON := json.RawMessage(`{"my-audit":{"type":"file","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`)
+	stdTargetJSON := json.RawMessage(`{"my-log":{"type":"file","format":"json","levels":[{"id":4,"name":"info"}],"options":{"filename":"info.log"}}}`)
 	malformedJSON := json.RawMessage(`{not valid json`)
 
 	tests := []struct {
@@ -333,6 +346,7 @@ func TestIsAuditLoggingActive(t *testing.T) {
 		fileEnabled          bool
 		fileName             string
 		advancedLoggingJSON  json.RawMessage
+		additionalTargets    string
 		allowAdvancedLogging bool
 		expected             bool
 	}{
@@ -386,10 +400,216 @@ func TestIsAuditLoggingActive(t *testing.T) {
 			allowAdvancedLogging: true,
 			expected:             false,
 		},
+		{
+			// configureAudit applies env var targets regardless of license.
+			name:                 "env var audit target, unlicensed",
+			fileEnabled:          false,
+			additionalTargets:    string(auditTargetJSON),
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var audit target merged with non-audit advanced config",
+			fileEnabled:          false,
+			advancedLoggingJSON:  stdTargetJSON,
+			additionalTargets:    string(auditTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             true,
+		},
+		{
+			// Like configureAudit, an env var target replaces the advanced target of the same name.
+			name:                 "env var target overrides same-named advanced audit target",
+			fileEnabled:          false,
+			advancedLoggingJSON:  auditTargetJSON,
+			additionalTargets:    `{"my-audit":{"type":"file","format":"json","levels":[{"id":4,"name":"info"}],"options":{"filename":"audit.log"}}}`,
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "env var target with no audit level",
+			fileEnabled:          false,
+			additionalTargets:    string(stdTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "env var target bound only to audit-delivery",
+			fileEnabled:          false,
+			additionalTargets:    string(deliveryTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "malformed env var JSON",
+			fileEnabled:          false,
+			additionalTargets:    string(malformedJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			// configureAudit returns before Configure when additional JSON is malformed,
+			// so a valid licensed advanced target is never applied either.
+			name:                 "malformed env var JSON with valid licensed advanced target",
+			fileEnabled:          false,
+			advancedLoggingJSON:  auditTargetJSON,
+			additionalTargets:    string(malformedJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			// The basic _defAudit target is dropped too when configureAudit fails.
+			name:                 "malformed env var JSON with file audit enabled",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    string(malformedJSON),
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of unknown type",
+			fileEnabled:          false,
+			additionalTargets:    `{"my-audit":{"type":"bogus","format":"json","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			// An invalid env var target fails configureAudit as a whole, dropping _defAudit.
+			name:                 "env var target of unknown type with file audit enabled",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    `{"my-audit":{"type":"bogus","format":"json","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target overrides _defAudit with no audit level",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    `{"_defAudit":{"type":"file","format":"json","levels":[{"id":4,"name":"info"}],"options":{"filename":"audit.log"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of type none",
+			fileEnabled:          false,
+			additionalTargets:    noneAuditTargetJSON,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "advanced target of type None, licensed",
+			fileEnabled:          false,
+			advancedLoggingJSON:  json.RawMessage(`{"a":{"type":"None","levels":[{"id":100,"name":"audit-api"}]}}`),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of type none overrides _defAudit",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    `{"_defAudit":{"type":"none","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of type none alongside file audit",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    noneAuditTargetJSON,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var syslog target with missing host",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"port":514}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var syslog target with no options",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var syslog target with TLS and default trust",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			// The path is on the server's filesystem, which offline packet evaluation can't read.
+			name:                 "env var syslog target with TLS and cert file path",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true,"cert":"/nonexistent/mattermost/syslog-ca.pem"}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var syslog target with TLS and unparseable cert",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true,"cert":"bm90IGEgY2VydA=="}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var syslog target with unknown format",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"bogus","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var console target",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"console","format":"plain","levels":[{"id":100,"name":"audit-api"}],"options":{"out":"stderr"}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var console target with invalid output",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"console","format":"plain","levels":[{"id":100,"name":"audit-api"}],"options":{"out":"stdlog"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var file target with no filename",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"file","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var tcp target",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"tcp","format":"gelf","levels":[{"id":100,"name":"audit-api"}],"options":{"ip":"127.0.0.1","port":5000}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var tcp target with missing port",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"tcp","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"ip":"127.0.0.1"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target with malformed format options",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"file","format":"json","format_options":{"enable_caller":"yes"},"levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			setAdditionalAuditTargets(t, tc.additionalTargets)
+
 			auditSettings := model.ExperimentalAuditSettings{}
 			auditSettings.SetDefaults()
 			*auditSettings.FileEnabled = tc.fileEnabled
@@ -401,94 +621,104 @@ func TestIsAuditLoggingActive(t *testing.T) {
 	}
 }
 
-func TestIsAuditLevelActive(t *testing.T) {
-	auditTargetJSON := json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`)
-	malformedJSON := json.RawMessage(`{not valid json`)
+func TestAuditActivityChecksDoNotDialSyslog(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = listener.Close()
+	})
 
-	tests := []struct {
-		name                 string
-		level                mlog.Level
-		fileEnabled          bool
-		advancedLoggingJSON  json.RawMessage
-		allowAdvancedLogging bool
-		expected             bool
-	}{
-		{
-			name:                 "file audit covers audit-api",
-			level:                mlog.LvlAuditAPI,
-			fileEnabled:          true,
-			allowAdvancedLogging: false,
-			expected:             true,
-		},
-		{
-			// The whole point of the helper: FileEnabled alone must not make
-			// audit-delivery active, because _defAudit is not bound to it.
-			name:                 "file audit does not cover audit-delivery",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          true,
-			allowAdvancedLogging: false,
-			expected:             false,
-		},
-		{
-			name:                 "advanced delivery target, licensed",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			advancedLoggingJSON:  deliveryTargetJSON,
-			allowAdvancedLogging: true,
-			expected:             true,
-		},
-		{
-			name:                 "advanced delivery target, unlicensed",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			advancedLoggingJSON:  deliveryTargetJSON,
-			allowAdvancedLogging: false,
-			expected:             false,
-		},
-		{
-			name:                 "advanced target for a different audit level",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			advancedLoggingJSON:  auditTargetJSON,
-			allowAdvancedLogging: true,
-			expected:             false,
-		},
-		{
-			name:                 "file audit plus advanced delivery target",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          true,
-			advancedLoggingJSON:  deliveryTargetJSON,
-			allowAdvancedLogging: true,
-			expected:             true,
-		},
-		{
-			name:                 "nothing configured",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			allowAdvancedLogging: true,
-			expected:             false,
-		},
-		{
-			name:                 "malformed advanced JSON",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			advancedLoggingJSON:  malformedJSON,
-			allowAdvancedLogging: true,
-			expected:             false,
-		},
-	}
+	var dials atomic.Int32
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+			dials.Add(1)
+			_ = conn.Close()
+		}
+	}()
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			auditSettings := model.ExperimentalAuditSettings{}
-			auditSettings.SetDefaults()
-			*auditSettings.FileEnabled = tc.fileEnabled
-			*auditSettings.FileName = "audit.log"
-			auditSettings.AdvancedLoggingJSON = tc.advancedLoggingJSON
+	port := listener.Addr().(*net.TCPAddr).Port
+	setAdditionalAuditTargets(t, fmt.Sprintf(
+		`{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"},{"id":104,"name":"audit-delivery"}],"options":{"host":"127.0.0.1","port":%d}}}`,
+		port,
+	))
 
-			assert.Equal(t, tc.expected, IsAuditLevelActive(auditSettings, tc.allowAdvancedLogging, tc.level))
-		})
-	}
+	auditSettings := model.ExperimentalAuditSettings{}
+	auditSettings.SetDefaults()
+	*auditSettings.FileEnabled = false
+
+	assert.True(t, IsAuditLoggingActive(auditSettings, false))
+
+	// Give a stray dial time to be accepted before checking.
+	time.Sleep(100 * time.Millisecond)
+	assert.Zero(t, dials.Load(), "activity checks must not connect to the syslog server")
+}
+
+func TestAdditionalAuditConfig(t *testing.T) {
+	t.Run("blank", func(t *testing.T) {
+		setAdditionalAuditTargets(t, "  ")
+
+		cfg, err := AdditionalAuditConfig()
+		require.NoError(t, err)
+		assert.Nil(t, cfg)
+	})
+
+	t.Run("valid targets", func(t *testing.T) {
+		setAdditionalAuditTargets(t, string(deliveryTargetJSON))
+
+		cfg, err := AdditionalAuditConfig()
+		require.NoError(t, err)
+		require.Contains(t, cfg, "my-delivery")
+		assert.Equal(t, "file", cfg["my-delivery"].Type)
+		assert.Equal(t, []mlog.Level{mlog.LvlAuditDelivery}, cfg["my-delivery"].Levels)
+	})
+
+	t.Run("malformed JSON", func(t *testing.T) {
+		setAdditionalAuditTargets(t, `{not valid json`)
+
+		_, err := AdditionalAuditConfig()
+		assert.Error(t, err)
+	})
+
+	t.Run("reads the env var on each call", func(t *testing.T) {
+		setAdditionalAuditTargets(t, string(deliveryTargetJSON))
+
+		cfg, err := AdditionalAuditConfig()
+		require.NoError(t, err)
+		require.Contains(t, cfg, "my-delivery")
+
+		setAdditionalAuditTargets(t, "")
+		cfg, err = AdditionalAuditConfig()
+		require.NoError(t, err)
+		assert.Nil(t, cfg)
+	})
+}
+
+func TestEffectiveAuditConfig(t *testing.T) {
+	auditSettings := model.ExperimentalAuditSettings{}
+	auditSettings.SetDefaults()
+	*auditSettings.FileEnabled = true
+	*auditSettings.FileName = "audit.log"
+
+	t.Run("env var target replaces _defAudit", func(t *testing.T) {
+		setAdditionalAuditTargets(t, `{"_defAudit":{"type":"file","format":"json","levels":[{"id":4,"name":"info"}],"options":{"filename":"audit.log"}}}`)
+
+		cfg, err := EffectiveAuditConfig(auditSettings, nil)
+		require.NoError(t, err)
+		require.Contains(t, cfg, "_defAudit")
+		require.Len(t, cfg["_defAudit"].Levels, 1)
+		assert.Equal(t, mlog.LvlInfo.ID, cfg["_defAudit"].Levels[0].ID)
+	})
+
+	t.Run("malformed env var JSON", func(t *testing.T) {
+		setAdditionalAuditTargets(t, `{not valid json`)
+
+		_, err := EffectiveAuditConfig(auditSettings, nil)
+		assert.ErrorContains(t, err, "invalid additional config for audit")
+	})
 }
 
 func TestIsLogPathEnforcementEnabled(t *testing.T) {

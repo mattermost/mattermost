@@ -683,6 +683,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             />
                         }
                         progress={progress}
+                        size='24'
                     />
                 );
             }

@@ -134,7 +134,7 @@ const CodePreview = ({
     if (status === 'loading') {
         return (
             <div className='view-image__loading'>
-                <LoadingSpinner/>
+                <LoadingSpinner size='24'/>
             </div>
         );
     }

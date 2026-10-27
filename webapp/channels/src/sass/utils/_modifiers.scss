@@ -55,16 +55,17 @@ $positions: 't'top,
 }
 
 // Compass draws its own focus ring; for composite fields, target the inner
-// a11y--focused control so only the outer Compass ring remains.
-#root [class*="_text-input__wrapper"] .a11y--focused,
-#root [class*="_text-area__wrapper"] .a11y--focused,
-#root [class*="_search-input__wrapper"] .a11y--focused,
-#root [class*="_select__wrapper"] .a11y--focused,
-#root [class*="_combobox__wrapper"] .a11y--focused,
-#root [class*="_date-range-picker__trigger"].a11y--focused,
-#root button[class*="_button--emphasis-"].a11y--focused,
-#root button[class*="_icon-button"].a11y--focused,
-#root button[class*="_action-button"].a11y--focused {
+// a11y--focused control so only the outer Compass ring remains. Portalled UI such as popovers
+// mounts in #root-portal, which is a sibling of #root.
+:is(#root, #root-portal) [class*="_text-input__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_text-area__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_search-input__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_select__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_combobox__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_date-range-picker__trigger"].a11y--focused,
+:is(#root, #root-portal) button[class*="_button--emphasis-"].a11y--focused,
+:is(#root, #root-portal) button[class*="_icon-button"].a11y--focused,
+:is(#root, #root-portal) button[class*="_action-button"].a11y--focused {
     box-shadow: none;
 }
 
