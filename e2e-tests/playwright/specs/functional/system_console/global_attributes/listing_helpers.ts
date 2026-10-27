@@ -3,6 +3,7 @@
 
 import type {Client4} from '@mattermost/client';
 import type {PropertyField} from '@mattermost/types/properties';
+
 import {licenseTier, test} from '@mattermost/playwright-lib';
 
 import type {ResourceObjectType} from './global_attributes_helpers';
