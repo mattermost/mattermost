@@ -304,10 +304,11 @@ def version_go_prs(ctx: Context, rule: dict) -> Result:
 
 
 def holidays_page(ctx: Context, rule: dict) -> Result:
-    """In October, the Confluence holidays page lists next year's holidays.
+    """In October, the Confluence holidays page has next year's heading and holiday list.
 
-    It's a yearly task rather than a release one, so only the first active release checks it.
-    The page is private: its URL is the proof and nothing from it goes in the summary.
+    The list is at least ``min_dates`` dates in next year, such as "(1/01/2028)", after the
+    heading. It's a yearly task rather than a release one, so only the first active release
+    checks it. The page is private: its URL is the proof, and only counts go in the summary.
     """
     query = ctx.query(rule)
     month = int(query["month"])
@@ -317,12 +318,18 @@ def holidays_page(ctx: Context, rule: dict) -> Result:
     page_id = str(query.get("page_id") or "").strip()
     if not page_id:
         raise CheckError("RELEASE_AGENT_HOLIDAYS_PAGE_ID isn't set")
-    year = ctx.today.year + 1
+    year, heading, wanted = ctx.today.year + 1, " ".join(query["heading"].split()), int(query["min_dates"])
     text, url = ctx.confluence.page(page_id)
-    if re.search(rf"(?<!\d){year}(?!\d)", text):
-        return Result(PASS, f"The holidays page lists {year}", [], url)
-    return Result(FAIL, f"The holidays page doesn't list {year} yet",
-                  [Item("Holidays page", "Add next year's holidays", url, note=f"No {year} holidays on the page yet")], url)
+    text = " ".join(text.split())
+    start = text.casefold().find(heading.casefold())
+    if start < 0:
+        problem = f"The holidays page has no “{heading}” heading yet"
+    else:
+        dates = len(re.findall(rf"(?<![\d/])\d{{1,2}}/\d{{1,2}}/{year}(?!\d)", text[start:]))
+        if dates >= wanted:
+            return Result(PASS, f"The holidays page lists {dates} holidays in {year}", [], url)
+        problem = f"The holidays page lists {dates} of at least {wanted} holidays in {year}"
+    return Result(FAIL, problem, [Item("Holidays page", "Add next year's holidays", url)], url)
 
 
 def changelog_labels(ctx: Context, rule: dict) -> Result:

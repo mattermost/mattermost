@@ -17,8 +17,8 @@
 #   query          check-specific parameters; strings are formatted with {version} (v12.2.0),
 #                  {short_version} (v12.2), {major}, {minor}, {branch} (release-12.2),
 #                  {milestone}, {fix_version}, {release_month} (November), {release_year},
-#                  each calendar milestone below as YYYY-MM-DD ({branch_cut}, {final_build})
-#                  and {holidays_page_id} (RELEASE_AGENT_HOLIDAYS_PAGE_ID)
+#                  each calendar milestone below as YYYY-MM-DD ({branch_cut}, {final_build}),
+#                  {holidays_page_id} (RELEASE_AGENT_HOLIDAYS_PAGE_ID) and {next_year}
 #   pass_when      what passing means, as the post describes it
 #   on_fail        needs_attention: listed in the post; log_only: run.json and the log only;
 #                  report: report-only tasks, which never fail
@@ -194,8 +194,9 @@ rules:
     on_fail: needs_attention
 
   # A yearly task with no playbook item, checked in October by the first active release
-  # only. The page is private, so the post links it and the public log says only whether
-  # next year is listed.
+  # only. It passes once the page has next year's heading and, after it, at least min_dates
+  # dates in next year, like "(1/01/2028)" (a year's list has about 20). The page is
+  # private, so the post links it and the public log has only counts.
   - task: holidays-page
     title: Next year's holidays on Confluence
     playbook_item: null
@@ -205,5 +206,7 @@ rules:
     query:
       page_id: "{holidays_page_id}"
       month: 10
+      heading: "Entity and EOR locations holidays for {next_year}"
+      min_dates: 8
     pass_when: next_year_listed
     on_fail: needs_attention

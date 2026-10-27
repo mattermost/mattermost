@@ -19,7 +19,7 @@ def release():
 def context(github=None, jira=None, hub=None, has_branch=True, rc_numbers=(1, 2), today=date(2026, 11, 4),
             confluence=None, primary=True, page_id="123"):
     rel = release()
-    values = {**template_vars(rel, NAMING, list(rc_numbers)), "holidays_page_id": page_id}
+    values = {**template_vars(rel, NAMING, list(rc_numbers)), "holidays_page_id": page_id, "next_year": today.year + 1}
     return checks.Context(release=rel, today=today, vars=values,
                           has_branch=has_branch, rc_numbers=list(rc_numbers), github=github or FakeGitHub(),
                           jira=jira or FakeJira(), hub=hub or FakeHub(), testing_alerts_channel="alerts",
@@ -252,6 +252,12 @@ class VersionGoPrsTest(unittest.TestCase):
         self.assertEqual(github.queries, [])
 
 
+def holidays_page(year, dates):
+    """Page text as the Confluence client returns it: one row per location and holiday."""
+    rows = " ".join(f"Location {n} Holiday {n} ({n % 12 + 1}/{n % 28 + 1:02d}/{year})" for n in range(dates))
+    return f"Entity and EOR locations holidays for {year} Location Holiday Date {rows}"
+
+
 class HolidaysPageTest(unittest.TestCase):
     OCTOBER = date(2026, 10, 26)
 
@@ -259,16 +265,32 @@ class HolidaysPageTest(unittest.TestCase):
         confluence = FakeConfluence(text)
         return checks.holidays_page(context(today=today, confluence=confluence, **kwargs), RULES["holidays-page"]), confluence
 
-    def test_passes_when_next_year_is_listed(self):
-        result, confluence = self.check("2026 Holidays New Year's Day Jan 1, 2027 Company holiday")
-        self.assertEqual((result.status, result.summary), (checks.PASS, "The holidays page lists 2027"))
+    def test_passes_with_the_heading_and_a_list_of_dates(self):
+        result, confluence = self.check(holidays_page(2026, 20) + " " + holidays_page(2027, 20))
+        self.assertEqual((result.status, result.summary), (checks.PASS, "The holidays page lists 20 holidays in 2027"))
         self.assertEqual(result.proof_url, "https://wiki.example/pages/123")
         self.assertEqual(confluence.requested, ["123"])
 
-    def test_fails_until_next_year_is_added(self):
-        result, _ = self.check("Holidays 2026: Jan 1, May 25 ... ticket 120270")
-        self.assertEqual((result.status, result.summary), (checks.FAIL, "The holidays page doesn't list 2027 yet"))
+    def test_the_heading_is_matched_ignoring_case_and_spacing(self):
+        result, _ = self.check("ENTITY and  EOR locations Holidays for 2027 " + holidays_page(2027, 8).split(" 2027 ", 1)[1])
+        self.assertEqual(result.status, checks.PASS)
+
+    def test_mentioning_the_year_is_not_enough(self):
+        result, _ = self.check(holidays_page(2026, 20) + " 2027 dates to follow (1/01/2027)")
+        self.assertEqual((result.status, result.summary),
+                         (checks.FAIL, "The holidays page has no “Entity and EOR locations holidays for 2027” heading yet"))
         self.assertEqual([item.public_label for item in result.items], [None])
+
+    def test_the_heading_needs_enough_dates_after_it(self):
+        result, _ = self.check(holidays_page(2027, 7))
+        self.assertEqual((result.status, result.summary),
+                         (checks.FAIL, "The holidays page lists 7 of at least 8 holidays in 2027"))
+        result, _ = self.check("(1/01/2027) " * 10 + "Entity and EOR locations holidays for 2027 to follow")
+        self.assertEqual(result.summary, "The holidays page lists 0 of at least 8 holidays in 2027")
+
+    def test_only_dates_in_next_year_count(self):
+        result, _ = self.check(holidays_page(2027, 3) + " " + "(1/01/2026) (12/25/20271) " * 10)
+        self.assertEqual(result.summary, "The holidays page lists 3 of at least 8 holidays in 2027")
 
     def test_only_checked_in_october(self):
         result, confluence = self.check(today=date(2026, 11, 4))

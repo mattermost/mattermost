@@ -5,6 +5,7 @@ from datetime import date
 from release_agent import agent, rules
 from release_agent.__main__ import log_line, step_summary
 from release_agent.clients import ServiceError
+from release_agent.tests.test_checks import holidays_page
 from release_agent.tests.fakes import FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
 
 MM, ENT = "mattermost/mattermost", "mattermost/enterprise"
@@ -153,17 +154,17 @@ class HolidaysPageTest(unittest.TestCase):
         return by_task(body["releases"][0])["holidays-page"], body, post["message"]
 
     def test_missing_next_year_needs_attention_on_hub_only(self):
-        check, body, post = self.run_in_october("Company holidays 2026: Jan 1, Dec 25")
-        self.assertEqual((check["state"], check["summary"], check["items"]),
-                         ("needs_attention", "The holidays page doesn't list 2027 yet", []))
+        check, body, post = self.run_in_october(holidays_page(2026, 20) + " 2027 dates to follow")
+        missing = "The holidays page has no “Entity and EOR locations holidays for 2027” heading yet"
+        self.assertEqual((check["state"], check["summary"], check["items"]), ("needs_attention", missing, []))
         self.assertNotIn("wiki.example", json.dumps(body) + step_summary(body))
-        self.assertIn("**Next year's holidays on Confluence** — The holidays page doesn't list 2027 yet", post)
+        self.assertIn(f"**Next year's holidays on Confluence** — {missing}", post)
         self.assertIn("https://wiki.example/pages/page9", post)
 
     def test_listed_next_year_is_all_good(self):
-        check, _, post = self.run_in_october("Company holidays 2027: Jan 1")
+        check, _, post = self.run_in_october(holidays_page(2027, 20))
         self.assertEqual(check["state"], "ok")
-        self.assertIn(":white_check_mark: **Next year's holidays on Confluence** — The holidays page lists 2027", post)
+        self.assertIn(":white_check_mark: **Next year's holidays on Confluence** — The holidays page lists 20 holidays in 2027", post)
 
 
 class ReleaseChannelTest(unittest.TestCase):

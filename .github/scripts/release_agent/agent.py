@@ -129,7 +129,8 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
     rc_numbers = release_calendar.rc_numbers(ls_remote, release.major, release.minor)
     ctx = checks.Context(
         release=release, today=today,
-        vars={**template_vars(release, rules["naming"], rc_numbers), "holidays_page_id": settings.holidays_page_id},
+        vars={**template_vars(release, rules["naming"], rc_numbers), "holidays_page_id": settings.holidays_page_id,
+              "next_year": today.year + 1},
         has_branch=release.key in branches, rc_numbers=rc_numbers, github=services.github,
         jira=services.jira, hub=services.hub, testing_alerts_channel=settings.testing_alerts_channel,
         confluence=services.confluence, primary=primary,
