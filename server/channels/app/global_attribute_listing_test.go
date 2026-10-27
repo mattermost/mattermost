@@ -707,15 +707,15 @@ func TestSearchGlobalAttributeListingNameConflicts(t *testing.T) {
 			"case-only first": {"EXACT", "exact"},
 		} {
 			t.Run(name, func(t *testing.T) {
-				env := newListingEnv(t, th)
+				orderEnv := newListingEnv(t, th)
 				var ids = map[string]string{}
 				for _, suffix := range order {
-					ids[suffix] = env.create(model.PropertyFieldObjectTypeUser, env.name(suffix)).ID
+					ids[suffix] = orderEnv.create(model.PropertyFieldObjectTypeUser, orderEnv.name(suffix)).ID
 				}
-				template := env.template(env.name("exact"))
+				template := orderEnv.template(orderEnv.name("exact"))
 
 				// The user field named exactly like the template is a row too, so pick by ID.
-				row := env.rowByID(env.mustSearch(withTerm(template.Name)), template.ID)
+				row := orderEnv.rowByID(orderEnv.mustSearch(withTerm(template.Name)), template.ID)
 				require.NotNil(t, row.NameConflict)
 				assert.Equal(t, ids["exact"], row.NameConflict.Field.ID)
 				assert.True(t, row.NameConflict.Exact)
