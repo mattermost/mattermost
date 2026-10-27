@@ -2396,16 +2396,21 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	}
 
-	inQuery := s.getSubQueryBuilder().Select("Id").
-		From("Channels, ChannelMembers").
-		Where("Id = ChannelId")
+	var inQuery sq.SelectBuilder
+	if params.ScopedChannels != nil {
+		inQuery = sessionScopeChannelIDsQuery(s.getSubQueryBuilder(), params.ScopedChannels)
+	} else {
+		inQuery = s.getSubQueryBuilder().Select("Id").
+			From("Channels, ChannelMembers").
+			Where("Id = ChannelId")
 
-	if !params.IncludeDeletedChannels {
-		inQuery = inQuery.Where("Channels.DeleteAt = 0")
-	}
+		if !params.IncludeDeletedChannels {
+			inQuery = inQuery.Where("Channels.DeleteAt = 0")
+		}
 
-	if !params.SearchWithoutUserId {
-		inQuery = inQuery.Where("ChannelMembers.UserId = ?", userId)
+		if !params.SearchWithoutUserId {
+			inQuery = inQuery.Where("ChannelMembers.UserId = ?", userId)
+		}
 	}
 
 	inQuery = s.buildSearchTeamFilterClause(teamId, inQuery)

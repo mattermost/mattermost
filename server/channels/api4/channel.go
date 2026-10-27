@@ -65,12 +65,12 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme)).Methods(http.MethodPut)
 	api.BaseRoutes.Channels.Handle("/stats/member_count", api.APISessionRequired(getChannelsMemberCount)).Methods(http.MethodPost)
 
-	api.BaseRoutes.ChannelsForTeam.Handle("", api.APISessionRequired(getPublicChannelsForTeam)).Methods(http.MethodGet)
+	api.BaseRoutes.ChannelsForTeam.Handle("", api.APISessionRequired(getPublicChannelsForTeam, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.APISessionRequired(getDeletedChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/private", api.APISessionRequired(getPrivateChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/recommended", api.APISessionRequired(getRecommendedChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.APISessionRequired(getPublicChannelsByIdsForTeam)).Methods(http.MethodPost)
-	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/read", api.APISessionRequired(readAllInTeam)).Methods(http.MethodPut)
@@ -1405,7 +1405,13 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	channels, err := c.App.GetPublicChannelsForTeam(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	var channels model.ChannelList
+	var err *model.AppError
+	if scope, scoped := c.AppContext.Session().Scope(); scoped {
+		channels, err = c.App.GetPublicChannelsForTeamInSessionScope(c.AppContext, scope, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	} else {
+		channels, err = c.App.GetPublicChannelsForTeam(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	}
 	if err != nil {
 		c.Err = err
 		return
@@ -1750,7 +1756,14 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channels model.ChannelList
 	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, appErr = c.App.SearchChannels(c.AppContext, c.Params.TeamId, props.Term)
+		if scope, scoped := c.AppContext.Session().Scope(); scoped {
+			channels, appErr = c.App.SearchChannelsInSessionScope(c.AppContext, scope, c.Params.TeamId, props.Term)
+		} else {
+			channels, appErr = c.App.SearchChannels(c.AppContext, c.Params.TeamId, props.Term)
+		}
+	} else if c.AppContext.Session().IsScoped() {
+		c.SetPermissionError(model.PermissionListTeamChannels)
+		return
 	} else {
 		// If the user is not a team member, return a 404
 		if _, appErr = c.App.GetTeamMember(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {

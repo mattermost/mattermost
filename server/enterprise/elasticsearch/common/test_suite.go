@@ -543,6 +543,28 @@ func (c *CommonTestSuite) TestSearchPublicChannelsWithoutMembership() {
 		c.Equal(postA.Id, ids[0])
 	})
 
+	c.Run("Should not widen a scoped search to other public channels", func() {
+		publicChannel := createChannel(c.TH.BasicTeam.Id, "scoped-pub-"+model.NewId(), "Scoped Public", model.ChannelTypeOpen)
+
+		searchTerm := "scopedwidening" + model.NewId()
+		post := createPost(c.TH.BasicUser.Id, publicChannel.Id, searchTerm)
+		c.Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, "O"))
+		c.NoError(c.RefreshIndexFn())
+
+		channels := model.ChannelList{c.TH.BasicChannel}
+		ids, _, err := c.ESImpl.SearchPosts(channels, []*model.SearchParams{{Terms: searchTerm}}, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 1, "an unscoped search reaches the public channel")
+
+		scoped := []*model.SearchParams{{
+			Terms:          searchTerm,
+			ScopedChannels: &model.SessionScopeResources{ChannelIDs: []string{c.TH.BasicChannel.Id}},
+		}}
+		ids, _, err = c.ESImpl.SearchPosts(channels, scoped, 0, 20)
+		c.Nil(err)
+		c.Len(ids, 0, "a scoped search stays on the channels it is given")
+	})
+
 	c.Run("Should not return public channel posts when compliance mode is enabled", func() {
 		publicChannel := createChannel(c.TH.BasicTeam.Id, "compliance-pub-"+model.NewId(), "Compliance Public", model.ChannelTypeOpen)
 
