@@ -6,177 +6,15 @@ import type {KeyboardEvent, MouseEvent} from 'react';
 
 import {Combobox} from '@mattermost/compass-ui/components/combobox';
 import type {ComboboxOption} from '@mattermost/compass-ui/components/combobox';
-import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {act, render, screen, userEvent} from 'tests/react_testing_utils';
 
 import {
-    ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE,
     attributeComboboxKeyGuard,
     attributeComboboxMouseDownGuard,
-    fromComboboxMultiChange,
-    fromComboboxSingleChange,
     getAttributeComboboxClearButtonProps,
     getAttributeComboboxWrapperProps,
-    getFallbackSelectedOptions,
-    toComboboxMultiValue,
-    toComboboxOptions,
-    toComboboxSingleValue,
 } from './attribute_combobox_utils';
-
-const propertyOptions: PropertyFieldOption[] = [
-    {id: 'opt1', name: 'Option 1', color: '#ff0000', rank: 2},
-    {id: 'opt2', name: 'Option 2'},
-    {id: 'opt3', name: 'Option 3'},
-];
-
-const comboboxOptions: ComboboxOption[] = [
-    {value: 'opt1', label: 'Option 1'},
-    {value: 'opt2', label: 'Option 2'},
-    {value: 'opt3', label: 'Option 3'},
-];
-
-describe('toComboboxOptions', () => {
-    test('returns an empty list for undefined or empty options', () => {
-        expect(toComboboxOptions(undefined)).toEqual([]);
-        expect(toComboboxOptions([])).toEqual([]);
-    });
-
-    test('maps id to value and name to label in definition order, dropping other fields', () => {
-        expect(toComboboxOptions(propertyOptions)).toEqual([
-            {value: 'opt1', label: 'Option 1'},
-            {value: 'opt2', label: 'Option 2'},
-            {value: 'opt3', label: 'Option 3'},
-        ]);
-    });
-
-    test('keeps the definition order even when it differs from rank order', () => {
-        const options: PropertyFieldOption[] = [
-            {id: 'z', name: 'Zulu', rank: 3},
-            {id: 'a', name: 'Alpha', rank: 1},
-            {id: 'm', name: 'Mike', rank: 2},
-        ];
-
-        expect(toComboboxOptions(options).map((o) => o.value)).toEqual(['z', 'a', 'm']);
-    });
-
-    test('omits menuItemProps without a test ID prefix', () => {
-        for (const result of [
-            toComboboxOptions(propertyOptions),
-            toComboboxOptions(propertyOptions, {}),
-            toComboboxOptions(propertyOptions, {testIdPrefix: ''}),
-        ]) {
-            for (const option of result) {
-                expect(option).not.toHaveProperty('menuItemProps');
-            }
-        }
-    });
-
-    test('adds a per-option test ID when a prefix is given', () => {
-        expect(toComboboxOptions(propertyOptions, {testIdPrefix: 'customProfileAttribute_field1'})).toEqual([
-            {value: 'opt1', label: 'Option 1', menuItemProps: {'data-testid': 'customProfileAttribute_field1-option-opt1'}},
-            {value: 'opt2', label: 'Option 2', menuItemProps: {'data-testid': 'customProfileAttribute_field1-option-opt2'}},
-            {value: 'opt3', label: 'Option 3', menuItemProps: {'data-testid': 'customProfileAttribute_field1-option-opt3'}},
-        ]);
-    });
-});
-
-describe('toComboboxSingleValue', () => {
-    test.each([
-        ['a string id', 'opt1', 'opt1'],
-        ['an empty string', '', ''],
-        ['undefined', undefined, ''],
-        ['null', null, ''],
-        ['an array', ['opt1', 'opt2'], ''],
-        ['an empty array', [], ''],
-    ])('maps %s', (_, input, expected) => {
-        expect(toComboboxSingleValue(input)).toBe(expected);
-    });
-});
-
-describe('toComboboxMultiValue', () => {
-    test.each([
-        ['an array, keeping order', ['opt2', 'opt1'], ['opt2', 'opt1']],
-        ['an array with duplicates, keeping them', ['opt1', 'opt1'], ['opt1', 'opt1']],
-        ['an empty array', [], []],
-        ['a non-empty string', 'opt1', ['opt1']],
-        ['an empty string', '', []],
-        ['undefined', undefined, []],
-        ['null', null, []],
-    ])('maps %s', (_, input, expected) => {
-        expect(toComboboxMultiValue(input)).toEqual(expected);
-    });
-
-    test('drops non-string items from stored arrays', () => {
-        const stored = ['opt1', null, 2, 'opt2'] as unknown as string[];
-
-        expect(toComboboxMultiValue(stored)).toEqual(['opt1', 'opt2']);
-    });
-});
-
-describe('fromComboboxSingleChange', () => {
-    test.each([
-        ['a picked id', 'opt2', 'opt2'],
-        ['an empty string', '', ''],
-        ['a clear (null)', null, ''],
-        ['an array, taking the first item', ['opt3', 'opt1'], 'opt3'],
-        ['an empty array', [], ''],
-    ])('maps %s', (_, input, expected) => {
-        expect(fromComboboxSingleChange(input)).toBe(expected);
-    });
-});
-
-describe('fromComboboxMultiChange', () => {
-    test.each([
-        ['an array, keeping order', ['opt3', 'opt1'], ['opt3', 'opt1']],
-        ['an empty array', [], []],
-        ['a clear (null)', null, []],
-        ['a non-empty string', 'opt1', ['opt1']],
-        ['an empty string', '', []],
-    ])('maps %s', (_, input, expected) => {
-        expect(fromComboboxMultiChange(input)).toEqual(expected);
-    });
-});
-
-describe('getFallbackSelectedOptions', () => {
-    test('returns nothing when there are no values', () => {
-        expect(getFallbackSelectedOptions([], comboboxOptions)).toEqual([]);
-    });
-
-    test('returns nothing when every value has an option', () => {
-        expect(getFallbackSelectedOptions(['opt3', 'opt1'], comboboxOptions)).toEqual([]);
-    });
-
-    test('returns only the missing ids, labelled with the raw id by default', () => {
-        expect(getFallbackSelectedOptions(['opt1', 'gone', 'opt2'], comboboxOptions)).toEqual([
-            {value: 'gone', label: 'gone'},
-        ]);
-    });
-
-    test('keeps value order and drops duplicates', () => {
-        expect(getFallbackSelectedOptions(['gone2', 'opt1', 'gone1', 'gone2', 'gone1'], comboboxOptions)).toEqual([
-            {value: 'gone2', label: 'gone2'},
-            {value: 'gone1', label: 'gone1'},
-        ]);
-    });
-
-    test('treats every value as missing when there are no options', () => {
-        expect(getFallbackSelectedOptions(['a', 'b'], [])).toEqual([
-            {value: 'a', label: 'a'},
-            {value: 'b', label: 'b'},
-        ]);
-    });
-
-    test('uses a custom label once per missing id', () => {
-        const getLabel = jest.fn((value: string) => `Deleted (${value})`);
-
-        expect(getFallbackSelectedOptions(['gone', 'opt1', 'gone'], comboboxOptions, getLabel)).toEqual([
-            {value: 'gone', label: 'Deleted (gone)'},
-        ]);
-        expect(getLabel).toHaveBeenCalledTimes(1);
-        expect(getLabel).toHaveBeenCalledWith('gone');
-    });
-});
 
 function makeKeyEvent(key: string, defaultPrevented: boolean) {
     return {
@@ -222,28 +60,6 @@ describe('attributeComboboxMouseDownGuard', () => {
         attributeComboboxMouseDownGuard(e);
 
         expect(e.preventDefault).toHaveBeenCalledTimes(1);
-    });
-});
-
-describe('getAttributeComboboxWrapperProps', () => {
-    test('returns the key and mousedown guards and the wrapper marker attribute', () => {
-        expect(ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE).toBe('data-attribute-combobox');
-        expect(getAttributeComboboxWrapperProps()).toEqual({
-            'data-attribute-combobox': '',
-            onKeyDown: attributeComboboxKeyGuard,
-            onMouseDown: attributeComboboxMouseDownGuard,
-        });
-    });
-
-    test('puts the marker attribute on the rendered wrapper element', () => {
-        render(
-            <div
-                data-testid='wrapper'
-                {...getAttributeComboboxWrapperProps()}
-            />,
-        );
-
-        expect(screen.getByTestId('wrapper')).toHaveAttribute('data-attribute-combobox', '');
     });
 });
 
@@ -315,7 +131,7 @@ describe('key guard with a real Combobox', () => {
                     clearButtonProps={clearButtonProps}
                     onChange={(next) => {
                         onChange?.(next);
-                        setValue(multiple ? fromComboboxMultiChange(next) : fromComboboxSingleChange(next));
+                        setValue(next ?? (multiple ? [] : ''));
                     }}
                 />
             </div>

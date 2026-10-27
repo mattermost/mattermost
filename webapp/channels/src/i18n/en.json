@@ -21743,6 +21743,26 @@
     "defaultMessage": "You",
     "description": "Pronoun substituted for the current user's own username inside combined join/leave system messages (e.g. 'You joined the channel'); subject position."
   },
+  "combobox.clear": {
+    "defaultMessage": "Clear {label}",
+    "description": "Accessible name of the button that clears a single-value dropdown. {label} is the field name."
+  },
+  "combobox.empty": {
+    "defaultMessage": "No results",
+    "description": "Shown in a dropdown when no option matches the typed text."
+  },
+  "combobox.listbox": {
+    "defaultMessage": "Options",
+    "description": "Accessible name of a dropdown's option list when no field name is available."
+  },
+  "combobox.loading": {
+    "defaultMessage": "Loading…",
+    "description": "Shown in a dropdown while options load."
+  },
+  "combobox.selections": {
+    "defaultMessage": "{label} selections",
+    "description": "Accessible name of the group of selected-value chips in a multi-value dropdown. {label} is the field name."
+  },
   "commercial_support_modal.description": {
     "defaultMessage": "If you're experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment.",
     "description": "Intro paragraph of the Commercial Support modal; <supportLink> tags wrap the clickable phrase that opens the support ticket site."
@@ -28406,26 +28426,6 @@
   "property_card.field.team.label": {
     "defaultMessage": "Team",
     "description": "Field label in the flagged-message review card for the team the message belongs to."
-  },
-  "property_fields.attribute_combobox.clear": {
-    "defaultMessage": "Clear {label}",
-    "description": "Accessible name of the button that clears a single-value attribute. {label} is the attribute name."
-  },
-  "property_fields.attribute_combobox.empty": {
-    "defaultMessage": "No results",
-    "description": "Shown in an attribute value dropdown when no option matches the typed text."
-  },
-  "property_fields.attribute_combobox.listbox": {
-    "defaultMessage": "Options",
-    "description": "Accessible name of an attribute value dropdown's option list when no field name is available."
-  },
-  "property_fields.attribute_combobox.loading": {
-    "defaultMessage": "Loading…",
-    "description": "Shown in an attribute value dropdown while options load."
-  },
-  "property_fields.attribute_combobox.selections": {
-    "defaultMessage": "{label} selections",
-    "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."
   },
   "property_fields.hierarchical_value_menu.also_under": {
     "defaultMessage": "Also under {names}",

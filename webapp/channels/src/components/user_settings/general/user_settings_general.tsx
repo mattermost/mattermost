@@ -8,7 +8,6 @@ import {defineMessage, defineMessages, FormattedDate, FormattedMessage, Formatte
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Combobox} from '@mattermost/compass-ui/components/combobox';
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import {valueRefersToOptions} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -22,23 +21,13 @@ import {isPropertyFieldSyncedForAuthService} from 'mattermost-redux/utils/proper
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
-import {
-    ATTRIBUTE_COMBOBOX_MODAL_Z_INDEX,
-    fromComboboxMultiChange,
-    fromComboboxSingleChange,
-    getAttributeComboboxClearButtonProps,
-    getAttributeComboboxLabels,
-    getAttributeComboboxWrapperProps,
-    getFallbackSelectedOptions,
-    toComboboxMultiValue,
-    toComboboxOptions,
-    toComboboxSingleValue,
-} from 'components/property_fields/attribute_combobox';
+import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
+import {COMBOBOX_Z_INDEX_IN_MODAL} from 'components/widgets/combobox';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -1641,45 +1630,50 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
                     if (valueRefersToOptions(attribute)) {
                         const comboboxId = 'customProfileAttribute_' + attribute.id;
-                        const fieldLabel = getUserPropertyFieldLabel(attribute);
-                        const options = toComboboxOptions(attribute.attrs?.options, {testIdPrefix: comboboxId});
+                        const options = attribute.attrs?.options;
                         const draft = this.state.customAttributeValues[attribute.id];
-                        const multiple = attribute.type === 'multiselect';
-                        const multiValue = toComboboxMultiValue(draft);
-                        const draftSingleValue = toComboboxSingleValue(draft);
+                        const comboboxProps = {
+                            id: comboboxId,
+                            testId: comboboxId,
+                            label: getUserPropertyFieldLabel(attribute),
+                            options,
+                            placeholder: formatMessage({
+                                id: 'user.settings.general.select',
+                                defaultMessage: 'Select',
+                            }),
+                            zIndex: COMBOBOX_Z_INDEX_IN_MODAL,
+                        };
 
-                        // A stored id that no longer matches an option shows as unset; state keeps it until the user picks or clears.
-                        const singleValue = options.some((o) => o.value === draftSingleValue) ? draftSingleValue : '';
+                        if (attribute.type === 'multiselect') {
+                            let multiValue: string[] = [];
+                            if (Array.isArray(draft)) {
+                                multiValue = draft;
+                            } else if (draft) {
+                                multiValue = [draft];
+                            }
 
-                        inputs.push(
-                            // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- key and focus guards only; the Combobox input owns keyboard interaction
-                            <div
-                                key={sectionName}
-                                {...getAttributeComboboxWrapperProps()}
-                            >
-                                <Combobox
-                                    id={comboboxId}
-                                    data-testid={comboboxId}
-                                    aria-label={fieldLabel}
-                                    options={options}
-                                    multiple={multiple}
-                                    value={multiple ? multiValue : singleValue}
-                                    selectedOptions={multiple ? getFallbackSelectedOptions(multiValue, options) : undefined}
-                                    clearable={true}
-                                    clearButtonProps={getAttributeComboboxClearButtonProps(`${comboboxId}-clear`)}
-                                    placeholder={formatMessage({
-                                        id: 'user.settings.general.select',
-                                        defaultMessage: 'Select',
-                                    })}
-                                    zIndex={ATTRIBUTE_COMBOBOX_MODAL_Z_INDEX}
-                                    {...getAttributeComboboxLabels(this.props.intl, fieldLabel)}
-                                    onChange={(next) => this.updateComboboxAttribute(
-                                        attribute.id,
-                                        multiple ? fromComboboxMultiChange(next) : fromComboboxSingleChange(next),
-                                    )}
-                                />
-                            </div>,
-                        );
+                            inputs.push(
+                                <AttributeCombobox
+                                    key={sectionName}
+                                    {...comboboxProps}
+                                    multiple={true}
+                                    value={multiValue}
+                                    onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
+                                />,
+                            );
+                        } else {
+                            // A stored id that no longer matches an option shows as unset; state keeps it until the user picks or clears.
+                            const singleValue = typeof draft === 'string' && options?.some((o) => o.id === draft) ? draft : '';
+
+                            inputs.push(
+                                <AttributeCombobox
+                                    key={sectionName}
+                                    {...comboboxProps}
+                                    value={singleValue}
+                                    onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
+                                />,
+                            );
+                        }
                     } else {
                         const inputType = attribute.type as string;
                         inputs.push(
