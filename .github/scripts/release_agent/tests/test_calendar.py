@@ -71,7 +71,7 @@ class ReleasesTest(unittest.TestCase):
             "Mobile v2.46 Release Day": ("release_day", []),
             "Desktop v6.4 Feature Complete": ("feature_complete", []),
             "mobile  v2.46 & DESKTOP v6.4 Code Freeze": ("code_freeze", []),
-            "v12.4 ESR & Mobile v2.49 Release Day": ("release_day", [(12, 4, 0)]),
+            "v12.4 & Mobile v2.49 Release Day": ("release_day", [(12, 4, 0)]),
             "v12.2 Final Release Build Cut": ("final_build", [(12, 2, 0)]),
             "Mobile v2.46 & v12.1 Code Freeze": ("code_freeze", [(12, 1, 0)]),
         }
@@ -85,7 +85,8 @@ class ReleasesTest(unittest.TestCase):
             releases, _ = rc.releases_from_events(rc.parse_ics(text), MILESTONES)
             self.assertEqual(releases[(12, 3)].milestones, {"final_build": date(2026, 12, 7)}, summary)
 
-    def test_esr_release(self):
+    def test_esr_events_are_named_like_any_release(self):
+        # v12.4 is an ESR: "v12.4 & Mobile v2.49 Release Day".
         _, releases, _, _ = load()
         self.assertEqual(releases[(12, 4)].milestones, {"release_day": date(2027, 1, 15)})
 
