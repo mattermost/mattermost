@@ -362,7 +362,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PropertyFieldOptions = api.BaseRoutes.PropertyField.PathPrefix("/options").Subrouter()
 	api.BaseRoutes.PropertyFieldsSearch = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/fields/search").Subrouter()
-	api.BaseRoutes.GlobalAttributesSearch = api.BaseRoutes.Properties.PathPrefix("/groups/" + model.AccessControlPropertyGroupName + "/attributes/search").Subrouter()
+	api.BaseRoutes.GlobalAttributesSearch = api.BaseRoutes.Properties.PathPrefix("/groups/access_control/attributes/search").Subrouter()
 	api.BaseRoutes.PropertyValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PropertySystemValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/system/values").Subrouter()
 
