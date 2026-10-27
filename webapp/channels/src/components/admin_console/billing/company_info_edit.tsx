@@ -7,7 +7,7 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 'mattermost-redux/actions/cloud';
 
@@ -285,15 +285,17 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                         />
                     )}
                 />
-                <BlockableLink
-                    className={buttonClassNames({emphasis: 'tertiary'})}
-                    to='/admin_console/billing/company_info'
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
                 >
-                    <FormattedMessage
-                        id='admin.billing.company_info_edit.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </BlockableLink>
+                    <BlockableLink to='/admin_console/billing/company_info'>
+                        <FormattedMessage
+                            id='admin.billing.company_info_edit.cancel'
+                            defaultMessage='Cancel'
+                        />
+                    </BlockableLink>
+                </Button>
             </div>
         </div>
     );

@@ -54,7 +54,9 @@ describe('ButtonElement', () => {
         );
 
         const button = screen.getByRole('button', {name: 'Approve'});
-        expect(button).toHaveClass('btn-primary');
+        expect(button.className).toEqual(expect.stringContaining('_button--emphasis-primary'));
+        expect(button.className).toEqual(expect.stringContaining('_button--size-medium'));
+        expect(button).toHaveClass('mm-blocks-button');
         expect(button).not.toBeDisabled();
 
         await user.click(button);
@@ -75,6 +77,24 @@ describe('ButtonElement', () => {
         );
 
         expect(screen.getByRole('button', {name: 'Acknowledge'})).toHaveClass('mm-blocks-button--good');
+    });
+
+    it('renders danger style as destructive Button', () => {
+        renderWithContext(
+            <ButtonElement
+                element={{
+                    type: 'button',
+                    text: 'Delete',
+                    action_id: 'delete',
+                    style: 'danger',
+                }}
+                onAction={onAction}
+            />,
+        );
+
+        const button = screen.getByRole('button', {name: 'Delete'});
+        expect(button.className).toEqual(expect.stringContaining('_button--destructive'));
+        expect(button).not.toHaveClass('mm-blocks-button--danger');
     });
 
     it('applies inline color for hex style', () => {
@@ -116,12 +136,14 @@ describe('ButtonElement', () => {
 
         expect(button).toBeDisabled();
         expect(button).toHaveAttribute('aria-busy', 'true');
-        expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+
+        // Compass Spinner is nested under an aria-hidden icon slot, so query the DOM directly.
+        expect(button.querySelector('[role="status"][aria-label="Loading"]')).toBeInTheDocument();
         expect(screen.getByText('Approve')).toBeInTheDocument();
 
         resolveAction();
         await waitFor(() => expect(button).not.toBeDisabled());
-        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+        expect(button.querySelector('[role="status"][aria-label="Loading"]')).not.toBeInTheDocument();
     });
 
     it('renders emoticons in button text', () => {

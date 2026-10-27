@@ -158,7 +158,7 @@ func (c *ClusterMock) GetLogs(rctx request.CTX, page, perPage int) ([]string, *m
 	return nil, nil
 }
 
-func (c *ClusterMock) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
+func (c *ClusterMock) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string]einterfaces.NodeLogs, *model.AppError) {
 	return nil, nil
 }
 
