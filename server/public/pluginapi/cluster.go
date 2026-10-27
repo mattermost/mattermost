@@ -21,3 +21,20 @@ type ClusterService struct {
 func (c *ClusterService) PublishPluginEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
 	return c.api.PublishPluginClusterEvent(ev, opts)
 }
+
+// GetNodeID returns the cluster ID of the node the plugin is running on, or an
+// empty string until the node has joined a cluster.
+//
+// Minimum server version: 12.2
+func (c *ClusterService) GetNodeID() string {
+	return c.api.GetClusterNodeID()
+}
+
+// GetNodes returns the nodes connected to the cluster, including this one, or
+// an empty list until this node has joined a cluster. Each Id can be used as a
+// TargetId. Each call may query the database, so avoid calling it on hot paths.
+//
+// Minimum server version: 12.2
+func (c *ClusterService) GetNodes() ([]*model.ClusterInfo, error) {
+	return c.api.GetClusterNodes()
+}

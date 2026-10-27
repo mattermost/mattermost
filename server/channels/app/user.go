@@ -1158,10 +1158,11 @@ func (a *App) UpdatePasswordAsUser(rctx request.CTX, userID, currentPassword, ne
 	}
 
 	if err := a.DoubleCheckPassword(rctx, user, currentPassword); err != nil {
-		if err.Id == "api.user.check_user_password.invalid.app_error" {
-			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
+		var appErr *model.AppError
+		if errors.As(err, &appErr) && appErr.Id == "api.user.check_user_password.invalid.app_error" {
+			return model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
 		}
-		return err
+		return model.AsAppError(err)
 	}
 
 	T := i18n.GetUserTranslations(user.Locale)

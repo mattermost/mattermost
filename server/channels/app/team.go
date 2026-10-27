@@ -1355,8 +1355,7 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	}); nErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			channelList = model.ChannelList{}
 		} else {
 			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -2091,8 +2090,7 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 	}
 
 	if channels, err := a.Srv().Store().Channel().GetTeamChannels(team.Id); err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {

@@ -166,7 +166,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v5.0.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.1
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0
-PLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0
+PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v3.0.0
@@ -182,7 +182,7 @@ PLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.12.1%2Bf370c05-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0%2Bc234d17-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0%2B05efecf-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0%2B23ece5d-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -340,7 +340,7 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 
 .PHONY: install-golangci-lint
 install-golangci-lint:
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 
 .PHONY: golangci-lint
 golangci-lint: setup-go-work install-golangci-lint ## Run golangci-lint on codebase
@@ -359,6 +359,14 @@ i18n-extract: ## Extract strings for translation from the source code
 i18n-verify: ## Verify the non-English translation files against en.json
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n verify --warn-missing-ids
+
+.PHONY: i18n-verify-all
+i18n-verify-all: i18n-verify ## Run every translation check: both surfaces' catalogs, the glossary and the translation pipeline
+	cd ../tools/mmgotool && $(GO) test ./commands/ -run TestServerPluralTableMatchesGoI18n
+	@test -d $(BUILD_WEBAPP_DIR)/node_modules || { echo "$(BUILD_WEBAPP_DIR)/node_modules is missing; run make -C $(BUILD_WEBAPP_DIR) node_modules"; exit 1; }
+	cd $(BUILD_WEBAPP_DIR)/channels && npm run i18n-verify-translations -- --warn-missing-keys
+	cd .. && node --test i18n/scripts/*.test.mjs
+	cd .. && node i18n/scripts/check_glossary.mjs
 
 .PHONY: i18n-check
 i18n-check: ## Exit on empty translation strings and translation source strings
