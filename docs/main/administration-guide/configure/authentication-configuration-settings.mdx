@@ -66,11 +66,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>This setting limits the email address domains that can be used to create a new account or team. | - System Config path: <strong>Authentication &gt; Signup</strong> | You <strong>must</strong> set <a href={useBaseUrl('/administration-guide/configure/authentication-configuration-settings#require-email-verification')}>Require Email Verification</a> | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>RestrictCreationToDomains</code> to <code>true</code> for the restriction to function. This setting only affects email login. | - Environment variable: <code>MM_TEAMSETTINGS_RESTRICTCREATIONTODOMAINS</code> |</td>
+<td><p>This setting limits the email address domains that can be used to create a new account or team. You <strong>must</strong> set <a href={useBaseUrl('/administration-guide/configure/authentication-configuration-settings#require-email-verification')}>Require Email Verification</a> to <code>true</code> for the restriction to function. This setting only affects email login.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; Signup</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>RestrictCreationToDomains</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_RESTRICTCREATIONTODOMAINS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
