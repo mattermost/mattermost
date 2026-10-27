@@ -15,9 +15,6 @@ import {requireGlobalAttributesEnabled} from './global_attributes_helpers';
 import {ListingSeeder} from './listing_helpers';
 
 test.describe('System Console - Global Attributes listing search', {tag: '@system_console'}, () => {
-    // Awaits layer L3 (server listing endpoint); the orchestrator removes this once it lands.
-    test.fixme(true, 'Awaiting L3 server listing endpoint: search is server-side');
-
     /**
      * @objective Ensure the search matches an attribute by its display name when that differs
      * from the internal name.
@@ -102,7 +99,7 @@ test.describe('System Console - Global Attributes listing search', {tag: '@syste
             await expect(globalAttributes.rows).toHaveCount(1);
 
             // # Search a lower-case fragment from the middle of the display name
-            await globalAttributes.search(`partment cost ${suffix}`);
+            await globalAttributes.search(`partment cost center ${suffix}`);
 
             // * The row still matches
             await expect(globalAttributes.rowByLabel(displayName)).toBeVisible();
