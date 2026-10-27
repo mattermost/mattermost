@@ -1642,11 +1642,13 @@ GitLab provides the [Application Secret Key](#gitlab-oauth-20-application-secret
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows team and account creation using Google OAuth authentication. Input the <strong>Client ID</strong> and <strong>Client Secret</strong> credentials to configure. | - System Config path: <strong>Authentication &gt; OAuth 2.0</strong> |</li></ul><dl><dt>- <strong>false</strong>: <strong>(Default)</strong> Disables Google OAuth authentication. | - <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Enable</code> &gt; <code>false</code>|</dt><dd><div class="line-block">- Environment variable: <code>MM_GOOGLESETTINGS_ENABLE</code> |</div></dd></dl><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions. |</p></td>
+<td><ul><li><strong>true</strong>: Allows team and account creation using Google OAuth authentication. Input the <strong>Client ID</strong> and <strong>Client Secret</strong> credentials to configure.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables Google OAuth authentication.</li></ul><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OAuth 2.0</strong></li><li><code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_GOOGLESETTINGS_ENABLE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1655,11 +1657,13 @@ GitLab provides the [Application Secret Key](#gitlab-oauth-20-application-secret
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the OAuth Client ID from Google. Generate the ID by going to the <strong>Credentials</strong> section of the Google Cloud Platform APIs &amp; Services menu and selecting <strong>Create Credentials &gt; OAuth client ID</strong>. | - System Config path: <strong>Authentication &gt; OAuth 2.0</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Id</code>|</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> for instructions that can be used to implement Google OAuth or OpenID authentication. | - Environment variable: <code>MM_GOOGLESETTINGS_ID</code></dt><dd><div class="line-block">                                                      |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the OAuth Client ID from Google. Generate the ID by going to the <strong>Credentials</strong> section of the Google Cloud Platform APIs &amp; Services menu and selecting <strong>Create Credentials &gt; OAuth client ID</strong>.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> for instructions that can be used to implement Google OAuth or OpenID authentication.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OAuth 2.0</strong></li><li><code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Id</code></li><li>Environment variable: <code>MM_GOOGLESETTINGS_ID</code></li></ul></td>
 </tr>
 </tbody>
 </table>
