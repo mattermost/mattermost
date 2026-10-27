@@ -70,6 +70,24 @@ func (p *PostService) UpdatePost(post *model.Post) error {
 	return nil
 }
 
+// UpdatePostWithOptions updates a post using the supplied options.
+// Nil options match the zero value.
+//
+// Minimum server version: 12.1
+func (p *PostService) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) error {
+	updatedPost, appErr := p.api.UpdatePostWithOptions(post, options)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
+
+	err := updatedPost.ShallowCopy(post)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeletePost deletes a post.
 //
 // Minimum server version: 5.2
