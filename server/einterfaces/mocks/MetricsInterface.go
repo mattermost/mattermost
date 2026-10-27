@@ -297,6 +297,11 @@ func (_m *MetricsInterface) IncrementWebSocketBroadcastUsersRegistered(hub strin
 	_m.Called(hub, amount)
 }
 
+// IncrementWebSocketSlowConnectionClose provides a mock function with no fields
+func (_m *MetricsInterface) IncrementWebSocketSlowConnectionClose() {
+	_m.Called()
+}
+
 // IncrementWebhookPost provides a mock function with no fields
 func (_m *MetricsInterface) IncrementWebhookPost() {
 	_m.Called()

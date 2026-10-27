@@ -582,8 +582,18 @@ func (h *Hub) broadcastToConn(connIndex *hubConnectionIndex, webConn *WebConn, m
 			mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
 				mlog.String("user_id", webConn.UserId),
 				mlog.String("conn_id", webConn.GetConnectionID()))
+			h.countSlowConnectionClose()
 		}
 		closeAndRemoveConn(connIndex, webConn)
+	}
+}
+
+// countSlowConnectionClose records that the hub closed an active connection because its send
+// queue was full: the client was not reading fast enough, or the hub fell behind and then
+// delivered a burst. Either way the client has to reconnect.
+func (h *Hub) countSlowConnectionClose() {
+	if m := h.platform.metricsIFace; m != nil {
+		m.IncrementWebSocketSlowConnectionClose()
 	}
 }
 
@@ -766,6 +776,7 @@ func (h *Hub) Start() {
 						mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
 							mlog.String("user_id", directMsg.conn.UserId),
 							mlog.String("conn_id", directMsg.conn.GetConnectionID()))
+						h.countSlowConnectionClose()
 					}
 					closeAndRemoveConn(connIndex, directMsg.conn)
 				}
