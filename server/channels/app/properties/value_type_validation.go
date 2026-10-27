@@ -48,15 +48,15 @@ func (h *ValueTypeValidationHook) PreCreatePropertyValues(rctx request.CTX, valu
 	return values, nil
 }
 
-func (h *ValueTypeValidationHook) PreUpdatePropertyValue(rctx request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if err := h.validate(rctx, []*model.PropertyValue{value}); err != nil {
+func (h *ValueTypeValidationHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.validate(rctx, inGroup(groupID, []*model.PropertyValue{value})); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *ValueTypeValidationHook) PreUpdatePropertyValues(rctx request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := h.validate(rctx, values); err != nil {
+func (h *ValueTypeValidationHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.validate(rctx, inGroup(groupID, values)); err != nil {
 		return nil, err
 	}
 	return values, nil
@@ -74,6 +74,25 @@ func (h *ValueTypeValidationHook) PreUpsertPropertyValues(rctx request.CTX, valu
 		return nil, err
 	}
 	return values, nil
+}
+
+// inGroup returns copies of values carrying groupID, the group an update writes
+// to, so they are checked against that group's fields whatever group the
+// payload names. An empty groupID leaves them as they are.
+func inGroup(groupID string, values []*model.PropertyValue) []*model.PropertyValue {
+	if groupID == "" {
+		return values
+	}
+	scoped := make([]*model.PropertyValue, len(values))
+	for i, v := range values {
+		if v == nil {
+			continue
+		}
+		c := *v
+		c.GroupID = groupID
+		scoped[i] = &c
+	}
+	return scoped
 }
 
 // validate checks every value against its field's type. The values of a batch
