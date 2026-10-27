@@ -779,6 +779,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                             <FormattedMessage
                                 id='post_attributes.dot_menu.attributes'
                                 defaultMessage='Attributes'
+                                description='Item in the three-dot (More actions) menu of a post that opens the modal for viewing and editing the attributes of that post. Plural noun.'
                             />
                         }
                         leadingElement={<FormatListBulletedIcon size={18}/>}

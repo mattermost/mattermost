@@ -50,6 +50,7 @@ export default function PostAttributesFieldPicker({fields, onSelect}: Props) {
                         <FormattedMessage
                             id='post_attributes.modal.add'
                             defaultMessage='Add attribute'
+                            description='Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb.'
                         />
                     </>
                 ),
@@ -59,6 +60,7 @@ export default function PostAttributesFieldPicker({fields, onSelect}: Props) {
                 'aria-label': formatMessage({
                     id: 'post_attributes.modal.picker.label',
                     defaultMessage: 'Add an attribute',
+                    description: 'Accessible label (screen readers only) of the menu, opened by the add attribute button in the post attributes modal, that lists attributes which can be added to the post.',
                 }),
             }}
         >

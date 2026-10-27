@@ -11,7 +11,7 @@ import {IconContainer} from '../formatting_bar/formatting_icon';
 
 const PostAttributesButton = (): JSX.Element => {
     const {formatMessage} = useIntl();
-    const label = formatMessage({id: 'post_attributes.composer.add', defaultMessage: 'Add attributes'});
+    const label = formatMessage({id: 'post_attributes.composer.add', defaultMessage: 'Add attributes', description: 'Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb.'});
 
     return (
         <WithTooltip title={label}>

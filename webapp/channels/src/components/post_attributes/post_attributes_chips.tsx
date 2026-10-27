@@ -116,6 +116,7 @@ function PostAttributesChips({post, channel}: Props) {
                     <FormattedMessage
                         id='post_attributes.chips.unavailable'
                         defaultMessage='Attributes unavailable'
+                        description='Message shown in place of the attribute chips under a post when the attributes could not be loaded.'
                     />
                 </span>
             </div>
@@ -159,6 +160,7 @@ function PostAttributesChips({post, channel}: Props) {
                             {
                                 id: 'generic.more_attributes',
                                 defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}',
+                                description: 'Accessible label (screen readers only) on the overflow badge that stands in for attribute chips that do not fit, shown on channel attribute labels and on post attribute chips. {count} is the number of hidden attributes.',
                             },
                             {count: overflow},
                         )}
@@ -166,6 +168,7 @@ function PostAttributesChips({post, channel}: Props) {
                         <FormattedMessage
                             id='post_attributes.chips.overflow'
                             defaultMessage='+{count, number}'
+                            description='Visible text of the overflow badge after the attribute chips under a post, for chips that do not fit. {count} is the number of hidden attributes.'
                             values={{count: overflow}}
                         />
                     </span>

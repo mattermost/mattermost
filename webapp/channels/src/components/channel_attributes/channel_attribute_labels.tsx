@@ -16,6 +16,7 @@ import {
     safePolygon,
 } from '@floating-ui/react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -60,6 +61,11 @@ type Props = {
     // Thread header: if a chip will not fit, collapse every chip into +N rather
     // than keeping a clipped first chip beside the count.
     allowEmptyVisible?: boolean;
+
+    // A chip opens Channel Info, which is bound to the channel being viewed.
+    // Global Threads and the thread popout have no such channel, so there the
+    // chips are labels only rather than controls that cannot do anything.
+    interactive?: boolean;
 };
 
 /**
@@ -76,7 +82,7 @@ type ChipSpec = {
     color?: string;
 };
 
-const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false}: Props) => {
+const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, interactive = true}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const labels = useChannelLabels(channelId, surface);
@@ -167,6 +173,20 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false}:
         return null;
     }
 
+    const wrapChip = (chip: ReactNode) => (interactive ? (
+        <button
+            type='button'
+            className='ChannelAttributeLabels__chipButton'
+            onClick={openChannelInfo}
+        >
+            {chip}
+        </button>
+    ) : (
+        <span className='ChannelAttributeLabels__chipStatic'>
+            {chip}
+        </span>
+    ));
+
     const renderChip = (id: string) => {
         const spec = byChipId.get(id);
         if (!spec) {
@@ -180,18 +200,14 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false}:
                 className='ChannelAttributeLabels__item'
             >
                 <WithTooltip title={spec.fieldLabel}>
-                    <button
-                        type='button'
-                        className='ChannelAttributeLabels__chipButton'
-                        onClick={openChannelInfo}
-                    >
+                    {wrapChip(
                         <AttributeChip
                             label={spec.fieldLabel}
                             value={spec.value}
                             color={spec.color}
                             size='medium'
-                        />
-                    </button>
+                        />,
+                    )}
                 </WithTooltip>
             </span>
         );
@@ -219,7 +235,7 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false}:
                     type='button'
                     className='ChannelAttributeLabels__overflow'
                     aria-label={formatMessage(
-                        {id: 'generic.more_attributes', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}'},
+                        {id: 'generic.more_attributes', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}', description: 'Accessible label (screen readers only) on the overflow badge that stands in for attribute chips that do not fit, shown on channel attribute labels and on post attribute chips. {count} is the number of hidden attributes.'},
                         {count: overflowIds.length},
                     )}
                     data-testid={`channelAttributeLabelsOverflow-${surfaceId}`}
@@ -256,37 +272,37 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false}:
                                     <span className='ChannelAttributeLabels__popoverLabel'>
                                         {spec.fieldLabel}
                                     </span>
-                                    <button
-                                        type='button'
-                                        className='ChannelAttributeLabels__chipButton'
-                                        onClick={openChannelInfo}
-                                    >
+                                    {wrapChip(
                                         <AttributeChip
                                             label={spec.fieldLabel}
                                             value={spec.value}
                                             color={spec.color}
                                             size='medium'
                                             announceLabel={false}
-                                        />
-                                    </button>
+                                        />,
+                                    )}
                                 </div>
                             );
                         })}
-                        <div
-                            className='ChannelAttributeLabels__popoverDivider'
-                            role='separator'
-                        />
-                        <button
-                            type='button'
-                            className='ChannelAttributeLabels__viewAll'
-                            onClick={openChannelInfo}
-                            data-testid={`channelAttributeLabelsViewAll-${surfaceId}`}
-                        >
-                            <FormattedMessage
-                                id='channel_attributes.labels.view_all'
-                                defaultMessage='View all attributes'
-                            />
-                        </button>
+                        {interactive && (
+                            <>
+                                <div
+                                    className='ChannelAttributeLabels__popoverDivider'
+                                    role='separator'
+                                />
+                                <button
+                                    type='button'
+                                    className='ChannelAttributeLabels__viewAll'
+                                    onClick={openChannelInfo}
+                                    data-testid={`channelAttributeLabelsViewAll-${surfaceId}`}
+                                >
+                                    <FormattedMessage
+                                        id='channel_attributes.labels.view_all'
+                                        defaultMessage='View all attributes'
+                                    />
+                                </button>
+                            </>
+                        )}
                     </div>
                 </FloatingPortal>
             )}

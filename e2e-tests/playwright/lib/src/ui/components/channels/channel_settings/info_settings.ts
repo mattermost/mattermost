@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {ChannelInfoAttributes} from '../channel_attributes';
+
 export default class InfoSettings {
     readonly container: Locator;
     readonly nameInput: Locator;
@@ -13,6 +15,9 @@ export default class InfoSettings {
     readonly urlEditButton: Locator;
     readonly urlInput: Locator;
     readonly saveChangesPanel: Locator;
+    readonly saveButton: Locator;
+    readonly resetButton: Locator;
+    readonly attributes: ChannelInfoAttributes;
 
     constructor(container: Locator) {
         this.container = container;
@@ -23,6 +28,12 @@ export default class InfoSettings {
         this.urlEditButton = container.getByRole('button', {name: 'Edit'});
         this.urlInput = container.getByTestId('channelURLInput');
         this.saveChangesPanel = container.locator('.SaveChangesPanel');
+        this.saveButton = container.getByTestId('SaveChangesPanel__save-btn');
+        this.resetButton = container.getByTestId('SaveChangesPanel__cancel-btn');
+
+        // Same component as the Channel Info RHS, but staged here: edits only
+        // reach the server on this tab's own Save (see saveChangesPanel).
+        this.attributes = new ChannelInfoAttributes(container.getByTestId('channelInfoAttributes'));
     }
 
     async toBeVisible() {
@@ -51,5 +62,15 @@ export default class InfoSettings {
     async updatePurpose(purpose: string) {
         await expect(this.purposeInput).toBeVisible();
         await this.purposeInput.fill(purpose);
+    }
+
+    async save() {
+        await expect(this.saveButton).toBeVisible();
+        await this.saveButton.click();
+    }
+
+    async resetChanges() {
+        await expect(this.resetButton).toBeVisible();
+        await this.resetButton.click();
     }
 }

@@ -27,6 +27,7 @@ export default function PostAttributesHoverCard({attributes, onEdit}: Props) {
                     <FormattedMessage
                         id='post_attributes.card.title'
                         defaultMessage='Attributes'
+                        description='Heading of the hover card that appears over the attribute chips of a post, above the list of attribute names and values. Plural noun.'
                     />
                 </span>
                 <button
@@ -37,6 +38,7 @@ export default function PostAttributesHoverCard({attributes, onEdit}: Props) {
                     <FormattedMessage
                         id='post_attributes.card.edit'
                         defaultMessage='Edit'
+                        description='Button in the hover card on the attribute chips of a post. Opens the modal for editing the attributes of that post. Verb.'
                     />
                 </button>
             </div>

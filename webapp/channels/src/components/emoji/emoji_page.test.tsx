@@ -44,7 +44,7 @@ describe('EmojiPage', () => {
         renderWithContext(<EmojiPage {...defaultProps}/>);
         expect(screen.getByTestId('emoji-list')).toBeInTheDocument();
         expect(screen.getByTestId('permission-gate')).toBeInTheDocument();
-        expect(screen.getByRole('link')).toHaveAttribute('href', '/team/emoji/add');
+        expect(screen.getByRole('link', {name: 'Add Custom Emoji'})).toHaveAttribute('href', '/team/emoji/add');
     });
 
     it('should not render the add button if permission is not granted', () => {
@@ -56,7 +56,7 @@ describe('EmojiPage', () => {
             />,
         );
         expect(screen.getByTestId('permission-gate')).toBeInTheDocument();
-        expect(screen.getByRole('link')).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Add Custom Emoji'})).toBeInTheDocument();
     });
 
     it('should render EmojiList component', () => {

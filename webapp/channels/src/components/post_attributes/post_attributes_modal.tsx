@@ -162,6 +162,7 @@ export default function PostAttributesModal({post, onExited}: Props) {
                 <FormattedMessage
                     id='post_attributes.modal.title'
                     defaultMessage='Post attributes'
+                    description='Title of the modal where users view and edit the attributes (structured metadata fields) attached to a post.'
                 />
             }
             modalSubheaderText={
@@ -226,12 +227,14 @@ function messageFor(error: ServerError, formatMessage: ReturnType<typeof useIntl
         return formatMessage({
             id: 'post_attributes.modal.error.forbidden',
             defaultMessage: 'You do not have permission to change this attribute',
+            description: 'Error shown in the post attributes modal when the server refuses to save a change to an attribute because the user lacks permission.',
         });
     }
 
     return formatMessage({
         id: 'post_attributes.modal.error.generic',
         defaultMessage: 'Could not update this attribute. Please try again.',
+        description: 'Error shown in the post attributes modal when saving a change to an attribute fails for any reason other than missing permission.',
     });
 }
 
@@ -240,6 +243,7 @@ function Subtitle({authorName, channelName}: {authorName: string; channelName: s
         <FormattedMessage
             id='post_attributes.modal.subtitle'
             defaultMessage='{author} · {channel}'
+            description='Subtitle under the title of the post attributes modal, identifying the post. {author} is the name of the post author and {channel} is the name of the channel it was posted in; the dot between them is a separator.'
             values={{author: authorName, channel: channelName}}
         />
     );

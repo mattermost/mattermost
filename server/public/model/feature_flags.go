@@ -175,6 +175,30 @@ type FeatureFlags struct {
 	// Gates post delivery audit logging. Enabling it requires a server restart, since it
 	// controls whether the /api/v4/delivery_tracking routes are registered.
 	PostDeliveryTracking bool
+
+	// FEATURE_FLAG_REMOVAL: EnforceLogPathRoot - remove this once every supported
+	// release carries the flag and enforcement becomes unconditional (MM-70595).
+	// When on, a log or audit file path resolving outside the logging root
+	// (MM_LOG_PATH, or the default logs dir) aborts server startup and is rejected
+	// on config save. When off, the same paths only produce an error log line.
+	EnforceLogPathRoot bool
+
+	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
+	// Health Dashboard. Off by default.
+	HealthDashboard bool
+
+	// EnableBrotliCompression negotiates Brotli compression for API responses with
+	// clients that advertise support for it, falling back to gzip otherwise. Requires
+	// WebserverMode to be "gzip".
+	EnableBrotliCompression bool
+
+	// FEATURE_FLAG_REMOVAL: OpenIdAttributeSync - Remove this kill switch once
+	// OpenID Connect attribute sync is proven in production. Gates syncing user
+	// attributes from OpenID Connect claims at sign-in: when off, no claims are
+	// read and no values are written, and new openid links are refused. Fields
+	// already linked keep their link, and their values stay sync-locked and
+	// untouched.
+	OpenIdAttributeSync bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -191,7 +215,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = true
-	f.ResourceAttributesInPolicies = false
+	f.ResourceAttributesInPolicies = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ContentFlagging = true
@@ -232,9 +256,9 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldRank = true
 
-	f.PropertyFieldGraph = false
+	f.PropertyFieldGraph = true
 
-	f.ChannelAttributes = false
+	f.ChannelAttributes = true
 
 	f.ChannelAttributesRequired = false
 
@@ -245,6 +269,14 @@ func (f *FeatureFlags) SetDefaults() {
 	f.RecurringScheduledPosts = false
 
 	f.PostDeliveryTracking = false
+
+	f.EnforceLogPathRoot = false
+
+	f.HealthDashboard = false
+
+	f.EnableBrotliCompression = false
+
+	f.OpenIdAttributeSync = true
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

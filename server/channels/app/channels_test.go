@@ -94,12 +94,14 @@ func TestChannelsStopCancelsTasks(t *testing.T) {
 	ch.dndTask.update(isLeader, newTask)
 	ch.postReminderTask.update(isLeader, newTask)
 	ch.scheduledPostTask.update(isLeader, newTask)
-	require.Eventually(t, func() bool { return calls.Load() >= 3 }, 5*time.Second, 10*time.Millisecond)
+	ch.healthCheckTask.update(isLeader, newTask)
+	require.Eventually(t, func() bool { return calls.Load() >= 4 }, 5*time.Second, 10*time.Millisecond)
 
 	require.NoError(t, ch.Stop())
 	assert.Nil(t, ch.dndTask.task)
 	assert.Nil(t, ch.postReminderTask.task)
 	assert.Nil(t, ch.scheduledPostTask.task)
+	assert.Nil(t, ch.healthCheckTask.task)
 
 	stoppedAt := calls.Load()
 	time.Sleep(50 * time.Millisecond)

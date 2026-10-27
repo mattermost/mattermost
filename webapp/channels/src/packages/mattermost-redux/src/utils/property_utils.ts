@@ -3,6 +3,31 @@
 
 import type {PropertyChangePolicy, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
+// The identity sources a user attribute can be synced from, in the order the
+// server resolves them (model.GetPropertyFieldSyncSource). Each names the
+// external attribute or claim under the attr of the same name, and is also the
+// auth_service of the users it signs in.
+export const PROPERTY_SYNC_SOURCES = ['ldap', 'saml', 'openid'] as const;
+
+export type PropertySyncSource = typeof PROPERTY_SYNC_SOURCES[number];
+
+// The sources a field is linked to, in PROPERTY_SYNC_SOURCES order.
+export function getPropertyFieldSyncSources(field: Pick<PropertyField, 'attrs'>): PropertySyncSource[] {
+    return PROPERTY_SYNC_SOURCES.filter((source) => isSyncMapping(field.attrs?.[source]));
+}
+
+// Whether an identity source writes the field's values, which no session user
+// -- sysadmin included -- may then set.
+export function isPropertyFieldSynced(field: Pick<PropertyField, 'attrs'>): boolean {
+    return getPropertyFieldSyncSources(field).length > 0;
+}
+
+// Whether the field is synced from the source the user signs in with, so the
+// value shown is the one the user's login provider sends.
+export function isPropertyFieldSyncedForAuthService(field: Pick<PropertyField, 'attrs'>, authService: string | undefined): boolean {
+    return getPropertyFieldSyncSources(field).some((source) => source === authService);
+}
+
 // Returns true if the field uses the legacy PSAv1 schema.
 // Legacy properties have an empty object_type and rely on simple target_id
 // uniqueness, rather than the hierarchical uniqueness model used by PSAv2.
@@ -34,6 +59,37 @@ export function getPropertyFieldChangePolicy(field: PropertyField): PropertyChan
 // locked.
 export function isPropertyFieldEditable(field: PropertyField): boolean {
     return getPropertyFieldChangePolicy(field) !== 'never';
+}
+
+/**
+ * Whether a field's values are written by an integration rather than by people,
+ * so no session user -- sysadmin included -- may set them.
+ *
+ * Mirrors all three refusals in checkValueWriteAccess on the server: an
+ * attrs.owners list hands the values to the listed owners, attrs.protected
+ * reserves them for the plugin in attrs.source_plugin_id (only a plugin can set
+ * either key), and a mapping under a sync source's attr (attrs.ldap, attrs.saml
+ * or attrs.openid) reserves them for that sync service. None of them consults permission_values -- the write is refused
+ * before that tier is reached.
+ */
+export function isPropertyFieldSourceManaged(field: PropertyField): boolean {
+    const attrs = field.attrs;
+    if (!attrs) {
+        return false;
+    }
+    if (attrs.protected === true) {
+        return true;
+    }
+    if (Array.isArray(attrs.owners) && attrs.owners.length > 0) {
+        return true;
+    }
+    return isPropertyFieldSynced(field);
+}
+
+// GetPropertyFieldSyncSource reads these as strings, so anything else is not a
+// mapping the sync service would recognise either.
+function isSyncMapping(mapping: unknown): boolean {
+    return typeof mapping === 'string' && mapping !== '';
 }
 
 // Whether a stored value counts as set. Mirrors isEmptyPropertyValue on the

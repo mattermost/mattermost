@@ -50,6 +50,7 @@ export default function PostAttributesModalRow({field, value, canEdit, writing, 
     const lockedTitle = formatMessage({
         id: 'post_attributes.modal.locked',
         defaultMessage: "You don't have permission to modify this attribute.",
+        description: 'Tooltip on an attribute row in the post attributes modal that is read-only for the current user, explaining that they cannot change it.',
     });
 
     return (
@@ -105,6 +106,7 @@ export default function PostAttributesModalRow({field, value, canEdit, writing, 
                             {
                                 id: 'post_attributes.modal.clear',
                                 defaultMessage: 'Clear {attribute}',
+                                description: 'Accessible label (screen readers only) of the button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute.',
                             },
                             {attribute: label},
                         )}

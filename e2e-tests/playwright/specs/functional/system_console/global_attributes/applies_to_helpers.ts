@@ -8,7 +8,7 @@ import type {SystemConsolePage} from '@mattermost/playwright-lib';
 
 const PROPERTY_GROUP = 'access_control';
 
-export type ChannelDisplayLocation = 'display_label_header' | 'display_label_info' | 'display_banner_top';
+export type ChannelDisplayLocation = 'display_label_header' | 'display_banner_top';
 
 export type ChannelAttributeConfig = {
     displayName: string;
