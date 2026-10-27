@@ -2196,11 +2196,13 @@ This setting improves an organization's mobile security posture by restricting f
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '44%'}} />
+<col style={{width: '55%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile')}>Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, even when the <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile')}>Allow file downloads on mobile</a> configuration setting is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared.</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEENABLESECUREFILEPREVIEW</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2216,8 +2218,8 @@ This setting improves an organization's mobile security posture by restricting f
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app.</li><li><strong>false</strong>: Disables link navigation in PDFs when Secure File Preview Mode is active.</li></ul></td>
-<td><ul><li>System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileAllowPdfLinkNavigation</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_FILESETTINGS_MOBILEALLOWPDFLINKNAVIGATION</code></li></ul></td>
+<td><ul><li><strong>true</strong>: Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables link navigation in PDFs when Secure File Preview Mode is active.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileAllowPdfLinkNavigation</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEALLOWPDFLINKNAVIGATION</code></li></ul></td>
 </tr>
 </tbody>
 </table>
