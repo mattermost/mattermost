@@ -9855,10 +9855,6 @@
     "defaultMessage": "Copied!",
     "description": "Confirmation shown briefly on a copy button on the System Console Server Logs page after the text was copied to the clipboard."
   },
-  "admin.logs.copiedLine": {
-    "defaultMessage": "Copied!",
-    "description": "Confirmation shown briefly on the \"Copy log line\" button on the System Console Server Logs page after the line was copied."
-  },
   "admin.logs.copyAll": {
     "defaultMessage": "Copy all",
     "description": "Button label in the plain text log viewer on the System Console Server Logs page; copies all visible log lines to the clipboard."
@@ -9887,13 +9883,9 @@
     "defaultMessage": "Timestamp",
     "description": "Field label in an expanded log entry on the System Console Server Logs page; the date and time of the entry follows."
   },
-  "admin.logs.download": {
-    "defaultMessage": "Download",
-    "description": "Button label in the plain text log viewer on the System Console Server Logs page; downloads the log file."
-  },
   "admin.logs.DownloadLogs": {
     "defaultMessage": "Download",
-    "description": "Button label on the System Console Server Logs page; downloads the log files."
+    "description": "Button label on the System Console Server Logs page, in both the structured and the plain text log viewer; downloads the log file."
   },
   "admin.logs.duration": {
     "defaultMessage": "Duration",
@@ -10087,10 +10079,6 @@
     "defaultMessage": "Page {page, number} of {total, number}",
     "description": "Pagination status on the System Console Server Logs page, e.g. \"Page 2 of 10\"."
   },
-  "admin.logs.plain.loading": {
-    "defaultMessage": "Loading logs",
-    "description": "Text next to a loading spinner in the plain text log viewer on the System Console Server Logs page."
-  },
   "admin.logs.plain.noLogs": {
     "defaultMessage": "No logs to display.",
     "description": "Empty state in the plain text log viewer on the System Console Server Logs page."
@@ -10119,13 +10107,9 @@
     "defaultMessage": "Refreshing…",
     "description": "Status text on the System Console Server Logs page while new log entries are being fetched in the background."
   },
-  "admin.logs.reload": {
-    "defaultMessage": "Reload",
-    "description": "Button label on the System Console Server Logs page; re-fetches the latest log entries from the server."
-  },
   "admin.logs.ReloadLogs": {
     "defaultMessage": "Reload",
-    "description": "Button label on the Server Logs page; re-fetches the latest log entries from the server."
+    "description": "Button label on the System Console Server Logs page, in both the structured and the plain text log viewer; re-fetches the latest log entries from the server."
   },
   "admin.logs.rowsPerPage": {
     "defaultMessage": "Show",

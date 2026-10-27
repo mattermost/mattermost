@@ -18,18 +18,6 @@ export function getPlainLogs(state: GlobalState) {
     return state.entities.admin.plainLogs;
 }
 
-export const getAllLogs = createSelector(
-    'getAllLogs',
-    getLogs,
-    (logs) => {
-        return Object.values(logs).reduce<LogObject[]>((acc, log) => {
-            // @ts-expect-error: object that is returned from the server contains an array of logs but ts gets confused that its one log object
-            acc.push(...log);
-            return acc;
-        }, []);
-    },
-);
-
 // The reducer stores the query response unchanged: entries keyed by node name
 function getLogsByNode(state: GlobalState) {
     return getLogs(state) as unknown as Record<string, LogObject[]>;

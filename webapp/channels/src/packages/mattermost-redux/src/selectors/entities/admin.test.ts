@@ -6,7 +6,7 @@ import type {LogObject} from '@mattermost/types/admin';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General} from 'mattermost-redux/constants';
-import {getAllLogs, getAllLogsWithNode, getLogNodes, getTruncatedLogNodes} from 'mattermost-redux/selectors/entities/admin';
+import {getAllLogsWithNode, getLogNodes, getTruncatedLogNodes} from 'mattermost-redux/selectors/entities/admin';
 
 function makeLog(msg: string): LogObject {
     return {
@@ -64,7 +64,7 @@ describe('selectors.entities.admin', () => {
         getAllLogsWithNode(state);
 
         expect(e1).not.toHaveProperty('node');
-        expect(getAllLogs(state)).toEqual([e1]);
+        expect(state.entities.admin.logs).toEqual({'node-a': [e1]});
     });
 
     test('getLogNodes lists every node, including one with no entries', () => {

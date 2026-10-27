@@ -391,7 +391,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                         >
                             {copyLineSuccess ? (
                                 <FormattedMessage
-                                    id='admin.logs.copiedLine'
+                                    id='admin.logs.copied'
                                     defaultMessage='Copied!'
                                 />
                             ) : (
