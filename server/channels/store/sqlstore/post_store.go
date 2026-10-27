@@ -425,9 +425,14 @@ func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
 // notified a second time. The expression reads the row under its lock, so it also holds
 // when the release commits while the update waits.
 //
+// Rows received through Shared Channels are written as given: the origin cluster releases
+// the post, and its federated update is the only thing that clears the markers here.
+//
 // It must stay free of "::" casts and JSON literals: sqlx named queries treat ":" as the
 // start of a parameter name.
 const postPropsUpdateExpr = `CASE
+	WHEN COALESCE(Posts.RemoteId, '') <> ''
+		THEN CAST(:Props AS jsonb)
 	WHEN Posts.Props @> jsonb_build_object('deferred_notification', true, 'silent_notification', true)
 		THEN COALESCE(NULLIF(CAST(:Props AS jsonb), 'null'), jsonb_build_object()) || jsonb_build_object('deferred_notification', true, 'silent_notification', true)
 	WHEN CAST(:Props AS jsonb) @> jsonb_build_object('deferred_notification', true)

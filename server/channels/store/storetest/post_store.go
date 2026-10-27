@@ -4444,8 +4444,9 @@ func testPostStoreDeferredNotificationMarkersOnWrite(t *testing.T, rctx request.
 	}
 
 	for _, tc := range []struct {
-		name  string
-		props model.StringInterface
+		name     string
+		props    model.StringInterface
+		remoteID string
 		// edit changes the copy of the post being written; it runs after release when set.
 		release     bool
 		edit        func(post *model.Post)
@@ -4503,14 +4504,41 @@ func testPostStoreDeferredNotificationMarkersOnWrite(t *testing.T, rctx request.
 			},
 			wantMessage: "edited",
 		},
+		{
+			name:     "a federated update that drops the markers clears them on a remote copy",
+			props:    model.StringInterface{model.PostPropsDeferredNotification: true, model.PostPropsSilentNotification: true},
+			remoteID: model.NewId(),
+			edit: func(post *model.Post) {
+				post.Message = "edited"
+				post.DelProp(model.PostPropsDeferredNotification)
+				post.DelProp(model.PostPropsSilentNotification)
+			},
+			wantMessage: "edited",
+		},
+		{
+			name:     "a federated update that keeps the markers keeps a remote copy deferred",
+			props:    model.StringInterface{model.PostPropsDeferredNotification: true, model.PostPropsSilentNotification: true},
+			remoteID: model.NewId(),
+			edit: func(post *model.Post) {
+				post.Message = "edited"
+			},
+			wantDefer:   true,
+			wantSilent:  true,
+			wantMessage: "edited",
+		},
 	} {
 		for _, writer := range writers {
 			t.Run(writer.name+": "+tc.name, func(t *testing.T) {
+				var remoteID *string
+				if tc.remoteID != "" {
+					remoteID = model.NewPointer(tc.remoteID)
+				}
 				post, err := ss.Post().Save(rctx, &model.Post{
 					ChannelId: model.NewId(),
 					UserId:    model.NewId(),
 					Message:   "original",
 					Props:     tc.props,
+					RemoteId:  remoteID,
 				})
 				require.NoError(t, err)
 				copyBeforeRelease := post.Clone()
