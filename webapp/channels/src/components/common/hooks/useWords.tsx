@@ -4,6 +4,8 @@
 import React from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+
 import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
@@ -45,14 +47,15 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 return <>{chunks}</>;
             }
             return (
-                <button
+                <Button
                     id='view_plans_cta'
-                    className='btn btn-link btn-xs'
+                    emphasis='link'
+                    size='x-small'
                     onClick={openPricingModal}
                     type='button'
                 >
                     {chunks}
-                </button>
+                </Button>
             );
         },
         limit: '',

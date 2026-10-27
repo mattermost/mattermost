@@ -8,7 +8,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import {AccountPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {TileButton} from '@mattermost/compass-ui/components/tile-button';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -72,7 +71,8 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
             <div className='LessThanMaxFreeUsers'>
                 <ToggleModalButton
                     id='introTextInvite'
-                    className={buttonClassNames({emphasis: 'primary', size: 'sm'})}
+                    emphasis='primary'
+                    size='small'
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
                     dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
