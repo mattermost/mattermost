@@ -79,7 +79,7 @@ Setting **Skip TLS Verification** to **true** disables verification of the Redis
 
 Certificates are read when the server starts. After rotating certificates, restart each Mattermost server.
 
-AWS ElastiCache supports in-transit encryption. When it's enabled, set **Enable TLS** to **true**. No CA certificate path is needed because ElastiCache certificates are signed by a publicly trusted CA.
+AWS ElastiCache supports in-transit encryption. When it's enabled, set **Enable TLS** to **true** and set **Redis Address** to the cluster's endpoint hostname, not an IP address, so the certificate can be verified. ElastiCache certificates are publicly trusted, so you don't need to set a CA certificate path when the server's operating system trusts the Amazon root CAs (the Mattermost Docker image does). ElastiCache doesn't support mutual TLS: leave the client certificate and key paths empty, and use **Redis Password** for the ElastiCache AUTH token.
 
 ## Deploy with AWS ElastiCache
 
