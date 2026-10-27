@@ -206,6 +206,18 @@ package-prep: setup-go-work
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/channels/dist/* $(DIST_PATH)/client
 
+	@# Offline docs: extract DOCS_BUNDLE (.tar.gz) so hardlinks survive; skip if unset.
+	@if [ -z "$(DOCS_BUNDLE)" ]; then \
+		echo "DOCS_BUNDLE unset; skipping docs packaging"; \
+	elif [ ! -f "$(DOCS_BUNDLE)" ]; then \
+		echo "DOCS_BUNDLE=$(DOCS_BUNDLE) not found" >&2; \
+		exit 1; \
+	else \
+		echo "Packaging documentation from $(DOCS_BUNDLE)"; \
+		mkdir -p $(DIST_PATH)/client; \
+		tar -xzf "$(DOCS_BUNDLE)" -C $(DIST_PATH)/client; \
+	fi
+
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/ENTERPRISE-EDITION-LICENSE.txt $(DIST_PATH)
