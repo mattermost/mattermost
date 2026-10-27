@@ -1,13 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {PublishedModalId, PublishedModalIdCandidate, PublishedModalProps} from '@mattermost/shared/types/global';
 
-import {openModal} from 'actions/views/modals';
+import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+
+import {closeModal, openModal} from 'actions/views/modals';
 
 import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 // Own chunk (off the bootstrap bundle) + a Suspense boundary that ModalController lacks.
 function lazyModal<P extends object>(loader: () => Promise<{default: React.ComponentType<P>}>): React.FunctionComponent<P> {
@@ -23,6 +28,36 @@ function lazyModal<P extends object>(loader: () => Promise<{default: React.Compo
 
 function withFixedProps<P extends object, F extends Partial<P>>(Component: React.ComponentType<P>, fixed: F): React.FunctionComponent<Omit<P, keyof F>> {
     const Wrapped = (props: Omit<P, keyof F>) => React.createElement(Component, {...fixed, ...props} as unknown as P);
+
+    return Wrapped;
+}
+
+// A plugin may name a channel this client hasn't loaded, and the modal reads it
+// from the store as it renders: load it first, and close if it can't be loaded.
+function withLoadedChannel<P extends {channelId: string}>(Component: React.ComponentType<P>, modalId: PublishedModalId): React.FunctionComponent<P> {
+    const Wrapped = (props: P) => {
+        const {channelId} = props;
+        const isLoaded = useSelector((state: GlobalState) => Boolean(getChannel(state, channelId)));
+        const dispatch = useDispatch();
+
+        useEffect(() => {
+            if (isLoaded) {
+                return;
+            }
+
+            dispatch(fetchChannel(channelId)).then(({error}) => {
+                if (error) {
+                    dispatch(closeModal(modalId));
+                }
+            });
+        }, [channelId, dispatch, isLoaded]);
+
+        if (!isLoaded) {
+            return null;
+        }
+
+        return React.createElement(Component, props);
+    };
 
     return Wrapped;
 }
@@ -49,7 +84,7 @@ const publishedModals = {
     new_channel_modal: lazyModal(() => import('components/new_channel_modal/new_channel_modal')),
 
     // Like team_settings, pinned open; initialTab can name a plugin's own tab.
-    channel_settings: withFixedProps(lazyModal(() => import('components/channel_settings_modal/channel_settings_modal')), {isOpen: true}),
+    channel_settings: withLoadedChannel(withFixedProps(lazyModal(() => import('components/channel_settings_modal/channel_settings_modal')), {isOpen: true}), 'channel_settings'),
 } satisfies Record<PublishedModalId, React.ComponentType<any>>;
 
 // Fails the build here if a modal's real props drift from the published contract,

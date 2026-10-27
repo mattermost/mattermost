@@ -768,6 +768,41 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         expect(createChannel).not.toHaveBeenCalled();
     });
 
+    test('opened for a plugin, a selected option that goes away takes its Create gate with it', async () => {
+        const Blocker = ({setCanCreate}: {setCanCreate: (v: boolean) => void}) => {
+            React.useEffect(() => {
+                setCanCreate(false);
+            }, [setCanCreate]);
+            return null;
+        };
+        const state = (blockerAvailable: boolean) => {
+            const withOptions = stateWithPluginOnlyOptions(jest.fn());
+            const [blocking, other] = withOptions.plugins!.components!.ChannelTypeOption!;
+            return {
+                ...withOptions,
+                plugins: {
+                    ...withOptions.plugins,
+                    components: {
+                        ChannelTypeOption: [{...blocking, extraContent: Blocker, isAvailable: () => blockerAvailable}, other],
+                    },
+                },
+            } as DeepPartial<GlobalState>;
+        };
+        const {replaceStoreState} = renderWithContext(
+            <NewChannelModal channelTypePluginId='test-plugin'/>,
+            state(true),
+        );
+
+        await userEvent.type(screen.getByRole('textbox', {name: 'Channel name'}), 'Roadmap');
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Create board'})).toBeDisabled());
+
+        replaceStoreState(state(false));
+
+        expect(screen.queryByText('Public board')).not.toBeInTheDocument();
+        expect(screen.getByText('Private board').closest('button')).toHaveClass('selected');
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Create board'})).toBeEnabled());
+    });
+
     test('plugin channel-type option rendering - three buttons with available option', async () => {
         renderWithContext(<NewChannelModal/>, stateWithOption());
 
