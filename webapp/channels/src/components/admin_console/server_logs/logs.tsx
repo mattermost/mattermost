@@ -27,6 +27,7 @@ import './logs.scss';
 type Props = {
     logs: LogObjectWithAdditionalInfo[];
     logNodes: string[];
+    truncatedLogNodes: string[];
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
@@ -103,7 +104,7 @@ function getInitialFormat(configIsPlainLogs: boolean): boolean {
     return false;
 }
 
-export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
+export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
     const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -161,6 +162,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
                 logLevels: allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level)),
                 dateFrom: activeTimePreset === null ? '' : presetStart(activeTimePreset),
                 dateTo: '',
+                search,
             });
         };
 
@@ -173,7 +175,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         });
         fetchQueueRef.current = fetched.catch(() => undefined);
         return fetched;
-    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, actions]);
+    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, search, actions]);
 
     // reload's deps are the query's inputs, so this also covers every filter and page change
     useEffect(() => {
@@ -229,6 +231,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         <LogList
             loading={loading}
             logs={logs}
+            truncatedNodes={truncatedLogNodes}
             onSearchChange={setSearch}
             search={search}
             enabledLevels={enabledLevels}

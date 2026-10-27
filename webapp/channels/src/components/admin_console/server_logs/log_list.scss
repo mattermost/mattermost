@@ -76,6 +76,12 @@
         }
     }
 
+    // Lines up with the filters above it
+    &__notice {
+        flex-shrink: 0;
+        margin: 0 24px 12px;
+    }
+
     // ---------------------
     // Column header
     // ---------------------

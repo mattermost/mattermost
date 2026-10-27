@@ -56,6 +56,7 @@ describe('components/admin_console/server_logs/Logs', () => {
             <Logs
                 logs={logs}
                 logNodes={[]}
+                truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
                 actions={{getLogs: jest.fn(), getPlainLogs: jest.fn()}}
@@ -208,6 +209,7 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
         <Logs
             logs={logsProp}
             logNodes={[]}
+            truncatedLogNodes={[]}
             plainLogs={[]}
             isPlainLogs={false}
             actions={{getLogs: jest.fn(), getPlainLogs: jest.fn()}}
@@ -287,6 +289,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
             <Logs
                 logs={[]}
                 logNodes={[]}
+                truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
                 actions={{getLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
@@ -369,6 +372,48 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         expect(getLogs.mock.calls[1][0].dateFrom).not.toBe('');
     });
 
+    test('should send the search with the query', async () => {
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs.mock.calls[0][0].search).toBe('');
+
+        await userEvent.type(screen.getByLabelText('Search logs'), 'WebSocket');
+
+        // Debounced, so the whole term goes out in one query
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'WebSocket'})));
+        expect(getLogs).toHaveBeenCalledTimes(2);
+    });
+
+    test('should send the search with a live-tail poll', async () => {
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+        await userEvent.type(screen.getByLabelText('Search logs'), 'websocket');
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+
+        // Turning live tail on polls straight away
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(3));
+        expect(getLogs.mock.calls[2][0].search).toBe('websocket');
+    });
+
+    test('should not queue a live-tail poll behind a pending search', async () => {
+        const search = deferred();
+        const getLogs = jest.fn().mockResolvedValueOnce({}).mockReturnValueOnce(search.promise).mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await userEvent.type(screen.getByLabelText('Search logs'), 'websocket');
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+        search.resolve();
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(getLogs).toHaveBeenCalledTimes(2);
+    });
+
     test('should skip a queued fetch that a newer one replaces', async () => {
         fakeNow('2026-10-20T12:00:00Z');
         const first = deferred();
@@ -397,6 +442,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
             <Logs
                 logs={logs}
                 logNodes={logNodes}
+                truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
                 actions={{getLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
@@ -423,6 +469,32 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
 
         await userEvent.type(screen.getByLabelText('Search logs'), 'default');
         await waitFor(() => expect(document.querySelectorAll('.LogRow')).toHaveLength(0));
+    });
+
+    // The server returns a node whose name matches unsearched, and the client search narrows it
+    test('should send a search for a node name and show that node\'s entries', async () => {
+        const {getLogs} = renderLogs([nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]);
+
+        await userEvent.type(screen.getByLabelText('Search logs'), 'NODE-B');
+
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'NODE-B'})));
+        expect(screen.queryByText('a')).not.toBeInTheDocument();
+        expect(screen.getByText('b')).toBeInTheDocument();
+    });
+
+    test('should show the truncation notice for a node that returned a full page', async () => {
+        renderWithContext(
+            <Logs
+                logs={[nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]}
+                logNodes={['node-a', 'node-b']}
+                truncatedLogNodes={['node-b']}
+                plainLogs={[]}
+                isPlainLogs={false}
+                actions={{getLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
+            />,
+        );
+
+        expect(await screen.findByText('Only the latest 10,000 entries from each node are shown')).toBeInTheDocument();
     });
 
     test('should send the picked node with the query', async () => {

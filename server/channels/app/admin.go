@@ -10,6 +10,7 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/mattermost/logr/v2"
@@ -18,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
@@ -134,7 +136,53 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 		}
 	}
 
+	s.requeryNodesNamedBySearch(rctx, page, perPage, logFilter, localName, clusterLogs, logData)
+
 	return logData, nil
+}
+
+// requeryNodesNamedBySearch replaces the searched entries of a node whose name holds the search
+// term with its unsearched ones. Once the System Console lists more than one node its search also
+// matches node names, which aren't in the log lines, so every entry of such a node is a match.
+// Remote names are only known from the first response, hence the second query. If it fails, the
+// searched entries are kept.
+func (s *Server) requeryNodesNamedBySearch(rctx request.CTX, page, perPage int, logFilter *model.LogFilter, localName string, clusterLogs map[string]einterfaces.NodeLogs, logData map[string][]string) {
+	if logFilter.Search == "" || len(logData) < 2 {
+		return
+	}
+
+	unsearched := *logFilter
+	unsearched.Search = ""
+	unsearched.ServerNames = nil
+	lowerSearch := strings.ToLower(logFilter.Search)
+	for name := range logData {
+		if !strings.Contains(strings.ToLower(name), lowerSearch) || clusterLogs[name].Err != nil {
+			continue
+		}
+		if name != localName {
+			unsearched.ServerNames = append(unsearched.ServerNames, name)
+			continue
+		}
+		if lines, appErr := s.GetLogsSkipSend(rctx, page, perPage, &unsearched); appErr != nil {
+			rctx.Logger().Warn("Failed to get the unsearched logs of the node named by the search", mlog.Err(appErr))
+		} else {
+			logData[name] = lines
+		}
+	}
+
+	if len(unsearched.ServerNames) == 0 {
+		return
+	}
+	nodeLogs, appErr := s.platform.Cluster().QueryLogs(rctx, page, perPage, &unsearched)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to get the unsearched logs of the nodes named by the search", mlog.Err(appErr))
+		return
+	}
+	for _, name := range unsearched.ServerNames {
+		if logs, ok := nodeLogs[name]; ok && logs.Err == nil {
+			logData[name] = logs.Lines
+		}
+	}
 }
 
 // failedNodeLogLine returns an mlog-style JSON log line reporting that a node's logs could not be fetched.

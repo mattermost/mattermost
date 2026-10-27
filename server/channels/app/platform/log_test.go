@@ -6,6 +6,7 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -572,4 +573,100 @@ func TestIsLogFilteredByDate(t *testing.T) {
 			assert.Equal(t, tc.filtered, isLogFilteredByDate(request.TestContext(t), filter, entry))
 		})
 	}
+}
+
+func TestIsLogFilteredBySearch(t *testing.T) {
+	line := []byte(`{"timestamp":"2026-10-21 10:00:00.000 Z","level":"info","msg":"User Logged In","caller":"app/login.go:42","user_id":"abc123","count":7,"ok":true,"details":{"remote":"10.0.0.1"},"note":"say \"hi\" <b>","path":"C:\\Temp","query":{"filter":"a\u003cb","n":12345678901234567},"literal":{"p":"\\u003c"}}`)
+
+	for _, tc := range []struct {
+		search   string
+		filtered bool
+	}{
+		{"", false},
+		{"user logged", false},
+		{"USER LOGGED", false},
+		{"login.go", false},
+		{"ABC123", false},
+		{"7", false},
+		{"true", false},
+		{"10.0.0.1", false},
+		{`"remote"`, false},
+		{`say "hi"`, false},
+		{"<b>", false},
+		{`c:\temp`, false},
+		{`{"filter":"a<b","n":12345678901234567}`, false},
+		{`{"p":"\\u003c"}`, false},
+		{`{"p":"<"}`, true},
+		{"missing", true},
+		{`"missing"`, true},
+		{`say "bye"`, true},
+		{"<>", true},
+
+		// level and timestamp are left out, and keys aren't values
+		{"info", true},
+		{"2026-10-21", true},
+		{"user_id", true},
+	} {
+		t.Run(tc.search, func(t *testing.T) {
+			search := newLogSearch(&model.LogFilter{Search: tc.search})
+			assert.Equal(t, tc.filtered, isLogFilteredBySearch(search, line))
+		})
+	}
+
+	t.Run("non-ASCII terms ignore case", func(t *testing.T) {
+		line := []byte(`{"level":"info","msg":"Größe ÜBERSCHRITTEN"}`)
+		assert.False(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "überschritten"}), line))
+		assert.False(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "GRÖßE"}), line))
+		assert.True(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "äpfel"}), line))
+	})
+
+	t.Run("unparseable lines are filtered", func(t *testing.T) {
+		assert.True(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "plain"}), []byte("plain text line")))
+	})
+
+	t.Run("no search keeps every line", func(t *testing.T) {
+		assert.Nil(t, newLogSearch(nil))
+		assert.Nil(t, newLogSearch(&model.LogFilter{}))
+		assert.False(t, isLogFilteredBySearch(nil, []byte("plain text line")))
+	})
+}
+
+func TestGetLogsSkipSendSearch(t *testing.T) {
+	root := t.TempDir()
+	ps := newLogPathTestService(t, root, func(cfg *model.Config) {
+		*cfg.LogSettings.EnableFile = true
+		*cfg.LogSettings.FileLocation = root
+	})
+	ps.SetLogger(mlog.CreateConsoleTestLogger(t))
+
+	var content bytes.Buffer
+	for i := range 10 {
+		msg := "routine work"
+		if i%3 == 0 {
+			msg = "Websocket closed"
+		}
+		fmt.Fprintf(&content, `{"timestamp":"2026-10-21 10:00:%02d.000 Z","level":"info","msg":"%s","seq":%d}`+"\n", i, msg, i)
+	}
+	// Not JSON, so the API would drop it rather than return it as a match
+	content.WriteString("plain websocket line\n")
+	require.NoError(t, os.WriteFile(config.GetLogFileLocation(root), content.Bytes(), 0600))
+
+	lines, appErr := ps.GetLogsSkipSend(request.TestContext(t), 0, 10, &model.LogFilter{Search: "WEBSOCKET"})
+	require.Nil(t, appErr)
+	require.Len(t, lines, 4)
+	for i, seq := range []int{0, 3, 6, 9} {
+		assert.Contains(t, lines[i], fmt.Sprintf(`"seq":%d`, seq))
+	}
+
+	// perPage counts matching lines only, starting from the newest
+	lines, appErr = ps.GetLogsSkipSend(request.TestContext(t), 0, 2, &model.LogFilter{Search: "websocket"})
+	require.Nil(t, appErr)
+	require.Len(t, lines, 2)
+	assert.Contains(t, lines[0], `"seq":6`)
+	assert.Contains(t, lines[1], `"seq":9`)
+
+	// Combines with the level filter
+	lines, appErr = ps.GetLogsSkipSend(request.TestContext(t), 0, 10, &model.LogFilter{Search: "websocket", LogLevels: []string{"error"}})
+	require.Nil(t, appErr)
+	assert.Empty(t, lines)
 }

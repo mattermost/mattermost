@@ -4,7 +4,9 @@
 package model
 
 import (
+	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -68,6 +70,16 @@ func TestLogFilterIsValid(t *testing.T) {
 			filter:     &LogFilter{DateFrom: "2020-01-02T15:04:05Z", DateTo: ""},
 			expectedID: "model.log_filter.is_valid.date_from.app_error",
 		},
+		{
+			name:       "search at the maximum length",
+			filter:     &LogFilter{Search: strings.Repeat("é", LogFilterSearchMaxLength)},
+			expectedID: "",
+		},
+		{
+			name:       "search over the maximum length is rejected",
+			filter:     &LogFilter{Search: strings.Repeat("a", LogFilterSearchMaxLength+1)},
+			expectedID: "model.log_filter.is_valid.search.app_error",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -83,4 +95,11 @@ func TestLogFilterIsValid(t *testing.T) {
 			require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		})
 	}
+}
+
+// The webapp and remote cluster nodes send the term under this name
+func TestLogFilterSearchJSON(t *testing.T) {
+	data, err := json.Marshal(&LogFilter{Search: "websocket"})
+	require.NoError(t, err)
+	require.Contains(t, string(data), `"search":"websocket"`)
 }

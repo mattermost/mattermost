@@ -48,6 +48,9 @@ export type LogFilter = {
     logLevels: LogLevels;
     dateFrom: LogDateFrom;
     dateTo: LogDateTo;
+
+    // Matched case-insensitively against every field except level and timestamp
+    search?: string;
 };
 
 export type LogFilterQuery = {
@@ -55,6 +58,7 @@ export type LogFilterQuery = {
     log_levels: LogLevels;
     date_from: LogDateFrom;
     date_to: LogDateTo;
+    search?: string;
 };
 
 export type AdminState = {

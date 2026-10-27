@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/logr/v2"
@@ -136,6 +138,7 @@ const logDateFromStopEntries = 100
 
 func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	var lines []string
+	search := newLogSearch(logFilter)
 
 	if *ps.Config().LogSettings.EnableFile {
 		ps.Log().Flush()
@@ -198,6 +201,11 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 				continue
 			}
 
+			// A line that can't hold the search term needs no decoding, unless the date scan counts it
+			if !hasDateFrom && search.rejectsRaw(line) {
+				continue
+			}
+
 			filtered := false
 			var entry *model.LogEntry
 			err = json.Unmarshal(line, &entry)
@@ -220,6 +228,7 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 				filtered = isLogFilteredByLevel(logFilter, entry) || filtered
 				filtered = isLogFilteredByDate(rctx, logFilter, entry) || filtered
 			}
+			filtered = filtered || isLogFilteredBySearch(search, line)
 
 			if !filtered {
 				lines = append(lines, string(line))
@@ -446,4 +455,168 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 	}
 
 	return true
+}
+
+// logSearch is a LogFilter's search term, prepared once for every line a query scans.
+type logSearch struct {
+	term foldTerm
+
+	// The longest part of the term that the log encoders never escape. A line whose raw bytes
+	// don't contain it can't contain the term in any value either.
+	raw foldTerm
+}
+
+// foldTerm is lowercased text to find in other text, ignoring case.
+type foldTerm struct {
+	lower []byte
+	ascii bool
+}
+
+func newLogSearch(logFilter *model.LogFilter) *logSearch {
+	if logFilter == nil || logFilter.Search == "" {
+		return nil
+	}
+
+	term := strings.ToLower(logFilter.Search)
+	search := &logSearch{term: newFoldTerm(term)}
+
+	// Invalid UTF-8 is replaced when encoded, so no part of the term is reliably in the line
+	if !utf8.ValidString(term) {
+		return search
+	}
+
+	// Strings are escaped as JSON, and values logged as objects go through encoding/json,
+	// which also escapes <, > and &
+	var raw string
+	for part := range strings.FieldsFuncSeq(term, func(r rune) bool {
+		return r < 0x20 || strings.ContainsRune("\"\\<>&\u2028\u2029", r)
+	}) {
+		if len(part) > len(raw) {
+			raw = part
+		}
+	}
+	search.raw = newFoldTerm(raw)
+
+	return search
+}
+
+// rejectsRaw reports whether the line's raw bytes show it can't contain the term.
+func (s *logSearch) rejectsRaw(line []byte) bool {
+	return s != nil && len(s.raw.lower) > 0 && !s.raw.in(line)
+}
+
+func newFoldTerm(lower string) foldTerm {
+	ascii := true
+	for i := range len(lower) {
+		if lower[i] >= utf8.RuneSelf {
+			ascii = false
+			break
+		}
+	}
+	return foldTerm{lower: []byte(lower), ascii: ascii}
+}
+
+// in reports whether b contains the term, ignoring case.
+func (t foldTerm) in(b []byte) bool {
+	if !t.ascii {
+		return bytes.Contains(bytes.ToLower(b), t.lower)
+	}
+
+	// Comparing ASCII bytes in place avoids lowercasing a copy of every scanned line
+	n := len(t.lower)
+	for i := 0; i+n <= len(b); i++ {
+		j := 0
+		for j < n && toLowerASCII(b[i+j]) == t.lower[j] {
+			j++
+		}
+		if j == n {
+			return true
+		}
+	}
+	return false
+}
+
+func toLowerASCII(c byte) byte {
+	if 'A' <= c && c <= 'Z' {
+		return c + ('a' - 'A')
+	}
+	return c
+}
+
+// isLogFilteredBySearch matches the System Console's own search: every value except level
+// and timestamp, with values that aren't strings compared as their JSON.
+func isLogFilteredBySearch(search *logSearch, line []byte) bool {
+	if search == nil {
+		return false
+	}
+
+	if search.rejectsRaw(line) {
+		return true
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(line, &fields); err != nil {
+		return true
+	}
+
+	for key, raw := range fields {
+		if key == "level" || key == "timestamp" {
+			continue
+		}
+
+		if len(raw) > 0 && raw[0] == '"' {
+			var value string
+			if err := json.Unmarshal(raw, &value); err == nil && search.term.in([]byte(value)) {
+				return false
+			}
+			continue
+		}
+
+		if search.term.in(unescapeJSONValue(raw)) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// jsonHTMLEscapes are the escapes encoding/json writes where JSON.stringify writes the character.
+var jsonHTMLEscapes = []struct{ escaped, char string }{
+	{`\u003c`, "<"},
+	{`\u003e`, ">"},
+	{`\u0026`, "&"},
+	{`\u2028`, "\u2028"},
+	{`\u2029`, "\u2029"},
+}
+
+// unescapeJSONValue undoes jsonHTMLEscapes in a logged object, keeping its key order and
+// number formatting, to match the JSON.stringify output the System Console searches.
+func unescapeJSONValue(raw json.RawMessage) []byte {
+	if !bytes.Contains(raw, []byte(`\u`)) {
+		return raw
+	}
+
+	out := make([]byte, 0, len(raw))
+	for i := 0; i < len(raw); i++ {
+		if raw[i] != '\\' || i+1 == len(raw) {
+			out = append(out, raw[i])
+			continue
+		}
+
+		unescaped := false
+		for _, e := range jsonHTMLEscapes {
+			if bytes.HasPrefix(raw[i:], []byte(e.escaped)) {
+				out = append(out, e.char...)
+				i += len(e.escaped) - 1
+				unescaped = true
+				break
+			}
+		}
+		if !unescaped {
+			// Any other escape, including an escaped backslash, stays as written
+			out = append(out, raw[i], raw[i+1])
+			i++
+		}
+	}
+	return out
 }

@@ -5,7 +5,8 @@ import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 import type {LogObject} from '@mattermost/types/admin';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getAllLogs, getAllLogsWithNode, getLogNodes} from 'mattermost-redux/selectors/entities/admin';
+import {General} from 'mattermost-redux/constants';
+import {getAllLogs, getAllLogsWithNode, getLogNodes, getTruncatedLogNodes} from 'mattermost-redux/selectors/entities/admin';
 
 function makeLog(msg: string): LogObject {
     return {
@@ -72,5 +73,15 @@ describe('selectors.entities.admin', () => {
 
     test('getLogNodes returns no nodes before the first fetch', () => {
         expect(getLogNodes(stateWith([]))).toEqual([]);
+    });
+
+    test('getTruncatedLogNodes lists only the nodes that returned a full page', () => {
+        const fullPage = Array.from({length: General.LOGS_PAGE_SIZE_DEFAULT}, () => e1);
+
+        expect(getTruncatedLogNodes(stateWith({'node-a': fullPage, 'node-b': fullPage.slice(1), 'node-c': []}))).toEqual(['node-a']);
+    });
+
+    test('getTruncatedLogNodes returns no nodes before the first fetch', () => {
+        expect(getTruncatedLogNodes(stateWith([]))).toEqual([]);
     });
 });

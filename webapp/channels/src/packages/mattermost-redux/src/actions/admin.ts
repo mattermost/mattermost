@@ -35,18 +35,22 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter) {
+// Each node returns its newest LOGS_PAGE_SIZE_DEFAULT entries that match the filter
+export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo, search = ''}: LogFilter) {
     const logFilter = {
         server_names: serverNames,
         log_levels: logLevels,
         date_from: dateFrom,
         date_to: dateTo,
+        search,
     };
     return bindClientFunc({
         clientFunc: Client4.getLogs,
         onSuccess: [AdminTypes.RECEIVED_LOGS],
         params: [
             logFilter,
+            0,
+            General.LOGS_PAGE_SIZE_DEFAULT,
         ],
     });
 }

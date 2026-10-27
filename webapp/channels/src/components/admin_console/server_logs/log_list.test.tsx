@@ -49,6 +49,7 @@ function makeLogs(count: number, level = LogLevelEnum.INFO): LogObjectWithAdditi
 
 const baseProps = {
     loading: false,
+    truncatedNodes: [] as string[],
     onSearchChange: jest.fn(),
     search: '',
     onReload: jest.fn(),
@@ -318,7 +319,8 @@ describe('components/admin_console/server_logs/LogList', () => {
     });
 
     describe('footer', () => {
-        test('should count every loaded entry as the total while searching', () => {
+        // The server searches too, so the loaded entries are no longer a meaningful total
+        test('should count the matching entries while searching', () => {
             renderWithContext(
                 <StatefulLogList
                     {...baseProps}
@@ -328,7 +330,64 @@ describe('components/admin_console/server_logs/LogList', () => {
             );
 
             expect(rowMessages()).toEqual(['msg 2']);
-            expect(screen.getByText(/of 1 entries matching your filters \(3 total\)/)).toBeInTheDocument();
+            expect(screen.getByText(/of 1 entries matching your filters$/)).toBeInTheDocument();
+        });
+    });
+
+    describe('searching', () => {
+        test('should keep the list in place rather than show the spinner while a search loads', () => {
+            renderListWith({logs: [], loading: true, search: 'missing'});
+
+            expect(screen.queryByText('Loading logs')).not.toBeInTheDocument();
+            expect(screen.getByText('Refreshing…')).toBeInTheDocument();
+            expect(screen.queryByText(/No logs match your filters/)).not.toBeInTheDocument();
+        });
+
+        test('should show the spinner while the first load has no entries', () => {
+            renderListWith({logs: [], loading: true});
+
+            expect(screen.getByText('Loading logs')).toBeInTheDocument();
+        });
+    });
+
+    describe('truncation notice', () => {
+        test('should not show the notice when every node returned less than the limit', () => {
+            renderListWith({logs: [first]});
+
+            expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
+        });
+
+        test('should show the limit when the server returned a full page', () => {
+            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default'], truncatedNodes: ['default']});
+
+            expect(screen.getByText('Only the latest 10,000 entries are shown')).toBeInTheDocument();
+            expect(screen.getByText(/Download the log file to see them/)).toBeInTheDocument();
+        });
+
+        test('should name the limit per node when several nodes are listed', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')],
+                nodes: ['node-a', 'node-b'],
+                truncatedNodes: ['node-b'],
+            });
+
+            expect(screen.getByText('Only the latest 10,000 entries from each node are shown')).toBeInTheDocument();
+        });
+
+        test('should only show the notice for the selected node', () => {
+            const props = {logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')], nodes: ['node-a', 'node-b'], truncatedNodes: ['node-b']};
+
+            const {rerender} = renderListWith({...props, selectedNode: 'node-a'});
+            expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
+
+            rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    {...props}
+                    selectedNode='node-b'
+                />,
+            );
+            expect(screen.getByText(/Only the latest/)).toBeInTheDocument();
         });
     });
 
@@ -743,10 +802,10 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(levelMenuItem('Error')).toHaveTextContent('Error1');
         });
 
-        test('should count only entries in the time range as the search total', () => {
+        test('should count only entries in the time range as search matches', () => {
             renderListWith({logs: timeRangeLogs, activeTimePreset: 5, search: 'recent'});
 
-            expect(screen.getByText(/of 1 entries matching your filters \(3 total\)/)).toBeInTheDocument();
+            expect(screen.getByText(/of 1 entries matching your filters$/)).toBeInTheDocument();
         });
 
         test('should show every entry without a time range', () => {

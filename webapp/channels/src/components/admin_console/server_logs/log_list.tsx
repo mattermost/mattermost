@@ -9,8 +9,11 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {LogNodeKey} from '@mattermost/types/admin';
+
+import {General} from 'mattermost-redux/constants';
 
 import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
@@ -32,6 +35,9 @@ type TimePreset = {
 type Props = {
     loading: boolean;
     logs: LogObjectWithAdditionalInfo[];
+
+    // Nodes that returned a full page, leaving out their older entries
+    truncatedNodes: string[];
     onSearchChange: (term: string) => void;
     search: string;
 
@@ -165,7 +171,7 @@ function savePrefs(prefs: StoredPrefs) {
 }
 
 export default function LogList({
-    loading, logs, onSearchChange, search,
+    loading, logs, truncatedNodes, onSearchChange, search,
     enabledLevels, onEnabledLevelsChange: setEnabledLevels,
     nodes, selectedNode, onSelectedNodeChange,
     onReload, downloadUrl,
@@ -280,7 +286,7 @@ export default function LogList({
     }, [scopedLogs, allLevelsEnabled, enabledLevels, search, sortAsc, showNodes]);
 
     const matchCount = search ? processedLogs.length : null;
-    const totalCount = scopedLogs.length;
+    const truncated = truncatedNodes.some((node) => !selectedNode || node === selectedNode);
 
     const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
     const startIndex = page * pageSize;
@@ -693,7 +699,8 @@ export default function LogList({
         </div>
     );
 
-    if (loading && logs.length === 0) {
+    // A search refetches as it's typed, so it keeps the list in place rather than flashing the spinner
+    if (loading && logs.length === 0 && !search) {
         return (
             <div className='LogViewer'>
                 {filters}
@@ -717,6 +724,32 @@ export default function LogList({
             onKeyDown={handleKeyDown}
         >
             {filters}
+
+            {truncated && (
+                <SectionNotice
+                    className='LogViewer__notice'
+                    type='info'
+                    title={showNodes ? (
+                        <FormattedMessage
+                            id='admin.logs.truncated.titleNodes'
+                            defaultMessage='Only the latest {limit, number} entries from each node are shown'
+                            values={{limit: General.LOGS_PAGE_SIZE_DEFAULT}}
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.logs.truncated.title'
+                            defaultMessage='Only the latest {limit, number} entries are shown'
+                            values={{limit: General.LOGS_PAGE_SIZE_DEFAULT}}
+                        />
+                    )}
+                    description={
+                        <FormattedMessage
+                            id='admin.logs.truncated.description'
+                            defaultMessage="Older entries aren't loaded or counted. Download the log file to see them."
+                        />
+                    }
+                />
+            )}
 
             <div className='LogViewer__header'>
                 <span className='LogViewer__header-level'>
@@ -829,13 +862,12 @@ export default function LogList({
                     )}
                     {!loading && matchCount !== null && (
                         <FormattedMessage
-                            id='admin.logs.showingMatching'
-                            defaultMessage='Showing {start, number} - {end, number} of {matches, number} entries matching your filters ({total, number} total)'
+                            id='admin.logs.showingMatches'
+                            defaultMessage='Showing {start, number} - {end, number} of {matches, number} entries matching your filters'
                             values={{
                                 start: processedLogs.length > 0 ? startIndex + 1 : 0,
                                 end: endIndex,
                                 matches: matchCount,
-                                total: totalCount,
                             }}
                         />
                     )}
