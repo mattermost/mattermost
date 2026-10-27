@@ -12,9 +12,9 @@ Organizations bound by data sovereignty or compliance rules often can't run sens
 
 **Benefits**
 
-- **Deploy where your data must stay.** Run Mattermost on-premises, in a private or sovereign cloud, on Azure, or in an air-gapped network. See [deployment options](https://docs.mattermost.com/deployment-guide/server/deploy-server#deployment-options). Air-gapped deployment workflows are an Enterprise Advanced capability.
-- **Stay in Teams and Outlook.** Embed Mattermost in Microsoft 365, Teams, and Outlook with [Mattermost Mission Collaboration for Microsoft](https://docs.mattermost.com/integrations-guide/mattermost-mission-collaboration-for-m365) (Beta). Users sign in automatically, and mentions and direct messages appear in the Teams Activity Feed. Available on Entry, Enterprise, and Enterprise Advanced.
-- **Keep control of your data.** Messages and files stay in storage you control. Apply [legal hold](https://docs.mattermost.com/administration-guide/comply/legal-hold) and [data retention policies](https://docs.mattermost.com/administration-guide/comply/data-retention-policy) (Enterprise and above), and use [granular system permissions](https://docs.mattermost.com/administration-guide/onboard/advanced-permissions) and [delegated administration](https://docs.mattermost.com/administration-guide/onboard/delegated-granular-administration) to control who can do what.
+- **Deploy where your data must stay.** Run Mattermost on-premises, in a private or sovereign cloud, on Azure, or in an air-gapped network. See [deployment options](https://docs.mattermost.com/deployment-guide/server/deploy-server#deployment-options).
+- **Stay in Teams and Outlook.** Embed Mattermost in Microsoft 365, Teams, and Outlook with [Mattermost Mission Collaboration for Microsoft](https://docs.mattermost.com/integrations-guide/mattermost-mission-collaboration-for-m365) (Beta). Users sign in automatically, and mentions and direct messages appear in the Teams Activity Feed. 
+- **Keep control of your data.** Messages and files stay in storage you control. Apply [legal hold](https://docs.mattermost.com/administration-guide/comply/legal-hold) and [data retention policies](https://docs.mattermost.com/administration-guide/comply/data-retention-policy), and use [granular system permissions](https://docs.mattermost.com/administration-guide/onboard/advanced-permissions) and [delegated administration](https://docs.mattermost.com/administration-guide/onboard/delegated-granular-administration) to control who can do what.
 
 ## Out-of-Band Incident Response
 
@@ -24,10 +24,10 @@ During an incident, Microsoft 365 may be unavailable, or the systems under attac
 
 - **Keep working when primary systems are down.** Run a separate, out-of-band Mattermost instance for incident communication and coordination.
 - **Follow a clear plan.** Use [Playbooks](https://docs.mattermost.com/end-user-guide/workflow-automation/workflow-automation-index) for repeatable triage, escalation, and resolution.
-- **Keep identity centralized.** Sign in with [Entra ID](https://docs.mattermost.com/administration-guide/onboard/sso-entraid) using OpenID Connect, or [SAML](https://docs.mattermost.com/administration-guide/onboard/sso-saml-entraid). Available on Professional and above.
-- **Stay aware of enterprise activity.** [Microsoft Teams Sync](https://docs.mattermost.com/integrations-guide/microsoft-teams-sync) forwards Teams chat notifications to Mattermost. It requires an Azure OAuth app and a paid Azure subscription for metered APIs, and is available on Entry, Enterprise, and Enterprise Advanced.
-- **Meet quickly.** Start Teams meetings from a Mattermost channel with [Microsoft Teams Meetings](https://docs.mattermost.com/integrations-guide/microsoft-teams-meetings) (Entry, Professional, Enterprise, and Enterprise Advanced), and connect your calendar with [Microsoft Calendar](https://docs.mattermost.com/integrations-guide/microsoft-calendar).
-- **Protect mobile notifications.** Use [ID-only push notifications](https://docs.mattermost.com/administration-guide/configure/push-notification-server-configuration-settings#id-only-push-notifications) so notifications carry no message content (Enterprise and above).
+- **Keep identity centralized.** Sign in with [Entra ID](https://docs.mattermost.com/administration-guide/onboard/sso-entraid) using OpenID Connect, or [SAML](https://docs.mattermost.com/administration-guide/onboard/sso-saml-entraid). 
+- **Stay aware of enterprise activity.** [Microsoft Teams Sync](https://docs.mattermost.com/integrations-guide/microsoft-teams-sync) forwards Teams chat notifications to Mattermost. It requires an Azure OAuth app and a paid Azure subscription for metered APIs.
+- **Meet quickly.** Start Teams meetings from a Mattermost channel with [Microsoft Teams Meetings](https://docs.mattermost.com/integrations-guide/microsoft-teams-meetings), and connect your calendar with [Microsoft Calendar](https://docs.mattermost.com/integrations-guide/microsoft-calendar).
+- **Protect mobile notifications.** Use [ID-only push notifications](https://docs.mattermost.com/administration-guide/configure/push-notification-server-configuration-settings#id-only-push-notifications) so notifications carry no message content.
 
 ## External Collaboration with Full Control
 
@@ -36,7 +36,7 @@ Partners, contractors, and allies often aren't on your Microsoft tenant, which c
 **Benefits**
 
 - **Share channels with partners.** Use [connected workspaces](https://docs.mattermost.com/administration-guide/onboard/connected-workspaces) to share channels between your Mattermost server and a partner's Mattermost server (Entry, Enterprise, and Enterprise Advanced).
-- **Govern each side separately.** Each server controls its own channel permissions and access, and you can require [custom Terms of Service](https://docs.mattermost.com/administration-guide/comply/custom-terms-of-service) (Enterprise and above).
+- **Govern each side separately.** Each server controls its own channel permissions and access, and you can require [custom Terms of Service](https://docs.mattermost.com/administration-guide/comply/custom-terms-of-service).
 
 :::note
 Connected workspaces link Mattermost servers to each other. They don't connect directly to Microsoft Teams tenants.
