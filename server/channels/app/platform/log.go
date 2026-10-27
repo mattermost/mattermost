@@ -273,7 +273,7 @@ func (ps *PlatformService) recordActiveManagedDirs(cfg *model.Config) []string {
 	ps.activeManagedDirsMut.Lock()
 	defer ps.activeManagedDirsMut.Unlock()
 
-	for _, dir := range append(config.ConfigurableManagedDirs(cfg), ps.configFileDir()) {
+	for _, dir := range append(config.ConfigurableManagedDirs(cfg), ps.configFileDirs()...) {
 		if strings.TrimSpace(dir) != "" && !slices.Contains(ps.activeManagedDirs, dir) {
 			ps.activeManagedDirs = append(ps.activeManagedDirs, dir)
 		}
@@ -281,14 +281,20 @@ func (ps *PlatformService) recordActiveManagedDirs(cfg *model.Config) []string {
 	return slices.Clone(ps.activeManagedDirs)
 }
 
-// configFileDir returns the directory of the file the config was loaded from, or "" when the
-// config is not file-backed.
-func (ps *PlatformService) configFileDir() string {
+// configFileDirs returns the directory of the file the config was loaded from, plus the directory
+// of the file it resolves to when the config file is a symlink. It returns nil when the config is
+// not file-backed.
+func (ps *PlatformService) configFileDirs() []string {
 	file, ok := strings.CutPrefix(ps.configStore.String(), "file://")
 	if !ok {
-		return ""
+		return nil
 	}
-	return filepath.Dir(file)
+
+	dirs := []string{filepath.Dir(file)}
+	if real, err := filepath.EvalSymlinks(file); err == nil && filepath.Dir(real) != dirs[0] {
+		dirs = append(dirs, filepath.Dir(real))
+	}
+	return dirs
 }
 
 // validateLogFilePath validates that a log file path is within the logging root directory.

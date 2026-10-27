@@ -345,6 +345,39 @@ func TestSaveConfigLogPathEnforcement(t *testing.T) {
 		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
 	})
 
+	t.Run("flag on rejects a target inside the directory of a symlinked config file", func(t *testing.T) {
+		realDir := filepath.Join(root, "real-config")
+		linkDir := filepath.Join(root, "link-config")
+		require.NoError(t, os.MkdirAll(realDir, 0700))
+		require.NoError(t, os.MkdirAll(linkDir, 0700))
+		realFile, err := config.NewFileStore(filepath.Join(realDir, "config.json"), true)
+		require.NoError(t, err)
+		require.NoError(t, realFile.Close())
+
+		linkFile := filepath.Join(linkDir, "config.json")
+		if err = os.Symlink(filepath.Join(realDir, "config.json"), linkFile); err != nil {
+			t.Skipf("symlinks unavailable: %v", err)
+		}
+		fileStore, err := config.NewFileStore(linkFile, false)
+		require.NoError(t, err)
+		configStore, err := config.NewStoreFromBacking(fileStore, nil, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { configStore.Close() })
+
+		ps := setupWithStore(t, true, configStore)
+
+		for name, dir := range map[string]string{"symlink directory": linkDir, "resolved directory": realDir} {
+			t.Run(name, func(t *testing.T) {
+				cfg := ps.Config().Clone()
+				cfg.LogSettings.AdvancedLoggingJSON = fileTargetIn(filepath.Join(dir, "out.log"))
+
+				_, _, appErr := ps.SaveConfig(cfg, false)
+				require.NotNil(t, appErr)
+				assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+			})
+		}
+	})
+
 	t.Run("flag on rejects a target inside the new plugin directory", func(t *testing.T) {
 		ps := setup(t, true)
 
