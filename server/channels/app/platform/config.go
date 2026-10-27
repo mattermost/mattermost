@@ -107,7 +107,7 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		}
 	}
 
-	if err := config.ValidateLogPaths(newCfg, ps.Config(), ps.getLogRootPath()); err != nil {
+	if err := config.ValidateLogPaths(newCfg, ps.recordActiveManagedDirs(ps.Config()), ps.getLogRootPath()); err != nil {
 		// mlog rather than ps.logger: after startup the global logger *is* ps.logger, and
 		// SaveConfig is reachable from paths that do not guarantee a configured logger.
 		mlog.Error(config.LogPathInvalidWarning, mlog.Err(err))
