@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"testing"
@@ -5371,9 +5372,7 @@ func withAttrs(attrs map[string]any) listingFieldOption {
 		if f.Attrs == nil {
 			f.Attrs = model.StringInterface{}
 		}
-		for k, v := range attrs {
-			f.Attrs[k] = v
-		}
+		maps.Copy(f.Attrs, attrs)
 	}
 }
 
@@ -5943,7 +5942,7 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 	t.Run("pagination", func(t *testing.T) {
 		f := newListingFixture(t, ss)
 		var expected []string
-		for i := 0; i < 7; i++ {
+		for i := range 7 {
 			name := fmt.Sprintf("row_%d", i)
 			if i%2 == 0 {
 				f.template(name)
