@@ -51,6 +51,8 @@ Some best practices for working with the webapp component of a plugin are docume
 
 ## Loading before login with pre_auth
 
+The `webapp.pre_auth` field and the **Restrict Plugins Available Before Login** setting require Mattermost v12.2 or later. On earlier servers, the field is ignored and all enabled plugins load before login.
+
 Some plugins must run before users log in, such as those that provide custom login buttons, authentication handlers, or logged-out custom routes. To enable your plugin to load on the login page and other pre-authentication pages, set the `webapp.pre_auth` field to `true` in your plugin manifest:
 
 ```json

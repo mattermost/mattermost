@@ -3415,7 +3415,7 @@ components:
               description: Path to the webapp JavaScript bundle.
             pre_auth:
               type: boolean
-              description: Whether the plugin should be loaded for unauthenticated users before login.
+              description: Whether the plugin should be loaded for unauthenticated users before login. Available as server version 12.2.
     Role:
       type: object
       properties:

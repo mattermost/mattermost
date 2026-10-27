@@ -264,7 +264,7 @@
       description: |
         Get a list of web app plugins installed and activated on the server.
 
-        When `PluginSettings.RestrictUnauthenticatedWebappPlugins` is true, unauthenticated requests return only plugins with `webapp.pre_auth: true`, with each plugin manifest containing only `id`, `name`, `version`, and `webapp` fields. When false, all active webapp plugins are returned. Authenticated requests always receive the full list of all active webapp plugins.
+        When `PluginSettings.RestrictUnauthenticatedWebappPlugins` is true (available from server version 12.2), unauthenticated requests return only plugins with `webapp.pre_auth: true`, with each plugin manifest containing only `id`, `name`, `version`, and `webapp` fields. When false, all active webapp plugins are returned. Authenticated requests always receive the full list of all active webapp plugins.
 
         ##### Permissions
         No permissions required.
