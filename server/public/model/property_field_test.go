@@ -70,6 +70,20 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
+	t.Run("number is a valid type", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeNumber,
+			ObjectType: PropertyFieldObjectTypePost,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
 	t.Run("invalid ID", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:       "invalid",
@@ -1104,6 +1118,11 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		require.NoError(t, patch.IsValid())
 	})
 
+	t.Run("number is an accepted type", func(t *testing.T) {
+		patch := &PropertyFieldPatch{Type: new(PropertyFieldTypeNumber)}
+		require.NoError(t, patch.IsValid())
+	})
+
 	t.Run("Name exceeds maximum length", func(t *testing.T) {
 		longName := strings.Repeat("a", PropertyFieldNameMaxRunes+1)
 		patch := &PropertyFieldPatch{
@@ -2023,6 +2042,7 @@ func TestPropertyFieldType_SupportsOptions(t *testing.T) {
 		PropertyFieldTypeDate:        false,
 		PropertyFieldTypeUser:        false,
 		PropertyFieldTypeMultiuser:   false,
+		PropertyFieldTypeNumber:      false,
 		PropertyFieldType("bogus"):   false,
 	}
 
@@ -2046,6 +2066,36 @@ func TestPropertyFieldType_SupportsExternalSync(t *testing.T) {
 
 	for fieldType, expected := range cases {
 		assert.Equal(t, expected, fieldType.SupportsExternalSync(), "SupportsExternalSync for %q", fieldType)
+	}
+}
+
+func TestPropertyFieldType_IsValid(t *testing.T) {
+	for _, fieldType := range []PropertyFieldType{
+		PropertyFieldTypeText, PropertyFieldTypeSelect, PropertyFieldTypeMultiselect,
+		PropertyFieldTypeDate, PropertyFieldTypeUser, PropertyFieldTypeMultiuser,
+		PropertyFieldTypeRank, PropertyFieldTypeGraph, PropertyFieldTypeNumber,
+	} {
+		assert.True(t, fieldType.IsValid(), "IsValid for %q", fieldType)
+	}
+	assert.False(t, PropertyFieldType("bogus").IsValid())
+	assert.False(t, PropertyFieldType("").IsValid())
+}
+
+func TestPropertyFieldType_SupportsAccessControl(t *testing.T) {
+	cases := map[PropertyFieldType]bool{
+		PropertyFieldTypeText:        true,
+		PropertyFieldTypeSelect:      true,
+		PropertyFieldTypeMultiselect: true,
+		PropertyFieldTypeRank:        true,
+		PropertyFieldTypeGraph:       true,
+		PropertyFieldTypeDate:        true,
+		PropertyFieldTypeUser:        true,
+		PropertyFieldTypeMultiuser:   true,
+		PropertyFieldTypeNumber:      false,
+	}
+
+	for fieldType, expected := range cases {
+		assert.Equal(t, expected, fieldType.SupportsAccessControl(), "SupportsAccessControl for %q", fieldType)
 	}
 }
 

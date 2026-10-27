@@ -15,7 +15,11 @@ export type FieldType = (
     // A multi-valued select whose options form a hierarchy. Manage Attributes
     // create may write options (and parent edges) when PropertyFieldGraph is on.
     // Other editors (CPA, board attributes) still do not author them.
-    'graph'
+    'graph' |
+
+    // A JSON number; null or absent is empty. Not allowed in the access control
+    // group, so CPA and Attribute Management never offer it.
+    'number'
 );
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';

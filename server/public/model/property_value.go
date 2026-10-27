@@ -6,7 +6,9 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"math"
 	"net/http"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -278,6 +280,51 @@ func SanitizePropertyValue(raw json.RawMessage) json.RawMessage {
 	}
 
 	return raw
+}
+
+// ValidatePropertyValueForFieldType checks the JSON shape of a value written to
+// a field of fieldType, for the types whose shape core enforces on every write
+// whatever the group or caller:
+//
+//   - number: a JSON number that fits a float64. Strings, booleans, and numbers
+//     too large to be finite are refused. JSON cannot spell NaN or Infinity, so
+//     a value that would decode to either is refused as not being JSON at all.
+//
+// An empty raw value or null is the empty value and is accepted. Other types
+// are not checked here and always pass: their shape is left to the hooks of the
+// groups that constrain it, as it always has been.
+func ValidatePropertyValueForFieldType(fieldType PropertyFieldType, raw json.RawMessage) error {
+	if fieldType != PropertyFieldTypeNumber {
+		return nil
+	}
+
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 || string(trimmed) == "null" {
+		return nil
+	}
+
+	switch fieldType {
+	case PropertyFieldTypeNumber:
+		dec := json.NewDecoder(bytes.NewReader(trimmed))
+		dec.UseNumber()
+		var v any
+		if err := dec.Decode(&v); err != nil {
+			return errors.Wrap(err, "a number field's value must be a JSON number")
+		}
+		if dec.More() {
+			return errors.New("a number field's value must be a single JSON number")
+		}
+		n, ok := v.(json.Number)
+		if !ok {
+			return errors.New("a number field's value must be a JSON number")
+		}
+		f, err := strconv.ParseFloat(n.String(), 64)
+		if err != nil || math.IsInf(f, 0) || math.IsNaN(f) {
+			return errors.New("a number field's value must be a finite number")
+		}
+	}
+
+	return nil
 }
 
 // BroadcastValue returns what a websocket broadcast may carry in place of
