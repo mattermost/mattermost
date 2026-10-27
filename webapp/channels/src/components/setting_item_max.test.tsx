@@ -6,12 +6,11 @@ import React from 'react';
 import {Combobox} from '@mattermost/compass-ui/components/combobox';
 import type {ComboboxProps} from '@mattermost/compass-ui/components/combobox';
 
-import {ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE} from 'components/property_fields/attribute_combobox';
 import SettingItemMax from 'components/setting_item_max';
 
 import {installA11yFocusShim} from 'tests/helpers/a11y_focus_shim';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {A11yCustomEventTypes} from 'utils/constants';
+import {A11yAttributeNames, A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 
 describe('components/SettingItemMax', () => {
@@ -172,8 +171,8 @@ describe('components/SettingItemMax', () => {
             {value: 'c', label: 'Charlie'},
         ];
 
-        const MarkedCombobox = (props: ComboboxProps) => (
-            <div {...{[ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE]: ''}}>
+        const SkipFocusCombobox = (props: ComboboxProps) => (
+            <div {...{[A11yAttributeNames.SKIP_INITIAL_FOCUS]: ''}}>
                 <Combobox {...props}/>
             </div>
         );
@@ -190,7 +189,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <MarkedCombobox
+                        <SkipFocusCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -212,7 +211,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <MarkedCombobox
+                        <SkipFocusCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -235,7 +234,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <MarkedCombobox
+                        <SkipFocusCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -263,7 +262,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <MarkedCombobox
+                        <SkipFocusCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -292,7 +291,7 @@ describe('components/SettingItemMax', () => {
                     {...baseProps}
                     submit={submit}
                     inputs={[
-                        <MarkedCombobox
+                        <SkipFocusCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -319,7 +318,7 @@ describe('components/SettingItemMax', () => {
                             className='form-control'
                             aria-label='Text'
                         />,
-                        <MarkedCombobox
+                        <SkipFocusCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -339,7 +338,7 @@ describe('components/SettingItemMax', () => {
                 <SettingItemMax
                     {...baseProps}
                     inputs={[
-                        <MarkedCombobox
+                        <SkipFocusCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -368,7 +367,7 @@ describe('components/SettingItemMax', () => {
                         <button key='button'>
                             {'Pick'}
                         </button>,
-                        <MarkedCombobox
+                        <SkipFocusCombobox
                             key='combobox'
                             aria-label='Attr'
                             options={options}
@@ -382,6 +381,30 @@ describe('components/SettingItemMax', () => {
 
             expect(screen.getByRole('button', {name: 'Pick'})).toHaveFocus();
             expectClosed(screen.getByRole('combobox', {name: 'Attr'}));
+        });
+
+        test('should skip any input or button inside an opted-out wrapper', () => {
+            renderWithContext(
+                <SettingItemMax
+                    {...baseProps}
+                    inputs={[
+                        <div
+                            key='opted-out'
+                            {...{[A11yAttributeNames.SKIP_INITIAL_FOCUS]: ''}}
+                        >
+                            <input
+                                className='form-control'
+                                aria-label='Skipped'
+                            />
+                            <button>{'Skipped button'}</button>
+                        </div>,
+                    ]}
+                />,
+            );
+
+            expect(screen.getByRole('textbox', {name: 'Skipped'})).not.toHaveFocus();
+            expect(screen.getByRole('button', {name: 'Skipped button'})).not.toHaveFocus();
+            expect(getSettingList()).toHaveFocus();
         });
     });
 });

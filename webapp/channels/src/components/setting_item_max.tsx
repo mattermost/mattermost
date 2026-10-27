@@ -9,10 +9,9 @@ import {FormattedMessage} from 'react-intl';
 import {Button} from '@mattermost/compass-ui/components/button';
 import type {ButtonVariant} from '@mattermost/shared/components/button';
 
-import {ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE} from 'components/property_fields/attribute_combobox';
 import SaveButton from 'components/save_button';
 
-import Constants from 'utils/constants';
+import Constants, {A11yAttributeNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {a11yFocus} from 'utils/utils';
 
@@ -123,30 +122,18 @@ const SettingItemMax = ({
             // Prefer form controls over footer Save/Cancel (Compass Buttons no longer use .btn).
             // Include [tabindex]:not([tabindex="-1"]) so react-select (and similar) receive
             // Edit→expand focus; .setting-list itself uses tabindex="-1" and is excluded.
-            // Compass Combobox opens its menu whenever its input gains focus, so nothing inside an
-            // attribute Combobox wrapper (input, chips, chip remove buttons, clear button) takes
-            // initial focus; a section with only a Combobox focuses .setting-list instead.
-            const skipInitialFocus = `[${ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE}]`;
             const formControls = Array.from(settingList.current.querySelectorAll<HTMLElement>(
                 'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])',
-            )).filter((el) => !el.closest('.setting-list-item__buttons') && !el.closest(skipInitialFocus));
-            if (formControls.length > 0) {
-                a11yFocus(formControls[0]);
-            } else {
-                const buttons: NodeListOf<HTMLElement> = settingList.current.querySelectorAll(
-                    'button:not(#saveSetting):not(#cancelSetting)',
-                );
-                const focusableButton = Array.from(buttons).find(
-                    (button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className) &&
-                        !button.closest(skipInitialFocus),
-                );
-                if (focusableButton) {
-                    a11yFocus(focusableButton);
-                } else {
-                    // The <section> isn't focusable; .setting-list (tabindex -1) keeps focus in the section.
-                    a11yFocus(settingList.current.querySelector<HTMLElement>('.setting-list') ?? settingList.current);
-                }
-            }
+            )).filter((el) => !el.closest('.setting-list-item__buttons'));
+            const buttons = Array.from(settingList.current.querySelectorAll<HTMLElement>(
+                'button:not(#saveSetting):not(#cancelSetting)',
+            )).filter((button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className));
+            const initialFocus = [...formControls, ...buttons].find(
+                (el) => !el.closest(`[${A11yAttributeNames.SKIP_INITIAL_FOCUS}]`),
+            );
+
+            // The <section> isn't focusable; .setting-list (tabindex -1) keeps focus in the section.
+            a11yFocus(initialFocus ?? settingList.current.querySelector<HTMLElement>('.setting-list') ?? settingList.current);
         }
 
         document.addEventListener('keydown', onKeyDown);

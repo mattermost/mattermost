@@ -6,11 +6,7 @@ import type {KeyboardEvent, MouseEvent} from 'react';
 import type {ComboboxOption} from '@mattermost/compass-ui/components/combobox';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-export function toComboboxOptions(options: readonly PropertyFieldOption[] | undefined, testIdPrefix?: string): ComboboxOption[] {
-    if (!options) {
-        return [];
-    }
-
+export function toComboboxOptions(options: readonly PropertyFieldOption[], testIdPrefix?: string): ComboboxOption[] {
     return options.map((option) => {
         const comboboxOption: ComboboxOption = {value: option.id, label: option.name};
         if (testIdPrefix) {
@@ -43,42 +39,11 @@ export function attributeComboboxMouseDownGuard(e: MouseEvent<HTMLElement>): voi
     }
 }
 
-// Marks a wrapper whose Combobox must not take SettingItemMax's initial focus:
-// Combobox opens its menu whenever its input gains focus.
-export const ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE = 'data-attribute-combobox';
-
-type AttributeComboboxWrapperProps = {
-    [ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE]: '';
-    onKeyDown: (e: KeyboardEvent<HTMLElement>) => void;
-    onMouseDown: (e: MouseEvent<HTMLElement>) => void;
-};
-
-// Spread on the element that wraps only the Combobox. Both guards are needed:
-// without the mousedown guard, focus can leave the input and the key guard
-// stops seeing Escape.
-export function getAttributeComboboxWrapperProps(): AttributeComboboxWrapperProps {
-    return {
-        [ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE]: '',
-        onKeyDown: attributeComboboxKeyGuard,
-        onMouseDown: attributeComboboxMouseDownGuard,
-    };
-}
-
-type AttributeComboboxClearButtonProps = {
-    'data-testid'?: string;
-    onKeyDown: (e: KeyboardEvent<HTMLButtonElement>) => void;
-};
-
 // Combobox doesn't preventDefault() Enter on its clear button, so the key guard
 // can't tell it apart from Enter on a closed field. Never preventDefault() here,
 // or the button would stop activating.
-export function getAttributeComboboxClearButtonProps(testId?: string): AttributeComboboxClearButtonProps {
-    return {
-        'data-testid': testId,
-        onKeyDown: (e) => {
-            if (e.key === 'Enter') {
-                e.stopPropagation();
-            }
-        },
-    };
+export function clearButtonKeyGuard(e: KeyboardEvent<HTMLButtonElement>): void {
+    if (e.key === 'Enter') {
+        e.stopPropagation();
+    }
 }

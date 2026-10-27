@@ -3,4 +3,3 @@
 
 export {AttributeCombobox} from './attribute_combobox';
 export type {AttributeComboboxProps} from './attribute_combobox';
-export {ATTRIBUTE_COMBOBOX_WRAPPER_ATTRIBUTE} from './attribute_combobox_utils';

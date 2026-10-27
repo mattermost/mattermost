@@ -8,9 +8,12 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {useComboboxLabels} from 'components/widgets/combobox';
 
+import {A11yAttributeNames} from 'utils/constants';
+
 import {
-    getAttributeComboboxClearButtonProps,
-    getAttributeComboboxWrapperProps,
+    attributeComboboxKeyGuard,
+    attributeComboboxMouseDownGuard,
+    clearButtonKeyGuard,
     toComboboxOptions,
 } from './attribute_combobox_utils';
 
@@ -22,7 +25,9 @@ type SingleProps = {
 
 type MultiProps = {
     multiple: true;
-    value: string[];
+
+    /** A lone id, e.g. one stored before the field became multiselect, is treated as a one-item list. */
+    value: string | string[];
     onChange: (value: string[]) => void;
 };
 
@@ -30,7 +35,7 @@ export type AttributeComboboxProps = (SingleProps | MultiProps) & {
 
     /** Field name: the input's accessible name, also used in the clear and selections labels. */
     label: string;
-    options: PropertyFieldOption[] | undefined;
+    options: PropertyFieldOption[];
     id?: string;
 
     /** Test ID of the input, and prefix for the option and clear-button test IDs. */
@@ -50,17 +55,16 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
     const labels = useComboboxLabels(label);
     const comboboxOptions = useMemo(() => toComboboxOptions(options, testId), [options, testId]);
 
+    const values = useMemo(() => {
+        if (Array.isArray(props.value)) {
+            return props.value;
+        }
+        return props.value ? [props.value] : [];
+    }, [props.value]);
+
     // Values found in options resolve from there first; the rest (e.g. deleted
     // options) still render, labelled with their raw id.
-    const selectedOptions = useMemo(() => {
-        let values: string[] = [];
-        if (props.multiple) {
-            values = props.value;
-        } else if (props.value) {
-            values = [props.value];
-        }
-        return values.map((value) => ({value, label: value}));
-    }, [props.multiple, props.value]);
+    const selectedOptions = useMemo(() => values.map((value) => ({value, label: value})), [values]);
 
     const handleChange = (next: string | string[] | null) => {
         if (props.multiple) {
@@ -71,7 +75,15 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
     };
 
     return (
-        <div {...getAttributeComboboxWrapperProps()}>
+
+        // Wrap only the Combobox. Both guards are needed: without the mousedown
+        // guard, focus can leave the input and the key guard stops seeing Escape.
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- key and focus guards only; the Combobox input owns keyboard interaction
+        <div
+            {...{[A11yAttributeNames.SKIP_INITIAL_FOCUS]: ''}}
+            onKeyDown={attributeComboboxKeyGuard}
+            onMouseDown={attributeComboboxMouseDownGuard}
+        >
             <Combobox
                 id={id}
                 data-testid={testId}
@@ -79,10 +91,13 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
                 aria-describedby={props['aria-describedby']}
                 options={comboboxOptions}
                 multiple={props.multiple}
-                value={props.value}
+                value={props.multiple ? values : props.value}
                 selectedOptions={selectedOptions}
                 clearable={true}
-                clearButtonProps={getAttributeComboboxClearButtonProps(testId ? `${testId}-clear` : undefined)}
+                clearButtonProps={{
+                    'data-testid': testId ? `${testId}-clear` : undefined,
+                    onKeyDown: clearButtonKeyGuard,
+                }}
                 disabled={disabled}
                 invalid={invalid}
                 placeholder={placeholder}

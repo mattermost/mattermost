@@ -8,6 +8,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import {COMBOBOX_Z_INDEX_IN_MODAL} from 'components/widgets/combobox';
 
 import {act, renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
+import {A11yAttributeNames} from 'utils/constants';
 
 import {AttributeCombobox} from './attribute_combobox';
 
@@ -70,11 +71,11 @@ describe('AttributeCombobox', () => {
         document.removeEventListener('keydown', onDocumentKeyDown);
     });
 
-    test('marks its wrapper so SettingItemMax skips it for initial focus', () => {
+    test('opts its wrapper out of SettingItemMax initial focus', () => {
         renderWithContext(<SingleHarness/>);
 
         const input = screen.getByRole('combobox', {name: 'Department'});
-        expect(input.closest('[data-attribute-combobox]')).not.toBeNull();
+        expect(input.closest(`[${A11yAttributeNames.SKIP_INITIAL_FOCUS}]`)).not.toBeNull();
     });
 
     test('puts the id, test id and aria-describedby on the input and portals the menu at the given z-index', async () => {
@@ -118,7 +119,7 @@ describe('AttributeCombobox', () => {
         renderWithContext(
             <AttributeCombobox
                 label='Department'
-                options={undefined}
+                options={[]}
                 value=''
                 onChange={jest.fn()}
             />,
@@ -204,6 +205,20 @@ describe('AttributeCombobox', () => {
             renderWithContext(<MultiHarness initialValue={['opt2', 'gone', 'opt3']}/>);
 
             expect(getChipLabels('Skills')).toEqual(['Option 2', 'gone', 'Option 3']);
+        });
+
+        test('treats a lone id as a one-item list', () => {
+            renderWithContext(
+                <AttributeCombobox
+                    multiple={true}
+                    label='Skills'
+                    options={OPTIONS}
+                    value='opt1'
+                    onChange={jest.fn()}
+                />,
+            );
+
+            expect(getChipLabels('Skills')).toEqual(['Option 1']);
         });
 
         test('has no clear button', () => {

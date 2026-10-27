@@ -12,8 +12,7 @@ import {act, render, screen, userEvent} from 'tests/react_testing_utils';
 import {
     attributeComboboxKeyGuard,
     attributeComboboxMouseDownGuard,
-    getAttributeComboboxClearButtonProps,
-    getAttributeComboboxWrapperProps,
+    clearButtonKeyGuard,
 } from './attribute_combobox_utils';
 
 function makeKeyEvent(key: string, defaultPrevented: boolean) {
@@ -63,11 +62,11 @@ describe('attributeComboboxMouseDownGuard', () => {
     });
 });
 
-describe('getAttributeComboboxClearButtonProps', () => {
+describe('clearButtonKeyGuard', () => {
     test('stops Enter without preventing the button from activating', () => {
         const e = makeKeyEvent('Enter', false);
 
-        getAttributeComboboxClearButtonProps('x').onKeyDown(e);
+        clearButtonKeyGuard(e);
 
         expect(e.stopPropagation).toHaveBeenCalledTimes(1);
         expect(e.preventDefault).not.toHaveBeenCalled();
@@ -76,7 +75,7 @@ describe('getAttributeComboboxClearButtonProps', () => {
     test.each([' ', 'Escape', 'Tab', 'a'])('lets %s through', (key) => {
         const e = makeKeyEvent(key, false);
 
-        getAttributeComboboxClearButtonProps('x').onKeyDown(e);
+        clearButtonKeyGuard(e);
 
         expect(e.stopPropagation).not.toHaveBeenCalled();
         expect(e.preventDefault).not.toHaveBeenCalled();
@@ -113,22 +112,19 @@ describe('key guard with a real Combobox', () => {
 
     function Harness({initialValue = '', multiple = false, guard = true, clearHandler = true, mouseDownGuard = true, onChange}: HarnessProps) {
         const [value, setValue] = useState<string | string[]>(initialValue);
-        const clearButtonProps = clearHandler ? getAttributeComboboxClearButtonProps('x-clear') : {'data-testid': 'x-clear'};
-        const wrapperProps = guard && mouseDownGuard ? getAttributeComboboxWrapperProps() : {
-            onKeyDown: guard ? attributeComboboxKeyGuard : undefined,
-            onMouseDown: mouseDownGuard ? attributeComboboxMouseDownGuard : undefined,
-        };
-
         return (
             // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- key and focus guards only; the Combobox input owns keyboard interaction
-            <div {...wrapperProps}>
+            <div
+                onKeyDown={guard ? attributeComboboxKeyGuard : undefined}
+                onMouseDown={mouseDownGuard ? attributeComboboxMouseDownGuard : undefined}
+            >
                 <Combobox
                     aria-label='Field'
                     options={options}
                     multiple={multiple}
                     value={value}
                     clearable={true}
-                    clearButtonProps={clearButtonProps}
+                    clearButtonProps={{'data-testid': 'x-clear', onKeyDown: clearHandler ? clearButtonKeyGuard : undefined}}
                     onChange={(next) => {
                         onChange?.(next);
                         setValue(next ?? (multiple ? [] : ''));
