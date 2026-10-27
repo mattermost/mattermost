@@ -671,11 +671,13 @@ If this setting is `false`, no additional users are designated as system admins 
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting accepts an AD/LDAP filter to apply when searching for external users with Guest Access to Mattermost. Only users selected by the query can access Mattermost as Guests. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>GuestFilter</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/guest-accounts')}>Guest Accounts</a> for more information. | - Environment variable: <code>MM_LDAPSETTINGS_GUESTFILTER</code></dt><dd><div class="line-block">                                                              |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting accepts an AD/LDAP filter to apply when searching for external users with Guest Access to Mattermost. Only users selected by the query can access Mattermost as Guests.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/guest-accounts')}>Guest Accounts</a> for more information.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>GuestFilter</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_GUESTFILTER</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -761,11 +763,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This is the attribute in the AD/LDAP server that populates the first name field in Mattermost. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>FirstNameAttribute</code> |</div></dd><dt>When set, users cannot edit their first name. | - Environment variable: <code>MM_LDAPSETTINGS_FIRSTNAMEATTRIBUTE</code> |</dt><dd><div class="line-block">                                                                     |</div></dd></dl><p>When not set, users can edit their first name in their | | <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>. | | | String input. | |</p></td>
+<td><p>This is the attribute in the AD/LDAP server that populates the first name field in Mattermost.</p><p>When set, users cannot edit their first name. When not set, users can edit their first name in their <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>FirstNameAttribute</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_FIRSTNAMEATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -774,11 +778,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This is the attribute in the AD/LDAP server that populates the last name field in Mattermost. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>LastNameAttribute</code> |</div></dd><dt>When set, users cannot edit their last name. | - Environment variable: <code>MM_LDAPSETTINGS_LASTNAMEATTRIBUTE</code> |</dt><dd><div class="line-block">                                                                    |</div></dd></dl><p>When not set, users can edit their last name as part of their | | <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>. | | | | String input. | |</p></td>
+<td><p>This is the attribute in the AD/LDAP server that populates the last name field in Mattermost.</p><p>When set, users cannot edit their last name. When not set, users can edit their last name as part of their <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>LastNameAttribute</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_LASTNAMEATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -787,11 +793,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This is the attribute in the AD/LDAP server that populates the nickname field in Mattermost. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>NicknameAttribute</code> |</div></dd><dt>When set, users cannot edit their nickname. | - Environment variable: <code>MM_LDAPSETTINGS_NICKNAMEATTRIBUTE</code> |</dt><dd><div class="line-block">                                                                    |</div></dd></dl><p>When not set, users can edit their nickname as part of their | | <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>. | | | String input. | |</p></td>
+<td><p>This is the attribute in the AD/LDAP server that populates the nickname field in Mattermost.</p><p>When set, users cannot edit their nickname. When not set, users can edit their nickname as part of their <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>NicknameAttribute</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_NICKNAMEATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -800,11 +808,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This is the attribute in the AD/LDAP server that populates the position field in Mattermost. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>PositionAttribute</code> |</div></dd><dt>When set, users cannot edit their position. | - Environment variable: <code>MM_LDAPSETTINGS_POSITIONATTRIBUTE</code> |</dt><dd><div class="line-block">                                                                    |</div></dd></dl><p>When not set, users can edit their position as part of their | | <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>. | | | String input. | |</p></td>
+<td><p>This is the attribute in the AD/LDAP server that populates the position field in Mattermost.</p><p>When set, users cannot edit their position. When not set, users can edit their position as part of their <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>PositionAttribute</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_POSITIONATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
