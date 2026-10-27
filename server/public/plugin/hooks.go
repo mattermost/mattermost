@@ -557,6 +557,10 @@ type Hooks interface {
 	// once per target, and at most 100 values per invocation. Deleting all values of a field is not
 	// reported.
 	//
+	// A plugin receives only the values it may read, as its own read of them through the API would
+	// return them, so a source_only or shared_only value reaches only the plugins allowed to see it.
+	// A plugin that may read none of a change's values isn't invoked for it.
+	//
 	// Minimum server version: 12.2
 	PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue)
 }

@@ -231,10 +231,38 @@ func (a *App) runPropertyValuesHaveBeenUpdatedHook(rctx request.CTX, groupID str
 	pCtx := pluginContext(rctx)
 	a.Srv().Go(func() {
 		for _, call := range calls {
-			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-				hooks.PropertyValuesHaveBeenUpdated(pCtx, userID, groupID, call.target.targetType, call.target.targetID, call.values, call.previous)
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+				values, previous, ok := a.propertyValuesReadableBy(manifest.Id, call)
+				if ok {
+					hooks.PropertyValuesHaveBeenUpdated(pCtx, userID, groupID, call.target.targetType, call.target.targetID, values, previous)
+				}
 				return true
 			}, plugin.PropertyValuesHaveBeenUpdatedID)
 		}
 	})
+}
+
+// propertyValuesReadableBy narrows a call to the values pluginID may read, as its own read of them
+// through the plugin API would return them, so a source_only or shared_only value reaches only the
+// plugins allowed to see it. ok is false when the plugin may read none of them, or when they can't
+// be checked: a plugin isn't told of a change it couldn't see.
+func (a *App) propertyValuesReadableBy(pluginID string, call propertyValuesHookCall) (values, previous []*model.PropertyValue, ok bool) {
+	rctx := RequestContextWithCallerID(request.EmptyContext(a.Log()), pluginID)
+	ps := a.Srv().propertyService
+
+	values, err := ps.FilterPropertyValuesForRead(rctx, clonePropertyValues(call.values))
+	if err == nil {
+		previous, err = ps.FilterPropertyValuesForRead(rctx, clonePropertyValues(call.previous))
+	}
+	if err != nil {
+		a.Log().Warn("Not invoking PropertyValuesHaveBeenUpdated: failed to check which values the plugin may read",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("target_type", call.target.targetType),
+			mlog.String("target_id", call.target.targetID),
+			mlog.Err(err),
+		)
+		return nil, nil, false
+	}
+
+	return values, previous, len(values) > 0 || len(previous) > 0
 }

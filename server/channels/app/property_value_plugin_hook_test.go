@@ -259,4 +259,59 @@ func TestHookPropertyValuesHaveBeenUpdated(t *testing.T) {
 		require.Len(t, call.Previous, 1)
 		assert.Equal(t, other.ID, call.Previous[0].FieldID)
 	})
+
+	t.Run("a plugin receives only the values it may read", func(t *testing.T) {
+		// Reads of the access control group need an Enterprise license.
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer th.App.Srv().SetLicense(nil)
+
+		cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+
+		// Written to the store directly: only the owning plugin could create this field through
+		// the service, and it isn't installed.
+		newCPAField := func(attrs model.StringInterface) *model.PropertyField {
+			created, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+				GroupID:    cpaGroup.ID,
+				Name:       "field_" + model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				ObjectType: model.PropertyFieldObjectTypeUser,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				Attrs:      attrs,
+			})
+			require.NoError(t, err)
+			return created
+		}
+		public := newCPAField(nil)
+		restricted := newCPAField(model.StringInterface{
+			model.PropertyAttrsProtected:      true,
+			model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
+			model.PropertyAttrsSourcePluginID: "another.plugin",
+		})
+		userValue := func(fieldID, v string) *model.PropertyValue {
+			return &model.PropertyValue{
+				ID:         model.NewId(),
+				GroupID:    cpaGroup.ID,
+				FieldID:    fieldID,
+				TargetType: model.PropertyValueTargetTypeUser,
+				TargetID:   th.BasicUser.Id,
+				Value:      json.RawMessage(`"` + v + `"`),
+			}
+		}
+
+		before := len(recorded())
+
+		// A change it may read none of isn't reported to it at all.
+		th.App.runPropertyValuesHaveBeenUpdatedHook(th.Context, cpaGroup.ID, []*model.PropertyValue{userValue(restricted.ID, "secret")}, nil)
+		th.App.runPropertyValuesHaveBeenUpdatedHook(th.Context, cpaGroup.ID,
+			[]*model.PropertyValue{userValue(public.ID, "visible"), userValue(restricted.ID, "secret")},
+			[]*model.PropertyValue{userValue(restricted.ID, "old secret")},
+		)
+
+		call := waitForCalls(before + 1)[before]
+		require.Len(t, call.Values, 1)
+		assert.Equal(t, public.ID, call.Values[0].FieldID)
+		assert.Empty(t, call.Previous)
+		assert.Never(t, func() bool { return len(recorded()) > before+1 }, time.Second, 50*time.Millisecond)
+	})
 }
