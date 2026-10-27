@@ -224,7 +224,7 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		// Roll back to the state an older install leaves behind: the group at
 		// version 1, its field with no permissions object, and the legacy
 		// "true" marker. Converting the field is only valid once the group has
-		// been bumped to version 2.
+		// been pinned to version 2.
 		expectedUpdateAts := map[string]int64{fields[0].ID: fields[0].UpdateAt}
 		fields[0].Permissions = nil
 		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
@@ -244,7 +244,7 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 
 		cached, err := th.Server.propertyService.Group(model.ManagedCategoryPropertyGroupName)
 		require.NoError(t, err)
-		require.Equal(t, model.PropertyGroupVersionV2, cached.Version, "the service must not keep serving the pre-bump group")
+		require.Equal(t, model.PropertyGroupVersionV2, cached.Version, "the service must not keep serving the version 1 group")
 
 		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)

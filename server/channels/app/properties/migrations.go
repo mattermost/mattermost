@@ -528,7 +528,7 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 // it is left untouched so that an administrator's revocation of the grant is not
 // undone on reboot. A group still at version 1 is left alone too: a converted
 // field doesn't validate there, and the hook doesn't enforce the group, so
-// nothing reads the permissions until a bump brings it to version 2.
+// nothing reads the permissions until the group is pinned to version 2.
 func (ps *PropertyService) ConvertSystemOwnedFields(rctx request.CTX, groupID, groupName string) error {
 	group, err := ps.GroupByID(groupID)
 	if err != nil {
