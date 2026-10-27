@@ -9,7 +9,7 @@ MILESTONES = {
     "branch_cut": "Release Branch Cut",
     "feature_complete": "Feature Complete",
     "code_freeze": "Code Freeze",
-    "final_build": "Final Build",
+    "final_build": "Final Release Build Cut",
     "release_day": "Release Day",
 }
 
@@ -28,6 +28,7 @@ class ParseIcsTest(unittest.TestCase):
         self.assertIn("Mattermost v12.2 Code Freeze", summaries)
         self.assertIn("v12.3 Release Branch Cut", summaries)  # leading tab
         self.assertIn("v12.3 Code Freeze", summaries)  # folded line
+        self.assertIn("v12.3 Final Release Build Cut", summaries)  # leading line break
         self.assertIn("Release planning, Q1", summaries)
         self.assertFalse(any(s != s.strip() for s in summaries))
 
@@ -53,6 +54,40 @@ class ReleasesTest(unittest.TestCase):
             "release_day": date(2026, 11, 16),
         })
         self.assertEqual(releases[(12, 3)].milestones["code_freeze"], date(2026, 11, 25))
+
+    def test_mobile_and_desktop_versions_are_not_server_releases(self):
+        _, releases, notes, _ = load()
+        self.assertEqual(sorted(releases), [(12, 1), (12, 2), (12, 3), (12, 4)])
+        self.assertEqual(releases[(12, 1)].milestones, {
+            "branch_cut": date(2026, 9, 16),
+            "code_freeze": date(2026, 10, 7),  # "v12.1 & Mobile v2.46 Code Freeze"
+            "release_day": date(2026, 10, 16),  # not moved by "Mobile v2.46 Release Day"
+        })
+        self.assertEqual(notes, [])
+
+    def test_real_titles(self):
+        cases = {
+            "v12.1 & Mobile v2.46 Code Freeze": ("code_freeze", [(12, 1, 0)]),
+            "Mobile v2.46 Release Day": ("release_day", []),
+            "Desktop v6.4 Feature Complete": ("feature_complete", []),
+            "mobile  v2.46 & DESKTOP v6.4 Code Freeze": ("code_freeze", []),
+            "v12.4 ESR & Mobile v2.49 Release Day": ("release_day", [(12, 4, 0)]),
+            "v12.2 Final Release Build Cut": ("final_build", [(12, 2, 0)]),
+            "Mobile v2.46 & v12.1 Code Freeze": ("code_freeze", [(12, 1, 0)]),
+        }
+        for title, (milestone, versions) in cases.items():
+            self.assertEqual(rc.milestone_for(title, MILESTONES), milestone, title)
+            self.assertEqual(rc.server_versions(title), versions, title)
+
+    def test_leading_line_break_or_space(self):
+        for summary in ("\\nv12.3 Final Release Build Cut", " \\n v12.3 Final Release Build Cut", "   v12.3 Final Release Build Cut"):
+            text = f"BEGIN:VEVENT\nDTSTART;VALUE=DATE:20261207\nSUMMARY:{summary}\nEND:VEVENT\n"
+            releases, _ = rc.releases_from_events(rc.parse_ics(text), MILESTONES)
+            self.assertEqual(releases[(12, 3)].milestones, {"final_build": date(2026, 12, 7)}, summary)
+
+    def test_esr_release(self):
+        _, releases, _, _ = load()
+        self.assertEqual(releases[(12, 4)].milestones, {"release_day": date(2027, 1, 15)})
 
     def test_dot_release_events_are_ignored(self):
         _, releases, _, _ = load()
@@ -135,11 +170,20 @@ class CrossCheckTest(unittest.TestCase):
 
     def test_tag_before_final_build(self):
         flags = rc.cross_check(self.releases[(12, 2)], {(12, 2)}, {(12, 2)}, date(2026, 11, 4))
-        self.assertIn("v12.2.0 is tagged, but the calendar has the Final Build on 2026-11-09.", flags)
+        self.assertIn("v12.2.0 is tagged, but the calendar has the Final Release Build Cut on 2026-11-09.", flags)
 
     def test_untracked_branch(self):
-        flags = rc.untracked_branches(self.releases, {(12, 1), (12, 2), (12, 4)}, {(12, 1)})
-        self.assertEqual(flags, ["release-12.4 is cut and untagged, but the calendar has no v12.4 milestones."])
+        flags = rc.untracked_branches(self.releases, {(12, 1), (12, 2), (12, 5)}, {(12, 1)})
+        self.assertEqual(flags, ["release-12.5 is cut and untagged, but the calendar has no v12.5 milestones."])
+
+    def test_only_server_versions_are_checked_against_git(self):
+        # Mobile v2.46 and Desktop v6.4 are on the calendar, but there are no release-2.46 or
+        # release-6.4 branches to expect or flag.
+        self.assertNotIn((2, 46), self.releases)
+        self.assertNotIn((6, 4), self.releases)
+        flags = [flag for release in self.releases.values()
+                 for flag in rc.cross_check(release, {(12, 1), (12, 2), (12, 3)}, {(12, 1)}, date(2026, 11, 4))]
+        self.assertFalse([flag for flag in flags if "2.46" in flag or "6.4" in flag], flags)
 
     def test_rc_numbers(self):
         ls_remote = "a\trefs/tags/v12.2.0-rc1\nb\trefs/tags/v12.2.0-rc3\nc\trefs/tags/v12.2.0\nd\trefs/tags/v12.20.0-rc9\n"

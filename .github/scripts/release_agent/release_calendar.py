@@ -7,6 +7,8 @@ from datetime import date, datetime, timedelta
 from . import workdays
 
 VERSION_IN_TITLE = re.compile(r"(?<![\w.])v?(\d+)\.(\d+)(?:\.(\d+))?(?![\w.])")
+# "v12.1 & Mobile v2.46 Code Freeze": a version right after Mobile or Desktop isn't a server one.
+NOT_SERVER = re.compile(r"\b(?:mobile|desktop)\s*$", re.IGNORECASE)
 
 
 @dataclass
@@ -100,26 +102,36 @@ def milestone_for(summary: str, milestones: dict) -> str | None:
     return None
 
 
+def server_versions(summary: str) -> list[tuple]:
+    """The ``(major, minor, patch)`` server versions in a title, leaving out Mobile and Desktop ones."""
+    return [(int(m.group(1)), int(m.group(2)), int(m.group(3) or 0))
+            for m in VERSION_IN_TITLE.finditer(summary) if not NOT_SERVER.search(summary[:m.start()])]
+
+
 def releases_from_events(events: list[Event], milestones: dict) -> tuple[dict, list[str]]:
-    """``{(major, minor): Release}`` from milestone events, and notes on events left out."""
+    """``{(major, minor): Release}`` from server milestone events, and notes on events left out.
+
+    Events naming only Mobile or Desktop versions, and dot releases, are ignored.
+    """
     releases, notes = {}, []
     for event in events:
         key = milestone_for(event.summary, milestones)
         if not key:
             continue
-        match = VERSION_IN_TITLE.search(event.summary)
-        if not match:
-            notes.append(f"Calendar event “{event.summary}” on {event.start} names no release version.")
+        versions = server_versions(event.summary)
+        if not versions:
+            if not VERSION_IN_TITLE.search(event.summary):
+                notes.append(f"Calendar event “{event.summary}” on {event.start} names no release version.")
             continue
-        major, minor, patch = int(match.group(1)), int(match.group(2)), int(match.group(3) or 0)
-        if patch:
-            continue
-        release = releases.setdefault((major, minor), Release(major, minor))
-        previous = release.milestones.get(key)
-        if previous and previous != event.start:
-            notes.append(f"The calendar has two {milestones[key]} events for v{major}.{minor} "
-                         f"({previous} and {event.start}); using the later one.")
-        release.milestones[key] = max(previous or event.start, event.start)
+        for major, minor, patch in versions:
+            if patch:
+                continue
+            release = releases.setdefault((major, minor), Release(major, minor))
+            previous = release.milestones.get(key)
+            if previous and previous != event.start:
+                notes.append(f"The calendar has two {milestones[key]} events for v{major}.{minor} "
+                             f"({previous} and {event.start}); using the later one.")
+            release.milestones[key] = max(previous or event.start, event.start)
     return releases, notes
 
 
@@ -186,7 +198,7 @@ def cross_check(release: Release, branches: set, tags: set, today: date) -> list
         flags.append(f"The calendar has no Release Branch Cut for {release.short_version} and {release.branch} doesn't exist.")
     final = release.milestones.get("final_build")
     if release.key in tags and final and final > today:
-        flags.append(f"{release.version} is tagged, but the calendar has the Final Build on {final}.")
+        flags.append(f"{release.version} is tagged, but the calendar has the Final Release Build Cut on {final}.")
     if not release.release_day:
         flags.append(f"The calendar has no Release Day for {release.short_version}, so its T-day is unknown.")
     return flags

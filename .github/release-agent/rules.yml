@@ -26,13 +26,14 @@ version: 1
 
 calendar:
   # Calendar event titles are trimmed and matched on these substrings, case-insensitively.
-  # The title must also carry the release version (v12.2 or 12.2); dot-release events
-  # (v12.2.1) are ignored.
+  # The title must also carry a server version (v12.2 or 12.2). A version right after
+  # "Mobile" or "Desktop" isn't one, so "v12.1 & Mobile v2.46 Code Freeze" is v12.1's and
+  # "Mobile v2.46 Release Day" is ignored. Dot-release events (v12.2.1) are ignored too.
   milestones:
     branch_cut: Release Branch Cut
     feature_complete: Feature Complete
     code_freeze: Code Freeze
-    final_build: Final Build
+    final_build: Final Release Build Cut
     release_day: Release Day
   holiday_markers:
     - Holiday
