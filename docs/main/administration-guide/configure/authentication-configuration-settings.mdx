@@ -2186,11 +2186,13 @@ To make the `preferred_username` claim available, add it as an optional claim in
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows team and account creation using other OpenID Connect service providers. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</li></ul><dl><dt>- <strong>false</strong>: <strong>(Default)</strong> Disables OpenID Connect authentication with other service providers. | - <code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Enable</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_OPENIDSETTINGS_ENABLE</code> |</div></dd></dl><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions. |</p></td>
+<td><ul><li><strong>true</strong>: Allows team and account creation using other OpenID Connect service providers.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables OpenID Connect authentication with other service providers.</li></ul><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_ENABLE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2229,11 +2231,13 @@ To make the `preferred_username` claim available, add it as an optional claim in
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>This setting stores the Discovery Endpoint URL from the OpenID provider. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> | The URL should be in the format of <code>https://myopenid.provider.com/&#123;my_organization&#125;/                  | -</code>config.json<code>setting:</code>OpenIdSettings<code>&gt;</code>DiscoveryEndpoint<code>| .well-known/openid-configuration</code>. | - Environment variable: <code>MM_OPENIDSETTINGS_DISCOVERYENDPOINT</code> | | | See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> | implementation instructions. | | | | String input. | |</td>
+<td><p>This setting stores the Discovery Endpoint URL from the OpenID provider. The URL should be in the format of <code>https://myopenid.provider.com/&#123;my_organization&#125;/.well-known/openid-configuration</code>.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>DiscoveryEndpoint</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_DISCOVERYENDPOINT</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2248,11 +2252,13 @@ The **Discovery Endpoint** setting can be used to determine the connectivity and
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the Client ID from the OpenID provider. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Id</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OPENIDSETTINGS_ID</code></dt><dd><div class="line-block">                                                          |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the Client ID from the OpenID provider.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Id</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_ID</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2261,11 +2267,13 @@ The **Discovery Endpoint** setting can be used to determine the connectivity and
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the Client Secret from the OpenID provider. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Secret</code>|</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OPENIDSETTINGS_SECRET</code></dt><dd><div class="line-block">                                                          |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the Client Secret from the OpenID provider.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Secret</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_SECRET</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2274,13 +2282,13 @@ The **Discovery Endpoint** setting can be used to determine the connectivity and
 
 <table>
 <colgroup>
-<col style={{width: '68%'}} />
-<col style={{width: '31%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
 <td><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the provider's OpenID token as the Mattermost username.</li><li><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment.</li></ul></td>
-<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; | <code>UsePreferredUsername</code> &gt; <code>false</code> |</li><li>Environment variable: | <code>MM_OPENIDSETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
 </tr>
 </tbody>
 </table>
