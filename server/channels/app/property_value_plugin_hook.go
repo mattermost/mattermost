@@ -8,6 +8,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -229,10 +230,11 @@ func (a *App) runPropertyValuesHaveBeenUpdatedHook(rctx request.CTX, groupID str
 	userID := propertyValuesHookUserID(rctx, written)
 	calls := propertyValuesHookCalls(clonePropertyValues(written), clonePropertyValues(previous))
 	pCtx := pluginContext(rctx)
+	logger := rctx.Logger()
 	a.Srv().Go(func() {
 		for _, call := range calls {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
-				values, previous, ok := a.propertyValuesReadableBy(manifest.Id, call)
+				values, previous, ok := a.propertyValuesReadableBy(logger, manifest.Id, call)
 				if ok {
 					hooks.PropertyValuesHaveBeenUpdated(pCtx, userID, groupID, call.target.targetType, call.target.targetID, values, previous)
 				}
@@ -245,9 +247,11 @@ func (a *App) runPropertyValuesHaveBeenUpdatedHook(rctx request.CTX, groupID str
 // propertyValuesReadableBy narrows a call to the values pluginID may read, as its own read of them
 // through the plugin API would return them, so a source_only or shared_only value reaches only the
 // plugins allowed to see it. ok is false when the plugin may read none of them, or when they can't
-// be checked: a plugin isn't told of a change it couldn't see.
-func (a *App) propertyValuesReadableBy(pluginID string, call propertyValuesHookCall) (values, previous []*model.PropertyValue, ok bool) {
-	rctx := RequestContextWithCallerID(request.EmptyContext(a.Log()), pluginID)
+// be checked: a plugin isn't told of a change it couldn't see. The fields are read from the master,
+// so a field just made source_only or shared_only can't reach a plugin through a stale replica.
+// logger is the writing request's; the checks run on a background context of their own.
+func (a *App) propertyValuesReadableBy(logger mlog.LoggerIFace, pluginID string, call propertyValuesHookCall) (values, previous []*model.PropertyValue, ok bool) {
+	rctx := store.RequestContextWithMaster(RequestContextWithCallerID(request.EmptyContext(logger), pluginID))
 	ps := a.Srv().propertyService
 
 	values, err := ps.FilterPropertyValuesForRead(rctx, clonePropertyValues(call.values))
@@ -255,7 +259,7 @@ func (a *App) propertyValuesReadableBy(pluginID string, call propertyValuesHookC
 		previous, err = ps.FilterPropertyValuesForRead(rctx, clonePropertyValues(call.previous))
 	}
 	if err != nil {
-		a.Log().Warn("Not invoking PropertyValuesHaveBeenUpdated: failed to check which values the plugin may read",
+		logger.Warn("Not invoking PropertyValuesHaveBeenUpdated: failed to check which values the plugin may read",
 			mlog.String("plugin_id", pluginID),
 			mlog.String("target_type", call.target.targetType),
 			mlog.String("target_id", call.target.targetID),
