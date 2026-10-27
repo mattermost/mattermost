@@ -55,7 +55,9 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -204,7 +206,9 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -353,7 +357,9 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >

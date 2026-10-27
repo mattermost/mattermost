@@ -29575,6 +29575,10 @@
     "defaultMessage": "{prefix}Scheduled - {displayName} {siteName}",
     "description": "Browser tab / window title when viewing the Scheduled messages page; {prefix} is an unread/mention marker, {displayName} is the team name, {siteName} the server name."
   },
+  "scrollbars.ariaLabel": {
+    "defaultMessage": "Scrollable content",
+    "description": "Screen reader label for a scrollable area such as the channel sidebar, a right-hand panel or a modal list; announced with the region role."
+  },
   "search_bar.clear": {
     "defaultMessage": "Clear",
     "description": "Accessibility label/tooltip of the button that clears the text entered in the search box."

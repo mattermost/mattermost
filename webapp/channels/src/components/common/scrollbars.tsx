@@ -5,6 +5,7 @@ import {useMergeRefs} from '@floating-ui/react';
 import {ClickScrollPlugin, OverlayScrollbars, type PartialOptions} from 'overlayscrollbars';
 import {useOverlayScrollbars} from 'overlayscrollbars-react';
 import React, {useCallback, useEffect, useRef} from 'react';
+import {useIntl} from 'react-intl';
 
 import 'overlayscrollbars/overlayscrollbars.css';
 import './scrollbars.scss';
@@ -30,6 +31,8 @@ const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
     color,
     onScroll,
 }, ref) => {
+    const {formatMessage} = useIntl();
+
     const hostRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
 
@@ -73,6 +76,8 @@ const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
         >
             <div
                 ref={mergedRef}
+                aria-label={formatMessage({id: 'scrollbars.ariaLabel', defaultMessage: 'Scrollable content'})}
+                role='region'
                 tabIndex={-1}
             >
                 {children}

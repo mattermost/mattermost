@@ -64,7 +64,9 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -218,7 +220,9 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -391,7 +395,9 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -2170,7 +2176,9 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -4016,7 +4024,9 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -5847,7 +5857,9 @@ exports[`components/AdminSidebar should match snapshot with license with profess
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -7645,7 +7657,9 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -9424,7 +9438,9 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -9518,7 +9534,9 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -11297,7 +11315,9 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -13076,7 +13096,9 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -14766,7 +14788,9 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >

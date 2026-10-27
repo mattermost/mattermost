@@ -20,7 +20,9 @@ exports[`components/post_edit_history should display error screen if errors are 
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
@@ -207,7 +209,9 @@ exports[`components/post_edit_history should match snapshot 1`] = `
         />
       </div>
       <div
+        aria-label="Scrollable content"
         data-overlayscrollbars-viewport="scrollbarHidden overflowXHidden overflowYHidden"
+        role="region"
         style="margin-right: 0px; margin-bottom: 0px; margin-left: 0px; top: 0px; right: auto; left: 0px; width: calc(100% + 0px); padding: 0px 0px 0px 0px;"
         tabindex="-1"
       >
