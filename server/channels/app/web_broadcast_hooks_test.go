@@ -1247,6 +1247,7 @@ func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
 		mockSuite.On("HasChannelReadAccessByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
+		mockSuite.On("HasChannelReadAccessGoverned", mock.Anything, userID, channelID, mock.Anything).Return(allowed).Maybe()
 		wc := &platform.WebConn{
 			UserId:   userID,
 			Platform: &platform.PlatformService{},
@@ -1262,6 +1263,31 @@ func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
 		msg := makeMessage()
 		require.NoError(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": channelID}))
 		assert.False(t, msg.Event().IsRejected())
+	})
+
+	t.Run("governance from the publisher skips the channel load", func(t *testing.T) {
+		for _, byChannelPolicy := range []bool{false, true} {
+			for _, allowed := range []bool{false, true} {
+				msg := makeMessage()
+				wc := makeWebConn(t, allowed, true)
+				require.NoError(t, hook.Process(msg, wc, map[string]any{"channel_id": channelID, "by_channel_policy": byChannelPolicy}))
+				assert.Equal(t, !allowed, msg.Event().IsRejected())
+
+				mockSuite := wc.Suite.(*platform_mocks.SuiteIFace)
+				mockSuite.AssertCalled(t, "HasChannelReadAccessGoverned", mock.Anything, userID, channelID, byChannelPolicy)
+				mockSuite.AssertNotCalled(t, "HasChannelReadAccessByID", mock.Anything, mock.Anything, mock.Anything)
+			}
+		}
+	})
+
+	t.Run("without governance the check loads the channel itself", func(t *testing.T) {
+		msg := makeMessage()
+		wc := makeWebConn(t, true, true)
+		require.NoError(t, hook.Process(msg, wc, map[string]any{"channel_id": channelID}))
+
+		mockSuite := wc.Suite.(*platform_mocks.SuiteIFace)
+		mockSuite.AssertCalled(t, "HasChannelReadAccessByID", mock.Anything, userID, channelID)
+		mockSuite.AssertNotCalled(t, "HasChannelReadAccessGoverned", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("denied recipient has the event dropped", func(t *testing.T) {

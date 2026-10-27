@@ -89,6 +89,18 @@ func decides(mockACS *eMocks.AccessControlServiceInterface, allow bool) {
 		Return(model.AccessDecision{Decision: allow}, nil)
 }
 
+// readAccessHookArgs returns the args an event carries for the channel_read_access hook, or nil
+// when it doesn't carry the hook.
+func readAccessHookArgs(event *model.WebSocketEvent) map[string]any {
+	broadcast := event.GetBroadcast()
+	for i, hook := range broadcast.BroadcastHooks {
+		if hook == broadcastChannelReadAccess {
+			return broadcast.BroadcastHookArgs[i]
+		}
+	}
+	return nil
+}
+
 func TestHasChannelReadAccess(t *testing.T) {
 	t.Run("allows when the action is not governed, without building a subject", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
@@ -1350,8 +1362,9 @@ func TestChannelJoinLeaveEventsCarryTheReadAccessHook(t *testing.T) {
 	requireHooked := func(t *testing.T, event *model.WebSocketEvent, channelID string) {
 		t.Helper()
 		require.Contains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", event.EventType())
-		require.Contains(t, event.GetBroadcast().BroadcastHookArgs,
-			map[string]any{"channel_id": channelID}, "%s", event.EventType())
+		args := readAccessHookArgs(event)
+		require.Equal(t, channelID, args["channel_id"], "%s", event.EventType())
+		require.Contains(t, args, "by_channel_policy", "%s", event.EventType())
 	}
 
 	requireNotHooked := func(t *testing.T, event *model.WebSocketEvent) {
@@ -1644,8 +1657,9 @@ func requireReadAccessHook(t *testing.T, h *channelReadAccessHarness, eventTypes
 		require.NotEmpty(t, events[eventType], "%s was not published", eventType)
 		for _, event := range events[eventType] {
 			require.Contains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", eventType)
-			require.Contains(t, event.GetBroadcast().BroadcastHookArgs,
-				map[string]any{"channel_id": h.th.BasicChannel.Id}, "%s", eventType)
+			args := readAccessHookArgs(event)
+			require.Equal(t, h.th.BasicChannel.Id, args["channel_id"], "%s", eventType)
+			require.Contains(t, args, "by_channel_policy", "%s", eventType)
 		}
 	}
 
@@ -1798,11 +1812,39 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 		return model.NewWebSocketEvent(eventType, "", channelID, userID, nil, "")
 	}
 
+	// The tests below govern BasicChannel through a permission policy only, so the hook carries
+	// by_channel_policy=false.
 	requireHooked := func(t *testing.T, message *model.WebSocketEvent, channelID string) {
 		t.Helper()
 		require.Equal(t, []string{broadcastChannelReadAccess}, message.GetBroadcast().BroadcastHooks)
-		require.Equal(t, []map[string]any{{"channel_id": channelID}}, message.GetBroadcast().BroadcastHookArgs)
+		require.Equal(t, []map[string]any{{"channel_id": channelID, "by_channel_policy": false}}, message.GetBroadcast().BroadcastHookArgs)
 	}
+
+	t.Run("carries the channel's own policy in by_channel_policy", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, nil)
+		channelPolicyGoverns(mockACS, h.th.BasicChannel.Id, true)
+
+		// PolicyEnforced is derived from a channel policy row existing, so save one.
+		channel := h.th.BasicChannel
+		_, err := h.th.App.Srv().Store().AccessControlPolicy().Save(h.th.Context, &model.AccessControlPolicy{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ID:       channel.Id,
+			Name:     "read access hook test",
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Rules:    []model.AccessControlPolicyRule{{Actions: []string{"membership"}, Expression: "true"}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = h.th.App.Srv().Store().AccessControlPolicy().Delete(h.th.Context, channel.Id) })
+		h.th.App.Srv().Store().Channel().InvalidateChannel(channel.Id)
+
+		message := event(model.WebsocketEventReactionAdded, channel.Id, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		require.Equal(t, []map[string]any{{"channel_id": channel.Id, "by_channel_policy": true}}, message.GetBroadcast().BroadcastHookArgs)
+	})
 
 	t.Run("hooks a content event in a governed channel", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
@@ -1907,7 +1949,9 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 		channelID := model.NewId()
 		message := event(model.WebsocketEventReactionAdded, channelID, "")
 		h.th.App.attachChannelReadAccessHook(message)
-		requireHooked(t, message, channelID)
+		require.Equal(t, []string{broadcastChannelReadAccess}, message.GetBroadcast().BroadcastHooks)
+		require.Equal(t, []map[string]any{{"channel_id": channelID}}, message.GetBroadcast().BroadcastHookArgs,
+			"without governance the hook falls back to loading the channel per recipient")
 	})
 }
 

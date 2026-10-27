@@ -717,10 +717,16 @@ var channelReadAccessExemptEvents = map[model.WebsocketEventType]struct{}{
 	model.WebsocketEventTyping: {},
 }
 
-func useChannelReadAccessHook(message *model.WebSocketEvent, channelID string) {
-	message.GetBroadcast().AddHook(broadcastChannelReadAccess, map[string]any{
-		"channel_id": channelID,
-	})
+// useChannelReadAccessHook attaches channelReadAccessBroadcastHook. byChannelPolicy is the
+// channel's governance as the publisher found it, passed so that each recipient's check can skip
+// loading the channel and deciding governance again; nil, when the publisher could not load the
+// channel, leaves the hook to work both out per recipient.
+func useChannelReadAccessHook(message *model.WebSocketEvent, channelID string, byChannelPolicy *bool) {
+	args := map[string]any{"channel_id": channelID}
+	if byChannelPolicy != nil {
+		args["by_channel_policy"] = *byChannelPolicy
+	}
+	message.GetBroadcast().AddHook(broadcastChannelReadAccess, args)
 }
 
 func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
@@ -741,7 +747,16 @@ func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEv
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-	if !webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
+
+	// An event from a node that predates the by_channel_policy arg, or one whose publisher could
+	// not load the channel, has no governance to reuse, so the check loads the channel itself.
+	var allowed bool
+	if byChannelPolicy, argErr := getTypedArg[bool](args, "by_channel_policy"); argErr == nil {
+		allowed = webConn.Suite.HasChannelReadAccessGoverned(rctx, webConn.UserId, channelID, byChannelPolicy)
+	} else {
+		allowed = webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID)
+	}
+	if !allowed {
 		msg.Reject()
 	}
 	return nil
