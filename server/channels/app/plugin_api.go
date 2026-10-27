@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type PluginAPI struct {
@@ -964,6 +965,57 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
+}
+
+func (api *PluginAPI) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	if !model.IsValidId(threadID) {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	followers, err := api.app.Srv().Store().Thread().GetThreadFollowers(threadID, true)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.get_thread_followers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(followers) == 0 {
+		return followers, nil
+	}
+
+	// A deactivated user keeps their memberships, so they are dropped here.
+	users, appErr := api.app.GetUsersByIds(api.ctx, followers, &store.UserGetByIdsOpts{IsAdmin: true})
+	if appErr != nil {
+		return nil, appErr
+	}
+	active := make([]string, 0, len(users))
+	for _, user := range users {
+		if user.DeleteAt == 0 {
+			active = append(active, user.Id)
+		}
+	}
+	return active, nil
+}
+
+func (api *PluginAPI) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	if !model.IsValidId(userID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !model.IsValidId(threadID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	// The membership table doesn't reference Users, so an unknown id would be stored as a follower.
+	if _, appErr := api.app.GetUser(api.ctx, userID); appErr != nil {
+		return appErr
+	}
+	post, appErr := api.app.GetSinglePost(api.ctx, threadID, false)
+	if appErr != nil {
+		return appErr
+	}
+	if post.RootId != "" {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.not_root_post.app_error", nil, "", http.StatusBadRequest)
+	}
+	channel, appErr := api.app.GetChannel(api.ctx, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+	return api.app.UpdateThreadFollowForUser(userID, channel.TeamId, threadID, following)
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
