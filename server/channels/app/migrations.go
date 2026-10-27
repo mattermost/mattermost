@@ -62,10 +62,9 @@ func (a *App) DoAdvancedPermissionsMigration() error {
 
 func (s *Server) doAdvancedPermissionsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(model.AdvancedPermissionsMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -141,10 +140,9 @@ func (a *App) DoEmojisPermissionsMigration() error {
 
 func (s *Server) doEmojisPermissionsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(EmojisPermissionsMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -202,10 +200,9 @@ func (a *App) DoGuestRolesCreationMigration() error {
 
 func (s *Server) doGuestRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(GuestRolesCreationMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -292,10 +289,9 @@ func (a *App) DoSystemConsoleRolesCreationMigration() error {
 
 func (s *Server) doSystemConsoleRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(SystemConsoleRolesCreationMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -335,10 +331,9 @@ func (s *Server) doSystemConsoleRolesCreationMigration(rctx request.CTX) error {
 
 func (s *Server) doSingleRoleCreationMigration(rctx request.CTX, migrationKey, roleId string) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(migrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -347,9 +342,8 @@ func (s *Server) doSingleRoleCreationMigration(rctx request.CTX, migrationKey, r
 	if role == nil {
 		return fmt.Errorf("unknown role id: %q", roleId)
 	}
-	var nfRoleErr *store.ErrNotFound
 	if _, err := s.Store().Role().GetByName(rctx, roleId); err != nil {
-		if !errors.As(err, &nfRoleErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return fmt.Errorf("could not query role %q: %w", roleId, err)
 		}
 		if _, err := s.Store().Role().Save(role); err != nil {
@@ -379,10 +373,9 @@ func (s *Server) doSharedChannelManagerRoleCreationMigration(rctx request.CTX) e
 
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(ContentExtractionConfigDefaultTrueMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -404,10 +397,9 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 
 func (s *Server) doPlaybooksRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(PlaybookRolesCreationMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -527,10 +519,9 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 	const existingInstallationPostsThreshold = 10
 
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(FirstAdminSetupCompleteKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -571,10 +562,9 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 
 func (s *Server) doRemainingSchemaMigrations() error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(remainingSchemaMigrationsKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -603,10 +593,9 @@ func (s *Server) doRemainingSchemaMigrations() error {
 
 func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(postPriorityConfigDefaultTrueMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
@@ -761,8 +750,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the
 			// conflict but propagate any other error.
-			var conflictErr *store.ErrConflict
-			if !errors.As(err, &conflictErr) {
+			if _, ok := errors.AsType[*store.ErrConflict](err); !ok {
 				return fmt.Errorf("failed to update content flagging property fields: %w", err)
 			}
 		}
@@ -884,8 +872,7 @@ func (s *Server) doSetupBoardsProperties() error {
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the
 			// conflict but propagate any other error.
-			var conflictErr *store.ErrConflict
-			if !errors.As(err, &conflictErr) {
+			if _, ok := errors.AsType[*store.ErrConflict](err); !ok {
 				return fmt.Errorf("failed to update boards property fields: %w", err)
 			}
 		}
@@ -1044,8 +1031,7 @@ func (s *Server) seedSessionAttributeFields(groupID string) error {
 
 	if len(fieldsToUpdate) > 0 {
 		if _, _, _, err := s.propertyService.UpdatePropertyFields(rctx, groupID, fieldsToUpdate); err != nil {
-			var conflictErr *store.ErrConflict
-			if !errors.As(err, &conflictErr) {
+			if _, ok := errors.AsType[*store.ErrConflict](err); !ok {
 				return fmt.Errorf("failed to update session attribute fields: %w", err)
 			}
 		}
@@ -1196,10 +1182,9 @@ func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
 // license; unlicensed is not an error — the "done" marker stays unset so a
 // later restart retries once licensed.
 func (s *Server) doSetupCPAToGlobalAttributesMigration(rctx request.CTX) error {
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(cpaToGlobalAttributesMigrationKey); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query CPA-to-Global-Attributes migration: %w", err)
 	}
 
@@ -1348,10 +1333,9 @@ func (s *Server) doDeleteDmsPreferencesMigration(rctx request.CTX) error {
 }
 
 func (s *Server) doAccessControlPolicyV0_3Migration(rctx request.CTX) error {
-	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(model.MigrationKeyAccessControlPolicyV0_3); err == nil {
 		return nil
-	} else if !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 

@@ -5,6 +5,8 @@ import React, {useEffect, useRef, useState, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
+
 import {closeModal} from 'actions/views/modals';
 
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
@@ -26,12 +28,11 @@ export default function DeleteWorkspaceProgressModal() {
     const [progress, setProgress] = useState(0);
 
     const progressBar: JSX.Element | null = (
-        <div className='ProcessPayment-progress'>
-            <div
-                className='ProcessPayment-progress-fill'
-                style={{width: `${progress}%`}}
-            />
-        </div>
+        <ProgressBar
+            className='DeleteWorkspaceProgressModal-progress'
+            value={progress}
+            size='small'
+        />
     );
 
     useEffect(() => {

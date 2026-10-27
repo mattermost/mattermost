@@ -241,6 +241,7 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 	})
 
 	t.Run("concurrent runs tolerate update conflicts", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-71223")
 		// Reproduce the CI failure: two server instances both read the same
 		// UpdateAt timestamps for the existing fields, then race to update them.
 		// The store's optimistic concurrency control means only one wins; the

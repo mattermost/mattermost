@@ -115,6 +115,22 @@
     "defaultMessage": "Access History",
     "description": "Title of the Access History modal, which lists the user's login and security audit events."
   },
+  "accessibility.add_groups_to_channel": {
+    "defaultMessage": "Add groups to channel",
+    "description": "Screen-reader label for the round + button on each group row in the Add Groups to Channel modal; adds that group to the selection."
+  },
+  "accessibility.add_groups_to_team": {
+    "defaultMessage": "Add groups to team",
+    "description": "Screen-reader label for the round + button on each group row in the Add Groups to Team modal; adds that group to the selection."
+  },
+  "accessibility.add_user_to_invite": {
+    "defaultMessage": "Add user to invite",
+    "description": "Screen-reader label for the round + button on each user row in the Add People to Channel modal; adds that user to the list of people to invite."
+  },
+  "accessibility.add_users_to_team": {
+    "defaultMessage": "Add users to team",
+    "description": "Screen-reader label for the round + button on each user row in the Add Members to Team modal; adds that user to the selection."
+  },
   "accessibility.button.attachment": {
     "defaultMessage": "attachment",
     "description": "Accessibility label for the paperclip attachment button in the message input box; noun."
@@ -175,6 +191,14 @@
     "defaultMessage": "strike through",
     "description": "Accessibility label for the strikethrough formatting button in the message toolbar; lowercase by design."
   },
+  "accessibility.emoji_icon": {
+    "defaultMessage": "Emoji icon",
+    "description": "Screen-reader label for the smiley-face emoji icon shown on emoji picker, add-reaction and custom status buttons."
+  },
+  "accessibility.mobile_menu": {
+    "defaultMessage": "Mobile menu",
+    "description": "Screen-reader label for the slide-out main menu panel shown on mobile and narrow screens."
+  },
   "accessibility.sections.centerContent": {
     "defaultMessage": "message list main region",
     "description": "Accessible (screen reader) label for the main message list region of the app; not visible on screen."
@@ -203,6 +227,10 @@
     "defaultMessage": "message details complementary region",
     "description": "Accessibility label for the right-hand sidebar thread view region, announced by screen readers when focus enters it."
   },
+  "accessibility.select_channel": {
+    "defaultMessage": "Select channel",
+    "description": "Screen-reader label for the round + button on each channel row in the channel picker modal (used by data retention, access policies and group settings); adds that channel to the selection."
+  },
   "accessibility.sidebar.types.mention": {
     "defaultMessage": "mention",
     "description": "Screen-reader word appended after the mention count in a sidebar channel's aria-label (singular); part of a composed label."
@@ -226,6 +254,10 @@
   "accessibility.sidebar.types.urgent_mention": {
     "defaultMessage": "including an urgent mention",
     "description": "Screen-reader phrase appended to a sidebar channel's aria-label when one of its mentions is urgent priority; part of a composed label."
+  },
+  "accessibility.toggle_embed_visibility": {
+    "defaultMessage": "Toggle Embed Visibility",
+    "description": "Screen-reader label for the arrow button that expands or collapses a link preview, image or other embedded content below a message."
   },
   "activity_log_modal.android": {
     "defaultMessage": "Android",
@@ -1788,7 +1820,7 @@
     "description": "Link under the access-rule editors that opens a help modal about CEL access expressions."
   },
   "admin.access_control.table_editor.not_safe_to_use": {
-    "defaultMessage": "Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.",
+    "defaultMessage": "Values for this attribute are managed by users and should not be used for access control. Link the attribute to AD/LDAP, SAML or OpenID Connect to use it in access policies.",
     "description": "Tooltip on a disabled attribute in the attribute picker of the access-rule editor, explaining user-managed attributes cannot be used for access control."
   },
   "admin.access_control.table_editor.operator": {
@@ -2054,6 +2086,22 @@
   "admin.accesscontrol.user_properties.link.label": {
     "defaultMessage": "Attribute Management",
     "description": "Link text inserted into the attribute-based access control help text; links to the Attribute Management settings section."
+  },
+  "admin.accessibility.add_users_to_role": {
+    "defaultMessage": "Add users to role",
+    "description": "Accessible label for the multi-select used to add users to a system role in System Console."
+  },
+  "admin.accessibility.delete_orphaned_field": {
+    "defaultMessage": "Delete orphaned field",
+    "description": "Accessible label for the delete button on a user attribute whose owning plugin has been uninstalled. \"Field\" is the attribute: use the same word as in Attribute Management. \"Orphaned\" means its plugin is no longer installed, as the neighbouring orphaned-attribute strings say; prefer that meaning over a literal calque."
+  },
+  "admin.accessibility.next_page": {
+    "defaultMessage": "Next page",
+    "description": "Accessible label for the next-page button in the reusable System Console data grid."
+  },
+  "admin.accessibility.previous_page": {
+    "defaultMessage": "Previous page",
+    "description": "Accessible label for the previous-page button in the reusable System Console data grid."
   },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
@@ -3100,7 +3148,7 @@
     "description": "Title of the toggle on the Channel Management panel that switches the channel between public and private."
   },
   "admin.channel_settings.channel_details.isPublicDescr": {
-    "defaultMessage": "Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this switch to change this channel from public to private or from private to public.",
+    "defaultMessage": "Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this control to change this channel from public to private or from private to public.",
     "description": "Description of the public/private toggle on the System Console channel configuration page; {br} placeholders insert line breaks."
   },
   "admin.channel_settings.channel_details.policy_enforced_title": {
@@ -3130,10 +3178,6 @@
   "admin.channel_settings.channel_list.no_channels_found": {
     "defaultMessage": "No channels found",
     "description": "Empty-state placeholder in the admin console Channels list when no channels match the search or filters."
-  },
-  "admin.channel_settings.channel_list.no_logs_found": {
-    "defaultMessage": "No logs found. Ensure log files are within the logging root directory (configured via MM_LOG_PATH or the default logs directory).",
-    "description": "Empty-state text in the System Console > Server Logs table when no log entries are found; MM_LOG_PATH is an environment variable name and must not be translated."
   },
   "admin.channel_settings.channel_list.search_channels_errored": {
     "defaultMessage": "Something went wrong. Try again",
@@ -4351,21 +4395,29 @@
     "defaultMessage": "(Optional) The attribute in the AD/LDAP server used to populate the {name} of users in Mattermost. When set, users cannot edit their {name}, since it is synchronized with the LDAP server. When left blank, users can set their {name} in <strong>Account Menu > Account Settings > Profile</strong>.",
     "description": "Help text for a user-attribute mapping field in AD/LDAP admin settings; {name} is the attribute's display name, <strong> wraps a UI navigation path."
   },
+  "admin.customProfileAttribDesc.openid": {
+    "defaultMessage": "(Optional) The claim in the ID token or userinfo response used to populate the {name} of users in Mattermost. Use dots for nested claims, such as address.country. If the claim is missing at sign-in, the value is removed.",
+    "description": "Help text under a user attribute's field in the 'User attributes sync' section of the OpenID Connect settings page. {name} is the attribute's label. 'ID token' and 'userinfo' are OpenID Connect terms; address.country is a literal example claim path and should stay as-is."
+  },
   "admin.customProfileAttribDesc.saml": {
     "defaultMessage": "(Optional) The attribute in the SAML Assertion that will be used to populate the {name} of users in Mattermost.",
     "description": "Help text for a user-attribute mapping field in SAML admin settings; {name} is the attribute's display name."
   },
+  "admin.customProfileAttributes.exclusiveSource": {
+    "defaultMessage": "This attribute is synced from {sources}. An attribute synced from OpenID Connect can't also sync from AD/LDAP or SAML.",
+    "description": "Help text under a disabled field in the 'User attributes sync' section, explaining that the attribute is already synced from another identity source that cannot be combined with OpenID Connect. {sources} is a list of source names, such as AD/LDAP or OpenID Connect."
+  },
   "admin.customProfileAttributes.linkedNonText": {
-    "defaultMessage": "This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.",
-    "description": "Help text under a linked (Global Attribute) user-attribute field that is not text type; explains why the LDAP/SAML sync box is disabled."
+    "defaultMessage": "This field is linked to an attribute of type {type} in Attribute Management, so it cannot be synced from an identity source. Only text, select and multiselect attributes support sync.",
+    "description": "Help text under a user-attribute field in the AD/LDAP, SAML or OpenID Connect user attributes sync settings when the field is linked to an attribute defined on the System Console Attribute Management page and that attribute's type cannot be synced; explains why the sync box is disabled. {type} is the raw type identifier, such as date or user, and is not translated. 'Attribute Management' is the page name; match its translation."
   },
   "admin.customProfileAttributes.managedByPlugin": {
     "defaultMessage": "This field is managed by the {pluginId} plugin and cannot be edited.",
     "description": "Help text under a user-attribute field that is read-only because a plugin owns it; {pluginId} is the plugin's display name."
   },
   "admin.customProfileAttributes.subtitle": {
-    "defaultMessage": "You can add or remove user attributes by going to the <link>user attributes page</link>.",
-    "description": "Subtitle of the 'User attributes sync' settings group in LDAP/SAML admin settings; <link> wraps a link to the user attributes admin page."
+    "defaultMessage": "You can add or remove user attributes on the <link>Attribute Management</link> page.",
+    "description": "Subtitle of the 'User attributes sync' settings group in the AD/LDAP and SAML admin settings; <link> wraps a link to the Attribute Management page, whose name should stay as the page is titled."
   },
   "admin.customProfileAttributes.title": {
     "defaultMessage": "User attributes sync",
@@ -5100,8 +5152,8 @@
     "description": "Radio option on the Push Notification Server admin page; TPNS (Test Push Notification Service) is an acronym to keep."
   },
   "admin.email.mtpnsHelp": {
-    "defaultMessage": "Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>.",
-    "description": "Help text under the push notification server setting when using the Mattermost Test Push Notification Service; <linkIOS>, <linkAndroid> and <linkHPNS> wrap link texts."
+    "defaultMessage": "Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkTPNS>Mattermost Test Push Notification Service</linkTPNS>.",
+    "description": "Help text under the push notification server setting when using the Mattermost Test Push Notification Service; <linkIOS>, <linkAndroid> and <linkTPNS> wrap link texts."
   },
   "admin.email.pushOff": {
     "defaultMessage": "Do not send push notifications",
@@ -5933,7 +5985,7 @@
   },
   "admin.global_attributes.applies_to.channels.display.help": {
     "defaultMessage": "Multiple display locations can be selected. You can always view and set the attribute value in the Channel Info sidebar. Unset values do not appear in the channel.",
-    "description": "Help text under the 'Display location' checkboxes in an attribute's Channels settings in the System Console. 'header', 'banner' and 'Channel Info' refer to the Header, Banner and Channel Info checkbox options; 'it' is the attribute value. Use the same translations as those option labels."
+    "description": "Help text under the 'Display location' checkboxes in an attribute's Channels settings in the System Console. 'display locations' are the Header, Channel Info and Banner checkbox options, and 'Channel Info sidebar' is the Channel Info side panel in the channel view; use the same translation as the Channel Info option. 'Unset values' are channels that have no value for this attribute."
   },
   "admin.global_attributes.applies_to.channels.display.label": {
     "defaultMessage": "Display location",
@@ -6029,7 +6081,7 @@
   },
   "admin.global_attributes.attribute_details.applies_to.add_resource_header": {
     "defaultMessage": "Add resource",
-    "description": "Label of the button in the header of the 'Applies to' card on the System Console > System Attributes > Manage Attributes attribute detail page, which opens a menu of resource types. 'Add' is a verb; also used as the button's accessible label."
+    "description": "Label of the button in the header of the 'Applies to' card on the System Console > System Attributes > Attribute Management attribute detail page, which opens a menu of resource types. 'Add' is a verb; also used as the button's accessible label."
   },
   "admin.global_attributes.attribute_details.applies_to.add_resource_inline": {
     "defaultMessage": "Add another resource",
@@ -6045,7 +6097,7 @@
   },
   "admin.global_attributes.attribute_details.applies_to.empty_state.helper_text_plugin_owned": {
     "defaultMessage": "Resources for plugin-managed attributes can't be added here.",
-    "description": "Empty-state helper text in the Applies-to section of the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin owns, where resources cannot be added."
+    "description": "Empty-state helper text in the Applies-to section of the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin owns, where resources cannot be added."
   },
   "admin.global_attributes.attribute_details.applies_to.item.body_placeholder": {
     "defaultMessage": "No additional settings for this resource yet.",
@@ -6109,11 +6161,11 @@
   },
   "admin.global_attributes.attribute_details.applies_to.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute was managed by a plugin that's no longer installed.",
-    "description": "Tooltip on a locked Applies-to resource in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed."
+    "description": "Tooltip on a locked Applies-to resource in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.applies_to.locked_plugin_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute is managed by a plugin.",
-    "description": "Tooltip on a locked Applies-to resource in the attribute details page in System Console > System Attributes > Manage Attributes, explaining a plugin manages the attribute."
+    "description": "Tooltip on a locked Applies-to resource in the attribute details page in System Console > System Attributes > Attribute Management, explaining a plugin manages the attribute."
   },
   "admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute applies to only one resource.",
@@ -6175,9 +6227,17 @@
     "defaultMessage": "{source}: {value}",
     "description": "Text of the chip shown on the attribute detail page for an attribute linked to an external directory. {source} is the source name ('AD/LDAP' or 'SAML') and {value} is the external attribute name it syncs from. Keep the separator format."
   },
+  "admin.global_attributes.attribute_details.external_source.conflict_label": {
+    "defaultMessage": "Can't be combined with {sources}",
+    "description": "Second line of a disabled entry in the 'Link to external source' menu on the attribute detail page. {sources} lists the already-linked identity sources (AD/LDAP, SAML, OpenID Connect) that this source cannot be combined with."
+  },
+  "admin.global_attributes.attribute_details.external_source.conflict_tooltip": {
+    "defaultMessage": "An attribute synced from OpenID Connect can't also sync from AD/LDAP or SAML. Remove the {sources} {count, plural, one {link} other {links}} to link {source}.",
+    "description": "Tooltip on a disabled entry in the 'Link to external source' menu. {sources} lists the linked identity sources to remove, {count} is how many there are, and {source} is the source the admin wanted to link. AD/LDAP, SAML and OpenID Connect are product names."
+  },
   "admin.global_attributes.attribute_details.external_source.disabled_applies_to_tooltip": {
     "defaultMessage": "Cannot link an external source while this attribute applies to a resource.",
-    "description": "Tooltip on the disabled external-source control in the attribute details page in System Console > System Attributes > Manage Attributes, explaining it cannot be linked while the attribute applies to a resource."
+    "description": "Tooltip on the disabled external-source control in the attribute details page in System Console > System Attributes > Attribute Management, explaining it cannot be linked while the attribute applies to a resource."
   },
   "admin.global_attributes.attribute_details.external_source.edit_link": {
     "defaultMessage": "Edit {source} link",
@@ -6202,6 +6262,22 @@
   "admin.global_attributes.attribute_details.external_source.links_removed": {
     "defaultMessage": "{count, plural, one {External source link removed} other {External source links removed}}",
     "description": "Screen-reader-only status announcement on the attribute detail page after changing the attribute Type clears its external source link(s). {count} is how many links were cleared; the message names no source, only the number."
+  },
+  "admin.global_attributes.attribute_details.external_source.openid.help_text": {
+    "defaultMessage": "The claim in the ID token or userinfo response to sync this value from, for example department. Use dots for nested claims, such as address.country. If the claim is missing at sign-in, the value is removed.",
+    "description": "Help text in the 'Link to OpenID Connect' dialog on the attribute detail page, under the field where the admin types a claim name. 'ID token' and 'userinfo' are OpenID Connect terms; department and address.country are literal example claim names and should stay as-is."
+  },
+  "admin.global_attributes.attribute_details.external_source.openid.modal_title": {
+    "defaultMessage": "Link to OpenID Connect",
+    "description": "Title of the dialog where an admin types the OpenID Connect claim an attribute is synced from. 'OpenID Connect' is a protocol name."
+  },
+  "admin.global_attributes.attribute_details.external_source.openid.subtitle": {
+    "defaultMessage": "Map claims at sign-in",
+    "description": "Second line of the OpenID Connect entry in the 'Link to external source' menu, describing that values come from OpenID Connect claims when users sign in."
+  },
+  "admin.global_attributes.attribute_details.external_source.openid.title": {
+    "defaultMessage": "OpenID Connect",
+    "description": "Name of the OpenID Connect identity source in the 'Link to external source' menu, its link chip and the attributes table. Protocol name; usually left untranslated."
   },
   "admin.global_attributes.attribute_details.external_source.remove_link": {
     "defaultMessage": "Remove {source} link",
@@ -6230,6 +6306,30 @@
   "admin.global_attributes.attribute_details.external_source.trigger_label": {
     "defaultMessage": "Link to external source",
     "description": "Label of the dropdown button on the attribute detail page that opens the AD/LDAP and SAML choices. 'Link' is a verb here."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.flag_off.label": {
+    "defaultMessage": "Turned off on this server",
+    "description": "Second line of the disabled OpenID Connect entry in the 'Link to external source' menu when the server has turned this feature off."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.flag_off.tooltip": {
+    "defaultMessage": "Syncing attributes from {source} is turned off on this server.",
+    "description": "Tooltip on the disabled OpenID Connect entry in the 'Link to external source' menu when the server has turned this feature off. {source} is the source name, OpenID Connect."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.not_enabled.label": {
+    "defaultMessage": "Set up {source} first",
+    "description": "Second line of the disabled OpenID Connect entry in the 'Link to external source' menu when OpenID Connect sign-in is not set up yet. {source} is the source name, OpenID Connect."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.not_enabled.tooltip": {
+    "defaultMessage": "Turn on {source} in System Console > Authentication > {source} to link attributes to its claims.",
+    "description": "Tooltip on the disabled OpenID Connect entry in the 'Link to external source' menu when OpenID Connect sign-in is off. {source} is OpenID Connect; 'System Console > Authentication > {source}' is the navigation path to its settings page and should match those menu names."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.unlicensed.label": {
+    "defaultMessage": "Not included in your license",
+    "description": "Second line of the disabled OpenID Connect entry in the 'Link to external source' menu when the license does not include OpenID Connect."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.unlicensed.tooltip": {
+    "defaultMessage": "Your license doesn't include {source}.",
+    "description": "Tooltip on the disabled OpenID Connect entry in the 'Link to external source' menu when the license does not include it. {source} is the source name, OpenID Connect."
   },
   "admin.global_attributes.attribute_details.graph.delete.blocked.go_to": {
     "defaultMessage": "Go to {name}",
@@ -6507,6 +6607,18 @@
     "defaultMessage": "At least one option is required.",
     "description": "Inline validation error under the Options field on the attribute detail page when a select-type attribute has no options defined."
   },
+  "admin.global_attributes.attribute_details.options.synced_help": {
+    "defaultMessage": "Options are managed by the {source} sync. Each value it sends is added as an option, and options that no user holds any more are removed.",
+    "description": "Shown under the read-only option list of a select or multiselect attribute linked to an identity source. {source} is the source name, such as AD/LDAP or SAML; the sync creates and removes the options, so the admin cannot edit them."
+  },
+  "admin.global_attributes.attribute_details.options.synced_list_label": {
+    "defaultMessage": "Options",
+    "description": "Accessible name of the read-only list of option chips on a synced select or multiselect attribute's detail page. Plural noun."
+  },
+  "admin.global_attributes.attribute_details.options.synced_need_users": {
+    "defaultMessage": "Add Users under Applies to. The {source} sync creates these options from the values it syncs to users.",
+    "description": "Inline error under the read-only options of a select or multiselect attribute linked to an external source while the attribute does not apply to Users, which keeps it from being saved. \"Users\" and \"Applies to\" are the labels of the resource and the card on the same page. {source} is the external source name, such as AD/LDAP or SAML."
+  },
   "admin.global_attributes.attribute_details.options.values_unique": {
     "defaultMessage": "Values must be unique.",
     "description": "Inline validation error shown while editing or adding an option value on the attribute detail page, when the typed value duplicates an existing option."
@@ -6525,19 +6637,19 @@
   },
   "admin.global_attributes.attribute_details.plugin_source.helper_text": {
     "defaultMessage": "Name, type, and values are owned by the plugin and are read-only here.",
-    "description": "Helper text in the attribute details page in System Console > System Attributes > Manage Attributes for a plugin-owned attribute, explaining which fields are read-only."
+    "description": "Helper text in the attribute details page in System Console > System Attributes > Attribute Management for a plugin-owned attribute, explaining which fields are read-only."
   },
   "admin.global_attributes.attribute_details.plugin_source.managed_by": {
     "defaultMessage": "Managed by {pluginName}",
-    "description": "Label in the attribute details page in System Console > System Attributes > Manage Attributes naming the plugin that owns the attribute."
+    "description": "Label in the attribute details page in System Console > System Attributes > Attribute Management naming the plugin that owns the attribute."
   },
   "admin.global_attributes.attribute_details.plugin_source.managed_by_orphaned": {
     "defaultMessage": "Managed by {pluginName} (no longer installed)",
-    "description": "Label in the attribute details page in System Console > System Attributes > Manage Attributes naming the plugin that owned the attribute, where that plugin is no longer installed."
+    "description": "Label in the attribute details page in System Console > System Attributes > Attribute Management naming the plugin that owned the attribute, where that plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.plugin_source.settings_link": {
     "defaultMessage": "Plugin settings",
-    "description": "Link in the attribute details page in System Console > System Attributes > Manage Attributes to the settings page of the plugin that owns the attribute."
+    "description": "Link in the attribute details page in System Console > System Attributes > Attribute Management to the settings page of the plugin that owns the attribute."
   },
   "admin.global_attributes.attribute_details.save": {
     "defaultMessage": "Save",
@@ -6565,23 +6677,23 @@
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_partial_save": {
     "defaultMessage": "The attribute was saved, but couldn't be applied to {resources}. Please try again.",
-    "description": "Error in the attribute details page in System Console > System Attributes > Manage Attributes when the attribute saved but could not be applied to some resources. {resources} is a list of resource names."
+    "description": "Error in the attribute details page in System Console > System Attributes > Attribute Management when the attribute saved but could not be applied to some resources. {resources} is a list of resource names."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_remove_failed": {
     "defaultMessage": "Couldn't remove this attribute from {resources}. Nothing else was saved — please try again.",
-    "description": "Error in the attribute details page in System Console > System Attributes > Manage Attributes when removing the attribute from resources failed and nothing was saved. {resources} is a list of resource names."
+    "description": "Error in the attribute details page in System Console > System Attributes > Attribute Management when removing the attribute from resources failed and nothing was saved. {resources} is a list of resource names."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_remove_partial_save": {
     "defaultMessage": "The attribute was saved, but couldn't be removed from {resources}. Please try again.",
-    "description": "Error in the attribute details page in System Console > System Attributes > Manage Attributes when the attribute saved but could not be removed from some resources. {resources} is a list of resource names."
+    "description": "Error in the attribute details page in System Console > System Attributes > Attribute Management when the attribute saved but could not be removed from some resources. {resources} is a list of resource names."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed": {
     "defaultMessage": "\"{name}\" may have been partially created for {resources}. A retry under the same name will likely fail until those are cleaned up.",
-    "description": "Red error banner on the System Console > System Attributes > Manage Attributes > New attribute page, shown when saving partly succeeded and the automatic cleanup also failed. {name} is the attribute's display name as typed by the admin; {resources} is a comma-separated list of already-localized resource-type labels (e.g. \"Users, Channels\")."
+    "description": "Red error banner on the System Console > System Attributes > Attribute Management > New attribute page, shown when saving partly succeeded and the automatic cleanup also failed. {name} is the attribute's display name as typed by the admin; {resources} is a comma-separated list of already-localized resource-type labels (e.g. \"Users, Channels\")."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_template_rollback_failed": {
     "defaultMessage": "\"{name}\" was created but could not be cleaned up after a failed apply. A retry under the same name will likely fail until it is deleted.",
-    "description": "Red error banner on the System Console > System Attributes > Manage Attributes > New attribute page. Variant of the rollback-failed message used when no resource types are left to name; {name} is the attribute's display name as typed by the admin."
+    "description": "Red error banner on the System Console > System Attributes > Attribute Management > New attribute page. Variant of the rollback-failed message used when no resource types are left to name; {name} is the attribute's display name as typed by the admin."
   },
   "admin.global_attributes.attribute_details.save_error.channel_resource": {
     "defaultMessage": "The attribute was created, but it could not be applied to channels. Its definition can no longer be changed here; select Save to try applying it again, or remove the Channels resource to finish without it.",
@@ -6589,39 +6701,39 @@
   },
   "admin.global_attributes.attribute_details.save_error.generic": {
     "defaultMessage": "Something went wrong while saving this attribute. Please try again.",
-    "description": "Fallback red error banner on the System Console > System Attributes > Manage Attributes > New attribute page when saving fails for an unrecognized reason."
+    "description": "Fallback red error banner on the System Console > System Attributes > Attribute Management > New attribute page when saving fails for an unrecognized reason."
   },
   "admin.global_attributes.attribute_details.save_error.invalid_charset": {
     "defaultMessage": "Name must start with a letter or underscore, and contain only letters, numbers, and underscores.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when the server rejects the attribute's unique name for using disallowed characters. \"Name\" here means the internal unique name, not the display name."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the server rejects the attribute's unique name for using disallowed characters. \"Name\" here means the internal unique name, not the display name."
   },
   "admin.global_attributes.attribute_details.save_error.invalid_options": {
     "defaultMessage": "There's a problem with one or more options — check for a duplicate or overly long name, or a missing/duplicate rank, then try again.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when the server rejects the list of select/multiselect/ranked option values. \"rank\" is the numeric ordering position assigned to each option."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the server rejects the list of select/multiselect/ranked option values. \"rank\" is the numeric ordering position assigned to each option."
   },
   "admin.global_attributes.attribute_details.save_error.limit_reached": {
     "defaultMessage": "You have reached the maximum number of attributes for this server. Delete an existing attribute before creating a new one.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when the server's per-server cap on attribute definitions has been hit. Addressed to a system admin."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the server's per-server cap on attribute definitions has been hit. Addressed to a system admin."
   },
   "admin.global_attributes.attribute_details.save_error.name_conflict": {
     "defaultMessage": "An attribute with this name already exists. Please choose a different name.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when another attribute already uses the same unique name."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when another attribute already uses the same unique name."
   },
   "admin.global_attributes.attribute_details.save_error.reserved_word": {
     "defaultMessage": "This name is a reserved word and cannot be used. Please choose a different name.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when the chosen unique name matches a word reserved by the system."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the chosen unique name matches a word reserved by the system."
   },
   "admin.global_attributes.attribute_details.save_error.type_change_with_dependents": {
     "defaultMessage": "This attribute's type can't be changed while it applies to a resource. Remove those resources first, then try again.",
-    "description": "Error in the attribute details page in System Console > System Attributes > Manage Attributes when the attribute's type cannot change because it still applies to resources."
+    "description": "Error in the attribute details page in System Console > System Attributes > Attribute Management when the attribute's type cannot change because it still applies to resources."
   },
   "admin.global_attributes.attribute_details.subtitle": {
     "defaultMessage": "Add a display name, choose a type, and pick where it applies.",
-    "description": "Subtitle line under the page heading of System Console > System Attributes > Manage Attributes > New attribute. Summarizes the three steps of the form below (display name, type, and which resources it applies to)."
+    "description": "Subtitle line under the page heading of System Console > System Attributes > Attribute Management > New attribute. Summarizes the three steps of the form below (display name, type, and which resources it applies to)."
   },
   "admin.global_attributes.attribute_details.title": {
     "defaultMessage": "New attribute",
-    "description": "Page heading (h1) of the attribute creation page in System Console > System Attributes > Manage Attributes. \"New\" is an adjective describing the attribute being created, not a verb."
+    "description": "Page heading (h1) of the attribute creation page in System Console > System Attributes > Attribute Management. \"New\" is an adjective describing the attribute being created, not a verb."
   },
   "admin.global_attributes.attribute_details.type.field_aria_label": {
     "defaultMessage": "Type: {value}",
@@ -6629,11 +6741,11 @@
   },
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": {
     "defaultMessage": "Type: {value}. Locked while this attribute applies to a resource.",
-    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource. {value} is the current type."
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute applies to a resource. {value} is the current type."
   },
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": {
-    "defaultMessage": "Type: Text. Locked while linked to an external source.",
-    "description": "Screen-reader label for the Type dropdown on the New attribute page when the control is disabled because the attribute is linked to AD/LDAP or SAML. \"Text\" is the fixed attribute type name and should match the Text type label used elsewhere."
+  "admin.global_attributes.attribute_details.type.field_locked_external_source_aria_label": {
+    "defaultMessage": "Type: {value}. Locked while linked to an external source.",
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute is linked to AD/LDAP, SAML, or OpenID Connect. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": {
     "defaultMessage": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
@@ -6645,23 +6757,23 @@
   },
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": {
     "defaultMessage": "Type: {value}. Locked because this attribute is managed by a plugin.",
-    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages. {value} is the current type."
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin manages. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": {
     "defaultMessage": "Type: {value}. Locked because this attribute was managed by a plugin that's no longer installed.",
-    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed. {value} is the current type."
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.label": {
     "defaultMessage": "Type",
-    "description": "Form field label for the attribute type selector on the New attribute page (System Console > System Attributes > Manage Attributes). Noun."
+    "description": "Form field label for the attribute type selector on the New attribute page (System Console > System Attributes > Attribute Management). Noun."
   },
   "admin.global_attributes.attribute_details.type.locked_applies_to_tooltip": {
     "defaultMessage": "Type cannot be changed while this attribute applies to a resource.",
-    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource."
+    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute applies to a resource."
   },
   "admin.global_attributes.attribute_details.type.locked_external_source_tooltip": {
     "defaultMessage": "Type cannot be changed while this attribute is linked to an external source.",
-    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute is linked to an external source."
+    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute is linked to an external source."
   },
   "admin.global_attributes.attribute_details.type.locked_graph_tooltip": {
     "defaultMessage": "Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.",
@@ -6673,11 +6785,11 @@
   },
   "admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
-    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed."
+    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.type.locked_plugin_tooltip": {
     "defaultMessage": "Type cannot be changed — this attribute is managed by a plugin.",
-    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages."
+    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin manages."
   },
   "admin.global_attributes.attribute_details.type.menu_label": {
     "defaultMessage": "Select type",
@@ -6709,11 +6821,11 @@
   },
   "admin.global_attributes.attribute_details.unique_name.locked_applies_to_aria_label": {
     "defaultMessage": "Edit unique name. Locked while this attribute applies to a resource.",
-    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource."
+    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute applies to a resource."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_applies_to_tooltip": {
     "defaultMessage": "Name cannot be changed while this attribute applies to a resource. Remove and save first.",
-    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource."
+    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute applies to a resource."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_owned_aria_label": {
     "defaultMessage": "Edit unique name. Locked because this attribute is managed by {owners}.",
@@ -6725,19 +6837,19 @@
   },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_aria_label": {
     "defaultMessage": "Edit unique name. Locked because this attribute is managed by a plugin.",
-    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages."
+    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin manages."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_orphaned_aria_label": {
     "defaultMessage": "Edit unique name. Locked because this attribute was managed by a plugin that's no longer installed.",
-    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed."
+    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "Name cannot be changed — this attribute was managed by a plugin that's no longer installed.",
-    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed."
+    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_tooltip": {
     "defaultMessage": "Name cannot be changed — this attribute is managed by a plugin.",
-    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages."
+    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin manages."
   },
   "admin.global_attributes.attribute_details.unique_name.prefix": {
     "defaultMessage": "Unique name:",
@@ -6805,7 +6917,7 @@
   },
   "admin.global_attributes.confirm.delete.body": {
     "defaultMessage": "Deleting this attribute will permanently remove its definition. This action cannot be undone.",
-    "description": "Body text of the confirmation dialog shown before deleting an attribute definition from System Console > System Attributes > Manage Attributes."
+    "description": "Body text of the confirmation dialog shown before deleting an attribute definition from System Console > System Attributes > Attribute Management."
   },
   "admin.global_attributes.confirm.delete.error.generic": {
     "defaultMessage": "An error occurred while deleting this attribute. Please try again.",
@@ -6825,7 +6937,7 @@
   },
   "admin.global_attributes.confirm.delete.title": {
     "defaultMessage": "Delete {name} attribute",
-    "description": "Title of the delete confirmation dialog in System Console > System Attributes > Manage Attributes. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
+    "description": "Title of the delete confirmation dialog in System Console > System Attributes > Attribute Management. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
   },
   "admin.global_attributes.confirm.remove_applies_to.body": {
     "defaultMessage": "This will permanently delete every value stored for this attribute on {resources}. This action cannot be undone.",
@@ -6837,27 +6949,27 @@
   },
   "admin.global_attributes.confirm.remove_applies_to.title": {
     "defaultMessage": "Remove {resources}?",
-    "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Manage Attributes before removing an attribute from resources. {resources} is a list of resource names."
+    "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Attribute Management before removing an attribute from resources. {resources} is a list of resource names."
   },
   "admin.global_attributes.name_conflict.details_notice": {
     "defaultMessage": "Another attribute already uses this name.",
-    "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Manage Attributes when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
+    "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Attribute Management when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
   },
   "admin.global_attributes.name_conflict.linked_to_template": {
     "defaultMessage": "A user attribute named \"{name}\" already exists and is linked to {owner}. Policies that use user.attributes.{name} read {owner}'s options, not this attribute's.",
-    "description": "Warning in System Console > System Attributes > Manage Attributes when another attribute already owns a user attribute of this name. {name} is that attribute's unique name and {owner} is the display name of the attribute it belongs to. 'user.attributes.' is literal policy syntax and must stay English."
+    "description": "Warning in System Console > System Attributes > Attribute Management when another attribute already owns a user attribute of this name. {name} is that attribute's unique name and {owner} is the display name of the attribute it belongs to. 'user.attributes.' is literal policy syntax and must stay English."
   },
   "admin.global_attributes.name_conflict.standalone": {
     "defaultMessage": "A standalone user attribute named \"{name}\" already exists. Policies that use user.attributes.{name} read that attribute, not this one.",
-    "description": "Warning in System Console > System Attributes > Manage Attributes when a user attribute of this name exists on its own rather than belonging to another attribute. {name} is its unique name. 'user.attributes.' is literal policy syntax and must stay English."
+    "description": "Warning in System Console > System Attributes > Attribute Management when a user attribute of this name exists on its own rather than belonging to another attribute. {name} is its unique name. 'user.attributes.' is literal policy syntax and must stay English."
   },
   "admin.global_attributes.name_conflict.users_blocked_menu_label": {
     "defaultMessage": "Name already in use",
-    "description": "Secondary label under the disabled Users option in the 'Add resource' menu on the attribute details page in System Console > System Attributes > Manage Attributes, saying why it cannot be chosen."
+    "description": "Secondary label under the disabled Users option in the 'Add resource' menu on the attribute details page in System Console > System Attributes > Attribute Management, saying why it cannot be chosen."
   },
   "admin.global_attributes.new_attribute": {
     "defaultMessage": "New attribute",
-    "description": "Label of the primary button at the top of System Console > System Attributes > Manage Attributes that opens the attribute creation page. \"New\" is an adjective; keep it identical to the creation page heading."
+    "description": "Label of the primary button at the top of System Console > System Attributes > Attribute Management that opens the attribute creation page. \"New\" is an adjective; keep it identical to the creation page heading."
   },
   "admin.global_attributes.owners.scoped": {
     "defaultMessage": "{owner}: {scopes}",
@@ -6869,7 +6981,7 @@
   },
   "admin.global_attributes.subtitle": {
     "defaultMessage": "Define an attribute once, then choose which resources can use it.",
-    "description": "Subtitle line under the \"Manage Attributes\" heading in System Console > System Attributes. \"resources\" means the object types (Users, Channels, Posts) an attribute can be attached to."
+    "description": "Subtitle line under the \"Attribute Management\" heading in System Console > System Attributes. \"resources\" means the object types (Users, Channels, Posts) an attribute can be attached to."
   },
   "admin.global_attributes.table.actions.classification_link": {
     "defaultMessage": "Open Classification Markings",
@@ -6901,7 +7013,7 @@
   },
   "admin.global_attributes.table.actions.view": {
     "defaultMessage": "View attribute",
-    "description": "Row action in the attributes table in System Console > System Attributes > Manage Attributes; opens an attribute that cannot be edited."
+    "description": "Row action in the attributes table in System Console > System Attributes > Attribute Management; opens an attribute that cannot be edited."
   },
   "admin.global_attributes.table.applies_to": {
     "defaultMessage": "Applies to",
@@ -6947,14 +7059,6 @@
     "defaultMessage": "Classification Markings",
     "description": "Value in the Source column of the attributes table for the built-in Classification Markings attribute. This is the product feature name."
   },
-  "admin.global_attributes.table.source.ldap": {
-    "defaultMessage": "AD/LDAP",
-    "description": "Value in the Source column of the attributes table when the attribute is synced from Active Directory/LDAP. Keep the AD/LDAP abbreviation as-is."
-  },
-  "admin.global_attributes.table.source.ldap_and_saml": {
-    "defaultMessage": "AD/LDAP, SAML",
-    "description": "Value in the Source column of the attributes table when the attribute is synced from both AD/LDAP and SAML. Keep both abbreviations as-is; only the separator may change."
-  },
   "admin.global_attributes.table.source.managed": {
     "defaultMessage": "Managed here",
     "description": "Value in the Source column of the attributes table meaning the attribute's values are maintained inside Mattermost rather than synced from an external directory. \"here\" refers to this admin console screen."
@@ -6962,10 +7066,6 @@
   "admin.global_attributes.table.source.owned_by": {
     "defaultMessage": "Managed by {owners}",
     "description": "Value in the Source column of the attributes table in System Console > Attribute Management when integrations own the attribute and set its values. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
-  },
-  "admin.global_attributes.table.source.saml": {
-    "defaultMessage": "SAML",
-    "description": "Value in the Source column of the attributes table when the attribute is synced from SAML. Keep the abbreviation as-is."
   },
   "admin.global_attributes.table.type": {
     "defaultMessage": "Type",
@@ -7572,7 +7672,7 @@
     "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
   },
   "admin.health_dashboard.finding.unknown_badge": {
-    "defaultMessage": "Unknown ({severity} when firing)",
+    "defaultMessage": "Unknown ({severity} if firing)",
     "description": "Badge on a finding row of the System Console Site health page for a check that could not be evaluated; {severity} is a severity label (Critical, Warning or Info) the finding would have if it fired."
   },
   "admin.health_dashboard.finding.unknown_fallback": {
@@ -9623,10 +9723,6 @@
     "defaultMessage": "When true, logged events are written in a machine readable JSON format. Otherwise they are printed as plain text. Changing this setting requires a server restart before taking effect.",
     "description": "Admin console help text under a JSON log output toggle on the Logging page."
   },
-  "admin.log.Level": {
-    "defaultMessage": "Level",
-    "description": "Column header in the Server Logs table for the log severity level (Debug/Info/Warn/Error)."
-  },
   "admin.log.levelDescription": {
     "defaultMessage": "This setting determines the level of detail at which log events are written to the console. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.",
     "description": "Admin console help text under the Console Log Level dropdown; ERROR, INFO, and DEBUG are literal log level values and must not be translated."
@@ -9667,77 +9763,365 @@
     "defaultMessage": "Log Level",
     "description": "Name of the Log Level setting, inserted in bold into the Enable Webhook Debugging help text to refer the admin to that other setting."
   },
-  "admin.logs.Alllevels": {
+  "admin.logs.allLevels": {
     "defaultMessage": "All levels",
-    "description": "Default option in the log level filter dropdown on the Server Logs page; shows entries of every severity."
+    "description": "Option in the log level filter on the System Console Server Logs page; shows entries of every level."
   },
-  "admin.logs.bannerDesc": {
-    "defaultMessage": "To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.",
-    "description": "Informational banner on the Server Logs page telling admins how to look up user or token IDs found in logs; 'User Management > Users' is a System Console menu path."
+  "admin.logs.allNodes": {
+    "defaultMessage": "All nodes",
+    "description": "Option in the node selector on the System Console Server Logs page; shows log entries from every node in the cluster."
   },
-  "admin.logs.caller": {
+  "admin.logs.clearFilters": {
+    "defaultMessage": "Clear filters",
+    "description": "Link shown when no log entries match the filters on the System Console Server Logs page; resets all filters."
+  },
+  "admin.logs.copied": {
+    "defaultMessage": "Copied!",
+    "description": "Confirmation shown briefly on a copy button on the System Console Server Logs page after the text was copied to the clipboard."
+  },
+  "admin.logs.copiedLine": {
+    "defaultMessage": "Copied!",
+    "description": "Confirmation shown briefly on the \"Copy log line\" button on the System Console Server Logs page after the line was copied."
+  },
+  "admin.logs.copyAll": {
+    "defaultMessage": "Copy all",
+    "description": "Button label in the plain text log viewer on the System Console Server Logs page; copies all visible log lines to the clipboard."
+  },
+  "admin.logs.copyFailed": {
+    "defaultMessage": "Copy failed",
+    "description": "Message shown on a copy button on the System Console Server Logs page when copying to the clipboard did not work."
+  },
+  "admin.logs.copyJson": {
+    "defaultMessage": "Copy JSON",
+    "description": "Button label in an expanded log entry on the System Console Server Logs page; copies the entry as JSON to the clipboard."
+  },
+  "admin.logs.copyLine": {
+    "defaultMessage": "Copy log line",
+    "description": "Button label in an expanded log entry on the System Console Server Logs page; copies the raw log line to the clipboard."
+  },
+  "admin.logs.copyToClipboard": {
+    "defaultMessage": "Copy to clipboard",
+    "description": "Accessible label for the icon button that copies a field value of a log entry on the System Console Server Logs page."
+  },
+  "admin.logs.detail.caller": {
     "defaultMessage": "Caller",
-    "description": "Column header in the Server Logs table for the code location (file:line) that emitted the log entry."
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the source file and line that wrote the log follows."
   },
-  "admin.logs.Debug": {
-    "defaultMessage": "Debug",
-    "description": "Log severity level shown in the Server Logs table and its level filter; keep short."
+  "admin.logs.detail.timestamp": {
+    "defaultMessage": "Timestamp",
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the date and time of the entry follows."
+  },
+  "admin.logs.download": {
+    "defaultMessage": "Download",
+    "description": "Button label in the plain text log viewer on the System Console Server Logs page; downloads the log file."
   },
   "admin.logs.DownloadLogs": {
-    "defaultMessage": "Download Logs",
+    "defaultMessage": "Download",
     "description": "Button label on the System Console Server Logs page; downloads the log files."
   },
-  "admin.logs.Error": {
+  "admin.logs.duration": {
+    "defaultMessage": "Duration",
+    "description": "Label of the time range filter on the System Console Server Logs page; limits entries to a recent period."
+  },
+  "admin.logs.duration.dropdownAriaLabel": {
+    "defaultMessage": "Time range menu",
+    "description": "Accessible label for the time range dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.duration.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select a time range",
+    "description": "Accessible label for the button that opens the time range menu on the System Console Server Logs page."
+  },
+  "admin.logs.firstPage": {
+    "defaultMessage": "First page",
+    "description": "Accessible label for the pagination button that jumps to the first page of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.go": {
+    "defaultMessage": "Go",
+    "description": "Button label next to the page number input on the System Console Server Logs page; jumps to the entered page."
+  },
+  "admin.logs.goToPage": {
+    "defaultMessage": "Go to page",
+    "description": "Accessible label for the button that opens the \"go to page\" input on the System Console Server Logs page."
+  },
+  "admin.logs.goToPageLabel": {
+    "defaultMessage": "Go to page:",
+    "description": "Label for the page number input on the System Console Server Logs page; ends with a colon."
+  },
+  "admin.logs.header.caller": {
+    "defaultMessage": "Caller",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the source file and line that wrote each log."
+  },
+  "admin.logs.header.level": {
+    "defaultMessage": "Level",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the log level."
+  },
+  "admin.logs.header.message": {
+    "defaultMessage": "Message",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the log message."
+  },
+  "admin.logs.header.node": {
+    "defaultMessage": "Node",
+    "description": "Column header on the System Console Server Logs page; the cluster node each log entry came from."
+  },
+  "admin.logs.header.time": {
+    "defaultMessage": "Time",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows when each entry was written."
+  },
+  "admin.logs.keyboardHints.collapse": {
+    "defaultMessage": "Collapse entry",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the Esc key."
+  },
+  "admin.logs.keyboardHints.expand": {
+    "defaultMessage": "Expand entry",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the Enter key."
+  },
+  "admin.logs.keyboardHints.navigate": {
+    "defaultMessage": "Move between entries",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the Up and Down arrow keys."
+  },
+  "admin.logs.keyboardHints.search": {
+    "defaultMessage": "Search",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the / key, which focuses the log search box."
+  },
+  "admin.logs.keyboardHints.title": {
+    "defaultMessage": "Keyboard shortcuts",
+    "description": "Heading of the keyboard shortcuts tooltip on the System Console Server Logs page."
+  },
+  "admin.logs.keyboardHintsLabel": {
+    "defaultMessage": "Keyboard shortcuts",
+    "description": "Accessible label for the keyboard shortcuts help button on the System Console Server Logs page."
+  },
+  "admin.logs.level.debug": {
+    "defaultMessage": "Debug",
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page."
+  },
+  "admin.logs.level.error": {
     "defaultMessage": "Error",
-    "description": "Log severity level shown in the Server Logs table and its level filter; a noun, keep short."
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page."
   },
-  "admin.logs.fullEvent": {
-    "defaultMessage": "Full Log event",
-    "description": "Button label in a Server Logs table row that opens a modal showing the complete JSON log event."
-  },
-  "admin.logs.Info": {
+  "admin.logs.level.info": {
     "defaultMessage": "Info",
-    "description": "Log severity level shown in the Server Logs table and its level filter; keep short."
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page; short for \"Information\"."
   },
-  "admin.logs.logFormatJson": {
-    "defaultMessage": "JSON",
-    "description": "Option in the log format toggle on the Server Logs page; shows logs as structured JSON. 'JSON' should usually remain untranslated."
+  "admin.logs.level.warn": {
+    "defaultMessage": "Warn",
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page; short for \"Warning\"."
+  },
+  "admin.logs.levels": {
+    "defaultMessage": "Levels",
+    "description": "Label of the log level filter on the System Console Server Logs page."
+  },
+  "admin.logs.levels.dropdownAriaLabel": {
+    "defaultMessage": "Log levels menu",
+    "description": "Accessible label for the log level dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.levels.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select which log levels to show",
+    "description": "Accessible label for the button that opens the log level menu on the System Console Server Logs page."
+  },
+  "admin.logs.levels.selectAll": {
+    "defaultMessage": "Select all levels",
+    "description": "Option in the log level menu on the System Console Server Logs page; selects every level."
+  },
+  "admin.logs.levels.selected": {
+    "defaultMessage": "{count} selected",
+    "description": "Summary in the log level filter on the System Console Server Logs page when several levels are chosen; {count} is the number of selected levels."
+  },
+  "admin.logs.lineNumbers": {
+    "defaultMessage": "Lines",
+    "description": "Toggle button label in the plain text log viewer on the System Console Server Logs page; shows or hides line numbers."
+  },
+  "admin.logs.listLabel": {
+    "defaultMessage": "Server log entries",
+    "description": "Accessible label for the list of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.liveTail": {
+    "defaultMessage": "Live tail",
+    "description": "Label of the live tail selector on the System Console Server Logs page; when on, new log entries are fetched automatically."
+  },
+  "admin.logs.liveTail.dropdownAriaLabel": {
+    "defaultMessage": "Live tail menu",
+    "description": "Accessible label for the live tail dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.liveTail.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to turn live tail on or off",
+    "description": "Accessible label for the button that opens the live tail menu on the System Console Server Logs page."
+  },
+  "admin.logs.liveTail.off": {
+    "defaultMessage": "Off",
+    "description": "Option in the live tail selector on the System Console Server Logs page; turns automatic refreshing off."
+  },
+  "admin.logs.loading": {
+    "defaultMessage": "Loading logs",
+    "description": "Text next to a loading spinner on the System Console Server Logs page while log entries are fetched."
+  },
+  "admin.logs.logFormat.dropdownAriaLabel": {
+    "defaultMessage": "Log format menu",
+    "description": "Accessible label for the log format dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.logFormat.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select the log format",
+    "description": "Accessible label for the button that opens the log format menu on the System Console Server Logs page."
   },
   "admin.logs.logFormatPlain": {
     "defaultMessage": "Plain text",
     "description": "Option in the log format toggle on the Server Logs page; shows logs as unformatted plain text."
   },
+  "admin.logs.logFormatStructured": {
+    "defaultMessage": "Structured",
+    "description": "Option in the log format menu on the System Console Server Logs page; shows logs as a table of parsed entries rather than raw text."
+  },
   "admin.logs.logFormatTitle": {
-    "defaultMessage": "Log Format:",
-    "description": "Label for the log format toggle (JSON vs. plain text) on the Server Logs page; ends with a colon."
+    "defaultMessage": "Log format",
+    "description": "Label of the log format menu on the System Console Server Logs page; switches between structured and plain text views."
   },
-  "admin.logs.next": {
-    "defaultMessage": "Next",
-    "description": "Pagination button label on the plain-text server logs view; goes to the next page of log lines."
+  "admin.logs.newestFirst": {
+    "defaultMessage": "Newest",
+    "description": "Sort button label in the plain text log viewer on the System Console Server Logs page; shown while the newest lines are listed first."
   },
-  "admin.logs.options": {
-    "defaultMessage": "Options",
-    "description": "Column header in the Server Logs table for the per-row actions column."
+  "admin.logs.nextPage": {
+    "defaultMessage": "Next page",
+    "description": "Accessible label for the pagination button that goes to the next page of log entries on the System Console Server Logs page."
   },
-  "admin.logs.prev": {
-    "defaultMessage": "Previous",
-    "description": "Pagination button label on the plain-text server logs view; goes to the previous page of log lines."
+  "admin.logs.node": {
+    "defaultMessage": "Node",
+    "description": "Label of the node selector on the System Console Server Logs page; picks which cluster node's log entries are shown."
+  },
+  "admin.logs.node.dropdownAriaLabel": {
+    "defaultMessage": "Node menu",
+    "description": "Accessible label for the node selector menu on the System Console Server Logs page."
+  },
+  "admin.logs.node.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select a node",
+    "description": "Accessible label for the button that opens the node selector on the System Console Server Logs page."
+  },
+  "admin.logs.noLogs": {
+    "defaultMessage": "No logs found. Ensure log files are within the logging root directory.",
+    "description": "Empty state on the System Console Server Logs page when no log entries could be read."
+  },
+  "admin.logs.noMatchingLogs": {
+    "defaultMessage": "No logs match your filters. {clearLink}",
+    "description": "Empty state on the System Console Server Logs page when no entries match the filters; {clearLink} is the \"Clear filters\" link."
+  },
+  "admin.logs.oldestFirst": {
+    "defaultMessage": "Oldest",
+    "description": "Sort button label in the plain text log viewer on the System Console Server Logs page; shown while the oldest lines are listed first."
+  },
+  "admin.logs.pageOf": {
+    "defaultMessage": "Page {page, number} of {total, number}",
+    "description": "Pagination status on the System Console Server Logs page, e.g. \"Page 2 of 10\"."
+  },
+  "admin.logs.plain.loading": {
+    "defaultMessage": "Loading logs",
+    "description": "Text next to a loading spinner in the plain text log viewer on the System Console Server Logs page."
+  },
+  "admin.logs.plain.noLogs": {
+    "defaultMessage": "No logs to display.",
+    "description": "Empty state in the plain text log viewer on the System Console Server Logs page."
+  },
+  "admin.logs.plain.pageInfo": {
+    "defaultMessage": "Showing page {page, number} · {count, plural, one {# line} other {# lines}}",
+    "description": "Status line in the plain text log viewer on the System Console Server Logs page; shows the current page and how many log lines it holds."
+  },
+  "admin.logs.pollInterval.10s": {
+    "defaultMessage": "Every 10 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 10 seconds."
+  },
+  "admin.logs.pollInterval.30s": {
+    "defaultMessage": "Every 30 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 30 seconds."
+  },
+  "admin.logs.pollInterval.60s": {
+    "defaultMessage": "Every 60 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 60 seconds."
+  },
+  "admin.logs.prevPage": {
+    "defaultMessage": "Previous page",
+    "description": "Accessible label for the pagination button that goes to the previous page of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.refreshing": {
+    "defaultMessage": "Refreshing…",
+    "description": "Status text on the System Console Server Logs page while new log entries are being fetched in the background."
+  },
+  "admin.logs.reload": {
+    "defaultMessage": "Reload",
+    "description": "Button label on the System Console Server Logs page; re-fetches the latest log entries from the server."
   },
   "admin.logs.ReloadLogs": {
-    "defaultMessage": "Reload Logs",
+    "defaultMessage": "Reload",
     "description": "Button label on the Server Logs page; re-fetches the latest log entries from the server."
   },
-  "admin.logs.showErrors": {
-    "defaultMessage": "Show last {n} errors",
-    "description": "Filter button on the Server Logs page that shows only recent error entries; {n} is the number of errors to display."
+  "admin.logs.rowsPerPage": {
+    "defaultMessage": "Show",
+    "description": "Text before the page size dropdown on the System Console Server Logs page; reads together with \"rows per page\", e.g. \"Show [50] rows per page\"."
+  },
+  "admin.logs.rowsPerPageSuffix": {
+    "defaultMessage": "rows per page",
+    "description": "Text after the page size dropdown on the System Console Server Logs page; reads together with \"Show\", e.g. \"Show [50] rows per page\"."
+  },
+  "admin.logs.scrollToBottom": {
+    "defaultMessage": "Scroll to bottom",
+    "description": "Accessible label for the button that scrolls the log list to the bottom on the System Console Server Logs page."
+  },
+  "admin.logs.scrollToTop": {
+    "defaultMessage": "Scroll to top",
+    "description": "Accessible label for the button that scrolls the log list to the top on the System Console Server Logs page."
+  },
+  "admin.logs.search.clear": {
+    "defaultMessage": "Clear search",
+    "description": "Accessible label for the button that clears the log search box on the System Console Server Logs page."
+  },
+  "admin.logs.search.placeholder": {
+    "defaultMessage": "Search logs",
+    "description": "Placeholder text in the log search box on the System Console Server Logs page."
+  },
+  "admin.logs.showing": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {total, number}",
+    "description": "Pagination summary on the System Console Server Logs page, e.g. \"Showing 1 - 50 of 1,200\"."
+  },
+  "admin.logs.showingMatching": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {matches, number} entries matching your filters ({total, number} total)",
+    "description": "Pagination summary on the System Console Server Logs page when filters are applied; shows the range, the number of matching entries and the total."
+  },
+  "admin.logs.sortNewestFirst": {
+    "defaultMessage": "Sort newest first",
+    "description": "Tooltip for the sort button in the plain text log viewer on the System Console Server Logs page; clicking lists the newest lines first."
+  },
+  "admin.logs.sortOldestFirst": {
+    "defaultMessage": "Sort oldest first",
+    "description": "Tooltip for the sort button in the plain text log viewer on the System Console Server Logs page; clicking lists the oldest lines first."
+  },
+  "admin.logs.time.15m": {
+    "defaultMessage": "Last 15 minutes",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.1h": {
+    "defaultMessage": "Last hour",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.24h": {
+    "defaultMessage": "Last 24 hours",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.5m": {
+    "defaultMessage": "Last 5 minutes",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.allTime": {
+    "defaultMessage": "All time",
+    "description": "Option in the time range filter on the System Console Server Logs page; shows entries regardless of age."
   },
   "admin.logs.title": {
     "defaultMessage": "Server Logs",
     "description": "Page title of the Server Logs page in the System Console."
   },
-  "admin.logs.Warn": {
-    "defaultMessage": "Warn",
-    "description": "Log severity level (warning) shown in the Server Logs table and its level filter; keep short."
+  "admin.logs.viewInAdmin": {
+    "defaultMessage": "View in admin console",
+    "description": "Tooltip on a user or team ID link in an expanded log entry on the System Console Server Logs page; opens that item in the System Console."
+  },
+  "admin.logs.wrap": {
+    "defaultMessage": "Wrap text",
+    "description": "Toggle button label in the plain text log viewer on the System Console Server Logs page; wraps long log lines instead of scrolling horizontally."
   },
   "admin.manage_roles.additionalRoles": {
     "defaultMessage": "Select additional permissions for the account. <link>Read more about roles and permissions</link>.",
@@ -10215,6 +10599,18 @@
     "defaultMessage": "Integrate OpenID Connect with Mattermost Professional",
     "description": "Headline on the feature discovery (upsell) page for OpenID Connect; mentions the required plan."
   },
+  "admin.openid.additionalScopesDescription": {
+    "defaultMessage": "Space-separated scopes to request in addition to profile, openid and email, for claims your provider releases only under another scope, such as groups.",
+    "description": "Help text for the Additional Scopes setting on the OpenID Connect settings page. profile, openid, email and groups are literal OAuth scope names and should stay as-is."
+  },
+  "admin.openid.additionalScopesExample": {
+    "defaultMessage": "E.g.: \"groups\"",
+    "description": "Placeholder of the Additional Scopes setting on the OpenID Connect settings page; groups is a literal scope name."
+  },
+  "admin.openid.additionalScopesTitle": {
+    "defaultMessage": "Additional Scopes:",
+    "description": "Label of the setting on the OpenID Connect settings page that lists extra OAuth scopes to request at sign-in."
+  },
   "admin.openid.buttonColorDesc": {
     "defaultMessage": "Specify the color of the OpenID login button for white labeling purposes. Use a hex code with a #-sign before the code.",
     "description": "Admin console help text under the Button Color picker in the OpenID Connect settings; refers to the login button shown on the login page."
@@ -10561,11 +10957,11 @@
   },
   "admin.permission_policies.permission.create_bor.description": {
     "defaultMessage": "Allow users to send burn-on-read messages",
-    "description": "Description of the Send Burn-On-Read permission toggle in the permission policy editor."
+    "description": "Description under the 'Create Burn-on-Read Message' permission toggle in the permission policy editor."
   },
   "admin.permission_policies.permission.create_bor.label": {
     "defaultMessage": "Create Burn-on-Read Message",
-    "description": "Name of the Send Burn-On-Read permission toggle in the permission policy editor; also used as a column value in the policies table."
+    "description": "Name of the permission toggle in the permission policy editor that allows sending burn-on-read messages; also used as a column value in the policies table. Title case, as a permission name."
   },
   "admin.permission_policies.permission.download_file.description": {
     "defaultMessage": "Allow users to download files to their device",
@@ -14051,18 +14447,6 @@
     "defaultMessage": "Password",
     "description": "Page title of the Password settings page in the System Console (Authentication section)."
   },
-  "admin.server_logs.CopyLog": {
-    "defaultMessage": "Copy log",
-    "description": "Button in the header of the log event modal (server logs admin page); copies the log entry JSON to the clipboard."
-  },
-  "admin.server_logs.DataCopied": {
-    "defaultMessage": "Data copied",
-    "description": "Confirmation text that briefly replaces the copy button after the log entry has been copied to the clipboard."
-  },
-  "admin.server_logs.LogEvent": {
-    "defaultMessage": "Log Event",
-    "description": "Title of the modal showing the full JSON of a single server log entry."
-  },
   "admin.service.attemptDescription": {
     "defaultMessage": "Login attempts allowed before user is locked out and required to reset password via email.",
     "description": "Admin console help text for the Maximum Login Attempts setting on the Password admin page."
@@ -17299,6 +17683,14 @@
     "defaultMessage": "User not found",
     "description": "Placeholder message on the admin user detail card when the requested user does not exist."
   },
+  "admin.userManagement.userDetail.openId": {
+    "defaultMessage": "OpenID Connect",
+    "description": "Authentication method shown on a user's System Console detail page for a user who signs in through OpenID Connect; 'OpenID Connect' is a product name and should stay as-is."
+  },
+  "admin.userManagement.userDetail.openid": {
+    "defaultMessage": "OpenID Connect: {propertyName}",
+    "description": "Chip on a user's detail page in the System Console naming the OpenID Connect claim an attribute is synced from. {propertyName} is the claim name."
+  },
   "admin.userManagement.userDetail.picture.edit": {
     "defaultMessage": "Edit profile picture",
     "description": "Screen-reader label for the camera button on the user's profile picture on the user detail page in System Console > Users. It opens a menu of picture options."
@@ -17384,7 +17776,7 @@
     "description": "Description of the 'gzip' option in the Webserver Mode dropdown on the System Console Web Server page; gzip is a compression format (keep name)."
   },
   "admin.webserverModeHelpText": {
-    "defaultMessage": "gzip compression applies to static content files. It is recommended to enable gzip to improve performance unless your environment has specific restrictions, such as a web proxy that distributes gzip files poorly.",
+    "defaultMessage": "gzip compression applies to static content files. It is recommended to enable compression to improve performance unless your environment has specific restrictions, such as a web proxy that distributes compressed files poorly.",
     "description": "Help paragraph shown below the Webserver Mode option table in the admin console; explains when to use gzip compression."
   },
   "admin.webserverModeTitle": {
@@ -18627,6 +19019,58 @@
     "defaultMessage": "Username",
     "description": "Form field label on the bot create/edit form; the bot's @username."
   },
+  "bots.attributes.add": {
+    "defaultMessage": "Add attribute",
+    "description": "Button in the Attributes section of the Add/Edit Bot form that opens a menu of attributes to add to the bot."
+  },
+  "bots.attributes.description": {
+    "defaultMessage": "Configure attributes and values for this bot",
+    "description": "Help text under the Attributes section heading on the Add/Edit Bot form."
+  },
+  "bots.attributes.invalid": {
+    "defaultMessage": "Fix the highlighted attributes before saving.",
+    "description": "Error shown on the Add/Edit Bot form when one or more bot attribute values fail validation and must be corrected before saving."
+  },
+  "bots.attributes.load_failed": {
+    "defaultMessage": "Attributes could not be loaded.",
+    "description": "Error shown in the Attributes section of the Add/Edit Bot form when the bot's attributes fail to load."
+  },
+  "bots.attributes.manage": {
+    "defaultMessage": "Manage attributes",
+    "description": "Item at the bottom of the add-attribute menu on the Add/Edit Bot form, shown to administrators, that opens the System Console page for managing attribute definitions."
+  },
+  "bots.attributes.none_available": {
+    "defaultMessage": "No attributes available",
+    "description": "Item in the add-attribute menu on the Add/Edit Bot form when there are no more attributes that can be added to the bot."
+  },
+  "bots.attributes.retry": {
+    "defaultMessage": "Try again",
+    "description": "Button next to the attribute load error on the Add/Edit Bot form that retries loading the bot's attributes."
+  },
+  "bots.attributes.title": {
+    "defaultMessage": "Attributes",
+    "description": "Section heading for the bot's attributes on the Add/Edit Bot form."
+  },
+  "bots.create_warnings.attributes_failed": {
+    "defaultMessage": "Attributes could not be saved. Edit the bot to add them again.",
+    "description": "Line in the warning banner shown after a bot is created, when the bot's attribute values could not be saved."
+  },
+  "bots.create_warnings.image_failed": {
+    "defaultMessage": "The bot icon could not be saved. Edit the bot to upload it again.",
+    "description": "Line in the warning banner shown after a bot is created, when the bot's profile icon could not be saved."
+  },
+  "bots.create_warnings.roles_failed": {
+    "defaultMessage": "The role and post permissions could not be saved. Edit the bot to set them again.",
+    "description": "Line in the warning banner shown after a bot is created, when the bot's role and posting permissions could not be saved."
+  },
+  "bots.create_warnings.title": {
+    "defaultMessage": "Bot account created, but some settings were not saved",
+    "description": "Title of the warning banner shown on the bot confirmation page or Bot Accounts list when a bot was created but some of its settings failed to save."
+  },
+  "bots.create_warnings.token_failed": {
+    "defaultMessage": "An access token could not be created. Create one from this bot's Create New Token option, or ask a System Admin if you don't have permission.",
+    "description": "Line in the warning banner shown after a bot is created, when its default access token could not be created; \"Create New Token\" is the name of the option on the bot's entry in the Bot Accounts list."
+  },
   "bots.disabled": {
     "defaultMessage": "Disabled",
     "description": "Section heading separating disabled bots from active ones in the Bot Accounts list; 'Disabled' describes the bots below it."
@@ -18687,9 +19131,21 @@
     "defaultMessage": "Edit",
     "description": "Link (verb) on a bot row and breadcrumb segment on the bot edit page."
   },
+  "bots.manage.edit.attributes_failed": {
+    "defaultMessage": "The bot was updated, but its attributes could not be saved. {error}",
+    "description": "Error on the Edit Bot form when the bot was saved but its attribute values were not. {error} is the server error message."
+  },
   "bots.manage.edit.editing": {
     "defaultMessage": "Updating...",
     "description": "Submit button label while saving changes to an existing bot account; ellipsis indicates ongoing action."
+  },
+  "bots.manage.edit.image_failed": {
+    "defaultMessage": "The bot was updated, but its profile image could not be saved. {error}",
+    "description": "Error on the Edit Bot form when the bot was saved but its profile image was not. {error} is the server error message."
+  },
+  "bots.manage.edit.roles_failed": {
+    "defaultMessage": "The bot was updated, but its role and post permissions could not be saved. {error}",
+    "description": "Error on the Edit Bot form when the bot was saved but its role and posting permissions were not. {error} is the server error message."
   },
   "bots.manage.edit.title": {
     "defaultMessage": "Update",
@@ -18833,27 +19289,27 @@
   },
   "call_button.start_call": {
     "defaultMessage": "Start call",
-    "description": ""
+    "description": "Label on the channel header button that opens a menu of ways to call the other user in a DM: a Mattermost call or a phone call."
   },
   "call_options.aria_label": {
     "defaultMessage": "Call options",
-    "description": ""
+    "description": "Accessible label for the call button, and the menu it opens, offering ways to call a user from a DM channel header or their profile popover."
   },
   "call_options.audio": {
     "defaultMessage": "Start an Audio Call",
-    "description": ""
+    "description": "Call options menu item that starts a voice call through the Mattermost Calls plugin."
   },
   "call_options.audio_sub": {
     "defaultMessage": "Mattermost Call",
-    "description": ""
+    "description": "Secondary line under the call options menu item that starts an audio call, naming it as a call made within Mattermost rather than a phone call."
   },
   "call_options.phone": {
     "defaultMessage": "Call {label}",
-    "description": ""
+    "description": "Call options menu item that phones the user on one of their numbers; {label} is the name of the profile attribute holding the number, such as \"Mobile\" or \"Work phone\"."
   },
   "call_options.phone_sub": {
     "defaultMessage": "{number} • Phone call",
-    "description": ""
+    "description": "Secondary line under a call options menu item that phones the user; {number} is the phone number that will be dialed."
   },
   "carousel.nextButton": {
     "defaultMessage": "Next",
@@ -19517,27 +19973,19 @@
   },
   "channel_info_rhs.top_buttons.favorite": {
     "defaultMessage": "Favorite",
-    "description": "Label of the favorite toggle button at the top of the channel info sidebar when the channel is not favorited ('Favorite' as a verb); also used in the channel intro."
+    "description": "Label of the favorite toggle button at the top of the channel info sidebar; stays the same whether or not the channel is favorited ('Favorite' as a verb); also used in the channel intro."
   },
   "channel_info_rhs.top_buttons.favorite.tooltip": {
     "defaultMessage": "Add this channel to favorites",
     "description": "Tooltip on the favorite button at the top of the channel info right-hand sidebar; adds the channel to the Favorites sidebar category."
   },
-  "channel_info_rhs.top_buttons.favorited": {
-    "defaultMessage": "Favorited",
-    "description": "Toggled-state label on the favorite button in the channel info sidebar, shown when the channel is already a favorite; past participle, compact space."
-  },
   "channel_info_rhs.top_buttons.mute": {
     "defaultMessage": "Mute",
-    "description": "Label of the mute toggle button at the top of the channel info sidebar when the channel is unmuted ('Mute' as a verb)."
+    "description": "Label of the mute toggle button at the top of the channel info sidebar; stays the same whether or not the channel is muted ('Mute' as a verb)."
   },
   "channel_info_rhs.top_buttons.mute.tooltip": {
     "defaultMessage": "Mute notifications for this channel",
     "description": "Tooltip on the mute button at the top of the channel info right-hand sidebar; mutes channel notifications."
-  },
-  "channel_info_rhs.top_buttons.muted": {
-    "defaultMessage": "Muted",
-    "description": "Toggled-state label on the mute button in the channel info sidebar, shown when the channel is muted; past participle, compact space."
   },
   "channel_invite.addNewMembers": {
     "defaultMessage": "Add people to {channel}",
@@ -20265,7 +20713,7 @@
   },
   "channel_settings.permissions_policy.action.create_bor": {
     "defaultMessage": "Create burn-on-read message",
-    "description": "Permission actioname inn the channel Permissions Policy rule editor; allows sending of burn-on-read messages."
+    "description": "Permission action in the channel Permissions Policy rule editor; allows sending burn-on-read messages."
   },
   "channel_settings.permissions_policy.action.create_bor.description": {
     "defaultMessage": "Allow users to send burn-on-read messages in this channel",
@@ -23014,6 +23462,10 @@
   "forward_post_modal.button.forward": {
     "defaultMessage": "Forward",
     "description": "Confirm button in the Forward Message modal; verb, sends the message to the selected channel."
+  },
+  "forward_post_modal.channel_select.placeholder": {
+    "defaultMessage": "Select channel or people",
+    "description": "Placeholder of the destination search box in the Forward Message modal; the user types to find a channel or a person to send the message to."
   },
   "forward_post_modal.comment.placeholder": {
     "defaultMessage": "Add a comment (optional)",
@@ -26679,6 +27131,14 @@
     "defaultMessage": "No saved messages yet",
     "description": "Empty-state title of the Saved messages panel when the user has not saved any messages."
   },
+  "no_results.mentions_filtered.subtitle": {
+    "defaultMessage": "Try removing or changing a filter to see more of your mentions.",
+    "description": "Explanatory text in the empty Recent Mentions panel when the applied filters match no mentions."
+  },
+  "no_results.mentions_filtered.title": {
+    "defaultMessage": "No mentions match your filters",
+    "description": "Empty-state title of the Recent Mentions panel when the applied filters match no mentions, as opposed to the user having no mentions at all."
+  },
   "no_results.mentions.subtitle": {
     "defaultMessage": "Messages where someone mentions you or includes your trigger words are saved here.",
     "description": "Explanatory text in the empty Recent Mentions panel describing what appears there."
@@ -28003,6 +28463,14 @@
     "defaultMessage": "The values for this attribute are not available to you here.",
     "description": "Status line inside the hierarchical value picker when the server does not send this attribute's values to the current user, for example because the user lacks permission."
   },
+  "property_fields.user_attribute_fields.remove": {
+    "defaultMessage": "Remove {name}",
+    "description": "Accessible label for the trash-can button that removes an attribute row from a bot's attributes. {name} is the attribute's display name."
+  },
+  "property_fields.user_attribute_fields.required": {
+    "defaultMessage": "This attribute is required.",
+    "description": "Inline validation error under a user or bot attribute input when a required attribute is left empty."
+  },
   "property_option.color.blue": {
     "defaultMessage": "Blue",
     "description": "Color name option in the color picker for board attribute value labels in the System Console."
@@ -28454,6 +28922,10 @@
   "recaps.modal.saveChanges": {
     "defaultMessage": "Save changes",
     "description": "Confirm button on the final step of the AI recap modal when editing an existing scheduled recap."
+  },
+  "recaps.modal.searchChannels": {
+    "defaultMessage": "Search and select channels",
+    "description": "Placeholder of the channel search input in the create recap modal."
   },
   "recaps.modal.selectChannels": {
     "defaultMessage": "Select the channels you want to include",
@@ -29323,6 +29795,86 @@
     "defaultMessage": "Recent files",
     "description": "Heading above the list of a channel's recently shared files in the right-hand sidebar, next to a file-type filter menu."
   },
+  "search_results.mention_filters.all_teams": {
+    "defaultMessage": "All teams",
+    "description": "Option in the Team selector of the Recent Mentions filters popover, meaning mentions from every team the user belongs to."
+  },
+  "search_results.mention_filters.apply": {
+    "defaultMessage": "Apply",
+    "description": "Button that applies the filters and closes the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.button": {
+    "defaultMessage": "Filters",
+    "description": "Label of the button at the top of the Recent Mentions panel that opens the filters popover, shown when no filter is applied."
+  },
+  "search_results.mention_filters.button_with_count": {
+    "defaultMessage": "Filters ({count})",
+    "description": "Label of the button that opens the Recent Mentions filters popover, with the number of filters currently applied in brackets."
+  },
+  "search_results.mention_filters.channel_on_team": {
+    "defaultMessage": "{channel} ({team})",
+    "description": "Label of a channel filter chip under the Recent Mentions header when no team filter is set, where a channel name alone can be ambiguous. {channel} is the channel name, {team} its team."
+  },
+  "search_results.mention_filters.channels": {
+    "defaultMessage": "Channel or Direct Messages",
+    "description": "Label of the channel multi-select in the Recent Mentions filters popover. Also used as its placeholder when no channel is selected."
+  },
+  "search_results.mention_filters.date": {
+    "defaultMessage": "Date",
+    "description": "Heading of the date section of the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.date.any": {
+    "defaultMessage": "Any time",
+    "description": "Date option in the Recent Mentions filters popover: do not limit results by date. The default."
+  },
+  "search_results.mention_filters.date.last_7_days": {
+    "defaultMessage": "Last 7 days",
+    "description": "Date option in the Recent Mentions filters popover: only mentions from the last seven days, today included."
+  },
+  "search_results.mention_filters.date.today": {
+    "defaultMessage": "Today",
+    "description": "Date option in the Recent Mentions filters popover: only mentions from today, in the user's own timezone."
+  },
+  "search_results.mention_filters.mention_type": {
+    "defaultMessage": "Mention type",
+    "description": "Heading of the mention type section of the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.no_channels": {
+    "defaultMessage": "No channels found",
+    "description": "Shown in place of the channel list in the Recent Mentions filters popover when the search text matches no channel."
+  },
+  "search_results.mention_filters.remove_filter": {
+    "defaultMessage": "Remove {filter} filter",
+    "description": "Accessible label of the x on a filter chip under the Recent Mentions header. {filter} is the chip's own label, such as a channel or team name."
+  },
+  "search_results.mention_filters.reset": {
+    "defaultMessage": "Reset",
+    "description": "Button that clears every filter in the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.team": {
+    "defaultMessage": "Team",
+    "description": "Label of the team selector in the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.type.direct": {
+    "defaultMessage": "Directly mentioning you",
+    "description": "Mention type option in the Recent Mentions filters popover: posts that mention the user by their own username."
+  },
+  "search_results.mention_filters.type.group": {
+    "defaultMessage": "Group mentions",
+    "description": "Mention type option in the Recent Mentions filters popover: posts that mention a group the user belongs to."
+  },
+  "search_results.mention_filters.type.keyword": {
+    "defaultMessage": "Keywords triggering mentions",
+    "description": "Mention type option in the Recent Mentions filters popover: posts containing one of the keywords from the user's notification settings."
+  },
+  "search_results.mention_filters.unknown_channel": {
+    "defaultMessage": "Channel",
+    "description": "Fallback label on a channel filter chip under the Recent Mentions header, when the channel's name isn't loaded."
+  },
+  "search_results.messages_or_files": {
+    "defaultMessage": "Messages or Files",
+    "description": "Screen-reader label for the tab list in the search results panel that switches between message results and file results."
+  },
   "search_teams_selector.all_teams": {
     "defaultMessage": "All Teams",
     "description": "Option in the search box team filter dropdown for searching across every team instead of one specific team."
@@ -29334,10 +29886,6 @@
   "search_teams_selector.your_teams": {
     "defaultMessage": "Your teams",
     "description": "Section header in the search box team selector dropdown listing the teams the user belongs to."
-  },
-  "sectionNotice.dismiss": {
-    "defaultMessage": "Dismiss notice",
-    "description": "Accessible label of the X close button on dismissible notice banners."
   },
   "select_team.join.icon": {
     "defaultMessage": "Join Team Icon",
@@ -31795,6 +32343,10 @@
     "defaultMessage": "Update",
     "description": "Submit button label (verb) on the Edit Outgoing Webhook form and in its confirmation modal."
   },
+  "update_outgoing_webhook.updating": {
+    "defaultMessage": "Updating...",
+    "description": "Loading status while saving edits to an outgoing webhook."
+  },
   "upgrade_export_data_modal.desc": {
     "defaultMessage": "Export detailed data reports with ease and analyse user statistics conveniently. Upgrade to the Professional plan to gain access to data export.",
     "description": "Body of the upsell modal shown when an unlicensed admin clicks Export on the users page; promotes upgrading to the Professional plan."
@@ -32746,6 +33298,10 @@
   "user.settings.general.loginOffice365": {
     "defaultMessage": "Login done through Entra ID ({email})",
     "description": "Read-only text in the email row of Profile Settings when the account authenticates via Microsoft Entra ID; {email} is the linked address."
+  },
+  "user.settings.general.loginOpenId": {
+    "defaultMessage": "Login done through OpenID Connect ({email})",
+    "description": "Profile settings, collapsed Email row for a user who signs in through OpenID Connect; {email} is the address Mattermost sends notifications to. 'OpenID Connect' is a product name and should stay as-is."
   },
   "user.settings.general.loginSaml": {
     "defaultMessage": "Login done through SAML ({email})",
@@ -34100,8 +34656,8 @@
     "description": "Menu item in the help menu that opens the keyboard shortcuts reference."
   },
   "userGuideHelp.mattermostUserGuide": {
-    "defaultMessage": "Mattermost user guide",
-    "description": "Menu item in the help menu linking to the official user documentation."
+    "defaultMessage": "Mattermost documentation",
+    "description": "Menu item in the help menu linking to the Mattermost documentation."
   },
   "userGuideHelp.reportAProblem": {
     "defaultMessage": "Report a problem",

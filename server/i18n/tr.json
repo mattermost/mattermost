@@ -1379,10 +1379,6 @@
     "translation": "Silinmiş bir kanaldaki ileti güncellenemez."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Güncellenecek ileti ya da yorum bulunamadı."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Kod zaten silinmiş: {{.PostId}}."
   },
@@ -6164,7 +6160,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
+    "translation": "Belirtilen şemanın uygulandığı takımlar alınamadı."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -9519,7 +9515,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Uzak taraf kanal daveti kaldırılamadı"
+    "translation": "Uzak tarafın kanal daveti kaldırılamadı"
   },
   {
     "id": "app.post.save.thread_membership.app_error",
@@ -10000,10 +9996,6 @@
     "translation": "Kullanıcı özniteliği alanı yaması geçersiz"
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPA alanları alınamadı"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML onaylama özniteliği ifadesi geçersiz"
   },
@@ -10038,14 +10030,6 @@
   {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "AD/LDAP kimliği geçersiz"
-  },
-  {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPA alanları alınamadı"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "LDAP özniteliği değeri alınamadı"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -14580,5 +14564,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys geçersiz: {{.MaxCount}} anahtar ya da {{.MaxLength}} bayt sınırı aşılıyor."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**BULUNAMADI**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "silindi"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` geçerli bir `{{.Arg}}` değil"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Bu alan bir genel öznitelik şablonuna bağlı olduğundan kullanıcı öznitelikleri API arayüzü üzerinden değiştirilemez. Bunun yerine genel öznitelikler API arayüzünü kullanın."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Görsel ifade eklenemedi. Görsel işlenemeyecek kadar büyük. Daha küçük boyutlu ya da daha az kareden oluşan bir görsel kullanmayı deneyin."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Site sağlığı sayfası açılmamış."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Site sağlığı sayfası için bir Enterprise lisansı gereklidir."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Bu kanalda okunduğunda yok edilecek iletiler gönderme izniniz yok."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Dosyanın başlangıcına gidilemedi."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Sağlık bulgusu alınamadı."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Sağlık bulgusu bulunamadı."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Sağlık bulguları alınamadı."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Öznitelik artık bu kaynaktan eşitlenmediğinden eşitleme tarafından değiştirilemez."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "AD/LDAP ya da SAML üzerinden eşitlenen bir özniteliğin seçenekleri eşitleme tarafından yönetilir. Bu seçenekler eklenemez, yeniden adlandırılamaz ya da kaldırılamaz."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Eşitlenen özniteliğin seçenekleri geçersiz."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Özellik eşitleme kaynağı geçersiz."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Özellik eşitlemesi için kullanıcı kimliği geçersiz."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Eşitlenen özniteliğin hangi seçeneklerinin kullanıldığı belirlenemedi."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Günlük yapılandırmasında, günlük kök klasörünün dışında kalan bir günlük ya da denetim dosyası yolu var. Ayrıntılar için sunucu günlüklerine bakın."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Verilerin toplanma zamanı bilinmiyor."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Yapılandırma bölümü kullanılamıyor."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Sunucu tanılama bilgileri kullanılamıyor."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Görev geçmişi kullanılamıyor."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Lisans ayrıntıları kullanılamıyor."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Uygulama eki listesi kullanılamıyor."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Kural beklenmedik bir şekilde çöktü ve değerlendirilemedi."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Kullanım istatistikleri kullanılamıyor."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer ayarı ({{.url}}) http:// kullandığından anında bildirimler şifrelenmeden gönderiliyor."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer ayarının ({{.url}}) şeması geçersiz. Mobil kullanıcılar bildirim almayacak."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "PushNotificationServer değerinin başına https:// ekleyin ve uygulama düğümünden erişilebildiğini doğrulayın."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer https:// kullanmıyor"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Her anında bildirim girişimi 'unsupported protocol scheme' hatasıyla başarısız olacak."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "PushNotificationServer ayarını https://push.mattermost.com ya da kendi barındırdığınız bir anında bildirim vekil sunucusu olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Anında bildirimler açık ancak PushNotificationServer boş"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com, Mattermost test anında bildirim vekil sunucusudur. Hizmet düzeyi anlaşması (SLA) yoktur, aktarım kapasitesi sınırlıdır ve üretim ortamında kullanılmak üzere tasarlanmamıştır. Küçük ölçekli testlerin ötesinde mobil anında bildirim teslimi güvenilir olmayacaktır."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "https://push.mattermost.com (Enterprise ile birlikte gelen, üretim ortamına yönelik Hosted Push Notification Service hizmeti) ya da kendi barındırdığınız bir anında bildirim vekil sunucusu kullanın."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer push-test.mattermost.com adresini gösteriyor"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL; internet kancası adresleri, OAuth geri çağırmaları, mobil anında bildirim içerikleri ve e-posta bağlantıları için gereklidir. Bu ayar boş olduğu sürece bütünleştirmeler çalışmaz."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "SiteURL ayarını sunucunun herkese açık HTTPS adresi olarak ayarlayın."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL boş"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL değeri: {{.url}}. Oturum çerezleri ve kimlik doğrulama kodları ağ üzerinde şifrelenmeden aktarılıyor."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Mattermost'u HTTPS üzerinden sunun ve SiteURL ayarını https:// adresiyle güncelleyin."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL http:// kullanıyor (https:// değil)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Okunduğunda yok edilecek iletiler yinelenen zamanlanmış iletiler olarak gönderilemez."
   }
 ]

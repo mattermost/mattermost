@@ -14,14 +14,14 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
   <div
     aria-labelledby="appsModalLabel"
     aria-modal="true"
-    class="fade in modal"
+    class="fade apps-form-modal in modal"
     id="appsModal"
     role="dialog"
     style="display: block; padding-right: 0px;"
     tabindex="-1"
   >
     <div
-      class="a11y__modal about-modal modal-dialog"
+      class="a11y__modal about-modal apps-form-modal-dialog modal-dialog"
     >
       <div
         class="modal-content"
@@ -66,11 +66,12 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
                 class="LoadingSpinner"
                 data-testid="loadingSpinner"
                 id="loadingSpinner"
-                style="font-size: 24px;"
               >
                 <span
-                  class="fa fa-spinner fa-fw fa-pulse spinner"
-                  title="Loading Icon"
+                  aria-label="Loading Icon"
+                  class="_spinner_3elm7_10 spinner"
+                  role="status"
+                  style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
                 />
               </span>
             </div>

@@ -18,6 +18,36 @@
     }
 }
 
+// Stacked Compass Radio groups (invite modal, feedback, etc.).
+// Avoid Bootstrap .radio wrappers — those apply label padding-left for native inputs.
+.radio-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-list__option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.radio-option-list {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 0;
+    border: 0;
+    margin: 0;
+    gap: 10px;
+}
+
+.radio-option {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .radio-setting__clear {
     display: block;
     padding-left: 0;
@@ -35,8 +65,13 @@
         margin: 0;
     }
 
-    .checkbox,
-    .radio {
+    &__options {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .checkbox {
         margin-top: 8px;
 
         &:first-child {
@@ -54,8 +89,7 @@
             gap: 8px;
         }
 
-        input[type='checkbox'],
-        input[type='radio'] {
+        input[type='checkbox'] {
             position: static;
             width: 16px;
             height: 16px;
@@ -67,6 +101,17 @@
 
     &__text {
         line-height: 20px;
+    }
+
+    &__radio--label-before {
+        flex-direction: row-reverse;
+    }
+
+    // Compass Checkbox renders label text after the control; reverse flex order when
+    // apps forms request label_position "before".
+    &--label-before {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
     }
 }
 
@@ -272,9 +317,13 @@
 
 .form-control[disabled],
 .form-control[readonly],
-fieldset[disabled] .form-control,
-.backstage-form .form-control[disabled] {
+fieldset[disabled] .form-control {
     background-color: #f9f9f9;
+}
+
+.backstage-form .form-control[disabled] {
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
 }
 
 input[type="file"]:focus,

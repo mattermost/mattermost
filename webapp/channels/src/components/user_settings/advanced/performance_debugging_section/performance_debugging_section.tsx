@@ -4,6 +4,8 @@
 import React, {useCallback, useState, useRef, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+
 import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -153,35 +155,31 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
             }
             inputs={[
                 <fieldset key='settings'>
-                    <div className='checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={disableClientPlugins}
-                                onChange={(e) => {
-                                    setDisableClientPlugins(e.target.checked);
-                                }}
-                            />
+                    <div className='checkbox no-padding'>
+                        <Checkbox
+                            checked={disableClientPlugins}
+                            onChange={(e) => {
+                                setDisableClientPlugins(e.target.checked);
+                            }}
+                        >
                             <FormattedMessage
                                 id='user.settings.advance.performance.disableClientPlugins'
                                 defaultMessage='Disable Client-side Plugins'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
-                    <div className='checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={disableTypingMessages}
-                                onChange={(e) => {
-                                    setDisableTypingMessages(e.target.checked);
-                                }}
-                            />
+                    <div className='checkbox no-padding'>
+                        <Checkbox
+                            checked={disableTypingMessages}
+                            onChange={(e) => {
+                                setDisableTypingMessages(e.target.checked);
+                            }}
+                        >
                             <FormattedMessage
                                 id='user.settings.advance.performance.disableTypingMessages'
                                 defaultMessage='Disable "User is typing..." messages'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                     <div className='mt-5'>
                         <FormattedMessage

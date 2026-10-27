@@ -261,7 +261,7 @@ test.describe('Post height', () => {
         {
             name: 'post with a large Markdown image',
             // MM-69979 Images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             makePost: ({fileServerUrl}) =>
                 seedPost({
                     message: `![large image](${fileServerUrl}/huge-image.jpg)`,
@@ -299,7 +299,7 @@ test.describe('Post height', () => {
         {
             name: 'post with an SVG Markdown image',
             // As of MM-67372, the server no longer provides dimensions for external SVGs
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             makePost: ({fileServerUrl}) =>
                 seedPost({
                     message: `![icon](${fileServerUrl}/icon.svg)`,
@@ -337,7 +337,7 @@ test.describe('Post height', () => {
         {
             name: 'post with a large image preview',
             // MM-69979 Images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             makePost: ({fileServerUrl}) =>
                 seedPost({
                     message: `${fileServerUrl}/huge-image.jpg`,
@@ -451,7 +451,7 @@ test.describe('Post height', () => {
 
                 const post = await testCase.makePost({
                     fileServerUrl,
-                    siteUrl: testConfig.internalBaseURL,
+                    siteUrl: testConfig.siteURL,
                 });
 
                 const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);

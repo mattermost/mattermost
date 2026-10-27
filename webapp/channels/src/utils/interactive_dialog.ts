@@ -17,3 +17,17 @@ export function getOpenDialogCount(state: GlobalState): number {
         (id) => id.startsWith(ModalIdentifiers.INTERACTIVE_DIALOG),
     ).length;
 }
+
+// Returns the trigger_id of the most recently opened interactive dialog. modalState
+// keys are in the order the modals opened (entries are deleted on close), which is
+// what the modal manager stacks by. The dialogs map is not used: a dialog can be
+// stored before it opens (an open_dialog event that arrives before its trigger id),
+// and it keeps that earlier position when it opens later.
+export function getTopOpenDialogTriggerId(state: GlobalState): string | undefined {
+    const prefix = `${ModalIdentifiers.INTERACTIVE_DIALOG}_`;
+    const modals = state.views.modals?.modalState ?? {};
+    const topModalId = Object.keys(modals).
+        filter((modalId) => modalId.startsWith(prefix) && modals[modalId]?.open).
+        pop();
+    return topModalId?.slice(prefix.length);
+}

@@ -1332,10 +1332,6 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Impossible de trouver le message existant ou le commentaire à modifier."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Déjà supprimé id={{.PostId}}"
   },
@@ -5849,7 +5845,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Impossible de récupérer les canaux pour le schéma de permissions spécifié."
+    "translation": "Impossible de récupérer les équipes pour le schéma de permissions spécifié."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -8983,7 +8979,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Impossible de retirer l'invitation du serveur distant au canal"
+    "translation": "Impossible de retirer l'invitation du serveur distant au canal."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -12306,20 +12302,12 @@
     "translation": "Échec du test de connexion LDAP. Serveur : {{.Server}}:{{.Port}}, ConnectionSecurity : {{.ConnectionType}}, PrivateKeyFilename : {{.PrivateKeyFilename}}, PublicCertificateFilename : {{.PublicCertFilename}}, BindUsername : {{.BindUsername}}. Erreur : {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Échec de la récupération des champs CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Identifiant AD/LDAP invalide"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Échec de la récupération de l'utilisateur."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Valeur d'attribut LDAP vide"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12460,10 +12448,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML n'a pas pu charger le certificat public du fournisseur d'identité, veuillez contacter votre administrateur système."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Échec de la récupération des champs CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -13991,19 +13975,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Impossible de mettre en sourdine le résultat du bilan de santé."
+    "translation": "Impossible de masquer le constat de santé."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Résultat du bilan de santé introuvable."
+    "translation": "Constat de santé introuvable."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Impossible de réactiver le résultat du bilan de santé."
+    "translation": "Impossible de réafficher le constat de santé."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Résultat du bilan de santé introuvable."
+    "translation": "Constat de santé introuvable."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
@@ -14580,5 +14564,181 @@
   {
     "id": "store.sql_file_info.search.disabled",
     "translation": "La recherche de fichiers a été désactivée sur ce serveur. Veuillez contacter votre administrateur système."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**INTROUVABLE**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "supprimée"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` n'est pas une valeur valide pour `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Ce champ est lié à un modèle d'attribut global et ne peut pas être modifié via l'API des attributs utilisateur. Utilisez plutôt l'API des attributs globaux."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Impossible de créer l'émoticône. L'image est trop volumineuse pour être traitée. Essayez avec une image de plus petites dimensions ou une animation comportant moins d'images."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Le tableau de bord Santé du site n'est pas activé."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Le tableau de bord Santé du site nécessite une licence Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Vous n'avez pas la permission d'envoyer des messages à autodestruction après lecture dans ce canal."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Impossible d'aller au début du fichier."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Impossible de récupérer le constat de santé."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Constat de santé introuvable."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Impossible de récupérer les constats de santé."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "L'attribut n'est plus synchronisé depuis cette source : sa synchronisation ne peut donc pas le modifier."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Les options d'un attribut synchronisé depuis AD/LDAP ou SAML sont gérées par la synchronisation et ne peuvent pas être ajoutées, renommées ni supprimées."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "L'attribut synchronisé comporte des options invalides."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Source de synchronisation des propriétés invalide."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "ID utilisateur invalide pour la synchronisation des propriétés."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Impossible de déterminer quelles options de l'attribut synchronisé sont utilisées."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "La configuration de journalisation contient un chemin de fichier journal ou d'audit situé en dehors du répertoire racine de journalisation. Consultez les journaux du serveur pour plus de détails."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Heure de collecte inconnue."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Section de configuration indisponible."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Diagnostics du serveur indisponibles."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Historique des tâches indisponible."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Détails de la licence indisponibles."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Liste des plugins indisponible."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "La règle a échoué de manière inattendue et n'a pas pu être évaluée."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Statistiques d'utilisation indisponibles."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} utilise http:// : les notifications push sont donc envoyées en clair."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} utilise un protocole URL invalide. Les utilisateurs mobiles ne recevront pas de notifications."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Préfixez PushNotificationServer avec https:// et vérifiez que ce serveur est joignable depuis le nœud applicatif."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer n'utilise pas https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Chaque tentative d'envoi push échouera avec l'erreur « unsupported protocol scheme »."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Faites pointer PushNotificationServer vers https://push.mattermost.com ou vers un proxy push auto-hébergé."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Notifications push activées, mais PushNotificationServer est vide"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com est le proxy push de test de Mattermost. Il n'offre aucun SLA, a un débit limité et n'est pas destiné à un usage en production. La remise des notifications push mobiles ne sera pas fiable au-delà de tests à petite échelle."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Passez à https://push.mattermost.com (le service Hosted Push Notification Service de production, inclus avec Enterprise) ou à un proxy push auto-hébergé."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer pointe vers push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL est requis pour les URL des webhooks, les URL de rappel OAuth, les charges utiles des notifications push mobiles et les liens des e-mails. Les intégrations ne fonctionnent pas tant qu'il est vide."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Définissez SiteURL sur l'URL HTTPS publique du serveur."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL est vide"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL vaut {{.url}}. Les cookies de session et les jetons d'authentification transitent en clair."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Servez Mattermost via HTTPS et mettez à jour SiteURL avec l’adresse https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL utilise http:// (et non https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Les messages à autodestruction après lecture ne peuvent pas être envoyés en tant que messages planifiés récurrents."
   }
 ]

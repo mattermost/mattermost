@@ -1374,10 +1374,6 @@
     "translation": "削除されたチャンネルの投稿は更新できません。"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "更新すべき投稿またはコメントが見付かりませんでした。"
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "既に削除されたIDです id={{.PostId}}。"
   },
@@ -6067,7 +6063,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "与えられたスキームにおけるチャンネルを取得できませんでした。"
+    "translation": "与えられたスキームにおけるチームを取得できませんでした。"
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -7639,7 +7635,7 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "安全な接続 {{.RemoteId}} {{.Result}}。"
+    "translation": "安全な接続 {{.RemoteId}} は{{.Result}}。"
   },
   {
     "id": "api.command_remote.add_remote.error",
@@ -9535,7 +9531,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "リモートのチャンネルへの招待を解除できませんでした"
+    "translation": "リモートのチャンネルへの招待を解除できませんでした。"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -10014,14 +10010,6 @@
     "translation": "ポリシーはルールをインポートするか定義しなければなりません。"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPAフィールドを取得できませんでした"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPAフィールドを取得できませんでした"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAMLアサーション属性文が不正です"
   },
@@ -10052,10 +10040,6 @@
   {
     "id": "app.submit_interactive_dialog.read_body_error",
     "translation": "インタラクティブダイアログ送信情報のレスポンスボディを読み取る際にエラーが発生しました。"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "空のLDAP属性値です"
   },
   {
     "id": "ent.ldap.do_login.invalid_id",
@@ -14243,19 +14227,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "ヘルスチェックの検出結果をミュートできませんでした。"
+    "translation": "ヘルスチェックの検出事項をミュートできませんでした。"
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "ヘルスチェックの検出結果が見つかりません。"
+    "translation": "ヘルスチェックの検出事項が見つかりません。"
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "ヘルスチェックの検出結果のミュートを解除できませんでした。"
+    "translation": "ヘルスチェックの検出事項のミュートを解除できませんでした。"
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "ヘルスチェックの検出結果が見つかりません。"
+    "translation": "ヘルスチェックの検出事項が見つかりません。"
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
@@ -14568,5 +14552,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keysが不正です: {{.MaxCount}} 個のキーまたは {{.MaxLength}} バイトの上限を超えています。"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**見つかりませんでした**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "削除されました"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` は有効な `{{.Arg}}` ではありません"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "このフィールドはグローバル属性テンプレートにリンクされているため、ユーザー属性APIでは変更できません。代わりにグローバル属性APIを使用してください。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "絵文字を作成できません。画像が大きすぎるため処理できません。サイズが小さいか、フレーム数が少ない画像をお試しください。"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "サイトヘルスが有効になっていません。"
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "サイトヘルスにはEnterpriseライセンスが必要です。"
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "このチャンネルで閲覧後消去メッセージを送信する権限がありません。"
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "ファイルの開始位置に移動できませんでした。"
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "ヘルスチェックの検出事項を取得できませんでした。"
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "ヘルスチェックの検出事項が見つかりません。"
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "ヘルスチェックの検出事項を取得できませんでした。"
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "この属性はこのソースから同期されなくなったため、同期によって変更することはできません。"
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "AD/LDAPまたはSAMLから同期される属性のオプションは同期によって管理されているため、追加、名前の変更、削除はできません。"
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "同期された属性のオプションが不正です。"
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "属性の同期ソースが不正です。"
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "属性の同期に指定されたユーザーIDが不正です。"
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "同期された属性のどのオプションが使用中かを判別できませんでした。"
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "ログ設定に、ログのルートディレクトリ外にあるログファイルまたは監査ファイルのパスが含まれています。詳細はサーバーログを確認してください。"
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "収集日時が不明です。"
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "設定セクションを取得できません。"
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "サーバーの診断情報を取得できません。"
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "ジョブ履歴を取得できません。"
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "ライセンスの詳細を取得できません。"
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "プラグイン一覧を取得できません。"
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "ルールが予期せず失敗したため、評価できませんでした。"
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "利用統計を取得できません。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} は http:// を使用しているため、プッシュ通知が暗号化されずに送信されます。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} のスキームが不正です。モバイルユーザーは通知を受信できません。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "PushNotificationServer の先頭に https:// を付け、アプリケーションノードから到達できることを確認してください。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer が https:// を使用していません"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "すべてのプッシュ送信が「unsupported protocol scheme」で失敗します。"
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "PushNotificationServer に https://push.mattermost.com またはセルフホストのプッシュプロキシを指定してください。"
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "プッシュ通知が有効ですが、PushNotificationServer が空です"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com はMattermostのテスト用プッシュプロキシです。SLAはなく、スループットも限られており、本番環境での使用は想定されていません。小規模なテスト以外では、モバイルへのプッシュ配信は不安定になります。"
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "https://push.mattermost.com (Enterpriseに含まれる本番用のHosted Push Notification Service) またはセルフホストのプッシュプロキシに切り替えてください。"
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer が push-test.mattermost.com を指しています"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURLは、ウェブフックのURL、OAuthのコールバック、モバイルのプッシュペイロード、メールのリンクに必要です。SiteURLが空の間は、統合機能が正しく動作しません。"
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "SiteURLにサーバーの公開HTTPS URLを設定してください。"
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL が空です"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURLが {{.url}} です。セッションCookieと認証トークンが暗号化されずに送信されます。"
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "MattermostをHTTPSで配信し、SiteURLをhttps://のアドレスに更新してください。"
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURLが http:// を使用しています (https://ではありません)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "閲覧後消去メッセージは、繰り返しのスケジュール済みの投稿として送信できません。"
   }
 ]

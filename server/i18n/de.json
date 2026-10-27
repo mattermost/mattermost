@@ -1379,10 +1379,6 @@
     "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Die bestehende Nachricht oder der bestehende Kommentar konnte nicht zur Aktualisierung gefunden werden."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "{{.PostId}} wurde bereits gelöscht."
   },
@@ -6032,7 +6028,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
+    "translation": "Konnte Teams für das angegebene Schema nicht abrufen."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -9503,7 +9499,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Die Gegenseite konnte nicht vom Kanal ausgeladen werden"
+    "translation": "Die Gegenseite konnte nicht vom Kanal ausgeladen werden."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -10036,14 +10032,6 @@
     "translation": "IndexPrefix kann nicht leer sein, wenn GlobalSearchPrefix gesetzt ist."
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPA-Felder konnten nicht abgerufen werden"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Leerer LDAP-Attributwert"
-  },
-  {
     "id": "web.incoming_webhook.parse_form.app_error",
     "translation": "Das Formular für den Webhook {{.hook_id}} konnte nicht verarbeitet werden."
   },
@@ -10086,10 +10074,6 @@
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
     "translation": "Ungültige AD/LDAP ID"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPA-Feld(er) konnte(n) nicht abgerufen werden"
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
@@ -14580,5 +14564,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ungültige mention_keys: überschreitet die Grenze von {{.MaxCount}} Schlüsseln oder {{.MaxLength}} Bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NICHT GEFUNDEN**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "gelöscht"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` ist kein gültiger Wert für `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Dieses Feld ist mit einer Vorlage für globale Attribute verknüpft und kann nicht über die API für Benutzerattribute geändert werden. Verwenden Sie stattdessen die API für globale Attribute."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild ist zu groß für die Verarbeitung. Verwende ein Bild mit kleineren Abmessungen oder weniger Einzelbildern."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Die Funktion „Systemzustand“ ist nicht aktiviert."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Die Funktion „Systemzustand“ erfordert eine Enterprise-Lizenz."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Du hast keine Berechtigung, in diesem Kanal Löschen-nach-Lesen-Nachrichten zu senden."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Konnte nicht zum Dateianfang zurückspringen."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Befund zum Systemzustand konnte nicht abgerufen werden."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Befund zum Systemzustand nicht gefunden."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Befunde zum Systemzustand konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Das Attribut wird nicht mehr aus dieser Quelle synchronisiert, daher kann die Synchronisierung es nicht ändern."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Die Optionen eines aus AD/LDAP oder SAML synchronisierten Attributs werden von der Synchronisierung verwaltet und können nicht hinzugefügt, umbenannt oder entfernt werden."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Das synchronisierte Attribut hat ungültige Optionen."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Ungültige Quelle für die Eigenschaftssynchronisierung."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Ungültige Benutzer-ID für die Eigenschaftssynchronisierung."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Es kann nicht ermittelt werden, welche Optionen des synchronisierten Attributs verwendet werden."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Die Protokollierungskonfiguration enthält einen Protokoll- oder Audit-Dateipfad außerhalb des Protokoll-Stammverzeichnisses. Details finden Sie in den Serverprotokollen."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Erfassungszeitpunkt unbekannt."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Konfigurationsabschnitt nicht verfügbar."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Serverdiagnose nicht verfügbar."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Jobverlauf nicht verfügbar."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Lizenzdetails nicht verfügbar."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Plugin-Liste nicht verfügbar."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Die Regel ist unerwartet fehlgeschlagen und konnte nicht ausgewertet werden."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Nutzungsstatistiken nicht verfügbar."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} verwendet http://, daher werden Push-Benachrichtigungen im Klartext gesendet."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} hat ein ungültiges URL-Schema. Mobile Benutzer erhalten keine Benachrichtigungen."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Stellen Sie PushNotificationServer https:// voran und prüfen Sie die Erreichbarkeit vom App-Knoten aus."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer verwendet nicht https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Jeder Push-Versuch schlägt mit „unsupported protocol scheme“ fehl."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Setzen Sie PushNotificationServer auf https://push.mattermost.com oder einen selbst gehosteten Push-Proxy."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push-Benachrichtigungen aktiviert, aber PushNotificationServer ist leer"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com ist der Test-Push-Proxy von Mattermost. Er hat kein SLA, einen begrenzten Durchsatz und ist nicht für den Produktivbetrieb vorgesehen. Die Zustellung mobiler Push-Benachrichtigungen ist über kleine Tests hinaus unzuverlässig."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Wechseln Sie zu https://push.mattermost.com (dem in Enterprise enthaltenen produktiven Hosted Push Notification Service) oder zu einem selbst gehosteten Push-Proxy."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer verweist auf push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL ist für Webhook-URLs, OAuth-Callbacks, mobile Push-Payloads und E-Mail-Links erforderlich. Solange sie leer ist, funktionieren Integrationen nicht."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Setzen Sie SiteURL auf die öffentliche HTTPS-URL des Servers."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL ist leer"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL ist {{.url}}. Sitzungscookies und Authentifizierungstoken werden unverschlüsselt übertragen."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Stellen Sie Mattermost auf HTTPS um und aktualisieren Sie SiteURL auf die https://-Adresse."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL verwendet http:// (nicht https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Löschen-nach-Lesen-Nachrichten können nicht als wiederkehrende geplante Nachrichten gesendet werden."
   }
 ]
