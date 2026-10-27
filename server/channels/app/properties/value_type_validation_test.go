@@ -79,6 +79,18 @@ func TestValueTypeValidationHook(t *testing.T) {
 		assert.ErrorIs(t, err, ErrInvalidValue)
 	})
 
+	t.Run("checks an update against the group it writes to, not the payload's", func(t *testing.T) {
+		created, err := th.service.CreatePropertyValue(th.Context, newValue(numberField, `1`))
+		require.NoError(t, err)
+
+		created.GroupID = model.NewId()
+		created.Value = json.RawMessage(`"2"`)
+		_, err = th.service.UpdatePropertyValue(th.Context, group.ID, created)
+		assert.ErrorIs(t, err, ErrInvalidValue)
+		_, err = th.service.UpdatePropertyValues(th.Context, group.ID, []*model.PropertyValue{created})
+		assert.ErrorIs(t, err, ErrInvalidValue)
+	})
+
 	t.Run("leaves a value whose field is not in its group to the service, and checks the rest", func(t *testing.T) {
 		// Allowed before number existed (a custom profile attribute test relies on it).
 		stray := newValue(numberField, `"x"`)
