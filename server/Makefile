@@ -915,7 +915,7 @@ config-openid: ## Configures OpenID.
 config-reset: setup-go-work ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
 	rm -f config/config.json
-	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) run $(GOFLAGS) -tags production ./scripts/config_generator
+	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) run $(GOFLAGS) -tags '$(if $(filter true,$(FIPS_ENABLED)),requirefips )production' ./scripts/config_generator
 
 .PHONY: diff-config
 diff-config: ## Compares default configuration between two mattermost versions
