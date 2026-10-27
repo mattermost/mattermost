@@ -49,7 +49,7 @@ func (h *ValueTypeValidationHook) PreCreatePropertyValues(rctx request.CTX, valu
 }
 
 func (h *ValueTypeValidationHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	checked, err := h.asStored(groupID, []*model.PropertyValue{value})
+	checked, err := h.asStored(rctx, groupID, []*model.PropertyValue{value})
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (h *ValueTypeValidationHook) PreUpdatePropertyValue(rctx request.CTX, group
 }
 
 func (h *ValueTypeValidationHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	checked, err := h.asStored(groupID, values)
+	checked, err := h.asStored(rctx, groupID, values)
 	if err != nil {
 		return nil, err
 	}
@@ -87,17 +87,17 @@ func (h *ValueTypeValidationHook) PreUpsertPropertyValues(rctx request.CTX, valu
 // asStored returns copies of an update's values carrying the field and group of
 // the rows they update. An update writes Value to the row its ID names, in
 // groupID when that is set, and leaves the row's FieldID and GroupID as they
-// are, so the field the payload names must not decide the check. A row that
-// can't be read yet, such as one a replica hasn't caught up with, keeps the
-// payload's field, in groupID.
-func (h *ValueTypeValidationHook) asStored(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+// are, so the field the payload names must not decide the check. The rows are
+// read from the master, so a replica that hasn't caught up can't hide one. A
+// value with no row writes nothing, and keeps the payload's field, in groupID.
+func (h *ValueTypeValidationHook) asStored(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	var ids []string
 	for _, v := range values {
 		if v != nil && model.IsValidId(v.ID) {
 			ids = append(ids, v.ID)
 		}
 	}
-	stored, err := h.storedValues(groupID, ids)
+	stored, err := h.storedValues(rctx, groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch values for value validation: %w", err)
 	}
@@ -120,30 +120,21 @@ func (h *ValueTypeValidationHook) asStored(groupID string, values []*model.Prope
 }
 
 // storedValues reads the values with the given IDs in groupID (any group when
-// empty), by ID. When some can't be found, the rest are read one at a time.
-func (h *ValueTypeValidationHook) storedValues(groupID string, ids []string) (map[string]*model.PropertyValue, error) {
+// empty) from the master, deleted ones included, by ID.
+func (h *ValueTypeValidationHook) storedValues(rctx request.CTX, groupID string, ids []string) (map[string]*model.PropertyValue, error) {
 	byID := make(map[string]*model.PropertyValue, len(ids))
 	if len(ids) == 0 {
 		return byID, nil
 	}
 
-	values, err := h.propertyService.getPropertyValues(groupID, ids)
-	if _, mismatch := errors.AsType[*store.ErrResultsMismatch](err); mismatch {
-		values = values[:0]
-		for _, id := range ids {
-			found, err := h.propertyService.getPropertyValues(groupID, []string{id})
-			if _, mismatch := errors.AsType[*store.ErrResultsMismatch](err); mismatch {
-				continue
-			}
-			if err != nil {
-				return nil, err
-			}
-			values = append(values, found...)
-		}
-	} else if err != nil {
+	values, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), groupID, model.PropertyValueSearchOpts{
+		IDs:            ids,
+		IncludeDeleted: true,
+		PerPage:        len(ids),
+	})
+	if err != nil {
 		return nil, err
 	}
-
 	for _, v := range values {
 		byID[v.ID] = v
 	}
