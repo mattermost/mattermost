@@ -123,6 +123,7 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
             canPin: true,
             canCopyText: true,
             canCopyLink: true,
+            canQuoteReply: true,
             isBurnOnReadPost: false,
             isUnrevealedBurnOnReadPost: false,
         };

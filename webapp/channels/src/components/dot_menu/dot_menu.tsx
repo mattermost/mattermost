@@ -14,6 +14,7 @@ import {
     ContentCopyIcon,
     DotsHorizontalIcon,
     EmoticonPlusOutlineIcon,
+    FormatQuoteOpenIcon,
     LinkVariantIcon,
     MarkAsUnreadIcon,
     MessageArrowRightOutlineIcon,
@@ -30,6 +31,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import {closeModal} from 'actions/views/modals';
 
@@ -42,7 +44,7 @@ import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
-import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
+import {Locations, ModalIdentifiers, Constants, EventTypes} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
@@ -78,6 +80,11 @@ function getMessageToCopy(post: Post, isChannelAutotranslated: boolean, locale: 
     return PostUtils.getPostTranslatedMessage(originalMessage, translation);
 }
 
+export function quoteMessage(message: string): string {
+    const quoted = message.split('\n').map((line) => (line ? `> ${line}` : '>')).join('\n');
+    return `${quoted}\n\n`;
+}
+
 type Props = {
     intl: IntlShape;
     post: Post;
@@ -104,6 +111,7 @@ type Props = {
     canPin: boolean;
     canCopyText: boolean;
     canCopyLink: boolean;
+    canQuoteReply: boolean;
     canFlagContent?: boolean;
 
     actions: {
@@ -259,6 +267,20 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
     copyText = () => {
         Utils.copyToClipboard(getMessageToCopy(this.props.post, this.props.isChannelAutotranslated, this.props.intl.locale));
+    };
+
+    handleQuoteReply = (): void => {
+        const message = getMessageToCopy(this.props.post, this.props.isChannelAutotranslated, this.props.intl.locale);
+        if (!message.trim()) {
+            return;
+        }
+
+        // Quote into the composer the post is shown with: the thread's reply box in the RHS,
+        // otherwise the center channel's message box
+        const isInRHS = this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT;
+        const rootId = isInRHS ? (this.props.post.root_id || this.props.post.id) : '';
+
+        EventEmitter.emit(EventTypes.INSERT_INTO_POST_TEXTBOX, this.props.post.channel_id, rootId, quoteMessage(message));
     };
 
     handlePinMenuItemActivated = (): void => {
@@ -449,6 +471,14 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             }
             break;
 
+            // quote reply
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.Q):
+            if (this.canQuoteReply()) {
+                forceCloseMenu();
+                this.handleQuoteReply();
+            }
+            break;
+
             // delete post
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.DELETE):
             forceCloseMenu();
@@ -483,6 +513,10 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.handleMarkPostAsUnread();
             break;
         }
+    };
+
+    canQuoteReply = (): boolean => {
+        return Boolean(this.props.canQuoteReply && !this.props.isReadOnly && (this.props.post.message_source || this.props.post.message).trim());
     };
 
     handleMenuToggle = (open: boolean) => {
@@ -596,6 +630,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showMove = Boolean(!isSystemMessage && this.props.canMove);
         const showShowTranslation = !isSystemMessage && showTranslation;
         const showCopyText = !isSystemMessage && !isBurnOnReadPost;
+        const showQuoteReply = !isSystemMessage && !isBurnOnReadPost && this.canQuoteReply();
         const showCopyLink = !isSystemMessage && (!isBurnOnReadPost || this.props.post.user_id === this.props.userId);
         const showEdit = this.state.canEdit && !isBurnOnReadPost;
         const showFlagContent = this.props.canFlagContent;
@@ -606,7 +641,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showDelete = (!isBurnOnReadPost && this.state.canDelete) || shouldShowDeleteForBoR;
 
         const firstSectionHasItems = showReply || showForward || showReactions || showFollowPost || showMarkAsUnread || showSave || showRemind || showPin || showMove;
-        const secondSectionHasItems = showShowTranslation || showCopyText || showCopyLink;
+        const secondSectionHasItems = showShowTranslation || showCopyText || showQuoteReply || showCopyLink;
         const thirdSectionHasItems = showEdit || showDelete || showFlagContent;
 
         return (
@@ -777,6 +812,20 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={<ContentCopyIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='C'/>}
                         onClick={this.copyText}
+                    />
+                }
+                {showQuoteReply &&
+                    <Menu.Item
+                        id={`quote_reply_${this.props.post.id}`}
+                        data-testid={`quote_reply_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.quote_reply'
+                                defaultMessage='Quote Reply'
+                            />}
+                        leadingElement={<FormatQuoteOpenIcon size={18}/>}
+                        trailingElements={<ShortcutKey shortcutKey='Q'/>}
+                        onClick={this.handleQuoteReply}
                     />
                 }
                 {showCopyLink &&

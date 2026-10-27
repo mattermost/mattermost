@@ -7,13 +7,15 @@ import type {ChannelType} from '@mattermost/types/channels';
 import type {Post, PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {Locations} from 'utils/constants';
+import EventEmitter from 'mattermost-redux/utils/event_emitter';
+
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {EventTypes, Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import DotMenu from './dot_menu';
+import DotMenu, {quoteMessage} from './dot_menu';
 
 import DotMenuRoot from './index';
 
@@ -214,6 +216,7 @@ describe('components/dot_menu/DotMenu', () => {
         canPin: true,
         canCopyText: true,
         canCopyLink: true,
+        canQuoteReply: true,
         isBurnOnReadPost: false,
         isUnrevealedBurnOnReadPost: false,
     };
@@ -634,5 +637,85 @@ describe('components/dot_menu/DotMenu', () => {
 
         // Since reply option doesn't exist, keyboard shortcut should be blocked (no way to verify action wasn't called, but menu item being hidden confirms it)
         expect(replyOption).toBeNull();
+    });
+
+    describe('quote reply', () => {
+        const quotedPost = TestHelper.getPostMock({id: 'post_id_1', channel_id: 'channel_id_1', root_id: 'root_id_1', message: 'line one\n\nline two', type: '' as PostType});
+        let listener: jest.Mock;
+
+        beforeEach(() => {
+            listener = jest.fn();
+            EventEmitter.addListener(EventTypes.INSERT_INTO_POST_TEXTBOX, listener);
+        });
+
+        afterEach(() => {
+            EventEmitter.removeListener(EventTypes.INSERT_INTO_POST_TEXTBOX, listener);
+        });
+
+        test('quoteMessage should prefix every line with a quote marker', () => {
+            expect(quoteMessage('line one\n\nline two')).toBe('> line one\n>\n> line two\n\n');
+        });
+
+        test('should insert the quoted post into the center channel message box', async () => {
+            renderWithContext(
+                <DotMenu
+                    {...baseProps}
+                    post={quotedPost}
+                    location={Locations.CENTER}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
+            await userEvent.click(screen.getByTestId(`quote_reply_${quotedPost.id}`));
+
+            await waitFor(() => expect(listener).toHaveBeenCalledWith('channel_id_1', '', '> line one\n>\n> line two\n\n'));
+        });
+
+        test('should insert the quoted post into the thread reply box in the RHS', async () => {
+            renderWithContext(
+                <DotMenu
+                    {...baseProps}
+                    post={quotedPost}
+                    location={Locations.RHS_COMMENT}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
+            await userEvent.click(screen.getByTestId(`quote_reply_${quotedPost.id}`));
+
+            await waitFor(() => expect(listener).toHaveBeenCalledWith('channel_id_1', 'root_id_1', '> line one\n>\n> line two\n\n'));
+        });
+
+        test('should not show quote reply in a read-only channel', async () => {
+            renderWithContext(
+                <DotMenu
+                    {...baseProps}
+                    post={quotedPost}
+                    isReadOnly={true}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
+
+            expect(screen.queryByTestId(`quote_reply_${quotedPost.id}`)).not.toBeInTheDocument();
+        });
+
+        test('should not show quote reply for a post without text', async () => {
+            const post = {...quotedPost, message: ''};
+            renderWithContext(
+                <DotMenu
+                    {...baseProps}
+                    post={post}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post.id}`));
+
+            expect(screen.queryByTestId(`quote_reply_${post.id}`)).not.toBeInTheDocument();
+        });
     });
 });

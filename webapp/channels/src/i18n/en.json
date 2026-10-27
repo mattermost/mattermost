@@ -27963,6 +27963,10 @@
     "defaultMessage": "Quarantine for Review",
     "description": "Menu item in the message actions menu (content moderation feature) that flags the message for review by moderators; 'Quarantine' is a verb."
   },
+  "post_info.quote_reply": {
+    "defaultMessage": "Quote Reply",
+    "description": "Menu item in the message actions menu that inserts the message's text, formatted as a Markdown quote, into the message box so the user can reply to it."
+  },
   "post_info.reply": {
     "defaultMessage": "Reply",
     "description": "Menu item in the message actions menu that opens the thread to reply; 'Reply' is a verb."
