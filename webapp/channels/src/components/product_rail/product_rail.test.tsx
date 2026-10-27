@@ -230,7 +230,7 @@ describe('ProductRail', () => {
     });
 
     describe('order and boards in Channels', () => {
-        test('should list Threads, Channels, Boards and Docs with no dividers', () => {
+        test('should list Threads, Channels and Boards with no dividers', () => {
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
 
             const items = [...document.querySelectorAll('.ProductRail > *')].map((item) => item.id);
@@ -238,8 +238,32 @@ describe('ProductRail', () => {
                 'product-rail-item-threads',
                 'product-rail-item-channels',
                 'product-rail-item-boards',
-                'product-rail-item-docs',
             ]);
+        });
+
+        test('should follow Boards with Agents and Playbooks, and pin other products to the bottom', () => {
+            const product = (name: string, pluginId: string) => ({...TestHelper.makeProduct(name), pluginId, baseURL: `/${pluginId}`, switcherLinkURL: `/${pluginId}`});
+            const state = getBoardsState(townSquare.id);
+            renderAt('/team-one/channels/town-square', {
+                ...state,
+                plugins: {
+                    components: {
+                        ...state.plugins!.components,
+                        Product: [product('Calls', 'calls'), product('Playbooks', 'playbooks'), product('Agents', 'mattermost-ai')],
+                    },
+                },
+            });
+
+            const items = [...document.querySelectorAll('.ProductRail > *')].map((item) => item.id || item.className);
+            expect(items).toEqual([
+                'product-rail-item-threads',
+                'product-rail-item-channels',
+                'product-rail-item-boards',
+                'product-rail-item-mattermost-ai',
+                'product-rail-item-playbooks',
+                'ProductRail__bottom',
+            ]);
+            expect(document.querySelector('.ProductRail__bottom #product-rail-item-calls')).toBeInTheDocument();
         });
 
         test('should stay in Channels on a board while Channels lists boards too, and count their mentions', () => {

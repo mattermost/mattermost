@@ -28331,10 +28331,6 @@
     "defaultMessage": "Channels",
     "description": "Label under the Channels icon in the product navigation rail. Clicking it shows only channels and direct messages in the left sidebar, leaving out boards."
   },
-  "product_rail.docs": {
-    "defaultMessage": "Docs",
-    "description": "Label under the Docs icon in the product navigation rail. A placeholder for now: clicking it does nothing yet."
-  },
   "product_rail.teamMenu.buttonLabel": {
     "defaultMessage": "Switch teams",
     "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."

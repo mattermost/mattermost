@@ -125,6 +125,15 @@
         box-shadow: 0 0 0 2px var(--product-rail-bg);
     }
 
+    // Products beyond the defaults, pinned to the bottom of the rail.
+    &__bottom {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: auto;
+        gap: 4px;
+    }
+
     &__teamButton {
         position: relative;
         display: flex;

@@ -7,7 +7,7 @@ import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link, matchPath, useLocation} from 'react-router-dom';
 
-import glyphMap, {FileTextOutlineIcon, MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import glyphMap, {MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {getThreadCounts} from 'mattermost-redux/actions/threads';
@@ -59,11 +59,6 @@ const messages = defineMessages({
         defaultMessage: 'Boards',
         description: 'Label under the Boards icon in the product navigation rail. Clicking it shows only boards in the left sidebar.',
     },
-    docs: {
-        id: 'product_rail.docs',
-        defaultMessage: 'Docs',
-        description: 'Label under the Docs icon in the product navigation rail. A placeholder for now: clicking it does nothing yet.',
-    },
     threads: {
         id: 'product_rail.threads',
         defaultMessage: 'Threads',
@@ -75,6 +70,11 @@ const channelRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messa
 const threadsRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/threads`;
 
 const productTab = (product: ProductComponent): ProductRailTab => `product:${product.id}`;
+
+// The products that sit with Threads, Channels and Boards at the top of the rail, in this order, by
+// plugin id. Any other product a plugin registers goes to the bottom.
+const DEFAULT_PRODUCT_PLUGIN_IDS = ['mattermost-ai', 'playbooks'];
+const defaultProductRank = (product: ProductComponent) => DEFAULT_PRODUCT_PLUGIN_IDS.indexOf(product.pluginId || product.id);
 
 // Where each rail item last was, saved per user so it outlasts a reload. Reading and writing are
 // best-effort: without storage, the rail just starts from each item's default again.
@@ -220,7 +220,7 @@ export default function ProductRail() {
 
     const inChannelsProduct = !currentProduct && !inThreads;
 
-    const productItems = products.map((product) => {
+    const renderProduct = (product: ProductComponent) => {
         const link = getProductSwitcherLinkURL(product, currentTeam.name);
         if (link === null) {
             return null;
@@ -243,7 +243,11 @@ export default function ProductRail() {
                 active={currentProduct?.id === product.id}
             />
         );
-    });
+    };
+
+    const defaultProducts = products.filter((product) => defaultProductRank(product) !== -1).
+        sort((a, b) => defaultProductRank(a) - defaultProductRank(b));
+    const otherProducts = products.filter((product) => defaultProductRank(product) === -1);
 
     const threadsItem = threadsEnabled && (
         <ProductRailItem
@@ -255,16 +259,6 @@ export default function ProductRail() {
             mentions={threadCounts?.total_unread_mentions ?? 0}
             hasUrgent={Boolean(threadCounts?.total_unread_urgent_mentions)}
             unread={Boolean(threadCounts?.total_unread_threads)}
-        />
-    );
-
-    // A placeholder for Docs while the rail is explored: shown, but not wired to anything yet.
-    const docsItem = (
-        <ProductRailItem
-            id='product-rail-item-docs'
-            icon={<FileTextOutlineIcon size={20}/>}
-            label={formatMessage(messages.docs)}
-            active={false}
         />
     );
 
@@ -332,8 +326,12 @@ export default function ProductRail() {
             {threadsItem}
             {channelsItem}
             {boardsItem}
-            {docsItem}
-            {productItems}
+            {defaultProducts.map(renderProduct)}
+            {otherProducts.length > 0 && (
+                <div className='ProductRail__bottom'>
+                    {otherProducts.map(renderProduct)}
+                </div>
+            )}
         </nav>
     );
 }
