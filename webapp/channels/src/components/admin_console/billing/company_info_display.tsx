@@ -5,7 +5,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import CompanySvg from 'components/common/svg_images_components/company_svg';
@@ -16,16 +18,19 @@ import './company_info_display.scss';
 
 const addInfoButton = (
     <div className='CompanyInfoDisplay__addInfo'>
-        <BlockableLink
-            to='/admin_console/billing/company_info_edit'
-            className={buttonClassNames({emphasis: 'primary'}, 'CompanyInfoDisplay__addInfoButton')}
+        <Button
+            asChild={true}
+            emphasis='primary'
+            className='CompanyInfoDisplay__addInfoButton'
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
         >
-            <i className='icon icon-plus'/>
-            <FormattedMessage
-                id='admin.billing.company_info.add'
-                defaultMessage='Add Company Information'
-            />
-        </BlockableLink>
+            <BlockableLink to='/admin_console/billing/company_info_edit'>
+                <FormattedMessage
+                    id='admin.billing.company_info.add'
+                    defaultMessage='Add Company Information'
+                />
+            </BlockableLink>
+        </Button>
     </div>
 );
 
@@ -41,15 +46,18 @@ const noCompanyInfoSection = (
                 defaultMessage='There is currently no company information on file.'
             />
         </div>
-        <BlockableLink
-            to='/admin_console/billing/company_info_edit'
-            className={buttonClassNames({emphasis: 'primary'}, 'CompanyInfoDisplay__noCompanyInfo-link')}
+        <Button
+            asChild={true}
+            emphasis='primary'
+            className='CompanyInfoDisplay__noCompanyInfo-link'
         >
-            <FormattedMessage
-                id='admin.billing.company_info.add'
-                defaultMessage='Add Company Information'
-            />
-        </BlockableLink>
+            <BlockableLink to='/admin_console/billing/company_info_edit'>
+                <FormattedMessage
+                    id='admin.billing.company_info.add'
+                    defaultMessage='Add Company Information'
+                />
+            </BlockableLink>
+        </Button>
     </div>
 );
 

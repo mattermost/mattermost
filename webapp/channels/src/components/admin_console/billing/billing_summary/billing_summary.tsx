@@ -5,8 +5,9 @@ import React from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, defineMessages} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {CheckCircleOutlineIcon, FilePdfOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
@@ -52,16 +53,21 @@ export const noBillingHistory = (
                 defaultMessage='In the future, this is where your most recent bill summary will show.'
             />
         </div>
-        <ExternalLink
-            location='billing_summary'
-            href={CloudLinks.BILLING_DOCS}
-            className={buttonClassNames({emphasis: 'primary'}, 'BillingSummary__noBillingHistory-link')}
+        <Button
+            asChild={true}
+            emphasis='primary'
+            className='BillingSummary__noBillingHistory-link'
         >
-            <FormattedMessage
-                id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
-                defaultMessage='See how billing works'
-            />
-        </ExternalLink>
+            <ExternalLink
+                location='billing_summary'
+                href={CloudLinks.BILLING_DOCS}
+            >
+                <FormattedMessage
+                    id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
+                    defaultMessage='See how billing works'
+                />
+            </ExternalLink>
+        </Button>
     </div>
 );
 
@@ -115,17 +121,17 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
                     />
                 }
             </div>
-            <button
+            <Button
                 type='button'
+                emphasis='primary'
+                className='UpgradeMattermostCloud__upgradeButton'
                 onClick={() => openSalesLink()}
-                className={buttonClassNames({emphasis: 'primary'}, 'UpgradeMattermostCloud__upgradeButton')}
             >
                 <FormattedMessage
                     id='admin.billing.subscription.privateCloudCard.contactSales'
                     defaultMessage='Contact Sales'
                 />
-
-            </button>
+            </Button>
         </div>);
 };
 
@@ -337,16 +343,18 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                 </div>
             </div>
             <div className='BillingSummary__lastInvoice-download'>
-                <button
+                <Button
+                    type='button'
+                    emphasis='primary'
+                    className='BillingSummary__lastInvoice-downloadButton'
                     onClick={openInvoicePreview}
-                    className={buttonClassNames({emphasis: 'primary'}, 'BillingSummary__lastInvoice-downloadButton')}
+                    leadingIcon={<Icon glyph={<FilePdfOutlineIcon/>}/>}
                 >
-                    <i className='icon icon-file-pdf-outline'/>
                     <FormattedMessage
                         id='admin.billing.subscriptions.billing_summary.lastInvoice.viewInvoice'
                         defaultMessage='View Invoice'
                     />
-                </button>
+                </Button>
             </div>
             <BlockableLink
                 to='/admin_console/billing/billing_history'

@@ -2410,7 +2410,12 @@ func (a *App) convertChannelNamesToChannelIds(rctx request.CTX, channels []strin
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(rctx, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
-			rctx.Logger().Warn("error getting channel id by name from in filter", mlog.Err(err))
+			// A client can send a channel id in place of a name, which is the only way to name a
+			// channel unambiguously when the search isn't scoped to one team. Such a value is passed
+			// through as it is, and only matches channels the user is a member of.
+			if !model.IsValidId(channelName) {
+				rctx.Logger().Warn("error getting channel id by name from in filter", mlog.Err(err))
+			}
 			continue
 		}
 		channels[idx] = channel.Id
@@ -2531,10 +2536,9 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		params.IncludeDeletedChannels = includeDeletedChannels
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
-			// TODO: we have to send channel ids
-			// from the front-end. Otherwise it's not possible to distinguish
-			// from just the channel name at a cross-team level.
-			// Convert channel names to channel IDs
+			// Convert channel names to channel IDs. A name only identifies a channel within one
+			// team, so a client filtering across teams sends ids instead, which pass through here
+			// untouched.
 			params.InChannels = a.convertChannelNamesToChannelIds(rctx, params.InChannels, userID, teamID, includeDeletedChannels)
 			params.ExcludedChannels = a.convertChannelNamesToChannelIds(rctx, params.ExcludedChannels, userID, teamID, includeDeletedChannels)
 

@@ -27131,6 +27131,14 @@
     "defaultMessage": "No saved messages yet",
     "description": "Empty-state title of the Saved messages panel when the user has not saved any messages."
   },
+  "no_results.mentions_filtered.subtitle": {
+    "defaultMessage": "Try removing or changing a filter to see more of your mentions.",
+    "description": "Explanatory text in the empty Recent Mentions panel when the applied filters match no mentions."
+  },
+  "no_results.mentions_filtered.title": {
+    "defaultMessage": "No mentions match your filters",
+    "description": "Empty-state title of the Recent Mentions panel when the applied filters match no mentions, as opposed to the user having no mentions at all."
+  },
   "no_results.mentions.subtitle": {
     "defaultMessage": "Messages where someone mentions you or includes your trigger words are saved here.",
     "description": "Explanatory text in the empty Recent Mentions panel describing what appears there."
@@ -29814,6 +29822,82 @@
   "search_results.channel-files-header": {
     "defaultMessage": "Recent files",
     "description": "Heading above the list of a channel's recently shared files in the right-hand sidebar, next to a file-type filter menu."
+  },
+  "search_results.mention_filters.all_teams": {
+    "defaultMessage": "All teams",
+    "description": "Option in the Team selector of the Recent Mentions filters popover, meaning mentions from every team the user belongs to."
+  },
+  "search_results.mention_filters.apply": {
+    "defaultMessage": "Apply",
+    "description": "Button that applies the filters and closes the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.button": {
+    "defaultMessage": "Filters",
+    "description": "Label of the button at the top of the Recent Mentions panel that opens the filters popover, shown when no filter is applied."
+  },
+  "search_results.mention_filters.button_with_count": {
+    "defaultMessage": "Filters ({count})",
+    "description": "Label of the button that opens the Recent Mentions filters popover, with the number of filters currently applied in brackets."
+  },
+  "search_results.mention_filters.channel_on_team": {
+    "defaultMessage": "{channel} ({team})",
+    "description": "Label of a channel filter chip under the Recent Mentions header when no team filter is set, where a channel name alone can be ambiguous. {channel} is the channel name, {team} its team."
+  },
+  "search_results.mention_filters.channels": {
+    "defaultMessage": "Channel or Direct Messages",
+    "description": "Label of the channel multi-select in the Recent Mentions filters popover. Also used as its placeholder when no channel is selected."
+  },
+  "search_results.mention_filters.date": {
+    "defaultMessage": "Date",
+    "description": "Heading of the date section of the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.date.any": {
+    "defaultMessage": "Any time",
+    "description": "Date option in the Recent Mentions filters popover: do not limit results by date. The default."
+  },
+  "search_results.mention_filters.date.last_7_days": {
+    "defaultMessage": "Last 7 days",
+    "description": "Date option in the Recent Mentions filters popover: only mentions from the last seven days, today included."
+  },
+  "search_results.mention_filters.date.today": {
+    "defaultMessage": "Today",
+    "description": "Date option in the Recent Mentions filters popover: only mentions from today, in the user's own timezone."
+  },
+  "search_results.mention_filters.mention_type": {
+    "defaultMessage": "Mention type",
+    "description": "Heading of the mention type section of the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.no_channels": {
+    "defaultMessage": "No channels found",
+    "description": "Shown in place of the channel list in the Recent Mentions filters popover when the search text matches no channel."
+  },
+  "search_results.mention_filters.remove_filter": {
+    "defaultMessage": "Remove {filter} filter",
+    "description": "Accessible label of the x on a filter chip under the Recent Mentions header. {filter} is the chip's own label, such as a channel or team name."
+  },
+  "search_results.mention_filters.reset": {
+    "defaultMessage": "Reset",
+    "description": "Button that clears every filter in the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.team": {
+    "defaultMessage": "Team",
+    "description": "Label of the team selector in the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.type.direct": {
+    "defaultMessage": "Directly mentioning you",
+    "description": "Mention type option in the Recent Mentions filters popover: posts that mention the user by their own username."
+  },
+  "search_results.mention_filters.type.group": {
+    "defaultMessage": "Group mentions",
+    "description": "Mention type option in the Recent Mentions filters popover: posts that mention a group the user belongs to."
+  },
+  "search_results.mention_filters.type.keyword": {
+    "defaultMessage": "Keywords triggering mentions",
+    "description": "Mention type option in the Recent Mentions filters popover: posts containing one of the keywords from the user's notification settings."
+  },
+  "search_results.mention_filters.unknown_channel": {
+    "defaultMessage": "Channel",
+    "description": "Fallback label on a channel filter chip under the Recent Mentions header, when the channel's name isn't loaded."
   },
   "search_results.messages_or_files": {
     "defaultMessage": "Messages or Files",

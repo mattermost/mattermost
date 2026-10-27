@@ -5,7 +5,7 @@ import React from 'react';
 import type {ChangeEvent, ChangeEventHandler, JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
 import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
