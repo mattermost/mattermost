@@ -111,6 +111,21 @@ func isJSONNull(raw json.RawMessage) bool {
 	return string(raw) == "null"
 }
 
+// MaskingIsPresenceOnly reports whether the patch carries masking as an empty
+// object: masking marked present with no mask_by_field_id and no except. That
+// is the form the API serves when it withholds a field's masking details, and
+// the only form it serves on a linked field, whose masking is its template's.
+func (pp *PermissionsPatch) MaskingIsPresenceOnly() bool {
+	if pp.Masking == nil || isJSONNull(pp.Masking) {
+		return false
+	}
+	var m Masking
+	if err := json.Unmarshal(pp.Masking, &m); err != nil {
+		return false
+	}
+	return m.MaskByFieldID == "" && len(m.Except) == 0
+}
+
 // ApplyTo resolves the patch against existing — which may be nil, for a field
 // that has never carried permissions — and returns a new Permissions; existing
 // is never mutated. Restrictions, Grants and Masking are each resolved on
