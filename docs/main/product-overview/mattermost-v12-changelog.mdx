@@ -68,6 +68,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
 
 #### Plugins/Integrations
   - Added the ``pluginapi/testhelper`` package to the public module, enabling plugin authors to write integration tests using real Mattermost containers via testcontainers-go.
+  - Added the ``UpdatePostWithOptions`` plugin API so a plugin can update a post with explicit update options, including attaching files uploaded by a specific user.
 
 #### Administration
   - Added the Built-in Health Dashboard rule evaluation engine in ``platform/shared/healthcheck``, including deployment gating, panic containment, and deterministic finding fingerprinting.
@@ -112,6 +113,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Fixed an issue where ``mmctl config set`` could not set a list setting, such as ``SqlSettings.DataSourceReplicas``, to exactly one value (reported on macOS).
   - Fixed an issue where deleting a thread reply that mentioned multiple groups could leave a background process repeatedly querying the database until the server was restarted.
   - Fixed an issue where v12 servers failed to start when ``SupportSettings.SupportEmail``, ``EmailSettings.FeedbackEmail``, or ``EmailSettings.ReplyToAddress`` held a list of addresses or a value that was not an email address. Such values are now reduced to their first valid address or cleared, and a warning is logged. Also fixed ``mattermost db`` commands reporting configuration validation errors as untranslated message IDs.
+  - Fixed an issue where pre-packaged plugins failed to start in the FIPS Docker image.
 
 ### API Changes
   - Added an optional ``includePropertyGroups`` query parameter to ``GET /api/v4/posts/{post_id}``, ``GET /api/v4/posts/{post_id}/thread``, ``GET /api/v4/channels/{channel_id}/posts``, ``GET /api/v4/users/{user_id}/channels/{channel_id}/posts/unread``, and ``GET /api/v4/channels/{channel_id}/views/{view_id}/posts``, which hydrates each post's property values for the named group onto post metadata.
