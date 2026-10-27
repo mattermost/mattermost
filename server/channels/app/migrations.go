@@ -1136,6 +1136,11 @@ func (s *Server) ensureManagedCategoryGroupVersion() error {
 		return fmt.Errorf("failed to set managed category group version: %w", err)
 	}
 
+	// The fresh-install arm has just cached the drifted row via
+	// RegisterPropertyGroup, and field writes are version-checked against it.
+	group.Version = model.PropertyGroupVersionV2
+	s.propertyService.CacheGroup(group)
+
 	return nil
 }
 

@@ -30,6 +30,12 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, model.PropertyGroupVersionV2, group.Version)
 
+		// Field writes are version-checked against the property service's cached
+		// copy of the group, not the row above.
+		cached, err := th.Server.propertyService.GroupByID(group.ID)
+		require.NoError(t, err)
+		require.Equal(t, model.PropertyGroupVersionV2, cached.Version)
+
 		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
 		require.Len(t, propertyFields, 1)
@@ -149,6 +155,20 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		_, sysErr := th.Store.System().PermanentDeleteByName(managedCategorySetupDoneKey)
 		require.NoError(t, sysErr)
 		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
+
+		runSetup(t, th)
+
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
+	})
+
+	t.Run("should create the field over a drifted group when the setup flag is missing", func(t *testing.T) {
+		th := Setup(t)
+
+		_, sysErr := th.Store.System().PermanentDeleteByName(managedCategorySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
+		require.NoError(t, th.Store.PropertyField().Delete(th.Server.Channels().managedCategoryGroupID, th.Server.Channels().managedCategoryFieldID))
 
 		runSetup(t, th)
 
