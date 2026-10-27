@@ -2192,43 +2192,13 @@ To let users search documents by their content as well as by filename, also enab
 
 <PlanAvailability slug="ent-adv" />
 
-This setting improves an organization's mobile security posture by restricting file access while still allowing essential file viewing capabilities.
-
-<table>
-<colgroup>
-<col style={{width: '44%'}} />
-<col style={{width: '55%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, even when the <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile')}>Allow file downloads on mobile</a> configuration setting is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared.</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled.</li></ul></td>
-<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEENABLESECUREFILEPREVIEW</code></li></ul></td>
-</tr>
-</tbody>
-</table>
+This setting is configured in **System Console \> Environment \> Mobile Security**. See [Enable secure file preview on mobile](/administration-guide/configure/environment-configuration-settings#enable-secure-file-preview-on-mobile) for details.
 
 ### Allow PDF link navigation on mobile
 
 <PlanAvailability slug="ent-adv" />
 
-<table>
-<colgroup>
-<col style={{width: '44%'}} />
-<col style={{width: '55%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><ul><li><strong>true</strong>: Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables link navigation in PDFs when Secure File Preview Mode is active.</li></ul></td>
-<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileAllowPdfLinkNavigation</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEALLOWPDFLINKNAVIGATION</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-This setting has no effect when the [Secure file preview on mobile](/administration-guide/configure/site-configuration-settings#enable-secure-file-preview-on-mobile) configuration setting is disabled.
-
-</Note>
+This setting is configured in **System Console \> Environment \> Mobile Security**. See [Allow PDF link navigation on mobile](/administration-guide/configure/environment-configuration-settings#allow-pdf-link-navigation-on-mobile) for details.
 
 ------------------------------------------------------------------------------------------------------------------------
 
