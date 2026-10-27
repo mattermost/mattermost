@@ -37,66 +37,74 @@ func (a *App) resolveValueBroadcastParams(rctx request.CTX, objectType, targetID
 	}
 }
 
-// invalidateUserPropertyValuesEpochs marks the AttributeView stale and drops the cached CPA epoch
+// invalidateUserPropertyValuesEpochs drops the cached CPA epoch and the cached attribute subject
 // for every distinct user the values target. It keys off each value's own TargetType/TargetID
 // rather than a caller-supplied object type, to stay correct for plugin callers that pass none.
 //
-// Both halves must move together: the epoch alone forces a refetch that renders from a stale view
-// and then caches that under the new ETag, and the view alone leaves the client 304ing on content
-// sanitized under the old attributes.
+// Both halves must move together: the epoch alone forces a refetch that renders from the old
+// cached subject and then caches that under the new ETag, and the subject alone leaves the client
+// 304ing on content sanitized under the old attributes. The subject itself is read live
+// (AttributesStore.GetSubject), so no materialized-view refresh is needed for it to be current.
 func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) {
 	seen := make(map[string]bool, len(values))
+	var channelTargeted bool
 	for _, v := range values {
+		if v != nil && v.TargetType == model.PropertyFieldObjectTypeChannel {
+			channelTargeted = true
+		}
 		if v == nil || v.TargetType != model.PropertyFieldObjectTypeUser || seen[v.TargetID] {
 			continue
 		}
 		seen[v.TargetID] = true
 	}
+	if channelTargeted && a.attributeBasedAccessControlEnabled() {
+		// A channel's attributes feed every decision about it, whoever is asking.
+		a.invalidateChannelAccessDecisions()
+	}
 	if len(seen) == 0 {
 		return
 	}
 
-	a.invalidateAttributeViewCache()
-
-	// Only the epoch half is gated: nothing reads it while ABAC is off, and each invalidation
-	// costs a cluster message. A flip clears both caches wholesale, so nothing skipped here
-	// survives as a stale entry.
+	// Nothing reads either cache while ABAC is off, and each invalidation costs a cluster
+	// message. A flip clears both caches wholesale, so nothing skipped here survives as a stale
+	// entry.
 	if !a.attributeBasedAccessControlEnabled() {
 		return
 	}
 	for targetID := range seen {
 		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
 		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
+		a.invalidateChannelAccessDecisionsForUser(targetID)
 	}
 }
 
 // invalidateUserPropertyValuesEpoch is the single-target form, for delete paths that have a target
-// ID rather than a set of values. Same split gate as above.
+// ID rather than a set of values. Same gate as above.
 func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
-	if targetType != model.PropertyFieldObjectTypeUser {
-		return
-	}
-
-	a.invalidateAttributeViewCache()
-
 	if !a.attributeBasedAccessControlEnabled() {
 		return
 	}
-	a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
-	a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
+
+	switch targetType {
+	case model.PropertyFieldObjectTypeChannel:
+		a.invalidateChannelAccessDecisions()
+	case model.PropertyFieldObjectTypeUser:
+		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
+		a.invalidateChannelAccessDecisionsForUser(targetID)
+	}
 }
 
-// invalidateAllUserAttributeCaches marks the AttributeView stale and drops every cached CPA epoch.
-// For field mutations, which change what every subject resolves to without touching a single
-// PropertyValues row, and so are invisible to an epoch computed from that table.
+// invalidateAllUserAttributeCaches drops every cached CPA epoch and attribute subject. For field
+// mutations, which change what every subject resolves to without touching a single PropertyValues
+// row, and so are invisible to an epoch computed from that table.
 func (a *App) invalidateAllUserAttributeCaches() {
-	a.invalidateAttributeViewCache()
-
 	if !a.attributeBasedAccessControlEnabled() {
 		return
 	}
 	a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
 	a.Srv().Store().Attributes().ClearUserAttributesCache()
+	a.invalidateChannelAccessDecisions()
 }
 
 // CreatePropertyValue creates a new property value.

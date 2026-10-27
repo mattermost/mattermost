@@ -533,9 +533,13 @@ func TestMigration000223(t *testing.T) {
 		return hash
 	}
 
-	// Down: drop the CONCURRENTLY-built keys first, then the options go back
-	// into every field's own blob, including a copy in each linked field, the
-	// blob-reading view bodies come back, and both tables go away.
+	// Down: first unwind 000236, whose live views read PropertyOptions and so
+	// would block dropping it, then drop the CONCURRENTLY-built keys, then the
+	// options go back into every field's own blob, including a copy in each
+	// linked field, the blob-reading view bodies come back, and both tables go
+	// away.
+	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000236_attribute_live_views.down.sql"))
+	require.NoError(t, err, "applying 000236 down")
 	for _, name := range indexDownSQL {
 		_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, name))
 		require.NoError(t, err, "applying %s", name)
@@ -588,6 +592,14 @@ func TestMigration000223(t *testing.T) {
 	_, err = store.GetMaster().ExecNoTimeout(upSQL)
 	require.NoError(t, err)
 	applyOptionIndexes(t)
+	for _, name := range []string{
+		"000236_attribute_live_views.up.sql",
+		"000237_create_userattributeview_target_index.up.sql",
+		"000238_create_channelattributeview_target_index.up.sql",
+	} {
+		_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, name))
+		require.NoError(t, err, "re-applying %s", name)
+	}
 	require.True(t, tableExists(t, store, "PropertyOptions"), "up should recreate PropertyOptions")
 	require.True(t, tableExists(t, store, "PropertyOptionEdges"), "up should recreate PropertyOptionEdges")
 

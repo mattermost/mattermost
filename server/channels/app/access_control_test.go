@@ -4,12 +4,12 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"maps"
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -2569,6 +2569,57 @@ func TestBuildAccessControlSubjectScopedRoles(t *testing.T) {
 		// BasicUser is the channel creator → channel_admin via SchemeAdmin.
 		assert.Equal(t, model.ChannelAdminRoleId, channelRole)
 	})
+}
+
+// TestBuildAccessControlSubjectReadsLiveAttributes pins that a subject build sees a CPA write
+// on the next call, with no refresh of the attribute materialized views in between: the
+// attributes are read live, and the write path only has to drop the cached subject.
+func TestBuildAccessControlSubjectReadsLiveAttributes(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+	require.True(t, th.App.attributeBasedAccessControlEnabled())
+
+	group, err := th.App.Srv().propertyService.Group(model.AccessControlPropertyGroupName)
+	require.NoError(t, err)
+
+	field, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "live_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = th.App.Srv().Store().PropertyField().Delete(group.ID, field.ID) })
+
+	write := func(t *testing.T, value string) {
+		t.Helper()
+		raw, mErr := json.Marshal(value)
+		require.NoError(t, mErr)
+		written, uErr := th.App.Srv().Store().PropertyValue().Upsert([]*model.PropertyValue{{
+			TargetID:   th.BasicUser.Id,
+			TargetType: model.PropertyValueTargetTypeUser,
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			Value:      raw,
+		}})
+		require.NoError(t, uErr)
+		th.App.invalidateUserPropertyValuesEpochs(written)
+	}
+	attribute := func(t *testing.T) any {
+		t.Helper()
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, "")
+		require.Nil(t, appErr)
+		return subject.Attributes[field.Name]
+	}
+
+	write(t, "first")
+	assert.Equal(t, "first", attribute(t))
+
+	write(t, "second")
+	assert.Equal(t, "second", attribute(t), "a write must be visible on the next build without a view refresh")
 }
 
 func TestBuildAccessControlSubjectNativeAttributes(t *testing.T) {
@@ -6215,30 +6266,6 @@ func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
 			assert.False(t, isNative, "native attribute %q must not repeat on later pages", f.Name)
 		}
 	})
-}
-
-func TestInvalidateAttributeViewCache(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	ch := th.App.Srv().Channels()
-
-	th.App.invalidateAttributeViewCache()
-	require.True(t, ch.attributeViewRefreshLast.IsZero(), "a write should mark the view stale")
-
-	// No rate limit: a deferred write is a lost one, because a client asks for a render decision
-	// once per change event and never re-asks.
-	ch.attributeViewRefreshLast = time.Now()
-	for range 100 {
-		th.App.invalidateAttributeViewCache()
-	}
-	require.True(t, ch.attributeViewRefreshLast.IsZero(), "later writes should still mark the view stale")
-
-	// A write landing during an in-flight refresh cannot reset the timer, so it flags a follow-up.
-	ch.attributeViewRefreshLast = time.Now()
-	ch.attributeViewRefreshMut.Lock()
-	th.App.invalidateAttributeViewCache()
-	ch.attributeViewRefreshMut.Unlock()
-	require.False(t, ch.attributeViewRefreshLast.IsZero())
-	require.True(t, ch.attributeViewNeedsRefresh.Load(), "a write during a refresh should flag a follow-up")
 }
 
 func TestAttributeBasedAccessControlEnabled(t *testing.T) {

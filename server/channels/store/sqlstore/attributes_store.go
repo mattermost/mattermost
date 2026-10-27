@@ -9,12 +9,20 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/lib/pq"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+)
+
+// Postgres error codes for a REFRESH ... CONCURRENTLY the view cannot take: no
+// usable unique index, and a view that was never populated.
+const (
+	pgObjectNotInPrerequisiteState = "55000"
+	pgFeatureNotSupported          = "0A000"
 )
 
 type SqlAttributesStore struct {
@@ -25,22 +33,30 @@ type SqlAttributesStore struct {
 }
 
 // attributeViewsByObjectType is the single source of truth for the
-// object-type-to-materialized-view mapping: both the per-type lookup and the
-// refresh sweep read it, so adding an object type cannot leave a new view
-// perpetually stale.
+// object-type-to-materialized-view mapping the refresh sweep reads, so adding an
+// object type cannot leave a new view perpetually stale.
 var attributeViewsByObjectType = map[string]string{
 	model.PropertyFieldObjectTypeChannel: "ChannelAttributeView",
 	model.PropertyFieldObjectTypeUser:    "UserAttributeView",
 }
 
-// attributeViewFor maps a property-field object type to its materialized view.
+// attributeLiveViewsByObjectType maps each object type to the plain view its
+// materialized view is built from (migration 000236). A plain view stores
+// nothing, so reading one subject through it computes that subject's
+// attributes from the source tables on the spot.
+var attributeLiveViewsByObjectType = map[string]string{
+	model.PropertyFieldObjectTypeChannel: "ChannelAttributeLiveView",
+	model.PropertyFieldObjectTypeUser:    "UserAttributeLiveView",
+}
+
+// attributeLiveViewFor maps a property-field object type to its live view.
 // An unrecognized type is an error rather than a fallback to the user view: a
 // silent coercion would surface a future miswire as a wrong-but-successful user
 // lookup.
-func attributeViewFor(objectType string) (string, error) {
-	view, ok := attributeViewsByObjectType[objectType]
+func attributeLiveViewFor(objectType string) (string, error) {
+	view, ok := attributeLiveViewsByObjectType[objectType]
 	if !ok {
-		return "", errors.Errorf("unknown object type %q for attribute view", objectType)
+		return "", errors.Errorf("unknown object type %q for attribute live view", objectType)
 	}
 	return view, nil
 }
@@ -95,7 +111,7 @@ func (s *SqlAttributesStore) RefreshAttributes() error {
 	// unspecified (map iteration) and does not matter: each REFRESH is its own
 	// independent statement.
 	for _, view := range attributeViewsByObjectType {
-		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view); err != nil {
+		if err := s.refreshAttributeView(view); err != nil {
 			return errors.Wrapf(err, "error refreshing materialized view %s", view)
 		}
 	}
@@ -103,8 +119,40 @@ func (s *SqlAttributesStore) RefreshAttributes() error {
 	return nil
 }
 
+// refreshAttributeView refreshes one view CONCURRENTLY, so readers of the old
+// contents are never blocked; that needs the unique index migrations 000237 and
+// 000238 create. A plain refresh, which takes an exclusive lock for its whole
+// duration, is the fallback when Postgres refuses the concurrent one because
+// the index is missing (a failed CONCURRENTLY build leaves none, and recreating
+// the view drops it) or the view was never populated: a refresh that always
+// failed would leave the bulk readers on a stale view indefinitely.
+func (s *SqlAttributesStore) refreshAttributeView(view string) error {
+	_, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW CONCURRENTLY " + view)
+	if err == nil {
+		return nil
+	}
+
+	var pqErr *pq.Error
+	if !errors.As(err, &pqErr) || (pqErr.Code != pgObjectNotInPrerequisiteState && pqErr.Code != pgFeatureNotSupported) {
+		return err
+	}
+
+	_, err = s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view)
+	return err
+}
+
+// GetSubject reads one subject's attributes through the live view rather than
+// the materialized view, so the result reflects every committed write without
+// waiting for a refresh. Postgres pushes the TargetID/GroupID filter below the
+// view's GROUP BY onto idx_propertyvalues_targetid_groupid, so this reads only
+// the subject's own rows.
+//
+// It reads master: callers cache the result (the user subject for 15 minutes),
+// and a read right after a write that hit a lagging replica would put the old
+// attributes back into that cache. GetUserPropertyValuesEpoch reads master for
+// the same reason.
 func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error) {
-	view, err := attributeViewFor(objectType)
+	view, err := attributeLiveViewFor(objectType)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +163,7 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectTyp
 		return nil, errors.Wrap(err, "failed to build query for subject")
 	}
 
-	row := s.GetReplica().QueryRowContext(rctx.Context(), q, args...)
+	row := s.GetMaster().QueryRowContext(rctx.Context(), q, args...)
 
 	var subject model.Subject
 	var properties []byte

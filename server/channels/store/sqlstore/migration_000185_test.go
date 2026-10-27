@@ -149,13 +149,19 @@ func TestMigration000185(t *testing.T) {
 	assert.Equal(t, targetUserID, val.TargetID, "value TargetID should be unchanged")
 	assert.Equal(t, "user", val.TargetType, "value TargetType should be unchanged")
 
-	// Verify: the user attribute matview exists and includes the ObjectType
-	// filter (user-type fields only). Since migration 000216 the single
+	// Verify: the user attribute matview exists and its query includes the
+	// ObjectType filter (user-type fields only). Since migration 000216 the single
 	// AttributeView is split per object type; the user row lives in UserAttributeView.
+	// Since migration 000236 the query is defined once, in the UserAttributeLiveView
+	// view, and the matview selects from it.
 	var viewDef string
 	err = master.Get(&viewDef, "SELECT definition FROM pg_matviews WHERE matviewname = 'userattributeview'")
 	require.NoError(t, err, "UserAttributeView should exist")
-	assert.Contains(t, viewDef, "pf.objecttype", "view definition should filter by pf.ObjectType")
+	assert.Contains(t, viewDef, "userattributeliveview", "UserAttributeView should be built on UserAttributeLiveView")
+	var liveViewDef string
+	err = master.Get(&liveViewDef, "SELECT definition FROM pg_views WHERE viewname = 'userattributeliveview'")
+	require.NoError(t, err, "UserAttributeLiveView should exist")
+	assert.Contains(t, liveViewDef, "pf.objecttype", "view definition should filter by pf.ObjectType")
 
 	// Verify: materialized view contains expected data after refresh.
 	_, err = master.ExecNoTimeout("REFRESH MATERIALIZED VIEW UserAttributeView")

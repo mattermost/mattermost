@@ -12,7 +12,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"syscall"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -60,6 +59,10 @@ type Channels struct {
 	// See scheduleGuardCacheReloadRetry.
 	guardCacheRetryInFlight atomic.Bool
 
+	// channelAccessDecisions caches channel-access ABAC decisions across requests and websocket
+	// deliveries. See channelAccessDecisionCache.
+	channelAccessDecisions *channelAccessDecisionCache
+
 	imageProxy *imageproxy.ImageProxy
 
 	agentsBridge AgentsBridge
@@ -83,10 +86,6 @@ type Channels struct {
 	Ldap             einterfaces.LdapInterface
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
-
-	attributeViewRefreshMut   sync.Mutex
-	attributeViewRefreshLast  time.Time
-	attributeViewNeedsRefresh atomic.Bool
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -117,6 +116,7 @@ func NewChannels(s *Server) (*Channels, error) {
 		interruptQuitChan: make(chan struct{}),
 	}
 	ch.guardCache.Store(&sync.Map{})
+	ch.channelAccessDecisions = newChannelAccessDecisionCache(channelAccessDecisionCacheSize)
 
 	if s.agentsBridgeOverride != nil {
 		ch.agentsBridge = s.agentsBridgeOverride
@@ -306,6 +306,10 @@ func (ch *Channels) Start() error {
 	})
 
 	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
+	// Config feeds the decisions in ways no narrower invalidation tracks (ABAC and session
+	// attribute settings, feature flags), and every node runs its own listeners.
+	ch.AddConfigListener(func(_, _ *model.Config) { ch.invalidateChannelAccessDecisionsLocal() })
+	ch.srv.AddLicenseListener(func(_, _ *model.License) { ch.invalidateChannelAccessDecisionsLocal() })
 
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {

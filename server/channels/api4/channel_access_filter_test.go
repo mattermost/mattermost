@@ -29,6 +29,18 @@ type recapAccessFixture struct {
 
 func (f *recapAccessFixture) deny(channelID string) {
 	f.denied[channelID] = true
+	invalidateChannelAccessDecisions(f.th)
+}
+
+// invalidateChannelAccessDecisions stands in for the policy or attribute change that would make
+// a real PDP answer differently: changing what the mock answers is invisible to the server's
+// channel-access decision cache, which only drops a decision when told something changed.
+func invalidateChannelAccessDecisions(th *TestHelper) {
+	for _, user := range []*model.User{th.BasicUser, th.BasicUser2, th.SystemAdminUser} {
+		if user != nil {
+			th.App.InvalidateCacheForUser(user.Id)
+		}
+	}
 }
 
 // setupRecapChannelAccess governs channel_read_access and refuses whatever the
@@ -137,6 +149,7 @@ type sidebarAccessFixture struct {
 
 func (f *sidebarAccessFixture) deny(channelID string) {
 	f.denied[channelID] = true
+	invalidateChannelAccessDecisions(f.th)
 }
 
 func setupSidebarChannelAccess(t *testing.T) *sidebarAccessFixture {

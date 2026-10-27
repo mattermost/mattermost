@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -951,5 +952,62 @@ func TestClusterBroadcastHooks(t *testing.T) {
 		assert.Equal(t, []string{hookID}, received.GetBroadcast().BroadcastHooks)
 		assert.IsType(t, map[string]any{}, received.GetBroadcast().BroadcastHookArgs[0]["user"])
 		assert.IsType(t, []any{}, received.GetBroadcast().BroadcastHookArgs[0]["array"])
+	})
+}
+
+// TestHubCountsSlowConnectionClose pins the metric for an active connection the hub closes
+// because its send queue is full, the case that forces a client to reconnect.
+func TestHubCountsSlowConnectionClose(t *testing.T) {
+	th := Setup(t)
+
+	newConn := func(t *testing.T, active bool) (*WebConn, *hubConnectionIndex) {
+		t.Helper()
+		wc := &WebConn{
+			Platform: th.Service,
+			Suite:    th.Suite,
+			UserId:   model.NewId(),
+			send:     make(chan model.WebSocketMessage, 1),
+		}
+		wc.SetConnectionID(model.NewId())
+		wc.SetSession(&model.Session{Id: model.NewId(), Token: model.NewId(), UserId: wc.UserId})
+		wc.SetSessionToken(model.NewId())
+		wc.SetSessionExpiresAt(model.GetMillis() + 60_000)
+		wc.Active.Store(active)
+		// A full queue: the next event cannot be enqueued.
+		wc.send <- model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", wc.UserId, nil, "")
+
+		connIndex := newHubConnectionIndex(time.Second, th.Service.Store, th.Service.logger, false)
+		require.NoError(t, connIndex.Add(wc))
+		return wc, connIndex
+	}
+	deliver := func(wc *WebConn, connIndex *hubConnectionIndex) {
+		hub := &Hub{platform: th.Service}
+		msg := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", wc.UserId, nil, "")
+		hub.broadcastToConn(connIndex, wc, msg, nil, nil, nil)
+	}
+
+	t.Run("an active connection is counted", func(t *testing.T) {
+		metricsMock := &mocks.MetricsInterface{}
+		metricsMock.On("IncrementWebSocketSlowConnectionClose").Return().Once()
+		th.Service.metricsIFace = metricsMock
+		t.Cleanup(func() { th.Service.metricsIFace = nil })
+
+		wc, connIndex := newConn(t, true)
+		deliver(wc, connIndex)
+
+		require.False(t, connIndex.Has(wc), "the connection should be closed")
+		metricsMock.AssertExpectations(t)
+	})
+
+	t.Run("an inactive connection is closed without counting", func(t *testing.T) {
+		metricsMock := &mocks.MetricsInterface{}
+		th.Service.metricsIFace = metricsMock
+		t.Cleanup(func() { th.Service.metricsIFace = nil })
+
+		wc, connIndex := newConn(t, false)
+		deliver(wc, connIndex)
+
+		require.False(t, connIndex.Has(wc))
+		metricsMock.AssertNotCalled(t, "IncrementWebSocketSlowConnectionClose")
 	})
 }

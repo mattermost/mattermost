@@ -237,6 +237,8 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 		if err := a.Srv().Store().SessionAttribute().Refresh(rctx.Session().Id, attrsToMerge, refreshAt); err != nil {
 			rctx.Logger().Warn("Failed to refresh session attributes", mlog.Err(err))
 		} else {
+			// Other nodes drop theirs when the broadcast lands, through the platform hook.
+			a.Srv().Channels().invalidateChannelAccessDecisionsForSessionLocal(rctx.Session().Id)
 			a.broadcastSessionAttributes(rctx, rctx.Session().Id, attrsToMerge, refreshAt)
 		}
 	}
@@ -318,6 +320,57 @@ func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[stri
 	return filterStaleSessionAttributes(attrs, timestamps, fieldsByName), nil
 }
 
+// sessionAttributesExpireAt returns when the first of the session's current attributes expires,
+// the moment GetSessionAttributes would start leaving it out. It is zero when the session has no
+// current attribute.
+func (a *App) sessionAttributesExpireAt(rctx request.CTX, sessionID string) (time.Time, *model.AppError) {
+	if !a.sessionAttributesEnabled() {
+		return time.Time{}, nil
+	}
+
+	attrs, timestamps, err := a.Srv().Store().SessionAttribute().Get(sessionID)
+	if err != nil {
+		if errors.Is(err, cache.ErrKeyNotFound) {
+			return time.Time{}, nil
+		}
+		return time.Time{}, model.NewAppError("sessionAttributesExpireAt", "app.access_control.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)
+	if appErr != nil {
+		return time.Time{}, appErr
+	}
+
+	now := time.Now()
+	var first time.Time
+	for name := range attrs {
+		expiresAt, ok := sessionAttributeExpiresAt(name, timestamps, fieldsByName)
+		if !ok || now.After(expiresAt) {
+			continue
+		}
+		if first.IsZero() || expiresAt.Before(first) {
+			first = expiresAt
+		}
+	}
+	return first, nil
+}
+
+// sessionAttributeExpiresAt returns when the named attribute stops counting: its last refresh
+// plus its field's TTL and grace period. ok is false for an attribute with no field or no
+// timestamp, which never counts.
+func sessionAttributeExpiresAt(name string, timestamps map[string]int64, fieldsByName map[string]*sessionAttributeField) (time.Time, bool) {
+	field, ok := fieldsByName[name]
+	if !ok {
+		return time.Time{}, false
+	}
+	timestamp, ok := timestamps[name]
+	if !ok {
+		return time.Time{}, false
+	}
+	expiry := time.Duration(field.Attrs.TTLSeconds+field.Attrs.GracePeriodSeconds) * time.Second
+	return time.UnixMilli(timestamp).Add(expiry), true
+}
+
 func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]int64, fieldsByName map[string]*sessionAttributeField) map[string]any {
 	if len(attrs) == 0 {
 		return nil
@@ -326,16 +379,8 @@ func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]in
 	now := time.Now()
 	filtered := make(map[string]any, len(attrs))
 	for name, value := range attrs {
-		field, ok := fieldsByName[name]
-		if !ok {
-			continue
-		}
-		timestamp, ok := timestamps[name]
-		if !ok {
-			continue
-		}
-		expiry := time.Duration(field.Attrs.TTLSeconds+field.Attrs.GracePeriodSeconds) * time.Second
-		if now.After(time.UnixMilli(timestamp).Add(expiry)) {
+		expiresAt, ok := sessionAttributeExpiresAt(name, timestamps, fieldsByName)
+		if !ok || now.After(expiresAt) {
 			continue
 		}
 		filtered[name] = value

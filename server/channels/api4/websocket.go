@@ -119,6 +119,8 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 			ws.Close()
 			return
 		}
+		session := *c.AppContext.Session()
+		c.App.Srv().Go(func() { c.App.WarmChannelAccessSubject(&session) })
 	}
 
 	wc.Pump()

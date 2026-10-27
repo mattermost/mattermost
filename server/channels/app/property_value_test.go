@@ -6,7 +6,6 @@ package app
 import (
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -243,33 +242,15 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
 	})
 
-	// A write made while ABAC was off must not leave the view stale for a switch back on to read,
-	// and the marker is free, so only the epoch half is gated.
-	t.Run("the view is marked stale even when ABAC is off", func(t *testing.T) {
-		thMock, _ := setup(t, true, false)
-		ch := thMock.App.Srv().Channels()
-
-		ch.attributeViewRefreshLast = time.Now()
-		thMock.App.invalidateUserPropertyValuesEpochs(values)
-		require.True(t, ch.attributeViewRefreshLast.IsZero(), "a user-targeted write should mark the view stale")
-
-		ch.attributeViewRefreshLast = time.Now()
-		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID)
-		require.True(t, ch.attributeViewRefreshLast.IsZero(), "the single-target form should too")
-	})
-
-	t.Run("no user target means no invalidation of either kind", func(t *testing.T) {
+	t.Run("no user target means no invalidation", func(t *testing.T) {
 		thMock, mockAttributes := setup(t, true, true)
-		ch := thMock.App.Srv().Channels()
-		now := time.Now()
-		ch.attributeViewRefreshLast = now
 
 		thMock.App.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{
 			{TargetType: model.PropertyFieldObjectTypePost, TargetID: model.NewId()},
 			nil,
 		})
 
-		require.Equal(t, now, ch.attributeViewRefreshLast)
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
 	})
 }

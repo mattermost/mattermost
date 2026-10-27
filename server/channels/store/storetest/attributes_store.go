@@ -34,6 +34,7 @@ func TestAttributesStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("RefreshAndGet", func(t *testing.T) { testAttributesStoreRefresh(t, rctx, ss) })
 	t.Run("GetChannelSubject", func(t *testing.T) { testAttributesStoreGetChannelSubject(t, rctx, ss) })
 	t.Run("EmptyMultiselect", func(t *testing.T) { testAttributesStoreEmptyMultiselect(t, rctx, ss) })
+	t.Run("GetSubjectIsLive", func(t *testing.T) { testAttributesStoreGetSubjectIsLive(t, rctx, ss, s) })
 	t.Run("SearchUsers", func(t *testing.T) { testAttributesStoreSearchUsers(t, rctx, ss, s) })
 	t.Run("SearchUsersBySubjectID", func(t *testing.T) { testAttributesStoreSearchUsersBySubjectID(t, rctx, ss, s) })
 	t.Run("GetChannelMembersToRemove", func(t *testing.T) { testAttributesStoreGetChannelMembersToRemove(t, rctx, ss, s) })
@@ -830,5 +831,167 @@ func testAttributesStoreSearchUsersBySubjectID(t *testing.T, rctx request.CTX, s
 		for _, s := range subjects {
 			require.NotEqual(t, u.Id, s.Id, "soft-deleted user must not be surfaced by top-level OR query")
 		}
+	})
+}
+
+// testAttributesStoreGetSubjectIsLive pins the contract of migration 000236:
+// GetSubject reads through the live attribute views, so a write is visible
+// without RefreshAttributes, and the live result is exactly what the
+// materialized view holds once it is refreshed. The drift guard covers every
+// value shape the shared query projects, so a change to one definition that
+// is not made to the other cannot pass.
+func testAttributesStoreGetSubjectIsLive(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+	groupID := group.ID
+
+	var fields []*model.PropertyField
+	var values []*model.PropertyValue
+	t.Cleanup(func() {
+		for _, pv := range values {
+			require.NoError(t, ss.PropertyValue().Delete(groupID, pv.ID))
+		}
+		for _, f := range fields {
+			require.NoError(t, ss.PropertyField().Delete(groupID, f.ID))
+		}
+	})
+
+	createField := func(t *testing.T, f *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		f.GroupID = groupID
+		f.TargetType = string(model.PropertyFieldTargetLevelSystem)
+		created, cErr := ss.PropertyField().Create(f)
+		require.NoError(t, cErr)
+		fields = append(fields, created)
+		return created
+	}
+	createValue := func(t *testing.T, fieldID, targetID, targetType string, value any) *model.PropertyValue {
+		t.Helper()
+		raw, mErr := json.Marshal(value)
+		require.NoError(t, mErr)
+		created, cErr := ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: targetType,
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      raw,
+		})
+		require.NoError(t, cErr)
+		values = append(values, created)
+		return created
+	}
+
+	selectOptionID, rankOptionID := model.NewId(), model.NewId()
+	tagA, tagB := model.NewId(), model.NewId()
+	programA, programB := model.NewId(), model.NewId()
+
+	textField := createField(t, &model.PropertyField{Name: "live_text", Type: model.PropertyFieldTypeText, ObjectType: model.PropertyFieldObjectTypeUser})
+	selectField := createField(t, &model.PropertyField{
+		Name: "live_select", Type: model.PropertyFieldTypeSelect, ObjectType: model.PropertyFieldObjectTypeUser,
+		Attrs: model.StringInterface{"options": []any{map[string]any{"id": selectOptionID, "name": "Chosen"}}},
+	})
+	multiField := createField(t, &model.PropertyField{
+		Name: "live_tags", Type: model.PropertyFieldTypeMultiselect, ObjectType: model.PropertyFieldObjectTypeUser,
+		Attrs: model.StringInterface{"options": []any{
+			map[string]any{"id": tagA, "name": "Tag A"},
+			map[string]any{"id": tagB, "name": "Tag B"},
+		}},
+	})
+	emptyMultiField := createField(t, &model.PropertyField{
+		Name: "live_empty_tags", Type: model.PropertyFieldTypeMultiselect, ObjectType: model.PropertyFieldObjectTypeUser,
+		Attrs: model.StringInterface{"options": []any{map[string]any{"id": model.NewId(), "name": "Unused"}}},
+	})
+	rankField := createField(t, &model.PropertyField{
+		Name: "live_rank", Type: model.PropertyFieldTypeRank, ObjectType: model.PropertyFieldObjectTypeUser,
+		Attrs: model.StringInterface{"options": []any{
+			map[string]any{"id": model.NewId(), "name": "Low", "rank": 1},
+			map[string]any{"id": rankOptionID, "name": "High", "rank": 2},
+		}},
+	})
+	graphTemplate := createField(t, &model.PropertyField{
+		Name: "live_programs_template", Type: model.PropertyFieldTypeGraph, ObjectType: model.PropertyFieldObjectTypeTemplate,
+		Attrs: model.StringInterface{"options": []any{
+			map[string]any{"id": programA, "name": "Program A"},
+			map[string]any{"id": programB, "name": "Program B"},
+		}},
+	})
+	linkedGraph := createField(t, &model.PropertyField{
+		Name: "live_programs", Type: model.PropertyFieldTypeGraph, ObjectType: model.PropertyFieldObjectTypeUser,
+		LinkedFieldID: &graphTemplate.ID,
+	})
+	doomedField := createField(t, &model.PropertyField{Name: "live_doomed", Type: model.PropertyFieldTypeText, ObjectType: model.PropertyFieldObjectTypeUser})
+	channelField := createField(t, &model.PropertyField{Name: "live_channel_text", Type: model.PropertyFieldTypeText, ObjectType: model.PropertyFieldObjectTypeChannel})
+
+	userID := model.NewId()
+	channelID := model.NewId()
+	textValue := createValue(t, textField.ID, userID, model.PropertyValueTargetTypeUser, "before")
+	createValue(t, selectField.ID, userID, model.PropertyValueTargetTypeUser, selectOptionID)
+	createValue(t, multiField.ID, userID, model.PropertyValueTargetTypeUser, []string{tagA, tagB})
+	createValue(t, emptyMultiField.ID, userID, model.PropertyValueTargetTypeUser, []string{})
+	createValue(t, rankField.ID, userID, model.PropertyValueTargetTypeUser, rankOptionID)
+	createValue(t, linkedGraph.ID, userID, model.PropertyValueTargetTypeUser, []string{programB})
+	createValue(t, doomedField.ID, userID, model.PropertyValueTargetTypeUser, "soon gone")
+	channelValue := createValue(t, channelField.ID, channelID, model.PropertyValueTargetTypeChannel, "chan")
+
+	// Deliberately no RefreshAttributes before these reads.
+	t.Run("a write is visible without a refresh", func(t *testing.T) {
+		subject, gErr := ss.Attributes().GetSubject(rctx, userID, groupID, model.PropertyFieldObjectTypeUser)
+		require.NoError(t, gErr)
+		require.Equal(t, userID, subject.ID)
+		require.Equal(t, "before", subject.Attributes["live_text"])
+		require.Equal(t, "Chosen", subject.Attributes["live_select"])
+		require.ElementsMatch(t, []any{"Tag A", "Tag B"}, subject.Attributes["live_tags"])
+		require.Nil(t, subject.Attributes["live_empty_tags"])
+		require.Equal(t, map[string]any{"name": "High", "rank": float64(2)}, subject.Attributes["live_rank"])
+		require.Equal(t, []any{programB}, subject.Attributes["live_programs"])
+
+		channel, gErr := ss.Attributes().GetSubject(rctx, channelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, gErr)
+		require.Equal(t, "chan", channel.Attributes["live_channel_text"])
+	})
+
+	t.Run("the live views match the refreshed materialized views", func(t *testing.T) {
+		require.NoError(t, ss.Attributes().RefreshAttributes())
+
+		for _, c := range []struct {
+			view, targetID, objectType string
+		}{
+			{"UserAttributeView", userID, model.PropertyFieldObjectTypeUser},
+			{"ChannelAttributeView", channelID, model.PropertyFieldObjectTypeChannel},
+		} {
+			var materialized string
+			require.NoError(t, s.GetMaster().Get(&materialized,
+				"SELECT Attributes::text FROM "+c.view+" WHERE TargetID = $1 AND GroupID = $2", c.targetID, groupID))
+
+			live, gErr := ss.Attributes().GetSubject(rctx, c.targetID, groupID, c.objectType)
+			require.NoError(t, gErr)
+			liveJSON, mErr := json.Marshal(live.Attributes)
+			require.NoError(t, mErr)
+			require.JSONEq(t, materialized, string(liveJSON), "%s drifted from its live view", c.view)
+		}
+	})
+
+	t.Run("updates and deletes are visible without a refresh", func(t *testing.T) {
+		updated := *textValue
+		raw, mErr := json.Marshal("after")
+		require.NoError(t, mErr)
+		updated.Value = raw
+		_, uErr := ss.PropertyValue().Update(groupID, []*model.PropertyValue{&updated})
+		require.NoError(t, uErr)
+		require.NoError(t, ss.PropertyField().Delete(groupID, doomedField.ID))
+
+		subject, gErr := ss.Attributes().GetSubject(rctx, userID, groupID, model.PropertyFieldObjectTypeUser)
+		require.NoError(t, gErr)
+		require.Equal(t, "after", subject.Attributes["live_text"])
+		require.NotContains(t, subject.Attributes, "live_doomed", "a deleted field's value must drop out")
+	})
+
+	t.Run("a subject with no live values is not found", func(t *testing.T) {
+		require.NoError(t, ss.PropertyValue().Delete(groupID, channelValue.ID))
+
+		subject, gErr := ss.Attributes().GetSubject(rctx, channelID, groupID, model.PropertyFieldObjectTypeChannel)
+		require.Error(t, gErr)
+		require.IsType(t, &store.ErrNotFound{}, gErr)
+		require.Nil(t, subject)
 	})
 }
