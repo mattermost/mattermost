@@ -112,6 +112,54 @@ func TestStoredPropertyValuesReadsMaster(t *testing.T) {
 	mockValueStore.AssertExpectations(t)
 }
 
+func TestStoredPropertyValuesPaging(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	groupID, targetID := model.NewId(), model.NewId()
+	valueOf := func(fieldID string) *model.PropertyValue {
+		return &model.PropertyValue{ID: model.NewId(), GroupID: groupID, TargetType: "post", TargetID: targetID, FieldID: fieldID, Value: json.RawMessage(`"a"`)}
+	}
+	fullPage := func() []*model.PropertyValue {
+		page := make([]*model.PropertyValue, propertyValuesHookPageSize)
+		for i := range page {
+			page[i] = valueOf(model.NewId())
+		}
+		return page
+	}
+	setup := func(t *testing.T) (*TestHelper, *storemocks.PropertyValueStore) {
+		th := SetupWithStoreMock(t)
+		mockValueStore := &storemocks.PropertyValueStore{}
+		th.App.Srv().Store().(*storemocks.Store).On("PropertyValue").Return(mockValueStore)
+		return th, mockValueStore
+	}
+	firstPage := mock.MatchedBy(func(opts model.PropertyValueSearchOpts) bool { return opts.Cursor.IsEmpty() })
+	nextPage := mock.MatchedBy(func(opts model.PropertyValueSearchOpts) bool { return !opts.Cursor.IsEmpty() })
+
+	t.Run("reads past full pages to find a field's value", func(t *testing.T) {
+		th, mockValueStore := setup(t)
+		wanted := valueOf(model.NewId())
+		mockValueStore.On("SearchPropertyValues", mock.Anything, firstPage).Return(fullPage(), nil).Once()
+		mockValueStore.On("SearchPropertyValues", mock.Anything, nextPage).Return([]*model.PropertyValue{wanted}, nil).Once()
+
+		previous := th.App.storedPropertyValues(th.Context, groupID, propertyValuesTarget{"post", targetID}, map[string]bool{wanted.FieldID: true})
+		require.Len(t, previous, 1)
+		assert.Equal(t, wanted.ID, previous[0].ID)
+		mockValueStore.AssertExpectations(t)
+	})
+
+	t.Run("stops once every field's value is found", func(t *testing.T) {
+		th, mockValueStore := setup(t)
+		page := fullPage()
+		wanted := page[len(page)/2]
+		mockValueStore.On("SearchPropertyValues", mock.Anything, firstPage).Return(page, nil).Once()
+
+		previous := th.App.storedPropertyValues(th.Context, groupID, propertyValuesTarget{"post", targetID}, map[string]bool{wanted.FieldID: true})
+		require.Len(t, previous, 1)
+		assert.Equal(t, wanted.ID, previous[0].ID)
+		mockValueStore.AssertExpectations(t)
+	})
+}
+
 // hookPropertyValuesCall is one PropertyValuesHaveBeenUpdated call as the test plugin records it.
 type hookPropertyValuesCall struct {
 	UserID     string                 `json:"user_id"`

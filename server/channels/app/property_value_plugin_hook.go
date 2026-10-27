@@ -16,11 +16,9 @@ const (
 	// PropertyValuesHaveBeenUpdated call carries. Larger changes are split into several calls.
 	propertyValuesHookMaxValues = 100
 
-	// propertyValuesHookPageSize and propertyValuesHookMaxScanned bound the stored values read per
-	// target to find the previous values of a write. A target with more values than that reports
-	// no previous value for the fields beyond them.
-	propertyValuesHookPageSize   = 200
-	propertyValuesHookMaxScanned = 1000
+	// propertyValuesHookPageSize bounds each read of a target's stored values when looking up the
+	// previous values of a write.
+	propertyValuesHookPageSize = 200
 )
 
 // propertyValuesTarget is the object a property value belongs to.
@@ -54,12 +52,13 @@ func clonePropertyValues(values []*model.PropertyValue) []*model.PropertyValue {
 	return cloned
 }
 
-// storedPropertyValues reads the stored values of a target in a group, in pages, up to
-// propertyValuesHookMaxScanned. keep selects the values to return; nil keeps all of them. It reads
-// the store directly: the hook is a server-to-plugin notification, so values are not filtered for
-// the requesting user. It reads the master, since a replica may not have the write just before
-// this one yet. A read error is logged and returns what was read so far.
-func (a *App) storedPropertyValues(rctx request.CTX, groupID string, target propertyValuesTarget, keep func(*model.PropertyValue) bool) []*model.PropertyValue {
+// storedPropertyValues reads the stored values of a target in a group, in pages. fields selects the
+// fields whose values to return, and reading stops once each of them has been found, since a target
+// holds at most one value per field; nil returns all of them. It reads the store directly: the hook
+// is a server-to-plugin notification, so values are not filtered for the requesting user. It reads
+// the master, since a replica may not have the write just before this one yet. A read error is
+// logged and returns what was read so far.
+func (a *App) storedPropertyValues(rctx request.CTX, groupID string, target propertyValuesTarget, fields map[string]bool) []*model.PropertyValue {
 	masterCtx := store.RequestContextWithMaster(rctx)
 	opts := model.PropertyValueSearchOpts{
 		GroupID:    groupID,
@@ -68,19 +67,18 @@ func (a *App) storedPropertyValues(rctx request.CTX, groupID string, target prop
 		PerPage:    propertyValuesHookPageSize,
 	}
 	var kept []*model.PropertyValue
-	for scanned := 0; scanned < propertyValuesHookMaxScanned; {
+	for {
 		page, err := a.Srv().Store().PropertyValue().SearchPropertyValues(masterCtx, opts)
 		if err != nil {
 			rctx.Logger().Warn("Failed to read previous property values for plugins", mlog.String("group_id", groupID), mlog.String("target_id", target.targetID), mlog.Err(err))
-			return kept
+			return clonePropertyValues(kept)
 		}
 		for _, v := range page {
-			if keep == nil || keep(v) {
+			if fields == nil || fields[v.FieldID] {
 				kept = append(kept, v)
 			}
 		}
-		scanned += len(page)
-		if len(page) < opts.PerPage {
+		if len(page) < opts.PerPage || (fields != nil && len(kept) >= len(fields)) {
 			break
 		}
 		last := page[len(page)-1]
@@ -112,10 +110,7 @@ func (a *App) previousPropertyValues(rctx request.CTX, groupID string, values []
 	}
 	var previous []*model.PropertyValue
 	for _, t := range targets {
-		fields := fieldsByTarget[t]
-		previous = append(previous, a.storedPropertyValues(rctx, groupID, t, func(v *model.PropertyValue) bool {
-			return fields[v.FieldID]
-		})...)
+		previous = append(previous, a.storedPropertyValues(rctx, groupID, t, fieldsByTarget[t])...)
 	}
 	return previous
 }
