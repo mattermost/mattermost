@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -829,6 +830,12 @@ func TestMigrateLinkCPAFieldToGlobalAttributeTemplate_ConcurrentEditIsNotClobber
 			// Simulate another HA node committing an admin edit to this same
 			// field in the window between this node's read (just above) and
 			// its own link-write below.
+			//
+			// UpdateAt is model.GetMillis() (1ms). Wait until it differs from
+			// the value Get just read, otherwise OCC cannot observe the write.
+			for model.GetMillis() <= seeded.UpdateAt {
+				time.Sleep(time.Millisecond)
+			}
 			concurrentEdit := *seeded
 			concurrentEdit.Name = "department_renamed_concurrently"
 			_, updateErr := realStore.Update(th.CPAGroupID, []*model.PropertyField{&concurrentEdit}, nil)
