@@ -301,6 +301,7 @@ func (ch *Channels) Start() error {
 				ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 			} else {
 				ch.ShutDownPlugins()
+				ch.revokeAllScopedSessions()
 			}
 		}
 	})

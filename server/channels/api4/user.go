@@ -29,8 +29,8 @@ import (
 func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("", api.APIHandler(createUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("", api.APISessionRequired(getUsers)).Methods(http.MethodGet)
-	api.BaseRoutes.Users.Handle("/ids", api.APISessionRequired(getUsersByIds)).Methods(http.MethodPost)
-	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequired(getUsersByNames)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/ids", api.APISessionRequired(getUsersByIds, handlerParamScopedSession)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequired(getUsersByNames, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/known", api.APISessionRequired(getKnownUsers)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchUsers)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/autocomplete", api.APISessionRequired(autocompleteUsers)).Methods(http.MethodGet)
@@ -38,7 +38,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/stats/filtered", api.APISessionRequired(getFilteredUsersStats)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/group_channels", api.APISessionRequired(getUsersByGroupChannelIds)).Methods(http.MethodPost)
 
-	api.BaseRoutes.User.Handle("", api.APISessionRequired(getUser)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("", api.APISessionRequired(getUser, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/image/default", api.APISessionRequiredTrustRequester(getDefaultProfileImage)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/image", api.APISessionRequiredTrustRequester(getProfileImage)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/image", api.APISessionRequired(setProfileImage, handlerParamFileAPI)).Methods(http.MethodPost)
@@ -74,7 +74,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/login/type", api.APIHandler(getLoginType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods(http.MethodPost)
 
-	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods(http.MethodGet)
+	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APISessionRequired(getUserByEmail)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/auth_data", api.APISessionRequired(getUserByAuthData)).Methods(http.MethodGet)
 

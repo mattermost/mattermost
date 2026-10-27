@@ -500,6 +500,7 @@ const (
 // Users
 const (
 	AuditEventAttachDeviceId                     = "attachDeviceId"                     // attach device IDs (standard or VoIP) to user session for mobile app
+	AuditEventCreateScopedSession                = "createScopedSession"                // plugin created a read-only scoped session for a user
 	AuditEventCreateUser                         = "createUser"                         // create user account
 	AuditEventCreateUserAccessToken              = "createUserAccessToken"              // create personal access token for user API access
 	AuditEventDeleteUser                         = "deleteUser"                         // delete user account

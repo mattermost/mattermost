@@ -1881,3 +1881,10 @@ func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, 
 	api.recordTime(startTime, "GetAccessControlVisualAST", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateScopedSession(userID, scope, expiresAt)
+	api.recordTime(startTime, "CreateScopedSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}

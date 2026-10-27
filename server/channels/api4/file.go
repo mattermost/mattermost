@@ -32,11 +32,11 @@ const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
-	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequesterGzip(getFile)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequesterGzip(getFile, handlerParamScopedSession)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequesterGzip(getFileThumbnail)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods(http.MethodGet)
 	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequesterGzip(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
-	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods(http.MethodGet)
+	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo, handlerParamScopedSession)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Files.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchFilesInAllTeams)).Methods(http.MethodPost)
@@ -599,7 +599,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.SetPermissionError(model.PermissionReadChannelContent)
 				return
 			}
-		} else if fileInfo.CreatorId != c.AppContext.Session().UserId && !perm {
+		} else if (fileInfo.CreatorId != c.AppContext.Session().UserId || c.AppContext.Session().IsScoped()) && !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
@@ -663,7 +663,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
-	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
+	} else if (info.CreatorId != c.AppContext.Session().UserId || c.AppContext.Session().IsScoped()) && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -739,7 +739,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
-	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
+	} else if (info.CreatorId != c.AppContext.Session().UserId || c.AppContext.Session().IsScoped()) && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -794,7 +794,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
-	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
+	} else if (info.CreatorId != c.AppContext.Session().UserId || c.AppContext.Session().IsScoped()) && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -862,7 +862,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
-	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
+	} else if (info.CreatorId != c.AppContext.Session().UserId || c.AppContext.Session().IsScoped()) && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}

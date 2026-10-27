@@ -1878,6 +1878,21 @@ type API interface {
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
+
+	// CreateScopedSession creates a session for userID that can only read what
+	// scope allows, expiring at expiresAt (unix milliseconds, at most 24 hours
+	// ahead; ExtendSessionExpiry can't move it past 24 hours after the session
+	// was created). scope.Permissions must be a non-empty subset of
+	// model.ScopeReadPermissions, and scope.Resources.ChannelIDs must not name
+	// direct or group channels. The server sets scope.CreatedByPluginID to the
+	// calling plugin. Read access is exactly the scope: the user's memberships
+	// neither add to it nor are required for it. Every write, websocket and
+	// plugin route is denied. The session is revoked when the plugin is
+	// disabled; revoke it sooner with RevokeSession.
+	//
+	// @tag User
+	// Minimum server version: 12.2
+	CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

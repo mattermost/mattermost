@@ -2845,6 +2845,10 @@ func (a *App) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.
 		}
 	}
 
+	if session := requestScopedSession(rctx, userID); session != nil {
+		return a.scopedViewUsersRestrictions(rctx, session, teamIDsWithPermission), nil
+	}
+
 	userChannelMembers, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(rctx, userID, true, true)
 	if err != nil {
 		return nil, model.NewAppError("GetViewUsersRestrictions", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
