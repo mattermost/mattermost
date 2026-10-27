@@ -1737,11 +1737,13 @@ Enabling SVGs is not recommended in environments where not all users are trusted
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables rendering of <a href={useBaseUrl('/end-user-guide/collaborate/format-messages#math-formulas')}>LaTeX in code blocks</a>. | - System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Disables rendering in blocks. Instead, LaTeX code is highlighted. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableLatex</code> &gt; <code>false</code>|</dt><dd><div class="line-block">- Environment variable: <code>MM_SERVICESETTINGS_ENABLELATEX</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: Enables rendering of <a href={useBaseUrl('/end-user-guide/collaborate/format-messages#math-formulas')}>LaTeX in code blocks</a>.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables rendering in blocks. Instead, LaTeX code is highlighted.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableLatex</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLELATEX</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1756,11 +1758,13 @@ Enabling LaTeX rendering is not recommended in environments where not all users 
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables rendering of | - System Config path: <strong>Site Configuration &gt; Posts</strong> | <a href={useBaseUrl('/end-user-guide/collaborate/format-messages#math-formulas')}>LaTeX in message text</a>. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableInlineLatex</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Disables inline rendering of LaTeX. Instead, LaTeX in message text is highlighted. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEINLINELATEX</code> | LaTeX can also be rendered in a code block, if that feature is enabled. See <strong>Enable LaTeX code block rendering</strong>. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables rendering of <a href={useBaseUrl('/end-user-guide/collaborate/format-messages#math-formulas')}>LaTeX in message text</a>. The web and desktop apps render it only when <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#enable-latex-code-block-rendering')}>Enable LaTeX code block rendering</a> is also <strong>true</strong>, which it is not by default.</li><li><strong>false</strong>: Disables inline rendering of LaTeX. Instead, LaTeX in message text is highlighted.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableInlineLatex</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEINLINELATEX</code></li></ul></td>
 </tr>
 </tbody>
 </table>
