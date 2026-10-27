@@ -27,6 +27,7 @@ const SpinnerButton = ({
             {...otherProps}
         >
             <LoadingWrapper
+                legacy={true}
                 loading={spinning}
                 text={spinningText}
             >
