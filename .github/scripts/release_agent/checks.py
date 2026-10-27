@@ -129,16 +129,17 @@ def open_release_items(ctx: Context, rule: dict) -> Result:
 
 
 def new_regressions(ctx: Context, rule: dict) -> Result:
-    """Regressions filed since the branch cut, which pass once every one has a fix version."""
+    """Regressions filed since the branch cut, which pass once every one has a fix version.
+
+    The JQL decides what counts as a regression, including bugs that only mention the release
+    in their text. Duplicates and other ``excluded_resolutions`` are skipped here too.
+    """
     query = ctx.query(rule)
-    labels = {label.lower() for label in query.get("labels", [])}
-    prefix = query.get("title_prefix", "").lower()
+    excluded = {name.casefold() for name in query.get("excluded_resolutions", [])}
     regressions, missing = [], []
     for issue in ctx.jira.search(query["jql"]):
         fields = issue.get("fields") or {}
-        is_labelled = labels & {label.lower() for label in fields.get("labels") or []}
-        is_titled = prefix and (fields.get("summary") or "").strip().lower().startswith(prefix)
-        if not (is_labelled or is_titled):
+        if ((fields.get("resolution") or {}).get("name") or "").casefold() in excluded:
             continue
         regressions.append(issue)
         if not fields.get("fixVersions"):

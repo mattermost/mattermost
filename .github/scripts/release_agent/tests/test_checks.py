@@ -17,8 +17,8 @@ def release():
 
 
 def context(github=None, jira=None, hub=None, has_branch=True, rc_numbers=(1, 2), today=date(2026, 11, 4),
-            confluence=None, primary=True, page_id="123"):
-    rel = release()
+            confluence=None, primary=True, page_id="123", rel=None):
+    rel = rel or release()
     values = {**template_vars(rel, NAMING, list(rc_numbers)), "holidays_page_id": page_id, "next_year": today.year + 1}
     return checks.Context(release=rel, today=today, vars=values,
                           has_branch=has_branch, rc_numbers=list(rc_numbers), github=github or FakeGitHub(),
@@ -37,10 +37,12 @@ def commit(message, sha="s"):
     return {"sha": sha, "commit": {"message": message}}
 
 
-def issue(key, summary="Bug", labels=(), fix_versions=(), assignee=None):
+def issue(key, summary="Bug", labels=(), fix_versions=(), assignee=None, resolution=None, description=""):
     return {"key": key, "fields": {"summary": summary, "labels": list(labels),
                                    "fixVersions": [{"name": v} for v in fix_versions],
-                                   "assignee": {"displayName": assignee} if assignee else None}}
+                                   "assignee": {"displayName": assignee} if assignee else None,
+                                   "resolution": {"name": resolution} if resolution else None,
+                                   "description": description}}
 
 
 class TemplateTest(unittest.TestCase):
@@ -87,7 +89,6 @@ class NewRegressionsTest(unittest.TestCase):
         jira = FakeJira({"labels in": [
             issue("MM-1", labels=["rc2"], fix_versions=["v12.2"]),
             issue("MM-2", summary="  Regression: posts vanish"),
-            issue("MM-3", summary="Not a regression of note"),
             issue("MM-4", labels=["Regression"], fix_versions=["v12.3"]),
         ]})
         result = checks.new_regressions(context(jira=jira), RULES["new-regressions"])
@@ -95,6 +96,38 @@ class NewRegressionsTest(unittest.TestCase):
         self.assertEqual(result.summary, "1 of 3 new regressions have no fix version")
         self.assertEqual([i.label for i in result.items], ["MM-2"])
         self.assertIn('created >= "2026-10-19"', jira.queries[0])
+
+    def test_query(self):
+        jira = FakeJira()
+        checks.new_regressions(context(jira=jira), RULES["new-regressions"])
+        self.assertEqual(" ".join(jira.queries[0].split()), 'project = MM AND issuetype = Bug AND created >= "2026-10-19" AND ( '
+                         'labels in (rc1, rc2, rc3, rc4, rc5, regression) OR summary ~ "Regression" '
+                         'OR text ~ "\\"v12.2\\"" OR text ~ "\\"12.2\\"" OR text ~ "\\"release-12.2\\"" ) '
+                         'AND (resolution is EMPTY OR resolution not in (Duplicate, "Won\'t Fix", "Cannot Reproduce"))')
+
+    def test_a_bug_mentioning_only_the_release_branch_is_picked_up(self):
+        v121 = Release(12, 1, {"branch_cut": date(2026, 9, 16), "release_day": date(2026, 10, 16)})
+        bug = issue("MM-7", summary="Login fails after upgrade", description="Seen on release-12.1 since Tuesday.")
+        jira = FakeJira({r'text ~ "\\"release-12\.1\\""': [bug]})
+        result = checks.new_regressions(context(jira=jira, rel=v121), RULES["new-regressions"])
+        self.assertEqual((result.status, result.summary), (checks.FAIL, "1 of 1 new regression have no fix version"))
+        self.assertEqual([i.label for i in result.items], ["MM-7"])
+        self.assertIn('created >= "2026-09-16"', jira.queries[0])
+
+    def test_duplicate_and_wont_fix_bugs_are_not_flagged(self):
+        jira = FakeJira({"labels in": [
+            issue("MM-1", labels=["regression"], fix_versions=["v12.2"]),
+            issue("MM-2", summary="Regression: duplicate report", resolution="Duplicate"),
+            issue("MM-3", labels=["rc1"], resolution="Won't Fix"),
+            issue("MM-4", labels=["rc1"], resolution="Cannot Reproduce"),
+        ]})
+        result = checks.new_regressions(context(jira=jira), RULES["new-regressions"])
+        self.assertEqual((result.status, result.summary), (checks.PASS, "All 1 new regression have a fix version"))
+
+    def test_an_unresolved_or_fixed_bug_without_a_fix_version_is_flagged(self):
+        jira = FakeJira({"labels in": [issue("MM-1", labels=["rc1"]), issue("MM-2", labels=["rc1"], resolution="Done")]})
+        result = checks.new_regressions(context(jira=jira), RULES["new-regressions"])
+        self.assertEqual([i.label for i in result.items], ["MM-1", "MM-2"])
 
     def test_passes_when_all_have_fix_versions(self):
         jira = FakeJira({"labels in": [issue("MM-1", labels=["rc1"], fix_versions=["v12.2"])]})

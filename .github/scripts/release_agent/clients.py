@@ -119,7 +119,7 @@ class GitHub:
 
 
 class Jira:
-    FIELDS = ["summary", "status", "assignee", "labels", "fixVersions"]
+    FIELDS = ["summary", "status", "assignee", "labels", "fixVersions", "resolution"]
 
     def __init__(self, base_url: str, email: str, token: str, http: Http | None = None):
         self.base_url = base_url.rstrip("/")

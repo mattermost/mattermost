@@ -75,7 +75,12 @@ rules:
     pass_when: report_only
     on_fail: report
 
-  # The "Review new bug tickets daily…" bullet of the same item.
+  # The "Review new bug tickets daily…" bullet of the same item. Bugs since the cut that are
+  # labelled or titled as regressions, or mention the release as v12.1, 12.1 or
+  # release-12.1 (phrase searches, so the quotes are escaped).
+  # JQL has no comments, and "resolution not in" alone would drop every unresolved bug, so
+  # an empty resolution is allowed explicitly. The check also skips the
+  # excluded_resolutions itself.
   - task: new-regressions
     title: New regressions have a fix version
     playbook_item: null
@@ -83,9 +88,17 @@ rules:
     type: new_regressions
     source: [jira]
     query:
-      jql: 'project = MM AND (labels in (rc1, rc2, rc3, rc4, rc5, regression) OR summary ~ "Regression") AND created >= "{branch_cut}"'
-      labels: [rc1, rc2, rc3, rc4, rc5, regression]
-      title_prefix: "Regression:"
+      jql: >-
+        project = MM AND issuetype = Bug AND created >= "{branch_cut}"
+        AND (
+          labels in (rc1, rc2, rc3, rc4, rc5, regression)
+          OR summary ~ "Regression"
+          OR text ~ "\"{short_version}\""
+          OR text ~ "\"{major}.{minor}\""
+          OR text ~ "\"{branch}\""
+        )
+        AND (resolution is EMPTY OR resolution not in (Duplicate, "Won't Fix", "Cannot Reproduce"))
+      excluded_resolutions: [Duplicate, "Won't Fix", "Cannot Reproduce"]
     pass_when: all_have_fix_version
     on_fail: needs_attention
 
