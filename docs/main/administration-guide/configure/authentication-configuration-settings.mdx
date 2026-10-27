@@ -304,11 +304,13 @@ We recommend deploying Mattermost within your own private network, and using VPN
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Users who sign-in with AD/LDAP or an email address have the option to add | - System Config path: <strong>Authentication &gt; MFA</strong> | <a href={useBaseUrl('/administration-guide/onboard/multi-factor-authentication')}>multi-factor authentication</a> to their accounts. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableMultifactorAuthentication</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Disables multi-factor authentication. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEMULTIFACTORAUTHENTICATION</code> |</li></ul></td>
+<td><ul><li><strong>true</strong>: Users who sign-in with AD/LDAP or an email address have the option to add <a href={useBaseUrl('/administration-guide/onboard/multi-factor-authentication')}>multi-factor authentication</a> to their accounts.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables multi-factor authentication.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; MFA</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableMultifactorAuthentication</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEMULTIFACTORAUTHENTICATION</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -317,11 +319,13 @@ We recommend deploying Mattermost within your own private network, and using VPN
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>- <strong>true</strong>: Requires <a href={useBaseUrl('/administration-guide/onboard/multi-factor-authentication')}>multi-factor authentication (MFA)</a> | - System Config path: **Authentication &gt; MFA** | | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnforceMultifactorAuthentication</code> &gt; <code>false</code></dt><dd><p>for users who sign-in with AD/LDAP or an email address. | - Environment variable: <code>MM_SERVICESETTINGS_ENFORCEMULTIFACTORAUTHENTICATION</code> | New users must set up MFA. Logged in users are redirected to the MFA | | setup page until configuration is complete. | |</p></dd></dl><ul><li><strong>false</strong>: <strong>(Default)</strong> MFA is optional. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: Requires <a href={useBaseUrl('/administration-guide/onboard/multi-factor-authentication')}>multi-factor authentication (MFA)</a> for users who sign-in with AD/LDAP or an email address. New users must set up MFA. Logged in users are redirected to the MFA setup page until configuration is complete.</li><li><strong>false</strong>: <strong>(Default)</strong> MFA is optional.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; MFA</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnforceMultifactorAuthentication</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENFORCEMULTIFACTORAUTHENTICATION</code></li></ul></td>
 </tr>
 </tbody>
 </table>
