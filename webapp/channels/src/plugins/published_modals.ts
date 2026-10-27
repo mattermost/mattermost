@@ -27,6 +27,14 @@ function withFixedProps<P extends object, F extends Partial<P>>(Component: React
     return Wrapped;
 }
 
+type WithDefaults<P, D> = Omit<P, keyof D> & Partial<Pick<P, keyof D & keyof P>>;
+
+function withDefaultProps<P extends object, D extends Partial<P>>(Component: React.ComponentType<P>, defaults: D): React.FunctionComponent<WithDefaults<P, D>> {
+    const Wrapped = (props: WithDefaults<P, D>) => React.createElement(Component, {...defaults, ...props} as unknown as P);
+
+    return Wrapped;
+}
+
 // Curated allowlist, not an escape hatch for rendering arbitrary core components.
 const publishedModals = {
     user_settings: lazyModal(() => import('components/user_settings/modal')),
@@ -37,6 +45,7 @@ const publishedModals = {
     team_settings: withFixedProps(lazyModal(() => import('components/team_settings_modal')), {isOpen: true}),
     team_members: lazyModal(() => import('components/team_members_modal')),
     leave_team: lazyModal(() => import('components/leave_team_modal')),
+    file_preview_modal: withDefaultProps(lazyModal(() => import('components/file_preview_modal')), {startIndex: 0}),
 } satisfies Record<PublishedModalId, React.ComponentType<any>>;
 
 // Fails the build here if a modal's real props drift from the published contract,

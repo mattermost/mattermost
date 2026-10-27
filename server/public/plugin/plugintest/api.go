@@ -2003,6 +2003,54 @@ func (_m *API) GetCloudLimits() (*model.ProductLimits, error) {
 	return r0, r1
 }
 
+// GetClusterNodeID provides a mock function with no fields
+func (_m *API) GetClusterNodeID() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetClusterNodeID")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// GetClusterNodes provides a mock function with no fields
+func (_m *API) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetClusterNodes")
+	}
+
+	var r0 []*model.ClusterInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]*model.ClusterInfo, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []*model.ClusterInfo); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ClusterInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCommand provides a mock function with given fields: commandID
 func (_m *API) GetCommand(commandID string) (*model.Command, error) {
 	ret := _m.Called(commandID)
@@ -3846,6 +3894,38 @@ func (_m *API) GetTelemetryId() string {
 	}
 
 	return r0
+}
+
+// GetThreadFollowers provides a mock function with given fields: threadID
+func (_m *API) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	ret := _m.Called(threadID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetThreadFollowers")
+	}
+
+	var r0 []string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) ([]string, *model.AppError)); ok {
+		return rf(threadID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []string); ok {
+		r0 = rf(threadID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(threadID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetUnsanitizedConfig provides a mock function with no fields
@@ -5823,6 +5903,26 @@ func (_m *API) SetTeamIcon(teamID string, data []byte) *model.AppError {
 	return r0
 }
 
+// SetThreadFollowing provides a mock function with given fields: userID, threadID, following
+func (_m *API) SetThreadFollowing(userID string, threadID string, following bool) *model.AppError {
+	ret := _m.Called(userID, threadID, following)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetThreadFollowing")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.AppError); ok {
+		r0 = rf(userID, threadID, following)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SetUserStatusTimedDND provides a mock function with given fields: userId, endtime
 func (_m *API) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
 	ret := _m.Called(userId, endtime)
@@ -6352,6 +6452,38 @@ func (_m *API) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 
 	if rf, ok := ret.Get(1).(func(*model.Post) *model.AppError); ok {
 		r1 = rf(post)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdatePostWithOptions provides a mock function with given fields: post, options
+func (_m *API) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	ret := _m.Called(post, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePostWithOptions")
+	}
+
+	var r0 *model.Post
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Post, *model.UpdatePostOptions) (*model.Post, *model.AppError)); ok {
+		return rf(post, options)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Post, *model.UpdatePostOptions) *model.Post); ok {
+		r0 = rf(post, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Post, *model.UpdatePostOptions) *model.AppError); ok {
+		r1 = rf(post, options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

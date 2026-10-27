@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"image/png"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"os"
@@ -3869,6 +3870,186 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestGetUsersNotInChannelTeamScope checks that the listing is scoped to teams
+// the caller can view, so the team given as in_team is evaluated against the
+// caller's own team access and not only against the supplied channel.
+func TestGetUsersNotInChannelTeamScope(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+	// A team the basic user is not a member of, with a member of its own so the
+	// listing would be non-empty if it were served.
+	otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	otherTeamUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, otherTeamUser, otherTeam)
+
+	// The same shape as otherTeam, but archived.
+	archivedTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	th.LinkUserToTeam(t, th.CreateUser(t), archivedTeam)
+	_, err := th.SystemAdminClient.SoftDeleteTeam(context.Background(), archivedTeam.Id)
+	require.NoError(t, err)
+
+	// A member of the basic user's own team who is not in the basic channel:
+	// the expected result of the authorized listing.
+	basicTeamUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, basicTeamUser, th.BasicTeam)
+
+	// A channel that belongs to no team and that the caller can always read.
+	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+
+	// A guest of th.BasicTeam and th.BasicChannel.
+	_, guestClient := th.CreateGuestAndClient(t)
+
+	// A response tag issued for otherTeam to a caller who is allowed to see it,
+	// so a row below can replay it as a caller who is not.
+	otherTeamEtag := func() string {
+		query := url.Values{"not_in_team": {th.BasicTeam.Id}, "in_team": {otherTeam.Id}}
+		resp, respErr := th.SystemAdminClient.DoAPIGet(context.Background(), "/users?"+query.Encode(), "")
+		require.NoError(t, respErr)
+		defer resp.Body.Close()
+		return resp.Header.Get(model.HeaderEtagServer)
+	}()
+	require.NotEmpty(t, otherTeamEtag)
+
+	testCases := []struct {
+		name string
+		// client defaults to th.Client, a plain member of th.BasicTeam and
+		// th.BasicChannel, so channel access is never what decides the outcome.
+		client           *model.Client4
+		query            url.Values
+		etag             string
+		expectedStatus   int
+		expectedUserID   string
+		unexpectedUserID string
+	}{
+		{
+			name:           "team the caller is a member of",
+			query:          url.Values{"in_team": {th.BasicTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusOK,
+			expectedUserID: basicTeamUser.Id,
+			// A member of the supplied channel is filtered out of the listing.
+			unexpectedUserID: th.BasicUser.Id,
+		},
+		{
+			name:           "team the caller is not a member of",
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "team the caller is not a member of, with a channel outside any team",
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {dmChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "archived team the caller is not a member of",
+			query:          url.Values{"in_team": {archivedTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "guest on a team they belong to",
+			client:         guestClient,
+			query:          url.Values{"in_team": {th.BasicTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "guest on a team they do not belong to",
+			client:         guestClient,
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "system admin",
+			client:         th.SystemAdminClient,
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusOK,
+			expectedUserID: otherTeamUser.Id,
+		},
+		{
+			name:             "repeated team filter, the caller's own team first",
+			query:            url.Values{"in_team": {th.BasicTeam.Id, otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus:   http.StatusOK,
+			expectedUserID:   basicTeamUser.Id,
+			unexpectedUserID: otherTeamUser.Id,
+		},
+		{
+			name:           "repeated team filter, the caller's own team second",
+			query:          url.Values{"in_team": {otherTeam.Id, th.BasicTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "team filter padded with whitespace",
+			query:          url.Values{"in_team": {" " + th.BasicTeam.Id + " "}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "team filter in a different case",
+			query:          url.Values{"in_team": {strings.ToUpper(th.BasicTeam.Id)}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "channel filter with no team filter",
+			query:          url.Values{"not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "channel filter with an empty team filter",
+			query:          url.Values{"in_team": {""}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			// The team filter also scopes the response tag on this combination,
+			// so replaying a tag issued to an allowed caller must not serve it.
+			name:           "team the caller is not a member of, alongside a team they are",
+			query:          url.Values{"not_in_team": {th.BasicTeam.Id}, "in_team": {otherTeam.Id}},
+			etag:           otherTeamEtag,
+			expectedStatus: http.StatusForbidden,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := tc.client
+			if client == nil {
+				client = th.Client
+			}
+
+			query := url.Values{}
+			maps.Copy(query, tc.query)
+			query.Set("page", "0")
+			query.Set("per_page", "200")
+
+			resp, err := client.DoAPIGet(context.Background(), "/users?"+query.Encode(), tc.etag)
+			require.NotNil(t, resp)
+			defer resp.Body.Close()
+			require.Equal(t, tc.expectedStatus, resp.StatusCode)
+
+			if tc.expectedStatus != http.StatusOK {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			var users []*model.User
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(&users))
+
+			userIDs := make([]string, 0, len(users))
+			for _, u := range users {
+				CheckUserSanitization(t, u)
+				userIDs = append(userIDs, u.Id)
+			}
+			if tc.expectedUserID != "" {
+				require.Contains(t, userIDs, tc.expectedUserID)
+			}
+			if tc.unexpectedUserID != "" {
+				require.NotContains(t, userIDs, tc.unexpectedUserID)
+			}
+		})
+	}
+}
+
 // TestGetUsersNotInChannelAbacMatchOnly exercises the dispatcher in
 // getUsers that decides whether to apply ABAC filtering based on the
 // channel type and the abac_match_only query parameter. The underlying
@@ -5372,6 +5553,95 @@ func TestLoginWithGuestMagicLinkTokenRejectsDeactivatedUser(t *testing.T) {
 		user, _, decodeErr := model.DecodeJSONFromResponse[*model.User](resp)
 		require.NoError(t, decodeErr)
 		assert.Equal(t, guestUser.Id, user.Id)
+	})
+}
+
+func TestGetLoginType(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	_, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	// The webapp decodes every response body as JSON whatever the status code is, so a body
+	// it chokes on surfaces as "Received invalid response from the server." instead of the
+	// real error. Go through the raw client to assert on the body the webapp actually sees.
+	postLoginType := func(t *testing.T, loginID string) (int, map[string]any) {
+		t.Helper()
+		req, err := http.NewRequest(http.MethodPost, th.Client.APIURL+"/users/login/type", strings.NewReader(model.MapToJSON(map[string]string{"login_id": loginID})))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := th.Client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer closeBody(resp)
+
+		var body map[string]any
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&body), "response body must be valid JSON")
+
+		return resp.StatusCode, body
+	}
+
+	// The webapp renders body["message"], so the translated string is part of the contract
+	// and not just the error id.
+	assertMagicLinkUnavailable := func(t *testing.T, loginID string) {
+		t.Helper()
+		status, body := postLoginType(t, loginID)
+		assert.Equal(t, http.StatusNotFound, status)
+		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+		assert.Equal(t, "Login with magic link is disabled.", body["message"])
+	}
+
+	t.Run("returns an empty login type for a password account when guest magic link is available", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		status, body := postLoginType(t, th.BasicUser.Email)
+		assert.Equal(t, http.StatusOK, status)
+		assert.Equal(t, "", body["auth_service"])
+	})
+
+	t.Run("returns a JSON error when guest accounts are disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = false
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+
+	t.Run("returns a JSON error when guest magic link is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = false
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+
+	t.Run("returns a JSON error when the license does not include guest accounts", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+
+	t.Run("returns a JSON error when the server is unlicensed", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
 	})
 }
 
@@ -8623,6 +8893,28 @@ func TestGetThreadsForUser(t *testing.T) {
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
 		require.Len(t, uss.Threads, 0)
+	})
+
+	t.Run("responses are not cacheable", func(t *testing.T) {
+		client := th.Client
+
+		rpost, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+		require.NoError(t, err)
+		_, _, err = client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+		require.NoError(t, err)
+
+		defer func() {
+			err = th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+			require.NoError(t, err)
+		}()
+
+		_, resp, err := client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{Unread: true})
+		require.NoError(t, err)
+		require.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
+
+		_, resp, err = client.GetUserThread(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
 	})
 
 	t.Run("no params, 1 thread", func(t *testing.T) {

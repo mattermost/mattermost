@@ -335,7 +335,23 @@ func NewServer(options ...Option) (*Server, error) {
 		return err == nil
 	}
 
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, cpaGroup.ID)
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
+		// Local-mode (unrestricted) sessions are tagged with
+		// CallerIDLocalAdmin by the HTTP layer; grant them without a
+		// user lookup, as permChecker below does for its own case. A value
+		// write to a field that is itself synced, owner-managed or
+		// protected is the exception: local mode was never let write those
+		// values, so there it is judged like any other caller. The field's
+		// own attrs decide, as they did before conversion, so a late-linked
+		// field carrying no copy of its template's sync link stays open.
+		if userID == model.CallerIDLocalAdmin {
+			if action != model.PropertyActionValueWrite ||
+				(!model.IsPropertyFieldSynced(field) && !model.HasPropertyFieldOwners(field) && !model.IsPropertyFieldProtected(field)) {
+				return true
+			}
+		}
+		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
+	}, app.propertyCallerRoles, cpaGroup.ID)
 	s.propertyService.AddHook(accessControlHook)
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
@@ -366,6 +382,9 @@ func NewServer(options ...Option) (*Server, error) {
 			DirectChannelChecker: directChannelChecker,
 			RequiredAttributeEnforcement: func() bool {
 				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
+			},
+			OpenIDAttributeSync: func() bool {
+				return s.Config().FeatureFlags.OpenIdAttributeSync
 			},
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
@@ -561,20 +580,24 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
 
 	license := s.License()
-	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
+	allowAdvancedLogging := license.HasAdvancedLogging()
 
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
+		if collector := s.platform.LoggerMetricsCollector(); collector != nil {
+			s.Audit.SetMetricsCollector(collector, mlog.DefaultMetricsUpdateFreqMillis)
+		}
 		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}
 	}
+	s.platform.SetAuditLoggingActiveFunc(s.Audit.IsActive)
 
 	if cfg := s.platform.Config(); cfg.AccessControlSettings.EnableAccessControlAuditLogging != nil &&
 		*cfg.AccessControlSettings.EnableAccessControlAuditLogging &&
-		!config.IsAuditLoggingActive(cfg.ExperimentalAuditSettings, allowAdvancedLogging) {
-		mlog.Warn("AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled or configure an advanced audit logging target bound to an audit level.")
+		!s.Audit.IsActive() {
+		s.Log().Warn(accessControlAuditTargetMissingWarning)
 	}
 
 	s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
@@ -591,7 +614,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
-		s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
 	})
 
 	// Keep the push notification server in sync with the license's HPNS entitlement, and let a
@@ -676,9 +698,7 @@ func (s *Server) runJobs() {
 
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
-		runDNDStatusExpireJob(appInstance)
-		runPostReminderJob(appInstance)
-		runScheduledPostJob(appInstance)
+		runLeaderTasks(appInstance)
 	})
 	s.Go(func() {
 		runSecurityJob(s)
@@ -1210,10 +1230,7 @@ func (s *Server) Start() error {
 	go func() {
 		var err error
 		if *s.platform.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
-			tlsConfig := &tls.Config{
-				PreferServerCipherSuites: true,
-				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-			}
+			tlsConfig := &tls.Config{}
 
 			switch *s.platform.Config().ServiceSettings.TLSMinVer {
 			case "1.0":
@@ -2002,99 +2019,82 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	return result, nil
 }
 
-func withMut(mut *sync.Mutex, f func()) {
-	mut.Lock()
-	defer mut.Unlock()
-	f()
+// leaderTask is a recurring task that only runs on the cluster leader.
+type leaderTask struct {
+	mut     sync.Mutex
+	task    *model.ScheduledTask
+	stopped bool
 }
 
-func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
-	mut.Lock()
-	defer mut.Unlock()
-	if *taskPointer != nil {
-		(*taskPointer).Cancel()
-		*taskPointer = nil
+// update starts or cancels the task to match isLeader. Leader-changed listeners run
+// concurrently, so leadership is read under the lock to let the last one win.
+func (t *leaderTask) update(isLeader func() bool, create func() *model.ScheduledTask) {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+	if t.stopped || !isLeader() {
+		t.cancelLocked()
+		return
+	}
+	// The leader-changed listener also fires on a node that is already the leader.
+	if t.task == nil {
+		t.task = create()
 	}
 }
 
-func runDNDStatusExpireJob(a *App) {
-	if a.IsLeader() {
-		withMut(&a.ch.dndTaskMut, func() {
-			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
-		})
-	} else {
-		mlog.Debug("Skipping unset DND status job startup since this is not the leader node")
+// stop cancels the task for good, so a listener that runs during shutdown cannot restart it.
+func (t *leaderTask) stop() {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+	t.stopped = true
+	t.cancelLocked()
+}
+
+// cancelLocked cancels the running task, if any. The caller must hold t.mut.
+func (t *leaderTask) cancelLocked() {
+	if t.task != nil {
+		t.task.Cancel()
+		t.task = nil
 	}
+}
+
+// runOnLeader keeps the task running only while this node is the cluster leader.
+func (t *leaderTask) runOnLeader(a *App, name string, create func() *model.ScheduledTask) {
+	t.update(a.IsLeader, create)
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("is_leader", a.IsLeader()))
-		if a.IsLeader() {
-			withMut(&a.ch.dndTaskMut, func() {
-				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
-			})
-		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("is_leader", a.IsLeader()))
-			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
-		}
+		mlog.Info("Cluster leader changed. Determining if task should be running", mlog.String("task", name), mlog.Bool("is_leader", a.IsLeader()))
+		t.update(a.IsLeader, create)
 	})
 }
 
-func runPostReminderJob(a *App) {
-	if a.IsLeader() {
-		rctx := request.EmptyContext(a.Log())
-		withMut(&a.ch.postReminderMut, func() {
-			fn := func() { a.CheckPostReminders(rctx) }
-			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
-		})
-	} else {
-		mlog.Debug("Skipping post reminder job startup since this is not the leader node")
-	}
-
-	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("is_leader", a.IsLeader()))
-		if a.IsLeader() {
-			rctx := request.EmptyContext(a.Log())
-			withMut(&a.ch.postReminderMut, func() {
-				fn := func() { a.CheckPostReminders(rctx) }
-				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
-			})
-		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("is_leader", a.IsLeader()))
-			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
-		}
-	})
-}
-
-func runScheduledPostJob(a *App) {
-	if a.IsLeader() {
-		doRunScheduledPostJob(a)
-	} else {
-		mlog.Debug("Skipping scheduled posts job startup since this is not the leader node")
-	}
-
-	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("is_leader", a.IsLeader()))
-		if a.IsLeader() {
-			doRunScheduledPostJob(a)
-		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("is_leader", a.IsLeader()))
-			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
-		}
-	})
-}
-
-func doRunScheduledPostJob(a *App) {
-	var jobInterval time.Duration
-	if *a.Config().ServiceSettings.EnableTesting {
-		jobInterval = debugScheduledPostJobInterval
-	} else {
-		jobInterval = scheduledPostJobInterval
-	}
-
+func runLeaderTasks(a *App) {
 	rctx := request.EmptyContext(a.Log())
-	withMut(&a.ch.scheduledPostMut, func() {
+
+	a.ch.dndTask.runOnLeader(a, "Unset DND Statuses", func() *model.ScheduledTask {
+		return model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
+	})
+
+	a.ch.postReminderTask.runOnLeader(a, "Check Post reminders", func() *model.ScheduledTask {
+		fn := func() { a.CheckPostReminders(rctx) }
+		return model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
+	})
+
+	a.ch.scheduledPostTask.runOnLeader(a, "Process Scheduled Posts", func() *model.ScheduledTask {
+		jobInterval := scheduledPostJobInterval
+		if *a.Config().ServiceSettings.EnableTesting {
+			jobInterval = debugScheduledPostJobInterval
+		}
 		fn := func() { a.ProcessScheduledPosts(rctx) }
-		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
+		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
+	})
+
+	a.ch.healthCheckTask.runOnLeader(a, "Health Check", func() *model.ScheduledTask {
+		fn := func() {
+			if err := a.RunHealthCheck(rctx); err != nil {
+				a.Log().Error("Health check failed", mlog.Err(err))
+			}
+		}
+		return model.CreateRecurringTask("Health Check", fn, healthCheckInterval)
 	})
 }
 

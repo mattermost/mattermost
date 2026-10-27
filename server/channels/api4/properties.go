@@ -21,6 +21,17 @@ import (
 
 const maxPropertyValuePatchItems = 50
 
+// targetAccessPath names the rule that let hasTargetAccess grant access.
+type targetAccessPath string
+
+const (
+	targetAccessSelf           targetAccessPath = "self"
+	targetAccessLocal          targetAccessPath = "local"
+	targetAccessPermission     targetAccessPath = "permission"
+	targetAccessEditOtherUsers targetAccessPath = "edit_other_users"
+	targetAccessBotManager     targetAccessPath = "bot_manager"
+)
+
 func (api *API) InitProperties() {
 	if api.srv.Config().FeatureFlags.IntegratedBoards ||
 		api.srv.Config().FeatureFlags.ManagedChannelCategories ||
@@ -168,12 +179,24 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	field.ObjectType = c.Params.ObjectType
 	field.GroupID = group.ID
+	// This API can neither show nor change a permissions object, so one it
+	// accepted here would be enforced out of the caller's sight.
+	field.Permissions = nil
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreatePropertyField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", field)
 
-	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+	// There is no existing field to decide a basis against here -- creation
+	// is its own question, not a field.write -- so only the caller identity
+	// and whether it bypassed the decision are recorded.
+	callerID := sessionCallerID(c)
+	model.AddEventParameterToAuditRec(auditRec, "caller_id", callerID)
+	if callerID == model.CallerIDLocalAdmin {
+		model.AddEventParameterToAuditRec(auditRec, "basis_unrestricted", true)
+	}
+
+	rctx := app.RequestContextWithCallerID(c.AppContext, callerID)
 
 	if field.Protected {
 		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
@@ -550,8 +573,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	patch.TargetType = nil
 
 	if err := patch.IsValid(); err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			c.Err = appErr
 		} else {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.invalid_patch.app_error", nil, "", http.StatusBadRequest)
@@ -612,17 +634,27 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}
+	// basis_action distinguishes the two paths through this handler, since
+	// otherwise they log near-identical meta.
+	patchAction := model.PropertyActionFieldWrite
+	var basis app.PropertyPermissionBasis
 	if isOptionsOnly {
-		if !c.App.SessionHasPermissionToManagePropertyFieldOptions(rctx, *c.AppContext.Session(), existingField) {
+		patchAction = model.PropertyActionOptionWrite
+		basis = c.App.SessionPropertyFieldOptionsBasis(rctx, *c.AppContext.Session(), existingField)
+		if !basis.Allowed {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.no_options_permission.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+		basis = c.App.SessionPropertyFieldEditBasis(rctx, *c.AppContext.Session(), existingField)
+		if !basis.Allowed {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.no_field_permission.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	}
+
+	model.AddEventParameterToAuditRec(auditRec, "basis_action", patchAction)
+	addPropertyPermissionBasisMeta(auditRec, basis)
 
 	// Capture original state for audit before the in-place patch. Attrs is
 	// shallow-copied because Patch mutates it.
@@ -688,10 +720,14 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+	// Deleting a definition is a field.write -- there is no separate delete
+	// cell in the permission grid.
+	basis := c.App.SessionPropertyFieldEditBasis(rctx, *c.AppContext.Session(), existingField)
+	if !basis.Allowed {
 		c.Err = model.NewAppError("deletePropertyField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
 		return
 	}
+	addPropertyPermissionBasisMeta(auditRec, basis)
 
 	auditRec.AddEventPriorState(existingField)
 
@@ -752,7 +788,7 @@ func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, o
 	}
 
 	// Check target access based on object type
-	if !hasTargetAccess(c, objectType, targetID, false) {
+	if _, ok := hasTargetAccess(c, group.Name, objectType, targetID, false); !ok {
 		return
 	}
 
@@ -880,9 +916,11 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
-	if !hasTargetAccess(c, objectType, targetID, true) {
+	path, ok := hasTargetAccess(c, group.Name, objectType, targetID, true)
+	if !ok {
 		return
 	}
+	model.AddEventParameterToAuditRec(auditRec, "target_access", string(path))
 
 	if len(items) == 0 {
 		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.empty_body.app_error", nil, "", http.StatusBadRequest)
@@ -971,21 +1009,23 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 // hasTargetAccess checks that the caller has access to the target entity
 // identified by objectType and targetID. For reads (write=false) it checks
 // read-level permissions; for writes it checks management-level permissions.
-// It sets c.Err and returns false when access is denied.
-func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
+// It sets c.Err and returns false when access is denied. groupName is the
+// resolved property group; it scopes the bot-manager write rule. The returned
+// path names the rule that granted access, for auditing.
+func hasTargetAccess(c *Context, groupName, objectType, targetID string, write bool) (targetAccessPath, bool) {
 	switch objectType {
 	case model.PropertyFieldObjectTypeChannel:
 		if !write {
 			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, model.PermissionReadChannel)
 			if !hasPermission {
 				c.SetPermissionError(model.PermissionReadChannel)
-				return false
+				return "", false
 			}
 		} else {
 			channel, appErr := c.App.GetChannel(c.AppContext, targetID)
 			if appErr != nil {
 				c.Err = appErr
-				return false
+				return "", false
 			}
 			var perm *model.Permission
 			switch channel.Type {
@@ -1005,14 +1045,14 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, perm)
 			if !hasPermission {
 				c.SetPermissionError(perm)
-				return false
+				return "", false
 			}
 		}
 	case model.PropertyFieldObjectTypePost:
 		post, appErr := c.App.GetSinglePost(c.AppContext, targetID, false)
 		if appErr != nil {
 			c.Err = appErr
-			return false
+			return "", false
 		}
 		perm := model.PermissionReadChannel
 		if write {
@@ -1021,48 +1061,88 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, perm)
 		if !hasPermission {
 			c.SetPermissionError(perm)
-			return false
+			return "", false
 		}
 	case model.PropertyFieldObjectTypeUser:
-		// Self-access and unrestricted sessions (local mode) always pass.
-		if targetID == c.AppContext.Session().UserId || c.AppContext.Session().IsUnrestricted() {
-			return true
-		}
-		if write {
-			// Writing another user's values requires PermissionEditOtherUsers.
-			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditOtherUsers) {
-				c.SetPermissionError(model.PermissionEditOtherUsers)
-				return false
-			}
-		} else {
-			// Reading another user's values requires being able to see them.
-			canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, targetID)
-			if appErr != nil {
-				c.Err = appErr
-				return false
-			}
-			if !canSee {
-				c.SetPermissionError(model.PermissionViewMembers)
-				return false
-			}
-		}
+		return userTargetAccess(c, groupName, targetID, write)
 	case model.PropertyFieldObjectTypeSystem:
 		// Any authenticated user can read system-scoped property values.
 		// Only a system administrator can write them.
 		if write && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 			c.SetPermissionError(model.PermissionManageSystem)
-			return false
+			return "", false
 		}
 	case model.PropertyFieldObjectTypeTemplate:
 		// Templates don't have value targets — this should not be reached
 		// if value endpoints properly reject template object type
 		c.Err = model.NewAppError("hasTargetAccess", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
-		return false
+		return "", false
 	default:
 		c.Err = model.NewAppError("hasTargetAccess", "api.property_value.invalid_object_type.app_error", nil, "", http.StatusBadRequest)
-		return false
+		return "", false
 	}
-	return true
+	return targetAccessPermission, true
+}
+
+// userTargetAccess applies the user-object rules of hasTargetAccess.
+func userTargetAccess(c *Context, groupName, targetID string, write bool) (targetAccessPath, bool) {
+	session := c.AppContext.Session()
+	if targetID == session.UserId {
+		return targetAccessSelf, true
+	}
+	if session.IsUnrestricted() {
+		return targetAccessLocal, true
+	}
+
+	if !write {
+		canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, session.UserId, targetID)
+		if appErr != nil {
+			c.Err = appErr
+			return "", false
+		}
+		if !canSee {
+			c.SetPermissionError(model.PermissionViewMembers)
+			return "", false
+		}
+		return targetAccessPermission, true
+	}
+
+	var path targetAccessPath
+	switch {
+	case c.App.SessionHasPermissionTo(*session, model.PermissionEditOtherUsers):
+		path = targetAccessEditOtherUsers
+	// Bot managers may write their bots' access_control values.
+	case groupName == model.AccessControlPropertyGroupName && canManageBotTarget(c, targetID):
+		path = targetAccessBotManager
+	default:
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return "", false
+	}
+
+	// As in patchUser, only a system admin may modify a system admin, bots included.
+	if !c.App.SessionHasPermissionTo(*session, model.PermissionManageSystem) {
+		target, appErr := c.App.GetUser(c.AppContext, targetID)
+		if appErr != nil {
+			c.Err = appErr
+			return "", false
+		}
+		if target.IsSystemAdmin() {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return "", false
+		}
+	}
+	return path, true
+}
+
+// canManageBotTarget reports whether the session can manage the bot with the
+// given user ID. Any failure, including "not a bot" and "no such bot", is
+// false so the caller can deny without revealing whether the bot exists.
+func canManageBotTarget(c *Context, targetID string) bool {
+	appErr := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), targetID)
+	if appErr != nil && appErr.StatusCode >= http.StatusInternalServerError {
+		c.Logger.Warn("Failed to resolve bot for target access", mlog.String("target_id", targetID), mlog.Err(appErr))
+	}
+	return appErr == nil
 }
 
 // sessionCallerID returns the caller ID to attach to a request-derived rctx
@@ -1090,6 +1170,31 @@ func sessionCallerID(c *Context) string {
 		return model.CallerIDLocalAdmin
 	}
 	return session.UserId
+}
+
+// addPropertyPermissionBasisMeta records which rule allowed a definition
+// write, the same keys the value-write audit sink records for a value write,
+// so one query over the audit log answers "what allowed this" for either.
+// Empty fields are omitted so a record says only what applied.
+func addPropertyPermissionBasisMeta(auditRec *model.AuditRecord, basis app.PropertyPermissionBasis) {
+	if basis.Tier != "" {
+		model.AddEventParameterToAuditRec(auditRec, "basis_tier", string(basis.Tier))
+	}
+	if basis.GrantID != "" {
+		model.AddEventParameterToAuditRec(auditRec, "basis_grant_id", basis.GrantID)
+	}
+	if basis.GrantScope != "" {
+		model.AddEventParameterToAuditRec(auditRec, "basis_grant_scope", basis.GrantScope)
+	}
+	if basis.GrantWildcard {
+		model.AddEventParameterToAuditRec(auditRec, "basis_grant_wildcard", true)
+	}
+	if basis.Legacy {
+		model.AddEventParameterToAuditRec(auditRec, "basis_legacy", true)
+	}
+	if basis.Unrestricted {
+		model.AddEventParameterToAuditRec(auditRec, "basis_unrestricted", true)
+	}
 }
 
 // isOptionsOnlyPatch checks if the patch only modifies the options attribute.

@@ -82,8 +82,7 @@ func testJobSaveOnce(t *testing.T, rctx request.CTX, ss store.Store) {
 
 			job, err := ss.Job().SaveOnce(job)
 			if err != nil {
-				var pqErr *pq.Error
-				if errors.As(err, &pqErr) {
+				if pqErr, ok := errors.AsType[*pq.Error](err); ok {
 					t.Logf("%#v\n", pqErr)
 				}
 			}

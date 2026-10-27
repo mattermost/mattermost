@@ -79,6 +79,10 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// This API can neither show nor change a permissions object, so one it
+	// accepted here would be enforced out of the caller's sight.
+	pf.Permissions = nil
+
 	// Translate to PropertyField and route through the generic property API.
 	// Server-controlled fields (group, type, target shape, creator) are
 	// stamped here; ID/TargetID/Protected are stripped so a caller can't
@@ -198,6 +202,11 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		c.Err = model.NewAppError("patchCPAField", "api.custom_profile_attributes.linked_field.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	// Permission branching (session-bound).
 	isOptionsOnly := isOptionsOnlyPatch(patch)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
@@ -287,6 +296,11 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		c.Err = model.NewAppError("deleteCPAField", "api.custom_profile_attributes.linked_field.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
 		c.Err = model.NewAppError("deleteCPAField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
 		return
@@ -338,6 +352,10 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 // the upsert through App.UpsertPropertyValues, and emits the CPA-specific
 // websocket event.
 func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID string, updates map[string]json.RawMessage) {
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
+
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	group, appErr := c.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
@@ -345,9 +363,11 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 		return
 	}
 
-	if !hasTargetAccess(c, model.PropertyFieldObjectTypeUser, userID, true) {
+	path, ok := hasTargetAccess(c, group.Name, model.PropertyFieldObjectTypeUser, userID, true)
+	if !ok {
 		return
 	}
+	model.AddEventParameterToAuditRec(auditRec, "target_access", string(path))
 
 	// Translate CPA format → generic PropertyValuePatchItem list. Map
 	// iteration is unordered, but FieldID uniqueness is guaranteed by the
@@ -446,6 +466,9 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 	message.Add("values", broadcastResults)
 	c.App.Publish(message)
 
+	auditRec.Success()
+	auditRec.AddEventObjectType("patchCPAValues")
+
 	if err := json.NewEncoder(w).Encode(results); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -460,17 +483,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
-
 	cpaPatchValues(c, w, r, userID, updates)
-	if c.Err != nil {
-		return
-	}
-
-	auditRec.Success()
-	auditRec.AddEventObjectType("patchCPAValues")
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -479,7 +492,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !hasTargetAccess(c, model.PropertyFieldObjectTypeUser, c.Params.UserId, false) {
+	if _, ok := hasTargetAccess(c, model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, c.Params.UserId, false); !ok {
 		return
 	}
 
@@ -523,15 +536,5 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
-
 	cpaPatchValues(c, w, r, userID, updates)
-	if c.Err != nil {
-		return
-	}
-
-	auditRec.Success()
-	auditRec.AddEventObjectType("patchCPAValues")
 }

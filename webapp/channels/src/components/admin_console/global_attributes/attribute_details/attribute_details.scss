@@ -15,17 +15,17 @@
 // 64px;`, which clips a two-line hgroup. `.with-back` is targeted explicitly
 // (not just `.admin-console__header`) so this wins on specificity regardless
 // of stylesheet load order, since the base `&.with-back { padding: 0; }` rule
-// has the same specificity otherwise. The back chevron is stretched to match
-// via `align-self: stretch` since its own rule still hardcodes `height: 64px`.
+// has the same specificity otherwise. The back control stays a 64px square,
+// centered against the two-line title, rather than stretching with the header.
 .AttributeDetails .admin-console__header.with-back {
     height: auto;
     min-height: 90px;
     flex: 0 0 auto;
-    align-items: stretch;
+    align-items: center;
     padding: 0;
 
     > div {
-        align-items: stretch;
+        align-items: center;
     }
 
     .AttributeDetails__headerGroup {
@@ -38,22 +38,30 @@
 .AttributeDetails__back {
     display: flex;
     width: 64px;
+    height: 64px;
     flex-shrink: 0;
-    align-items: center;
+    align-items: stretch;
+    align-self: center;
     justify-content: center;
     border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
 }
 
 .AttributeDetails__backButton {
     display: inline-flex;
-    width: 40px;
-    height: 40px;
+    width: 100%;
+    height: 100%;
     align-items: center;
     justify-content: center;
     border: 1px solid transparent;
-    border-radius: 4px;
+    border-radius: 0;
     color: rgba(var(--center-channel-color-rgb), 0.64);
     text-decoration: none;
+
+    svg {
+        width: 28px;
+        height: 28px;
+        flex: 0 0 auto;
+    }
 
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
@@ -206,63 +214,15 @@
     font-size: 12px;
 }
 
+.AttributeDetails__nameConflict {
+    margin-top: 8px;
+}
+
 .AttributeDetails__helperText {
     margin: 8px 0 0;
     color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 12px;
     line-height: 16px;
-}
-
-// Matches permission_policy_details.scss's .pp-role-dropdown-button, per design
-// spec parity between the two admin-console single-select dropdowns.
-.AttributeDetails__typeButton {
-    display: flex;
-    width: 350px;
-    max-width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 16px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
-    background: var(--center-channel-bg);
-    color: var(--center-channel-color);
-    cursor: pointer;
-    font-size: 14px;
-
-    &:hover {
-        border-color: rgba(var(--center-channel-color-rgb), 0.32);
-    }
-
-    &:focus {
-        border-color: var(--button-bg);
-        box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.3);
-        outline: none;
-    }
-
-    .icon {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 18px;
-    }
-
-    &:disabled {
-        background-color: rgba(var(--center-channel-color-rgb), 0.04);
-        cursor: not-allowed;
-
-        .AttributeDetails__typeButtonInner,
-        .icon {
-            opacity: 0.6;
-        }
-
-        &:hover {
-            border-color: rgba(var(--center-channel-color-rgb), 0.16);
-        }
-    }
-}
-
-.AttributeDetails__typeButtonInner {
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 .AttributeDetails__optionsHelp {

@@ -260,6 +260,25 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
     return [props, state];
 }
 
+function setUpBot(state: DeepPartial<GlobalState>) {
+    state.entities!.users!.profiles!.user1!.is_bot = true;
+    state.entities!.users!.profiles!.user1!.bot_description = 'bot description';
+}
+
+function setUpAttributes(state: DeepPartial<GlobalState>) {
+    state.entities!.general!.license = {
+        IsLicensed: 'true',
+        SkuShortName: 'enterprise',
+    };
+    state.entities!.general!.customProfileAttributes = {
+        clearance: {id: 'clearance', name: 'Clearance', type: 'text'},
+        region: {id: 'region', name: 'Region', type: 'text'},
+    };
+    (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => ({
+        clearance: 'Top Secret',
+    }));
+}
+
 describe('components/ProfilePopover', () => {
     (Client4.getCallsChannelState as jest.Mock).mockImplementation(async () => ({enabled: true}));
 
@@ -351,6 +370,7 @@ describe('components/ProfilePopover', () => {
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.findByText('bot description')).toBeInTheDocument();
+        expect(screen.getByText('BOT')).toBeInTheDocument();
     });
 
     test('should show add-to-channel option if in a team', async () => {
@@ -752,5 +772,120 @@ describe('components/ProfilePopover', () => {
 
         expect(await screen.findByText('Private')).toBeInTheDocument();
         expect(await screen.findByText('Seargent York')).toBeInTheDocument();
+    });
+
+    test('should display attributes for a bot and fetch them with the bot ID', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        setUpBot(initialState);
+        setUpAttributes(initialState);
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+
+        expect(await screen.findByText('Top Secret')).toBeInTheDocument();
+        expect(screen.getByText('Clearance')).toBeInTheDocument();
+        expect(screen.queryByText('Region')).not.toBeInTheDocument();
+        expect(Client4.getUserCustomProfileAttributesValues).toHaveBeenCalledTimes(1);
+        expect(Client4.getUserCustomProfileAttributesValues).toHaveBeenCalledWith(props.userId);
+    });
+
+    test('should display attributes for a bot when status is hidden', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        setUpBot(initialState);
+        setUpAttributes(initialState);
+        props.hideStatus = true;
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+
+        expect(await screen.findByText('Top Secret')).toBeInTheDocument();
+        expect(screen.getByText('Clearance')).toBeInTheDocument();
+    });
+
+    test('should show bot tag and description before bot attributes', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        setUpBot(initialState);
+        setUpAttributes(initialState);
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+
+        const attributeValue = await screen.findByText('Top Secret');
+        const botTag = screen.getByText('BOT');
+        const description = screen.getByText('bot description');
+        expect(botTag.compareDocumentPosition(description)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+        expect(description.compareDocumentPosition(attributeValue)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    test('should neither fetch nor display bot attributes for webhook posts', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        setUpBot(initialState);
+        setUpAttributes(initialState);
+        props.fromWebhook = true;
+        props.hideStatus = true;
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+
+        expect(await screen.findByText('bot description')).toBeInTheDocument();
+        expect(screen.queryByText('Clearance')).not.toBeInTheDocument();
+        expect(screen.queryByText('Top Secret')).not.toBeInTheDocument();
+        expect(Client4.getUserCustomProfileAttributesValues).not.toHaveBeenCalled();
+    });
+
+    test('should neither fetch nor display bot attributes when the name is overridden', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        setUpBot(initialState);
+        setUpAttributes(initialState);
+        props.overwriteName = 'Webhook name';
+        props.hideStatus = true;
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+
+        expect((await screen.findAllByText('Webhook name')).length).toBeGreaterThan(0);
+        expect(screen.queryByText('Clearance')).not.toBeInTheDocument();
+        expect(screen.queryByText('Top Secret')).not.toBeInTheDocument();
+        expect(Client4.getUserCustomProfileAttributesValues).not.toHaveBeenCalled();
+    });
+
+    test('should neither fetch nor display bot attributes when only the icon is overridden', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        setUpBot(initialState);
+        setUpAttributes(initialState);
+        props.overwriteIcon = 'http://example.com/icon.png';
+        props.hideStatus = true;
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+
+        expect(await screen.findByText('BOT')).toBeInTheDocument();
+        expect(screen.queryByText('Clearance')).not.toBeInTheDocument();
+        expect(screen.queryByText('Top Secret')).not.toBeInTheDocument();
+        expect(Client4.getUserCustomProfileAttributesValues).not.toHaveBeenCalled();
+    });
+
+    test('should neither fetch nor display bot attributes without Enterprise license', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        setUpBot(initialState);
+        setUpAttributes(initialState);
+        initialState.entities!.general!.license = {
+            IsLicensed: 'false',
+            SkuShortName: '',
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+
+        expect(await screen.findByText('bot description')).toBeInTheDocument();
+        expect(screen.queryByText('Clearance')).not.toBeInTheDocument();
+        expect(screen.queryByText('Top Secret')).not.toBeInTheDocument();
+        expect(Client4.getUserCustomProfileAttributesValues).not.toHaveBeenCalled();
+    });
+
+    test('should neither fetch nor display attributes for a user when status is hidden', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        setUpAttributes(initialState);
+        props.hideStatus = true;
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+
+        await act(async () => {});
+        expect(Client4.getUserCustomProfileAttributesValues).not.toHaveBeenCalled();
+        expect(screen.queryByText('Clearance')).not.toBeInTheDocument();
+        expect(screen.queryByText('Top Secret')).not.toBeInTheDocument();
     });
 });

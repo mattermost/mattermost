@@ -10,6 +10,8 @@ import (
 )
 
 type FindingStore interface {
+	// GetByFingerprints treats fingerprints as a set: empty entries are ignored, duplicates
+	// collapse, and each matching finding is returned at most once. Order is not guaranteed.
 	GetByFingerprints(fingerprints []string) ([]*model.HealthFinding, error)
 	List(filter model.HealthFindingFilter) ([]*model.HealthFinding, error)
 	Upsert(findings []*model.HealthFinding) error

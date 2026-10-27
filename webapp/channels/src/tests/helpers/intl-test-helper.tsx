@@ -9,13 +9,11 @@ import {
 } from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import defaultMessages from 'i18n/en.json';
-
 export const defaultIntl = createIntl({
     locale: 'en',
     defaultLocale: 'en',
     timeZone: 'Etc/UTC',
-    messages: defaultMessages,
+    messages: {},
     textComponent: 'span',
 });
 

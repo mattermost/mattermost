@@ -104,7 +104,7 @@ func getClient(ctx context.Context, cmd *cobra.Command) (*model.Client4, string,
 
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		ctx := context.TODO()
+		ctx := cmd.Context()
 		c, serverVersion, local, err := getClient(ctx, cmd)
 		if err != nil {
 			return fmt.Errorf("failed to create client: %w", err)

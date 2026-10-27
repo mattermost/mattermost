@@ -1,0 +1,61 @@
+/*
+ * Render docs-gap-analysis.md. PERSONAS comes from impact-scope frontmatter
+ * so moving a persona's paths updates review routing and the gap prompt together.
+ */
+
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {PROMPTS_DIR, personasWithScope} from '../lib/personas.mjs';
+import {DATA_NOTICE} from '../lib/untrusted.mjs';
+
+export const TEMPLATE = join(PROMPTS_DIR, 'docs-gap-analysis.md');
+
+const PLACEHOLDERS = ['DATA_NOTICE', 'INPUTS', 'PERSONAS'];
+
+const list = (items) => items.map((i) => `\`${i}\``).join(', ');
+
+export function impactPersonaContext() {
+  const personas = personasWithScope('impact');
+  if (personas.length === 0) {
+    throw new Error('no persona declares impact scope; the gap prompt would have no audiences');
+  }
+
+  return personas
+    .map((p) =>
+      [
+        `### ${p.label}`,
+        '',
+        `- Reads: ${list(p.docsPaths)}`,
+        `- Code signals: ${list(p.codeSignals)}`,
+        `- ${p.routerHints}`,
+      ].join('\n'),
+    )
+    .join('\n\n');
+}
+
+export function renderPrompt({template = readFileSync(TEMPLATE, 'utf8'), inputs} = {}) {
+  const values = {
+    DATA_NOTICE,
+    INPUTS: inputs,
+    PERSONAS: impactPersonaContext(),
+  };
+
+  let out = template;
+  for (const key of PLACEHOLDERS) {
+    const token = `{{${key}}}`;
+    if (!out.includes(token)) {
+      throw new Error(`${TEMPLATE} no longer contains ${token}`);
+    }
+    if (!values[key]?.trim()) {
+      throw new Error(`nothing to substitute for ${token}`);
+    }
+    out = out.replaceAll(token, values[key]);
+  }
+
+  const leftover = out.match(/\{\{[A-Z_]+\}\}/);
+  if (leftover) {
+    throw new Error(`${TEMPLATE} contains an unknown placeholder ${leftover[0]}`);
+  }
+
+  return out;
+}

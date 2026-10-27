@@ -6,7 +6,7 @@ import {Modal} from 'react-bootstrap';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
@@ -44,6 +44,7 @@ type State = {
     header?: string;
     saving: boolean;
     show: boolean;
+    showPreview: boolean;
     serverError?: ServerError | null;
     postError?: React.ReactNode;
 };
@@ -58,6 +59,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
             header: props.channel.header,
             saving: false,
             show: true,
+            showPreview: false,
         };
         this.editChannelHeaderTextboxRef = React.createRef<TextboxClass>();
     }
@@ -68,8 +70,8 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
         }
     };
 
-    private setShowPreview = (newState: boolean): void => {
-        this.props.actions.setShowPreview(newState);
+    private togglePreview = (): void => {
+        this.setState((prevState) => ({showPreview: !prevState.showPreview}));
     };
 
     private handleChange = (e: React.ChangeEvent<TextboxElement>): void => {
@@ -251,14 +253,14 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                                 id='edit_textbox'
                                 ref={this.editChannelHeaderTextboxRef}
                                 characterLimit={headerMaxLength}
-                                preview={this.props.shouldShowPreview}
+                                preview={this.state.showPreview}
                                 useChannelMentions={false}
                             />
                         </div>
                         <div className='post-create-footer'>
                             <TextboxLinks
-                                showPreview={this.props.shouldShowPreview}
-                                updatePreview={this.setShowPreview}
+                                showPreview={this.state.showPreview}
+                                updatePreview={this.togglePreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}
                                 hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
                                 previewMessageLink={
