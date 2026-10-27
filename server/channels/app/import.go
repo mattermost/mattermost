@@ -825,8 +825,7 @@ func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, d
 	// Already exists by auth_data — nothing to do. Other lookup failures must
 	// remain visible instead of being treated as a missing identity.
 	if _, nErr := a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService); nErr != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 			return model.NewAppError("preCreateSSOUser", "app.user.get_by_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	} else {
@@ -839,8 +838,7 @@ func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, d
 	// to the fresh identity creation path below.
 	if !deactivateMissingUsers {
 		if existing, nErr := a.Srv().Store().User().GetByUsername(*data.Username); nErr != nil {
-			var nfErr *store.ErrNotFound
-			if !errors.As(nErr, &nfErr) {
+			if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 				return model.NewAppError("preCreateSSOUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		} else {

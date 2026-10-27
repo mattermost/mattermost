@@ -5,3 +5,7 @@
 export function formatLogValue(value: unknown): string {
     return typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value);
 }
+
+export function presetStartMs(minutes: number): number {
+    return Date.now() - (minutes * 60 * 1000);
+}
