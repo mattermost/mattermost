@@ -19262,9 +19262,29 @@
     "description": "Login error for GitLab SSO users who must accept GitLab's updated Terms of Service; {{.URL}} is the GitLab ToS page link. Keep 'GitLab' and 'Mattermost' as product names."
   },
   {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Unable to get the followers of the thread.",
+    "description": "Error returned to plugins when GetThreadFollowers cannot read the thread's followers from the database; developer-facing."
+  },
+  {
     "id": "plugin.api.get_users_in_channel",
     "translation": "Unable to get the users, invalid sorting criteria.",
     "description": "Error returned to plugins when listing channel users is called with an unsupported sort option; developer-facing."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Invalid thread id.",
+    "description": "Error returned to plugins when GetThreadFollowers or SetThreadFollowing is called with a thread id that is not a valid Mattermost id; developer-facing."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Invalid user id.",
+    "description": "Error returned to plugins when SetThreadFollowing is called with a user id that is not a valid Mattermost id; developer-facing."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "The post is a reply, not the root post of a thread.",
+    "description": "Error returned to plugins when SetThreadFollowing is called with the id of a reply instead of a thread's root post; developer-facing."
   },
   {
     "id": "plugin.api.update_post.mm_blocks_actions.app_error",
