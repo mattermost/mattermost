@@ -4,6 +4,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -115,6 +116,12 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 	b, err := marshalConfig(cfg)
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize")
+	}
+
+	// The config is written back on every startup, usually with nothing changed. Skipping
+	// those writes means we only touch the file when we actually have to.
+	if current, readErr := os.ReadFile(fs.path); readErr == nil && bytes.Equal(current, b) {
+		return nil
 	}
 
 	err = os.WriteFile(fs.path, b, 0600)

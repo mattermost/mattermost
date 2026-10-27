@@ -996,6 +996,28 @@ func TestFileStoreSave(t *testing.T) {
 	})
 }
 
+func TestFileStorePersistSkipsUnchangedConfig(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+
+	fs, err := NewFileStore(path, true)
+	require.NoError(t, err)
+	require.NoError(t, fs.persist(minimalConfig))
+
+	// Push the mod time into the past so we can tell whether the file gets rewritten.
+	past := time.Now().Add(-time.Hour).Truncate(time.Second)
+	require.NoError(t, os.Chtimes(path, past, past))
+
+	require.NoError(t, fs.persist(minimalConfig))
+	info, err := os.Stat(path)
+	require.NoError(t, err)
+	assert.True(t, info.ModTime().Equal(past), "unchanged config should not be rewritten")
+
+	require.NoError(t, fs.persist(testConfig))
+	info, err = os.Stat(path)
+	require.NoError(t, err)
+	assert.False(t, info.ModTime().Equal(past), "changed config should be rewritten")
+}
+
 // addUnknownConfigKeys takes valid, marshaled config data and adds keys that don't
 // correspond to any field in model.Config, simulating settings removed from a past
 // release that a deployment might still be carrying in its on disk config.
