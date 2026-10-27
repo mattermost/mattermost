@@ -15,25 +15,46 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// listingDisplayNameSQL is the label a listing row shows and sorts by.
-const listingDisplayNameSQL = "COALESCE(NULLIF(Attrs->>'" + model.PropertyFieldAttrDisplayName + "', ''), Name)"
+// listingTable is a table reference in the listing query. It is the only value
+// the predicates below put into SQL text; everything else is a bound
+// parameter. Only the two constants exist, and name rejects any other value.
+type listingTable int
+
+const (
+	// listingRowTable is the listing row itself.
+	listingRowTable listingTable = iota
+	// listingChildTable is a field linked to a template row, aliased lf.
+	listingChildTable
+)
+
+func (t listingTable) name() string {
+	switch t {
+	case listingRowTable:
+		return "PropertyFields"
+	case listingChildTable:
+		return "lf"
+	}
+	panic(fmt.Sprintf("unknown listing table %d", int(t)))
+}
 
 // The predicates below read a field's stored Attrs, mirroring the webapp's
 // getSourceKind, getPropertyFieldSyncSources and getFieldOwners. Each ends in
 // IS TRUE so a missing or mistyped key reads as false rather than NULL, which
 // would otherwise drop the row from a negated filter.
 
-func attrIsNonEmptyString(table, key string) sq.Sqlizer {
-	return sq.Expr("(jsonb_typeof("+table+".Attrs->?) = 'string' AND "+table+".Attrs->>? <> '') IS TRUE", key, key)
+func attrIsNonEmptyString(table listingTable, key string) sq.Sqlizer {
+	attrs := table.name() + ".Attrs"
+	return sq.Expr("(jsonb_typeof("+attrs+"->?) = 'string' AND "+attrs+"->>? <> '') IS TRUE", key, key)
 }
 
-func ownersIsNonEmpty(table string) sq.Sqlizer {
-	return sq.Expr("(jsonb_typeof("+table+".Attrs->?) = 'array' AND "+table+".Attrs->? <> '[]'::jsonb) IS TRUE",
+func ownersIsNonEmpty(table listingTable) sq.Sqlizer {
+	attrs := table.name() + ".Attrs"
+	return sq.Expr("(jsonb_typeof("+attrs+"->?) = 'array' AND "+attrs+"->? <> '[]'::jsonb) IS TRUE",
 		model.PropertyAttrsOwners, model.PropertyAttrsOwners)
 }
 
-func ownersHasPlugin(table string) sq.Sqlizer {
-	return sq.Expr("("+table+".Attrs->? @> ?::jsonb) IS TRUE",
+func ownersHasPlugin(table listingTable) sq.Sqlizer {
+	return sq.Expr("("+table.name()+".Attrs->? @> ?::jsonb) IS TRUE",
 		model.PropertyAttrsOwners, `[{"type":"`+model.PropertyOwnerTypePlugin+`"}]`)
 }
 
@@ -50,16 +71,16 @@ func liveLinkedChild(objectType string, extra ...sq.Sqlizer) sq.Sqlizer {
 // rowOwners applies an owners predicate to the field that carries a row's
 // owners: a user field's own Attrs, or for a template the live user field
 // linked to it. Rows of any other object type have no owners.
-func rowOwners(predicate func(table string) sq.Sqlizer) sq.Sqlizer {
+func rowOwners(predicate func(table listingTable) sq.Sqlizer) sq.Sqlizer {
 	return sq.Or{
-		sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeUser}, predicate("PropertyFields")},
-		sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeTemplate}, liveLinkedChild(model.PropertyFieldObjectTypeUser, predicate("lf"))},
+		sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeUser}, predicate(listingRowTable)},
+		sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeTemplate}, liveLinkedChild(model.PropertyFieldObjectTypeUser, predicate(listingChildTable))},
 	}
 }
 
 func listingSourceCondition(source string) sq.Sqlizer {
 	pluginSource := sq.And{
-		attrIsNonEmptyString("PropertyFields", model.PropertyAttrsSourcePluginID),
+		attrIsNonEmptyString(listingRowTable, model.PropertyAttrsSourcePluginID),
 		sq.Or{
 			sq.Expr("(Attrs->? = 'true'::jsonb) IS TRUE", model.PropertyAttrsProtected),
 			sq.Eq{"Protected": true},
@@ -76,11 +97,11 @@ func listingSourceCondition(source string) sq.Sqlizer {
 			sq.Expr("NOT (?)", rowOwners(ownersIsNonEmpty)),
 		}
 		for _, syncSource := range model.PropertySyncSources() {
-			managed = append(managed, sq.Expr("NOT (?)", attrIsNonEmptyString("PropertyFields", model.PropertySyncSourceAttr(syncSource))))
+			managed = append(managed, sq.Expr("NOT (?)", attrIsNonEmptyString(listingRowTable, model.PropertySyncSourceAttr(syncSource))))
 		}
 		return managed
 	default:
-		return attrIsNonEmptyString("PropertyFields", model.PropertySyncSourceAttr(source))
+		return attrIsNonEmptyString(listingRowTable, model.PropertySyncSourceAttr(source))
 	}
 }
 
@@ -154,7 +175,7 @@ func (s *SqlPropertyFieldStore) SearchGlobalAttributeListing(rctx request.CTX, o
 	if total > int64(opts.Offset) {
 		builder := s.tableSelectQuery.
 			Where(where).
-			OrderBy("LOWER("+listingDisplayNameSQL+") ASC", "ID ASC").
+			OrderByClause("LOWER(COALESCE(NULLIF(Attrs->>?, ''), Name)) ASC, ID ASC", model.PropertyFieldAttrDisplayName).
 			Limit(uint64(opts.Limit)).
 			Offset(uint64(opts.Offset))
 		if err := db.SelectBuilder(&fields, builder); err != nil {
