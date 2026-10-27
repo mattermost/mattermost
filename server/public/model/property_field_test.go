@@ -660,7 +660,190 @@ func TestPropertyField_IsValid(t *testing.T) {
 			CreateAt:      GetMillis(),
 			UpdateAt:      GetMillis(),
 		}
-		require.Error(t, pf.IsValid())
+		requireInvalidBecause(t, pf.IsValid(), "template fields cannot have a linked field")
+	})
+
+	t.Run("linked field with empty masking object is invalid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			Permissions:   &Permissions{Masking: &Masking{}},
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		requireInvalidBecause(t, pf.IsValid(), "a linked field cannot declare its own masking")
+	})
+
+	t.Run("linked field with nil LinkedFieldID and masking is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:          NewId(),
+			GroupID:     NewId(),
+			Name:        "field",
+			Type:        PropertyFieldTypeSelect,
+			ObjectType:  PropertyFieldObjectTypeUser,
+			TargetType:  string(PropertyFieldTargetLevelSystem),
+			Permissions: &Permissions{Masking: &Masking{}},
+			CreateAt:    GetMillis(),
+			UpdateAt:    GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("linked field with empty string LinkedFieldID and masking is valid", func(t *testing.T) {
+		emptyID := ""
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &emptyID,
+			Permissions:   &Permissions{Masking: &Masking{}},
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("linked field with nil masking is valid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("linked field with an option.read grant is invalid", func(t *testing.T) {
+		grants := []Grant{
+			{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionOptionRead}},
+			{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			{Identity: Identity{Type: PropertyOwnerTypeService, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			{Identity: Identity{Type: PropertyOwnerTypeRole, ID: "system_admin"}, Allow: []string{PropertyActionOptionRead}},
+			{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+		}
+		for _, grant := range grants {
+			linkedID := NewId()
+			pf := &PropertyField{
+				ID:            NewId(),
+				GroupID:       NewId(),
+				Name:          "linked field",
+				Type:          PropertyFieldTypeSelect,
+				ObjectType:    PropertyFieldObjectTypeUser,
+				TargetType:    string(PropertyFieldTargetLevelSystem),
+				LinkedFieldID: &linkedID,
+				Permissions:   &Permissions{Grants: []Grant{grant}},
+				CreateAt:      GetMillis(),
+				UpdateAt:      GetMillis(),
+			}
+			requireInvalidBecause(t, pf.IsValid(), "a linked field cannot grant option.read")
+		}
+	})
+
+	t.Run("linked field with an option.read grant behind a valid one is invalid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionValueRead}},
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		requireInvalidBecause(t, pf.IsValid(), "grant 1: a linked field cannot grant option.read")
+	})
+
+	t.Run("linked field with a wildcard grant over other actions is valid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionValueRead, PropertyActionValueWrite}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("linked field with grants over the other four actions is valid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionFieldWrite, PropertyActionOptionWrite, PropertyActionValueRead, PropertyActionValueWrite}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("unlinked field with an option.read grant is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "field",
+			Type:       PropertyFieldTypeSelect,
+			ObjectType: PropertyFieldObjectTypeUser,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("template with an option.read grant is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "template field",
+			Type:       PropertyFieldTypeSelect,
+			ObjectType: PropertyFieldObjectTypeTemplate,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
 	})
 
 	t.Run("PSAv1 cannot have permission_field set", func(t *testing.T) {
@@ -1060,6 +1243,15 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Equal(t, "invalid permission level", appErr.params["Reason"])
 		})
 	})
+}
+
+// requireInvalidBecause requires err to be the IsValid error carrying reason,
+// so a test of one rule can't pass on another rule's rejection.
+func requireInvalidBecause(t *testing.T, err error, reason string) {
+	t.Helper()
+	var appErr *AppError
+	require.ErrorAs(t, err, &appErr)
+	require.Contains(t, appErr.params["Reason"], reason)
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {
@@ -2438,4 +2630,73 @@ func TestPropertyField_OptionParentLinks(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "not a list")
 	})
+}
+
+func TestPropertyFieldChangeIsOptionsOnly(t *testing.T) {
+	// The answer decides whether an update is held to option.write or to
+	// field.write, so every compared field gets a row: a change to any of them
+	// alongside an option change must report false, or a caller holding only
+	// option.write could make it.
+	stored := func() *PropertyField {
+		return &PropertyField{
+			ID:                "fieldid",
+			Name:              "Programs",
+			Type:              PropertyFieldTypeSelect,
+			TargetID:          "targetid",
+			TargetType:        string(PropertyFieldTargetLevelSystem),
+			ObjectType:        PropertyFieldObjectTypeUser,
+			LinkedFieldID:     new("templateid"),
+			PermissionField:   new(PermissionLevelSysadmin),
+			PermissionValues:  new(PermissionLevelMember),
+			PermissionOptions: new(PermissionLevelAdmin),
+			Permissions:       &Permissions{Restrictions: &Restrictions{Field: WriteOnly{Write: PermissionLevelSysadmin}}},
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []any{map[string]any{"id": "opt1", "name": "Air"}},
+				"sort_order":                  1,
+			},
+		}
+	}
+	changeOptions := func(f *PropertyField) {
+		f.Attrs[PropertyFieldAttributeOptions] = []any{map[string]any{"id": "opt2", "name": "Sea"}}
+	}
+
+	t.Run("an option list change alone reports true", func(t *testing.T) {
+		updated := stored()
+		changeOptions(updated)
+		assert.True(t, PropertyFieldChangeIsOptionsOnly(stored(), updated))
+	})
+
+	t.Run("nothing changed reports false", func(t *testing.T) {
+		assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), stored()))
+	})
+
+	t.Run("a nil field reports false", func(t *testing.T) {
+		assert.False(t, PropertyFieldChangeIsOptionsOnly(nil, stored()))
+		assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), nil))
+	})
+
+	alongside := map[string]func(*PropertyField){
+		"Name":              func(f *PropertyField) { f.Name = "Renamed" },
+		"Type":              func(f *PropertyField) { f.Type = PropertyFieldTypeMultiselect },
+		"TargetID":          func(f *PropertyField) { f.TargetID = "othertarget" },
+		"TargetType":        func(f *PropertyField) { f.TargetType = string(PropertyFieldTargetLevelTeam) },
+		"ObjectType":        func(f *PropertyField) { f.ObjectType = PropertyFieldObjectTypeChannel },
+		"Protected":         func(f *PropertyField) { f.Protected = true },
+		"DeleteAt":          func(f *PropertyField) { f.DeleteAt = 1 },
+		"LinkedFieldID":     func(f *PropertyField) { f.LinkedFieldID = nil },
+		"Permissions":       func(f *PropertyField) { f.Permissions = nil },
+		"PermissionField":   func(f *PropertyField) { f.PermissionField = new(PermissionLevelMember) },
+		"PermissionValues":  func(f *PropertyField) { f.PermissionValues = new(PermissionLevelSysadmin) },
+		"PermissionOptions": func(f *PropertyField) { f.PermissionOptions = new(PermissionLevelMember) },
+		"a sibling attr":    func(f *PropertyField) { f.Attrs["sort_order"] = 2 },
+		"an added attr":     func(f *PropertyField) { f.Attrs[PropertyAttrsProtected] = true },
+	}
+	for name, change := range alongside {
+		t.Run("an option list change alongside "+name+" reports false", func(t *testing.T) {
+			updated := stored()
+			changeOptions(updated)
+			change(updated)
+			assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), updated))
+		})
+	}
 }

@@ -29,33 +29,14 @@
     }
 
     &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
         padding-top: 20px;
+        gap: 8px;
 
         &--single {
             padding-top: 30px;
-        }
-    }
-
-    .btn {
-        padding: 11px 16px;
-        border-radius: 4px;
-        margin-right: 8px;
-        background: variables.$primary-color;
-        color: variables.$white;
-        font-size: 12px;
-        font-weight: bold;
-        line-height: 9.5px;
-
-        &:focus,
-        &:active,
-        &:focus:active {
-            border-color: transparent;
-            outline: none;
-        }
-
-        &.btn-secondary {
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
         }
     }
 

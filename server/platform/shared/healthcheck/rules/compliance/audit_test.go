@@ -5,16 +5,19 @@ package compliance
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 func audit(fileEnabled bool, advanced string) func(cfg *model.Config) {
 	return func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = new(fileEnabled)
+		cfg.ExperimentalAuditSettings.FileName = new("audit.log")
 		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(advanced)
 	}
 }
@@ -29,6 +32,12 @@ func licensedLeader(sku string, features *model.Features) *healthcheck.NodeSnaps
 	}
 }
 
+func recordedAudit(active bool) *healthcheck.NodeSnapshot {
+	leader := licensedLeader(model.LicenseShortSkuEnterprise, nil)
+	leader.Diagnostics.Diagnostics.Config.AuditLoggingConfigured = new(active)
+	return leader
+}
+
 func enterprise(mutate func(*model.Config)) *healthcheck.Snapshot {
 	return configSnapshot(mutate, licensedLeader(model.LicenseShortSkuEnterprise, nil))
 }
@@ -38,7 +47,7 @@ func auditTarget(levels ...string) string {
 }
 
 func TestAuditLogOff(t *testing.T) {
-	t.Parallel()
+	t.Setenv(config.AdditionalAuditTargetsEnv, "")
 
 	apiTarget := auditTarget(`{"id": 100, "name": "audit-api"}`)
 	off := func(users string) want {
@@ -61,6 +70,15 @@ func TestAuditLogOff(t *testing.T) {
 		{"inactive with stats absent", enterprise(audit(false, "")), statsUnknown},
 		{"inactive at the threshold", withUsers(enterprise(audit(false, "")), 5000), resolved.withValue(5000)},
 		{"inactive above the threshold", withUsers(enterprise(audit(false, "")), 5001), off("5001").withValue(5001)},
+		{"server records active though the config has no targets", withUsers(configSnapshot(audit(false, ""), recordedAudit(true)), 50000), resolved},
+		{"server records inactive though the config enables the file", withUsers(configSnapshot(audit(true, ""), recordedAudit(false)), 5001), off("5001").withValue(5001)},
+		{"server records active though the config has no file enabled value", withUsers(configSnapshot(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }, recordedAudit(true)), 50000), resolved},
+		{"server records inactive though the config has no file enabled value", withUsers(configSnapshot(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }, recordedAudit(false)), 5001), off("5001").withValue(5001)},
+		{"server record used when another config collector failed", withUsers(configSnapshot(audit(false, ""), func() *healthcheck.NodeSnapshot {
+			leader := recordedAudit(true)
+			leader.Diagnostics.Errors = model.SectionErrors{model.SectionConfigSource: errors.New("collection failed")}
+			return leader
+		}()), 5001), resolved},
 		{"file enabled absent", enterprise(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }), configUnknown},
 	}
 
