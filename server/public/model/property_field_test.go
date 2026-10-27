@@ -70,18 +70,20 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
-	t.Run("number is a valid type", func(t *testing.T) {
-		pf := &PropertyField{
-			ID:         NewId(),
-			GroupID:    NewId(),
-			Name:       "test field",
-			Type:       PropertyFieldTypeNumber,
-			ObjectType: PropertyFieldObjectTypePost,
-			TargetType: string(PropertyFieldTargetLevelSystem),
-			CreateAt:   GetMillis(),
-			UpdateAt:   GetMillis(),
+	t.Run("number and checkbox are valid types", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox} {
+			pf := &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       fieldType,
+				ObjectType: PropertyFieldObjectTypePost,
+				TargetType: string(PropertyFieldTargetLevelSystem),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+			}
+			require.NoError(t, pf.IsValid(), "type %q", fieldType)
 		}
-		require.NoError(t, pf.IsValid())
 	})
 
 	t.Run("invalid ID", func(t *testing.T) {
@@ -1118,9 +1120,11 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		require.NoError(t, patch.IsValid())
 	})
 
-	t.Run("number is an accepted type", func(t *testing.T) {
-		patch := &PropertyFieldPatch{Type: new(PropertyFieldTypeNumber)}
-		require.NoError(t, patch.IsValid())
+	t.Run("number and checkbox are accepted types", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox} {
+			patch := &PropertyFieldPatch{Type: new(fieldType)}
+			require.NoError(t, patch.IsValid(), "type %q", fieldType)
+		}
 	})
 
 	t.Run("Name exceeds maximum length", func(t *testing.T) {
@@ -2043,6 +2047,7 @@ func TestPropertyFieldType_SupportsOptions(t *testing.T) {
 		PropertyFieldTypeUser:        false,
 		PropertyFieldTypeMultiuser:   false,
 		PropertyFieldTypeNumber:      false,
+		PropertyFieldTypeCheckbox:    false,
 		PropertyFieldType("bogus"):   false,
 	}
 
@@ -2074,6 +2079,7 @@ func TestPropertyFieldType_IsValid(t *testing.T) {
 		PropertyFieldTypeText, PropertyFieldTypeSelect, PropertyFieldTypeMultiselect,
 		PropertyFieldTypeDate, PropertyFieldTypeUser, PropertyFieldTypeMultiuser,
 		PropertyFieldTypeRank, PropertyFieldTypeGraph, PropertyFieldTypeNumber,
+		PropertyFieldTypeCheckbox,
 	} {
 		assert.True(t, fieldType.IsValid(), "IsValid for %q", fieldType)
 	}
@@ -2092,6 +2098,7 @@ func TestPropertyFieldType_SupportsAccessControl(t *testing.T) {
 		PropertyFieldTypeUser:        true,
 		PropertyFieldTypeMultiuser:   true,
 		PropertyFieldTypeNumber:      false,
+		PropertyFieldTypeCheckbox:    false,
 	}
 
 	for fieldType, expected := range cases {

@@ -43,6 +43,7 @@ func TestValueTypeValidationHook(t *testing.T) {
 	}
 
 	numberField := newField(t, model.PropertyFieldTypeNumber)
+	checkboxField := newField(t, model.PropertyFieldTypeCheckbox)
 	textField := newField(t, model.PropertyFieldTypeText)
 
 	t.Run("accepts numbers and empty values on a number field", func(t *testing.T) {
@@ -60,11 +61,26 @@ func TestValueTypeValidationHook(t *testing.T) {
 		}
 	})
 
+	t.Run("accepts booleans and empty values on a checkbox field", func(t *testing.T) {
+		for _, raw := range []string{`true`, `false`, `null`} {
+			_, err := th.service.UpsertPropertyValue(th.Context, newValue(checkboxField, raw))
+			assert.NoError(t, err, "value %s", raw)
+		}
+	})
+
+	t.Run("refuses anything but a boolean on a checkbox field", func(t *testing.T) {
+		for _, raw := range []string{`"true"`, `1`, `[]`} {
+			_, err := th.service.UpsertPropertyValue(th.Context, newValue(checkboxField, raw))
+			require.Error(t, err, "value %s", raw)
+			assert.ErrorIs(t, err, ErrInvalidValue)
+		}
+	})
+
 	t.Run("checks every write path and every value of a batch", func(t *testing.T) {
 		_, err := th.service.CreatePropertyValue(th.Context, newValue(numberField, `"x"`))
 		assert.ErrorIs(t, err, ErrInvalidValue)
 
-		_, err = th.service.CreatePropertyValues(th.Context, []*model.PropertyValue{newValue(textField, `"ok"`), newValue(numberField, `"x"`)})
+		_, err = th.service.CreatePropertyValues(th.Context, []*model.PropertyValue{newValue(textField, `"ok"`), newValue(checkboxField, `"x"`)})
 		assert.ErrorIs(t, err, ErrInvalidValue)
 
 		_, err = th.service.UpsertPropertyValues(th.Context, []*model.PropertyValue{newValue(numberField, `1`), newValue(numberField, `"2"`)})
@@ -80,7 +96,7 @@ func TestValueTypeValidationHook(t *testing.T) {
 	})
 
 	t.Run("leaves a value whose field is not in its group to the service, and checks the rest", func(t *testing.T) {
-		// Allowed before number existed (a custom profile attribute test relies on it).
+		// Allowed before number and checkbox existed (a custom profile attribute test relies on it).
 		stray := newValue(numberField, `"x"`)
 		stray.GroupID = model.NewId()
 		_, err := th.service.CreatePropertyValue(th.Context, stray)
@@ -98,16 +114,18 @@ func TestValueTypeValidationHook(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("a type change to or from number clears the values", func(t *testing.T) {
+	t.Run("a type change to or from number or checkbox clears the values", func(t *testing.T) {
 		for _, tc := range []struct{ from, to model.PropertyFieldType }{
 			{model.PropertyFieldTypeNumber, model.PropertyFieldTypeText},
-			{model.PropertyFieldTypeNumber, model.PropertyFieldTypeSelect},
+			{model.PropertyFieldTypeCheckbox, model.PropertyFieldTypeSelect},
 			{model.PropertyFieldTypeText, model.PropertyFieldTypeNumber},
+			{model.PropertyFieldTypeNumber, model.PropertyFieldTypeCheckbox},
 		} {
 			field := newField(t, tc.from)
 			raw := map[model.PropertyFieldType]string{
-				model.PropertyFieldTypeNumber: `4`,
-				model.PropertyFieldTypeText:   `"four"`,
+				model.PropertyFieldTypeNumber:   `4`,
+				model.PropertyFieldTypeCheckbox: `true`,
+				model.PropertyFieldTypeText:     `"four"`,
 			}[tc.from]
 			_, err := th.service.UpsertPropertyValue(th.Context, newValue(field, raw))
 			require.NoError(t, err)

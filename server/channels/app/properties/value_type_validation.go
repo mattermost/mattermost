@@ -12,8 +12,8 @@ import (
 )
 
 // ValueTypeValidationHook refuses a value whose JSON does not fit its field's
-// type, for the types whose shape core enforces in every group: number (see
-// model.ValidatePropertyValueForFieldType). Unlike the access
+// type, for the types whose shape core enforces in every group: number and
+// checkbox (see model.ValidatePropertyValueForFieldType). Unlike the access
 // control validation hook it is not scoped to managed groups, because these
 // types are new and nothing has ever been stored under them that a check could
 // now refuse: a plugin, the REST API, and an import all get the same answer.

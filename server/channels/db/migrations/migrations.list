@@ -467,3 +467,5 @@ channels/db/migrations/postgres/000235_create_property_values_groupid_fieldid_in
 channels/db/migrations/postgres/000235_create_property_values_groupid_fieldid_index.up.sql
 channels/db/migrations/postgres/000236_add_number_to_property_field_type.down.sql
 channels/db/migrations/postgres/000236_add_number_to_property_field_type.up.sql
+channels/db/migrations/postgres/000237_add_checkbox_to_property_field_type.down.sql
+channels/db/migrations/postgres/000237_add_checkbox_to_property_field_type.up.sql

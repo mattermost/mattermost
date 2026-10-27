@@ -19,7 +19,11 @@ export type FieldType = (
 
     // A JSON number; null or absent is empty. Not allowed in the access control
     // group, so CPA and Attribute Management never offer it.
-    'number'
+    'number' |
+
+    // A JSON boolean; false or absent is unchecked. Not allowed in the access
+    // control group either.
+    'checkbox'
 );
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
