@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {LogNodeKey} from '@mattermost/types/admin';
-import type {LogObject, LogObjectWithNode} from '@mattermost/types/admin';
+import type {LogObjectWithNode} from '@mattermost/types/admin';
 import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import type {PluginStatusRedux} from '@mattermost/types/plugins';
 import type {GlobalState} from '@mattermost/types/store';
@@ -18,14 +18,9 @@ export function getPlainLogs(state: GlobalState) {
     return state.entities.admin.plainLogs;
 }
 
-// The reducer stores the query response unchanged: entries keyed by node name
-function getLogsByNode(state: GlobalState) {
-    return getLogs(state) as unknown as Record<string, LogObject[]>;
-}
-
 export const getAllLogsWithNode = createSelector(
     'getAllLogsWithNode',
-    getLogsByNode,
+    getLogs,
     (logsByNode) => Object.entries(logsByNode).flatMap(([node, entries]) =>
         entries.map((entry): LogObjectWithNode => ({...entry, [LogNodeKey]: node})),
     ),
@@ -41,7 +36,7 @@ export const getLogNodes = createSelector(
 // Nodes that returned a full page, so older matching entries were left out
 export const getTruncatedLogNodes = createSelector(
     'getTruncatedLogNodes',
-    getLogsByNode,
+    getLogs,
     (logsByNode) => Object.keys(logsByNode).filter((node) => logsByNode[node].length >= General.LOGS_PAGE_SIZE_DEFAULT),
 );
 

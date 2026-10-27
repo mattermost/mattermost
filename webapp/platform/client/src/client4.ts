@@ -4,7 +4,7 @@
 /* eslint-disable max-lines */
 
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, LogsByNode} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
@@ -3786,7 +3786,7 @@ export default class Client4 {
     // Admin Routes
 
     getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
-        return this.doFetch<string[]>(
+        return this.doFetch<LogsByNode>(
             `${this.getBaseRoute()}/logs/query${buildQueryString({page, logs_per_page: perPage})}`,
             {method: 'post', body: JSON.stringify(logFilter)},
         );

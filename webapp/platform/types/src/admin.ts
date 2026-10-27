@@ -43,6 +43,9 @@ export type LogObjectWithNode = LogObject & {
     [LogNodeKey]: string;
 };
 
+// The POST /logs/query response: each node's entries, keyed by node name
+export type LogsByNode = Record<string, LogObject[]>;
+
 export type LogFilter = {
     serverNames: LogServerNames;
     logLevels: LogLevels;
@@ -62,7 +65,7 @@ export type LogFilterQuery = {
 };
 
 export type AdminState = {
-    logs: LogObject[];
+    logs: LogsByNode;
     plainLogs: string[];
     audits: Record<string, Audit>;
     config: Partial<AdminConfig>;
