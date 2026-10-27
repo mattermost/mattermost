@@ -33,20 +33,13 @@ test(
         );
 
         // # Open the channel info RHS
-        await page.locator('#channel-info-btn').click();
-        await channelsPage.sidebarRight.toBeVisible();
-
-        // # Scope to the top buttons container (parent of the first RHS action button)
-        const rhsTopButtons = channelsPage.sidebarRight.container
-            .locator('#channelInfoRHSAddFavoriteButton')
-            .locator('..');
-
-        await expect(rhsTopButtons).toBeVisible();
+        await channelsPage.openChannelInfo();
+        await expect(channelsPage.sidebarRight.channelInfoTopButtons).toBeVisible();
 
         // * Snapshot the RHS top buttons row
         await pw.matchSnapshot(
             {...testInfo, title: `${testInfo.title} rhs top buttons`},
-            {...testArgs, locator: rhsTopButtons},
+            {...testArgs, locator: channelsPage.sidebarRight.channelInfoTopButtons},
         );
     },
 );

@@ -21,6 +21,7 @@ export default class ChannelsSidebarRight {
     readonly collapseButton;
     readonly manageMembersButton;
     readonly addMembersButton;
+    readonly channelInfoTopButtons;
     readonly postCreate;
     readonly rhsPostBody;
     readonly scheduledPostIndicator;
@@ -66,6 +67,9 @@ export default class ChannelsSidebarRight {
         // Member-management controls shown in the channel members list (RHS).
         this.manageMembersButton = container.getByRole('button', {name: 'Manage'});
         this.addMembersButton = container.getByRole('button', {name: 'Add'});
+
+        // The Channel Info top buttons row has no role or name of its own, so anchor on its Favorite button.
+        this.channelInfoTopButtons = container.getByRole('button', {name: 'Favorite', exact: true}).locator('..');
 
         this.editTextbox = container.locator('#edit_textbox');
         this.postEdit = new ChannelsPostEdit(container.getByTestId('post-edit-container'));
