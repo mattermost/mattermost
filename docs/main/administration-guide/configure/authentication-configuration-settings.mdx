@@ -2076,20 +2076,6 @@ See **Step 2** of the [GitLab Single Sign-On](/administration-guide/onboard/sso-
 </tbody>
 </table>
 
-##### Google OpenID use preferred username
-
-<table>
-<colgroup>
-<col style={{width: '56%'}} />
-<col style={{width: '43%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="2"><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the Google OpenID token as the Mattermost | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> | username. | - <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment. | - Environment variable: <code>MM_GOOGLESETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
 #### Entra ID OpenID settings
 
 <Note>
