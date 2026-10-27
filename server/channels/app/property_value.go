@@ -47,11 +47,19 @@ func (a *App) resolveValueBroadcastParams(rctx request.CTX, objectType, targetID
 // (AttributesStore.GetSubject), so no materialized-view refresh is needed for it to be current.
 func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) {
 	seen := make(map[string]bool, len(values))
+	var channelTargeted bool
 	for _, v := range values {
+		if v != nil && v.TargetType == model.PropertyFieldObjectTypeChannel {
+			channelTargeted = true
+		}
 		if v == nil || v.TargetType != model.PropertyFieldObjectTypeUser || seen[v.TargetID] {
 			continue
 		}
 		seen[v.TargetID] = true
+	}
+	if channelTargeted && a.attributeBasedAccessControlEnabled() {
+		// A channel's attributes feed every decision about it, whoever is asking.
+		a.invalidateChannelAccessDecisions()
 	}
 	if len(seen) == 0 {
 		return
@@ -66,21 +74,25 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 	for targetID := range seen {
 		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
 		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
+		a.invalidateChannelAccessDecisionsForUser(targetID)
 	}
 }
 
 // invalidateUserPropertyValuesEpoch is the single-target form, for delete paths that have a target
 // ID rather than a set of values. Same gate as above.
 func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
-	if targetType != model.PropertyFieldObjectTypeUser {
-		return
-	}
-
 	if !a.attributeBasedAccessControlEnabled() {
 		return
 	}
-	a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
-	a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
+
+	switch targetType {
+	case model.PropertyFieldObjectTypeChannel:
+		a.invalidateChannelAccessDecisions()
+	case model.PropertyFieldObjectTypeUser:
+		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
+		a.invalidateChannelAccessDecisionsForUser(targetID)
+	}
 }
 
 // invalidateAllUserAttributeCaches drops every cached CPA epoch and attribute subject. For field
@@ -92,6 +104,7 @@ func (a *App) invalidateAllUserAttributeCaches() {
 	}
 	a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
 	a.Srv().Store().Attributes().ClearUserAttributesCache()
+	a.invalidateChannelAccessDecisions()
 }
 
 // CreatePropertyValue creates a new property value.

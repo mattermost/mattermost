@@ -59,6 +59,10 @@ type Channels struct {
 	// See scheduleGuardCacheReloadRetry.
 	guardCacheRetryInFlight atomic.Bool
 
+	// channelAccessDecisions caches channel-access ABAC decisions across requests and websocket
+	// deliveries. See channelAccessDecisionCache.
+	channelAccessDecisions *channelAccessDecisionCache
+
 	imageProxy *imageproxy.ImageProxy
 
 	agentsBridge AgentsBridge
@@ -112,6 +116,7 @@ func NewChannels(s *Server) (*Channels, error) {
 		interruptQuitChan: make(chan struct{}),
 	}
 	ch.guardCache.Store(&sync.Map{})
+	ch.channelAccessDecisions = newChannelAccessDecisionCache(channelAccessDecisionCacheSize)
 
 	if s.agentsBridgeOverride != nil {
 		ch.agentsBridge = s.agentsBridgeOverride
@@ -301,6 +306,10 @@ func (ch *Channels) Start() error {
 	})
 
 	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
+	// Config feeds the decisions in ways no narrower invalidation tracks (ABAC and session
+	// attribute settings, feature flags), and every node runs its own listeners.
+	ch.AddConfigListener(func(_, _ *model.Config) { ch.invalidateChannelAccessDecisionsLocal() })
+	ch.srv.AddLicenseListener(func(_, _ *model.License) { ch.invalidateChannelAccessDecisionsLocal() })
 
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {

@@ -2351,6 +2351,8 @@ func (a *App) HydrateTeamsPolicyActions(rctx request.CTX, teams []*model.Team) *
 // only need to refresh access control state — not run the full
 // channel_updated reducer/router pipeline.
 func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID string) {
+	// Before the event goes out: its redact hook evaluates each recipient.
+	a.invalidateChannelAccessDecisions()
 	a.Srv().Store().AccessControlPolicy().InvalidateEtagForChannel(channelID)
 	a.Srv().Store().Channel().InvalidateChannel(channelID)
 
@@ -2403,6 +2405,7 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 // it cares about isn't part of: every connected client gets this event, and refetching its
 // whole channel list is only needed when channel_read_access changed.
 func (a *App) publishPermissionPolicyUpdate(rctx request.CTX, actions []string) {
+	a.invalidateChannelAccessDecisions()
 	// Permission policies are system-scoped, so every channel's render-ETag epoch folds them in.
 	// Clear the whole epoch cache rather than a single channel key.
 	a.Srv().Store().AccessControlPolicy().ClearEtagCache()

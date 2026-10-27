@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"slices"
@@ -270,8 +271,9 @@ func TestHasChannelReadAccess(t *testing.T) {
 		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
 	})
 
-	t.Run("evaluates every call when no memo is installed", func(t *testing.T) {
-		// Background jobs and websocket fan-out build contexts with no memo.
+	t.Run("reuses a decision across calls with no memo installed", func(t *testing.T) {
+		// Background jobs and websocket fan-out build contexts with no memo; the decision
+		// cache spans them.
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
@@ -282,7 +284,7 @@ func TestHasChannelReadAccess(t *testing.T) {
 		for range 3 {
 			require.True(t, h.th.App.HasChannelReadAccess(bare, h.th.BasicUser.Id, h.th.BasicChannel))
 		}
-		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 3)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
 	})
 
 	t.Run("does not reuse one user's decision for another", func(t *testing.T) {
@@ -1997,5 +1999,111 @@ func TestPostRevealedCarriesTheReadAccessHook(t *testing.T) {
 	requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
 		require.Nil(t, h.th.App.publishPostRevealedEventToAuthor(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
 		require.Nil(t, h.th.App.publishPostRevealedEventToUser(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
+	})
+}
+
+// TestChannelAccessDecisionCache covers the cross-request decision cache: what it reuses, and
+// each change that has to make the next check evaluate again.
+func TestChannelAccessDecisionCache(t *testing.T) {
+	// fresh returns a context with h's session and no per-request memo, so each check reaches
+	// the decision cache.
+	fresh := func(h *channelReadAccessHarness) request.CTX {
+		return h.th.Context.WithSession(h.rctx.Session())
+	}
+	check := func(t *testing.T, h *channelReadAccessHarness) bool {
+		t.Helper()
+		return h.th.App.HasChannelReadAccess(fresh(h), h.th.BasicUser.Id, h.th.BasicChannel)
+	}
+	setup := func(t *testing.T) (*channelReadAccessHarness, *eMocks.AccessControlServiceInterface) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(false, nil).Maybe()
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, mock.Anything).Return().Maybe()
+		decides(mockACS, true)
+		return h, mockACS
+	}
+
+	t.Run("one evaluation serves later checks", func(t *testing.T) {
+		h, mockACS := setup(t)
+		for range 3 {
+			require.True(t, check(t, h))
+		}
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+	})
+
+	invalidations := map[string]func(*testing.T, *channelReadAccessHarness){
+		"a policy change": func(t *testing.T, h *channelReadAccessHarness) {
+			h.th.App.publishPermissionPolicyUpdate(h.th.Context, []string{model.AccessControlPolicyActionChannelReadAccess})
+		},
+		"the user's attribute write": func(t *testing.T, h *channelReadAccessHarness) {
+			h.th.App.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{
+				{TargetType: model.PropertyFieldObjectTypeUser, TargetID: h.th.BasicUser.Id},
+			})
+		},
+		"a channel attribute write": func(t *testing.T, h *channelReadAccessHarness) {
+			h.th.App.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{
+				{TargetType: model.PropertyFieldObjectTypeChannel, TargetID: h.th.BasicChannel.Id},
+			})
+		},
+		"an option change": func(t *testing.T, h *channelReadAccessHarness) {
+			h.th.App.invalidatePolicyCachesForOptionChange(h.th.Context, model.NewId())
+		},
+		"the user's cache being invalidated (roles, membership)": func(t *testing.T, h *channelReadAccessHarness) {
+			h.th.App.InvalidateCacheForUser(h.th.BasicUser.Id)
+		},
+		"the session's attributes refreshing on another node": func(t *testing.T, h *channelReadAccessHarness) {
+			data, err := json.Marshal(model.SessionAttributesClusterPayload{SessionID: h.rctx.Session().Id})
+			require.NoError(t, err)
+			h.th.App.Srv().Platform().ClusterUpdateSessionAttributesHandler(&model.ClusterMessage{Data: data})
+		},
+		"a config change": func(t *testing.T, h *channelReadAccessHarness) {
+			h.th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = model.NewPointer("http://" + model.NewId()) })
+		},
+		"an invalidation from another node": func(t *testing.T, h *channelReadAccessHarness) {
+			h.th.App.Srv().Channels().clusterInvalidateChannelAccessDecisionsHandler(&model.ClusterMessage{
+				Data: []byte(`{"scope":"user","id":"` + h.th.BasicUser.Id + `"}`),
+			})
+		},
+	}
+	for name, invalidate := range invalidations {
+		t.Run("re-evaluates after "+name, func(t *testing.T) {
+			h, mockACS := setup(t)
+			require.True(t, check(t, h))
+			invalidate(t, h)
+			require.True(t, check(t, h))
+			mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
+		})
+	}
+
+	t.Run("another user's invalidation leaves the decision cached", func(t *testing.T) {
+		h, mockACS := setup(t)
+		require.True(t, check(t, h))
+		h.th.App.invalidateChannelAccessDecisionsForUser(h.th.BasicUser2.Id)
+		require.True(t, check(t, h))
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+	})
+
+	t.Run("each session gets its own decision", func(t *testing.T) {
+		h, mockACS := setup(t)
+		require.True(t, check(t, h))
+
+		other := *h.rctx.Session()
+		other.Id = model.NewId()
+		require.True(t, h.th.App.HasChannelReadAccess(h.th.Context.WithSession(&other), h.th.BasicUser.Id, h.th.BasicChannel))
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
+	})
+
+	t.Run("a failed evaluation is not cached", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("test", "test", nil, "", http.StatusInternalServerError)).Once()
+		decides(mockACS, true)
+
+		require.False(t, check(t, h), "a failed evaluation denies")
+		require.True(t, check(t, h), "and the next check evaluates again")
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
 	})
 }

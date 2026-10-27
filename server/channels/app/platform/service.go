@@ -153,6 +153,19 @@ type PlatformService struct {
 	// prePublishHook runs on every event Publish sends, before the cluster copy is
 	// serialized. Set by the app layer, which platform can't call into directly.
 	prePublishHook func(message *model.WebSocketEvent)
+
+	// accessInvalidationHooks tell the app layer when this node drops a user's or a session's
+	// cached state, so it can drop what it derived from them. Set by the app layer.
+	accessInvalidationHooks AccessInvalidationHooks
+}
+
+// AccessInvalidationHooks are called when this node invalidates cached state for a user, for
+// every user, or for a session, whether the change happened here or arrived as a cluster
+// message. Any of them may be nil.
+type AccessInvalidationHooks struct {
+	User     func(userID string)
+	AllUsers func()
+	Session  func(sessionID string)
 }
 
 // SetInstallTypeOverride sets the install type override for support packet diagnostics.
@@ -680,6 +693,12 @@ func (ps *PlatformService) SetPostDeliveryRecorder(fn func(marker *model.PostDel
 // cluster receives, so other nodes don't run it again.
 func (ps *PlatformService) SetPrePublishHook(fn func(message *model.WebSocketEvent)) {
 	ps.prePublishHook = fn
+}
+
+// SetAccessInvalidationHooks sets the hooks the app layer uses to drop access decisions it
+// derived from a user's or a session's state.
+func (ps *PlatformService) SetAccessInvalidationHooks(hooks AccessInvalidationHooks) {
+	ps.accessInvalidationHooks = hooks
 }
 
 // GetPluginStatuses meant to be used by cluster implementation

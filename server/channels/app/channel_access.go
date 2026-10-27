@@ -545,8 +545,31 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, userID string, channel *mo
 }
 
 // evaluateGovernedChannelAccess evaluates action for a channel already known to be governed,
-// byChannelPolicy saying whether the channel's own policy is one of those governing it.
+// byChannelPolicy saying whether the channel's own policy is one of those governing it. The
+// decision is cached across requests (channelAccessDecisionCache); a failed evaluation denies
+// and is not cached, so the next call tries again.
 func (a *App) evaluateGovernedChannelAccess(rctx request.CTX, userID, channelID, action string, byChannelPolicy bool) bool {
+	key, sessionID, cacheable := channelAccessDecisionKeyFor(rctx, userID, channelID, action)
+	if !cacheable {
+		allowed, _ := a.evaluateGovernedChannelAccessUncached(rctx, userID, channelID, action, byChannelPolicy)
+		return allowed
+	}
+
+	if allowed, ok := a.cachedChannelAccessDecision(key); ok {
+		return allowed
+	}
+
+	seq := a.Srv().Channels().channelAccessDecisions.snapshot()
+	allowed, evaluated := a.evaluateGovernedChannelAccessUncached(rctx, userID, channelID, action, byChannelPolicy)
+	if evaluated {
+		a.cacheChannelAccessDecision(rctx, key, userID, sessionID, seq, allowed)
+	}
+	return allowed
+}
+
+// evaluateGovernedChannelAccessUncached builds the subject and asks the PDP. evaluated is false
+// when either step failed, in which case allowed is false.
+func (a *App) evaluateGovernedChannelAccessUncached(rctx request.CTX, userID, channelID, action string, byChannelPolicy bool) (allowed, evaluated bool) {
 	acs := a.Srv().Channels().AccessControl
 
 	subject, appErr := a.channelAccessSubject(rctx, userID, channelID, byChannelPolicy)
@@ -557,7 +580,7 @@ func (a *App) evaluateGovernedChannelAccess(rctx request.CTX, userID, channelID,
 			mlog.String("channel_id", channelID),
 			mlog.Err(appErr),
 		)
-		return false
+		return false, false
 	}
 
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
@@ -575,10 +598,10 @@ func (a *App) evaluateGovernedChannelAccess(rctx request.CTX, userID, channelID,
 			mlog.String("channel_id", channelID),
 			mlog.Err(evalErr),
 		)
-		return false
+		return false, false
 	}
 
-	return decision.Decision
+	return decision.Decision, true
 }
 
 // channelAccessSubject returns the subject to evaluate userID against in one channel.
