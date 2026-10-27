@@ -79,7 +79,7 @@ function ConfirmRemoveAppliesToModal({resourceTypes, onConfirm, onCancel, onExit
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
-            confirmButtonVariant='destructive'
+            destructive={true}
             handleCancel={onCancel}
             handleConfirm={onConfirm}
             modalHeaderText={title}

@@ -127,6 +127,7 @@ function RuleEditorCard({
     return (
         <Card
             expanded={true}
+            disableExpandAnimation={true}
             className={'console'}
         >
             <Card.Header>

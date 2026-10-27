@@ -1,0 +1,16 @@
+.ActionButton--tinted {
+    background-color: var(--action-button-bg) !important;
+    color: var(--action-button-tint);
+
+    &:hover:not(:disabled) {
+        background-color: var(--action-button-bg-hover) !important;
+    }
+
+    &:active:not(:disabled) {
+        background-color: var(--action-button-bg-active) !important;
+    }
+
+    &:disabled {
+        background-color: var(--action-button-bg) !important;
+    }
+}

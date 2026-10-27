@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo, type JSX} from 'react';
+import React, {forwardRef, useState, useEffect, useCallback, useMemo, type JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, type AccessControlPolicy, type AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -23,6 +25,7 @@ import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import Markdown from 'components/markdown';
 import * as Menu from 'components/menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
@@ -39,6 +42,23 @@ import {hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttr
 import {AVAILABLE_ROLES, roleMessages} from '../roles';
 
 import './permission_policy_details.scss';
+
+const AddPermissionMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
+    const {children, ...rest} = props;
+    return (
+        <Button
+            {...rest}
+            ref={ref}
+            emphasis='tertiary'
+            size='small'
+            className='pp-add-permission-button'
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
+        >
+            {children}
+        </Button>
+    );
+});
+AddPermissionMenuTrigger.displayName = 'AddPermissionMenuTrigger';
 
 const permissionMessages = defineMessages({
     downloadLabel: {id: 'admin.permission_policies.permission.download_file.label', defaultMessage: 'Download Files'},
@@ -508,6 +528,7 @@ function PermissionPolicyDetails({
                             {/* "Who this policy applies to" */}
                             <Card
                                 expanded={true}
+                                disableExpandAnimation={true}
                                 className={'console'}
                             >
                                 <Card.Header>
@@ -628,6 +649,7 @@ function PermissionPolicyDetails({
                             {/* "What permissions are modified" */}
                             <Card
                                 expanded={true}
+                                disableExpandAnimation={true}
                                 className={'console'}
                             >
                                 <Card.Header>
@@ -692,15 +714,12 @@ function PermissionPolicyDetails({
                                         <Menu.Container
                                             menuButton={{
                                                 id: 'pp-add-permission-btn',
-                                                class: 'pp-add-permission-button',
+                                                as: AddPermissionMenuTrigger,
                                                 children: (
-                                                    <>
-                                                        <i className='icon icon-plus'/>
-                                                        <FormattedMessage
-                                                            id='admin.permission_policies.edit.permissions.add'
-                                                            defaultMessage='Add permission'
-                                                        />
-                                                    </>
+                                                    <FormattedMessage
+                                                        id='admin.permission_policies.edit.permissions.add'
+                                                        defaultMessage='Add permission'
+                                                    />
                                                 ),
                                             }}
                                             menu={{
@@ -733,6 +752,7 @@ function PermissionPolicyDetails({
                             {policyId && (
                                 <Card
                                     expanded={true}
+                                    disableExpandAnimation={true}
                                     className={'console delete-policy'}
                                 >
                                     <Card.Header>
@@ -755,6 +775,7 @@ function PermissionPolicyDetails({
                                                     defaultMessage='Delete'
                                                 />
                                             }
+                                            destructive={true}
                                             onClick={() => setShowDeleteConfirmationModal(true)}
                                         />
                                     </Card.Header>
@@ -780,7 +801,7 @@ function PermissionPolicyDetails({
                                     defaultMessage='Delete Policy'
                                 />
                             }
-                            confirmButtonVariant='destructive'
+                            destructive={true}
                             compassDesign={true}
                         >
                             <FormattedMessage
@@ -825,15 +846,17 @@ function PermissionPolicyDetails({
                                 />
                             }
                         />
-                        <BlockableLink
-                            className={buttonClassNames({emphasis: 'quaternary'})}
-                            to='/admin_console/system_attributes/permission_policies'
+                        <Button
+                            asChild={true}
+                            emphasis='tertiary'
                         >
-                            <FormattedMessage
-                                id='admin.permission_policies.edit.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </BlockableLink>
+                            <BlockableLink to='/admin_console/system_attributes/permission_policies'>
+                                <FormattedMessage
+                                    id='admin.permission_policies.edit.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </BlockableLink>
+                        </Button>
                         {serverError && (
                             <span className='pp-error'>
                                 <i className='icon icon-alert-outline'/>
