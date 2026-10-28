@@ -23,12 +23,12 @@ import type {
 } from 'types/store/plugins';
 
 function hasMenuId(menu: PostDropdownMenuAction, menuId: string) {
-    if (!menu.subMenu) {
-        return false;
-    }
-
     if (menu.id === menuId) {
         return true;
+    }
+
+    if (!menu.subMenu) {
+        return false;
     }
     for (const subMenu of menu.subMenu) {
         // Recursively check if subMenu contains menuId.
