@@ -59,23 +59,31 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	if !ok {
 		return
 	}
-	// A broadcast has no recipient to filter options against, so any
-	// non-public field must go out with none at all — a caller reads the
-	// field back afterward to get the copy filtered for them.
+	// A broadcast has no single caller to shape permissions for, and no target
+	// narrow enough to make a partial payload safe (a system-scoped field
+	// broadcasts to every connected client) -- so the event drops permissions
+	// entirely rather than shaping them, the same answer the CPA payload and
+	// the access-control autocomplete give. Copy first: field is the object the
+	// caller who triggered this event is about to get back themselves.
+	broadcastField := *field
+	broadcastField.Permissions = nil
+
+	// It has no recipient to filter options against either, so any non-public
+	// field must go out with none at all — a caller reads the field back
+	// afterward to get the copy filtered for them.
 	if field.GetAccessMode() != model.PropertyAccessModePublic && field.Type.SupportsOptions() {
-		masked := *field
-		masked.Attrs = make(model.StringInterface, len(field.Attrs))
-		maps.Copy(masked.Attrs, field.Attrs)
-		masked.HideOptions()
+		broadcastField.Attrs = make(model.StringInterface, len(field.Attrs))
+		maps.Copy(broadcastField.Attrs, field.Attrs)
+		broadcastField.HideOptions()
 		// The broadcast withheld the list whatever the source field carried, so
 		// restore the withheld-options marker HideOptions deletes — a client
 		// must be able to tell "options withheld" from "field has no options".
 		// options_count stays deleted: on a non-public field the count is
 		// controlled information too.
-		masked.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
-		field = &masked
+		broadcastField.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
 	}
-	fieldJSON, err := json.Marshal(field)
+
+	fieldJSON, err := json.Marshal(&broadcastField)
 	if err != nil {
 		rctx.Logger().Warn("Failed to encode property field to JSON", mlog.Err(err))
 		return

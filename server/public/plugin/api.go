@@ -748,6 +748,20 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostThread(postId string) (*model.PostList, *model.AppError)
 
+	// GetThreadFollowers gets the IDs of the active users who follow the thread of a root post.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	GetThreadFollowers(threadID string) ([]string, *model.AppError)
+
+	// SetThreadFollowing makes a user follow, or stop following, the thread of a root post, as
+	// the user's follow button on the thread does. It does not check that the user can read the
+	// post's channel: the plugin is responsible for that.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	SetThreadFollowing(userID, threadID string, following bool) *model.AppError
+
 	// GetPost gets a post.
 	//
 	// @tag Post
