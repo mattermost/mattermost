@@ -820,7 +820,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 
 		matchesForPost, err := common.GetMatchesForHit(hit.Highlight)
 		if err != nil {
-			return postIds, matches, model.NewAppError("Elasticsearch.SearchPosts", "ent.elasticsearch.search_posts.parse_matches_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+			es.Platform.Log().Warn("Failed to parse search result highlights, returning post without highlights", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 		matches[post.Id] = matchesForPost
 	}
