@@ -4,7 +4,7 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {GlobalAttributeListingRow, GlobalAttributeListingSearch, GlobalAttributeSource} from '@mattermost/types/global_attributes';
+import type {GlobalAttributeListingRow, GlobalAttributeListingSearch, GlobalAttributeResourceType, GlobalAttributeSource} from '@mattermost/types/global_attributes';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {Client4} from 'mattermost-redux/client';
@@ -19,6 +19,7 @@ export const LISTING_DEBOUNCE_MS = 300;
 export type GlobalAttributesListingOptions = {
     term?: string;
     source?: GlobalAttributeSource;
+    resourceType?: GlobalAttributeResourceType;
 };
 
 export type GlobalAttributesListingResult = {
@@ -46,11 +47,13 @@ function useDebouncedValue<T>(value: T, delay: number): T {
     return debounced;
 }
 
-// Owns the listing request: the search term (debounced) and source filter, one
-// in-flight request at a time that matters, and the refetch triggers.
+// Owns the listing request: the search term (debounced) and the source and
+// resource type filters, one in-flight request at a time that matters, and the
+// refetch triggers.
 export default function useGlobalAttributesListing({
     term = '',
     source,
+    resourceType,
 }: GlobalAttributesListingOptions = {}): GlobalAttributesListingResult {
     const dispatch = useDispatch();
 
@@ -65,6 +68,7 @@ export default function useGlobalAttributesListing({
         const search: GlobalAttributeListingSearch = {
             term: debouncedTerm || undefined,
             source,
+            resource_type: resourceType,
         };
         const requestId = ++latestRequestId.current;
         setLoading(true);
@@ -89,7 +93,7 @@ export default function useGlobalAttributesListing({
             setError(true);
             setLoading(false);
         }
-    }, [debouncedTerm, source, dispatch]);
+    }, [debouncedTerm, source, resourceType, dispatch]);
 
     useEffect(() => {
         fetchListing();

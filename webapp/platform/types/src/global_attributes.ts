@@ -13,6 +13,7 @@ export type GlobalAttributeSource = 'managed' | 'plugin' | 'ldap' | 'saml' | 'op
 export type GlobalAttributeListingSearch = {
     term?: string;
     source?: GlobalAttributeSource;
+    resource_type?: GlobalAttributeResourceType;
 };
 
 export type GlobalAttributeNameConflict = {
