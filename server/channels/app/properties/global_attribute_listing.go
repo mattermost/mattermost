@@ -70,7 +70,7 @@ func (ps *PropertyService) SearchGlobalAttributeListing(rctx request.CTX, groupI
 		return listing, nil
 	}
 
-	linkedByTemplate, err := ps.liveLinkedFieldsByTemplate(fields, policy.AllowedResourceTypes)
+	linkedByTemplate, err := ps.liveLinkedFieldsByTemplate(groupID, fields, policy.AllowedResourceTypes)
 	if err != nil {
 		return nil, fmt.Errorf("SearchGlobalAttributeListing: %w", err)
 	}
@@ -118,7 +118,7 @@ func (ps *PropertyService) classificationTemplateID(rctx request.CTX, groupID st
 
 // liveLinkedFieldsByTemplate groups the live fields of an allowed resource type
 // that link to each template among fields, keyed by template ID.
-func (ps *PropertyService) liveLinkedFieldsByTemplate(fields []*model.PropertyField, allowedResourceTypes []string) (map[string][]*model.PropertyField, error) {
+func (ps *PropertyService) liveLinkedFieldsByTemplate(groupID string, fields []*model.PropertyField, allowedResourceTypes []string) (map[string][]*model.PropertyField, error) {
 	var templateIDs []string
 	for _, field := range fields {
 		if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
@@ -126,7 +126,7 @@ func (ps *PropertyService) liveLinkedFieldsByTemplate(fields []*model.PropertyFi
 		}
 	}
 
-	linked, err := ps.fieldStore.GetLiveLinkedFieldsByObjectTypes(templateIDs, allowedResourceTypes)
+	linked, err := ps.fieldStore.GetLiveLinkedFieldsByObjectTypes(groupID, templateIDs, allowedResourceTypes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the fields linked to the templates: %w", err)
 	}

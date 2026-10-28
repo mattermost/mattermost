@@ -160,16 +160,17 @@ func (s *SqlPropertyFieldStore) SearchGlobalAttributeListing(rctx request.CTX, o
 	return fields, nil
 }
 
-// GetLiveLinkedFieldsByObjectTypes returns the live fields of the given object
-// types that link to any of the given fields. Unlike GetLinkedFields it reads
+// GetLiveLinkedFieldsByObjectTypes returns the live fields in the group of the
+// given object types that link to any of the given fields. Unlike GetLinkedFields it reads
 // the replica and leaves option sets unhydrated, since a read-only listing needs
 // only each linked field's object type and Attrs.
-func (s *SqlPropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(fieldIDs, objectTypes []string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(groupID string, fieldIDs, objectTypes []string) ([]*model.PropertyField, error) {
 	if len(fieldIDs) == 0 || len(objectTypes) == 0 {
 		return []*model.PropertyField{}, nil
 	}
 
 	builder := s.tableSelectQuery.
+		Where(sq.Eq{"GroupID": groupID}).
 		Where(sq.Eq{"LinkedFieldID": fieldIDs}).
 		Where(sq.Eq{"ObjectType": objectTypes}).
 		Where(sq.Eq{"DeleteAt": 0})

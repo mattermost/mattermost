@@ -577,9 +577,9 @@ func (_m *PropertyFieldStore) GetLinkedFields(fieldIDs []string, excludeIDs []st
 	return r0, r1
 }
 
-// GetLiveLinkedFieldsByObjectTypes provides a mock function with given fields: fieldIDs, objectTypes
-func (_m *PropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(fieldIDs []string, objectTypes []string) ([]*model.PropertyField, error) {
-	ret := _m.Called(fieldIDs, objectTypes)
+// GetLiveLinkedFieldsByObjectTypes provides a mock function with given fields: groupID, fieldIDs, objectTypes
+func (_m *PropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(groupID string, fieldIDs []string, objectTypes []string) ([]*model.PropertyField, error) {
+	ret := _m.Called(groupID, fieldIDs, objectTypes)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLiveLinkedFieldsByObjectTypes")
@@ -587,19 +587,19 @@ func (_m *PropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(fieldIDs []string
 
 	var r0 []*model.PropertyField
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string, []string) ([]*model.PropertyField, error)); ok {
-		return rf(fieldIDs, objectTypes)
+	if rf, ok := ret.Get(0).(func(string, []string, []string) ([]*model.PropertyField, error)); ok {
+		return rf(groupID, fieldIDs, objectTypes)
 	}
-	if rf, ok := ret.Get(0).(func([]string, []string) []*model.PropertyField); ok {
-		r0 = rf(fieldIDs, objectTypes)
+	if rf, ok := ret.Get(0).(func(string, []string, []string) []*model.PropertyField); ok {
+		r0 = rf(groupID, fieldIDs, objectTypes)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyField)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string, []string) error); ok {
-		r1 = rf(fieldIDs, objectTypes)
+	if rf, ok := ret.Get(1).(func(string, []string, []string) error); ok {
+		r1 = rf(groupID, fieldIDs, objectTypes)
 	} else {
 		r1 = ret.Error(1)
 	}
