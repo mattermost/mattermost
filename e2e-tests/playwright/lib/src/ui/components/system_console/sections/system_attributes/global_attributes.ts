@@ -11,7 +11,7 @@ export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classifi
 export type ChannelDisplayLocation = 'display_label_header' | 'display_banner_top';
 
 // Menu labels of the listing's source filter, in the order the menu offers them.
-export type ListingSourceFilter = 'All' | 'Managed here' | 'LDAP' | 'SAML' | 'OpenID' | 'Plugin';
+export type ListingSourceFilter = 'All' | 'Managed here' | 'AD/LDAP' | 'SAML' | 'OpenID Connect' | 'Plugin';
 
 // Test ids of the listing's search, filters and empty states.
 export const LISTING_TEST_IDS = {

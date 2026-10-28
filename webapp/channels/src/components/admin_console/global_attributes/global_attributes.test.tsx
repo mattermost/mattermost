@@ -162,11 +162,11 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
             renderWithContext(<GlobalAttributes/>);
             await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
 
-            await pickSource('LDAP');
+            await pickSource('AD/LDAP');
             await waitFor(() => {
                 expect(searchGlobalAttributes).toHaveBeenLastCalledWith(expect.objectContaining({source: 'ldap'}));
             });
-            expect(shownSource()).toHaveValue('LDAP');
+            expect(shownSource()).toHaveValue('AD/LDAP');
 
             await pickSource('All');
             await waitFor(() => {
@@ -202,7 +202,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
             await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
 
             await userEvent.type(screen.getByTestId('global-attributes-search'), 'zzz');
-            await pickSource('OpenID');
+            await pickSource('OpenID Connect');
 
             expect(await screen.findByTestId('global-attributes-empty-search')).toBeInTheDocument();
             expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();

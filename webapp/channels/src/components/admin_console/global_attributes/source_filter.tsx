@@ -16,9 +16,9 @@ const messages = defineMessages({
     menuAriaLabel: {id: 'admin.global_attributes.filter.source.menuAriaLabel', defaultMessage: 'Source menu'},
     all: {id: 'admin.global_attributes.filter.source.all', defaultMessage: 'All'},
     managed: {id: 'admin.global_attributes.filter.source.managed', defaultMessage: 'Managed here'},
-    ldap: {id: 'admin.global_attributes.filter.source.ldap', defaultMessage: 'LDAP'},
+    ldap: {id: 'admin.global_attributes.filter.source.ldap', defaultMessage: 'AD/LDAP'},
     saml: {id: 'admin.global_attributes.filter.source.saml', defaultMessage: 'SAML'},
-    openid: {id: 'admin.global_attributes.filter.source.openid', defaultMessage: 'OpenID'},
+    openid: {id: 'admin.global_attributes.filter.source.openid', defaultMessage: 'OpenID Connect'},
     plugin: {id: 'admin.global_attributes.filter.source.plugin', defaultMessage: 'Plugin'},
 });
 
