@@ -21,12 +21,17 @@ describe('usernameFromDisplayName', () => {
         ['A very long display name for a bot', 'a-very-long-display-na'],
         ['A very long display n me', 'a-very-long-display-n'],
         ['🚀🚀🚀', ''],
+        ['CI', ''],
+        ['1 a', ''],
+        ['System', ''],
+        ['All', ''],
+        ['CI Bot', 'ci-bot'],
     ])('%j -> %j', (displayName, expected) => {
         expect(usernameFromDisplayName(displayName)).toBe(expected);
     });
 
     test('produces valid bot usernames', () => {
-        for (const displayName of ['Build Bot', 'Jenkins (CI) - Prod', 'Café Résumé', 'A very long display name for a bot', 'x.y.z.']) {
+        for (const displayName of ['Build Bot', 'Jenkins (CI) - Prod', 'Café Résumé', 'A very long display name for a bot', 'x.y.z.', 'abc']) {
             expect(isValidBotUsername(usernameFromDisplayName(displayName))).toBeUndefined();
         }
     });

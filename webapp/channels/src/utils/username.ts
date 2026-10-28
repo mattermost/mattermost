@@ -7,7 +7,8 @@ import {latinise} from 'utils/latinise';
 /**
  * Derives a suggested username from a display name, e.g. "My Build Bot!" -> "my-build-bot".
  * The result only contains lowercase letters, numbers, ".", "-" and "_", starts with a letter,
- * doesn't end with a symbol, and is no longer than the maximum username length.
+ * doesn't end with a symbol, and is no longer than the maximum username length. Returns an empty
+ * string when no valid username can be derived, e.g. when it would be too short or reserved.
  */
 export function usernameFromDisplayName(displayName: string): string {
     let username = latinise(displayName).toLowerCase().trim();
@@ -17,5 +18,10 @@ export function usernameFromDisplayName(displayName: string): string {
     username = username.replace(/^[^a-z]+/, '');
     username = username.slice(0, Constants.MAX_USERNAME_LENGTH);
     username = username.replace(/[.\-_]+$/, '');
+
+    if (username.length < Constants.MIN_USERNAME_LENGTH || Constants.RESERVED_USERNAMES.includes(username)) {
+        return '';
+    }
+
     return username;
 }
