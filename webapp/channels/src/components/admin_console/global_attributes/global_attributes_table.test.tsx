@@ -354,6 +354,73 @@ describe('GlobalAttributesTable', () => {
             expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
         });
 
+        it('offers Clear filters from the no-match state of a search', async () => {
+            searchGlobalAttributes.mockResolvedValue(makeListing([]));
+            const onClearFilters = jest.fn();
+
+            renderWithContext(
+                <GlobalAttributesTable
+                    searchQuery='zzz'
+                    onClearFilters={onClearFilters}
+                />,
+                getBaseState(),
+            );
+            await advance(0);
+
+            expect(await screen.findByTestId('global-attributes-empty-search')).toHaveTextContent('No attributes match your search.');
+            await act(async () => {
+                screen.getByRole('button', {name: 'Clear filters'}).click();
+            });
+            expect(onClearFilters).toHaveBeenCalledTimes(1);
+        });
+
+        it('shows the filtered no-match state, not the empty state, when only a source is set', async () => {
+            searchGlobalAttributes.mockResolvedValue(makeListing([]));
+            const onClearFilters = jest.fn();
+
+            renderWithContext(
+                <GlobalAttributesTable
+                    source='ldap'
+                    onClearFilters={onClearFilters}
+                />,
+                getBaseState(),
+            );
+            await advance(0);
+
+            expect(await screen.findByTestId('global-attributes-empty-search')).toHaveTextContent('No attributes match your search or filters.');
+            expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+
+            await act(async () => {
+                screen.getByRole('button', {name: 'Clear filters'}).click();
+            });
+            expect(onClearFilters).toHaveBeenCalledTimes(1);
+        });
+
+        it('keeps the plain empty state, without Clear filters, when nothing is searched or filtered', async () => {
+            searchGlobalAttributes.mockResolvedValue(makeListing([]));
+
+            renderWithContext(<GlobalAttributesTable onClearFilters={jest.fn()}/>, getBaseState());
+            await advance(0);
+
+            expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Clear filters'})).not.toBeInTheDocument();
+        });
+
+        it('sends the source with the term', async () => {
+            searchGlobalAttributes.mockResolvedValue(makeListing([]));
+
+            renderWithContext(
+                <GlobalAttributesTable
+                    searchQuery='dep'
+                    source='saml'
+                />,
+                getBaseState(),
+            );
+            await advance(300);
+
+            expect(searchGlobalAttributes).toHaveBeenLastCalledWith({term: 'dep', source: 'saml'});
+        });
+
         it('keeps showing the rows it has while the next search is in flight', async () => {
             mockListing([makeField({id: 'f1', name: 'clearance', attrs: {display_name: 'Clearance'}})]);
 
