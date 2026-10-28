@@ -1,0 +1,36 @@
+name: Breaking Change Label
+
+# Adds the "Breaking Change" label when the PR template's "Breaking change" box is ticked.
+# The label is never removed here: config-change-checker.yml also adds it, and a person
+# may have added it on purpose. Reads only the PR description; no PR code is checked out,
+# which is what makes pull_request_target safe here and lets it label fork PRs.
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened]
+
+permissions: {}
+
+jobs:
+  label:
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Add the label when the box is ticked
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          HAS_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'Breaking Change') }}
+        run: |
+          ticked="$(python3 -c '
+          import os, re
+          body = re.sub(r"<!--.*?-->", "", os.environ.get("BODY", ""), flags=re.DOTALL)
+          print("true" if re.search(r"(?mi)^\s*[-*] \[x\] breaking change\b", body) else "false")
+          ')"
+          echo "Breaking change box ticked: $ticked"
+          if [ "$ticked" = "true" ] && [ "$HAS_LABEL" != "true" ]; then
+            gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "Breaking Change"
+          fi

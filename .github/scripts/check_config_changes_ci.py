@@ -609,6 +609,25 @@ def inject_note(body: str, note: str) -> str:
     return body + "\n\n## Release Notes\n\n" + note
  
  
+# ── Breaking changes ───────────────────────────────────────────────────────────
+
+BREAKING_LABEL = "Breaking Change"
+
+
+def breaking_removals(results: list[CheckResult]) -> list[str]:
+    """Removed config settings, API endpoints and API files: removals that can break an upgrade.
+
+    The label they trigger catches PRs whose authors did not tick the template's
+    "Breaking change" box.
+    """
+    found = []
+    for r in results:
+        if "`config.json`" in r.label or "API Changes" in r.label:
+            found += r.removals
+            found += [c for c in r.changes if c.startswith("🗑️  Removed API file")]
+    return found
+
+
 # ── GitHub API ─────────────────────────────────────────────────────────────────
  
 def get_pr_body() -> str:
@@ -626,6 +645,16 @@ def update_pr_body(new_body: str) -> None:
         f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}",
         headers=HEADERS,
         json={"body": new_body},
+        timeout=_TIMEOUT,
+    )
+    r.raise_for_status()
+
+
+def add_label(label: str) -> None:
+    r = requests.post(
+        f"{BASE_URL}/repos/{REPO}/issues/{PR_NUMBER}/labels",
+        headers=HEADERS,
+        json={"labels": [label]},
         timeout=_TIMEOUT,
     )
     r.raise_for_status()
@@ -681,6 +710,11 @@ def main():
                 print(f"     {c}")
         else:
             print(f"  –  {r.label}: no changes")
+
+    removed = breaking_removals(results)
+    if removed:
+        print(f"\n🏷️  Removed: {', '.join(removed)}. Adding the {BREAKING_LABEL} label.")
+        add_label(BREAKING_LABEL)
  
     note = build_pr_note(results)
     if not note:
