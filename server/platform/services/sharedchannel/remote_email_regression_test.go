@@ -224,6 +224,7 @@ func TestGetOrCreateUserPreservesRemoteEmailFromInvite(t *testing.T) {
 	cases := []struct {
 		name          string
 		existingEmail string
+		forwarded     bool
 		wantEmail     string
 	}{
 		{
@@ -231,8 +232,14 @@ func TestGetOrCreateUserPreservesRemoteEmailFromInvite(t *testing.T) {
 			wantEmail: "alice@allowed.example",
 		},
 		{
-			name:          "existing RemoteEmail is preserved",
+			name:          "origin email overrides stale RemoteEmail",
 			existingEmail: "alice@original.example",
+			wantEmail:     "alice@allowed.example",
+		},
+		{
+			name:          "forwarded invitation preserves original email",
+			existingEmail: "alice@original.example",
+			forwarded:     true,
 			wantEmail:     "alice@original.example",
 		},
 	}
@@ -249,6 +256,11 @@ func TestGetOrCreateUserPreservesRemoteEmailFromInvite(t *testing.T) {
 			}
 			if tc.existingEmail != "" {
 				inviteUser.SetProp(model.UserPropsKeyRemoteEmail, tc.existingEmail)
+			}
+			if tc.forwarded {
+				originID := model.NewId()
+				inviteUser.RemoteId = &originID
+				inviteUser.Email = model.NewId()
 			}
 
 			userStore := &mocks.UserStore{}

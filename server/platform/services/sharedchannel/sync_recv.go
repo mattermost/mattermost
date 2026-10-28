@@ -313,11 +313,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 		// new user.  Make sure the remoteID is correct and insert the record
 		// Preserve original remote ID before overwriting RemoteId
 		originalRemoteId := user.GetRemoteID()
-		// A local origin user has no RemoteId before synchronization.
-		// Forwarded users may carry synthetic email addresses.
-		if originalRemoteId == "" {
-			user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
-		}
+		prepareRemoteEmailForSync(user)
 		user.RemoteId = new(rc.RemoteId)
 		if user.Props == nil || user.Props[model.UserPropsKeyOriginalRemoteId] == "" {
 			if originalRemoteId == "" {
@@ -339,12 +335,8 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			)
 			return nil, fmt.Errorf("error updating user: %w", ErrRemoteIDMismatch)
 		}
-		// Preserve the original email for forwarded users.
-		// Their Email field may contain a synthetic local value.
 		user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
-		if user.GetRemoteID() == "" {
-			user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
-		}
+		remoteEmail, hasRemoteEmail := prepareRemoteEmailForSync(user)
 
 		patch := &model.UserPatch{
 			Username:  &user.Username,
@@ -356,11 +348,8 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
 		}
-		// Use the originating user's email, or the original email
-		// provided by the forwarding remote when available.
-		if user.GetRemoteID() == "" {
-			patch.Email = &user.Email
-		} else if remoteEmail, ok := user.GetProp(model.UserPropsKeyRemoteEmail); ok && remoteEmail != "" {
+		// Never use a forwarded user's synthetic Email as the original email.
+		if user.GetRemoteID() == "" || hasRemoteEmail {
 			patch.Email = &remoteEmail
 		}
 
