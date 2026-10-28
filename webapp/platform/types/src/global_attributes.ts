@@ -8,9 +8,11 @@ import type {PropertyFieldOwner} from './properties_user';
 
 export type GlobalAttributeResourceType = 'user' | 'channel' | 'post';
 export type GlobalAttributeSourceKind = 'plugin' | 'external' | 'managed';
+export type GlobalAttributeSource = 'managed' | 'plugin' | 'ldap' | 'saml' | 'openid';
 
 export type GlobalAttributeListingSearch = {
     term?: string;
+    source?: GlobalAttributeSource;
 };
 
 export type GlobalAttributeNameConflict = {

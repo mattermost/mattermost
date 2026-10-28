@@ -74,7 +74,7 @@ describe('Client4', () => {
         });
 
         test('searchGlobalAttributes should POST the search body to the access_control listing route', async () => {
-            const search = {term: 'clear'};
+            const search = {term: 'clear', source: 'ldap' as const};
             const listing = {rows: []};
             nock(client.getBaseRoute()).
                 post('/properties/groups/access_control/attributes/search', search).
