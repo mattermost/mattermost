@@ -11,7 +11,7 @@ import type {ClientConfig} from '@mattermost/types/config';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getCurrentTeamId,
@@ -23,7 +23,7 @@ import {switchTeam, updateTeamsOrderForUser} from 'actions/team_actions';
 import {setTeamSidebarHidden} from 'actions/views/product_rail';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsLhsOpen} from 'selectors/lhs';
-import {isTeamSidebarHidden} from 'selectors/views/product_rail';
+import {isProductRailShown, isTeamSidebarHidden} from 'selectors/views/product_rail';
 
 import {Preferences} from 'utils/constants';
 
@@ -53,7 +53,7 @@ function mapStateToProps(state: GlobalState) {
         unreadTeamsSet,
         mentionsInTeamMap,
         teamHasUrgentMap,
-        isProductRailEnabled: isProductRailEnabled(state),
+        isProductRailShown: isProductRailShown(state),
         isHiddenByProductRail: isTeamSidebarHidden(state),
     };
 }

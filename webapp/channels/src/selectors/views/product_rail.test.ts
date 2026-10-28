@@ -8,7 +8,7 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 import type {ProductRailSection} from 'types/store/views';
 
-import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter, getProductRailSection, isTeamSidebarHidden, toFullListIndex} from './product_rail';
+import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter, getProductRailSection, isProductRailShown, isTeamSidebarHidden, toFullListIndex} from './product_rail';
 import type {ChannelKindRegistration} from './product_rail';
 
 const channel = TestHelper.getChannelMock({id: 'channel'});
@@ -159,5 +159,23 @@ describe('isTeamSidebarHidden', () => {
 
     test('should keep the team sidebar on mobile, where the rail\'s team menu is hidden', () => {
         expect(isTeamSidebarHidden(withTeamSidebarHidden('mobileView'))).toBe(false);
+    });
+});
+
+describe('isProductRailShown', () => {
+    const withView = (state: GlobalState, {teamId = 'team1', windowSize = 'desktopView'} = {}) => ({
+        ...state,
+        entities: {...state.entities, teams: {...state.entities.teams, currentTeamId: teamId}},
+        views: {...state.views, browser: {windowSize}},
+    } as unknown as GlobalState);
+
+    test('should be shown with the flag on, a team and a desktop width', () => {
+        expect(isProductRailShown(withView(getState()))).toBe(true);
+    });
+
+    test('should be hidden with the flag off, without a team, or on mobile', () => {
+        expect(isProductRailShown(withView(getState({enabled: false})))).toBe(false);
+        expect(isProductRailShown(withView(getState(), {teamId: ''}))).toBe(false);
+        expect(isProductRailShown(withView(getState(), {windowSize: 'mobileView'}))).toBe(false);
     });
 });

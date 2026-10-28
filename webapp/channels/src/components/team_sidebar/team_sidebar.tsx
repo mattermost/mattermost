@@ -311,8 +311,9 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
             );
         }
 
+        // Not on mobile, where the rail (and the team menu that would bring the sidebar back) is hidden.
         let hideButton;
-        if (this.props.isProductRailEnabled) {
+        if (this.props.isProductRailShown) {
             const hideLabel = intl.formatMessage({
                 id: 'team_sidebar.hide',
                 defaultMessage: 'Hide team sidebar',
