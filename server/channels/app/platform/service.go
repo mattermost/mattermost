@@ -127,6 +127,10 @@ type PlatformService struct {
 	forceEnableRedis bool
 
 	pdpService einterfaces.PolicyDecisionPointInterface
+
+	// activeManagedDirs accumulates the managed directories of every config applied since startup.
+	activeManagedDirsMut sync.Mutex
+	activeManagedDirs    []string
 }
 
 type HookRunner interface {
