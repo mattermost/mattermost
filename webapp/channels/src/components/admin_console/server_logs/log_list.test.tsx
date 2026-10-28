@@ -336,12 +336,12 @@ describe('components/admin_console/server_logs/LogList', () => {
     });
 
     describe('footer', () => {
-        // The server searches too, so the loaded entries are no longer a meaningful total
+        // The server searches, so the loaded entries are no longer a meaningful total
         test('should count the matching entries while searching', () => {
             renderWithContext(
                 <StatefulLogList
                     {...baseProps}
-                    logs={[first, second, third]}
+                    logs={[second]}
                     search='msg 2'
                 />,
             );
@@ -352,6 +352,13 @@ describe('components/admin_console/server_logs/LogList', () => {
     });
 
     describe('searching', () => {
+        // The server searches, so an entry without the term is still listed
+        test('should list the entries the server returned for a search', () => {
+            renderListWith({logs: [first, second], search: 'msg 2'});
+
+            expect(rowMessages().sort()).toEqual(['msg 1', 'msg 2']);
+        });
+
         test('should keep the list in place rather than show the spinner while a search loads', () => {
             renderListWith({logs: [], loading: true, search: 'missing'});
 
@@ -696,36 +703,14 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(levelMenuItem('Error')).toHaveTextContent('Error1');
         });
 
-        test('should search the node name with two or more nodes', () => {
+        test('should highlight the node name matching the search', () => {
             renderListWith({
-                logs: [makeNodeLog('node-a', 'a', '2026-03-12T10:00:01.000Z'), makeNodeLog('node-b', 'b', '2026-03-12T10:00:02.000Z')],
+                logs: [makeNodeLog('node-b', 'b')],
                 nodes: ['node-a', 'node-b'],
                 search: 'node-b',
             });
 
-            expect(rowMessages()).toEqual(['b']);
             expect(document.querySelector('.LogRow__node mark')).toHaveTextContent('node-b');
-        });
-
-        test('should search a node field the server logged', () => {
-            renderListWith({
-                logs: [
-                    {...makeNodeLog('node-a', 'A node has joined the cluster'), node: 'node-b'},
-                    makeNodeLog('node-a', 'other'),
-                ],
-                nodes: ['node-a', 'node-b'],
-                selectedNode: 'node-a',
-                search: 'node-b',
-            });
-
-            expect(rowMessages()).toEqual(['A node has joined the cluster']);
-        });
-
-        test('should not search the node name with a single node', () => {
-            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default'], search: 'default'});
-
-            expect(rowMessages()).toEqual([]);
-            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
         });
 
         test('should offer to clear the selected node when it has no entries', () => {
@@ -826,9 +811,9 @@ describe('components/admin_console/server_logs/LogList', () => {
         });
 
         test('should count only entries in the time range as search matches', () => {
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, search: 'recent'});
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, search: 'e'});
 
-            expect(screen.getByText(/of 1 entries matching your filters$/)).toBeInTheDocument();
+            expect(screen.getByText(/of 3 entries matching your filters$/)).toBeInTheDocument();
         });
 
         test('should show every entry without a time range', () => {

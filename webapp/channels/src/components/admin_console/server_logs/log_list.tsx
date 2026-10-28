@@ -70,7 +70,7 @@ type Props = {
 const PAGE_SIZES = [50, 100, 200, 500] as const;
 const DEFAULT_PAGE_SIZE = 200;
 
-// Filtering runs over every fetched log entry, so keep it off the keystroke path
+// Each search change queries the server, so keep it off the keystroke path
 const SEARCH_DEBOUNCE_MS = 200;
 
 // Rows are focused programmatically by the keyboard navigation below
@@ -191,7 +191,7 @@ export default function LogList({
     const [focusedKey, setFocusedKey] = useState<string | null>(null);
     const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
 
-    // Kept local so typing repaints the input without waiting for the debounced filtering
+    // Kept local so typing repaints the input without waiting for the debounced query
     const [searchInput, setSearchInput] = useState(search);
 
     const showNodes = nodes.length >= 2;
@@ -273,20 +273,13 @@ export default function LogList({
             });
         }
 
-        if (search) {
-            const lowerSearch = search.toLowerCase();
-            filtered = filtered.filter((log) => (showNodes && log[LogNodeKey]?.toLowerCase().includes(lowerSearch)) || Object.entries(log).some(([key, value]) =>
-                key !== 'level' && key !== 'timestamp' && formatLogValue(value).toLowerCase().includes(lowerSearch),
-            ));
-        }
-
         // Ties fall back to file order so same-millisecond entries reverse too
         const direction = sortAsc ? 1 : -1;
         return filtered.
             map((log, index) => ({log, index, time: parseTimestamp(log.timestamp)})).
             sort((a, b) => direction * ((a.time - b.time) || (a.index - b.index))).
             map(({log}) => log);
-    }, [scopedLogs, allLevelsEnabled, enabledLevels, search, sortAsc, showNodes]);
+    }, [scopedLogs, allLevelsEnabled, enabledLevels, sortAsc]);
 
     const matchCount = search ? processedLogs.length : null;
     const truncated = truncatedNodes.some((node) => !selectedNode || node === selectedNode);

@@ -50,18 +50,28 @@ describe('components/admin_console/server_logs/Logs', () => {
         whatever: 'filtered',
     }];
 
-    beforeEach(async () => {
-        // Mount server log screen
-        renderWithContext(
+    let getLogs: jest.Mock;
+    let rerenderWithLogs: (next: LogObjectWithAdditionalInfo[]) => void;
+
+    function logsScreen(shown: LogObjectWithAdditionalInfo[]) {
+        return (
             <Logs
-                logs={logs}
+                logs={shown}
                 logNodes={[]}
                 truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs: jest.fn(), getPlainLogs: jest.fn()}}
-            />,
+                actions={{getLogs, getPlainLogs: jest.fn()}}
+            />
         );
+    }
+
+    beforeEach(async () => {
+        getLogs = jest.fn();
+
+        // Mount server log screen
+        const {rerender} = renderWithContext(logsScreen(logs));
+        rerenderWithLogs = (next) => rerender(logsScreen(next));
 
         // Wait for the logs to be displayed
         await waitFor(() => {
@@ -88,32 +98,6 @@ describe('components/admin_console/server_logs/Logs', () => {
         expect(screen.getByRole('menuitemcheckbox', {name: /^Debug/})).toBeInTheDocument();
     });
 
-    test.each(['caller', 'msg', 'worker', 'job_id', 'whatever'])('should search input be performed on %s attribute',
-        async (searchString: string) => {
-            const searchInput = screen.getByLabelText('Search logs');
-            await userEvent.type(searchInput, searchString);
-
-            // Use container text check since search highlights split text across <mark> elements
-            await waitFor(() => {
-                const logRows = document.querySelectorAll('.LogRow');
-                const rowTexts = Array.from(logRows).map((r) => r.textContent || '');
-                expect(rowTexts.some((t) => t.includes('msg 1'))).toBe(true);
-                expect(rowTexts.some((t) => t.includes('msg 2'))).toBe(true);
-                expect(rowTexts.some((t) => t.includes('filtered message'))).toBe(false);
-            });
-        });
-
-    test.each(['level', 'timestamp'])('should search input not be performed on %s attribute',
-        async (searchString: string) => {
-            const searchInput = screen.getByLabelText('Search logs');
-            await userEvent.type(searchInput, searchString);
-
-            await waitFor(() => {
-                const logRows = document.querySelectorAll('.LogRow');
-                expect(logRows.length).toBe(0);
-            });
-        });
-
     test('should expose the log rows as a list that only owns list items', () => {
         const list = screen.getByRole('list', {name: 'Server log entries'});
 
@@ -127,6 +111,7 @@ describe('components/admin_console/server_logs/Logs', () => {
     test('should keep the empty state outside the list', async () => {
         const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'nothing matches this');
+        rerenderWithLogs([]);
 
         await waitFor(() => {
             expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
@@ -136,32 +121,25 @@ describe('components/admin_console/server_logs/Logs', () => {
         expect(list).toBeEmptyDOMElement();
     });
 
-    test('should update the search input without waiting for the filtering', async () => {
+    test('should update the search input without waiting for the query', async () => {
         const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'msg 1');
 
-        // Typing is not gated on the debounced filter pass
+        // Typing is not gated on the debounced query
         expect(searchInput).toHaveValue('msg 1');
 
-        await waitFor(() => {
-            expect(document.querySelectorAll('.LogRow')).toHaveLength(1);
-        });
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'msg 1'})));
     });
 
     test('should apply a cleared search immediately', async () => {
         const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'msg 1');
-
-        await waitFor(() => {
-            expect(document.querySelectorAll('.LogRow')).toHaveLength(1);
-        });
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'msg 1'})));
 
         await userEvent.click(screen.getByLabelText('Clear search'));
 
         expect(searchInput).toHaveValue('');
-        await waitFor(() => {
-            expect(document.querySelectorAll('.LogRow')).toHaveLength(3);
-        });
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: ''})));
     });
 
     test('should default the live tail selector to off', () => {
@@ -466,19 +444,17 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
         expect(await screen.findByText('a')).toBeInTheDocument();
         expect(screen.queryByLabelText('Node')).not.toBeInTheDocument();
         expect(document.querySelector('.LogRow__node')).toBeNull();
-
-        await userEvent.type(screen.getByLabelText('Search logs'), 'default');
-        await waitFor(() => expect(document.querySelectorAll('.LogRow')).toHaveLength(0));
     });
 
-    // The server returns a node whose name matches unsearched, and the client search narrows it
-    test('should send a search for a node name and show that node\'s entries', async () => {
-        const {getLogs} = renderLogs([nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]);
+    // The server matches node names too, by returning a matching node's entries unsearched
+    test('should send a search for a node name and show what the server returns', async () => {
+        const {getLogs, rerenderLogs} = renderLogs([nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]);
 
         await userEvent.type(screen.getByLabelText('Search logs'), 'NODE-B');
 
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'NODE-B'})));
-        expect(screen.queryByText('a')).not.toBeInTheDocument();
+        rerenderLogs([nodeLog('node-b', 'b')]);
+        await waitFor(() => expect(screen.queryByText('a')).not.toBeInTheDocument());
         expect(screen.getByText('b')).toBeInTheDocument();
     });
 
