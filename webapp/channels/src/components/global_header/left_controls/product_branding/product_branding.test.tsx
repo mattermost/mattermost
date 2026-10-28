@@ -4,7 +4,7 @@
 import React from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {TopLevelProducts} from 'utils/constants';
+import {TopLevelProducts, WindowSizes} from 'utils/constants';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
@@ -232,6 +232,7 @@ describe('ProductBranding', () => {
                     ...licensedState.entities.general,
                     config: {FeatureFlagProductRail: 'true', SiteName: 'Acme Chat'},
                 },
+                teams: {currentTeamId: 'team1'},
             },
         };
 
@@ -248,11 +249,29 @@ describe('ProductBranding', () => {
                     ...licensedState.entities.general,
                     config: {FeatureFlagProductRail: 'true', SiteName: ''},
                 },
+                teams: {currentTeamId: 'team1'},
             },
         };
 
         renderWithContext(<ProductBranding/>, state);
 
         expect(screen.getByText('Mattermost')).toBeInTheDocument();
+    });
+
+    test('should keep the product name while the rail is hidden, as on mobile', () => {
+        const state = {
+            entities: {
+                general: {
+                    ...licensedState.entities.general,
+                    config: {FeatureFlagProductRail: 'true', SiteName: 'Acme Chat'},
+                },
+                teams: {currentTeamId: 'team1'},
+            },
+            views: {browser: {windowSize: WindowSizes.MOBILE_VIEW}},
+        };
+
+        renderWithContext(<ProductBranding/>, state);
+
+        expect(screen.queryByText('Acme Chat')).not.toBeInTheDocument();
     });
 });

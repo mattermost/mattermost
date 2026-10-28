@@ -133,6 +133,11 @@ export function getProductRailFilter(state: GlobalState): ProductRailFilter {
     return section;
 }
 
+/** Whether the rail is on screen: it needs a team, and is hidden at mobile widths. */
+export function isProductRailShown(state: GlobalState): boolean {
+    return isProductRailEnabled(state) && Boolean(getCurrentTeamId(state)) && !getIsMobileView(state);
+}
+
 /** Whether the user has hidden the team sidebar, so the product rail shows a team menu in its place. */
 export function isTeamSidebarHidden(state: GlobalState): boolean {
     // On mobile the rail, and its team menu, are hidden, so the team sidebar stays to switch teams.

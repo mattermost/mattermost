@@ -289,84 +289,88 @@
     }
 }
 
-// With the rail on, the thread list stands in for the channel sidebar in Threads, so it takes the
-// sidebar's colors. Remapping the center channel variables (and the borders built from them, which
-// resolve where they're declared) recolors everything inside to match.
-#root:has(.ProductRail) .GlobalThreads .ThreadList {
-    --center-channel-bg: var(--sidebar-bg);
-    --center-channel-bg-rgb: var(--sidebar-bg-rgb);
-    --center-channel-color: var(--sidebar-text);
-    --center-channel-color-rgb: var(--sidebar-text-rgb);
+// The rail is hidden at mobile widths (though still in the page), so the layout it brings applies
+// only above them.
+@media screen and (min-width: 769px) {
+    // With the rail on, the thread list stands in for the channel sidebar in Threads, so it takes the
+    // sidebar's colors. Remapping the center channel variables (and the borders built from them, which
+    // resolve where they're declared) recolors everything inside to match.
+    #root:has(.ProductRail) .GlobalThreads .ThreadList {
+        --center-channel-bg: var(--sidebar-bg);
+        --center-channel-bg-rgb: var(--sidebar-bg-rgb);
+        --center-channel-color: var(--sidebar-text);
+        --center-channel-color-rgb: var(--sidebar-text-rgb);
 
-    // Derived from the center channel color at the root, and read by the channel tags.
-    --semantic-color-general: var(--sidebar-text-rgb);
-    --border-default: solid 1px rgba(var(--sidebar-text-rgb), 0.12);
-    --border-light: solid 1px rgba(var(--sidebar-text-rgb), 0.08);
-    --border-dark: solid 1px rgba(var(--sidebar-text-rgb), 0.16);
+        // Derived from the center channel color at the root, and read by the channel tags.
+        --semantic-color-general: var(--sidebar-text-rgb);
+        --border-default: solid 1px rgba(var(--sidebar-text-rgb), 0.12);
+        --border-light: solid 1px rgba(var(--sidebar-text-rgb), 0.08);
+        --border-dark: solid 1px rgba(var(--sidebar-text-rgb), 0.16);
 
-    background: var(--sidebar-bg);
-    color: var(--sidebar-text);
-}
-
-// With the team sidebar beside it, the rail joins the main panel as its first column: the sidebar's
-// background, the panel's border and rounded corners on the outside, and a divider before the
-// channel list. Without the team sidebar, it stays on the header background.
-body.app__body #root:has(.team-sidebar) {
-    .ProductRail {
-        --product-rail-bg: var(--sidebar-bg);
-
-        border: var(--border-light);
-        border-radius: var(--radius-l) 0 0 var(--radius-l);
-        border-right: 1px solid rgba(var(--sidebar-text-rgb), 0.12);
-        margin-bottom: 4px;
         background: var(--sidebar-bg);
+        color: var(--sidebar-text);
     }
 
-    .main-wrapper {
-        border-left: none;
-        border-bottom-left-radius: 0;
-        border-top-left-radius: 0;
-    }
-}
+    // With the team sidebar beside it, the rail joins the main panel as its first column: the sidebar's
+    // background, the panel's border and rounded corners on the outside, and a divider before the
+    // channel list. Without the team sidebar, it stays on the header background.
+    body.app__body #root:has(.team-sidebar):has(.ProductRail) {
+        .ProductRail {
+            --product-rail-bg: var(--sidebar-bg);
 
-// In Threads the thread list takes the channel sidebar's place against the panel's left edge, so,
-// like that sidebar, it has square corners there.
-body.app__body #root:has(.ProductRail) #channel_view:has(.GlobalThreads) {
-    &,
-    .GlobalThreads {
-        border-bottom-left-radius: 0;
-        border-top-left-radius: 0;
-    }
-}
+            border: var(--border-light);
+            border-radius: var(--radius-l) 0 0 var(--radius-l);
+            border-right: 1px solid rgba(var(--sidebar-text-rgb), 0.12);
+            margin-bottom: 4px;
+            background: var(--sidebar-bg);
+        }
 
-// Beside the thread list, the thread pane is rounded like the center channel beside the channel
-// sidebar, with the sidebar's colour showing behind its corners.
-body.app__body #root:has(.ProductRail) .GlobalThreads {
-    // A fixed-width thread list, like a sidebar, at every desktop width.
-    --list: 368px;
-
-    background: var(--sidebar-bg);
-
-    .ThreadPane,
-    .ThreadList + .no-results__holder {
-        overflow: hidden;
-        border-radius: var(--radius-l) 0 0 var(--radius-l);
-        background: var(--center-channel-bg);
-    }
-
-    // The open thread is marked in the sidebar's colours, so it shows on the list's background.
-    .ThreadItem.is-selected {
-        background: rgba(var(--sidebar-text-rgb), 0.1);
-
-        &:hover,
-        &:focus {
-            background: rgba(var(--sidebar-text-rgb), 0.12);
+        .main-wrapper {
+            border-left: none;
+            border-bottom-left-radius: 0;
+            border-top-left-radius: 0;
         }
     }
 
-    // The thread list's tabs take the sidebar's colours, so the active one reads on its background.
-    .ThreadList .Header .Button.is-active {
-        background: rgba(var(--sidebar-text-rgb), 0.08);
-        color: var(--sidebar-text);
+    // In Threads the thread list takes the channel sidebar's place against the panel's left edge, so,
+    // like that sidebar, it has square corners there.
+    body.app__body #root:has(.ProductRail) #channel_view:has(.GlobalThreads) {
+        &,
+        .GlobalThreads {
+            border-bottom-left-radius: 0;
+            border-top-left-radius: 0;
+        }
+    }
+
+    // Beside the thread list, the thread pane is rounded like the center channel beside the channel
+    // sidebar, with the sidebar's colour showing behind its corners.
+    body.app__body #root:has(.ProductRail) .GlobalThreads {
+        // A fixed-width thread list, like a sidebar, at every desktop width.
+        --list: 368px;
+
+        background: var(--sidebar-bg);
+
+        .ThreadPane,
+        .ThreadList + .no-results__holder {
+            overflow: hidden;
+            border-radius: var(--radius-l) 0 0 var(--radius-l);
+            background: var(--center-channel-bg);
+        }
+
+        // The open thread is marked in the sidebar's colours, so it shows on the list's background.
+        .ThreadItem.is-selected {
+            background: rgba(var(--sidebar-text-rgb), 0.1);
+
+            &:hover,
+            &:focus {
+                background: rgba(var(--sidebar-text-rgb), 0.12);
+            }
+        }
+
+        // The thread list's tabs take the sidebar's colours, so the active one reads on its background.
+        .ThreadList .Header .Button.is-active {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+        }
     }
 }

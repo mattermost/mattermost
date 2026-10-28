@@ -146,7 +146,7 @@ describe('SidebarList', () => {
         hasUnreadThreads: false,
         markAllAsReadWithoutConfirm: false,
         markAllAsReadShortcutEnabled: false,
-        isProductRailEnabled: false,
+        isProductRailShown: false,
         showNoBoards: false,
         categoryIdsHiddenByProductRail: new Set<string>(),
         currentStaticPageId: '',

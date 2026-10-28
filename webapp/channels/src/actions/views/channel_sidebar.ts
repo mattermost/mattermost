@@ -94,9 +94,10 @@ export function moveChannelsInSidebar(categoryId: string, targetIndex: number, d
         }
 
         // In the product rail's Channels or Boards section the category shows only some of its
-        // channels, so the drop index counts those; translate it to the full list first.
+        // channels, so a drop index counts those; translate it to the full list first. Only drops
+        // set manual sorting: addChannelsInSidebar's 0 already means the top of the full category.
         let fullTargetIndex = targetIndex;
-        if (getProductRailFilter(state)) {
+        if (setManualSorting && getProductRailFilter(state)) {
             const category = getCategory(state, categoryId);
             fullTargetIndex = toFullListIndex(
                 makeGetFilteredChannelIdsForCategory()(state, category),
