@@ -5,6 +5,8 @@ import classNames from 'classnames';
 import React, {useState, useEffect, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
+import {ErrorMessage} from '@mattermost/compass-ui/components/error-message';
+
 import ShowFormat from 'components/advanced_text_editor/show_formatting/show_formatting';
 import Textbox from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
@@ -149,10 +151,12 @@ const AdvancedTextbox = ({
             <div className='AdvancedTextbox__error-wrapper'>
                 {/* Error message display */}
                 {internalError && (
-                    <div className='AdvancedTextbox__error-message'>
-                        <i className='icon icon-alert-circle-outline'/>
-                        <span data-testid='advanced-textbox-error-text'>{internalError}</span>
-                    </div>
+                    <ErrorMessage
+                        className='AdvancedTextbox__error-message'
+                        message={
+                            <span data-testid='advanced-textbox-error-text'>{internalError}</span>
+                        }
+                    />
                 )}
 
                 {/* Character count display */}
