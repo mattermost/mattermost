@@ -100,11 +100,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>Text that will be shown below the <strong>Custom brand image</strong> on the login page. | - System Config path: <strong>Site Configuration &gt; Customization</strong> | You can format this text using the same <a href={useBaseUrl('/end-user-guide/collaborate/format-messages')}>Markdown formatting</a> | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>CustomBrandText</code> as in Mattermost messages. | - Environment variable: <code>MM_TEAMSETTINGS_CUSTOMBRANDTEXT</code> | | | String input. Maximum 500 characters. <a href="#enable-custom-branding">Enable custom branding</a> | | must be set to <strong>true</strong> to display the text. | |</td>
+<td><p>Text that will be shown below the <strong>Custom brand image</strong> on the login page. You can format this text using the same <a href={useBaseUrl('/end-user-guide/collaborate/format-messages')}>Markdown formatting</a> as in Mattermost messages.</p><p>String input. Maximum 500 characters. <a href="#enable-custom-branding">Enable custom branding</a> must be set to <strong>true</strong> to display the text.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>CustomBrandText</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_CUSTOMBRANDTEXT</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -481,11 +483,13 @@ This setting is applicable to self-hosted deployments only.
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>Specify the minimum version of the Mattermost Desktop App required to connect to this server | - System Config path: <strong>Site Configuration &gt; Customization</strong> | (e.g., <code>5.10.0</code>). Users connecting with a Desktop App version below this minimum are shown | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>MinimumDesktopAppVersion</code> | an update required screen and cannot use the application until they update. | - Environment variable: <code>MM_SERVICESETTINGS_MINIMUMDESKTOPAPPVERSION</code> | | | The update screen includes a download link configured via the | | <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#mattermost-apps-download-page-link')}>Mattermost apps download page link</a> setting. | | | Must be a valid semantic version (e.g., <code>5.0.0</code>). Leave blank to allow all Desktop App | | versions to connect. | | | | String input. Default is empty (no minimum enforced). | |</td>
+<td><p>Specify the minimum version of the Mattermost Desktop App required to connect to this server (e.g., <code>5.10.0</code>). Users connecting with a Desktop App version below this minimum are shown an update required screen and cannot use the application until they update.</p><p>The update screen includes a download link configured via the <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#mattermost-apps-download-page-link')}>Mattermost apps download page link</a> setting.</p><p>Must be a valid semantic version (e.g., <code>5.0.0</code>). Leave blank to allow all Desktop App versions to connect.</p><p>String input. Default is empty (no minimum enforced).</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>MinimumDesktopAppVersion</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_MINIMUMDESKTOPAPPVERSION</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -750,11 +754,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '51%'}} />
+<col style={{width: '48%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>The <strong>Max users per team</strong> is the maximum total number of users per team, | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> | including activated and deactivated users. | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>MaxUsersPerTeam</code> &gt; <code>50</code> | | - Environment variable: <code>MM_TEAMSETTINGS_MAXUSERSPERTEAM</code> | In Mattermost, a team of people should be a small organization with a | | specific goal. In the physical world, a team could sit around a single | | table. The default maximum (50) should be enough for most teams, but | | with appropriate <a href="https://docs.mattermost.com/install/             |                                                                             |software-hardware-requirements.html">hardware</a>, this limit can be increased to | | thousands of users. | | | | <a href={useBaseUrl('/end-user-guide/collaborate/collaborate-within-channels')}>Channels</a> | are another way of organizing communications within teams on various topics. | | | | Numerical input. Default is <strong>50</strong> self-hosted deployments, and <strong>10000</strong> | | for Cloud deployments. | |</td>
+<td><p>The maximum number of active users per team. Deactivated users and users removed from the team aren't counted toward this limit.</p><p>With appropriate <a href={useBaseUrl('/deployment-guide/software-hardware-requirements')}>hardware</a>, a team can grow to thousands of users. <a href={useBaseUrl('/end-user-guide/collaborate/collaborate-within-channels')}>Channels</a> are another way of organizing communications within teams on various topics.</p><p>Numerical input. Default is <strong>50</strong> for self-hosted deployments, and <strong>10000</strong> for Cloud deployments.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>MaxUsersPerTeam</code> &gt; <code>50</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_MAXUSERSPERTEAM</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1463,11 +1469,13 @@ Customers upgrading from a legacy Mattermost release prior to v7.0 must review t
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>- <strong>Always On</strong>: <strong>(Default)</strong> Enables <a href={useBaseUrl('/end-user-guide/collaborate/organize-conversations')}>threaded discussions</a> | - System Config path: **Site Configuration &gt; Posts** | | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>CollapsedThreads</code></dt><dd><p>on the server and for all users. This is the recommended configuration for optimal user experience | - Environment variable: <code>MM_SERVICESETTINGS_COLLAPSEDTHREADS</code> | and to ensure consistency in how users read and respond to threaded conversations. | | <code>config.json</code> setting: <code>"always_on"</code> | |</p></dd></dl><ul><li><strong>Default On</strong>: Enables threaded discussions on the server and for all users. | |</li><li><strong>Default Off</strong>: Enables threaded discussions on the server but <strong>not</strong> for users. | |</li><li><strong>Disabled</strong>: Users cannot enable threaded discussions. <code>config.json</code> setting: <code>"disabled"</code> | |</li></ul></td>
+<td><ul><li><strong>Always On</strong>: <strong>(Default)</strong> Enables <a href={useBaseUrl('/end-user-guide/collaborate/organize-conversations')}>threaded discussions</a> on the server and for all users, who can't turn them off. This is the recommended configuration for optimal user experience and to ensure consistency in how users read and respond to threaded conversations. <code>config.json</code> value: <code>"always_on"</code></li><li><strong>Enabled (Default On)</strong>: Enables threaded discussions on the server and for all users. Users can turn them off in their settings. <code>config.json</code> value: <code>"default_on"</code></li><li><strong>Enabled (Default Off)</strong>: Enables threaded discussions on the server but <strong>not</strong> for users. Users can turn them on in their settings. <code>config.json</code> value: <code>"default_off"</code></li><li><strong>Disabled</strong>: Users cannot enable threaded discussions. <code>config.json</code> value: <code>"disabled"</code></li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>CollapsedThreads</code> &gt; <code>"always_on"</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_COLLAPSEDTHREADS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1680,11 +1688,13 @@ Disabling this configuration setting in larger deployments may improve server pe
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: <strong>(Default)</strong> <a href={useBaseUrl('/end-user-guide/collaborate/share-links')}>Share links to Mattermost messages</a> | - System Config path: <strong>Site Configuration &gt; Posts</strong> will generate a preview for any users that have access to the original message. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnablePermalinkPreviews</code> &gt; <code>true</code> |</li><li><strong>false</strong>: Share links do not generate a preview. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEPERMALINKPREVIEWS</code> |</li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> <a href={useBaseUrl('/end-user-guide/collaborate/share-links')}>Share links to Mattermost messages</a> will generate a preview for any users that have access to the original message.</li><li><strong>false</strong>: Share links do not generate a preview.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnablePermalinkPreviews</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEPERMALINKPREVIEWS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1727,11 +1737,13 @@ Enabling SVGs is not recommended in environments where not all users are trusted
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables rendering of <a href={useBaseUrl('/end-user-guide/collaborate/format-messages#math-formulas')}>LaTeX in code blocks</a>. | - System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Disables rendering in blocks. Instead, LaTeX code is highlighted. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableLatex</code> &gt; <code>false</code>|</dt><dd><div class="line-block">- Environment variable: <code>MM_SERVICESETTINGS_ENABLELATEX</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default for existing deployments)</strong> Enables rendering of <a href={useBaseUrl('/end-user-guide/collaborate/format-messages#math-formulas')}>LaTeX in code blocks</a>.</li><li><strong>false</strong>: <strong>(Default for new deployments)</strong> Disables rendering in blocks. Instead, LaTeX code is highlighted.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableLatex</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLELATEX</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1746,11 +1758,13 @@ Enabling LaTeX rendering is not recommended in environments where not all users 
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables rendering of | - System Config path: <strong>Site Configuration &gt; Posts</strong> | <a href={useBaseUrl('/end-user-guide/collaborate/format-messages#math-formulas')}>LaTeX in message text</a>. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableInlineLatex</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Disables inline rendering of LaTeX. Instead, LaTeX in message text is highlighted. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEINLINELATEX</code> | LaTeX can also be rendered in a code block, if that feature is enabled. See <strong>Enable LaTeX code block rendering</strong>. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables rendering of <a href={useBaseUrl('/end-user-guide/collaborate/format-messages#math-formulas')}>LaTeX in message text</a>. The web and desktop apps render it only when <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#enable-latex-code-block-rendering')}>Enable LaTeX code block rendering</a> is also <strong>true</strong>, which it isn't by default for new deployments.</li><li><strong>false</strong>: Disables inline rendering of LaTeX. Instead, LaTeX in message text is highlighted.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableInlineLatex</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEINLINELATEX</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2214,11 +2228,13 @@ With self-hosted deployments, you can access the following configuration setting
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows users to create <a href={useBaseUrl('/end-user-guide/collaborate/share-files-in-messages')}>public links</a> to files attached to Mattermost messages. | - System Config path: <strong>Site Configuration &gt; Public Links</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Prevents users from creating public links to files and disables all previously created links. | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnablePublicLink</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_FILESETTINGS_ENABLEPUBLICLINK</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: Allows users to create <a href={useBaseUrl('/end-user-guide/collaborate/share-files-in-messages')}>public links</a> to files attached to Mattermost messages.</li><li><strong>false</strong>: <strong>(Default)</strong> Prevents users from creating public links to files and disables all previously created links.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Public Links</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnablePublicLink</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_FILESETTINGS_ENABLEPUBLICLINK</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2254,11 +2270,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: <strong>(Default)</strong> System admins will receive <a href={useBaseUrl('/administration-guide/manage/in-product-notices')}>in-product notices</a> about server upgrades and administration features. | - System Config path: <strong>Site Configuration &gt; Notices</strong> - | - <code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>AdminNoticesEnabled</code> &gt; <code>true</code> |</li><li><strong>false</strong>: System admins will not receive specific notices. Admins will still receive notices for all users (see <strong>Enable end user notices</strong>) | - Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED</code> |</li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> System admins will receive <a href={useBaseUrl('/administration-guide/manage/in-product-notices')}>in-product notices</a> about server upgrades and administration features.</li><li><strong>false</strong>: System admins will not receive specific notices. Admins will still receive notices for all users (see <strong>Enable end user notices</strong>).</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notices</strong></li><li><code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>AdminNoticesEnabled</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2267,11 +2285,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: <strong>(Default)</strong> All users receive <a href={useBaseUrl('/administration-guide/manage/in-product-notices')}>in-product notices</a> about client upgrades and end user features. | - System Config path: <strong>Site Configuration &gt; Notices</strong></li><li><dl><dt><strong>false</strong>: Users will not receive in-product notices. | - <code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>UserNoticesEnabled</code> &gt; <code>true</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_USERNOTICESENABLED</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> All users receive <a href={useBaseUrl('/administration-guide/manage/in-product-notices')}>in-product notices</a> about client upgrades and end user features.</li><li><strong>false</strong>: Users will not receive in-product notices.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notices</strong></li><li><code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>UserNoticesEnabled</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_USERNOTICESENABLED</code></li></ul></td>
 </tr>
 </tbody>
 </table>
