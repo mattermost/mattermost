@@ -12,8 +12,9 @@ import {Link} from 'react-router-dom';
 import type {ClientError} from '@mattermost/client';
 import {AlertOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {GlobalAttributeListingRow, GlobalAttributeSourceKind} from '@mattermost/types/global_attributes';
+import type {GlobalAttributeListingRow, GlobalAttributeSource, GlobalAttributeSourceKind} from '@mattermost/types/global_attributes';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {valueRefersToOptions} from '@mattermost/types/properties';
 
@@ -436,10 +437,14 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
 
 type GlobalAttributesTableProps = {
     searchQuery?: string;
+    source?: GlobalAttributeSource;
+
+    // Resets the search and every filter; offered when they leave nothing to show.
+    onClearFilters?: () => void;
     disabled?: boolean;
 };
 
-export default function GlobalAttributesTable({searchQuery = '', disabled = false}: GlobalAttributesTableProps) {
+export default function GlobalAttributesTable({searchQuery = '', source, onClearFilters, disabled = false}: GlobalAttributesTableProps) {
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [deleteModalExited, setDeleteModalExited] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
@@ -447,7 +452,7 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
     const classificationAttributePageReachable = useClassificationAttributePageReachable();
     const isMobileView = useSelector(getIsMobileView);
 
-    const {rows: listingRows, loaded, error: loadError, refetch} = useGlobalAttributesListing({term: searchQuery});
+    const {rows: listingRows, loaded, error: loadError, refetch} = useGlobalAttributesListing({term: searchQuery, source});
 
     const rows = useMemo<ListingTableRow[]>(
         () => listingRows.map((row) => ({...row, id: row.field.id})),
@@ -629,13 +634,32 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
     }
 
     if (rows.length === 0) {
-        const isSearchEmpty = Boolean(searchQuery.trim());
+        const isSearching = Boolean(searchQuery.trim());
+        if (!isSearching && !source) {
+            return (
+                <div
+                    className='GlobalAttributesTable__empty'
+                    data-testid='global-attributes-empty'
+                >
+                    <FormattedMessage {...messages.empty}/>
+                </div>
+            );
+        }
         return (
             <div
                 className='GlobalAttributesTable__empty'
-                data-testid={isSearchEmpty ? 'global-attributes-empty-search' : 'global-attributes-empty'}
+                data-testid='global-attributes-empty-search'
             >
-                <FormattedMessage {...(isSearchEmpty ? messages.emptySearch : messages.empty)}/>
+                <FormattedMessage {...(source ? messages.emptyFiltered : messages.emptySearch)}/>
+                {onClearFilters && (
+                    <Button
+                        emphasis='tertiary'
+                        onClick={onClearFilters}
+                        data-testid='global-attributes-clear-filters'
+                    >
+                        <FormattedMessage {...messages.clearFilters}/>
+                    </Button>
+                )}
             </div>
         );
     }
@@ -688,6 +712,11 @@ const messages = defineMessages({
         id: 'admin.global_attributes.table.empty_search',
         defaultMessage: 'No attributes match your search.',
     },
+    emptyFiltered: {
+        id: 'admin.global_attributes.table.empty_filtered',
+        defaultMessage: 'No attributes match your search or filters.',
+    },
+    clearFilters: {id: 'admin.global_attributes.table.clear_filters', defaultMessage: 'Clear filters'},
     loadError: {id: 'admin.global_attributes.table.load_error', defaultMessage: 'There was an error while loading attributes.'},
 });
 
