@@ -62,6 +62,7 @@ func ownersHasPlugin(table listingTable) sq.Sqlizer {
 func liveLinkedChild(objectType string, extra ...sq.Sqlizer) sq.Sqlizer {
 	cond := sq.And{
 		sq.Expr("lf.LinkedFieldID = PropertyFields.ID"),
+		sq.Expr("lf.GroupID = PropertyFields.GroupID"),
 		sq.Eq{"lf.DeleteAt": 0, "lf.ObjectType": objectType},
 	}
 	return sq.Expr("EXISTS (SELECT 1 FROM PropertyFields lf WHERE ?)", append(cond, extra...))
