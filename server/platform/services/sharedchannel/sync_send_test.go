@@ -674,6 +674,17 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 		assert.Empty(t, otherFollower.tasks)
 	})
 
+	t.Run("newly elected leader queues forwarded tasks before its sync loop resumes", func(t *testing.T) {
+		msgs := forwardFromFollower(t, 1, func(follower *Service) {
+			follower.NotifyChannelChanged(channelID)
+		})
+
+		newLeader := newNode(t, false, true, nil)
+		newLeader.HandleClusterSyncTask(msgs[0])
+
+		assert.Len(t, newLeader.tasks, 1, "resume() drains this queue")
+	})
+
 	t.Run("active leader queues locally", func(t *testing.T) {
 		cluster, sent := newCluster()
 		leader := newNode(t, true, true, cluster)

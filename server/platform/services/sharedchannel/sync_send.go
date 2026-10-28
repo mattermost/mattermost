@@ -298,7 +298,7 @@ func (scs *Service) forwardTaskToLeader(task syncTask) bool {
 
 // HandleClusterSyncTask queues a sync task forwarded by a follower node.
 func (scs *Service) HandleClusterSyncTask(msg *model.ClusterMessage) {
-	if !scs.Active() {
+	if !scs.Active() && !scs.server.IsLeader() {
 		return
 	}
 
