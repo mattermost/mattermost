@@ -5913,6 +5913,13 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 			}
 		})
 
+		t.Run("linked fields of a type that is not allowed do not change what another type matches", func(t *testing.T) {
+			userOnlyAllowed := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser), func(o *model.GlobalAttributeListingOpts) {
+				o.AllowedResourceTypes = []string{model.PropertyFieldObjectTypeUser}
+			})
+			require.Equal(t, f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser)), userOnlyAllowed)
+		})
+
 		t.Run("no allowed type matches nothing, templates included", func(t *testing.T) {
 			names := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser), func(o *model.GlobalAttributeListingOpts) {
 				o.AllowedResourceTypes = nil
