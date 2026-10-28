@@ -317,7 +317,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         };
 
         // Compass no longer opens on focus; the initial state is focused and closed.
-        const focusClosedField = async (user: ReturnType<typeof userEvent.setup>) => {
+        const focusClosedField = () => {
             // Initial state after rendering is already focused and closed, no action needed
             expect(getCombobox()).toHaveFocus();
             expect(getCombobox()).toHaveAttribute('aria-expanded', 'false');
@@ -346,7 +346,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         test.each(['select', 'multiselect'] as const)('clicking a focused, closed %s input reopens its menu', async (type) => {
             const user = userEvent.setup();
             renderEditor(buildField(type), type === 'multiselect' ? ['opt1'] : 'opt1');
-            await focusClosedField(user);
+            focusClosedField();
 
             await user.click(getCombobox());
 
@@ -364,7 +364,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         ] as const)('%s %s on a focused, closed input opens the menu', async (type, keys) => {
             const user = userEvent.setup();
             renderEditor(buildField(type));
-            await focusClosedField(user);
+            focusClosedField();
 
             await user.keyboard(keys);
 
@@ -374,7 +374,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         test.each(['select', 'multiselect'] as const)('typing in a focused, closed %s input opens a filtered menu', async (type) => {
             const user = userEvent.setup();
             renderEditor(buildField(type));
-            await focusClosedField(user);
+            focusClosedField();
 
             await user.keyboard('3');
 
@@ -388,7 +388,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         ] as const)('Enter on a focused, closed %s input saves', async (type, value) => {
             const user = userEvent.setup();
             const {saveCustomProfileAttribute} = renderEditor(buildField(type), value as string | string[]);
-            await focusClosedField(user);
+            focusClosedField();
 
             await user.keyboard('{Enter}');
 
@@ -399,7 +399,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         test('ArrowDown opens, ArrowDown then Enter picks without saving, and a second Enter saves the picked id', async () => {
             const user = userEvent.setup();
             const {saveCustomProfileAttribute} = renderEditor(buildField('select'));
-            await focusClosedField(user);
+            focusClosedField();
 
             await user.keyboard('{ArrowDown}');
             expectOpen();
@@ -419,7 +419,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         test('Enter on an explicitly opened empty field picks the first option without saving', async () => {
             const user = userEvent.setup();
             const {saveCustomProfileAttribute} = renderEditor(buildField('select'));
-            await focusClosedField(user);
+            focusClosedField();
 
             await user.keyboard('{ArrowDown}{Enter}');
 
