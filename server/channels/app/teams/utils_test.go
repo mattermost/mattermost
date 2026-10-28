@@ -13,15 +13,16 @@ import (
 
 func TestIsTeamEmailAllowed(t *testing.T) {
 	tests := []struct {
-		name          string
-		email         string
-		remoteEmail   string
-		isRemote      bool
-		roles         string
-		globalDomains string
-		teamDomains   string
-		guestDomains  string
-		want          bool
+		name             string
+		email            string
+		remoteEmail      string
+		emptyRemoteEmail bool
+		isRemote         bool
+		roles            string
+		globalDomains    string
+		teamDomains      string
+		guestDomains     string
+		want             bool
 	}{
 		{
 			name:          "remote user with allowed original domain",
@@ -53,11 +54,19 @@ func TestIsTeamEmailAllowed(t *testing.T) {
 			want:          false,
 		},
 		{
-			name:          "remote user without RemoteEmail cannot use local email",
+			name:          "remote user without RemoteEmail uses valid email",
 			email:         "alice@remote.example",
 			isRemote:      true,
 			globalDomains: "remote.example",
-			want:          false,
+			want:          true,
+		},
+		{
+			name:             "remote user with empty RemoteEmail uses valid email",
+			email:            "alice@remote.example",
+			emptyRemoteEmail: true,
+			isRemote:         true,
+			globalDomains:    "remote.example",
+			want:             true,
 		},
 		{
 			name:          "remote user without RemoteEmail and synthetic email",
@@ -144,7 +153,7 @@ func TestIsTeamEmailAllowed(t *testing.T) {
 				user.RemoteId = &remoteID
 			}
 
-			if tt.remoteEmail != "" {
+			if tt.remoteEmail != "" || tt.emptyRemoteEmail {
 				user.SetProp(model.UserPropsKeyRemoteEmail, tt.remoteEmail)
 			}
 
