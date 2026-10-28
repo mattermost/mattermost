@@ -388,7 +388,7 @@
       summary: Search the Global Attributes listing
       description: >
         Returns every row of the Global Attributes listing matching the search
-        term: every access_control template, plus every system-level user,
+        term: every system-level access_control template, plus every system-level user,
         channel, or post field linked to no template. Each row carries the
         values derived from the fields linked to it (the resources it applies
         to, its owners, its source, and any user attribute whose name it
