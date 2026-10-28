@@ -63,6 +63,21 @@ func (mr *MockClientMockRecorder) AddChannelMember(ctx, channelID, userID any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddChannelMember", reflect.TypeOf((*MockClient)(nil).AddChannelMember), ctx, channelID, userID)
 }
 
+// AddPluginPublicKey mocks base method.
+func (m *MockClient) AddPluginPublicKey(ctx context.Context, name string, key io.Reader) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddPluginPublicKey", ctx, name, key)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddPluginPublicKey indicates an expected call of AddPluginPublicKey.
+func (mr *MockClientMockRecorder) AddPluginPublicKey(ctx, name, key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPluginPublicKey", reflect.TypeOf((*MockClient)(nil).AddPluginPublicKey), ctx, name, key)
+}
+
 // AddTeamMember mocks base method.
 func (m *MockClient) AddTeamMember(ctx context.Context, teamID, userID string) (*model.TeamMember, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -484,6 +499,21 @@ func (m *MockClient) DeleteOutgoingWebhook(ctx context.Context, hookID string) (
 func (mr *MockClientMockRecorder) DeleteOutgoingWebhook(ctx, hookID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).DeleteOutgoingWebhook), ctx, hookID)
+}
+
+// DeletePluginPublicKey mocks base method.
+func (m *MockClient) DeletePluginPublicKey(ctx context.Context, name string) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePluginPublicKey", ctx, name)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeletePluginPublicKey indicates an expected call of DeletePluginPublicKey.
+func (mr *MockClientMockRecorder) DeletePluginPublicKey(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePluginPublicKey", reflect.TypeOf((*MockClient)(nil).DeletePluginPublicKey), ctx, name)
 }
 
 // DeletePost mocks base method.
@@ -1264,6 +1294,38 @@ func (m *MockClient) GetPingWithOptions(ctx context.Context, options model.Syste
 func (mr *MockClientMockRecorder) GetPingWithOptions(ctx, options any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPingWithOptions", reflect.TypeOf((*MockClient)(nil).GetPingWithOptions), ctx, options)
+}
+
+// GetPluginPublicKey mocks base method.
+func (m *MockClient) GetPluginPublicKey(ctx context.Context, name string) ([]byte, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPluginPublicKey", ctx, name)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPluginPublicKey indicates an expected call of GetPluginPublicKey.
+func (mr *MockClientMockRecorder) GetPluginPublicKey(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPluginPublicKey", reflect.TypeOf((*MockClient)(nil).GetPluginPublicKey), ctx, name)
+}
+
+// GetPluginPublicKeys mocks base method.
+func (m *MockClient) GetPluginPublicKeys(ctx context.Context) ([]string, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPluginPublicKeys", ctx)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPluginPublicKeys indicates an expected call of GetPluginPublicKeys.
+func (mr *MockClientMockRecorder) GetPluginPublicKeys(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPluginPublicKeys", reflect.TypeOf((*MockClient)(nil).GetPluginPublicKeys), ctx)
 }
 
 // GetPlugins mocks base method.
