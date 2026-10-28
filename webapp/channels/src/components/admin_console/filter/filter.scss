@@ -1,7 +1,6 @@
 .Filter {
     position: relative;
     display: inline-block;
-    padding-left: 8px;
 
     // Held-open state. Compass's :active is momentary, so drive this off
     // aria-expanded, which is already the source of truth for the popover.

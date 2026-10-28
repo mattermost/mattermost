@@ -205,7 +205,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
 
         return (
             <SettingsGroup>
-                <div className='banner'>
+                <div className='banner info'>
                     <FormattedMessage {...messages.noteDescription}/>
                 </div>
                 <div className='form-group'>
