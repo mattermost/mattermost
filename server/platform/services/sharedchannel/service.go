@@ -47,6 +47,7 @@ type ServerIface interface {
 	Log() *mlog.Logger
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 	GetMetrics() einterfaces.MetricsInterface
+	GetCluster() einterfaces.ClusterInterface
 }
 
 type PlatformIface interface {
@@ -451,7 +452,7 @@ func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
 		// This empty channelID is a deliberate marker for a global user sync task
 		task := newSyncTask("", "", rc.RemoteId, nil, nil)
 		task.schedule = time.Now().Add(NotifyMinimumDelay)
-		scs.addTask(task)
+		scs.enqueueTask(task)
 
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduled global user sync task for remote",
 			mlog.String("remote", rc.DisplayName),

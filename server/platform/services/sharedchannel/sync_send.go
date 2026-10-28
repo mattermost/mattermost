@@ -6,6 +6,7 @@ package sharedchannel
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -78,7 +79,7 @@ func (scs *Service) NotifyChannelChanged(channelID string) {
 
 	task := newSyncTask(channelID, "", "", nil, nil)
 	task.schedule = time.Now().Add(NotifyMinimumDelay)
-	scs.addTask(task)
+	scs.enqueueTask(task)
 }
 
 // NotifyUserProfileChanged is called to indicate that a user has modified their user
@@ -114,7 +115,7 @@ func (scs *Service) NotifyUserProfileChanged(userID string) {
 		notified[combo] = struct{}{}
 		task := newSyncTask(user.ChannelId, "", user.RemoteId, nil, nil)
 		task.schedule = time.Now().Add(NotifyMinimumDelay)
-		scs.addTask(task)
+		scs.enqueueTask(task)
 	}
 }
 
@@ -161,7 +162,7 @@ func (scs *Service) NotifyUserStatusChanged(status *model.Status) {
 		notified[combo] = struct{}{}
 		task := newSyncTask(user.ChannelId, user.UserId, user.RemoteId, existingMsg, nil)
 		task.schedule = time.Now().Add(NotifyMinimumDelay)
-		scs.addTask(task)
+		scs.enqueueTask(task)
 	}
 }
 
@@ -243,8 +244,76 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 	for _, scr := range scrs {
 		task := newSyncTask(scr.ChannelId, "", rc.RemoteId, nil, nil)
 		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		scs.enqueueTask(task)
+	}
+}
+
+// clusterSyncTask is a sync task forwarded from a follower node to the cluster leader.
+type clusterSyncTask struct {
+	ChannelID      string         `json:"channel_id,omitempty"`
+	UserID         string         `json:"user_id,omitempty"`
+	RemoteID       string         `json:"remote_id,omitempty"`
+	OriginRemoteID string         `json:"origin_remote_id,omitempty"`
+	ExistingMsg    *model.SyncMsg `json:"existing_msg,omitempty"`
+}
+
+// enqueueTask queues a task on the node running the sync loop. Follower nodes never
+// process their queue, so they forward the task to the cluster leader instead.
+func (scs *Service) enqueueTask(task syncTask) {
+	if scs.Active() || !scs.forwardTaskToLeader(task) {
 		scs.addTask(task)
 	}
+}
+
+// forwardTaskToLeader sends the task to the other cluster nodes, where only the active
+// leader queues it. Returns false if this node is not a follower in a cluster.
+func (scs *Service) forwardTaskToLeader(task syncTask) bool {
+	cluster := scs.server.GetCluster()
+	if cluster == nil || scs.server.IsLeader() {
+		return false
+	}
+
+	data, err := json.Marshal(clusterSyncTask{
+		ChannelID:      task.channelID,
+		UserID:         task.userID,
+		RemoteID:       task.remoteID,
+		OriginRemoteID: task.originRemoteID,
+		ExistingMsg:    task.existingMsg,
+	})
+	if err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to marshal sync task for cluster leader",
+			mlog.String("channel_id", task.channelID),
+			mlog.Err(err),
+		)
+		return true
+	}
+
+	cluster.SendClusterMessage(&model.ClusterMessage{
+		Event:    model.ClusterEventSharedChannelSyncTask,
+		SendType: model.ClusterSendReliable,
+		Data:     data,
+	})
+	return true
+}
+
+// HandleClusterSyncTask queues a sync task forwarded by a follower node.
+func (scs *Service) HandleClusterSyncTask(msg *model.ClusterMessage) {
+	if !scs.Active() {
+		return
+	}
+
+	var data clusterSyncTask
+	if err := json.Unmarshal(msg.Data, &data); err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to unmarshal sync task from cluster",
+			mlog.Err(err),
+		)
+		return
+	}
+
+	task := newSyncTask(data.ChannelID, data.UserID, data.RemoteID, data.ExistingMsg, nil)
+	task.originRemoteID = data.OriginRemoteID
+	task.schedule = time.Now().Add(NotifyMinimumDelay)
+	scs.addTask(task)
 }
 
 // addTask adds or re-adds a task to the queue.

@@ -1962,6 +1962,10 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 	return s.platform.Metrics()
 }
 
+func (s *Server) GetCluster() einterfaces.ClusterInterface {
+	return s.platform.Cluster()
+}
+
 // setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {

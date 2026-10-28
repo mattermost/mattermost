@@ -198,7 +198,7 @@ func (a *App) NotifySharedChannelUserUpdate(user *model.User) {
 // (username, email, profile image, ...)
 func (a *App) onUserProfileChange(userID string) {
 	syncService := a.Srv().GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
+	if syncService == nil {
 		return
 	}
 	syncService.NotifyUserProfileChanged(userID)

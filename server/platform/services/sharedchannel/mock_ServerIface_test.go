@@ -56,6 +56,26 @@ func (_m *MockServerIface) Config() *model.Config {
 	return r0
 }
 
+// GetCluster provides a mock function with no fields
+func (_m *MockServerIface) GetCluster() einterfaces.ClusterInterface {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCluster")
+	}
+
+	var r0 einterfaces.ClusterInterface
+	if rf, ok := ret.Get(0).(func() einterfaces.ClusterInterface); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(einterfaces.ClusterInterface)
+		}
+	}
+
+	return r0
+}
+
 // GetMetrics provides a mock function with no fields
 func (_m *MockServerIface) GetMetrics() einterfaces.MetricsInterface {
 	ret := _m.Called()

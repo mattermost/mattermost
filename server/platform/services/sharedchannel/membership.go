@@ -26,7 +26,7 @@ func (scs *Service) NotifyMembershipChanged(channelID string, originRemoteID str
 	task := newSyncTask(channelID, "", "", nil, nil)
 	task.originRemoteID = originRemoteID
 	task.schedule = time.Now().Add(NotifyMinimumDelay)
-	scs.addTask(task)
+	scs.enqueueTask(task)
 }
 
 // ForceMembershipSyncForRemote triggers a sync for all channels shared with the specified remote.
