@@ -184,7 +184,7 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 
 		reader := newReverseLineReader(file, size, logReadBlockSize)
 		toSkip := page * perPage
-		for len(lines) != perPage {
+		for len(lines) < perPage {
 			line, err := reader.Next()
 			if err == io.EOF {
 				break
