@@ -11,33 +11,29 @@ import (
 )
 
 // BenchmarkGetSubjectChannelRole measures the channel role lookup the channel_read_access
-// broadcast hook makes for every recipient of an event, for a user in many channels.
+// broadcast hook makes for every recipient of an event. The cache holds one entry per
+// membership, so the user's other channels don't affect the lookup and one is enough.
 func BenchmarkGetSubjectChannelRole(b *testing.B) {
 	th := Setup(b).InitBasic(b)
 
-	const channelCount = 1000
 	channelStore := th.App.Srv().Store().Channel()
-	var channelID string
-	for range channelCount {
-		channel, err := channelStore.Save(th.Context, &model.Channel{
-			TeamId:      th.BasicTeam.Id,
-			Name:        "bench-" + model.NewId(),
-			DisplayName: "Bench",
-			Type:        model.ChannelTypeOpen,
-		}, -1)
-		require.NoError(b, err)
-		_, err = channelStore.SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   channel.Id,
-			UserId:      th.BasicUser2.Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-			SchemeUser:  true,
-		})
-		require.NoError(b, err)
-		channelID = channel.Id
-	}
+	channel, err := channelStore.Save(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		Name:        "bench-" + model.NewId(),
+		DisplayName: "Bench",
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(b, err)
+	_, err = channelStore.SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      th.BasicUser2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(b, err)
 
 	lookup := func(b *testing.B) {
-		role, appErr := th.App.GetSubjectChannelRole(th.Context, th.BasicUser2.Id, channelID)
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, th.BasicUser2.Id, channel.Id)
 		require.Nil(b, appErr)
 		require.Equal(b, model.ChannelUserRoleId, role)
 	}
