@@ -7,8 +7,6 @@ import {defineMessages, useIntl} from 'react-intl';
 import {Combobox} from '@mattermost/compass-ui/components/combobox';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {A11yAttributeNames} from 'utils/constants';
-
 import {
     attributeComboboxKeyGuard,
     attributeComboboxMouseDownGuard,
@@ -113,7 +111,6 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
         // guard, focus can leave the input and the key guard stops seeing Escape.
         // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- key and focus guards only; the Combobox input owns keyboard interaction
         <div
-            {...{[A11yAttributeNames.SKIP_INITIAL_FOCUS]: ''}}
             onKeyDown={attributeComboboxKeyGuard}
             onMouseDown={attributeComboboxMouseDownGuard}
         >
