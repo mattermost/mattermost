@@ -5,6 +5,9 @@ import type {Client4} from '@mattermost/client';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+// The layout of the logs query's date_from and date_to, which the server parses
+const FILTER_DATE_LAYOUT = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/;
+
 /**
  * Write a uniquely identifiable entry to the server log.
  *
@@ -136,7 +139,7 @@ test.describe('System Console - Reporting - Server Logs', () => {
             // status alone would not catch a format change. The end is left open so the
             // server ends the range at its own clock.
             const body = (await queryRequest).postDataJSON();
-            expect(body.date_from).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/);
+            expect(body.date_from).toMatch(FILTER_DATE_LAYOUT);
             expect(body.date_to).toBe('');
             expect((await queryResponse).status()).toBe(200);
 
@@ -148,6 +151,63 @@ test.describe('System Console - Reporting - Server Logs', () => {
 
             // * Verify the unfiltered list comes back
             await expect(serverLogs.rows.first()).toBeVisible();
+        },
+    );
+
+    /**
+     * @objective Verify a custom time range sends both bounds to the logs query API in a format
+     * the server accepts.
+     */
+    test(
+        'applies a custom time range through the logs query API',
+        {tag: ['@system_console', '@server_logs']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+            const marker = `pw-log-${pw.random.id()}`;
+
+            // # Write a uniquely identifiable entry to the server log
+            await writeServerLogEntry(adminClient, marker);
+
+            // # Log in as admin and go to the server logs page
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.gotoServerLogs();
+            await systemConsolePage.toBeVisible();
+
+            const serverLogs = systemConsolePage.serverLogs;
+            await serverLogs.toBeVisible();
+
+            // # Wait for the entry to reach the page
+            await expect(async () => {
+                await serverLogs.reloadButton.click();
+                await expect(serverLogs.row(marker)).toBeVisible({timeout: 2000});
+            }).toPass({timeout: 30000});
+
+            // # Apply the default custom range, the last hour
+            const page = systemConsolePage.page;
+            const queryRequest = page.waitForRequest(
+                (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
+            );
+            const queryResponse = page.waitForResponse((response) => response.url().includes('/api/v4/logs/query'));
+            await serverLogs.applyDefaultCustomRange();
+
+            // * Verify both bounds are sent in the layout the server parses, start before end
+            const body = (await queryRequest).postDataJSON();
+            expect(body.date_from).toMatch(FILTER_DATE_LAYOUT);
+            expect(body.date_to).toMatch(FILTER_DATE_LAYOUT);
+            expect(body.date_from < body.date_to).toBe(true);
+            expect((await queryResponse).status()).toBe(200);
+
+            // * Verify the just-written entry is inside the range, which ends with the current minute
+            await expect(serverLogs.row(marker)).toBeVisible();
+
+            // * Verify the duration field shows the range rather than a preset
+            await expect(serverLogs.durationValue).toHaveValue(/–/);
+
+            // # Clear the range
+            await serverLogs.selectDuration('All time');
+
+            // * Verify the duration field is back to all time
+            await expect(serverLogs.durationValue).toHaveValue('All time');
         },
     );
 

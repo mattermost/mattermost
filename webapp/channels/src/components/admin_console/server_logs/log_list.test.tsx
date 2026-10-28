@@ -60,9 +60,10 @@ const baseProps = {
     pollIntervals: [5000],
     pollIntervalLabels: {5000: {id: 'test.pollInterval.5s', defaultMessage: 'Every 5 seconds'}},
     timePresets: [],
-    activeTimePreset: null,
+    timeRange: null,
     onTimePreset: jest.fn(),
-    onClearTimePreset: jest.fn(),
+    onCustomRange: jest.fn(),
+    onClearTimeRange: jest.fn(),
     nodes: [] as string[],
     selectedNode: '',
     onSelectedNodeChange: jest.fn(),
@@ -709,14 +710,14 @@ describe('components/admin_console/server_logs/LogList', () => {
         ];
 
         test('should drop entries older than the active time range', () => {
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5});
+            renderListWith({logs: timeRangeLogs, timeRange: 5});
 
             expect(rowMessages().sort()).toEqual(['Failed to fetch logs from node', 'recent', 'unparseable']);
             expect(document.querySelector('.LogViewer__footer-info')).toHaveTextContent('of 3');
         });
 
         test('should keep an entry exactly at the cutoff', () => {
-            renderListWith({logs: [makeLog('edge', '2026-03-12T10:05:00.000Z')], activeTimePreset: 5});
+            renderListWith({logs: [makeLog('edge', '2026-03-12T10:05:00.000Z')], timeRange: 5});
 
             expect(rowMessages()).toEqual(['edge']);
         });
@@ -729,14 +730,14 @@ describe('components/admin_console/server_logs/LogList', () => {
                     makeLog('old utc', '2026-03-12 10:04:59.000 Z'),
                     makeLog('recent utc', '2026-03-12 10:05:45.000 Z'),
                 ],
-                activeTimePreset: 5,
+                timeRange: 5,
             });
 
             expect(rowMessages()).toEqual(['recent', 'recent utc']);
         });
 
         test('should count only entries in the time range per level', () => {
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5});
+            renderListWith({logs: timeRangeLogs, timeRange: 5});
 
             openLevelsMenu();
             expect(levelMenuItem('Info')).toHaveTextContent('Info2');
@@ -744,20 +745,20 @@ describe('components/admin_console/server_logs/LogList', () => {
         });
 
         test('should count only entries in the time range as the search total', () => {
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, search: 'recent'});
+            renderListWith({logs: timeRangeLogs, timeRange: 5, search: 'recent'});
 
             expect(screen.getByText(/of 1 entries matching your filters \(3 total\)/)).toBeInTheDocument();
         });
 
         test('should show every entry without a time range', () => {
-            renderListWith({logs: timeRangeLogs, activeTimePreset: null});
+            renderListWith({logs: timeRangeLogs, timeRange: null});
 
             expect(rowMessages()).toHaveLength(4);
         });
 
         test('should still hide a failed node when errors are turned off', () => {
             pinAscendingSort({enabledLevels: ['info']});
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5});
+            renderListWith({logs: timeRangeLogs, timeRange: 5});
 
             expect(rowMessages()).not.toContain('Failed to fetch logs from node');
             expect(rowMessages().sort()).toEqual(['recent', 'unparseable']);
@@ -766,20 +767,20 @@ describe('components/admin_console/server_logs/LogList', () => {
         test('should only keep an entry older than the time range when the server marked it as a failed node', () => {
             // Same message as the failed-node entry, but logged by the node itself
             const logged = makeLog('Failed to fetch logs from node', '2026-03-12T09:00:00.000Z', LogLevelEnum.ERROR);
-            renderListWith({logs: [logged, makeLog('recent', '2026-03-12T10:05:30.000Z')], activeTimePreset: 5});
+            renderListWith({logs: [logged, makeLog('recent', '2026-03-12T10:05:30.000Z')], timeRange: 5});
 
             expect(rowMessages()).toEqual(['recent']);
         });
 
         test('should offer to clear a time range that filters out every entry', () => {
-            const onClearTimePreset = jest.fn();
-            renderListWith({logs: [makeLog('old', '2026-03-12T10:04:59.000Z')], activeTimePreset: 5, onClearTimePreset});
+            const onClearTimeRange = jest.fn();
+            renderListWith({logs: [makeLog('old', '2026-03-12T10:04:59.000Z')], timeRange: 5, onClearTimeRange});
 
             expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
             expect(screen.queryByText(/No logs found/)).not.toBeInTheDocument();
 
             fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
-            expect(onClearTimePreset).toHaveBeenCalledTimes(1);
+            expect(onClearTimeRange).toHaveBeenCalledTimes(1);
         });
 
         test('should go back to the first page when the time range changes', () => {
@@ -794,7 +795,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 <StatefulLogList
                     {...baseProps}
                     logs={makeLogs(60)}
-                    activeTimePreset={15}
+                    timeRange={15}
                 />,
             );
 
@@ -810,10 +811,81 @@ describe('components/admin_console/server_logs/LogList', () => {
                 ],
                 nodes: ['node-a', 'node-b'],
                 selectedNode: 'node-a',
-                activeTimePreset: 5,
+                timeRange: 5,
             });
 
             expect(rowMessages()).toEqual(['a recent']);
+        });
+    });
+
+    describe('custom time range', () => {
+        beforeEach(pinAscendingSort);
+
+        const customRange = {
+            from: Date.parse('2026-03-12T10:00:00.000Z'),
+            to: Date.parse('2026-03-12T10:30:00.000Z'),
+        };
+
+        // The failed-node entry is outside the range on purpose
+        const rangeLogs = [
+            makeLog('before', '2026-03-12T09:59:59.000Z'),
+            makeLog('start', '2026-03-12T10:00:00.000Z'),
+            makeLog('inside', '2026-03-12 12:15:00.000 +02:00'),
+            makeLog('end', '2026-03-12T10:30:00.000Z'),
+            makeLog('after', '2026-03-12T10:30:01.000Z'),
+            makeLog('unparseable', 'not a timestamp'),
+            makeFailedNodeLog('node-b', '2026-03-12 11:00:00.000 +00:00'),
+        ];
+
+        test('should keep only entries within both bounds, inclusive', () => {
+            renderListWith({logs: rangeLogs, timeRange: customRange});
+
+            expect(rowMessages()).toEqual(['start', 'inside', 'end', 'unparseable', 'Failed to fetch logs from node']);
+        });
+
+        test('should show the range in the duration field', () => {
+            renderListWith({timeRange: customRange});
+
+            // Intl separates the parts with thin and narrow no-break spaces
+            expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Mar 12, 10:00 – 10:30 AM');
+        });
+
+        test('should mark the custom range as the selected duration', () => {
+            renderListWith({timeRange: customRange});
+
+            fireEvent.click(screen.getByLabelText('Open menu to select a time range'));
+
+            expect(screen.getByRole('menuitemradio', {name: 'Custom range…'})).toHaveAttribute('aria-checked', 'true');
+            expect(screen.getByRole('menuitemradio', {name: 'All time'})).toHaveAttribute('aria-checked', 'false');
+        });
+
+        test('should offer to clear a custom range that filters out every entry', () => {
+            const onClearTimeRange = jest.fn();
+            renderListWith({logs: [makeLog('after', '2026-03-12T11:00:00.000Z')], timeRange: customRange, onClearTimeRange});
+
+            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+
+            fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+            expect(onClearTimeRange).toHaveBeenCalledTimes(1);
+        });
+
+        test('should not offer live tail intervals while a custom range is active', () => {
+            renderListWith({timeRange: customRange});
+
+            fireEvent.click(screen.getByLabelText('Open menu to turn live tail on or off'));
+
+            const interval = screen.getByRole('menuitemradio', {name: /^Every 5 seconds/});
+            expect(interval).toHaveAttribute('aria-disabled', 'true');
+            expect(interval).toHaveAccessibleDescription('Not available with a custom time range');
+        });
+
+        test('should show the year of a range from an earlier year', () => {
+            renderListWith({timeRange: {
+                from: Date.parse('2025-12-31T23:00:00.000Z'),
+                to: Date.parse('2026-01-01T01:00:00.000Z'),
+            }});
+
+            expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Dec 31, 2025, 11:00 PM – Jan 1, 2026, 1:00 AM');
         });
     });
 

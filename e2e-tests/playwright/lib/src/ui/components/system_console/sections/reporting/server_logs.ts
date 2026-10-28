@@ -92,6 +92,18 @@ export default class ServerLogs {
         await this.page().getByRole('menuitemradio', {name: duration, exact: true}).click();
     }
 
+    /**
+     * Open the custom range dialog from the Duration menu and apply the range it
+     * starts with, the last hour.
+     */
+    async applyDefaultCustomRange() {
+        await this.selectDuration('Custom range…');
+        const dialog = this.page().getByRole('dialog', {name: 'Custom time range'});
+        await expect(dialog).toBeVisible();
+        await dialog.getByRole('button', {name: 'Apply'}).click();
+        await expect(dialog).not.toBeVisible();
+    }
+
     async selectStructuredFormat() {
         await this.selectLogFormat('Structured');
     }

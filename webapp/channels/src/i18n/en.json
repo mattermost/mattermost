@@ -9879,6 +9879,30 @@
     "defaultMessage": "Copy to clipboard",
     "description": "Accessible label for the icon button that copies a field value of a log entry on the System Console Server Logs page."
   },
+  "admin.logs.customRange.apply": {
+    "defaultMessage": "Apply",
+    "description": "Confirm button of the custom time range dialog on the System Console Server Logs page; applies the selected start and end as the log filter."
+  },
+  "admin.logs.customRange.errorOrder": {
+    "defaultMessage": "The start must be before the end.",
+    "description": "Error in the custom time range dialog on the System Console Server Logs page when the selected start is not before the selected end."
+  },
+  "admin.logs.customRange.from": {
+    "defaultMessage": "From",
+    "description": "Heading above the start date and time pickers in the custom time range dialog on the System Console Server Logs page; the range starts here."
+  },
+  "admin.logs.customRange.timezone": {
+    "defaultMessage": "Times are in your timezone: {timezone}",
+    "description": "Subheading of the custom time range dialog on the System Console Server Logs page. {timezone} is the timezone from the user display settings, e.g. \"(UTC-05:00) Eastern Time (US & Canada)\"."
+  },
+  "admin.logs.customRange.title": {
+    "defaultMessage": "Custom time range",
+    "description": "Title of the dialog for picking a start and end date and time to filter the System Console Server Logs page."
+  },
+  "admin.logs.customRange.to": {
+    "defaultMessage": "To",
+    "description": "Heading above the end date and time pickers in the custom time range dialog on the System Console Server Logs page; the range ends here."
+  },
   "admin.logs.detail.caller": {
     "defaultMessage": "Caller",
     "description": "Field label in an expanded log entry on the System Console Server Logs page; the source file and line that wrote the log follows."
@@ -10014,6 +10038,10 @@
   "admin.logs.liveTail": {
     "defaultMessage": "Live tail",
     "description": "Label of the live tail selector on the System Console Server Logs page; when on, new log entries are fetched automatically."
+  },
+  "admin.logs.liveTail.customRange": {
+    "defaultMessage": "Not available with a custom time range",
+    "description": "Explanation in the live tail menu on the System Console Server Logs page for why automatic refresh intervals are disabled while a custom time range with a fixed end is selected."
   },
   "admin.logs.liveTail.dropdownAriaLabel": {
     "defaultMessage": "Live tail menu",
@@ -10186,6 +10214,10 @@
   "admin.logs.time.allTime": {
     "defaultMessage": "All time",
     "description": "Option in the time range filter on the System Console Server Logs page; shows entries regardless of age."
+  },
+  "admin.logs.time.custom": {
+    "defaultMessage": "Custom range…",
+    "description": "Option in the time range filter on the System Console Server Logs page; opens a dialog to pick a start and end date and time."
   },
   "admin.logs.title": {
     "defaultMessage": "Server Logs",

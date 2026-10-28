@@ -363,10 +363,11 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 getRoundedTime(nowInTimezone, timePickerInterval || 60);
         }
 
+        // Past dates are allowed, so today has no earliest time and keeps the one already chosen
         let result: Moment;
-        if (modifiers.today) {
+        if (modifiers.today && !allowPastDates) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            if (!allowPastDates && isBeforeTime(baseTime, effectiveTime)) {
+            if (isBeforeTime(baseTime, effectiveTime)) {
                 baseTime.hour(effectiveTime.hours());
                 baseTime.minute(effectiveTime.minutes());
             }

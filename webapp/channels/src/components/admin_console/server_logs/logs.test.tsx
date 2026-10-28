@@ -5,6 +5,7 @@ import React from 'react';
 
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
+import {fakeNow} from 'tests/helpers/date';
 import {renderWithContext, userEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import Logs from './logs';
@@ -307,11 +308,6 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         jest.useRealTimers();
     });
 
-    // Fakes only the clock, so the promises and timers the tests wait on keep running
-    function fakeNow(now: string) {
-        jest.useFakeTimers({now: new Date(now), doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'nextTick', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback', 'cancelIdleCallback', 'performance', 'hrtime']});
-    }
-
     test('should send the enabled levels with the query', async () => {
         const getLogs = jest.fn().mockResolvedValue({});
         renderLogs(getLogs);
@@ -353,6 +349,81 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
 
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: ''})));
         expect(await screen.findByText(/No logs found/)).toBeInTheDocument();
+    });
+
+    function rangeTimeInput(bound: 'From' | 'To') {
+        return within(screen.getByRole('group', {name: bound})).getByLabelText('Time');
+    }
+
+    async function typeRangeTime(bound: 'From' | 'To', time: string) {
+        await userEvent.clear(rangeTimeInput(bound));
+        await userEvent.type(rangeTimeInput(bound), time);
+        await userEvent.tab();
+    }
+
+    test('should send both bounds of a custom range and show it in the duration field', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+
+        // Defaults to the last hour, ending at the current minute
+        expect(rangeTimeInput('From')).toHaveValue('11:00 AM');
+        expect(rangeTimeInput('To')).toHaveValue('12:00 PM');
+        expect(screen.getByText(/Times are in your timezone/)).toBeInTheDocument();
+
+        await typeRangeTime('From', '11:12');
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
+
+        // The end covers its whole minute
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: '2026-10-20 11:12:00.000 +00:00',
+            dateTo: '2026-10-20 12:00:59.999 +00:00',
+        })));
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Oct 20, 11:12 AM – 12:00 PM');
+
+        await pickMenuItem('Open menu to select a time range', 'All time');
+
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '', dateTo: ''})));
+    });
+
+    test('should not apply a custom range that ends before it starts', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await typeRangeTime('To', '10:00');
+
+        expect(screen.getByText('The start must be before the end.')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+        expect(getLogs).toHaveBeenCalledTimes(1);
+    });
+
+    test('should not let a custom range end in the future', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        renderLogs(jest.fn().mockResolvedValue({}));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await typeRangeTime('To', '13:00');
+
+        expect(rangeTimeInput('To')).toHaveValue('12:00 PM');
+    });
+
+    test('should turn off live tail when a custom range is applied', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        renderLogs(jest.fn().mockResolvedValue({}));
+
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+        expect(screen.getByLabelText('Live tail')).toHaveValue('Every 10 seconds');
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
+
+        expect(screen.getByLabelText('Live tail')).toHaveValue('Off');
     });
 
     test('should not start a fetch until the previous one has finished', async () => {

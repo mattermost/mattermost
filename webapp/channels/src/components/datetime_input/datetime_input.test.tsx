@@ -4,6 +4,7 @@
 import moment from 'moment-timezone';
 import React from 'react';
 
+import {fakeNow} from 'tests/helpers/date';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import * as timezoneUtils from 'utils/timezone';
 
@@ -152,6 +153,33 @@ describe('components/datetime_input/DateTimeInput', () => {
             await userEvent.click(futureButton);
 
             expect(baseProps.handleChange).toHaveBeenCalled();
+        });
+
+        test('should keep the chosen time when picking today with past dates allowed', async () => {
+            // The calendar decides which day is today from the real clock
+            fakeNow('2025-06-08T10:00:00Z');
+            mockGetCurrentMomentForTimezone.mockReturnValue(moment.tz('2025-06-08T10:00:00Z', 'UTC'));
+            const handleChange = jest.fn();
+
+            try {
+                renderWithContext(
+                    <DateTimeInput
+                        {...baseProps}
+                        time={moment.tz('2025-06-07T09:12:00Z', 'UTC')}
+                        handleChange={handleChange}
+                        allowPastDates={true}
+                        manualTimeEntry={true}
+                    />,
+                );
+
+                await userEvent.click(screen.getByText('Date').closest('.date-time-input')!);
+                await userEvent.click(screen.getByText('8')); // June 8th, today
+
+                expect(handleChange).toHaveBeenCalled();
+                expect(handleChange.mock.lastCall[0].toISOString()).toBe('2025-06-08T09:12:00.000Z');
+            } finally {
+                jest.useRealTimers();
+            }
         });
     });
 
