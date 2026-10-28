@@ -81,10 +81,7 @@ func rowOwners(predicate func(table listingTable) sq.Sqlizer) sq.Sqlizer {
 func listingSourceCondition(source string) sq.Sqlizer {
 	pluginSource := sq.And{
 		attrIsNonEmptyString(listingRowTable, model.PropertyAttrsSourcePluginID),
-		sq.Or{
-			sq.Expr("(Attrs->? = 'true'::jsonb) IS TRUE", model.PropertyAttrsProtected),
-			sq.Eq{"Protected": true},
-		},
+		sq.Expr("(Attrs->? = 'true'::jsonb) IS TRUE", model.PropertyAttrsProtected),
 	}
 
 	switch source {

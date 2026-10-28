@@ -632,6 +632,17 @@ func TestSearchGlobalAttributeListingPluginCreatedField(t *testing.T) {
 		assert.Equal(t, []string{ordinary.Name}, managedRows)
 	})
 
+	t.Run("the protected column alone does not make a field plugin-sourced", func(t *testing.T) {
+		columnOnly := env.create(model.PropertyFieldObjectTypeUser, env.name("column_only"), func(f *model.PropertyField) {
+			f.Attrs = model.StringInterface{model.PropertyAttrsSourcePluginID: pluginIDs[0]}
+			f.Protected = true
+			f.PermissionField = model.NewPointer(model.PermissionLevelNone)
+		})
+
+		row := env.row(env.mustSearch(), columnOnly.Name)
+		assert.Equal(t, model.GlobalAttributeSourceKindManaged, row.SourceKind)
+	})
+
 	require.Nil(t, th.App.DisablePlugin(pluginIDs[0]))
 	require.Nil(t, th.App.ch.RemovePlugin(pluginIDs[0]))
 }

@@ -194,12 +194,11 @@ func listingOwners(field *model.PropertyField, linked []*model.PropertyField) []
 
 // listingSourceKind classifies where a row's definition comes from, the way the
 // Source column does: a plugin-created protected field, a field synced from an
-// identity source, or neither. Owners do not change it. The protected column
-// counts as well as the attr so the kind agrees with the source filter, which
-// reads both.
+// identity source, or neither. Owners do not change it. Protection is read from
+// the protected attr, as the access control hook and the source filter read it.
 func listingSourceKind(field *model.PropertyField) string {
 	sourcePluginID, _ := field.Attrs[model.PropertyAttrsSourcePluginID].(string)
-	if sourcePluginID != "" && (model.IsPropertyFieldProtected(field) || field.Protected) {
+	if sourcePluginID != "" && model.IsPropertyFieldProtected(field) {
 		return model.GlobalAttributeSourceKindPlugin
 	}
 	if model.IsPropertyFieldSynced(field) {
