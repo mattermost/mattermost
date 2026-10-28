@@ -841,7 +841,7 @@ def main(argv: list[str]) -> int:
     if command == "check-links" and len(argv) > 2:
         # Only the lines this change adds: older entries link pages that have since moved,
         # which is for the docs team's own link check, not a reason to block this PR.
-        diff = _git("diff", "--unified=0", f"{argv[2]}...HEAD", "--", CHANGELOG_GLOB)
+        diff = _git("diff", "--unified=0", f"{argv[2]}...HEAD", "--", *(argv[3:] or [CHANGELOG_GLOB]))
         if diff.returncode != 0:
             raise RuntimeError(f"git diff {argv[2]}...HEAD failed: {diff.stderr.strip()}")
         lines = added_lines(diff.stdout)
@@ -849,9 +849,9 @@ def main(argv: list[str]) -> int:
         checked = sum(len(docs_urls(text)) for _, _, text in lines)
         for p in problems:
             print(f"::error file={p['file']},line={p['line']},title=Broken docs link::{p['url']}: {p['problem']}")
-        print(f"{checked} docs.mattermost.com link(s) added to the changelog; {len(problems)} broken")
+        print(f"{checked} docs.mattermost.com link(s) added; {len(problems)} broken")
         return 1 if problems else 0
-    print("usage: changelog_release.py resolve | reviewers SECTIONS_JSON | check-links BASE_REF", file=sys.stderr)
+    print("usage: changelog_release.py resolve | reviewers SECTIONS_JSON | check-links BASE_REF [PATH...]", file=sys.stderr)
     return 2
 
 
