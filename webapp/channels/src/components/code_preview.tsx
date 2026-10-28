@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -74,6 +74,10 @@ const CodePreview = ({
         }
     }, [fileInfo.extension, fileInfo.size, fileUrl, prevFileUrl]);
 
+    // A fetch that resolves after the user moved to another file must not report its source as the new file's.
+    const currentFileUrl = useRef(fileUrl);
+    currentFileUrl.current = fileUrl;
+
     const shouldNotGetCode = !codeInfo.lang || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE;
 
     useEffect(() => {
@@ -119,6 +123,9 @@ const CodePreview = ({
                     return;
                 }
                 const text = await data.text();
+                if (currentFileUrl.current !== fileUrl) {
+                    return;
+                }
                 handleReceivedCode(text);
             } catch {
                 handleReceivedError();
