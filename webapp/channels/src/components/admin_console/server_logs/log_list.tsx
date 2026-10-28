@@ -449,6 +449,7 @@ export default function LogList({
                 ref={searchInputRef}
                 type='text'
                 name='serverLogsSearch'
+                maxLength={256}
                 containerClassName='LogViewer__search'
                 placeholder={intl.formatMessage({id: 'admin.logs.search.placeholder', defaultMessage: 'Search logs'})}
                 value={searchInput}

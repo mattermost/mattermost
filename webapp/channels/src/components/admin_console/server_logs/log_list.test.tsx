@@ -365,6 +365,12 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             expect(screen.getByText('Loading logs')).toBeInTheDocument();
         });
+
+        test('should limit the search to the length the server accepts', () => {
+            renderListWith({logs: []});
+
+            expect(screen.getByLabelText('Search logs')).toHaveAttribute('maxlength', '256');
+        });
     });
 
     describe('truncation notice', () => {
