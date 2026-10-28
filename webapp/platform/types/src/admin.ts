@@ -61,8 +61,7 @@ export type LogFilterQuery = {
 };
 
 export type AdminState = {
-    // Entries keyed by the node they came from
-    logs: Record<string, LogObject[]>;
+    logs: {[node: string]: LogObject[]};
     plainLogs: string[];
     audits: Record<string, Audit>;
     config: Partial<AdminConfig>;
