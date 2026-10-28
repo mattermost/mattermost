@@ -3,6 +3,8 @@
 
 import {combineReducers} from 'redux';
 
+import {UserTypes} from 'mattermost-redux/action_types';
+
 import {ActionTypes} from 'utils/constants';
 
 import type {MMAction} from 'types/store';
@@ -14,6 +16,8 @@ function section(state: ProductRailSection = 'channels', action: MMAction): Prod
         return action.data.section;
     case ActionTypes.PRODUCT_RAIL_PATH_VIEWED:
         return action.data.section ?? state;
+    case UserTypes.LOGOUT_SUCCESS:
+        return 'channels';
     default:
         return state;
     }
@@ -60,6 +64,10 @@ function lastPathByTeam(state: LastPaths = {}, action: MMAction): LastPaths {
         }
         return merged;
     }
+
+    // Logging out doesn't reload the page, so the next user to log in on it mustn't inherit these.
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -71,6 +79,8 @@ function lastPathsLoaded(state = false, action: MMAction): boolean {
     switch (action.type) {
     case ActionTypes.PRODUCT_RAIL_PATHS_LOADED:
         return true;
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
     default:
         return state;
     }

@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserTypes} from 'mattermost-redux/action_types';
+
 import {productRailPathsLoaded, productRailPathViewed, setProductRailSection} from 'actions/views/product_rail';
 
 import productRailReducer from './product_rail';
@@ -69,5 +71,13 @@ describe('productRail reducer', () => {
             channels: {team1: '/one/channels/roadmap'},
         });
         expect(state.section).toBe('channels');
+    });
+
+    test('should forget everything on logout, so the next user on the page starts afresh', () => {
+        let state = productRailReducer(initial, productRailPathsLoaded({threads: {team1: '/one/threads/saved'}}));
+        state = productRailReducer(state, productRailPathViewed('boards', 'team1', '/one/channels/roadmap', 'boards'));
+        state = productRailReducer(state, {type: UserTypes.LOGOUT_SUCCESS});
+
+        expect(state).toEqual(initial);
     });
 });
