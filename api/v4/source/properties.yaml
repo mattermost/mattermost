@@ -388,11 +388,11 @@
       summary: Search the Global Attributes listing
       description: >
         Returns every row of the Global Attributes listing matching the search
-        term: every access_control template, plus every system-level user,
-        channel, or post field linked to no template. Each row carries the
-        values derived from the fields linked to it (the resources it applies
-        to, its owners, its source, and any user attribute whose name it
-        collides with).
+        term and source: every access_control template, plus every
+        system-level user, channel, or post field linked to no template. Each
+        row carries the values derived from the fields linked to it (the
+        resources it applies to, its owners, its source, and any user attribute
+        whose name it collides with).
 
 
         Rows are sorted by display name (falling back to the field name),
@@ -420,6 +420,20 @@
                   description: >
                     Case-insensitive substring matched against the display
                     name and the field name.
+                source:
+                  type: string
+                  enum:
+                    - managed
+                    - plugin
+                    - ldap
+                    - saml
+                    - openid
+                  description: >
+                    Keep only rows from this source. `plugin` matches a field
+                    created by a plugin or owned by one; `ldap`, `saml`, and
+                    `openid` match a field synced from that identity source;
+                    `managed` matches a field with no plugin, sync source, or
+                    owner. Omit for every source.
       responses:
         "200":
           description: Listing retrieval successful

@@ -133,6 +133,10 @@ func (e *listingEnv) rowByID(listing *model.GlobalAttributeListing, id string) *
 	return nil
 }
 
+func withSource(source string) func(*model.GlobalAttributeListingSearch) {
+	return func(s *model.GlobalAttributeListingSearch) { s.Source = source }
+}
+
 func withTerm(term string) func(*model.GlobalAttributeListingSearch) {
 	return func(s *model.GlobalAttributeListingSearch) { s.Term = term }
 }
@@ -414,6 +418,22 @@ func TestSearchGlobalAttributeListingOwners(t *testing.T) {
 		row := env.row(env.mustSearch(withTerm(template.Name)), template.Name)
 		assert.Equal(t, model.GlobalAttributeSourceKindManaged, row.SourceKind)
 	})
+
+	t.Run("the source filter sees a plugin owner on the linked user field", func(t *testing.T) {
+		template := env.template(env.name("plugin_owned"))
+		env.linked(template, model.PropertyFieldObjectTypeUser, env.name("plugin_owned_u"), withOwners(plugin))
+		serviceOwned := env.template(env.name("service_owned"))
+		env.linked(serviceOwned, model.PropertyFieldObjectTypeUser, env.name("service_owned_u"), withOwners(scim))
+
+		pluginRows := listingRowNames(env.mustSearch(withSource(model.GlobalAttributeSourcePlugin)))
+		assert.Contains(t, pluginRows, template.Name)
+		assert.NotContains(t, pluginRows, serviceOwned.Name)
+
+		// An owned attribute is not "managed here", whoever owns it.
+		managedRows := listingRowNames(env.mustSearch(withSource(model.GlobalAttributeSourceManaged)))
+		assert.NotContains(t, managedRows, template.Name)
+		assert.NotContains(t, managedRows, serviceOwned.Name)
+	})
 }
 
 func TestSearchGlobalAttributeListingReadParity(t *testing.T) {
@@ -518,6 +538,35 @@ func TestSearchGlobalAttributeListingSourceParity(t *testing.T) {
 			assert.Equal(t, tt.syncSources, row.SyncSources)
 		})
 	}
+
+	t.Run("the source filter agrees with the reported source kind and sync sources", func(t *testing.T) {
+		listing := env.mustSearch(withSource(model.GlobalAttributeSourcePlugin))
+		for _, row := range listing.Rows {
+			assert.Equal(t, model.GlobalAttributeSourceKindPlugin, row.SourceKind, row.Field.Name)
+		}
+		assert.NotEmpty(t, listing.Rows)
+
+		for _, source := range model.PropertySyncSources() {
+			listing := env.mustSearch(withSource(source))
+			assert.NotEmpty(t, listing.Rows, source)
+			for _, row := range listing.Rows {
+				assert.Contains(t, row.SyncSources, source, row.Field.Name)
+			}
+		}
+
+		for _, row := range env.mustSearch(withSource(model.GlobalAttributeSourceManaged)).Rows {
+			assert.Equal(t, model.GlobalAttributeSourceKindManaged, row.SourceKind, row.Field.Name)
+			assert.Empty(t, row.SyncSources, row.Field.Name)
+		}
+	})
+
+	t.Run("a field synced from several sources matches each", func(t *testing.T) {
+		field := env.create(model.PropertyFieldObjectTypeUser, env.name("multi"), withAttrs(model.StringInterface{"ldap": "a", "saml": "b"}))
+
+		assert.Contains(t, listingRowNames(env.mustSearch(withSource(model.GlobalAttributeSourceLDAP))), field.Name)
+		assert.Contains(t, listingRowNames(env.mustSearch(withSource(model.GlobalAttributeSourceSAML))), field.Name)
+		assert.NotContains(t, listingRowNames(env.mustSearch(withSource(model.GlobalAttributeSourceOpenID))), field.Name)
+	})
 }
 
 func TestSearchGlobalAttributeListingPluginCreatedField(t *testing.T) {
@@ -569,12 +618,18 @@ func TestSearchGlobalAttributeListingPluginCreatedField(t *testing.T) {
 
 	ordinary := env.create(model.PropertyFieldObjectTypeUser, env.name("ordinary"))
 
-	t.Run("it is reported as plugin-sourced", func(t *testing.T) {
+	t.Run("it is reported as plugin-sourced and listed under the plugin filter only", func(t *testing.T) {
 		listing := env.mustSearch()
 		row := env.row(listing, pluginFieldName)
 		assert.Equal(t, model.GlobalAttributeSourceKindPlugin, row.SourceKind)
 		assert.Equal(t, pluginIDs[0], row.Field.Attrs[model.PropertyAttrsSourcePluginID])
 		assert.Equal(t, model.GlobalAttributeSourceKindManaged, env.row(listing, ordinary.Name).SourceKind)
+
+		pluginRows := listingRowNames(env.mustSearch(withSource(model.GlobalAttributeSourcePlugin)))
+		assert.Equal(t, []string{pluginFieldName}, pluginRows)
+
+		managedRows := listingRowNames(env.mustSearch(withSource(model.GlobalAttributeSourceManaged)))
+		assert.Equal(t, []string{ordinary.Name}, managedRows)
 	})
 
 	require.Nil(t, th.App.DisablePlugin(pluginIDs[0]))

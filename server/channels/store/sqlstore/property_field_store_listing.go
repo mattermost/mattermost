@@ -14,6 +14,96 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// listingTable is a table reference in the listing query. It is the only value
+// the predicates below put into SQL text; everything else is a bound
+// parameter. Only the two constants exist, and name rejects any other value.
+type listingTable int
+
+const (
+	// listingRowTable is the listing row itself.
+	listingRowTable listingTable = iota
+	// listingChildTable is a field linked to a template row, aliased lf.
+	listingChildTable
+)
+
+func (t listingTable) name() string {
+	switch t {
+	case listingRowTable:
+		return "PropertyFields"
+	case listingChildTable:
+		return "lf"
+	}
+	panic(fmt.Sprintf("unknown listing table %d", int(t)))
+}
+
+// The predicates below read a field's stored Attrs, mirroring the webapp's
+// getSourceKind, getPropertyFieldSyncSources and getFieldOwners. Each ends in
+// IS TRUE so a missing or mistyped key reads as false rather than NULL, which
+// would otherwise drop the row from a negated filter.
+
+func attrIsNonEmptyString(table listingTable, key string) sq.Sqlizer {
+	attrs := table.name() + ".Attrs"
+	return sq.Expr("(jsonb_typeof("+attrs+"->?) = 'string' AND "+attrs+"->>? <> '') IS TRUE", key, key)
+}
+
+func ownersIsNonEmpty(table listingTable) sq.Sqlizer {
+	attrs := table.name() + ".Attrs"
+	return sq.Expr("(jsonb_typeof("+attrs+"->?) = 'array' AND "+attrs+"->? <> '[]'::jsonb) IS TRUE",
+		model.PropertyAttrsOwners, model.PropertyAttrsOwners)
+}
+
+func ownersHasPlugin(table listingTable) sq.Sqlizer {
+	return sq.Expr("("+table.name()+".Attrs->? @> ?::jsonb) IS TRUE",
+		model.PropertyAttrsOwners, `[{"type":"`+model.PropertyOwnerTypePlugin+`"}]`)
+}
+
+// liveLinkedChild matches a template with a live linked field of the given
+// object type, optionally also satisfying extra predicates on that field (lf).
+func liveLinkedChild(objectType string, extra ...sq.Sqlizer) sq.Sqlizer {
+	cond := sq.And{
+		sq.Expr("lf.LinkedFieldID = PropertyFields.ID"),
+		sq.Eq{"lf.DeleteAt": 0, "lf.ObjectType": objectType},
+	}
+	return sq.Expr("EXISTS (SELECT 1 FROM PropertyFields lf WHERE ?)", append(cond, extra...))
+}
+
+// rowOwners applies an owners predicate to the field that carries a row's
+// owners: a user field's own Attrs, or for a template the live user field
+// linked to it. Rows of any other object type have no owners.
+func rowOwners(predicate func(table listingTable) sq.Sqlizer) sq.Sqlizer {
+	return sq.Or{
+		sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeUser}, predicate(listingRowTable)},
+		sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeTemplate}, liveLinkedChild(model.PropertyFieldObjectTypeUser, predicate(listingChildTable))},
+	}
+}
+
+func listingSourceCondition(source string) sq.Sqlizer {
+	pluginSource := sq.And{
+		attrIsNonEmptyString(listingRowTable, model.PropertyAttrsSourcePluginID),
+		sq.Or{
+			sq.Expr("(Attrs->? = 'true'::jsonb) IS TRUE", model.PropertyAttrsProtected),
+			sq.Eq{"Protected": true},
+		},
+	}
+
+	switch source {
+	case model.GlobalAttributeSourcePlugin:
+		return sq.Or{pluginSource, rowOwners(ownersHasPlugin)}
+	case model.GlobalAttributeSourceManaged:
+		// Any owner already covers a plugin owner.
+		managed := sq.And{
+			sq.Expr("NOT (?)", pluginSource),
+			sq.Expr("NOT (?)", rowOwners(ownersIsNonEmpty)),
+		}
+		for _, syncSource := range model.PropertySyncSources() {
+			managed = append(managed, sq.Expr("NOT (?)", attrIsNonEmptyString(listingRowTable, model.PropertySyncSourceAttr(syncSource))))
+		}
+		return managed
+	default:
+		return attrIsNonEmptyString(listingRowTable, model.PropertySyncSourceAttr(source))
+	}
+}
+
 func listingWhere(opts model.GlobalAttributeListingOpts) sq.Sqlizer {
 	where := sq.And{
 		sq.Eq{"GroupID": opts.GroupID},
@@ -38,6 +128,10 @@ func listingWhere(opts model.GlobalAttributeListingOpts) sq.Sqlizer {
 			sq.Expr("LOWER(Attrs->>?) LIKE LOWER(?) ESCAPE '*'", model.PropertyFieldAttrDisplayName, pattern),
 			sq.Expr("LOWER(Name) LIKE LOWER(?) ESCAPE '*'", pattern),
 		})
+	}
+
+	if opts.Source != "" {
+		where = append(where, listingSourceCondition(opts.Source))
 	}
 
 	return where

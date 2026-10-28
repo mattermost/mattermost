@@ -15,15 +15,32 @@ import (
 func TestListingWhereBindsEveryInput(t *testing.T) {
 	const hostile = `x'); DROP TABLE PropertyFields; --`
 
-	sql, args, err := listingWhere(model.GlobalAttributeListingOpts{
-		GroupID:              hostile,
-		Term:                 hostile,
-		AllowedResourceTypes: []string{hostile},
-		ExcludeIDs:           []string{hostile},
-	}).ToSql()
-	require.NoError(t, err)
+	for _, source := range []string{
+		"",
+		model.GlobalAttributeSourceManaged,
+		model.GlobalAttributeSourcePlugin,
+		model.GlobalAttributeSourceLDAP,
+		hostile,
+	} {
+		t.Run("source "+source, func(t *testing.T) {
+			sql, args, err := listingWhere(model.GlobalAttributeListingOpts{
+				GroupID:              hostile,
+				Term:                 hostile,
+				Source:               source,
+				AllowedResourceTypes: []string{hostile},
+				ExcludeIDs:           []string{hostile},
+			}).ToSql()
+			require.NoError(t, err)
 
-	assert.NotContains(t, sql, "DROP TABLE", "request input must never reach the SQL text")
-	assert.NotContains(t, sql, "'x'", "request input must never reach the SQL text")
-	assert.Contains(t, args, hostile, "request input travels as a bound argument")
+			assert.NotContains(t, sql, "DROP TABLE", "request input must never reach the SQL text")
+			assert.NotContains(t, sql, "'x'", "request input must never reach the SQL text")
+			assert.Contains(t, args, hostile, "request input travels as a bound argument")
+		})
+	}
+}
+
+func TestListingTableName(t *testing.T) {
+	assert.Equal(t, "PropertyFields", listingRowTable.name())
+	assert.Equal(t, "lf", listingChildTable.name())
+	assert.Panics(t, func() { _ = listingTable(99).name() })
 }
