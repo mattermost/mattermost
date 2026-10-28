@@ -388,11 +388,11 @@
       summary: Search the Global Attributes listing
       description: >
         Returns every row of the Global Attributes listing matching the search
-        term and source: every system-level access_control template, plus
-        every system-level user, channel, or post field linked to no template.
-        Each row carries the values derived from the fields linked to it (the
-        resources it applies to, its owners, its source, and any user attribute
-        whose name it collides with).
+        term, source, and resource type: every system-level access_control
+        template, plus every system-level user, channel, or post field linked
+        to no template. Each row carries the values derived from the fields
+        linked to it (the resources it applies to, its owners, its source, and
+        any user attribute whose name it collides with).
 
 
         Rows are sorted by display name (falling back to the field name),
@@ -434,6 +434,20 @@
                     `openid` match a field synced from that identity source;
                     `managed` matches a field with no plugin, sync source, or
                     owner. Omit for every source.
+                resource_type:
+                  type: string
+                  enum:
+                    - user
+                    - channel
+                    - post
+                  description: >
+                    Keep only rows applying to this resource type: a template
+                    with a live linked field of that type, or an unlinked field
+                    of that type. A type this server does not offer (channel
+                    attributes need the ChannelAttributes feature flag and an
+                    Enterprise Advanced licence, post attributes the
+                    PostAttributes feature flag) lists nothing. Omit for every
+                    resource type.
       responses:
         "200":
           description: Listing retrieval successful
