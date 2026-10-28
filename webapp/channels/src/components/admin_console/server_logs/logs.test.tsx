@@ -597,6 +597,25 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         )));
     });
 
+    test('should drop entries that age out of the time range on a poll that brings nothing new', async () => {
+        jest.useFakeTimers({now: new Date('2026-10-20T09:44:00Z'), doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'nextTick', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback', 'cancelIdleCallback', 'performance', 'hrtime']});
+        const {getLogs, getNewLogs} = renderLogs([
+            timedLog('node-a', 'older', '2026-10-20 09:40:00.000 Z'),
+            timedLog('node-a', 'newer', '2026-10-20 09:43:00.000 Z'),
+        ]);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        expect(screen.getByText('older')).toBeInTheDocument();
+
+        jest.setSystemTime(new Date('2026-10-20T09:46:00Z'));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(screen.queryByText('older')).not.toBeInTheDocument());
+        expect(screen.getByText('newer')).toBeInTheDocument();
+    });
+
     test('should only ask the selected node', async () => {
         localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({node: 'node-b'}));
         const {getLogs, getNewLogs} = renderLogs([timedLog('node-b', 'b1', '2026-10-20 09:40:01.000 Z')], ['node-b']);

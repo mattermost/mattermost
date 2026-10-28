@@ -19,7 +19,7 @@ import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Stats} from 'mattermost-redux/constants';
 import PluginState from 'mattermost-redux/constants/plugins';
-import {logEntryKey, parseLogTimestamp} from 'mattermost-redux/utils/log_utils';
+import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
 
 // The most entries the server returns for a node in one query
 const MAX_LOGS_PER_NODE = 10000;
@@ -27,18 +27,17 @@ const MAX_LOGS_PER_NODE = 10000;
 // New entries are fetched from the newest loaded timestamp onwards, so they repeat the entries
 // from that millisecond, and older nodes that ignore the date filter repeat everything
 function mergeLogEntries(existing: LogObject[], incoming: LogObject[]): LogObject[] {
-    // The entry standing in for a node that could not be reached only describes the latest response,
-    // but is kept while the node stays unreachable so its row doesn't change on every poll
+    // The entry standing in for a node that could not be reached only describes the latest response
     const kept = existing.filter((entry) => !entry.failed_node);
-    if (incoming.length > 0 && incoming.every((entry) => entry.failed_node) && kept.length < existing.length) {
-        return existing;
+    if (incoming.length === 0) {
+        return kept.length === existing.length ? existing : kept;
     }
 
     // Only entries from the oldest incoming timestamp onwards can be repeats
-    const since = incoming.reduce((min, entry) => Math.min(min, parseLogTimestamp(entry.timestamp)), Infinity);
+    const since = incoming.reduce((min, entry) => Math.min(min, logEntryTime(entry)), Infinity);
     const repeats = new Map<string, number>();
     for (const entry of kept) {
-        if (!(parseLogTimestamp(entry.timestamp) < since)) {
+        if (!(logEntryTime(entry) < since)) {
             const key = logEntryKey(entry);
             repeats.set(key, (repeats.get(key) ?? 0) + 1);
         }

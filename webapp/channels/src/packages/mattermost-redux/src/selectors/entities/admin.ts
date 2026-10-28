@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {LogNodeKey} from '@mattermost/types/admin';
-import type {LogObjectWithNode} from '@mattermost/types/admin';
+import type {LogObject, LogObjectWithNode} from '@mattermost/types/admin';
 import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import type {PluginStatusRedux} from '@mattermost/types/plugins';
 import type {GlobalState} from '@mattermost/types/store';
@@ -23,12 +23,20 @@ export const getAllLogs = createSelector(
     (logs) => Object.values(logs).flat(),
 );
 
+// A poll keeps the stored entries it doesn't change, so their tagged copies are reused too
+const entriesWithNode = new WeakMap<LogObject, LogObjectWithNode>();
+
 export const getAllLogsWithNode = createSelector(
     'getAllLogsWithNode',
     getLogs,
-    (logs) => Object.entries(logs).flatMap(([node, entries]) =>
-        entries.map((entry): LogObjectWithNode => ({...entry, [LogNodeKey]: node})),
-    ),
+    (logs) => Object.entries(logs).flatMap(([node, entries]) => entries.map((entry) => {
+        let tagged = entriesWithNode.get(entry);
+        if (tagged === undefined) {
+            tagged = {...entry, [LogNodeKey]: node};
+            entriesWithNode.set(entry, tagged);
+        }
+        return tagged;
+    })),
 );
 
 // Includes nodes that returned no entries, which the flattened entries can't show

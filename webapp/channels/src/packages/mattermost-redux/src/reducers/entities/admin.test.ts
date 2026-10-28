@@ -1104,12 +1104,12 @@ describe('reducers.entities.admin', () => {
             expect(actual).toBe(state);
         });
 
-        it('RECEIVED_NEW_LOGS keeps one failed node entry while the node stays unreachable, and drops it once it answers', () => {
+        it('RECEIVED_NEW_LOGS replaces a failed node entry instead of piling them up', () => {
             const failed = (timestamp: string) => makeLog('Failed to fetch logs from node', timestamp, {failed_node: true});
             const a1 = makeLog('a1', t1);
 
-            const failing = {'node-a': [a1, failed(t2)]};
-            expect(receiveNewLogs(failing, {'node-a': [failed(t3)]})).toBe(failing);
+            const stillFailing = receiveNewLogs({'node-a': [a1, failed(t2)]}, {'node-a': [failed(t3)]});
+            expect(stillFailing['node-a']).toEqual([a1, failed(t3)]);
 
             const recovered = receiveNewLogs({'node-a': [a1, failed(t2)]}, {'node-a': []});
             expect(recovered['node-a']).toEqual([a1]);

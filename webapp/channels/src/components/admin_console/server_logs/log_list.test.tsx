@@ -5,7 +5,7 @@ import React, {useState} from 'react';
 
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
-import {act, renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
+import {renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import LogList, {loadPrefs} from './log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
@@ -61,6 +61,7 @@ const baseProps = {
     pollIntervalLabels: {5000: {id: 'test.pollInterval.5s', defaultMessage: 'Every 5 seconds'}},
     timePresets: [],
     activeTimePreset: null,
+    timeRangeStart: null,
     onTimePreset: jest.fn(),
     onClearTimePreset: jest.fn(),
     nodes: [] as string[],
@@ -696,6 +697,9 @@ describe('components/admin_console/server_logs/LogList', () => {
             jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-03-12T10:10:00.000Z'));
         });
 
+        // Five minutes before the mocked now
+        const timeRangeStart = Date.parse('2026-03-12T10:05:00.000Z');
+
         afterEach(() => {
             jest.restoreAllMocks();
         });
@@ -709,14 +713,14 @@ describe('components/admin_console/server_logs/LogList', () => {
         ];
 
         test('should drop entries older than the active time range', () => {
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5});
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, timeRangeStart});
 
             expect(rowMessages().sort()).toEqual(['Failed to fetch logs from node', 'recent', 'unparseable']);
             expect(document.querySelector('.LogViewer__footer-info')).toHaveTextContent('of 3');
         });
 
         test('should keep an entry exactly at the cutoff', () => {
-            renderListWith({logs: [makeLog('edge', '2026-03-12T10:05:00.000Z')], activeTimePreset: 5});
+            renderListWith({logs: [makeLog('edge', '2026-03-12T10:05:00.000Z')], activeTimePreset: 5, timeRangeStart});
 
             expect(rowMessages()).toEqual(['edge']);
         });
@@ -730,13 +734,14 @@ describe('components/admin_console/server_logs/LogList', () => {
                     makeLog('recent utc', '2026-03-12 10:05:45.000 Z'),
                 ],
                 activeTimePreset: 5,
+                timeRangeStart,
             });
 
             expect(rowMessages()).toEqual(['recent', 'recent utc']);
         });
 
         test('should count only entries in the time range per level', () => {
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5});
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, timeRangeStart});
 
             openLevelsMenu();
             expect(levelMenuItem('Info')).toHaveTextContent('Info2');
@@ -744,7 +749,7 @@ describe('components/admin_console/server_logs/LogList', () => {
         });
 
         test('should count only entries in the time range as the search total', () => {
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, search: 'recent'});
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, timeRangeStart, search: 'recent'});
 
             expect(screen.getByText(/of 1 entries matching your filters \(3 total\)/)).toBeInTheDocument();
         });
@@ -757,7 +762,7 @@ describe('components/admin_console/server_logs/LogList', () => {
 
         test('should still hide a failed node when errors are turned off', () => {
             pinAscendingSort({enabledLevels: ['info']});
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5});
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, timeRangeStart});
 
             expect(rowMessages()).not.toContain('Failed to fetch logs from node');
             expect(rowMessages().sort()).toEqual(['recent', 'unparseable']);
@@ -766,14 +771,14 @@ describe('components/admin_console/server_logs/LogList', () => {
         test('should only keep an entry older than the time range when the server marked it as a failed node', () => {
             // Same message as the failed-node entry, but logged by the node itself
             const logged = makeLog('Failed to fetch logs from node', '2026-03-12T09:00:00.000Z', LogLevelEnum.ERROR);
-            renderListWith({logs: [logged, makeLog('recent', '2026-03-12T10:05:30.000Z')], activeTimePreset: 5});
+            renderListWith({logs: [logged, makeLog('recent', '2026-03-12T10:05:30.000Z')], activeTimePreset: 5, timeRangeStart});
 
             expect(rowMessages()).toEqual(['recent']);
         });
 
         test('should offer to clear a time range that filters out every entry', () => {
             const onClearTimePreset = jest.fn();
-            renderListWith({logs: [makeLog('old', '2026-03-12T10:04:59.000Z')], activeTimePreset: 5, onClearTimePreset});
+            renderListWith({logs: [makeLog('old', '2026-03-12T10:04:59.000Z')], activeTimePreset: 5, timeRangeStart, onClearTimePreset});
 
             expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
             expect(screen.queryByText(/No logs found/)).not.toBeInTheDocument();
@@ -811,6 +816,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 nodes: ['node-a', 'node-b'],
                 selectedNode: 'node-a',
                 activeTimePreset: 5,
+                timeRangeStart,
             });
 
             expect(rowMessages()).toEqual(['a recent']);
@@ -1004,24 +1010,14 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(newRowMessages()).toEqual([]);
         });
 
-        test('should move the time range on with each poll, even when nothing new arrives', () => {
-            jest.useFakeTimers({now: new Date('2026-03-12T10:04:58.000Z')});
-            try {
-                renderUpdatable([first, makeLog('recent', '2026-03-12T10:04:00.000Z')], {
-                    liveTailEnabled: true,
-                    timePresets: [{label: {id: 'test.time.5m', defaultMessage: 'Last 5 minutes'}, minutes: 5}],
-                    activeTimePreset: 5,
-                });
-                expect(rowMessages()).toEqual(['recent', 'msg 1']);
+        test('should drop entries that age out when the parent moves the time range on', () => {
+            const props = {activeTimePreset: 5, timePresets: [{label: {id: 'test.time.5m', defaultMessage: 'Last 5 minutes'}, minutes: 5}]};
+            const {update} = renderUpdatable([first, makeLog('recent', '2026-03-12T10:04:00.000Z')], {...props, timeRangeStart: Date.parse('2026-03-12T10:00:00.000Z')});
+            expect(rowMessages()).toEqual(['recent', 'msg 1']);
 
-                act(() => {
-                    jest.advanceTimersByTime(5000);
-                });
+            update([first, makeLog('recent', '2026-03-12T10:04:00.000Z')], {timeRangeStart: Date.parse('2026-03-12T10:00:05.000Z')});
 
-                expect(rowMessages()).toEqual(['recent']);
-            } finally {
-                jest.useRealTimers();
-            }
+            expect(rowMessages()).toEqual(['recent']);
         });
 
         test('should show a full reload as it is, without holding or highlighting', () => {

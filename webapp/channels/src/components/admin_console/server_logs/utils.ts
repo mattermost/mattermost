@@ -3,7 +3,7 @@
 
 import {LogNodeKey} from '@mattermost/types/admin';
 
-import {parseLogTimestamp} from 'mattermost-redux/utils/log_utils';
+import {logEntryTime} from 'mattermost-redux/utils/log_utils';
 
 import type {LogObjectWithAdditionalInfo} from './types';
 
@@ -22,7 +22,7 @@ export function newestLogTimes(logs: LogObjectWithAdditionalInfo[]): Record<stri
     const newest: Record<string, number> = {};
     for (const log of logs) {
         const node = log[LogNodeKey] ?? '';
-        const time = parseLogTimestamp(log.timestamp);
+        const time = logEntryTime(log);
         if (log.failed_node !== true && !Number.isNaN(time) && !(newest[node] >= time)) {
             newest[node] = time;
         }

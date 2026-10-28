@@ -15,6 +15,8 @@ import {Client4} from 'mattermost-redux/client';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import {useLatest} from 'hooks/useLatest';
+
 import LogFormatMenu from './log_format_menu';
 import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
@@ -76,11 +78,6 @@ function formatFilterDate(date: Date): string {
     return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.${pad(date.getUTCMilliseconds(), 3)} +00:00`;
 }
 
-// No end date, so the server ends the range at its own clock rather than the browser's
-function presetStart(minutes: number): string {
-    return formatFilterDate(new Date(presetStartMs(minutes)));
-}
-
 const ALL_SERVER_NAMES: LogServerNames = [];
 const LOG_LEVELS: LogLevels = [LogLevelEnum.ERROR, LogLevelEnum.WARN, LogLevelEnum.INFO, LogLevelEnum.DEBUG];
 
@@ -116,6 +113,9 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
 
+    // Moved on by every fetch, so entries age out of the range even when a poll brings nothing new
+    const [timeRangeStart, setTimeRangeStart] = useState<number | null>(null);
+
     // Node-filtered responses only hold the selected node, so the list only ever grows
     const [knownNodes, setKnownNodes] = useState<string[]>([]);
     useEffect(() => {
@@ -131,10 +131,8 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
     ), [knownNodes, selectedNode]);
 
     // Read by polls, which must not change reload and so trigger a full reload
-    const logsRef = useRef(logs);
-    logsRef.current = logs;
-    const logNodesRef = useRef(logNodes);
-    logNodesRef.current = logNodes;
+    const logsRef = useLatest(logs);
+    const logNodesRef = useLatest(logNodes);
 
     // One fetch at a time, so a slow response can't overwrite a newer one
     const fetchQueueRef = useRef<Promise<unknown>>(Promise.resolve());
@@ -153,6 +151,9 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
             setLoading(true);
         }
 
+        const rangeStart = activeTimePreset === null ? null : presetStartMs(activeTimePreset);
+        setTimeRangeStart(rangeStart);
+
         const fetchLogs = async () => {
             // A newer fetch is queued behind this one and would overwrite its result
             if (id !== latestFetchRef.current) {
@@ -164,8 +165,14 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
             }
             const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
             const logLevels = allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level));
-            const rangeStart = activeTimePreset === null ? '' : presetStart(activeTimePreset);
-            const fullQuery = {serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES, logLevels, dateFrom: rangeStart, dateTo: ''};
+
+            // No end date, so the server ends the range at its own clock rather than the browser's
+            const fullQuery = {
+                serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES,
+                logLevels,
+                dateFrom: rangeStart === null ? '' : formatFilterDate(new Date(rangeStart)),
+                dateTo: '',
+            };
             if (!silent) {
                 await actions.getLogs(fullQuery);
                 return;
@@ -176,10 +183,9 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
             const nodes = selectedNode ? [selectedNode] : logNodesRef.current;
             const newest = newestLogTimes(logsRef.current);
             await actions.getNewLogs(nodes.length === 0 ? [fullQuery] : nodes.map((node) => ({
+                ...fullQuery,
                 serverNames: [node],
-                logLevels,
-                dateFrom: node in newest ? formatFilterDate(new Date(newest[node])) : rangeStart,
-                dateTo: '',
+                dateFrom: node in newest ? formatFilterDate(new Date(newest[node])) : fullQuery.dateFrom,
             })));
         };
 
@@ -192,7 +198,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         });
         fetchQueueRef.current = fetched.catch(() => undefined);
         return fetched;
-    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, actions]);
+    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, actions, logsRef, logNodesRef]);
 
     // reload's deps are the query's inputs, so this also covers every filter and page change
     useEffect(() => {
@@ -265,6 +271,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
             pollIntervalLabels={POLL_INTERVAL_LABELS}
             timePresets={TIME_PRESETS}
             activeTimePreset={activeTimePreset}
+            timeRangeStart={timeRangeStart}
             onTimePreset={setActiveTimePreset}
             onClearTimePreset={clearTimePreset}
             logFormatMenu={logFormatMenu}

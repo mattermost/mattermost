@@ -4,8 +4,20 @@
 import type {LogObject} from '@mattermost/types/admin';
 
 // "2026-10-20 11:39:58.721 +02:00" isn't ISO 8601, and Safari can't parse it
-export function parseLogTimestamp(timestamp: string): number {
+function parseLogTimestamp(timestamp: string): number {
     return Date.parse(timestamp.replace(' ', 'T').replace(' ', ''));
+}
+
+// Entries keep their identity across polls, so each one is parsed once rather than on every pass
+const entryTimes = new WeakMap<LogObject, number>();
+
+export function logEntryTime(entry: LogObject): number {
+    let time = entryTimes.get(entry);
+    if (time === undefined) {
+        time = parseLogTimestamp(entry.timestamp);
+        entryTimes.set(entry, time);
+    }
+    return time;
 }
 
 // Every field counts: concurrent requests log the same message, caller and millisecond

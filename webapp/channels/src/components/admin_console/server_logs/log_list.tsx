@@ -12,17 +12,19 @@ import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {LogNodeKey} from '@mattermost/types/admin';
 
-import {logEntryKey, parseLogTimestamp} from 'mattermost-redux/utils/log_utils';
+import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
 
 import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {useLatest} from 'hooks/useLatest';
+
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {LogObjectWithAdditionalInfo} from './types';
-import {formatLogValue, newestLogTimes, presetStartMs} from './utils';
+import {formatLogValue, newestLogTimes} from './utils';
 
 import './log_list.scss';
 
@@ -56,6 +58,9 @@ type Props = {
 
     timePresets: readonly TimePreset[];
     activeTimePreset: number | null;
+
+    // Where the active time range starts, moved on by the parent with every fetch
+    timeRangeStart: number | null;
     onTimePreset: (minutes: number) => void;
     onClearTimePreset: () => void;
 
@@ -135,9 +140,10 @@ export function loadPrefs(): StoredPrefs {
     };
 }
 
-// The node is a symbol, which Object.keys skips, so it's added for nodes logging the same line
+// The node is a symbol, which Object.keys skips, so it's added for nodes logging the same line.
+// A node's failed-node entry is replaced on every poll, so it's keyed by the node alone to keep its row
 function logKey(log: LogObjectWithAdditionalInfo): string {
-    return `${log[LogNodeKey] ?? ''}|${logEntryKey(log)}`;
+    return `${log[LogNodeKey] ?? ''}|${log.failed_node === true ? 'failed_node' : logEntryKey(log)}`;
 }
 
 // Content keys keep rows mounted across reloads; identical entries get a suffix
@@ -155,18 +161,18 @@ type NodeTimes = Record<string, number>;
 
 // A node missing from the times had no entries then, so every entry it has now is newer
 function isNewerThan(log: LogObjectWithAdditionalInfo, times: NodeTimes): boolean {
-    const time = parseLogTimestamp(log.timestamp);
+    const time = logEntryTime(log);
     const since = times[log[LogNodeKey] ?? ''];
     return log.failed_node !== true && !Number.isNaN(time) && (since === undefined || time > since);
 }
 
-// Older nodes ignore the server's date filter, and a node switch shows before its fetch returns
-function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, activeTimePreset: number | null) {
-    const cutoff = activeTimePreset === null ? null : presetStartMs(activeTimePreset);
+// Older nodes ignore the server's date filter, and a node switch shows before its fetch returns.
+// Returns the same array when nothing is dropped, so a moved cutoff only re-sorts when it matters
+function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, cutoff: number | null) {
     if (!selectedNode && cutoff === null) {
         return logs;
     }
-    return logs.filter((log) => {
+    const scoped = logs.filter((log) => {
         if (selectedNode && log[LogNodeKey] !== selectedNode) {
             return false;
         }
@@ -175,9 +181,10 @@ function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, ac
         if (cutoff === null || log.failed_node === true) {
             return true;
         }
-        const time = parseLogTimestamp(log.timestamp);
+        const time = logEntryTime(log);
         return Number.isNaN(time) || time >= cutoff;
     });
+    return scoped.length === logs.length ? logs : scoped;
 }
 
 function filterLogs(logs: LogObjectWithAdditionalInfo[], enabledLevels: Set<string>, search: string, showNodes: boolean) {
@@ -212,7 +219,7 @@ export default function LogList({
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
     pollIntervals, pollIntervalLabels,
-    timePresets, activeTimePreset, onTimePreset, onClearTimePreset,
+    timePresets, activeTimePreset, timeRangeStart, onTimePreset, onClearTimePreset,
     logFormatMenu,
 }: Props) {
     const intl = useIntl();
@@ -267,12 +274,11 @@ export default function LogList({
     }, [pageSize, wrapText, enabledLevels, sortAsc, selectedNode]);
 
     // Live tail entries newer than `shown` are held back until the admin is ready for them, and
-    // those newer than `highlight` just arrived. Null during a full load, which is shown as is
-    const [tail, setTail] = useState<{shown: NodeTimes; highlight: NodeTimes | null} | null>(null);
+    // those newer than `highlight` just arrived on that page. Null during a full load, which is shown as is
+    const [tail, setTail] = useState<{shown: NodeTimes; highlight: {since: NodeTimes; page: number} | null} | null>(null);
 
     // New rows only go straight in where the admin is watching for them: the top of the first page, newest first
-    const isWatchingNewestRef = useRef((): boolean => false);
-    isWatchingNewestRef.current = () => page === 0 && !sortAsc && expandedKey === null && (listRef.current?.scrollTop ?? 0) < 1;
+    const isWatchingNewestRef = useLatest(() => page === 0 && !sortAsc && expandedKey === null && (listRef.current?.scrollTop ?? 0) < 1);
 
     // A layout effect, so held entries never flash the new entries pill before they're applied
     useLayoutEffect(() => {
@@ -284,34 +290,28 @@ export default function LogList({
             if (prev === null) {
                 return {shown: newestLogTimes(logs), highlight: null};
             }
-            return isWatchingNewestRef.current() ? {shown: newestLogTimes(logs), highlight: prev.shown} : prev;
+            return isWatchingNewestRef.current() ? {shown: newestLogTimes(logs), highlight: {since: prev.shown, page: 0}} : prev;
         });
-    }, [logs, loading]);
+    }, [logs, loading, isWatchingNewestRef]);
 
-    const {shownLogs, heldLogs} = useMemo(() => {
+    // Highlighted rows would flash again when they remount on coming back to their page
+    useEffect(() => {
+        setTail((prev) => (prev?.highlight && prev.highlight.page !== page ? {...prev, highlight: null} : prev));
+    }, [page]);
+
+    const inRangeLogs = useMemo(() => scopeLogs(logs, selectedNode, activeTimePreset === null ? null : timeRangeStart), [logs, selectedNode, activeTimePreset, timeRangeStart]);
+
+    const {scopedLogs, heldLogs} = useMemo(() => {
         if (!tail) {
-            return {shownLogs: logs, heldLogs: []};
+            return {scopedLogs: inRangeLogs, heldLogs: []};
         }
         const shown: LogObjectWithAdditionalInfo[] = [];
         const held: LogObjectWithAdditionalInfo[] = [];
-        for (const log of logs) {
+        for (const log of inRangeLogs) {
             (isNewerThan(log, tail.shown) ? held : shown).push(log);
         }
-        return {shownLogs: shown, heldLogs: held};
-    }, [logs, tail]);
-
-    // Polls only add entries, so the time range moves on with each poll even when nothing arrives
-    const [pollTick, setPollTick] = useState(0);
-    useEffect(() => {
-        if (!liveTailEnabled || activeTimePreset === null) {
-            return undefined;
-        }
-        const interval = setInterval(() => setPollTick((tick) => tick + 1), pollInterval);
-        return () => clearInterval(interval);
-    }, [liveTailEnabled, activeTimePreset, pollInterval]);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- pollTick recomputes the time range cutoff
-    const scopedLogs = useMemo(() => scopeLogs(shownLogs, selectedNode, activeTimePreset), [shownLogs, selectedNode, activeTimePreset, pollTick]);
+        return {scopedLogs: shown, heldLogs: held};
+    }, [inRangeLogs, tail]);
 
     const levelCounts = useMemo(() => {
         const counts: Record<string, number> = {error: 0, warn: 0, info: 0, debug: 0};
@@ -329,15 +329,13 @@ export default function LogList({
         // Ties fall back to file order so same-millisecond entries reverse too
         const direction = sortAsc ? 1 : -1;
         return filterLogs(scopedLogs, enabledLevels, search, showNodes).
-            map((log, index) => ({log, index, time: parseLogTimestamp(log.timestamp)})).
+            map((log, index) => ({log, index, time: logEntryTime(log)})).
             sort((a, b) => direction * ((a.time - b.time) || (a.index - b.index))).
             map(({log}) => log);
     }, [scopedLogs, enabledLevels, search, sortAsc, showNodes]);
 
     // Only held entries the current filters would show are worth announcing
-    const heldCount = useMemo(() => (
-        filterLogs(scopeLogs(heldLogs, selectedNode, activeTimePreset), enabledLevels, search, showNodes).length
-    ), [heldLogs, selectedNode, activeTimePreset, enabledLevels, search, showNodes]);
+    const heldCount = useMemo(() => filterLogs(heldLogs, enabledLevels, search, showNodes).length, [heldLogs, enabledLevels, search, showNodes]);
 
     const matchCount = search ? processedLogs.length : null;
     const totalCount = scopedLogs.length;
@@ -434,38 +432,32 @@ export default function LogList({
     });
 
     const showHeldLogs = useCallback(() => {
-        setTail((prev) => prev && {shown: newestLogTimes(logs), highlight: prev.shown});
-
         // The newest entries are at the top of the first page, or the bottom of the last one when sorted oldest first
-        setPage(sortAsc ? Math.ceil((processedLogs.length + heldCount) / pageSize) - 1 : 0);
+        const newestPage = sortAsc ? Math.ceil((processedLogs.length + heldCount) / pageSize) - 1 : 0;
+        setTail((prev) => prev && {shown: newestLogTimes(logs), highlight: {since: prev.shown, page: newestPage}});
+        setPage(newestPage);
         scrollToNewestRef.current = true;
     }, [logs, sortAsc, processedLogs.length, heldCount, pageSize]);
 
-    // Rows highlighted on another page would flash again when they remount
-    const clearHighlight = useCallback(() => setTail((prev) => prev && {...prev, highlight: null}), []);
-
     const goNextPage = useCallback(() => {
         setPage((p) => Math.min(p + 1, totalPages - 1));
-        clearHighlight();
         setExpandedKey(null);
         listRef.current?.scrollTo({top: 0});
-    }, [totalPages, clearHighlight]);
+    }, [totalPages]);
 
     const goPrevPage = useCallback(() => {
         setPage((p) => Math.max(p - 1, 0));
-        clearHighlight();
         setExpandedKey(null);
         listRef.current?.scrollTo({top: 0});
-    }, [clearHighlight]);
+    }, []);
 
     const handlePageSizeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const newSize = Number(e.target.value);
         setPageSize(newSize);
         setPage(0);
-        clearHighlight();
         setExpandedKey(null);
         setFocusedKey(null);
-    }, [clearHighlight]);
+    }, []);
 
     const toggleSort = useCallback(() => {
         setSortAsc((prev) => !prev);
@@ -913,7 +905,7 @@ export default function LogList({
                             log={log}
                             isExpanded={expandedKey === rowKeys[idx]}
                             isFocused={focusedIndex === idx}
-                            isNew={tail?.highlight ? isNewerThan(log, tail.highlight) : false}
+                            isNew={tail?.highlight?.page === page && isNewerThan(log, tail.highlight.since)}
                             onToggleExpand={handleToggleExpand}
                             onFocus={handleFocus}
                             searchTerm={search}
