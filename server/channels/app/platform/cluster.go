@@ -240,7 +240,7 @@ func (ps *PlatformService) ListPluginKeys(pluginID string, page, perPage int) ([
 func (ps *PlatformService) ListPluginKeysWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, *model.AppError) {
 	data, err := ps.Store.Plugin().ListWithOptions(pluginID, options, page*perPage, perPage)
 	if err != nil {
-		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(err))
+		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("per_page", perPage), mlog.Err(err))
 		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
