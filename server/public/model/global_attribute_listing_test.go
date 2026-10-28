@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,6 +45,26 @@ func TestGlobalAttributeListingJSON(t *testing.T) {
 		assert.NotContains(t, conflict, "owner_template")
 		assert.Equal(t, false, conflict["exact"])
 	})
+}
+
+func TestGlobalAttributeListingSearchIsValid(t *testing.T) {
+	for name, tc := range map[string]struct {
+		term  string
+		valid bool
+	}{
+		"empty term":               {"", true},
+		"term at the name limit":   {strings.Repeat("é", PropertyFieldNameMaxRunes), true},
+		"term over the name limit": {strings.Repeat("a", PropertyFieldNameMaxRunes+1), false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			s := GlobalAttributeListingSearch{Term: tc.term}
+			if tc.valid {
+				assert.NoError(t, s.IsValid())
+			} else {
+				assert.Error(t, s.IsValid())
+			}
+		})
+	}
 }
 
 func TestGlobalAttributeListingOptsIsValid(t *testing.T) {

@@ -6,6 +6,7 @@ package model
 import (
 	"fmt"
 	"slices"
+	"unicode/utf8"
 )
 
 // Source kinds a listing row reports, matching what the Source column renders:
@@ -29,6 +30,14 @@ var globalAttributeListingResourceTypes = []string{
 // listing search. An empty Term matches every row.
 type GlobalAttributeListingSearch struct {
 	Term string `json:"term,omitempty"`
+}
+
+// IsValid rejects a term longer than any field name, which could match no row.
+func (s *GlobalAttributeListingSearch) IsValid() error {
+	if utf8.RuneCountInString(s.Term) > PropertyFieldNameMaxRunes {
+		return fmt.Errorf("term is longer than %d characters", PropertyFieldNameMaxRunes)
+	}
+	return nil
 }
 
 // GlobalAttributeNameConflict is a live user field sharing a row's name

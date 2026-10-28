@@ -64,6 +64,10 @@ func searchGlobalAttributeListing(c *Context, w http.ResponseWriter, r *http.Req
 		c.SetInvalidParamWithErr("global_attribute_listing_search", err)
 		return
 	}
+	if err := search.IsValid(); err != nil {
+		c.SetInvalidParamWithErr("global_attribute_listing_search", err)
+		return
+	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventSearchGlobalAttributeListing, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)

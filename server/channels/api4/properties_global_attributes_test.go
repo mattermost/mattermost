@@ -221,6 +221,7 @@ func TestSearchGlobalAttributeListing(t *testing.T) {
 			"not JSON":            `term=abc`,
 			"empty body":          ``,
 			"wrong type for term": `{"term":5}`,
+			"term too long":       `{"term":"` + strings.Repeat("a", model.PropertyFieldNameMaxRunes+1) + `"}`,
 		} {
 			t.Run(name, func(t *testing.T) {
 				_, resp, err := searchGlobalAttributes(t, th.SystemAdminClient, body)
@@ -298,7 +299,7 @@ func TestSearchGlobalAttributeListingReturnsEveryRow(t *testing.T) {
 	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
 
 	token := "ga" + strings.ToLower(model.NewId()[:10])
-	names := make([]string, 210)
+	names := make([]string, model.AccessControlGroupFieldLimit)
 	for i := range names {
 		names[i] = fmt.Sprintf("t%03d", i)
 	}
