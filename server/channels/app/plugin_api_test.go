@@ -5780,3 +5780,88 @@ func TestPluginAPICluster(t *testing.T) {
 		assert.Equal(t, "node1", msgs[0].Props["SourceID"])
 	})
 }
+
+func TestPluginThreadFollowing(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	root, appErr := api.CreatePost(&model.Post{
+		Message:   "a root post",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	t.Run("a new thread has no followers", func(t *testing.T) {
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, followers)
+	})
+
+	t.Run("following and unfollowing a root post", func(t *testing.T) {
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, true))
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{th.BasicUser2.Id}, followers)
+
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, false))
+		followers, appErr = api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, followers)
+	})
+
+	t.Run("rejects a reply", func(t *testing.T) {
+		reply, appErr := api.CreatePost(&model.Post{
+			Message:   "a reply",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			RootId:    root.Id,
+		})
+		require.Nil(t, appErr)
+
+		appErr = api.SetThreadFollowing(th.BasicUser2.Id, reply.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.not_root_post.app_error", appErr.Id)
+	})
+
+	t.Run("rejects invalid ids", func(t *testing.T) {
+		appErr := api.SetThreadFollowing("not-an-id", root.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_user_id.app_error", appErr.Id)
+
+		appErr = api.SetThreadFollowing(th.BasicUser2.Id, "not-an-id", true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_thread_id.app_error", appErr.Id)
+
+		_, appErr = api.GetThreadFollowers("not-an-id")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_thread_id.app_error", appErr.Id)
+	})
+
+	t.Run("rejects a user that does not exist", func(t *testing.T) {
+		unknownID := model.NewId()
+		appErr := api.SetThreadFollowing(unknownID, root.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, followers, unknownID)
+	})
+
+	t.Run("leaves out a deactivated follower", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		require.Nil(t, api.SetThreadFollowing(user.Id, root.Id, true))
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, true))
+
+		_, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Contains(t, followers, th.BasicUser2.Id)
+		assert.NotContains(t, followers, user.Id)
+	})
+}

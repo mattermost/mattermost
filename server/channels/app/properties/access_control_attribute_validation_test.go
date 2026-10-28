@@ -3921,10 +3921,10 @@ func TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassificati
 	})
 }
 
-func TestAccessControlAttributeValidationHookRefusesNumberAndCheckbox(t *testing.T) {
+func TestAccessControlAttributeValidationHookRefusesUnsupportedTypes(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_number_checkbox", Version: model.PropertyGroupVersionV2})
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_unsupported_types", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID))
 
