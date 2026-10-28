@@ -364,7 +364,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var logFilter *model.LogFilter
 	err := json.NewDecoder(r.Body).Decode(&logFilter)
 	if err != nil || logFilter == nil {
-		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
