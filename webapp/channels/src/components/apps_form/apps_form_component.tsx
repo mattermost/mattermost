@@ -21,6 +21,7 @@ import SpinnerButton from 'components/spinner_button';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import {encodeMatrixValue, parseMatrixValue} from 'components/widgets/settings/checkbox_matrix_setting';
 
 import {filterEmptyOptions} from 'utils/apps';
 import {momentToString, stringToMoment, resolveRelativeDate} from 'utils/date_utils';
@@ -285,7 +286,8 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 
 // Returns the value the user entered for a field, adapted to the refreshed version of
 // that field, or undefined when it no longer fits: the field changed type, or the
-// options the user picked were removed.
+// options the user picked were removed. Matrix selections are filtered against the
+// refreshed rows and columns instead of options.
 const keepUserValue = (field: AppField, previousField: AppField | undefined, value: AppFormValue): AppFormValue | undefined => {
     if (previousField && previousField.type !== field.type) {
         return undefined;
@@ -305,6 +307,32 @@ const keepUserValue = (field: AppField, previousField: AppField | undefined, val
             return hasOption(value) ? value : undefined;
         }
         return value;
+    case AppFieldTypes.CHECKBOX_MATRIX: {
+        // A field removed by one refresh and brought back as a matrix by a later one
+        // skips the type check above, so the stored value may not be matrix entries.
+        if (!Array.isArray(value)) {
+            return undefined;
+        }
+        const rowValues = new Set((field.matrix_config?.rows || []).map((row) => row.value));
+        const columnValues = new Set((field.matrix_config?.columns || []).map((column) => column.value));
+        const singlePerRow = field.matrix_config?.row_selection === 'single';
+        const kept = new Map<string, Set<string>>();
+        const entries = (value as unknown[]).filter((entry): entry is string => typeof entry === 'string');
+        parseMatrixValue(entries).forEach((columns, rowValue) => {
+            if (!rowValues.has(rowValue)) {
+                return;
+            }
+            const keptColumns = Array.from(columns).filter((column) => columnValues.has(column));
+
+            // A single-select row can't hold several columns, and picking one would be a
+            // guess, so drop the row.
+            if (singlePerRow && keptColumns.length > 1) {
+                return;
+            }
+            kept.set(rowValue, new Set(keptColumns));
+        });
+        return encodeMatrixValue(kept);
+    }
     default:
         return value;
     }
@@ -425,8 +453,14 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     return;
                 }
                 const kept = keepUserValue(field, previousFields.get(field.name), this.userValues[field.name]);
-                if (kept !== undefined) {
+
+                // Store what was kept, so a selection dropped here is not restored if a
+                // later refresh brings its option, row or column back.
+                if (kept === undefined) {
+                    delete this.userValues[field.name];
+                } else {
                     values[field.name] = kept;
+                    this.userValues[field.name] = kept;
                 }
             });
             this.setState({form: refreshedForm, values});

@@ -2117,6 +2117,140 @@ describe('AppsFormComponent', () => {
                 expect(submit.mock.calls[0][0].values.crew).toEqual(['x']);
             });
 
+            describe('checkbox matrix', () => {
+                const matrixField = (rows: string[], columns: string[], rowSelection: 'multiple' | 'single' = 'multiple') => ({
+                    name: 'access',
+                    type: 'checkbox_matrix' as const,
+                    label: 'Access',
+                    matrix_config: {
+                        rows: rows.map((r) => ({label: r.toUpperCase(), value: r})),
+                        columns: columns.map((c) => ({label: c.toUpperCase(), value: c})),
+                        row_selection: rowSelection,
+                    },
+                });
+
+                const refreshMatrix = async (before: ReturnType<typeof matrixField>, after: ReturnType<typeof matrixField>, cells: string[]) => {
+                    const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+                    const refreshForm = jest.fn().mockResolvedValue(formResponse([after]));
+                    const {bump} = renderForm(refreshForm, {
+                        form: {...initialForm, fields: [before]},
+                        actions: {...baseProps.actions, submit},
+                    });
+
+                    for (const cell of cells) {
+                        // eslint-disable-next-line no-await-in-loop
+                        await userEvent.click(screen.getByRole(before.matrix_config.row_selection === 'single' ? 'radio' : 'checkbox', {name: cell}));
+                    }
+                    bump(1);
+
+                    await waitFor(() => {
+                        expect(refreshForm).toHaveBeenCalled();
+                        expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+                    });
+                    await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+                    await waitFor(() => {
+                        expect(submit).toHaveBeenCalled();
+                    });
+                    return submit.mock.calls[0][0].values.access;
+                };
+
+                test('should drop selections for a removed row', async () => {
+                    const value = await refreshMatrix(
+                        matrixField(['r1', 'r2'], ['c1', 'c2']),
+                        matrixField(['r1'], ['c1', 'c2']),
+                        ['R1, C1', 'R2, C2'],
+                    );
+                    expect(value).toEqual(['r1:c1']);
+                });
+
+                test('should drop a removed column and keep the other columns in that row', async () => {
+                    const value = await refreshMatrix(
+                        matrixField(['r1', 'r2'], ['c1', 'c2', 'c3']),
+                        matrixField(['r1', 'r2'], ['c1', 'c3']),
+                        ['R1, C1', 'R1, C2', 'R1, C3', 'R2, C2'],
+                    );
+                    expect(value).toEqual(['r1:c1,c3']);
+                });
+
+                test('should keep selections when rows and columns are unchanged', async () => {
+                    const value = await refreshMatrix(
+                        matrixField(['r1', 'r2'], ['c1', 'c2']),
+                        matrixField(['r1', 'r2'], ['c1', 'c2']),
+                        ['R1, C1', 'R1, C2', 'R2, C2'],
+                    );
+                    expect(value).toEqual(['r1:c1,c2', 'r2:c2']);
+                });
+
+                test('should drop a row with several columns when the matrix becomes single-select', async () => {
+                    const value = await refreshMatrix(
+                        matrixField(['r1', 'r2'], ['c1', 'c2']),
+                        matrixField(['r1', 'r2'], ['c1', 'c2'], 'single'),
+                        ['R1, C1', 'R1, C2', 'R2, C2'],
+                    );
+                    expect(value).toEqual(['r2:c2']);
+                });
+
+                test('should use the server value when a field returns as a matrix after being removed', async () => {
+                    const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+                    const refreshForm = jest.fn().
+                        mockResolvedValueOnce(formResponse([textField('text_b', 'refreshed b')])).
+                        mockResolvedValueOnce(formResponse([{...matrixField(['r1'], ['c1']), name: 'text_a', value: ['r1:c1']}]));
+                    const {bump} = renderForm(refreshForm, {actions: {...baseProps.actions, submit}});
+
+                    // # Type into text_a, which the first refresh removes
+                    await userEvent.type(screen.getByRole('textbox', {name: /text_a/}), 'typed');
+                    bump(1);
+                    await waitFor(() => {
+                        expect(screen.queryByRole('textbox', {name: /text_a/})).not.toBeInTheDocument();
+                    });
+
+                    // # The second refresh brings text_a back as a matrix
+                    bump(2);
+                    await waitFor(() => {
+                        expect(screen.getByRole('checkbox', {name: 'R1, C1'})).toBeChecked();
+                    });
+
+                    await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+                    await waitFor(() => {
+                        expect(submit).toHaveBeenCalled();
+                    });
+                    expect(submit.mock.calls[0][0].values.text_a).toEqual(['r1:c1']);
+                });
+
+                test('should not restore a dropped selection when its row returns in a later refresh', async () => {
+                    const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+                    const refreshForm = jest.fn().
+                        mockResolvedValueOnce(formResponse([matrixField(['r1'], ['c1', 'c2'])])).
+                        mockResolvedValueOnce(formResponse([matrixField(['r1', 'r2'], ['c1', 'c2'])]));
+                    const {bump} = renderForm(refreshForm, {
+                        form: {...initialForm, fields: [matrixField(['r1', 'r2'], ['c1', 'c2'])]},
+                        actions: {...baseProps.actions, submit},
+                    });
+
+                    await userEvent.click(screen.getByRole('checkbox', {name: 'R1, C1'}));
+                    await userEvent.click(screen.getByRole('checkbox', {name: 'R2, C2'}));
+
+                    bump(1);
+                    await waitFor(() => {
+                        expect(screen.queryByRole('checkbox', {name: 'R2, C2'})).not.toBeInTheDocument();
+                    });
+
+                    bump(2);
+                    await waitFor(() => {
+                        expect(screen.getByRole('checkbox', {name: 'R2, C2'})).toBeInTheDocument();
+                        expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+                    });
+                    expect(screen.getByRole('checkbox', {name: 'R2, C2'})).not.toBeChecked();
+
+                    await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+                    await waitFor(() => {
+                        expect(submit).toHaveBeenCalled();
+                    });
+                    expect(submit.mock.calls[0][0].values.access).toEqual(['r1:c1']);
+                });
+            });
+
             test('should not re-apply a user value to a field that changed type', async () => {
                 const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
                 const refreshForm = jest.fn().mockResolvedValue(formResponse([
