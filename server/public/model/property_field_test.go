@@ -70,6 +70,22 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
+	t.Run("number and checkbox are valid types", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox} {
+			pf := &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       fieldType,
+				ObjectType: PropertyFieldObjectTypePost,
+				TargetType: string(PropertyFieldTargetLevelSystem),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+			}
+			require.NoError(t, pf.IsValid(), "type %q", fieldType)
+		}
+	})
+
 	t.Run("invalid ID", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:       "invalid",
@@ -1296,6 +1312,13 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		require.NoError(t, patch.IsValid())
 	})
 
+	t.Run("number and checkbox are accepted types", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox} {
+			patch := &PropertyFieldPatch{Type: new(fieldType)}
+			require.NoError(t, patch.IsValid(), "type %q", fieldType)
+		}
+	})
+
 	t.Run("Name exceeds maximum length", func(t *testing.T) {
 		longName := strings.Repeat("a", PropertyFieldNameMaxRunes+1)
 		patch := &PropertyFieldPatch{
@@ -1378,6 +1401,31 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 	t.Run("nil PermissionValues is valid", func(t *testing.T) {
 		patch := &PropertyFieldPatch{}
 		require.NoError(t, patch.IsValid())
+	})
+}
+
+func TestPropertyFieldPatch_PermissionsDecode(t *testing.T) {
+	t.Run("absent permissions key leaves the field nil", func(t *testing.T) {
+		var patch PropertyFieldPatch
+		require.NoError(t, json.Unmarshal([]byte(`{"name":"test field"}`), &patch))
+		assert.Nil(t, patch.Permissions)
+	})
+
+	t.Run("empty permissions object gives a non-nil patch with all raw keys nil", func(t *testing.T) {
+		var patch PropertyFieldPatch
+		require.NoError(t, json.Unmarshal([]byte(`{"permissions":{}}`), &patch))
+		require.NotNil(t, patch.Permissions)
+		assert.Nil(t, patch.Permissions.Restrictions)
+		assert.Nil(t, patch.Permissions.Grants)
+		assert.Nil(t, patch.Permissions.Masking)
+	})
+
+	t.Run("permissions with an explicit null masking key clears it", func(t *testing.T) {
+		var patch PropertyFieldPatch
+		require.NoError(t, json.Unmarshal([]byte(`{"permissions":{"masking":null}}`), &patch))
+		require.NotNil(t, patch.Permissions)
+		require.NotNil(t, patch.Permissions.Masking)
+		assert.Equal(t, "null", string(patch.Permissions.Masking))
 	})
 }
 
@@ -2215,6 +2263,8 @@ func TestPropertyFieldType_SupportsOptions(t *testing.T) {
 		PropertyFieldTypeDate:        false,
 		PropertyFieldTypeUser:        false,
 		PropertyFieldTypeMultiuser:   false,
+		PropertyFieldTypeNumber:      false,
+		PropertyFieldTypeCheckbox:    false,
 		PropertyFieldType("bogus"):   false,
 	}
 
@@ -2238,6 +2288,38 @@ func TestPropertyFieldType_SupportsExternalSync(t *testing.T) {
 
 	for fieldType, expected := range cases {
 		assert.Equal(t, expected, fieldType.SupportsExternalSync(), "SupportsExternalSync for %q", fieldType)
+	}
+}
+
+func TestPropertyFieldType_IsValid(t *testing.T) {
+	for _, fieldType := range []PropertyFieldType{
+		PropertyFieldTypeText, PropertyFieldTypeSelect, PropertyFieldTypeMultiselect,
+		PropertyFieldTypeDate, PropertyFieldTypeUser, PropertyFieldTypeMultiuser,
+		PropertyFieldTypeRank, PropertyFieldTypeGraph, PropertyFieldTypeNumber,
+		PropertyFieldTypeCheckbox,
+	} {
+		assert.True(t, fieldType.IsValid(), "IsValid for %q", fieldType)
+	}
+	assert.False(t, PropertyFieldType("bogus").IsValid())
+	assert.False(t, PropertyFieldType("").IsValid())
+}
+
+func TestPropertyFieldType_SupportsAccessControl(t *testing.T) {
+	cases := map[PropertyFieldType]bool{
+		PropertyFieldTypeText:        true,
+		PropertyFieldTypeSelect:      true,
+		PropertyFieldTypeMultiselect: true,
+		PropertyFieldTypeRank:        true,
+		PropertyFieldTypeGraph:       true,
+		PropertyFieldTypeDate:        true,
+		PropertyFieldTypeUser:        true,
+		PropertyFieldTypeMultiuser:   true,
+		PropertyFieldTypeNumber:      false,
+		PropertyFieldTypeCheckbox:    false,
+	}
+
+	for fieldType, expected := range cases {
+		assert.Equal(t, expected, fieldType.SupportsAccessControl(), "SupportsAccessControl for %q", fieldType)
 	}
 }
 

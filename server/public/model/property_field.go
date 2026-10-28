@@ -43,6 +43,12 @@ const (
 	// options one at a time. A write may state it, though -- see
 	// PropertyField.OptionParentLinks.
 	PropertyFieldTypeGraph PropertyFieldType = "graph"
+	// PropertyFieldTypeNumber holds a JSON number. A null or absent value is
+	// empty. See ValidatePropertyValueForFieldType.
+	PropertyFieldTypeNumber PropertyFieldType = "number"
+	// PropertyFieldTypeCheckbox holds a JSON boolean. False, null, or an absent
+	// value is unchecked. See ValidatePropertyValueForFieldType.
+	PropertyFieldTypeCheckbox PropertyFieldType = "checkbox"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -113,6 +119,43 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeTemplate,
 	PropertyFieldObjectTypeSession,
 	PropertyFieldObjectTypeSystem,
+}
+
+// validPropertyFieldTypes contains every PropertyFieldType a field may have.
+var validPropertyFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeText,
+	PropertyFieldTypeSelect,
+	PropertyFieldTypeMultiselect,
+	PropertyFieldTypeDate,
+	PropertyFieldTypeUser,
+	PropertyFieldTypeMultiuser,
+	PropertyFieldTypeRank,
+	PropertyFieldTypeGraph,
+	PropertyFieldTypeNumber,
+	PropertyFieldTypeCheckbox,
+}
+
+// IsValid reports whether t is a known field type.
+func (t PropertyFieldType) IsValid() bool {
+	return slices.Contains(validPropertyFieldTypes, t)
+}
+
+// accessControlUnsupportedFieldTypes are the field types the access control
+// group does not accept. Access policies (CEL) and the attribute views they read
+// compare option names, user IDs, and strings; nothing in that pipeline knows
+// how to compare a number or a boolean, so these types are refused there rather
+// than half supported.
+var accessControlUnsupportedFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeNumber,
+	PropertyFieldTypeCheckbox,
+}
+
+// SupportsAccessControl reports whether a field of this type may live in the
+// access control group, where custom profile attributes, channel attributes,
+// and global post attributes are defined and read by access policies. An
+// unknown type is not refused here; IsValid reports it.
+func (t PropertyFieldType) SupportsAccessControl() bool {
+	return !slices.Contains(accessControlUnsupportedFieldTypes, t)
 }
 
 // optionFieldTypes are the property field types whose `options` attribute is
@@ -490,14 +533,7 @@ func (pf *PropertyField) IsValid() error {
 		}
 	}
 
-	if pf.Type != PropertyFieldTypeText &&
-		pf.Type != PropertyFieldTypeSelect &&
-		pf.Type != PropertyFieldTypeMultiselect &&
-		pf.Type != PropertyFieldTypeDate &&
-		pf.Type != PropertyFieldTypeUser &&
-		pf.Type != PropertyFieldTypeMultiuser &&
-		pf.Type != PropertyFieldTypeRank &&
-		pf.Type != PropertyFieldTypeGraph {
+	if !pf.Type.IsValid() {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
@@ -634,7 +670,8 @@ type PropertyFieldPatch struct {
 	TargetType    *string            `json:"target_type"`
 	LinkedFieldID *string            `json:"linked_field_id,omitempty"`
 
-	PermissionValues *PermissionLevel `json:"permission_values,omitempty"`
+	PermissionValues *PermissionLevel  `json:"permission_values,omitempty"`
+	Permissions      *PermissionsPatch `json:"permissions,omitempty"`
 }
 
 func (pfp *PropertyFieldPatch) Auditable() map[string]any {
@@ -646,6 +683,7 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 		"target_type":       pfp.TargetType,
 		"linked_field_id":   pfp.LinkedFieldID,
 		"permission_values": pfp.PermissionValues,
+		"permissions":       pfp.Permissions,
 	}
 }
 
@@ -666,15 +704,7 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
 	}
 
-	if pfp.Type != nil &&
-		*pfp.Type != PropertyFieldTypeText &&
-		*pfp.Type != PropertyFieldTypeSelect &&
-		*pfp.Type != PropertyFieldTypeMultiselect &&
-		*pfp.Type != PropertyFieldTypeDate &&
-		*pfp.Type != PropertyFieldTypeUser &&
-		*pfp.Type != PropertyFieldTypeMultiuser &&
-		*pfp.Type != PropertyFieldTypeRank &&
-		*pfp.Type != PropertyFieldTypeGraph {
+	if pfp.Type != nil && !pfp.Type.IsValid() {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
 	}
 

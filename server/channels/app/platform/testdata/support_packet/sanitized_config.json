@@ -504,6 +504,11 @@
         "RedisPassword": null,
         "RedisDB": null,
         "RedisCachePrefix": null,
+        "RedisEnableTLS": null,
+        "RedisTLSSkipVerify": null,
+        "RedisTLSCA": null,
+        "RedisTLSClientCert": null,
+        "RedisTLSClientKey": null,
         "DisableClientCache": null
     },
     "ClusterSettings": {
@@ -749,6 +754,7 @@
         "MobileEphemeralMode": false,
         "PropertyFieldRank": false,
         "PropertyFieldGraph": false,
+        "PropertyFieldPermissionsV3": false,
         "TeamMembershipAccessControl": false,
         "ChannelAttributes": false,
         "ChannelAttributesRequired": false,
