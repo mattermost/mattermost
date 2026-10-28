@@ -1150,7 +1150,7 @@ func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, chann
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if os.ready.Load() == 0 || os.syncBulkProcessor == nil {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1707,6 +1707,8 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 	if appErr != nil {
 		return appErr
 	}
+
+	defer func() { _ = client.Close() }()
 
 	// TestConfig only checks the connection: it must not change the running
 	// engine, since cfg may be an unsaved candidate config. Starting an engine
