@@ -142,7 +142,7 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 }
 
 // requeryNodesNamedBySearch replaces the searched entries of a node whose name holds the search
-// term with its unsearched ones. Once the System Console lists more than one node its search also
+// term with its unsearched ones. Once the System Console lists more than one node, a search also
 // matches node names, which aren't in the log lines, so every entry of such a node is a match.
 // Remote names are only known from the first response, hence the second query. If it fails, the
 // searched entries are kept.

@@ -1329,8 +1329,6 @@
                     are matched against their JSON. Leave empty to return every entry. When
                     more than one node is returned, a node whose name contains this text
                     returns its entries unsearched.
-                    Nodes running a version without search support ignore it and return
-                    unsearched entries.
                   example: "websocket"
       responses:
         "200":

@@ -576,7 +576,7 @@ func TestIsLogFilteredByDate(t *testing.T) {
 }
 
 func TestIsLogFilteredBySearch(t *testing.T) {
-	line := []byte(`{"timestamp":"2026-10-21 10:00:00.000 Z","level":"info","msg":"User Logged In","caller":"app/login.go:42","user_id":"abc123","count":7,"ok":true,"details":{"remote":"10.0.0.1"},"note":"say \"hi\" <b>","path":"C:\\Temp","query":{"filter":"a\u003cb","n":12345678901234567},"literal":{"p":"\\u003c"}}`)
+	line := []byte(`{"timestamp":"2026-10-21 10:00:00.000 Z","level":"info","msg":"User Logged In","caller":"app/login.go:42","user_id":"abc123","count":7,"ok":true,"details":{"remote":"10.0.0.1"},"note":"say \"hi\" <b>","path":"C:\\Temp","query":{"n":12345678901234567}}`)
 
 	for _, tc := range []struct {
 		search   string
@@ -594,9 +594,7 @@ func TestIsLogFilteredBySearch(t *testing.T) {
 		{`say "hi"`, false},
 		{"<b>", false},
 		{`c:\temp`, false},
-		{`{"filter":"a<b","n":12345678901234567}`, false},
-		{`{"p":"\\u003c"}`, false},
-		{`{"p":"<"}`, true},
+		{`{"n":12345678901234567}`, false},
 		{"missing", true},
 		{`"missing"`, true},
 		{`say "bye"`, true},
