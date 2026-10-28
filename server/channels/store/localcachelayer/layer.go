@@ -46,7 +46,7 @@ const (
 	AllChannelMembersForUserCacheSize     = model.SessionCacheSize
 	AllChannelMembersForUserCacheDuration = 15 * time.Minute
 
-	ChannelMemberRolesCacheSize     = 50000 // User+channel combos
+	ChannelMemberRolesCacheSize     = 500000 // User+channel combos; ~300 B each, so ~150-190 MB when full
 	ChannelMemberRolesCacheDuration = 15 * time.Minute
 
 	AllChannelMembersNotifyPropsForChannelCacheSize     = model.SessionCacheSize
