@@ -127,6 +127,11 @@
     line-height: 1;
 }
 
+.slash-command__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .slash-command__desc {
     overflow: hidden;
     margin: 2px 0 0;
