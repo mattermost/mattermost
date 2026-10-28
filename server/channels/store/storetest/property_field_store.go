@@ -6025,6 +6025,18 @@ func testGetLiveUserFieldsByNames(t *testing.T, ss store.Store) {
 		require.Equal(t, []string{alpha.ID}, ids(fields))
 	})
 
+	t.Run("returns option sets like any other read", func(t *testing.T) {
+		selectField := f.field(model.PropertyFieldObjectTypeUser, "eta_select", func(pf *model.PropertyField) {
+			pf.Type = model.PropertyFieldTypeSelect
+			pf.Attrs = model.StringInterface{"options": []map[string]any{{"name": "one"}, {"name": "two"}}}
+		})
+
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"eta_select"})
+		require.NoError(t, err)
+		require.Equal(t, []string{selectField.ID}, ids(fields))
+		require.Len(t, fields[0].Attrs["options"], 2)
+	})
+
 	t.Run("includes a user field linked to a template", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"gamma"})
 		require.NoError(t, err)

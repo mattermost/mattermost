@@ -363,8 +363,12 @@ func (ps *PropertyService) applyListingReadHooks(rctx request.CTX, listing *mode
 			batch = append(batch, field)
 		}
 	}
+	// Rows first, so a field that is both a row and another row's conflict is
+	// run as its row copy.
 	for _, row := range listing.Rows {
 		add(row.Field)
+	}
+	for _, row := range listing.Rows {
 		if row.NameConflict != nil {
 			add(row.NameConflict.Field)
 			if row.NameConflict.OwnerTemplate != nil {
