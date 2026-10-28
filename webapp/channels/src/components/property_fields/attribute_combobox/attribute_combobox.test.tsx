@@ -6,7 +6,7 @@ import React, {useState} from 'react';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {act, renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
-import {A11yAttributeNames, ZIndex} from 'utils/constants';
+import {ZIndex} from 'utils/constants';
 
 import {AttributeCombobox} from './attribute_combobox';
 
@@ -67,13 +67,6 @@ describe('AttributeCombobox', () => {
 
     afterEach(() => {
         document.removeEventListener('keydown', onDocumentKeyDown);
-    });
-
-    test('opts its wrapper out of SettingItemMax initial focus', () => {
-        renderWithContext(<SingleHarness/>);
-
-        const input = screen.getByRole('combobox', {name: 'Department'});
-        expect(input.closest(`[${A11yAttributeNames.SKIP_INITIAL_FOCUS}]`)).not.toBeNull();
     });
 
     test('puts the id and test id on the input and portals the menu at the given z-index', async () => {

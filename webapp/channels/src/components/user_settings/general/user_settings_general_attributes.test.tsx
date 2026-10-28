@@ -338,12 +338,21 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expectClosed();
         });
 
-        test('opens a multiselect with values with the menu closed and no chip focused', () => {
+        test('opens a single field with a value with the menu closed and the clear button focused', () => {
+            renderEditor(buildField('select'), 'opt1');
+
+            expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toHaveFocus();
+            expect(getCombobox()).not.toHaveFocus();
+            expectClosed();
+        });
+
+        test('opens a multiselect with values with the menu closed and the first chip focused', () => {
             renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
 
+            const [firstChip] = within(getSelections()!).getAllByRole('button');
             expect(getChipLabels()).toEqual(['Option 1', 'Option 2']);
-            expect(getSettingList()).toHaveFocus();
-            expect(getSelections()).not.toContainElement(document.activeElement as HTMLElement);
+            expect(firstChip).toHaveFocus();
+            expect(getCombobox()).not.toHaveFocus();
             expectClosed();
         });
 
@@ -388,16 +397,28 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         });
 
         test.each([
-            ['select', 'opt1'],
-            ['multiselect', ['opt1', 'opt2']],
-        ] as const)('Enter right after a %s section opens saves the stored value', async (type, value) => {
+            ['select', undefined],
+            ['multiselect', []],
+        ] as const)('Enter right after an empty %s section opens saves it', async (type, saved) => {
             const user = userEvent.setup();
-            const {saveCustomProfileAttribute} = renderEditor(buildField(type), value as string | string[]);
+            const {saveCustomProfileAttribute} = renderEditor(buildField(type));
+            expect(getSettingList()).toHaveFocus();
 
             await user.keyboard('{Enter}');
 
             expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
-            expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', value);
+            expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', saved);
+        });
+
+        test('Enter right after a select section with a value opens clears it on the focused clear button without saving', async () => {
+            const user = userEvent.setup();
+            const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'opt1');
+
+            await user.keyboard('{Enter}');
+
+            expect(getCombobox()).toHaveValue('');
+            expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+            expect(documentKeys()).not.toContain('Enter');
         });
 
         test.each([
@@ -414,9 +435,9 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', value);
         });
 
-        test('Tab from the expanded section into a single input opens the menu, as Compass opens on focus', async () => {
+        test('Tab from the expanded empty section into a single input opens the menu, as Compass opens on focus', async () => {
             const user = userEvent.setup();
-            renderEditor(buildField('select'), 'opt1');
+            renderEditor(buildField('select'));
             expect(getSettingList()).toHaveFocus();
             expectClosed();
 
@@ -426,17 +447,17 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expectOpen();
         });
 
-        test('Tab from an expanded multiselect with values lands on the first chip with the menu closed', async () => {
+        test('Tab from the focused first chip moves to the input and opens the menu', async () => {
             const user = userEvent.setup();
             renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
-            expect(getSettingList()).toHaveFocus();
+            const [firstChip] = within(getSelections()!).getAllByRole('button');
+            expect(firstChip).toHaveFocus();
+            expectClosed();
 
             await user.tab();
 
-            const [firstChip] = within(getSelections()!).getAllByRole('button');
-            expect(firstChip).toHaveFocus();
-            expect(firstChip).toHaveTextContent('Option 1');
-            expectClosed();
+            expect(getCombobox()).toHaveFocus();
+            expectOpen();
         });
 
         test('ArrowDown opens, ArrowDown then Enter picks without saving, and a second Enter saves the picked id', async () => {
@@ -487,13 +508,9 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expect(documentKeys()).toEqual(['Escape']);
         });
 
-        test('Tab to the clear button then Enter clears without saving, and Save then sends an empty value', async () => {
+        test('Enter on the initially focused clear button clears without saving, and Save then sends an empty value', async () => {
             const user = userEvent.setup();
             const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'opt1');
-
-            await user.tab();
-            expect(getCombobox()).toHaveFocus();
-            await user.tab();
             expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toHaveFocus();
 
             await user.keyboard('{Enter}');
@@ -548,9 +565,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             const user = userEvent.setup();
             const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
 
-            // Chips come before the input, so Tab from the section lands on the roving-tabindex
-            // chip (the first), and ArrowRight moves along the group.
-            await user.tab();
+            // The section opens on the roving-tabindex chip (the first), and ArrowRight moves along the group.
             const [firstChip, lastChip] = within(getSelections()!).getAllByRole('button');
             expect(firstChip).toHaveFocus();
             await user.keyboard('{ArrowRight}');
