@@ -1,0 +1,38 @@
+name: Release Docs - Blog Outline and Email Drafts
+
+# Claude drafts the blog outline and the announcement email from the changelog's
+# Improvements section, the milestone's merged PRs and the release's Jira epics; every
+# point cites its PR or ticket. Output goes to the run summary and the release-docs-drafts
+# artifact for the release manager to share with Marketing; nothing is sent or posted.
+# Playbook T-16 and T-15. See release-docs-task.yml for settings.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v12.2.0'
+        required: true
+        type: string
+      milestone:
+        description: 'Milestone title. Defaults to vX.Y.0.'
+        required: false
+        type: string
+      jira_fix_version:
+        description: 'Jira fix version, e.g. "v12.2 (December 2026)". Defaults to the version and the month of its Release Day on the calendar.'
+        required: false
+        type: string
+
+permissions: {}
+
+jobs:
+  drafts:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: drafts
+      version: ${{ inputs.version }}
+      mode: dry_run
+      milestone: ${{ inputs.milestone }}
+      jira_fix_version: ${{ inputs.jira_fix_version }}
+    secrets: inherit
+    permissions:
+      contents: read
