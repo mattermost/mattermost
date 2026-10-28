@@ -58,3 +58,17 @@ scheduler.
 
 Use `await pw.skipIfNoLicense()` to skip a test when the server has no
 license.
+
+## `@core`: specs that pass against any plain deployment
+
+`@core` selects specs that run against an externally deployed server
+(`PW_BASE_URL`), e.g. a fresh install of the Ubuntu `.deb` package. Tag a test
+`@core` only if it needs nothing beyond one server and Postgres:
+
+- no license, unless it skips itself with `pw.skipIfNoLicense()`
+- no external services (LDAP, SAML/Keycloak, OpenID, Elasticsearch/OpenSearch,
+  MinIO, Azurite, email, nginx/subpath)
+- no `ensureFeatureFlag` or anything else that restarts the server
+- no visual or snapshot assertions
+
+Tag every test in the file, so a spec file is either fully `@core` or not.
