@@ -1,0 +1,26 @@
+{
+  "v12.0.0": {
+    "enterprise": "0bb1c09d79aa608a45dbffe5d1537bba60835fa33c1f61f8ebeee61dc53e44c1",
+    "team": "fcaa0a6c93772983079b5c6185287106a6c5e147b64386283ab7f8a14237a906"
+  },
+  "v12.0.1": {
+    "enterprise": "f74b26f3a245b336b5dc7978a71ac7cd17ba22601de2c68b223dd0114cb2676c",
+    "team": "1e7512f4782d4df552543f60ca17cc572a9ddc8faaebc3942dcc40b4f6a979d9"
+  },
+  "v11.11.3": {
+    "enterprise": "8ceda333b2d83b5400881dfa12d15243b661e97cc1a6063e033eed6d95ddbb6a",
+    "team": "7f207ba6dcbae956d748bf3bddb6acf65f9ab148ae559cc51bc9b27307a899d4"
+  },
+  "v11.10.4": {
+    "enterprise": "d0e312ed2437b5e9e43ceefda1f934095a6a24230a3c33e1475240b963e091df",
+    "team": "646719f05d67e049b3ce0519f632be3c6132cf0172209fb61fa8f01fe46140ba"
+  },
+  "v11.7.14": {
+    "enterprise": "31f5b0774cdd08eea8badaf030025c7fd55e9ab63a08a446c533c5fca13692d1",
+    "team": "8a24f6b1cebe65ad8a85a0b31460dc3486880a6c8fc3fed66d10cd8b572c4e68"
+  },
+  "v10.11.25": {
+    "enterprise": "161f6d37f084d9c102266be66abc8a1a051645d44d0b84a01e7dcea39b7219bd",
+    "team": "9ddd044a68c45dad8b18e21185c081f62f4a61b0fc2c9131c49f784c63420f8a"
+  }
+}
