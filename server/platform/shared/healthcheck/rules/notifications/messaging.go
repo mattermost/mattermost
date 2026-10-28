@@ -77,7 +77,7 @@ func evalPushIDOnly(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 
 	// full is the server default, so only flag it when id_loaded is an option for this license.
-	idLoaded, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.IDLoadedPushNotifications })
+	idLoaded, ok := s.LicenseFeature(healthcheck.FeatureIDLoaded)
 	switch {
 	case !ok:
 		return healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)

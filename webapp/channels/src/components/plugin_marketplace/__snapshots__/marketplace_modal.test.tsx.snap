@@ -282,13 +282,14 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                     class="more-modal__actions"
                   >
                     <a
+                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 plugin-configure"
                       href="/admin_console/plugins/plugin_com.mattermost.test"
                     >
-                      <button
-                        class="plugin-configure"
+                      <span
+                        class="_button__label_we8pe_31"
                       >
                         Configure
-                      </button>
+                      </span>
                     </a>
                   </div>
                 </div>
@@ -372,9 +373,14 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                     class="more-modal__actions"
                   >
                     <button
-                      class="plugin-install always-show-enabled"
+                      class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+                      type="button"
                     >
-                      Install
+                      <span
+                        class="_button__label_we8pe_31"
+                      >
+                        Install
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -517,18 +523,19 @@ exports[`components/marketplace/ should render default 1`] = `
                 <div
                   class="loading__content"
                 >
-                  <p>
+                  <span
+                    class="LoadingSpinner with-text"
+                    data-testid="loadingSpinner"
+                    id="loadingSpinner"
+                  >
+                    <span
+                      aria-label="Loading Icon"
+                      class="_spinner_3elm7_10 spinner"
+                      role="status"
+                      style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                    />
                     Loading
-                  </p>
-                  <div
-                    class="round round-1"
-                  />
-                  <div
-                    class="round round-2"
-                  />
-                  <div
-                    class="round round-3"
-                  />
+                  </span>
                 </div>
               </div>
             </div>
@@ -1116,9 +1123,14 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
                     class="more-modal__actions"
                   >
                     <button
-                      class="plugin-install always-show-enabled"
+                      class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+                      type="button"
                     >
-                      Install
+                      <span
+                        class="_button__label_we8pe_31"
+                      >
+                        Install
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -1336,13 +1348,14 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                     class="more-modal__actions"
                   >
                     <a
+                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 plugin-configure"
                       href="/admin_console/plugins/plugin_com.mattermost.test"
                     >
-                      <button
-                        class="plugin-configure"
+                      <span
+                        class="_button__label_we8pe_31"
                       >
                         Configure
-                      </button>
+                      </span>
                     </a>
                   </div>
                 </div>
@@ -1426,9 +1439,14 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                     class="more-modal__actions"
                   >
                     <button
-                      class="plugin-install always-show-enabled"
+                      class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+                      type="button"
                     >
-                      Install
+                      <span
+                        class="_button__label_we8pe_31"
+                      >
+                        Install
+                      </span>
                     </button>
                   </div>
                 </div>

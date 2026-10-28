@@ -76,6 +76,7 @@ export type PluginsState = {
         ChannelIconOverride: ChannelIconOverrideRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
+        ChannelView: ChannelViewRegistration[];
         PostHeader: PostHeaderComponent[];
         ComposerPlaceholder: ComposerPlaceholderRegistration[];
         ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
@@ -480,6 +481,25 @@ export type ChannelComposerBannerComponent = PluginComponent & {
 export type ChannelIntroRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     component: React.ComponentType<{channel: Channel}>;
+};
+
+export type ChannelViewPluginComponentProps = {
+    channel: Channel;
+    channelId: string;
+
+    /** The current team's id. Differs from channel.team_id, which is empty for DMs and GMs. */
+    teamId: string;
+
+    /**
+     * Post id the channel was opened focused on via a permalink. Stays set after that id is
+     * removed from the URL, until the user switches channels. The component shows that post.
+     */
+    focusedPostId?: string;
+};
+
+export type ChannelViewRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    component: React.ComponentType<ChannelViewPluginComponentProps>;
 };
 
 export type PostHeaderComponent = PluginComponent & {
