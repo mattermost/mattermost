@@ -14,11 +14,47 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
+
+func TestPopulateWebConnConfigRejectedResume(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	metricsMock := &mocks.MetricsInterface{}
+	// Pumping a connection reports its gauges, and registering it sets the user online,
+	// which broadcasts a status change.
+	metricsMock.On("IncrementHTTPWebSockets", mock.Anything).Maybe()
+	metricsMock.On("DecrementHTTPWebSockets", mock.Anything).Maybe()
+	metricsMock.On("IncrementWebSocketBroadcastUsersRegistered", mock.Anything, mock.Anything).Maybe()
+	metricsMock.On("DecrementWebSocketBroadcastUsersRegistered", mock.Anything, mock.Anything).Maybe()
+	metricsMock.On("IncrementWebsocketEvent", mock.Anything).Maybe()
+	metricsMock.On("IncrementWebSocketBroadcastBufferSize", mock.Anything, mock.Anything).Maybe()
+	metricsMock.On("DecrementWebSocketBroadcastBufferSize", mock.Anything, mock.Anything).Maybe()
+	metricsMock.On("IncrementWebSocketBroadcast", mock.Anything).Maybe()
+	metricsMock.On("IncrementWebsocketReconnectEvent", reconnectNotFound, "1006", "mobile").Once()
+	metricsMock.On("IncrementWebsocketReconnectFailure", "old_conn_still_open", false, "1006", "mobile").Once()
+	th := Setup(t)
+	th.Service.metricsIFace = metricsMock
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+	wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+	cfg, err := th.Service.PopulateWebConnConfig(&model.Session{UserId: wc.UserId}, &WebConnConfig{
+		ConnectionID:      wc.GetConnectionID(),
+		OriginClient:      "mobile",
+		DisconnectErrCode: "1006",
+	}, "5")
+	require.NoError(t, err)
+	assert.NotEqual(t, wc.GetConnectionID(), cfg.ConnectionID)
+	assert.Zero(t, cfg.sequence)
+	metricsMock.AssertExpectations(t)
+}
 
 type hookRunner struct {
 }

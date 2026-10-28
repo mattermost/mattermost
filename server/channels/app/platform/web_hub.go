@@ -62,7 +62,17 @@ type webConnRegisterMessage struct {
 type webConnCheckMessage struct {
 	userID       string
 	connectionID string
-	result       chan *CheckConnResult
+	result       chan webConnCheckResult
+}
+
+type webConnCheckResult struct {
+	// conn holds the queues of the inactive connection, which has been removed from the hub so
+	// the client can resume it. It is nil when there was no inactive connection to resume.
+	conn *CheckConnResult
+
+	// active is true when conn is nil because the connection is still registered to the user and
+	// marked active, typically because the server is still waiting out its pong deadline.
+	active bool
 }
 
 type webConnCountMessage struct {
@@ -279,13 +289,11 @@ func (ps *PlatformService) SessionIsRegistered(session model.Session) bool {
 	return false
 }
 
-func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int64) *CheckConnResult {
+// CheckWebConn returns the queues of a connection the client wants to resume. When there
+// are none to resume from, it returns the reason the client must start a new connection.
+func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int64) (res *CheckConnResult, failureReason string, isRemote bool) {
 	if ps.Cluster() == nil || seqNum == 0 {
-		hub := ps.GetHubForUserId(userID)
-		if hub != nil {
-			return hub.CheckConn(userID, connectionID)
-		}
-		return nil
+		return ps.checkLocalWebConn(userID, connectionID)
 	}
 
 	// We need some extra care for HA
@@ -304,15 +312,29 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 			mlog.String("user_id", userID),
 			mlog.Int("sequence_number", seqNum),
 			mlog.Err(err))
-		return nil
+		return nil, reconnectFailureClusterLookupFailed, false
 	}
 
 	connRes := &CheckConnResult{
 		ConnectionID: connectionID,
 		UserID:       userID,
 	}
+	var remoteReason string
 	for _, queues := range queueMap {
-		if queues == nil || queues.ActiveQ == nil {
+		if queues == nil {
+			continue
+		}
+		// At most one node normally holds the connection; if several report a status,
+		// prefer old_conn_still_open so the reason doesn't depend on map iteration order.
+		switch queues.Status {
+		case model.WSQueuesStatusOldConnStillOpen:
+			remoteReason = reconnectFailureOldConnStillOpen
+		case model.WSQueuesStatusMissedEventsEvicted:
+			if remoteReason == "" {
+				remoteReason = reconnectFailureMissedEventsEvicted
+			}
+		}
+		if queues.ActiveQ == nil {
 			continue
 		}
 		// parse the activeq
@@ -324,7 +346,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 					mlog.String("connection_id", connectionID),
 					mlog.String("user_id", userID),
 					mlog.Err(err))
-				return nil
+				return nil, reconnectFailureClusterLookupFailed, false
 			}
 			// This cannot block because all send queues are of sendQueueSize at max.
 			// TODO: There could be a case where there's severe message loss, and to
@@ -344,7 +366,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 					mlog.String("connection_id", connectionID),
 					mlog.String("user_id", userID),
 					mlog.Err(err))
-				return nil
+				return nil, reconnectFailureClusterLookupFailed, false
 			}
 
 			// We check if atleast one item has been written.
@@ -355,15 +377,31 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 			}
 		}
 
-		return connRes
+		return connRes, "", false
 	}
 
-	// Now we check local queue
-	hub := ps.GetHubForUserId(userID)
-	if hub != nil {
-		return hub.CheckConn(userID, connectionID)
+	res, failureReason, isRemote = ps.checkLocalWebConn(userID, connectionID)
+	if failureReason == reconnectFailureConnNotFound && remoteReason != "" {
+		return nil, remoteReason, true
 	}
-	return nil
+	return res, failureReason, isRemote
+}
+
+// checkLocalWebConn checks this node's hub for a given user's connection.
+func (ps *PlatformService) checkLocalWebConn(userID, connectionID string) (res *CheckConnResult, failureReason string, isRemote bool) {
+	hub := ps.GetHubForUserId(userID)
+	if hub == nil {
+		return nil, reconnectFailureConnNotFound, false
+	}
+
+	res, active := hub.CheckConn(userID, connectionID)
+	switch {
+	case res != nil:
+		return res, "", false
+	case active:
+		return nil, reconnectFailureOldConnStillOpen, false
+	}
+	return nil, reconnectFailureConnNotFound, false
 }
 
 // WebConnCountForUser returns the number of active websocket connections
@@ -413,18 +451,21 @@ func (h *Hub) IsRegistered(userID, sessionToken string) bool {
 	return false
 }
 
-func (h *Hub) CheckConn(userID, connectionID string) *CheckConnResult {
+// CheckConn removes and returns an inactive connection so it can be resumed. If the
+// connection is instead still active, it is left in place and active is true.
+func (h *Hub) CheckConn(userID, connectionID string) (res *CheckConnResult, active bool) {
 	req := &webConnCheckMessage{
 		userID:       userID,
 		connectionID: connectionID,
-		result:       make(chan *CheckConnResult),
+		result:       make(chan webConnCheckResult),
 	}
 	select {
 	case h.checkConn <- req:
-		return <-req.result
+		result := <-req.result
+		return result.conn, result.active
 	case <-h.stop:
 	}
-	return nil
+	return nil, false
 }
 
 func (h *Hub) WebConnCountForUser(userID string) int {
@@ -608,10 +649,9 @@ func (h *Hub) Start() {
 				}
 				webSessionMessage.isRegistered <- isRegistered
 			case req := <-h.checkConn:
-				var res *CheckConnResult
-				conn := connIndex.RemoveInactiveByConnectionID(req.userID, req.connectionID)
-				if conn != nil {
-					res = &CheckConnResult{
+				var res webConnCheckResult
+				if conn := connIndex.RemoveInactiveByConnectionID(req.userID, req.connectionID); conn != nil {
+					res.conn = &CheckConnResult{
 						ConnectionID:     req.connectionID,
 						UserID:           req.userID,
 						ActiveQueue:      conn.send,
@@ -619,6 +659,8 @@ func (h *Hub) Start() {
 						DeadQueuePointer: conn.deadQueuePointer,
 						ReuseCount:       conn.reuseCount + 1,
 					}
+				} else if conn := connIndex.ForConnection(req.connectionID); conn != nil && conn.UserId == req.userID {
+					res.active = conn.Active.Load()
 				}
 				req.result <- res
 			case req := <-h.connCount:
