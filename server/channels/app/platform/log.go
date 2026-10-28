@@ -464,6 +464,10 @@ type logSearch struct {
 	// The longest part of the term that the log encoders never escape. A line whose raw bytes
 	// don't contain it can't contain the term in any value either.
 	raw []byte
+
+	// Whether the term was ASCII before lowercasing. Some characters, such as İ, lowercase to
+	// ASCII, so a line holding them only matches once it is lowercased too.
+	ascii bool
 }
 
 func newLogSearch(logFilter *model.LogFilter) *logSearch {
@@ -481,17 +485,18 @@ func newLogSearch(logFilter *model.LogFilter) *logSearch {
 		}
 	}
 
-	return &logSearch{term: []byte(term), raw: []byte(raw)}
+	return &logSearch{term: []byte(term), raw: []byte(raw), ascii: isASCII(logFilter.Search)}
 }
 
 // rejectsRaw reports whether the line's raw bytes show it can't contain the term.
 func (s *logSearch) rejectsRaw(line []byte) bool {
-	return s != nil && len(s.raw) > 0 && !containsFold(line, s.raw)
+	return s != nil && len(s.raw) > 0 && !containsFold(line, s.raw, s.ascii)
 }
 
-// containsFold reports whether b contains the lowercased term, ignoring case.
-func containsFold(b, term []byte) bool {
-	if !isASCII(term) {
+// containsFold reports whether b contains the lowercased term, ignoring case. ascii tells whether
+// the term was ASCII before lowercasing.
+func containsFold(b, term []byte, ascii bool) bool {
+	if !ascii {
 		return bytes.Contains(bytes.ToLower(b), term)
 	}
 
@@ -508,9 +513,9 @@ func containsFold(b, term []byte) bool {
 	return false
 }
 
-func isASCII(b []byte) bool {
-	for _, c := range b {
-		if c >= utf8.RuneSelf {
+func isASCII(s string) bool {
+	for i := range len(s) {
+		if s[i] >= utf8.RuneSelf {
 			return false
 		}
 	}
@@ -550,7 +555,7 @@ func isLogFilteredBySearch(search *logSearch, line []byte) bool {
 		if len(raw) > 0 && raw[0] == '"' && json.Unmarshal(raw, &s) == nil {
 			value = []byte(s)
 		}
-		if containsFold(value, search.term) {
+		if containsFold(value, search.term, search.ascii) {
 			return false
 		}
 	}
