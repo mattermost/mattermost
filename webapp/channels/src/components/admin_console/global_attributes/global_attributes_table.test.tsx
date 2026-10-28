@@ -27,6 +27,7 @@ import {WindowSizes} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import GlobalAttributesTable, {getDisplayName, getSourceIcon, getSourceKind, getTypeIcon, isClassificationMarkingsField} from './global_attributes_table';
+import {notifyAttributeFieldChanged} from './listing_events';
 
 const mockHistoryPush = jest.fn();
 jest.mock('utils/browser_history', () => ({
@@ -530,6 +531,34 @@ describe('GlobalAttributesTable', () => {
         expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
+    });
+
+    it('keeps the rows on screen when a later refetch fails', async () => {
+        jest.useFakeTimers();
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            mockListing([makeField({id: 'f1', name: 'clearance', attrs: {display_name: 'Clearance'}})]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(0);
+            });
+            expect(await screen.findByText('Clearance')).toBeInTheDocument();
+
+            searchGlobalAttributes.mockClear();
+            searchGlobalAttributes.mockRejectedValue(new Error('boom'));
+            await act(async () => {
+                notifyAttributeFieldChanged();
+                await jest.advanceTimersByTimeAsync(300);
+            });
+
+            expect(searchGlobalAttributes).toHaveBeenCalledTimes(1);
+            expect(screen.getByText('Clearance')).toBeInTheDocument();
+            expect(screen.queryByTestId('global-attributes-error')).not.toBeInTheDocument();
+        } finally {
+            consoleSpy.mockRestore();
+            jest.useRealTimers();
+        }
     });
 
     it('shows an error state (not the empty state) on a 404, rather than treating it as an empty result', async () => {

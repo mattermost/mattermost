@@ -617,7 +617,9 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
         enableColumnPinning: false,
     });
 
-    if (loadError) {
+    // A failed refetch keeps the rows already shown; only a first load that
+    // fails has nothing to show.
+    if (loadError && !loaded) {
         return (
             <div
                 className='GlobalAttributesTable__empty'
