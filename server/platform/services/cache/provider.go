@@ -5,6 +5,7 @@ package cache
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"time"
 
@@ -84,6 +85,7 @@ type RedisOptions struct {
 	RedisPassword    string
 	RedisDB          int
 	RedisCachePrefix string
+	TLSConfig        *tls.Config
 	DisableCache     bool
 }
 
@@ -93,6 +95,7 @@ func NewRedisProvider(opts *RedisOptions) (Provider, error) {
 		InitAddress:       []string{opts.RedisAddr},
 		Password:          opts.RedisPassword,
 		SelectDB:          opts.RedisDB,
+		TLSConfig:         opts.TLSConfig,
 		ForceSingleClient: true,
 		CacheSizeEachConn: 32 * (1 << 20), // 32MiB local cache size
 		DisableCache:      opts.DisableCache,

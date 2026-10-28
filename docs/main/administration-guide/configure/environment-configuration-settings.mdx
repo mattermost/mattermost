@@ -4053,6 +4053,81 @@ Adding a prefix to all Redis cache keys reduces key collisions, simplifies debug
 
 </Tip>
 
+#### Enable Redis TLS
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Connect to the Redis server using TLS. TLS 1.2 or later is required.</p><ul><li><strong>true</strong>: Connections to Redis use TLS.</li><li><strong>false</strong>: <strong>(Default)</strong> Connections to Redis are unencrypted.</li></ul><p>From Mattermost v12.2.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Cache Settings</strong></li><li><code>config.json</code> setting: <code>CacheSettings</code> &gt; <code>RedisEnableTLS</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_CACHESETTINGS_REDISENABLETLS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Skip Redis TLS verification
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Skip verification of the Redis server&#39;s certificate. Only applies when <strong>Enable Redis TLS</strong> is <strong>true</strong>.</p><ul><li><strong>true</strong>: The Redis server&#39;s certificate isn&#39;t verified. Not recommended for production environments.</li><li><strong>false</strong>: <strong>(Default)</strong> The Redis server&#39;s certificate is verified.</li></ul><p>From Mattermost v12.2.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Cache Settings</strong></li><li><code>config.json</code> setting: <code>CacheSettings</code> &gt; <code>RedisTLSSkipVerify</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_CACHESETTINGS_REDISTLSSKIPVERIFY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Redis TLS CA certificate path
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Path to a PEM-encoded certificate authority (CA) certificate used to verify the Redis server&#39;s certificate. Leave blank to use the operating system&#39;s trusted CAs.</p><p>String input. An absolute path on each Mattermost server&#39;s local filesystem. Unlike Elasticsearch certificate settings, this file isn&#39;t read from file storage, so it must be present on every server in a cluster.</p><p>From Mattermost v12.2.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Cache Settings</strong></li><li><code>config.json</code> setting: <code>CacheSettings</code> &gt; <code>RedisTLSCA</code> &gt; <code>""</code></li><li>Environment variable: <code>MM_CACHESETTINGS_REDISTLSCA</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Redis TLS client certificate path
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Path to a PEM-encoded client certificate presented to the Redis server for mutual TLS. Must be set together with <strong>Redis TLS client key path</strong>.</p><p>String input. An absolute path on each Mattermost server&#39;s local filesystem. Unlike Elasticsearch certificate settings, this file isn&#39;t read from file storage, so it must be present on every server in a cluster.</p><p>From Mattermost v12.2.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Cache Settings</strong></li><li><code>config.json</code> setting: <code>CacheSettings</code> &gt; <code>RedisTLSClientCert</code> &gt; <code>""</code></li><li>Environment variable: <code>MM_CACHESETTINGS_REDISTLSCLIENTCERT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Redis TLS client key path
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Path to the PEM-encoded private key for the Redis TLS client certificate. Must be set together with <strong>Redis TLS client certificate path</strong>.</p><p>String input. An absolute path on each Mattermost server&#39;s local filesystem. Unlike Elasticsearch certificate settings, this file isn&#39;t read from file storage, so it must be present on every server in a cluster.</p><p>From Mattermost v12.2.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Cache Settings</strong></li><li><code>config.json</code> setting: <code>CacheSettings</code> &gt; <code>RedisTLSClientKey</code> &gt; <code>""</code></li><li>Environment variable: <code>MM_CACHESETTINGS_REDISTLSCLIENTKEY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Enable webhub channel iteration
 
 <table>
