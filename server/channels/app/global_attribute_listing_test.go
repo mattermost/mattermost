@@ -673,6 +673,17 @@ func TestSearchGlobalAttributeListingPluginCreatedField(t *testing.T) {
 		assert.Equal(t, []string{ordinary.Name}, managedRows)
 	})
 
+	t.Run("the protected column alone does not make a field plugin-sourced", func(t *testing.T) {
+		columnOnly := env.create(model.PropertyFieldObjectTypeUser, env.name("column_only"), func(f *model.PropertyField) {
+			f.Attrs = model.StringInterface{model.PropertyAttrsSourcePluginID: pluginIDs[0]}
+			f.Protected = true
+			f.PermissionField = model.NewPointer(model.PermissionLevelNone)
+		})
+
+		row := env.row(env.mustSearch(), columnOnly.Name)
+		assert.Equal(t, model.GlobalAttributeSourceKindManaged, row.SourceKind)
+	})
+
 	require.Nil(t, th.App.DisablePlugin(pluginIDs[0]))
 	require.Nil(t, th.App.ch.RemovePlugin(pluginIDs[0]))
 }
@@ -681,6 +692,27 @@ func TestSearchGlobalAttributeListingNameConflicts(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupListingHelperAllFlags(t)
 	env := newListingEnv(t, th)
+
+	t.Run("a user row that is also an earlier row's conflict keeps its options", func(t *testing.T) {
+		options := []map[string]any{{"name": "secret"}, {"name": "top secret"}}
+		userField := env.create(model.PropertyFieldObjectTypeUser, env.name("Grade"), func(f *model.PropertyField) {
+			f.Type = model.PropertyFieldTypeSelect
+			f.Attrs = model.StringInterface{"options": options}
+		})
+		// Sorts before the user field by its display name.
+		template := env.template(env.name("grade"), withAttrs(model.StringInterface{"display_name": env.name("a grade")}))
+
+		listing := env.mustSearch()
+		require.Equal(t, template.ID, listing.Rows[0].Field.ID)
+
+		conflict := env.row(listing, template.Name).NameConflict
+		require.NotNil(t, conflict)
+		assert.Equal(t, userField.ID, conflict.Field.ID)
+		assert.Len(t, conflict.Field.Attrs["options"], len(options))
+
+		row := env.row(listing, userField.Name)
+		assert.Len(t, row.Field.Attrs["options"], len(options))
+	})
 
 	t.Run("a template and a standalone user field sharing a name ignoring case conflict, as a case-only match", func(t *testing.T) {
 		standalone := env.create(model.PropertyFieldObjectTypeUser, env.name("Clearance"))

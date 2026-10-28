@@ -5808,7 +5808,7 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 	t.Run("source edge cases", func(t *testing.T) {
 		f := newListingFixture(t, ss)
 
-		// The protected column counts like the protected attr.
+		// Protection is read from the attr, never the column.
 		f.field(model.PropertyFieldObjectTypeUser, "protected_column_user", withAttrs(map[string]any{
 			model.PropertyAttrsSourcePluginID: "com.example.plugin",
 		}), func(pf *model.PropertyField) {
@@ -5831,13 +5831,13 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 		f.field(model.PropertyFieldObjectTypeUser, "empty_owners_user", withAttrs(map[string]any{model.PropertyAttrsOwners: []any{}}))
 
 		names := f.search(rctx, listingSource(model.GlobalAttributeSourcePlugin))
-		require.Equal(t, []string{"protected_column_user", "two_children_template"}, names)
+		require.Equal(t, []string{"two_children_template"}, names)
 
 		names = f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP))
 		require.Empty(t, names)
 
 		names = f.search(rctx, listingSource(model.GlobalAttributeSourceManaged))
-		require.Equal(t, []string{"empty_owners_user", "numeric_ldap_template", "numeric_plugin_post", "object_owners_user"}, names)
+		require.Equal(t, []string{"empty_owners_user", "numeric_ldap_template", "numeric_plugin_post", "object_owners_user", "protected_column_user"}, names)
 	})
 
 	t.Run("source with term", func(t *testing.T) {
@@ -6130,6 +6130,18 @@ func testGetLiveUserFieldsByNames(t *testing.T, ss store.Store) {
 		fields, err = ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{strings.ToUpper("alpha")})
 		require.NoError(t, err)
 		require.Equal(t, []string{alpha.ID}, ids(fields))
+	})
+
+	t.Run("returns option sets like any other read", func(t *testing.T) {
+		selectField := f.field(model.PropertyFieldObjectTypeUser, "eta_select", func(pf *model.PropertyField) {
+			pf.Type = model.PropertyFieldTypeSelect
+			pf.Attrs = model.StringInterface{"options": []map[string]any{{"name": "one"}, {"name": "two"}}}
+		})
+
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"eta_select"})
+		require.NoError(t, err)
+		require.Equal(t, []string{selectField.ID}, ids(fields))
+		require.Len(t, fields[0].Attrs["options"], 2)
 	})
 
 	t.Run("includes a user field linked to a template", func(t *testing.T) {

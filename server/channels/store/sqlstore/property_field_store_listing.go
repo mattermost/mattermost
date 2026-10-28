@@ -82,10 +82,7 @@ func rowOwners(predicate func(table listingTable) sq.Sqlizer) sq.Sqlizer {
 func listingSourceCondition(source string) sq.Sqlizer {
 	pluginSource := sq.And{
 		attrIsNonEmptyString(listingRowTable, model.PropertyAttrsSourcePluginID),
-		sq.Or{
-			sq.Expr("(Attrs->? = 'true'::jsonb) IS TRUE", model.PropertyAttrsProtected),
-			sq.Eq{"Protected": true},
-		},
+		sq.Expr("(Attrs->? = 'true'::jsonb) IS TRUE", model.PropertyAttrsProtected),
 	}
 
 	switch source {
@@ -219,9 +216,13 @@ func (s *SqlPropertyFieldStore) GetLiveUserFieldsByNames(groupID string, names [
 		Where(sq.Eq{"DeleteAt": 0}).
 		Where(sq.Eq{"LOWER(Name)": lowered})
 
+	db := s.GetReplica()
 	fields := []*model.PropertyField{}
-	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {
+	if err := db.SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_live_user_fields_by_names")
+	}
+	if err := s.hydratePropertyFieldOptions(db, fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_live_user_fields_by_names_hydrate_options")
 	}
 	return fields, nil
 }
