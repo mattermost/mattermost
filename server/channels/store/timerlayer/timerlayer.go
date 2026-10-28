@@ -9136,6 +9136,38 @@ func (s *TimerLayerPropertyFieldStore) GetLinkedFields(fieldIDs []string, exclud
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(fieldIDs []string, objectTypes []string) ([]*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetLiveLinkedFieldsByObjectTypes(fieldIDs, objectTypes)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetLiveLinkedFieldsByObjectTypes", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetLiveUserFieldsByNames(groupID string, names []string) ([]*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetLiveUserFieldsByNames(groupID, names)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetLiveUserFieldsByNames", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
 	start := time.Now()
 
@@ -9326,6 +9358,22 @@ func (s *TimerLayerPropertyFieldStore) PermanentDeleteOwnedOptions(groupID strin
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.PermanentDeleteOwnedOptions", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerPropertyFieldStore) SearchGlobalAttributeListing(rctx request.CTX, opts model.GlobalAttributeListingOpts) ([]*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.SearchGlobalAttributeListing(rctx, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.SearchGlobalAttributeListing", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
