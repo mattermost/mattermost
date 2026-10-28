@@ -1043,17 +1043,19 @@ func (a *App) SaveContentFlaggingConfig(config model.ContentFlaggingSettingsRequ
 		return model.NewAppError("SaveContentFlaggingConfig", "app.data_spillage.save_reviewer_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.UpdateConfig(func(cfg *model.Config) {
-		cfg.ContentFlaggingSettings = model.ContentFlaggingSettings{}
-		cfg.ContentFlaggingSettings.EnableContentFlagging = config.EnableContentFlagging
-		cfg.ContentFlaggingSettings.NotificationSettings = config.NotificationSettings
-		cfg.ContentFlaggingSettings.AdditionalSettings = config.AdditionalSettings
-		cfg.ContentFlaggingSettings.ReviewerSettings = &model.ReviewerSettings{
-			CommonReviewers:         config.ReviewerSettings.CommonReviewers,
-			SystemAdminsAsReviewers: config.ReviewerSettings.SystemAdminsAsReviewers,
-			TeamAdminsAsReviewers:   config.ReviewerSettings.TeamAdminsAsReviewers,
-		}
-	})
+	cfg := a.Config().Clone()
+	cfg.ContentFlaggingSettings = model.ContentFlaggingSettings{}
+	cfg.ContentFlaggingSettings.EnableContentFlagging = config.EnableContentFlagging
+	cfg.ContentFlaggingSettings.NotificationSettings = config.NotificationSettings
+	cfg.ContentFlaggingSettings.AdditionalSettings = config.AdditionalSettings
+	cfg.ContentFlaggingSettings.ReviewerSettings = &model.ReviewerSettings{
+		CommonReviewers:         config.ReviewerSettings.CommonReviewers,
+		SystemAdminsAsReviewers: config.ReviewerSettings.SystemAdminsAsReviewers,
+		TeamAdminsAsReviewers:   config.ReviewerSettings.TeamAdminsAsReviewers,
+	}
+	if _, _, appErr := a.SaveConfig(cfg, true); appErr != nil {
+		return appErr
+	}
 
 	a.clearContentFlaggingConfigCache()
 	return nil

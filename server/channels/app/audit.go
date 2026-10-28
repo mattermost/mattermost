@@ -187,7 +187,9 @@ func (a *App) AddAuditLogCertificate(rctx request.CTX, fileData *multipart.FileH
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	if a.License().IsCloud() {
 		err = a.Cloud().CreateAuditLoggingCert(rctx.Session().UserId, fileData)
@@ -213,7 +215,9 @@ func (a *App) RemoveAuditLogCertificate(rctx request.CTX) *model.AppError {
 		return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	if a.License().IsCloud() {
 		err = a.Cloud().RemoveAuditLoggingCert(rctx.Session().UserId)

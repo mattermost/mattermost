@@ -36,6 +36,8 @@ func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[strin
 	return a.Srv().platform.GetEnvironmentOverridesWithFilter(filter)
 }
 
+// UpdateConfig persists a change to the configuration without notifying other cluster nodes.
+// Use SaveConfig with sendConfigChangeClusterMessage set for changes that must apply cluster-wide.
 func (a *App) UpdateConfig(f func(*model.Config)) {
 	a.Srv().platform.UpdateConfig(f)
 }

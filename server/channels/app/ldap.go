@@ -279,7 +279,9 @@ func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -296,7 +298,9 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -320,7 +324,9 @@ func (a *App) RemoveLdapPublicCertificate() *model.AppError {
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -337,7 +343,9 @@ func (a *App) RemoveLdapPrivateCertificate() *model.AppError {
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -69,7 +69,9 @@ func (a *App) AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -86,7 +88,9 @@ func (a *App) AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.A
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -103,7 +107,9 @@ func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppEr
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -129,7 +135,9 @@ func (a *App) RemoveSamlPublicCertificate() *model.AppError {
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -147,7 +155,9 @@ func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -165,7 +175,9 @@ func (a *App) RemoveSamlIdpCertificate() *model.AppError {
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -280,7 +292,9 @@ func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
 		return err
 	}
 
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+		return err
+	}
 
 	return nil
 }

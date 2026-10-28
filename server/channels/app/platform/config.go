@@ -69,6 +69,8 @@ func (ps *PlatformService) RemoveConfigListener(id string) {
 	ps.configStore.RemoveListener(id)
 }
 
+// UpdateConfig persists a change to the configuration without notifying other cluster nodes.
+// Use SaveConfig with sendConfigChangeClusterMessage set for changes that must apply cluster-wide.
 func (ps *PlatformService) UpdateConfig(f func(*model.Config)) {
 	if ps.configStore.IsReadOnly() {
 		return
