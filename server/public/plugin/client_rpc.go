@@ -1587,8 +1587,9 @@ func (s *apiRPCServer) UploadData(args *Z_UploadDataArgs, returns *Z_UploadDataR
 }
 
 // KVListWithOptions is manually implemented instead of generated so that the
-// client can detect when the server doesn't support this method (pre-11.5) and
-// return a proper AppError with StatusNotImplemented. The generated version
+// client returns an AppError on every RPC error: StatusNotImplemented when the
+// server doesn't support this method (pre-12.2), otherwise
+// StatusInternalServerError. The generated version
 // silently returns (nil, nil) on RPC errors, which is indistinguishable from
 // an empty result due to encoding/gob conflating nil and empty slices.
 type Z_KVListWithOptionsArgs struct {
@@ -1610,7 +1611,8 @@ func (g *apiRPCClient) KVListWithOptions(page, perPage int, options model.Plugin
 			return nil, model.NewAppError("plugin", "plugin.kvlistwithoptions.not_implemented",
 				nil, err.Error(), http.StatusNotImplemented)
 		}
-		log.Printf("RPC call to KVListWithOptions API failed: %s", err.Error())
+		return nil, model.NewAppError("plugin", "plugin.kvlistwithoptions.rpc_error",
+			nil, err.Error(), http.StatusInternalServerError)
 	}
 	return _returns.A, _returns.B
 }

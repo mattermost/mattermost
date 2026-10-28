@@ -7339,6 +7339,7 @@ func TestGetChannelModerations(t *testing.T) {
 		// Playbooks DB job requires a plugin mock
 		pluginStore := mocks.PluginStore{}
 		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		pluginStore.On("ListWithOptions", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 		mockStore.On("Plugin").Return(&pluginStore)
 
 		mockSchemeStore := mocks.SchemeStore{}
@@ -7578,6 +7579,7 @@ func TestPatchChannelModerations(t *testing.T) {
 		// Playbooks DB job requires a plugin mock
 		pluginStore := mocks.PluginStore{}
 		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		pluginStore.On("ListWithOptions", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 		mockStore.On("Plugin").Return(&pluginStore)
 
 		mockSchemeStore := mocks.SchemeStore{}

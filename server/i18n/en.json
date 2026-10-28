@@ -19252,6 +19252,16 @@
     "description": "Error returned to plugins when setting a user's status to an unrecognized value (valid ones are online/away/dnd/offline); developer-facing."
   },
   {
+    "id": "plugin.kvlistwithoptions.not_implemented",
+    "translation": "The server does not support listing plugin keys with options.",
+    "description": "Error a plugin receives when it lists its key-value store keys with filter options on a server version that does not support that API. The plugin library then falls back to listing all keys."
+  },
+  {
+    "id": "plugin.kvlistwithoptions.rpc_error",
+    "translation": "Unable to list plugin keys with options.",
+    "description": "Error a plugin receives when the call from the plugin process to the server fails while it lists its key-value store keys with filter options."
+  },
+  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Bot user cannot create bot user.",
     "description": "Error returned when a bot account calls the API to create another bot account, which is not allowed."

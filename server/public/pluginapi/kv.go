@@ -219,16 +219,23 @@ func (o *listKeysOptions) checkAll(key string) (keep bool, err error) {
 }
 
 // WithPrefix only return keys that start with the given string.
-// The prefix is pushed down to the SQL query for efficient filtering.
+// The first prefix is pushed down to the SQL query for efficient filtering;
+// each additional prefix is applied as a checker, so all prefixes must match.
 func WithPrefix(prefix string) ListKeysOption {
 	return func(args *listKeysOptions) {
-		args.prefix = prefix
+		if args.prefix == "" {
+			args.prefix = prefix
+			return
+		}
+		args.checkers = append(args.checkers, func(key string) (bool, error) {
+			return strings.HasPrefix(key, prefix), nil
+		})
 	}
 }
 
 // WithChecker allows for a custom filter function to determine which keys to return.
 // Returning true will keep the key and false will filter it out. Returning an error
-// will halt KVListWithOptions immediately and pass the error up (with no other results).
+// will halt ListKeys immediately and pass the error up (with no other results).
 func WithChecker(f func(key string) (keep bool, err error)) ListKeysOption {
 	return func(args *listKeysOptions) {
 		args.checkers = append(args.checkers, f)
@@ -254,17 +261,8 @@ func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]stri
 	var appErr *model.AppError
 	if args.prefix != "" {
 		keys, appErr = k.api.KVListWithOptions(page, count, model.PluginKVListOptions{Prefix: args.prefix})
-		if appErr != nil && (appErr.StatusCode == http.StatusNotImplemented ||
-			strings.Contains(strings.ToLower(appErr.DetailedError), "not implemented")) {
-			// Server doesn't support KVListWithOptions; fall back to KVList
-			// with client-side prefix filtering via the checkers pipeline.
-			keys, appErr = k.api.KVList(page, count)
-			prefix := args.prefix
-			args.checkers = append([]func(string) (bool, error){
-				func(key string) (bool, error) {
-					return strings.HasPrefix(key, prefix), nil
-				},
-			}, args.checkers...)
+		if appErr != nil && appErr.StatusCode == http.StatusNotImplemented {
+			keys, appErr = k.listKeysWithPrefixFallback(page, count, args.prefix)
 		}
 	} else {
 		keys, appErr = k.api.KVList(page, count)
@@ -296,4 +294,41 @@ func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]stri
 	}
 
 	return ret, nil
+}
+
+// listKeysWithPrefixFallback emulates KVListWithOptions on servers that lack it:
+// page and count apply to the prefix-filtered keys, as they do server-side.
+//
+// ponytail: scans from the first key on every call, O(total keys) per page;
+// only servers older than 12.2 take this path.
+func (k *KVService) listKeysWithPrefixFallback(page, count int, prefix string) ([]string, *model.AppError) {
+	// Mirrors the store: a negative offset becomes 0, a non-positive limit becomes 10.
+	skip := max(page*count, 0)
+	if count <= 0 {
+		count = 10
+	}
+
+	matched := make([]string, 0, count)
+	for rawPage := 0; ; rawPage++ {
+		keys, appErr := k.api.KVList(rawPage, count)
+		if appErr != nil {
+			return nil, appErr
+		}
+		for _, key := range keys {
+			if !strings.HasPrefix(key, prefix) {
+				continue
+			}
+			if skip > 0 {
+				skip--
+				continue
+			}
+			matched = append(matched, key)
+			if len(matched) == count {
+				return matched, nil
+			}
+		}
+		if len(keys) < count {
+			return matched, nil
+		}
+	}
 }

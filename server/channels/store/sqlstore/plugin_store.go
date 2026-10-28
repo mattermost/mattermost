@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -281,38 +282,7 @@ func (ps SqlPluginStore) DeleteAllExpired() error {
 }
 
 func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string, error) {
-	if limit <= 0 {
-		limit = defaultPluginKeyFetchLimit
-	}
-
-	if offset <= 0 {
-		offset = 0
-	}
-
-	query := ps.getQueryBuilder().
-		Select("Pkey").
-		From("PluginKeyValueStore").
-		Where(sq.Eq{"PluginId": pluginId}).
-		Where(sq.Or{
-			sq.Eq{"ExpireAt": int(0)},
-			sq.Gt{"ExpireAt": model.GetMillis()},
-		}).
-		OrderBy("PKey").
-		Limit(uint64(limit)).
-		Offset(uint64(offset))
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "plugin_tosql")
-	}
-
-	keys := []string{}
-	err = ps.GetReplica().Select(&keys, queryString, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get PluginKeyValues with pluginId=%s", pluginId)
-	}
-
-	return keys, nil
+	return ps.ListWithOptions(pluginId, model.PluginKVListOptions{}, offset, limit)
 }
 
 func (ps SqlPluginStore) ListWithOptions(pluginId string, options model.PluginKVListOptions, offset int, limit int) ([]string, error) {
@@ -334,7 +304,11 @@ func (ps SqlPluginStore) ListWithOptions(pluginId string, options model.PluginKV
 		})
 
 	if options.Prefix != "" {
-		query = query.Where(sq.Like{"PKey": sanitizeSearchTerm(options.Prefix, `\`) + "%"})
+		prefix := strings.ReplaceAll(options.Prefix, `\`, `\\`)
+		for _, c := range escapeLikeSearchChar {
+			prefix = strings.ReplaceAll(prefix, c, `\`+c)
+		}
+		query = query.Where(sq.Like{"PKey": prefix + "%"})
 	}
 
 	query = query.

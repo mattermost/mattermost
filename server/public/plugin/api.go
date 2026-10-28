@@ -1017,7 +1017,7 @@ type API interface {
 	// Options.Prefix filters keys at the database level for efficiency.
 	//
 	// @tag KeyValueStore
-	// Minimum server version: 11.5
+	// Minimum server version: 12.2
 	KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.

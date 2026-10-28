@@ -1455,6 +1455,25 @@ func testPluginListWithOptions(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.ElementsMatch(t, []string{"a_b_1", "a_b_2"}, keys)
 	})
 
+	t.Run("backslash in prefix is matched literally", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for _, key := range []string{`a\b_1`, "ab_1"} {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      key,
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: `a\b`}, 0, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []string{`a\b_1`}, keys)
+	})
+
 	t.Run("pagination with prefix", func(t *testing.T) {
 		pluginID := model.NewId()
 
