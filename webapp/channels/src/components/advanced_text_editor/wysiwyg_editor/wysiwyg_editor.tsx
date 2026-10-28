@@ -13,7 +13,7 @@ import {TableRow} from '@tiptap/extension-table-row';
 import {Markdown} from '@tiptap/markdown';
 import type {Node as PMNode} from '@tiptap/pm/model';
 import {splitListItem} from '@tiptap/pm/schema-list';
-import {Plugin, PluginKey} from '@tiptap/pm/state';
+import {Plugin, PluginKey, TextSelection} from '@tiptap/pm/state';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
@@ -154,7 +154,7 @@ export type WysiwygEditorHandle = {
     insertText: (text: string) => void;
 
     // Appends markdown as blocks at the end of the document and puts the
-    // caret in an empty paragraph after them.
+    // caret in an empty paragraph below them.
     appendMarkdown: (markdown: string) => void;
 
     // Parity with the legacy `Textbox` ref so focus/upload hooks can drive
@@ -617,11 +617,22 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             if (!ed || ed.isDestroyed || readOnlyRef.current) {
                 return;
             }
-            const blocks = [...(parseMarkdownContent(ed, markdown)?.content ?? plainTextContent(markdown)), {type: 'paragraph'}];
-            if (ed.isEmpty) {
-                ed.chain().setContent(blocks).focus('end').run();
-            } else {
-                ed.chain().insertContentAt(ed.state.doc.content.size, blocks).focus('end').run();
+
+            // A trailing empty paragraph is hidden by CSS and can't hold the caret, so
+            // add one for the caret plus the trailing one, as leaving a block by typing does.
+            const blocks = [...(parseMarkdownContent(ed, markdown)?.content ?? plainTextContent(markdown)), {type: 'paragraph'}, {type: 'paragraph'}];
+            const wasEmpty = ed.isEmpty;
+            ed.chain().insertContentAt(ed.state.doc.content.size, blocks).command(({tr}) => {
+                // Inside the second-to-last paragraph: before the last one (2) and its own closing token (1)
+                tr.setSelection(TextSelection.create(tr.doc, tr.doc.content.size - 3));
+                return true;
+            }).focus().run();
+
+            // Drop the empty paragraph that was there before. This must be a separate
+            // transaction: replacing the node that held the caret in the same one that
+            // moves it leaves Chrome typing at the start of the document.
+            if (wasEmpty) {
+                ed.commands.deleteRange({from: 0, to: ed.state.doc.child(0).nodeSize});
             }
         },
         focus: () => {
