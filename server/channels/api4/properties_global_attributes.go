@@ -25,6 +25,31 @@ var globalAttributesReadPermissions = []*model.Permission{
 	model.PermissionSysconsoleReadUserManagementSystemRoles,
 }
 
+// shapeListingFields gives every field in the listing, including a name
+// conflict's field and template, the permissions shape the property field
+// endpoints serve this caller for the group.
+func shapeListingFields(c *Context, group *model.PropertyGroup, listing *model.GlobalAttributeListing) {
+	var slots []**model.PropertyField
+	for _, row := range listing.Rows {
+		slots = append(slots, &row.Field)
+		if row.NameConflict != nil {
+			slots = append(slots, &row.NameConflict.Field)
+			if row.NameConflict.OwnerTemplate != nil {
+				slots = append(slots, &row.NameConflict.OwnerTemplate)
+			}
+		}
+	}
+
+	fields := make([]*model.PropertyField, len(slots))
+	for i, slot := range slots {
+		fields[i] = *slot
+	}
+	shaped := c.App.ShapePropertyFieldsForCaller(c.AppContext, *c.AppContext.Session(), fields, servesV3(c, group))
+	for i, slot := range slots {
+		*slot = shaped[i]
+	}
+}
+
 // searchGlobalAttributeListing serves the System Console's Global Attributes
 // listing: one page of rows already composed with their applies-to resources,
 // owners, source and name conflict, filtered by search term, source and resource
@@ -61,6 +86,13 @@ func searchGlobalAttributeListing(c *Context, w http.ResponseWriter, r *http.Req
 		c.Err = appErr
 		return
 	}
+
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.AccessControlPropertyGroupName)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	shapeListingFields(c, group, listing)
 
 	auditRec.Success()
 
