@@ -630,3 +630,33 @@ func TestElasticsearchStopCleansUpProcessors(t *testing.T) {
 		})
 	}
 }
+
+// TestTestConfigLeavesEngineStateUnchanged checks that TestConfig only probes the cluster: it must
+// not start a stopped engine, nor change what a running engine reports when given a candidate
+// config that points at another cluster.
+func TestTestConfigLeavesEngineStateUnchanged(t *testing.T) {
+	th, es := setupCJKCluster(t, &common.ClusterRecorder{}, []string{"analysis-nori"})
+
+	require.Nil(t, es.TestConfig(th.Context, th.App.Config()))
+	require.False(t, es.IsActive())
+	require.Nil(t, es.client)
+	require.Nil(t, es.syncBulkProcessor)
+	require.Zero(t, es.GetVersion())
+	require.Empty(t, es.GetFullVersion())
+	require.Empty(t, es.GetPlugins())
+
+	require.Nil(t, es.Start(context.Background()))
+	client := es.client
+
+	otherCluster := httptest.NewServer(infoHandler("9.1.0"))
+	t.Cleanup(otherCluster.Close)
+	candidate := th.App.Config().Clone()
+	*candidate.ElasticsearchSettings.ConnectionURL = otherCluster.URL
+
+	require.Nil(t, es.TestConfig(th.Context, candidate))
+	require.True(t, es.IsActive())
+	require.Same(t, client, es.client)
+	require.Equal(t, 8, es.GetVersion())
+	require.Equal(t, "8.19.0", es.GetFullVersion())
+	require.Equal(t, []string{"analysis-nori"}, es.GetPlugins())
+}

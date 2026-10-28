@@ -81,6 +81,12 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 	return configListenerId, licenseListenerId
 }
 
+// ReevaluateSearchEngine wakes the search engine watcher so it re-evaluates the
+// engine immediately instead of waiting out its retry backoff.
+func (ps *PlatformService) ReevaluateSearchEngine() {
+	ps.esWatcher.reevaluate()
+}
+
 func (ps *PlatformService) StopSearchEngine() {
 	if ps.esWatcher != nil {
 		ps.esWatcher.stop()

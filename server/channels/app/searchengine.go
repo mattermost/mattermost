@@ -29,6 +29,12 @@ func (a *App) TestElasticsearch(rctx request.CTX, cfg *model.Config) *model.AppE
 		return err
 	}
 
+	// TestConfig doesn't start the engine. If it isn't running, let the
+	// watcher retry Start() now rather than after its backoff.
+	if !seI.IsActive() {
+		a.Srv().Platform().ReevaluateSearchEngine()
+	}
+
 	return nil
 }
 

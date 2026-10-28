@@ -182,9 +182,6 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 	defer es.mutex.Unlock()
 
 	if es.ready.Load() != 0 {
-		// Elasticsearch is already started. We don't return an error
-		// because "Test Connection" already re-initializes the client. So this
-		// can be a valid scenario.
 		return nil
 	}
 
@@ -1114,7 +1111,7 @@ func (es *ElasticsearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, ch
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if es.ready.Load() == 0 {
+	if es.ready.Load() == 0 || es.syncBulkProcessor == nil {
 		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1646,18 +1643,11 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(context.Background(), client); appErr != nil {
+	// TestConfig only checks the connection: it must not change the running
+	// engine, since cfg may be an unsaved candidate config. Starting an engine
+	// that became reachable after server start is the search engine watcher's job.
+	if _, _, appErr = checkVersion(context.Background(), client, rctx.Logger()); appErr != nil {
 		return appErr
-	}
-
-	// Resetting the state.
-	if es.ready.CompareAndSwap(0, 1) {
-		// Re-assign the client.
-		// This is necessary in case elasticsearch was started
-		// after server start.
-		es.mutex.Lock()
-		es.client = client
-		es.mutex.Unlock()
 	}
 
 	return nil

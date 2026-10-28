@@ -154,9 +154,6 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	defer os.mutex.Unlock()
 
 	if os.ready.Load() != 0 {
-		// Elasticsearch is already started. We don't return an error
-		// because "Test Connection" already re-initializes the client. So this
-		// can be a valid scenario.
 		return nil
 	}
 
@@ -1153,7 +1150,7 @@ func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, chann
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if os.ready.Load() == 0 {
+	if os.ready.Load() == 0 || os.syncBulkProcessor == nil {
 		return model.NewAppError("Opensearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1711,18 +1708,11 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 		return appErr
 	}
 
-	if appErr = os.fetchServerInfo(context.Background(), client); appErr != nil {
+	// TestConfig only checks the connection: it must not change the running
+	// engine, since cfg may be an unsaved candidate config. Starting an engine
+	// that became reachable after server start is the search engine watcher's job.
+	if _, _, appErr = checkVersion(context.Background(), client, rctx.Logger()); appErr != nil {
 		return appErr
-	}
-
-	// Resetting the state.
-	if os.ready.CompareAndSwap(0, 1) {
-		// Re-assign the client.
-		// This is necessary in case opensearch was started
-		// after server start.
-		os.mutex.Lock()
-		os.client = client
-		os.mutex.Unlock()
 	}
 
 	return nil
