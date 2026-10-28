@@ -33,6 +33,9 @@ export type LogObject = {
     msg: string;
     timestamp: string;
     worker: string;
+
+    // Set on the entry the server returns in place of a node it could not reach
+    failed_node?: boolean;
 };
 
 // The node an entry came from. A symbol, so it can't clash with a field the server logged
@@ -58,7 +61,8 @@ export type LogFilterQuery = {
 };
 
 export type AdminState = {
-    logs: LogObject[];
+    // Entries keyed by the node they came from
+    logs: Record<string, LogObject[]>;
     plainLogs: string[];
     audits: Record<string, Audit>;
     config: Partial<AdminConfig>;

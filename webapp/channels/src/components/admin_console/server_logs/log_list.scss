@@ -146,11 +146,33 @@
     // ---------------------
     // Log list container
     // ---------------------
+    // Positions the new entries pill over the top of the list
+    &__list-container {
+        position: relative;
+        display: flex;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
+    }
+
     &__list {
         flex: 1;
         overflow-x: hidden;
         overflow-y: auto;
         scrollbar-gutter: stable;
+    }
+
+    &__new-entries {
+        position: absolute;
+        z-index: 1;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+
+        button {
+            border-radius: var(--radius-pill);
+            box-shadow: var(--elevation-2);
+        }
     }
 
     // Loading and empty states
@@ -244,6 +266,20 @@
 
         &:hover {
             background: rgba(var(--semantic-color-warning), 0.08);
+        }
+    }
+
+    // Fades from the highlight to the row's own background
+    &--new {
+        animation: log-row-arrived 2s ease-out;
+
+        // Without the fade the highlight stays until the next update brings new rows
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+
+            &:not(.LogRow--focused) {
+                box-shadow: inset 2px 0 0 var(--online-indicator);
+            }
         }
     }
 
@@ -457,6 +493,12 @@
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         margin-top: 16px;
         gap: 8px;
+    }
+}
+
+@keyframes log-row-arrived {
+    from {
+        background-color: rgba(var(--online-indicator-rgb), 0.24);
     }
 }
 

@@ -58,7 +58,7 @@ describe('components/admin_console/server_logs/Logs', () => {
                 logNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs: jest.fn(), getPlainLogs: jest.fn()}}
+                actions={{getLogs: jest.fn(), getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
             />,
         );
 
@@ -210,7 +210,7 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
             logNodes={[]}
             plainLogs={[]}
             isPlainLogs={false}
-            actions={{getLogs: jest.fn(), getPlainLogs: jest.fn()}}
+            actions={{getLogs: jest.fn(), getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
         />
     );
 
@@ -289,7 +289,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
                 logNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
     }
@@ -399,7 +399,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
                 logNodes={logNodes}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
             />
         );
     }
@@ -521,5 +521,117 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
         await pickNode('node-b');
 
         await waitFor(() => expect(JSON.parse(localStorage.getItem('mm_admin_logs_prefs')!).node).toBe('node-b'));
+    });
+});
+
+describe('components/admin_console/server_logs/Logs live tail', () => {
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    function timedLog(node: string, msg: string, timestamp: string, extra: Partial<LogObjectWithAdditionalInfo> = {}): LogObjectWithAdditionalInfo {
+        return {...nodeLog(node, msg), timestamp, ...extra};
+    }
+
+    function renderLogs(logs: LogObjectWithAdditionalInfo[], logNodes = [...new Set(logs.map((log) => log[LogNodeKey]!))]) {
+        const getLogs = jest.fn().mockResolvedValue({});
+        const getNewLogs = jest.fn().mockResolvedValue({});
+        renderWithContext(
+            <Logs
+                logs={logs}
+                logNodes={logNodes}
+                plainLogs={[]}
+                isPlainLogs={false}
+                actions={{getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
+            />,
+        );
+        return {getLogs, getNewLogs};
+    }
+
+    async function pickMenuItem(menuLabel: string, item: string, role: 'menuitemradio' | 'menuitemcheckbox' = 'menuitemradio') {
+        await userEvent.click(screen.getByLabelText(menuLabel));
+        await userEvent.click(screen.getByRole(role, {name: new RegExp(`^${item}`)}));
+    }
+
+    async function startLiveTail(getLogs: jest.Mock) {
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+    }
+
+    test('should ask each node only for entries from its newest one onwards, to the millisecond', async () => {
+        const {getLogs, getNewLogs} = renderLogs([
+            timedLog('node-a', 'a1', '2026-10-20 11:39:58.100 +02:00'),
+            timedLog('node-a', 'a2', '2026-10-20 11:39:59.123 +02:00'),
+            timedLog('node-b', 'b1', '2026-10-20 09:40:01.007 Z'),
+        ]);
+
+        await startLiveTail(getLogs);
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(2));
+        expect(getNewLogs).toHaveBeenCalledWith({serverNames: ['node-a'], logLevels: [], dateFrom: '2026-10-20 09:39:59.123 +00:00', dateTo: ''});
+        expect(getNewLogs).toHaveBeenCalledWith({serverNames: ['node-b'], logLevels: [], dateFrom: '2026-10-20 09:40:01.007 +00:00', dateTo: ''});
+        expect(getLogs).toHaveBeenCalledTimes(1);
+    });
+
+    test('should ask a node with no entries, or only a failed node entry, for the whole time range', async () => {
+        jest.useFakeTimers({now: new Date('2026-10-20T12:00:00Z'), doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'nextTick', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback', 'cancelIdleCallback', 'performance', 'hrtime']});
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({enabledLevels: ['error', 'warn']}));
+        const {getLogs, getNewLogs} = renderLogs([
+            timedLog('node-a', 'Failed to fetch logs from node', '2026-10-20 11:59:00.000 Z', {failed_node: true, level: LogLevelEnum.ERROR}),
+        ], ['node-a', 'node-b']);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(2));
+        for (const node of ['node-a', 'node-b']) {
+            expect(getNewLogs).toHaveBeenCalledWith({serverNames: [node], logLevels: ['error', 'warn'], dateFrom: '2026-10-20 11:55:00.000 +00:00', dateTo: ''});
+        }
+    });
+
+    test('should only ask the selected node', async () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({node: 'node-b'}));
+        const {getLogs, getNewLogs} = renderLogs([timedLog('node-b', 'b1', '2026-10-20 09:40:01.000 Z')], ['node-b']);
+
+        await startLiveTail(getLogs);
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        expect(getNewLogs).toHaveBeenCalledWith(expect.objectContaining({serverNames: ['node-b'], dateFrom: '2026-10-20 09:40:01.000 +00:00'}));
+    });
+
+    test('should ask every node at once before any node is known', async () => {
+        const {getLogs, getNewLogs} = renderLogs([], []);
+
+        await startLiveTail(getLogs);
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '', dateTo: ''}));
+    });
+
+    test('should reload everything when a filter changes while live tail is on', async () => {
+        const {getLogs, getNewLogs} = renderLogs([timedLog('node-a', 'a1', '2026-10-20 09:40:01.000 Z')]);
+        await startLiveTail(getLogs);
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+
+        await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['error', 'warn', 'info'], dateFrom: '', dateTo: ''});
+    });
+
+    test('should reload everything on a manual reload while live tail is on', async () => {
+        const {getLogs, getNewLogs} = renderLogs([timedLog('node-a', 'a1', '2026-10-20 09:40:01.000 Z')]);
+        await startLiveTail(getLogs);
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+
+        await userEvent.click(screen.getByRole('button', {name: 'Reload'}));
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        expect(getNewLogs).toHaveBeenCalledTimes(1);
     });
 });

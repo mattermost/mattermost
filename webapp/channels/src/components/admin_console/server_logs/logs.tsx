@@ -20,7 +20,7 @@ import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
 import useLogPolling from './use_log_polling';
-import {presetStartMs} from './utils';
+import {newestLogTimes, presetStartMs} from './utils';
 
 import './logs.scss';
 
@@ -31,6 +31,7 @@ type Props = {
     isPlainLogs: boolean;
     actions: {
         getLogs: (logFilter: LogFilter) => Promise<unknown>;
+        getNewLogs: (logFilter: LogFilter) => Promise<unknown>;
         getPlainLogs: (
             page?: number | undefined,
             perPage?: number | undefined,
@@ -71,8 +72,8 @@ const LOG_FORMAT_PREF_KEY = 'mm_admin_logs_format';
 
 // The logs API expects filter dates as UTC in "YYYY-MM-DD HH:mm:ss.SSS +00:00"
 function formatFilterDate(date: Date): string {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.000 +00:00`;
+    const pad = (n: number, width = 2) => String(n).padStart(width, '0');
+    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.${pad(date.getUTCMilliseconds(), 3)} +00:00`;
 }
 
 // No end date, so the server ends the range at its own clock rather than the browser's
@@ -129,6 +130,12 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         selectedNode && !knownNodes.includes(selectedNode) ? [...knownNodes, selectedNode].sort() : knownNodes
     ), [knownNodes, selectedNode]);
 
+    // Read by polls, which must not change reload and so trigger a full reload
+    const logsRef = useRef(logs);
+    logsRef.current = logs;
+    const logNodesRef = useRef(logNodes);
+    logNodesRef.current = logNodes;
+
     // One fetch at a time, so a slow response can't overwrite a newer one
     const fetchQueueRef = useRef<Promise<unknown>>(Promise.resolve());
     const latestFetchRef = useRef(0);
@@ -156,12 +163,23 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
                 return;
             }
             const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
-            await actions.getLogs({
-                serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES,
-                logLevels: allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level)),
-                dateFrom: activeTimePreset === null ? '' : presetStart(activeTimePreset),
+            const logLevels = allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level));
+            const rangeStart = activeTimePreset === null ? '' : presetStart(activeTimePreset);
+            const nodes = selectedNode ? [selectedNode] : logNodesRef.current;
+            if (!silent || nodes.length === 0) {
+                const getLogs = silent ? actions.getNewLogs : actions.getLogs;
+                await getLogs({serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES, logLevels, dateFrom: rangeStart, dateTo: ''});
+                return;
+            }
+
+            // A poll asks each node only for entries from its newest loaded one onwards
+            const newest = newestLogTimes(logsRef.current);
+            await Promise.all(nodes.map((node) => actions.getNewLogs({
+                serverNames: [node],
+                logLevels,
+                dateFrom: node in newest ? formatFilterDate(new Date(newest[node])) : rangeStart,
                 dateTo: '',
-            });
+            })));
         };
 
         pendingFetchesRef.current++;

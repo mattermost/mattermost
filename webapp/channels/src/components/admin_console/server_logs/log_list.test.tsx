@@ -836,4 +836,171 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(focusedRow()).toBeNull();
         });
     });
+
+    describe('live tail updates', () => {
+        const fourth = makeLog('msg 4', '2026-03-12T10:00:04.000Z');
+        const fifth = makeLog('msg 5', '2026-03-12T10:00:05.000Z');
+
+        function renderUpdatable(logs: LogObjectWithAdditionalInfo[], props: Partial<ListProps> = {}) {
+            const result = renderListWith({logs, ...props});
+            return {
+                ...result,
+                update: (next: LogObjectWithAdditionalInfo[], nextProps: Partial<ListProps> = {}) => result.rerender(
+                    <StatefulLogList
+                        {...baseProps}
+                        {...props}
+                        logs={next}
+                        {...nextProps}
+                    />,
+                ),
+            };
+        }
+
+        function newEntriesButton() {
+            return screen.queryByRole('button', {name: /new entr/});
+        }
+
+        function newRowMessages(): string[] {
+            return Array.from(document.querySelectorAll('.LogRow--new .LogRow__message')).map((el) => el.textContent ?? '');
+        }
+
+        test('should insert and highlight new rows at the top of the first page', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            expect(newRowMessages()).toEqual([]);
+
+            update([first, second, third, fourth, fifth]);
+
+            expect(rowMessages()).toEqual(['msg 5', 'msg 4', 'msg 3', 'msg 2', 'msg 1']);
+            expect(newRowMessages()).toEqual(['msg 5', 'msg 4']);
+            expect(newEntriesButton()).not.toBeInTheDocument();
+        });
+
+        test('should only highlight the rows from the latest update', () => {
+            const {update} = renderUpdatable([first, second, third]);
+
+            update([first, second, third, fourth]);
+            update([first, second, third, fourth, fifth]);
+
+            expect(newRowMessages()).toEqual(['msg 5']);
+        });
+
+        test('should hold new entries while a row is expanded, and show them from the pill', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            fireEvent.click(screen.getByText('msg 2'));
+
+            update([first, second, third, fourth, fifth]);
+
+            expect(rowMessages()).toEqual(['msg 3', 'msg 2', 'msg 1']);
+            expect(newEntriesButton()).toHaveTextContent('2 new entries');
+            expect(screen.getByText(/Showing 1 - 3 of 3/)).toBeInTheDocument();
+
+            fireEvent.click(newEntriesButton()!);
+
+            expect(rowMessages()).toEqual(['msg 5', 'msg 4', 'msg 3', 'msg 2', 'msg 1']);
+            expect(newRowMessages()).toEqual(['msg 5', 'msg 4']);
+            expect(newEntriesButton()).not.toBeInTheDocument();
+            expect(screen.getByText(/Showing 1 - 5 of 5/)).toBeInTheDocument();
+
+            // The expanded row stays expanded through the update
+            expect(document.querySelector('.LogRow--expanded .LogRow__message')).toHaveTextContent('msg 2');
+        });
+
+        test('should hold new entries while scrolled away from the top', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            const list = screen.getByRole('list', {name: 'Server log entries'});
+            Object.defineProperty(list, 'scrollTop', {configurable: true, value: 120});
+
+            update([first, second, third, fourth]);
+
+            expect(newEntriesButton()).toHaveTextContent('1 new entry');
+
+            fireEvent.click(newEntriesButton()!);
+
+            expect(list.scrollTo).toHaveBeenCalledWith({top: 0});
+        });
+
+        test('should hold new entries on a later page and jump to the first page from the pill', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50}));
+            const logs = makeLogs(60);
+            const {update} = renderUpdatable(logs);
+            fireEvent.click(screen.getByRole('button', {name: 'Next page'}));
+            expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+
+            update([...logs, makeLog('msg 61', '2026-03-12T10:01:00.000Z')]);
+
+            expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+            fireEvent.click(newEntriesButton()!);
+
+            expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+            expect(rowMessages()[0]).toBe('msg 61');
+        });
+
+        test('should hold new entries when sorted oldest first and jump to the last page from the pill', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50, sortAsc: true}));
+            const logs = makeLogs(50);
+            const {update} = renderUpdatable(logs);
+
+            update([...logs, makeLog('msg 51', '2026-03-12T10:01:00.000Z')]);
+
+            expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
+            fireEvent.click(newEntriesButton()!);
+
+            expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+            expect(rowMessages()).toEqual(['msg 51']);
+        });
+
+        test('should leave held entries out of the level counts until they are shown', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            fireEvent.click(screen.getByText('msg 2'));
+
+            update([first, second, third, makeLog('an error', '2026-03-12T10:00:04.000Z', LogLevelEnum.ERROR)]);
+            openLevelsMenu();
+            expect(levelMenuItem('Error')).toHaveTextContent('Error0');
+            fireEvent.keyDown(screen.getByRole('menu', {name: 'Log levels menu'}), {key: 'Escape'});
+
+            fireEvent.click(newEntriesButton()!);
+            openLevelsMenu();
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+        });
+
+        test('should only count held entries that match the search', () => {
+            pinAscendingSort();
+            const {update} = renderUpdatable([first, second, third], {search: 'match'});
+
+            update([first, second, third, makeLog('a match', '2026-03-12T10:00:04.000Z'), makeLog('other', '2026-03-12T10:00:05.000Z')]);
+
+            expect(newEntriesButton()).toHaveTextContent('1 new entry');
+        });
+
+        test('should show an entry from a failed node right away', () => {
+            const {update} = renderUpdatable([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:01.000Z')]);
+            fireEvent.click(screen.getByText('a1'));
+
+            update([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:01.000Z'), makeFailedNodeLog('node-a', '2026-03-12 10:00:09.000 +00:00')]);
+
+            expect(screen.getByText('Failed to fetch logs from node')).toBeInTheDocument();
+            expect(newEntriesButton()).not.toBeInTheDocument();
+        });
+
+        test('should hold entries from a node that had none', () => {
+            const {update} = renderUpdatable([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:05.000Z')]);
+            fireEvent.click(screen.getByText('a1'));
+
+            update([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:05.000Z'), makeNodeLog('node-b', 'b1', '2026-03-12T10:00:01.000Z')]);
+
+            expect(newEntriesButton()).toHaveTextContent('1 new entry');
+        });
+
+        test('should show a full reload as it is, without holding or highlighting', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            fireEvent.click(screen.getByText('msg 2'));
+
+            update([first, second, third], {loading: true});
+            update([second, third, fourth, fifth], {loading: false});
+
+            expect(rowMessages()).toEqual(['msg 5', 'msg 4', 'msg 3', 'msg 2']);
+            expect(newRowMessages()).toEqual([]);
+            expect(newEntriesButton()).not.toBeInTheDocument();
+        });
+    });
 });

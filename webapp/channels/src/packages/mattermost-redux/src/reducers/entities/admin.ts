@@ -4,7 +4,7 @@
 import {combineReducers} from 'redux';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
-import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState, LogObject} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -19,14 +19,62 @@ import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Stats} from 'mattermost-redux/constants';
 import PluginState from 'mattermost-redux/constants/plugins';
+import {logEntryKey, parseLogTimestamp} from 'mattermost-redux/utils/log_utils';
 
-function logs(state: string[] = [], action: MMReduxAction) {
+// The most entries the server returns for a node in one query
+const MAX_LOGS_PER_NODE = 10000;
+
+// New entries are fetched from the newest loaded timestamp onwards, so they repeat the entries
+// from that millisecond, and older nodes that ignore the date filter repeat everything
+function mergeLogEntries(existing: LogObject[], incoming: LogObject[]): LogObject[] {
+    // The entry standing in for a node that could not be reached only describes the latest response
+    const kept = existing.filter((entry) => !entry.failed_node);
+
+    // Only entries from the oldest incoming timestamp onwards can be repeats
+    const since = incoming.reduce((min, entry) => Math.min(min, parseLogTimestamp(entry.timestamp)), Infinity);
+    const repeats = new Map<string, number>();
+    for (const entry of kept) {
+        if (!(parseLogTimestamp(entry.timestamp) < since)) {
+            const key = logEntryKey(entry);
+            repeats.set(key, (repeats.get(key) ?? 0) + 1);
+        }
+    }
+
+    // Counted rather than collected, so an identical entry logged again in the same millisecond is kept
+    const added = incoming.filter((entry) => {
+        const key = logEntryKey(entry);
+        const count = repeats.get(key) ?? 0;
+        if (count === 0) {
+            return true;
+        }
+        repeats.set(key, count - 1);
+        return false;
+    });
+    if (added.length === 0 && kept.length === existing.length) {
+        return existing;
+    }
+
+    const merged = kept.concat(added);
+    return merged.length > MAX_LOGS_PER_NODE ? merged.slice(merged.length - MAX_LOGS_PER_NODE) : merged;
+}
+
+function logs(state: Record<string, LogObject[]> = {}, action: MMReduxAction): Record<string, LogObject[]> {
     switch (action.type) {
     case AdminTypes.RECEIVED_LOGS: {
         return action.data;
     }
+    case AdminTypes.RECEIVED_NEW_LOGS: {
+        let nextState = state;
+        for (const [node, entries] of Object.entries<LogObject[]>(action.data)) {
+            const merged = mergeLogEntries(state[node] ?? [], entries);
+            if (merged !== state[node]) {
+                nextState = {...nextState, [node]: merged};
+            }
+        }
+        return nextState;
+    }
     case UserTypes.LOGOUT_SUCCESS:
-        return [];
+        return {};
 
     default:
         return state;
