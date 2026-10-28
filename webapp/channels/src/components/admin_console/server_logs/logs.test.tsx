@@ -571,9 +571,11 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
 
         await startLiveTail(getLogs);
 
-        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(2));
-        expect(getNewLogs).toHaveBeenCalledWith({serverNames: ['node-a'], logLevels: [], dateFrom: '2026-10-20 09:39:59.123 +00:00', dateTo: ''});
-        expect(getNewLogs).toHaveBeenCalledWith({serverNames: ['node-b'], logLevels: [], dateFrom: '2026-10-20 09:40:01.007 +00:00', dateTo: ''});
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        expect(getNewLogs).toHaveBeenCalledWith([
+            {serverNames: ['node-a'], logLevels: [], dateFrom: '2026-10-20 09:39:59.123 +00:00', dateTo: ''},
+            {serverNames: ['node-b'], logLevels: [], dateFrom: '2026-10-20 09:40:01.007 +00:00', dateTo: ''},
+        ]);
         expect(getLogs).toHaveBeenCalledTimes(1);
     });
 
@@ -589,10 +591,10 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
         await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
 
-        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(2));
-        for (const node of ['node-a', 'node-b']) {
-            expect(getNewLogs).toHaveBeenCalledWith({serverNames: [node], logLevels: ['error', 'warn'], dateFrom: '2026-10-20 11:55:00.000 +00:00', dateTo: ''});
-        }
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        expect(getNewLogs).toHaveBeenCalledWith(['node-a', 'node-b'].map((node) => (
+            {serverNames: [node], logLevels: ['error', 'warn'], dateFrom: '2026-10-20 11:55:00.000 +00:00', dateTo: ''}
+        )));
     });
 
     test('should only ask the selected node', async () => {
@@ -602,7 +604,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         await startLiveTail(getLogs);
 
         await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
-        expect(getNewLogs).toHaveBeenCalledWith(expect.objectContaining({serverNames: ['node-b'], dateFrom: '2026-10-20 09:40:01.000 +00:00'}));
+        expect(getNewLogs).toHaveBeenCalledWith([expect.objectContaining({serverNames: ['node-b'], dateFrom: '2026-10-20 09:40:01.000 +00:00'})]);
     });
 
     test('should ask every node at once before any node is known', async () => {
@@ -610,7 +612,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
 
         await startLiveTail(getLogs);
 
-        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '', dateTo: ''}));
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith([{serverNames: [], logLevels: [], dateFrom: '', dateTo: ''}]));
     });
 
     test('should reload everything when a filter changes while live tail is on', async () => {

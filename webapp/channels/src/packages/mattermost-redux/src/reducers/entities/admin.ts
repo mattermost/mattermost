@@ -27,8 +27,12 @@ const MAX_LOGS_PER_NODE = 10000;
 // New entries are fetched from the newest loaded timestamp onwards, so they repeat the entries
 // from that millisecond, and older nodes that ignore the date filter repeat everything
 function mergeLogEntries(existing: LogObject[], incoming: LogObject[]): LogObject[] {
-    // The entry standing in for a node that could not be reached only describes the latest response
+    // The entry standing in for a node that could not be reached only describes the latest response,
+    // but is kept while the node stays unreachable so its row doesn't change on every poll
     const kept = existing.filter((entry) => !entry.failed_node);
+    if (incoming.length > 0 && incoming.every((entry) => entry.failed_node) && kept.length < existing.length) {
+        return existing;
+    }
 
     // Only entries from the oldest incoming timestamp onwards can be repeats
     const since = incoming.reduce((min, entry) => Math.min(min, parseLogTimestamp(entry.timestamp)), Infinity);

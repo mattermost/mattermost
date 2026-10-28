@@ -31,7 +31,7 @@ type Props = {
     isPlainLogs: boolean;
     actions: {
         getLogs: (logFilter: LogFilter) => Promise<unknown>;
-        getNewLogs: (logFilter: LogFilter) => Promise<unknown>;
+        getNewLogs: (logFilters: LogFilter[]) => Promise<unknown>;
         getPlainLogs: (
             page?: number | undefined,
             perPage?: number | undefined,
@@ -165,16 +165,17 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
             const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
             const logLevels = allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level));
             const rangeStart = activeTimePreset === null ? '' : presetStart(activeTimePreset);
-            const nodes = selectedNode ? [selectedNode] : logNodesRef.current;
-            if (!silent || nodes.length === 0) {
-                const getLogs = silent ? actions.getNewLogs : actions.getLogs;
-                await getLogs({serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES, logLevels, dateFrom: rangeStart, dateTo: ''});
+            const fullQuery = {serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES, logLevels, dateFrom: rangeStart, dateTo: ''};
+            if (!silent) {
+                await actions.getLogs(fullQuery);
                 return;
             }
 
-            // A poll asks each node only for entries from its newest loaded one onwards
+            // A poll asks each node only for entries from its newest loaded one onwards. New nodes
+            // aren't known until a full reload
+            const nodes = selectedNode ? [selectedNode] : logNodesRef.current;
             const newest = newestLogTimes(logsRef.current);
-            await Promise.all(nodes.map((node) => actions.getNewLogs({
+            await actions.getNewLogs(nodes.length === 0 ? [fullQuery] : nodes.map((node) => ({
                 serverNames: [node],
                 logLevels,
                 dateFrom: node in newest ? formatFilterDate(new Date(newest[node])) : rangeStart,

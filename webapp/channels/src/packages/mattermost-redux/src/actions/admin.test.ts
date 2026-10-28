@@ -61,6 +61,40 @@ describe('Actions.Admin', () => {
         expect(Object.keys(logs).length > 0).toBeTruthy();
     });
 
+    it('getNewLogs merges every node\'s response in one update', async () => {
+        const entry = (msg: string) => ({caller: '', job_id: '', level: 'info', msg, timestamp: '2026-10-28 10:00:01.000 Z', worker: ''});
+        nock(Client4.getBaseRoute()).
+            post('/logs/query', (body) => body.server_names[0] === 'node-a').
+            reply(200, {'node-a': [entry('a1')]});
+        nock(Client4.getBaseRoute()).
+            post('/logs/query', (body) => body.server_names[0] === 'node-b').
+            reply(200, {'node-b': [entry('b1')]});
+
+        const dispatched: string[] = [];
+        store.subscribe(() => dispatched.push('update'));
+        const filter = {logLevels: [], dateFrom: '', dateTo: ''};
+        await store.dispatch(Actions.getNewLogs([{...filter, serverNames: ['node-a']}, {...filter, serverNames: ['node-b']}]));
+
+        expect(store.getState().entities.admin.logs).toEqual({'node-a': [entry('a1')], 'node-b': [entry('b1')]});
+        expect(dispatched).toHaveLength(1);
+    });
+
+    it('getNewLogs keeps the nodes that answered when another fails', async () => {
+        const entry = {caller: '', job_id: '', level: 'info', msg: 'a1', timestamp: '2026-10-28 10:00:01.000 Z', worker: ''};
+        nock(Client4.getBaseRoute()).
+            post('/logs/query', (body) => body.server_names[0] === 'node-a').
+            reply(200, {'node-a': [entry]});
+        nock(Client4.getBaseRoute()).
+            post('/logs/query', (body) => body.server_names[0] === 'node-b').
+            reply(500, {message: 'failed'});
+
+        const filter = {logLevels: [], dateFrom: '', dateTo: ''};
+        const result = await store.dispatch(Actions.getNewLogs([{...filter, serverNames: ['node-a']}, {...filter, serverNames: ['node-b']}]));
+
+        expect(result.error).toBeTruthy();
+        expect(store.getState().entities.admin.logs).toEqual({'node-a': [entry]});
+    });
+
     it('getAudits', async () => {
         nock(Client4.getBaseRoute()).
             get('/audits').

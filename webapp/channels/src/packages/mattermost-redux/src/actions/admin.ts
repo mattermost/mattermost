@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {LogFilter, LogFilterQuery} from '@mattermost/types/admin';
+import type {LogFilter, LogFilterQuery, LogObject} from '@mattermost/types/admin';
 import type {
     Channel,
     ChannelSearchOpts,
@@ -54,15 +54,30 @@ export function getLogs(logFilter: LogFilter) {
     });
 }
 
-// Merges the response into the loaded entries instead of replacing them
-export function getNewLogs(logFilter: LogFilter) {
-    return bindClientFunc({
-        clientFunc: Client4.getLogs,
-        onSuccess: [AdminTypes.RECEIVED_NEW_LOGS],
-        params: [
-            toLogFilterQuery(logFilter),
-        ],
-    });
+// Merges the responses into the loaded entries instead of replacing them. They're merged in one
+// update, so a poll that asks each node separately still renders once
+export function getNewLogs(logFilters: LogFilter[]): ActionFuncAsync<Record<string, LogObject[]>> {
+    return async (dispatch, getState) => {
+        const results = await Promise.allSettled(logFilters.map((logFilter) => Client4.getLogs(toLogFilterQuery(logFilter))));
+
+        const data: Record<string, LogObject[]> = {};
+        let error: unknown;
+        for (const result of results) {
+            if (result.status === 'fulfilled') {
+                Object.assign(data, result.value);
+            } else {
+                error ??= result.reason;
+            }
+        }
+
+        if (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            dispatch(logError(error as ServerError));
+        }
+        dispatch({type: AdminTypes.RECEIVED_NEW_LOGS, data});
+
+        return error ? {error} : {data};
+    };
 }
 
 export function getPlainLogs(page = 0, perPage: number = General.LOGS_PAGE_SIZE_DEFAULT) {

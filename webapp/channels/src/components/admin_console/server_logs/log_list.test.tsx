@@ -5,7 +5,7 @@ import React, {useState} from 'react';
 
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
-import {renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
+import {act, renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import LogList, {loadPrefs} from './log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
@@ -989,6 +989,39 @@ describe('components/admin_console/server_logs/LogList', () => {
             update([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:05.000Z'), makeNodeLog('node-b', 'b1', '2026-03-12T10:00:01.000Z')]);
 
             expect(newEntriesButton()).toHaveTextContent('1 new entry');
+        });
+
+        test('should not highlight the rows again after paging away and back', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50}));
+            const logs = makeLogs(60);
+            const {update} = renderUpdatable(logs);
+            update([...logs, makeLog('msg 61', '2026-03-12T10:01:00.000Z')]);
+            expect(newRowMessages()).toEqual(['msg 61']);
+
+            fireEvent.click(screen.getByRole('button', {name: 'Next page'}));
+            fireEvent.click(screen.getByRole('button', {name: 'Previous page'}));
+
+            expect(newRowMessages()).toEqual([]);
+        });
+
+        test('should move the time range on with each poll, even when nothing new arrives', () => {
+            jest.useFakeTimers({now: new Date('2026-03-12T10:04:58.000Z')});
+            try {
+                renderUpdatable([first, makeLog('recent', '2026-03-12T10:04:00.000Z')], {
+                    liveTailEnabled: true,
+                    timePresets: [{label: {id: 'test.time.5m', defaultMessage: 'Last 5 minutes'}, minutes: 5}],
+                    activeTimePreset: 5,
+                });
+                expect(rowMessages()).toEqual(['recent', 'msg 1']);
+
+                act(() => {
+                    jest.advanceTimersByTime(5000);
+                });
+
+                expect(rowMessages()).toEqual(['recent']);
+            } finally {
+                jest.useRealTimers();
+            }
         });
 
         test('should show a full reload as it is, without holding or highlighting', () => {

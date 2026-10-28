@@ -300,7 +300,18 @@ export default function LogList({
         return {shownLogs: shown, heldLogs: held};
     }, [logs, tail]);
 
-    const scopedLogs = useMemo(() => scopeLogs(shownLogs, selectedNode, activeTimePreset), [shownLogs, selectedNode, activeTimePreset]);
+    // Polls only add entries, so the time range moves on with each poll even when nothing arrives
+    const [pollTick, setPollTick] = useState(0);
+    useEffect(() => {
+        if (!liveTailEnabled || activeTimePreset === null) {
+            return undefined;
+        }
+        const interval = setInterval(() => setPollTick((tick) => tick + 1), pollInterval);
+        return () => clearInterval(interval);
+    }, [liveTailEnabled, activeTimePreset, pollInterval]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pollTick recomputes the time range cutoff
+    const scopedLogs = useMemo(() => scopeLogs(shownLogs, selectedNode, activeTimePreset), [shownLogs, selectedNode, activeTimePreset, pollTick]);
 
     const levelCounts = useMemo(() => {
         const counts: Record<string, number> = {error: 0, warn: 0, info: 0, debug: 0};
@@ -430,25 +441,31 @@ export default function LogList({
         scrollToNewestRef.current = true;
     }, [logs, sortAsc, processedLogs.length, heldCount, pageSize]);
 
+    // Rows highlighted on another page would flash again when they remount
+    const clearHighlight = useCallback(() => setTail((prev) => prev && {...prev, highlight: null}), []);
+
     const goNextPage = useCallback(() => {
         setPage((p) => Math.min(p + 1, totalPages - 1));
+        clearHighlight();
         setExpandedKey(null);
         listRef.current?.scrollTo({top: 0});
-    }, [totalPages]);
+    }, [totalPages, clearHighlight]);
 
     const goPrevPage = useCallback(() => {
         setPage((p) => Math.max(p - 1, 0));
+        clearHighlight();
         setExpandedKey(null);
         listRef.current?.scrollTo({top: 0});
-    }, []);
+    }, [clearHighlight]);
 
     const handlePageSizeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const newSize = Number(e.target.value);
         setPageSize(newSize);
         setPage(0);
+        clearHighlight();
         setExpandedKey(null);
         setFocusedKey(null);
-    }, []);
+    }, [clearHighlight]);
 
     const toggleSort = useCallback(() => {
         setSortAsc((prev) => !prev);
