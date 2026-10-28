@@ -5477,12 +5477,16 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 			pf.TargetType = string(model.PropertyFieldTargetLevelChannel)
 			pf.TargetID = model.NewId()
 		})
+		f.template("mu_channel_target_template", func(pf *model.PropertyField) {
+			pf.TargetType = string(model.PropertyFieldTargetLevelChannel)
+			pf.TargetID = model.NewId()
+		})
 		f.remove(f.field(model.PropertyFieldObjectTypeUser, "theta_deleted_user"))
 		f.remove(f.template("iota_deleted_template"))
 		f.create(model.NewId(), model.PropertyFieldObjectTypeTemplate, "kappa_other_group_template")
 		f.create(model.NewId(), model.PropertyFieldObjectTypeUser, "lambda_other_group_user")
 
-		t.Run("holds templates and unlinked system resource fields only", func(t *testing.T) {
+		t.Run("holds system templates and unlinked system resource fields only", func(t *testing.T) {
 			names := f.search(rctx)
 			require.Equal(t, []string{"alpha", "beta", "delta_channel", "epsilon_post", "gamma_user"}, names)
 		})
