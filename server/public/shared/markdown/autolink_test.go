@@ -49,6 +49,12 @@ func TestParseURLAutolink(t *testing.T) {
 			Expected:    "ftp://example.com",
 		},
 		{
+			Description: "link with gemini",
+			Input:       "gemini://example.com and some text",
+			Position:    6,
+			Expected:    "gemini://example.com",
+		},
+		{
 			Description: "link with a path",
 			Input:       "https://example.com/abcd and some text",
 			Position:    5,
@@ -851,6 +857,10 @@ func TestAutolinking(t *testing.T) {
 		"valid-link-3": {
 			Markdown:     `ftp://example.com`,
 			ExpectedHTML: `<p><a href="ftp://example.com">ftp://example.com</a></p>`,
+		},
+		"valid-link-3b": {
+			Markdown:     `gemini://example.com`,
+			ExpectedHTML: `<p><a href="gemini://example.com">gemini://example.com</a></p>`,
 		},
 		// "valid-link-4": {
 		// 	Markdown:     `ts3server://example.com?port=9000`,
