@@ -170,7 +170,7 @@ describe('components/SettingItemMax', () => {
             {value: 'c', label: 'Charlie'},
         ];
 
-        test('should focus an empty single Combobox input and open its menu', () => {
+        test('should focus an empty single Combobox input with menu closed', () => {
             renderWithContext(
                 <SettingItemMax
                     {...baseProps}
@@ -188,7 +188,7 @@ describe('components/SettingItemMax', () => {
 
             const input = screen.getByRole('combobox', {name: 'Attr'});
             expect(input).toHaveFocus();
-            expect(input).toHaveAttribute('aria-expanded', 'true');
+            expect(input).toHaveAttribute('aria-expanded', 'false');
         });
 
         test('should focus a single Combobox input with a value and a clear button, not the clear button', () => {

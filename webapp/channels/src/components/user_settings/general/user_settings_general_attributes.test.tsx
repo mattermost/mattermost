@@ -316,10 +316,9 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expect(screen.getAllByRole('option').length).toBeGreaterThan(0);
         };
 
-        // Compass opens on any input focus, so a focused, closed field is reached by clicking then Escape.
+        // Compass no longer opens on focus; the initial state is focused and closed.
         const focusClosedField = async (user: ReturnType<typeof userEvent.setup>) => {
-            await user.click(getCombobox());
-            await user.keyboard('{Escape}');
+            // Initial state after rendering is already focused and closed, no action needed
             expect(getCombobox()).toHaveFocus();
             expect(getCombobox()).toHaveAttribute('aria-expanded', 'false');
         };
@@ -328,20 +327,20 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             ['an empty select', 'select', undefined],
             ['a select with a value', 'select', 'opt1'],
             ['an empty multiselect', 'multiselect', undefined],
-        ] as const)('opens %s with the input focused and the menu open, as Compass opens on focus', (_, type, value) => {
+        ] as const)('focuses %s input with menu closed, as Compass no longer opens on focus', (_, type, value) => {
             renderEditor(buildField(type), value);
 
             expect(getCombobox()).toHaveFocus();
-            expectOpen();
+            expect(getCombobox()).toHaveAttribute('aria-expanded', 'false');
         });
 
-        test('opens a multiselect with values with the input focused, not the first chip', () => {
+        test('focuses a multiselect with values on the input, not the first chip', () => {
             renderEditor(buildField('multiselect'), ['opt1', 'opt2']);
 
             expect(getChipLabels()).toEqual(['Option 1', 'Option 2']);
             expect(getCombobox()).toHaveFocus();
             expect(document.activeElement?.closest('[data-chip]')).toBeNull();
-            expectOpen();
+            expect(getCombobox()).toHaveAttribute('aria-expanded', 'false');
         });
 
         test.each(['select', 'multiselect'] as const)('clicking a focused, closed %s input reopens its menu', async (type) => {
