@@ -435,8 +435,9 @@ export default function LogList({
     const activePresetLabel = timePresets.find((preset) => preset.minutes === timeRange)?.label;
 
     // The end is never in the future, so a start in this year means the whole range is
+    const yearOf = (time: number) => intl.formatDate(time, {year: 'numeric', timeZone: timezone});
     const durationValue = customRange ? intl.formatDateTimeRange(customRange.from, customRange.to, {
-        year: new Date(customRange.from).getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
+        year: yearOf(customRange.from) === yearOf(Date.now()) ? undefined : 'numeric',
         month: 'short',
         day: 'numeric',
         hour: 'numeric',

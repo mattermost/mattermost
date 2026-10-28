@@ -413,6 +413,22 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         expect(rangeTimeInput('To')).toHaveValue('12:00 PM');
     });
 
+    test('should not apply a custom range while a time entry is invalid', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        renderLogs(jest.fn().mockResolvedValue({}));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await typeRangeTime('From', 'soon');
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+
+        await typeRangeTime('From', '11:30');
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeEnabled();
+
+        await userEvent.clear(rangeTimeInput('To'));
+        await userEvent.tab();
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+    });
+
     test('should turn off live tail when a custom range is applied', async () => {
         fakeNow('2026-10-20T12:00:30Z');
         renderLogs(jest.fn().mockResolvedValue({}));

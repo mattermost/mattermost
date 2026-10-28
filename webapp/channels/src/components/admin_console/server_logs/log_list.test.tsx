@@ -5,6 +5,7 @@ import React, {useState} from 'react';
 
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
+import {fakeNow} from 'tests/helpers/date';
 import {renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import LogList, {loadPrefs} from './log_list';
@@ -819,7 +820,14 @@ describe('components/admin_console/server_logs/LogList', () => {
     });
 
     describe('custom time range', () => {
-        beforeEach(pinAscendingSort);
+        beforeEach(() => {
+            pinAscendingSort();
+            fakeNow('2026-03-12T10:10:00.000Z');
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
 
         const customRange = {
             from: Date.parse('2026-03-12T10:00:00.000Z'),
@@ -886,6 +894,24 @@ describe('components/admin_console/server_logs/LogList', () => {
             }});
 
             expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Dec 31, 2025, 11:00 PM – Jan 1, 2026, 1:00 AM');
+        });
+
+        test('should decide on the year in the user\'s timezone', () => {
+            // Already 2027 in Tokyo, still 2026 in UTC
+            fakeNow('2026-12-31T16:00:00.000Z');
+            renderWithContext(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={[]}
+                    timeRange={{from: Date.parse('2026-12-31T14:00:00.000Z'), to: Date.parse('2026-12-31T14:30:00.000Z')}}
+                />,
+                {entities: {users: {
+                    currentUserId: 'user1',
+                    profiles: {user1: {id: 'user1', timezone: {useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone: 'Asia/Tokyo'}}},
+                }}},
+            );
+
+            expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Dec 31, 2026, 11:00 – 11:30 PM');
         });
     });
 

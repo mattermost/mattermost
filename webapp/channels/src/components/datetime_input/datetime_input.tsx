@@ -117,6 +117,7 @@ type TimeInputManualProps = {
     timezone?: string;
     isMilitaryTime: boolean;
     onTimeChange: (time: Moment) => void;
+    onTimeInputError?: (hasError: boolean) => void;
     minDateTime?: Moment;
     maxDateTime?: Moment;
 };
@@ -126,6 +127,7 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     timezone,
     isMilitaryTime,
     onTimeChange,
+    onTimeInputError,
     minDateTime,
     maxDateTime,
 }) => {
@@ -142,7 +144,12 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
         } else {
             setTimeInputValue('');
         }
+        setTimeInputError(false);
     }, [time, isMilitaryTime]);
+
+    useEffect(() => {
+        onTimeInputError?.(timeInputError);
+    }, [timeInputError, onTimeInputError]);
 
     const handleTimeInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setTimeInputValue(event.target.value);
@@ -153,7 +160,8 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
         const parsed = parseTimeString(timeInputValue);
 
         if (!parsed) {
-            if (timeInputValue.trim() !== '') {
+            // A cleared field still holds the previous time, so it's an error unless there is none
+            if (timeInputValue.trim() !== '' || time) {
                 setTimeInputError(true);
             }
             return;
@@ -230,6 +238,9 @@ type Props = {
     timePickerInterval?: number;
     allowPastDates?: boolean;
     manualTimeEntry?: boolean;
+
+    // Called when the manually entered time becomes invalid or valid again. The time keeps its last valid value meanwhile
+    onTimeInputError?: (hasError: boolean) => void;
     minDateTime?: Moment;
     maxDateTime?: Moment;
 };
@@ -243,6 +254,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     timePickerInterval,
     allowPastDates = false,
     manualTimeEntry = false,
+    onTimeInputError,
     minDateTime,
     maxDateTime,
 }: Props) => {
@@ -485,6 +497,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         timezone={timezone}
                         isMilitaryTime={isMilitaryTime}
                         onTimeChange={handleTimeChange}
+                        onTimeInputError={onTimeInputError}
                         minDateTime={minDateTime}
                         maxDateTime={maxDateTime}
                     />

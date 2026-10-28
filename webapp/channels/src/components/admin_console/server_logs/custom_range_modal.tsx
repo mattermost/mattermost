@@ -40,7 +40,11 @@ export default function CustomRangeModal({initialRange, onConfirm, onExited}: Pr
     const [isFromInteracting, setIsFromInteracting] = useState(false);
     const [isToInteracting, setIsToInteracting] = useState(false);
 
-    const isValid = from.isBefore(to);
+    const [hasFromTimeError, setHasFromTimeError] = useState(false);
+    const [hasToTimeError, setHasToTimeError] = useState(false);
+
+    const isOrdered = from.isBefore(to);
+    const isValid = isOrdered && !hasFromTimeError && !hasToTimeError;
 
     // The pickers work in whole minutes, so the end covers everything logged during its minute
     const handleConfirm = () => {
@@ -77,7 +81,7 @@ export default function CustomRangeModal({initialRange, onConfirm, onExited}: Pr
             handleCancel={onExited}
             onExited={onExited}
             isConfirmDisabled={!isValid}
-            errorText={isValid ? undefined : intl.formatMessage({id: 'admin.logs.customRange.errorOrder', defaultMessage: 'The start must be before the end.'})}
+            errorText={isOrdered ? undefined : intl.formatMessage({id: 'admin.logs.customRange.errorOrder', defaultMessage: 'The start must be before the end.'})}
             autoCloseOnConfirmButton={false}
             compassDesign={true}
             keyboardEscape={!isFromInteracting && !isToInteracting}
@@ -96,6 +100,7 @@ export default function CustomRangeModal({initialRange, onConfirm, onExited}: Pr
                     handleChange={(time) => time && setFrom(time)}
                     timezone={timezone}
                     setIsInteracting={setIsFromInteracting}
+                    onTimeInputError={setHasFromTimeError}
                     allowPastDates={true}
                     manualTimeEntry={true}
                     maxDateTime={now}
@@ -113,6 +118,7 @@ export default function CustomRangeModal({initialRange, onConfirm, onExited}: Pr
                     handleChange={(time) => time && setTo(time)}
                     timezone={timezone}
                     setIsInteracting={setIsToInteracting}
+                    onTimeInputError={setHasToTimeError}
                     allowPastDates={true}
                     manualTimeEntry={true}
                     maxDateTime={now}
