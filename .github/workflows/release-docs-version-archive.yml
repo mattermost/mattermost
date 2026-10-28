@@ -1,0 +1,43 @@
+name: Release Docs - Version Archive
+
+# Playbook T-3: a draft PR adding a release to the version archive (download links,
+# SHA-256 from the published .sha256 files, GPG signature and SBOM). Runs when a vX.Y.Z
+# GitHub release is published, which the delivery pipeline does as a pre-release at the
+# final build cut and for each dot release; RC tags are ignored. Waits for the files.
+# See release-docs-task.yml for modes and settings.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v12.2.0 or v11.7.15'
+        required: true
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+
+permissions: {}
+
+concurrency:
+  group: release-docs-version-archive-${{ github.event.release.tag_name || inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  version-archive:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: version-archive
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+    secrets: inherit
+    permissions:
+      contents: read

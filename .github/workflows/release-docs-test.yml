@@ -1,0 +1,35 @@
+name: Release Docs Test
+
+on:
+  pull_request:
+    paths:
+      - '.github/scripts/release_docs/**'
+      - '.github/release-docs/**'
+      - '.github/scripts/changelog_release.py'
+      - '.github/scripts/generate_changelog.py'
+      - '.github/workflows/release-docs-*.yml'
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests==2.32.3 --quiet
+
+      - name: Unit tests
+        working-directory: .github/scripts
+        run: python3 -m unittest discover -s release_docs/tests -t . -p 'test_*.py' -v

@@ -1,0 +1,28 @@
+name: Release Docs - Breaking Change Notices
+
+# Lists a milestone's merged PRs labelled "Breaking Change" (the PR template's checkbox,
+# or a removed config setting or API found by config-change-checker.yml), and has Claude
+# draft one notice per PR from its release note and upgrade notes, citing the PR. Drafts go
+# to the run summary and the release-docs-breaking-changes artifact; nothing is published.
+# See release-docs-task.yml for settings.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Milestone title, e.g. v12.2.0'
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  breaking-changes:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: breaking-changes
+      version: ${{ inputs.version }}
+      mode: dry_run
+    secrets: inherit
+    permissions:
+      contents: read

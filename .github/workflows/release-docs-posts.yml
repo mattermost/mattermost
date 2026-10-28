@@ -1,0 +1,27 @@
+name: Release Docs - Post Text
+
+# Renders the key dates post (the next two releases, from the Release Dates calendar), the
+# Announcements post and the ESR comms emails for copy and paste from the run summary.
+# Posting and scheduling in Hub wait for the release agent. Playbook T-0 and T-16.
+# See release-docs-task.yml for settings.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v12.2.0'
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  posts:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: posts
+      version: ${{ inputs.version }}
+      mode: dry_run
+    secrets: inherit
+    permissions:
+      contents: read
