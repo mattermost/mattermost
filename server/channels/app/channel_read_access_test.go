@@ -466,7 +466,15 @@ func TestBuildPushNotificationMessageChannelReadAccess(t *testing.T) {
 				true, false, "",
 			)
 			require.Nil(t, appErr)
-			mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+			// The badge count evaluates the recipient's other channels too; the post's
+			// channel is evaluated once.
+			evaluations := 0
+			for _, call := range mockACS.Calls {
+				if call.Method == "AccessEvaluation" && call.Arguments.Get(1).(model.AccessRequest).Resource.ID == h.th.BasicChannel.Id {
+					evaluations++
+				}
+			}
+			require.Equal(t, 1, evaluations)
 
 			if tc.allow {
 				require.Contains(t, msg.Message, h.th.BasicPost.Message)
@@ -1860,7 +1868,16 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 		mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
 	})
 
-	t.Run("leaves exempt events and plugin events alone", func(t *testing.T) {
+	t.Run("hooks a plugin event sent to a governed channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		message := event("custom_com.example.plugin_refresh", h.th.BasicChannel.Id, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		requireHooked(t, message, h.th.BasicChannel.Id)
+	})
+
+	t.Run("leaves exempt events alone", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
@@ -1871,7 +1888,6 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 			model.WebsocketEventTyping,
 			model.WebsocketEventEphemeralMessage,
 			model.WebsocketEventThreadReadChanged,
-			"custom_com.example.plugin_refresh",
 		} {
 			message := event(eventType, h.th.BasicChannel.Id, "")
 			h.th.App.attachChannelReadAccessHook(message)
@@ -1940,6 +1956,20 @@ func TestPublishAttachesTheReadAccessHook(t *testing.T) {
 			h.th.Server.Platform().Publish(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", h.th.BasicChannel.Id, "", nil, ""))
 		})
 	})
+
+	// What the Agents plugin publishes while streaming a bot reply: the reply text,
+	// sent to the whole channel.
+	t.Run("a plugin event sent to the channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		events := []model.WebsocketEventType{"custom_mattermost-ai_postupdate"}
+		requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
+			api := NewPluginAPI(h.th.App, h.rctx, &model.Manifest{Id: "mattermost-ai"})
+			api.PublishWebSocketEvent("postupdate", map[string]any{"post_id": model.NewId(), "next": "streamed reply"},
+				&model.WebsocketBroadcast{ChannelId: h.th.BasicChannel.Id})
+		})
+	})
 }
 
 // TestPostRevealedCarriesTheReadAccessHook covers post_revealed, which carries the revealed
@@ -1954,4 +1984,28 @@ func TestPostRevealedCarriesTheReadAccessHook(t *testing.T) {
 		require.Nil(t, h.th.App.publishPostRevealedEventToAuthor(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
 		require.Nil(t, h.th.App.publishPostRevealedEventToUser(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
 	})
+}
+
+// The push badge sums mentions in the store, so a denied channel's mention would be a
+// badge the user can never clear: clearing it means opening the channel.
+func TestUserBadgeCountExcludesDeniedChannels(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	user := h.th.BasicUser2
+	h.th.AddUserToChannel(t, user, h.th.BasicChannel)
+	require.NoError(t, h.th.App.Srv().Store().Channel().IncrementMentionCount(h.th.BasicChannel.Id, []string{user.Id}, false, false))
+
+	mockACS := h.mockACS(t)
+	governed(mockACS)
+	decides(mockACS, false)
+
+	badge, appErr := h.th.App.getUserBadgeCount(h.rctx, user.Id, false)
+	require.Nil(t, appErr)
+	require.Zero(t, badge)
+
+	h.th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+	})
+	badge, appErr = h.th.App.getUserBadgeCount(h.rctx, user.Id, false)
+	require.Nil(t, appErr)
+	require.Equal(t, 1, badge, "with enforcement off the mention is counted")
 }

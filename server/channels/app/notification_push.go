@@ -374,15 +374,20 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
-func (a *App) getUserBadgeCount(userID string, isCRTEnabled bool) (int, *model.AppError) {
-	unreadCount, err := a.Srv().Store().User().GetUnreadCount(userID, isCRTEnabled)
+func (a *App) getUserBadgeCount(rctx request.CTX, userID string, isCRTEnabled bool) (int, *model.AppError) {
+	denied, appErr := a.channelReadAccessDeniedChannelIDs(rctx, userID)
+	if appErr != nil {
+		return 0, appErr
+	}
+
+	unreadCount, err := a.Srv().Store().User().GetUnreadCount(userID, isCRTEnabled, denied)
 	if err != nil {
 		return 0, model.NewAppError("getUserBadgeCount", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	badgeCount := int(unreadCount)
 
 	if isCRTEnabled {
-		threadUnreadMentions, err := a.Srv().Store().Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
+		threadUnreadMentions, err := a.Srv().Store().Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{ExcludeChannelIds: denied})
 		if err != nil {
 			return 0, model.NewAppError("getUserBadgeCount", "app.user.get_thread_count_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -395,7 +400,7 @@ func (a *App) getUserBadgeCount(userID string, isCRTEnabled bool) (int, *model.A
 func (a *App) clearPushNotificationSync(rctx request.CTX, currentSessionId, userID, channelID, rootID string) *model.AppError {
 	isCRTEnabled := a.IsCRTEnabledForUser(rctx, userID)
 
-	badgeCount, err := a.getUserBadgeCount(userID, isCRTEnabled)
+	badgeCount, err := a.getUserBadgeCount(rctx, userID, isCRTEnabled)
 	if err != nil {
 		return model.NewAppError("clearPushNotificationSync", "app.user.get_badge_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -428,7 +433,7 @@ func (a *App) clearPushNotification(currentSessionId, userID, channelID, rootID 
 }
 
 func (a *App) updateMobileAppBadgeSync(rctx request.CTX, userID string) *model.AppError {
-	badgeCount, err := a.getUserBadgeCount(userID, a.IsCRTEnabledForUser(rctx, userID))
+	badgeCount, err := a.getUserBadgeCount(rctx, userID, a.IsCRTEnabledForUser(rctx, userID))
 	if err != nil {
 		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_badge_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -802,6 +807,10 @@ func (a *App) BuildPushNotificationMessage(rctx request.CTX, contentsConfig stri
 ) (*model.PushNotification, *model.AppError) {
 	var msg *model.PushNotification
 
+	// The badge count below evaluates every channel of the recipient's; sharing a memo
+	// lets it reuse the decision for this one.
+	rctx = WithChannelAccessMemo(rctx)
+
 	// A push delivers the post's content without the recipient asking for it, so a
 	// denied recipient — including one with no cached session attributes — gets the
 	// notification downgraded rather than suppressed: the device fetches by id, and
@@ -828,7 +837,7 @@ func (a *App) BuildPushNotificationMessage(rctx request.CTX, contentsConfig stri
 		msg = a.buildFullPushNotificationMessage(rctx, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
 
-	badgeCount, err := a.getUserBadgeCount(user.Id, a.IsCRTEnabledForUser(rctx, user.Id))
+	badgeCount, err := a.getUserBadgeCount(rctx, user.Id, a.IsCRTEnabledForUser(rctx, user.Id))
 	if err != nil {
 		return nil, model.NewAppError("BuildPushNotificationMessage", "app.user.get_badge_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
