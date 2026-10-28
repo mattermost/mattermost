@@ -335,6 +335,44 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(textbox).toHaveValue('existing text\n\n> quoted\n\n');
     });
 
+    it('should append inserted text to the WYSIWYG editor as a block quote', () => {
+        const {container} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    general: {
+                        config: {FeatureFlagWysiwygEditor: 'true'},
+                    },
+                    preferences: {
+                        myPreferences: {
+                            'display_settings--wysiwyg_editor': {category: 'display_settings', name: 'wysiwyg_editor', value: 'true'},
+                        },
+                    },
+                },
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                channelId,
+                                message: 'existing text',
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        act(() => {
+            EventEmitter.emit(EventTypes.INSERT_INTO_POST_TEXTBOX, channelId, '', '> quoted\n\n');
+        });
+
+        const editor = container.querySelector('.ProseMirror');
+        expect(editor?.querySelector('p')).toHaveTextContent('existing text');
+        expect(editor?.querySelector('blockquote')).toHaveTextContent('quoted');
+    });
+
     it('should mount and send when rootId is omitted, as plugins may do via window.Components', async () => {
         // Plugins reach AdvancedTextEditor through the untyped window.Components bridge, so
         // TypeScript cannot enforce the required rootId prop. An undefined rootId used to

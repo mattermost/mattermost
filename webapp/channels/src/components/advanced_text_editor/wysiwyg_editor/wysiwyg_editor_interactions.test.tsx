@@ -266,4 +266,29 @@ describe('WysiwygEditor interactions', () => {
             expect(editor.getHTML()).toBe('<p>typed text</p>');
         });
     });
+
+    describe('appendMarkdown', () => {
+        test('fills an empty editor with the quote and leaves the caret below it', () => {
+            const {editor, ref} = renderEditor('');
+
+            act(() => {
+                ref.current!.appendMarkdown('> line one\n>\n> line two\n\n');
+            });
+            typeText(editor, 'my reply');
+
+            expect(editor.getHTML()).toBe('<blockquote><p>line one</p><p>line two</p></blockquote><p>my reply</p>');
+            expect(serializeToMarkdown(editor)).toBe('> line one\n>\n> line two\n\nmy reply');
+        });
+
+        test('appends after existing content', () => {
+            const {editor, ref} = renderEditor('existing text');
+
+            act(() => {
+                ref.current!.appendMarkdown('> quoted\n\n');
+            });
+            typeText(editor, 'my reply');
+
+            expect(editor.getHTML()).toBe('<p>existing text</p><blockquote><p>quoted</p></blockquote><p>my reply</p>');
+        });
+    });
 });

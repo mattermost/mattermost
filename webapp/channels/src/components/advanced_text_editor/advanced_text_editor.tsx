@@ -653,6 +653,13 @@ const AdvancedTextEditor = ({
                 return;
             }
 
+            // The WYSIWYG editor doesn't reload a changed draft, so insert through it
+            // and let its onChange update the draft
+            if (wysiwygEnabled) {
+                wysiwygRef.current?.appendMarkdown(text);
+                return;
+            }
+
             const currentMessage = draftRef.current.message;
             const message = currentMessage.trim() ? `${currentMessage.trimEnd()}\n\n${text}` : text;
             handleDraftChange({
@@ -671,7 +678,7 @@ const AdvancedTextEditor = ({
         return () => {
             EventEmitter.removeListener(EventTypes.INSERT_INTO_POST_TEXTBOX, handleInsert);
         };
-    }, [channelId, rootId, isInEditMode, readOnlyChannel, handleDraftChange, focusTextbox]);
+    }, [channelId, rootId, isInEditMode, readOnlyChannel, wysiwygEnabled, handleDraftChange, focusTextbox]);
 
     // Handle width change when there is no message.
     useEffect(() => {

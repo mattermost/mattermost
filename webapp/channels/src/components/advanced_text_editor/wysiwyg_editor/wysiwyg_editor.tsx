@@ -33,7 +33,7 @@ import {useLatest} from 'hooks/useLatest';
 import {canHighlight} from 'utils/syntax_highlighting';
 
 import WysiwygImage from './wysiwyg_image';
-import {insertMarkdown, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
+import {insertMarkdown, parseMarkdownContent, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
 import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
@@ -152,6 +152,10 @@ const SERIALIZE_DEBOUNCE_MS = 100;
 export type WysiwygEditorHandle = {
     getEditor: () => Editor | null;
     insertText: (text: string) => void;
+
+    // Appends markdown as blocks at the end of the document and puts the
+    // caret in an empty paragraph after them.
+    appendMarkdown: (markdown: string) => void;
 
     // Parity with the legacy `Textbox` ref so focus/upload hooks can drive
     // either composer.
@@ -606,6 +610,18 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 const needsSpace = charBefore.length > 0 && !(/\s/).test(charBefore);
                 const content = needsSpace ? ` ${text} ` : `${text} `;
                 ed.chain().focus().insertContent({type: 'text', text: content}).run();
+            }
+        },
+        appendMarkdown: (markdown: string) => {
+            const ed = editorRef.current;
+            if (!ed || ed.isDestroyed || readOnlyRef.current) {
+                return;
+            }
+            const blocks = [...(parseMarkdownContent(ed, markdown)?.content ?? plainTextContent(markdown)), {type: 'paragraph'}];
+            if (ed.isEmpty) {
+                ed.chain().setContent(blocks).focus('end').run();
+            } else {
+                ed.chain().insertContentAt(ed.state.doc.content.size, blocks).focus('end').run();
             }
         },
         focus: () => {
