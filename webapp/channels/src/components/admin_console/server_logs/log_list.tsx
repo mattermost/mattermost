@@ -726,7 +726,7 @@ export default function LogList({
                 <SectionNotice
                     className='LogViewer__notice'
                     type='info'
-                    title={showNodes ? (
+                    title={showNodes && !selectedNode ? (
                         <FormattedMessage
                             id='admin.logs.truncated.titleNodes'
                             defaultMessage='Only the latest {limit, number} entries from each node are shown'
@@ -739,12 +739,19 @@ export default function LogList({
                             values={{limit: General.LOGS_PAGE_SIZE_DEFAULT}}
                         />
                     )}
-                    description={
+                    description={showNodes ? (
+                        <FormattedMessage
+                            id='admin.logs.truncated.descriptionNodes'
+                            defaultMessage="Older entries aren't loaded or counted."
+                        />
+                    ) : (
+
+                        // Download saves the log file of the node serving the request, so it's only offered with a single node
                         <FormattedMessage
                             id='admin.logs.truncated.description'
                             defaultMessage="Older entries aren't loaded or counted. Download the log file to see them."
                         />
-                    }
+                    )}
                 />
             )}
 

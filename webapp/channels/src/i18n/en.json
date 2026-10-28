@@ -10179,6 +10179,10 @@
     "defaultMessage": "Older entries aren't loaded or counted. Download the log file to see them.",
     "description": "Body of the notice on the System Console Server Logs page shown when a server returned the maximum number of log entries. \"Download\" refers to the page's Download button, which saves the full log file."
   },
+  "admin.logs.truncated.descriptionNodes": {
+    "defaultMessage": "Older entries aren't loaded or counted.",
+    "description": "Body of the notice on the System Console Server Logs page shown when a node returned the maximum number of log entries and logs from several nodes are listed. A node is a server in the cluster."
+  },
   "admin.logs.truncated.title": {
     "defaultMessage": "Only the latest {limit, number} entries are shown",
     "description": "Title of the notice on the System Console Server Logs page shown when the server returned the maximum number of log entries. {limit} is that maximum, e.g. 10,000."
