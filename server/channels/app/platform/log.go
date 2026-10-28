@@ -12,9 +12,11 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/mattermost/logr/v2"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -48,7 +50,7 @@ func (ps *PlatformService) initLogging() error {
 
 	// Validate log and audit file paths before configuring any target. ConfigureTargets opens
 	// the target files, so a check placed after it would already have written outside the root.
-	logPathErr := config.ValidateLogPaths(ps.Config(), ps.getLogRootPath())
+	logPathErr := config.ValidateLogPaths(ps.Config(), ps.recordActiveManagedDirs(ps.Config()), ps.getLogRootPath())
 	if logPathErr != nil && config.IsLogPathEnforcementEnabled(ps.Config()) {
 		// At startup this aborts the boot via platform.New. On a config reload it leaves the
 		// previously configured (valid) targets in place, so the offending file is never opened.
@@ -77,7 +79,7 @@ func (ps *PlatformService) initLogging() error {
 
 	// logged after the targets are configured so the line reaches them rather than the default logger
 	if logPathErr != nil {
-		ps.logger.Error(config.LogPathOutsideRootWarning, mlog.Err(logPathErr))
+		ps.logger.Error(config.LogPathInvalidWarning, mlog.Err(logPathErr))
 	}
 
 	return nil
@@ -87,12 +89,21 @@ func (ps *PlatformService) Logger() *mlog.Logger {
 	return ps.logger
 }
 
-func (ps *PlatformService) EnableLoggingMetrics() {
+// LoggerMetricsCollector returns the collector for logger metrics, or nil if metrics are disabled.
+func (ps *PlatformService) LoggerMetricsCollector() mlog.MetricsCollector {
 	if ps.metrics == nil || ps.metricsIFace == nil {
+		return nil
+	}
+	return ps.metricsIFace.GetLoggerMetricsCollector()
+}
+
+func (ps *PlatformService) EnableLoggingMetrics() {
+	collector := ps.LoggerMetricsCollector()
+	if collector == nil {
 		return
 	}
 
-	ps.logger.SetMetricsCollector(ps.metricsIFace.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+	ps.logger.SetMetricsCollector(collector, mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
 	if err := ps.initLogging(); err != nil {
@@ -105,7 +116,7 @@ func (ps *PlatformService) EnableLoggingMetrics() {
 
 // RemoveUnlicensedLogTargets removes any unlicensed log target types.
 func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
-	if license != nil && *license.Features.AdvancedLogging {
+	if license.HasAdvancedLogging() {
 		// advanced logging enabled via license; no need to remove any targets
 		return
 	}
@@ -256,6 +267,36 @@ func (ps *PlatformService) getLogRootPath() string {
 	return config.GetLogRootPath()
 }
 
+// recordActiveManagedDirs adds cfg's managed directories and the config file's directory to those
+// the server may still be using, and returns them all. None are removed: some changes apply only after a restart.
+func (ps *PlatformService) recordActiveManagedDirs(cfg *model.Config) []string {
+	ps.activeManagedDirsMut.Lock()
+	defer ps.activeManagedDirsMut.Unlock()
+
+	for _, dir := range append(config.ConfigurableManagedDirs(cfg), ps.configFileDirs()...) {
+		if strings.TrimSpace(dir) != "" && !slices.Contains(ps.activeManagedDirs, dir) {
+			ps.activeManagedDirs = append(ps.activeManagedDirs, dir)
+		}
+	}
+	return slices.Clone(ps.activeManagedDirs)
+}
+
+// configFileDirs returns the directory of the file the config was loaded from, plus the directory
+// of the file it resolves to when the config file is a symlink. It returns nil when the config is
+// not file-backed.
+func (ps *PlatformService) configFileDirs() []string {
+	file, ok := strings.CutPrefix(ps.configStore.String(), "file://")
+	if !ok {
+		return nil
+	}
+
+	dirs := []string{filepath.Dir(file)}
+	if resolved, err := filepath.EvalSymlinks(file); err == nil && filepath.Dir(resolved) != dirs[0] {
+		dirs = append(dirs, filepath.Dir(resolved))
+	}
+	return dirs
+}
+
 // validateLogFilePath validates that a log file path is within the logging root directory.
 // This prevents arbitrary file read/write vulnerabilities in logging configuration.
 // The logging root is determined by MM_LOG_PATH environment variable or the default logs directory.
@@ -355,7 +396,8 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 		dateTo = time.Now()
 	}
 
-	timestamp, err := time.Parse(model.LogFilterDateLayout, entry.Timestamp)
+	// Entries use mlog's layout, which writes UTC as "Z" rather than "+00:00".
+	timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
 	if err != nil {
 		rctx.Logger().Debug("Cannot parse timestamp, skipping")
 		return false

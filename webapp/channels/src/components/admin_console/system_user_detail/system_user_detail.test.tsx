@@ -76,7 +76,7 @@ describe('SystemUserDetail', () => {
     };
 
     const waitForLoadingToFinish = async () => {
-        await waitForElementToBeRemoved(screen.queryAllByTitle('Loading Icon'));
+        await waitForElementToBeRemoved(screen.queryAllByRole('status', {name: 'Loading Icon'}));
         await waitFor(() => expect(screen.queryByText('No teams found')).toBeInTheDocument());
     };
 

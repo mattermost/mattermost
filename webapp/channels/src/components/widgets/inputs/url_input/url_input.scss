@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@use 'utils/mixins';
-
 .url-input-main {
     display: flex;
     flex-direction: column;
@@ -41,8 +39,12 @@
             }
         }
 
-        .url-input-button.btn {
-            @include mixins.link;
+        // Flush inline link beside the URL text. Written out rather than via
+        // mixins.link because the Compass Button takes its colour from
+        // --button-fg and its font size from the size class, so the mixin's
+        // `color` / `font-size` would never reach the label.
+        .url-input-button {
+            --button-fg: var(--link-color);
 
             height: auto;
             min-height: 0;
@@ -56,7 +58,12 @@
             &:active,
             &:focus {
                 background: var(--center-channel-bg);
-                color: var(--link-color);
+            }
+
+            &:hover .url-input-button-label,
+            &:active .url-input-button-label,
+            &:focus .url-input-button-label {
+                text-decoration-line: underline;
             }
 
             &:disabled {
@@ -64,6 +71,8 @@
             }
 
             .url-input-button-label {
+                font-size: 12px;
+                font-weight: 600;
                 line-height: 9px;
             }
         }

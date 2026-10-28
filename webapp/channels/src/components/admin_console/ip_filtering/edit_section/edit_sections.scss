@@ -143,12 +143,8 @@
             line-height: 20px;
             text-align: center;
 
-            .btn-primary {
+            button {
                 margin-top: 16px;
-
-                &:hover {
-                    cursor: pointer;
-                }
             }
         }
     }

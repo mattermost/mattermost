@@ -5,6 +5,10 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -48,25 +52,10 @@ const ArchivedNoticeContainer = styled.div`
     margin: 24px 24px 0 24px;
 `;
 
-const ArchivedNotice = styled.div`
-    .sectionNoticeIcon {
-        width: 24px;
-        height: 24px;
-    }
-
-    .sectionNoticeTitle {
-        color: rgba(var(--center-channel-color-rgb), 0.88);
-        display: inline;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .sectionNoticeTitle .sectionNoticeButton {
-        margin: 0;
-        padding: 0;
-        display: inline;
-        margin: 0 0 2px 4px;
-    }
+const UnarchiveButton = styled(Button)`
+    display: inline-flex;
+    margin-left: 4px;
+    vertical-align: baseline;
 `;
 
 export interface DMUser {
@@ -84,7 +73,6 @@ export interface Props {
     isArchived: boolean;
     isFavorite: boolean;
     isMuted: boolean;
-    isInvitingPeople: boolean;
     isMobile: boolean;
     isInManagedCategory: boolean;
     canManageMembers: boolean;
@@ -111,7 +99,6 @@ const ChannelInfoRhs = ({
     isArchived,
     isFavorite,
     isMuted,
-    isInvitingPeople,
     isMobile,
     isInManagedCategory,
     currentTeam,
@@ -208,11 +195,12 @@ const ChannelInfoRhs = ({
             >
                 <Container>
                     {isArchived && (
-                        <ArchivedNoticeContainer className='sectionNoticeContainer warning'>
-                            <ArchivedNotice className='sectionNoticeContent'>
-                                <i className='icon icon-archive-outline sectionNoticeIcon'/>
-                                <div className='sectionNoticeBody'>
-                                    <h4 className='sectionNoticeTitle'>
+                        <ArchivedNoticeContainer>
+                            <SectionNotice
+                                type='warning'
+                                icon={<Icon glyph={<ArchiveOutlineIcon/>}/>}
+                                title={
+                                    <>
                                         <FormattedMessage
                                             id='channel_info_rhs.archived.title'
                                             defaultMessage='This channel is archived.'
@@ -223,23 +211,20 @@ const ChannelInfoRhs = ({
                                                 teamId={channel.team_id}
                                                 permissions={[Permissions.MANAGE_TEAM]}
                                             >
-                                                <button
-                                                    type='button'
-                                                    className='sectionNoticeButton btn btn-link'
-                                                    onClick={() => {
-                                                        openUnarchiveChannel();
-                                                    }}
+                                                <UnarchiveButton
+                                                    emphasis='link'
+                                                    onClick={openUnarchiveChannel}
                                                 >
                                                     <FormattedMessage
                                                         id='channel_info_rhs.archived.unarchive'
                                                         defaultMessage='Unarchive'
                                                     />
-                                                </button>
+                                                </UnarchiveButton>
                                             </ChannelPermissionGate>
                                         )}
-                                    </h4>
-                                </div>
-                            </ArchivedNotice>
+                                    </>
+                                }
+                            />
                         </ArchivedNoticeContainer>
                     )}
                     <TopButtons
@@ -247,7 +232,6 @@ const ChannelInfoRhs = ({
                         channelURL={channelURL}
                         isFavorite={isFavorite}
                         isMuted={isMuted}
-                        isInvitingPeople={isInvitingPeople}
                         isArchived={isArchived}
                         isInManagedCategory={isInManagedCategory}
                         canAddPeople={!isArchived && canManageMembers}

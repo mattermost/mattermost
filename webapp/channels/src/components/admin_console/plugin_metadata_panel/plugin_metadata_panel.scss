@@ -92,10 +92,6 @@
     &__statusError {
         min-width: 0;
 
-        .sectionNoticeBody {
-            gap: 0;
-        }
-
         p {
             overflow-wrap: anywhere;
         }
@@ -139,10 +135,6 @@
         > label {
             width: auto;
             margin-bottom: 0;
-        }
-
-        .LoadingSpinner .spinner {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
         }
     }
 
