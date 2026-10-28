@@ -290,5 +290,26 @@ describe('WysiwygEditor interactions', () => {
 
             expect(editor.getHTML()).toBe('<p>existing text</p><blockquote><p>quoted</p></blockquote><p>my reply</p><p></p>');
         });
+
+        test('reports the change right away instead of after the debounce', () => {
+            const onChange = jest.fn();
+            const ref = React.createRef<WysiwygEditorHandle>();
+            renderWithContext(
+                <WysiwygEditor
+                    ref={ref}
+                    {...baseProps}
+                    onChange={onChange}
+                    value=''
+                    channelId='c1'
+                />,
+            );
+
+            act(() => {
+                ref.current!.appendMarkdown('> quoted\n\n');
+            });
+
+            expect(onChange).toHaveBeenCalledTimes(1);
+            expect(onChange).toHaveBeenCalledWith('> quoted\n\n');
+        });
     });
 });

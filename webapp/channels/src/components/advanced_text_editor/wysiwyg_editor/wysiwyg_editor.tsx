@@ -634,6 +634,10 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             if (wasEmpty) {
                 ed.commands.deleteRange({from: 0, to: ed.state.doc.child(0).nodeSize});
             }
+
+            // Update the draft now rather than after the debounce, so sending right away includes the quote
+            debouncedFlushPendingChange.cancel();
+            flushPendingChange();
         },
         focus: () => {
             const ed = editorRef.current;
