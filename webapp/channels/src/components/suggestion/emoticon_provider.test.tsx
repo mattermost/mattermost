@@ -52,7 +52,42 @@ describe('components/EmoticonProvider', () => {
             expect(resultsCallback).toHaveBeenCalled();
         }
     });
+    it.each(['+', '-'])('should complete system emojis in the :name: form for the "%s" reaction shortcut', (prefix) => {
+        const pretext = `${prefix}:thu`;
+        mockedGetEmojiMap.mockReturnValue(emojiMap);
+        mockedGetRecentEmojisNames.mockReturnValue([]);
 
+        emoticonProvider.handlePretextChanged(pretext, resultsCallback);
+        expect(resultsCallback).toHaveBeenCalled();
+
+        const args = resultsCallback.mock.calls[0][0];
+
+        expect(args.matchedPretext).toEqual(':thu');
+
+        const terms: string[] = args.groups[0].terms;
+
+        expect(terms).toContain(':thumbsup:');
+
+        for (const term of terms) {
+            expect(term).toMatch(/^:[^:\s]+:$/);
+        }
+    });
+
+    it('should complete system emojis as the unicode glyph in a regular message', () => {
+        const pretext = ':thu';
+        mockedGetEmojiMap.mockReturnValue(emojiMap);
+        mockedGetRecentEmojisNames.mockReturnValue([]);
+
+        emoticonProvider.handlePretextChanged(pretext, resultsCallback);
+        expect(resultsCallback).toHaveBeenCalled();
+
+        const args = resultsCallback.mock.calls[0][0];
+        const terms: string[] = args.groups[0].terms;
+
+        expect(terms).not.toContain(':thumbsup:');
+
+        expect(terms).toContain(':thumbsdown-custom:');
+    });
     it('should order suggested emojis', () => {
         const pretext = ':thu';
         const recentEmojis = ['smile'];
