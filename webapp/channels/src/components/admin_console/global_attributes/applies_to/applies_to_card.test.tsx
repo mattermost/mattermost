@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 
 import AppliesToCard from './applies_to_card';
 import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './channels';
@@ -97,5 +97,80 @@ describe('AppliesToCard', () => {
         await userEvent.click(screen.getByTestId('appliesToAddResource'));
 
         expect(onChannelResourceChange).not.toHaveBeenCalled();
+    });
+
+    it('names the resource and the field name for each read-only resource', () => {
+        // The name is the point: it can differ from the attribute's own, and it is
+        // what a policy spells, so a row that only said "Users" would not help.
+        renderWithContext(
+            <AppliesToCard
+                channelResource={null}
+                onChannelResourceChange={jest.fn()}
+                readOnlyResources={[
+                    {type: 'user', name: 'clearance'},
+                    {type: 'post', name: 'post_marking'},
+                ]}
+            />,
+        );
+
+        const rows = within(screen.getByTestId('appliesToReadOnlyResources')).getAllByRole('listitem');
+        expect(rows).toHaveLength(2);
+        expect(rows[0]).toHaveTextContent('Applied to Users as clearance');
+        expect(rows[1]).toHaveTextContent('Applied to Posts as post_marking');
+
+        // Each row also carries its resource's icon. Asserted structurally
+        // rather than by role or name, because it is decoration: it is
+        // aria-hidden, repeats the resource the sentence beside it already
+        // names, and has nothing a query by role or accessible name could find.
+        // Without this, deleting it from the card would change nothing any test
+        // here can see.
+        for (const row of rows) {
+            const icon = row.querySelector('.GlobalAttributesResourceIcon');
+            expect(icon).not.toBeNull();
+            expect(icon).toHaveAttribute('aria-hidden', 'true');
+        }
+    });
+
+    it('does not call itself empty while a read-only resource is listed', () => {
+        renderWithContext(
+            <AppliesToCard
+                channelResource={null}
+                onChannelResourceChange={jest.fn()}
+                readOnlyResources={[{type: 'user', name: 'clearance'}]}
+            />,
+        );
+
+        expect(screen.queryByText('This attribute does not apply to any resource yet.')).not.toBeInTheDocument();
+
+        // Channels is still unclaimed, so it can still be added.
+        expect(screen.getByTestId('appliesToAddResource')).toBeInTheDocument();
+    });
+
+    it('still calls itself empty when there is no resource of either kind', () => {
+        renderWithContext(
+            <AppliesToCard
+                channelResource={null}
+                onChannelResourceChange={jest.fn()}
+                readOnlyResources={[]}
+            />,
+        );
+
+        expect(screen.getByText('This attribute does not apply to any resource yet.')).toBeInTheDocument();
+        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
+    });
+
+    it('shows the channels row alongside the read-only rows', () => {
+        renderWithContext(
+            <AppliesToCard
+                channelResource={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                onChannelResourceChange={jest.fn()}
+                readOnlyResources={[{type: 'user', name: 'clearance'}]}
+            />,
+        );
+
+        expect(within(screen.getByTestId('appliesToReadOnlyResources')).getByRole('listitem')).
+            toHaveTextContent('Applied to Users as clearance');
+        expect(screen.getByTestId('channelsResourceRow')).toBeInTheDocument();
+        expect(screen.queryByText('This attribute does not apply to any resource yet.')).not.toBeInTheDocument();
     });
 });

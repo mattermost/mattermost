@@ -1242,15 +1242,15 @@
     "translation": "删除前从数据库获取访问令牌遇到错误。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "用户注册已停用。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "注册链接已过期。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "注册链接无效。"
   },
   {
@@ -1372,10 +1372,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "无法在已删除的频道更新消息。"
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "我们找不到现有的消息或评论去更新。"
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3122,11 +3118,11 @@
     "translation": "设置任务状态为错误失败"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "无法解析 URL。"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "无法获得频道。"
   },
   {
@@ -6471,7 +6467,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "无法用提供的方案获取频道。"
+    "translation": "无法用提供的方案获取团队。"
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
@@ -6723,23 +6719,23 @@
   },
   {
     "id": "app.group.uniqueness_error",
-    "translation": "群组成员已存在"
+    "translation": "用户组成员已存在"
   },
   {
     "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "无法移除 UserID 为“{{.UserId}}”的群组成员。"
+    "translation": "无法移除 UserID 为“{{.UserId}}”的用户组成员。"
   },
   {
     "id": "app.group.no_rows",
-    "translation": "未找到匹配的群组"
+    "translation": "未找到匹配的用户组"
   },
   {
     "id": "app.group.id.app_error",
-    "translation": "群组 ID 属性无效。"
+    "translation": "用户组 ID 属性无效。"
   },
   {
     "id": "app.group.group_syncable_already_deleted",
-    "translation": "群组同步已被删除"
+    "translation": "用户组同步已被删除"
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -7986,7 +7982,7 @@
     "translation": "无法完整的解码该导引请求。"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "无法解析该插件包。"
   },
   {
@@ -8227,7 +8223,7 @@
   },
   {
     "id": "model.group.name.reserved_name.app_error",
-    "translation": "群组名称已作为保留名称存在"
+    "translation": "用户组名称已作为保留名称存在"
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",
@@ -8294,7 +8290,7 @@
     "translation": "无法获取用户的奖章数目。"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "无法取得消息的优先级"
   },
   {
@@ -8655,7 +8651,7 @@
   },
   {
     "id": "api.command_invite.channel_constrained_user_denied",
-    "translation": "该频道由群组管理。该用户不是与该频道同步群组的成员。"
+    "translation": "该频道由用户组管理。该用户不是与该频道同步用户组的成员。"
   },
   {
     "id": "api.command_invite.successOverflow",
@@ -9523,11 +9519,11 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "无法邀请远程用户加入频道"
+    "translation": "无法邀请远程连接加入频道。"
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "无法取消邀请远程用户加入频道"
+    "translation": "无法取消远程连接的频道邀请。"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -9994,14 +9990,6 @@
     "translation": "添加证书失败。"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "获取 CPA 字段失败"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "空的 LDAP 属性值"
-  },
-  {
     "id": "model.access_policy.is_valid.rules.app_error",
     "translation": "规则无效。"
   },
@@ -10052,10 +10040,6 @@
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
     "translation": "AD/LDAP ID 无效"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "无法检索 CPA 字段"
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -10151,7 +10135,7 @@
   },
   {
     "id": "app.group.user_not_found",
-    "translation": "更新群组时出错。未找到用户名为“{{.Username}}”的用户。"
+    "translation": "更新用户组时出错。未找到用户名为“{{.Username}}”的用户。"
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
@@ -10251,11 +10235,11 @@
   },
   {
     "id": "app.group.create_syncable_memberships.error",
-    "translation": "无法创建群组同步成员资格。"
+    "translation": "无法创建用户组同步成员资格。"
   },
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
-    "translation": "无法删除无效群组同步成员资格。"
+    "translation": "无法删除无效用户组同步成员资格。"
   },
   {
     "id": "model.config.is_valid.directory_whitespace.app_error",
@@ -10427,7 +10411,7 @@
   },
   {
     "id": "app.pap.access_control.channel_group_constrained",
-    "translation": "该频道受群组限制，无法应用访问控制策略。"
+    "translation": "该频道受用户组限制，无法应用访问控制策略。"
   },
   {
     "id": "app.pap.access_control.channel_shared",
@@ -11962,7 +11946,7 @@
     "translation": "无法获取该视图的消息。"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "无法获取带上下文消息的优先级。"
   },
   {
@@ -14551,7 +14535,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Web 服务器模式 {{.Value}} 无效。必须为 'gzip'、'nogzip' 或 'disabled'。"
+    "translation": "Web 服务器模式 {{.Value}} 无效。必须为 'gzip'、'uncompressed' 或 'disabled'。"
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
@@ -14568,5 +14552,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys 无效：超出了 {{.MaxCount}} 个关键词或 {{.MaxLength}} 字节的限制。"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**未找到**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "已移除"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` 不是有效的 `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "此字段关联到全局属性模板，无法通过用户属性 API 修改。请改用全局属性 API。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "无法创建表情符。图片过大，无法处理。请尝试使用尺寸更小或帧数更少的图片。"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "站点健康功能未启用。"
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "站点健康功能需要 Enterprise 许可证。"
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "您没有权限在此频道中发送阅后即焚消息。"
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "无法定位到文件开头。"
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "无法获取健康检查结果。"
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "未找到健康检查结果。"
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "无法获取健康检查结果列表。"
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "该属性已不再从此源同步，因此同步无法更改它。"
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "从 AD/LDAP 或 SAML 同步的属性，其选项由同步管理，无法添加、重命名或移除。"
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "同步的属性包含无效选项。"
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "无效的属性同步源。"
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "属性同步的用户 ID 无效。"
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "无法确定同步属性的哪些选项正在使用中。"
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "日志配置中包含位于日志根目录之外的日志或审计文件路径。请查看服务器日志了解详情。"
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "收集时间未知。"
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "配置部分不可用。"
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "服务器诊断信息不可用。"
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "任务历史不可用。"
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "许可证详情不可用。"
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "插件列表不可用。"
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "规则意外失败，无法评估。"
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "使用统计不可用。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} 使用 http://，因此推送通知以明文发送。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} 的协议无效。移动端用户将收不到通知。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "为 PushNotificationServer 加上 https:// 前缀，并验证应用节点能否访问该地址。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer 未使用 https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "每次推送尝试都会失败，并报错“unsupported protocol scheme”。"
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "将 PushNotificationServer 指向 https://push.mattermost.com 或自托管的推送代理。"
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "已启用推送通知，但 PushNotificationServer 为空"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com 是 Mattermost 的测试推送代理。它没有 SLA，吞吐量有限，且不适用于生产环境。除小规模测试外，移动推送的送达将不可靠。"
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "切换到 https://push.mattermost.com（Enterprise 附带的生产环境 Hosted Push Notification Service）或自托管的推送代理。"
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer 指向 push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "Webhook URL、OAuth 回调、移动推送负载和邮件链接都需要 SiteURL。SiteURL 为空时，集成将无法正常工作。"
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "将 SiteURL 设置为服务器的公共 HTTPS URL。"
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL 为空"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL 为 {{.url}}。会话 Cookie 和认证令牌以明文传输。"
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "通过 HTTPS 提供 Mattermost 服务，并将 SiteURL 更新为 https:// 地址。"
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL 使用 http://（而非 https://）"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "阅后即焚消息不能作为重复的计划消息发送。"
   }
 ]

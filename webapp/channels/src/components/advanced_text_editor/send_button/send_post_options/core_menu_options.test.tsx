@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {DateTime} from 'luxon';
+import type {WeekdayNumbers} from 'luxon';
 import React from 'react';
 
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
@@ -75,7 +76,7 @@ describe('CoreMenuOptions Component', () => {
     }
 
     // Defaults to 10 AM, after the "Today at 9:00 AM" option is no longer offered
-    function setMockDate(weekday: number, hour = 10, zone = userCurrentTimezone) {
+    function setMockDate(weekday: WeekdayNumbers, hour = 10, zone = userCurrentTimezone) {
         const mockDate = DateTime.fromObject({weekday, hour}, {zone}).toJSDate();
         jest.useFakeTimers();
         jest.setSystemTime(mockDate);

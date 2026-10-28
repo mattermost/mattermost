@@ -6,7 +6,10 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
-import {PlusIcon} from '@mattermost/compass-icons/components';
+import {InformationOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
@@ -17,12 +20,12 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
+import {findNameConflicts} from 'components/admin_console/global_attributes/utils';
 import Setting from 'components/admin_console/setting';
 import ConfirmModal from 'components/confirm_modal';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import LoadingScreen from 'components/loading_screen';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {getHistory} from 'utils/browser_history';
@@ -38,6 +41,7 @@ import ClassificationLevelsTable from './components/classification_levels_table'
 import GlobalClassificationIndicators from './components/global_classification_indicators';
 import type {GlobalBannerConfig} from './utils';
 import {
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
     DEFAULT_GLOBAL_BANNER,
@@ -48,6 +52,7 @@ import {
     fetchLinkedClassificationField,
     fetchSystemClassificationValue,
     fetchUserLinkedFields,
+    listLiveFields,
     processClassificationField,
     saveCreateChannelLinkedField,
     saveCreateField,
@@ -78,7 +83,7 @@ const msg = defineMessages({
     presetDescription: {id: 'admin.classification_markings.preset.description', defaultMessage: 'Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create custom classification levels.'},
     clearanceTitle: {id: 'admin.classification_markings.enforcement.clearance.title', defaultMessage: 'Clearance attribute'},
     clearanceCheckbox: {id: 'admin.classification_markings.enforcement.clearance.checkbox', defaultMessage: 'Enable clearance attribute'},
-    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
+    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Classification clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
     informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
@@ -102,6 +107,8 @@ const msg = defineMessages({
     conflictChannelField: {id: 'admin.classification_markings.conflict.channel_field', defaultMessage: 'A channel attribute named "{name}" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.'},
     conflictClearanceTitle: {id: 'admin.classification_markings.conflict.clearance_title', defaultMessage: 'Clearance attribute cannot be created'},
     conflictClearance: {id: 'admin.classification_markings.conflict.clearance', defaultMessage: 'A user attribute named "{name}" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.'},
+    clearanceTemplateWarningTitle: {id: 'admin.classification_markings.conflict.clearance_template_title', defaultMessage: 'Another attribute already uses this name'},
+    clearanceTemplateWarning: {id: 'admin.classification_markings.conflict.clearance_template', defaultMessage: 'Rename "{name}" in Attribute Management so it isn\'t mistaken for this clearance attribute.'},
 });
 
 type FieldConflict = {
@@ -140,6 +147,11 @@ export default function ClassificationMarkings({disabled}: Props) {
 
     // Scoped to the clearance section: the rest of the page still works.
     const [clearanceConflict, setClearanceConflict] = useState<PropertyField | null>(null);
+
+    // An unrelated attribute in Attribute Management already called `clearance`.
+    // Not blocking: the user field this page creates is a different object type,
+    // so the server accepts it. It is only indistinguishable to an admin.
+    const [clearanceTemplateConflict, setClearanceTemplateConflict] = useState<PropertyField | null>(null);
 
     const [enabled, setEnabled] = useState(false);
     const [clearanceEnabled, setClearanceEnabled] = useState(false);
@@ -285,6 +297,35 @@ export default function ClassificationMarkings({disabled}: Props) {
                 if (!cancelled) {
                     setLoading(false);
                 }
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [currentUserId, abacEnabled]);
+
+    // Kept out of the load above, which the whole page waits on and whose catch
+    // turns any failure into the load-error screen. This lookup only decides a
+    // warning, so it pages the templates on its own and a failure costs nothing
+    // but the warning. Nothing needs excluding from the match: these are
+    // template fields, none of which can carry a linked_field_id, and
+    // classification's own template is named `classification`, not `clearance`.
+    useEffect(() => {
+        if (!currentUserId || !abacEnabled) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const templates = await listLiveFields(CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE);
+                if (!cancelled) {
+                    setClearanceTemplateConflict(findNameConflicts(CLEARANCE_FIELD_NAME, templates)[0] ?? null);
+                }
+            } catch (err: unknown) {
+                console.error('ClassificationMarkings-load-clearance-name-conflict: ', err); // eslint-disable-line no-console
             }
         })();
 
@@ -672,7 +713,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                         <SectionNotice
                             type='danger'
                             title={<FormattedMessage {...msg.conflictTitle}/>}
-                            text={formatMessage(conflictMessageByKind[fieldConflict.kind], {name: fieldConflict.field.name})}
+                            description={formatMessage(conflictMessageByKind[fieldConflict.kind], {name: fieldConflict.field.name})}
                         />
                     </InformationNoticeWrapper>
                 )}
@@ -683,9 +724,9 @@ export default function ClassificationMarkings({disabled}: Props) {
                     <InformationNoticeWrapper>
                         <SectionNotice
                             type='warning'
-                            iconOverride='icon-information-outline'
+                            icon={<Icon glyph={<InformationOutlineIcon/>}/>}
                             title={<FormattedMessage {...msg.informationalNoticeTitle}/>}
-                            text={formatMessage(msg.informationalNoticeBody)}
+                            description={formatMessage(msg.informationalNoticeBody)}
                         />
                     </InformationNoticeWrapper>
                 )}
@@ -749,22 +790,33 @@ export default function ClassificationMarkings({disabled}: Props) {
                             }
                             setByEnv={false}
                         >
-                            <label className='checkbox-inline'>
-                                <input
-                                    data-testid='clearanceAttributeCheckbox'
-                                    type='checkbox'
-                                    checked={clearanceEnabled}
-                                    onChange={handleClearanceChange}
-                                    disabled={readOnly || clearanceConflict !== null}
-                                />
+                            <Checkbox
+                                className='checkbox-inline'
+                                data-testid='clearanceAttributeCheckbox'
+                                checked={clearanceEnabled}
+                                onChange={handleClearanceChange}
+                                disabled={readOnly || clearanceConflict !== null}
+                            >
                                 <FormattedMessage {...msg.clearanceCheckbox}/>
-                            </label>
+                            </Checkbox>
                             {clearanceConflict && (
                                 <InformationNoticeWrapper>
                                     <SectionNotice
                                         type='danger'
                                         title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
-                                        text={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
+                                        description={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
+                                    />
+                                </InformationNoticeWrapper>
+                            )}
+                            {/* Suppressed while the blocking conflict above is showing: the
+                                checkbox is disabled then, so nothing would be created and
+                                this notice would describe an outcome that cannot happen. */}
+                            {!clearanceConflict && clearanceTemplateConflict && (
+                                <InformationNoticeWrapper>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
+                                        description={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
                                     />
                                 </InformationNoticeWrapper>
                             )}
@@ -830,7 +882,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                 title={formatMessage({id: 'admin.classification_markings.preset_switch.title', defaultMessage: 'Change classification preset?'})}
                 message={formatMessage({id: 'admin.classification_markings.preset_switch.message', defaultMessage: 'Changing the classification preset will affect all existing classifications across the system. Any channels, files, or other resources marked with the current classification levels may lose their markings.'})}
                 confirmButtonText={formatMessage({id: 'admin.classification_markings.preset_switch.confirm', defaultMessage: 'Change preset'})}
-                confirmButtonVariant='destructive'
+                destructive={true}
                 onConfirm={handleConfirmPresetSwitch}
                 onCancel={handleCancelPresetSwitch}
                 onExited={handleCancelPresetSwitch}

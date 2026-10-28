@@ -215,6 +215,7 @@ export const ActionTypes = keyMirror({
     UPDATE_RHS_STATE: null,
     UPDATE_RHS_SEARCH_TERMS: null,
     UPDATE_RHS_SEARCH_TEAM: null,
+    UPDATE_RHS_MENTION_FILTERS: null,
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
     UPDATE_RHS_SEARCH_RESULTS_TYPE: null,
@@ -279,12 +280,6 @@ export const ActionTypes = keyMirror({
     CLOSE_LHS: null,
     SET_LHS_SIZE: null,
     SELECT_STATIC_PAGE: null,
-
-    SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
-    SET_SHOW_PREVIEW_ON_CREATE_POST: null,
-    SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL: null,
-    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL: null,
-    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL: null,
 
     TOGGLE_RHS_MENU: null,
     OPEN_RHS_MENU: null,
@@ -508,6 +503,7 @@ export const ModalIdentifiers = {
 
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
+    ATTRIBUTE_MODAL_OPENID: 'attribute_modal_openid',
     RANKED_SCHEMA_MODAL: 'ranked_schema_modal',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',

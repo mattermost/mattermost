@@ -2951,6 +2951,22 @@ func (s *TimerLayerChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, 
 	return err
 }
 
+func (s *TimerLayerChannelStore) PermanentDeleteSidebarByUser(userID string) error {
+	start := time.Now()
+
+	err := s.ChannelStore.PermanentDeleteSidebarByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.PermanentDeleteSidebarByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelID string) error {
 	start := time.Now()
 
@@ -3671,6 +3687,22 @@ func (s *TimerLayerChannelJoinRequestStore) GetPendingForChannelAndUser(channelI
 	return result, err
 }
 
+func (s *TimerLayerChannelJoinRequestStore) PermanentDeleteByUser(userId string) error {
+	start := time.Now()
+
+	err := s.ChannelJoinRequestStore.PermanentDeleteByUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelJoinRequestStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerChannelJoinRequestStore) Save(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error) {
 	start := time.Now()
 
@@ -3861,6 +3893,22 @@ func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPo
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
 	}
 	return result, resultVar1, err
+}
+
+func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.ChannelMemberHistoryStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerClusterDiscoveryStore) Cleanup() error {
@@ -4132,6 +4180,22 @@ func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, e
 		s.Root.Metrics.ObserveStoreMethodDuration("CommandWebhookStore.Get", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerCommandWebhookStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.CommandWebhookStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("CommandWebhookStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
@@ -4863,6 +4927,22 @@ func (s *TimerLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, star
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetFilesBatchForIndexing", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerFileInfoStore) GetForPermanentDeleteByUser(userID string, limit int) ([]*model.FileInfo, error) {
+	start := time.Now()
+
+	result, err := s.FileInfoStore.GetForPermanentDeleteByUser(userID, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetForPermanentDeleteByUser", success, elapsed)
 	}
 	return result, err
 }
@@ -6546,6 +6626,22 @@ func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userID string, fe
 	return result, err
 }
 
+func (s *TimerLayerNotifyAdminStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.NotifyAdminStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
 	start := time.Now()
 
@@ -7936,6 +8032,22 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(rctx request.CTX, userID str
 	return err
 }
 
+func (s *TimerLayerPostStore) PermanentDeletePostRemindersByUser(userId string) error {
+	start := time.Now()
+
+	err := s.PostStore.PermanentDeletePostRemindersByUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PermanentDeletePostRemindersByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) RefreshPostStats() error {
 	start := time.Now()
 
@@ -8206,6 +8318,22 @@ func (s *TimerLayerPostAcknowledgementStore) GetSingle(userID string, postID str
 		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.GetSingle", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.PostAcknowledgementStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error) {
@@ -8656,6 +8784,22 @@ func (s *TimerLayerProductNoticesStore) GetViews(userID string) ([]model.Product
 	return result, err
 }
 
+func (s *TimerLayerProductNoticesStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.ProductNoticesStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ProductNoticesStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerProductNoticesStore) View(userID string, notices []string) error {
 	start := time.Now()
 
@@ -8912,6 +9056,22 @@ func (s *TimerLayerPropertyFieldStore) GetFieldOptions(field *model.PropertyFiel
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetFieldsByGrant(rctx request.CTX, ownerType string, ownerID string, action string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetFieldsByGrant(rctx, ownerType, ownerID, action)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetFieldsByGrant", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
 	start := time.Now()
 
@@ -8924,6 +9084,22 @@ func (s *TimerLayerPropertyFieldStore) GetForGroup(rctx request.CTX, groupID str
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetForGroup", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetGrantsForField(rctx, fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetGrantsForField", success, elapsed)
 	}
 	return result, err
 }
@@ -9104,6 +9280,22 @@ func (s *TimerLayerPropertyFieldStore) GetOptionsByName(field *model.PropertyFie
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) HasGrantForIdentity(rctx request.CTX, ownerType string, ownerID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.HasGrantForIdentity(rctx, ownerType, ownerID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.HasGrantForIdentity", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) MutateOptions(groupID string, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
 	start := time.Now()
 
@@ -9168,6 +9360,22 @@ func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.Pr
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) ValidateMaskByFieldID(rctx request.CTX, groupID string, fieldID string, maskByFieldID string) error {
+	start := time.Now()
+
+	err := s.PropertyFieldStore.ValidateMaskByFieldID(rctx, groupID, fieldID, maskByFieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.ValidateMaskByFieldID", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPropertyGroupStore) Get(name string) (*model.PropertyGroup, error) {
 	start := time.Now()
 
@@ -9200,22 +9408,6 @@ func (s *TimerLayerPropertyGroupStore) GetByID(id string) (*model.PropertyGroup,
 	return result, err
 }
 
-func (s *TimerLayerPropertyGroupStore) IncrementVersion(name string) error {
-	start := time.Now()
-
-	err := s.PropertyGroupStore.IncrementVersion(name)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.IncrementVersion", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
 	start := time.Now()
 
@@ -9230,6 +9422,22 @@ func (s *TimerLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*mo
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.Register", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerPropertyGroupStore) SetVersion(name string, version int) error {
+	start := time.Now()
+
+	err := s.PropertyGroupStore.SetVersion(name, version)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.SetVersion", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPropertyValueStore) Create(value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -9340,6 +9548,22 @@ func (s *TimerLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.GetMany", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyValueStore.GetReferencedOptionIDs(groupID, fieldIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.GetReferencedOptionIDs", success, elapsed)
 	}
 	return result, err
 }
@@ -9695,6 +9919,22 @@ func (s *TimerLayerReadReceiptStore) InvalidateReadReceiptForPostsCache(postID s
 	}
 }
 
+func (s *TimerLayerReadReceiptStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
+	start := time.Now()
+
+	err := s.ReadReceiptStore.PermanentDeleteByUser(rctx, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
 	start := time.Now()
 
@@ -9885,6 +10125,22 @@ func (s *TimerLayerRecapStore) MarkRecapsAsViewed(userId string, statuses []stri
 		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.MarkRecapsAsViewed", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerRecapStore) PermanentDeleteByUser(userId string) error {
+	start := time.Now()
+
+	err := s.RecapStore.PermanentDeleteByUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
@@ -10911,6 +11167,22 @@ func (s *TimerLayerScheduledRecapStore) MarkExecuted(id string, lastRunAt int64,
 	return err
 }
 
+func (s *TimerLayerScheduledRecapStore) PermanentDeleteByUser(userId string) error {
+	start := time.Now()
+
+	err := s.ScheduledRecapStore.PermanentDeleteByUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledRecapStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerScheduledRecapStore) Save(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error) {
 	start := time.Now()
 
@@ -11759,6 +12031,22 @@ func (s *TimerLayerSharedChannelStore) HasRemote(channelID string, remoteID stri
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) PermanentDeleteUsersByUser(userID string) error {
+	start := time.Now()
+
+	err := s.SharedChannelStore.PermanentDeleteUsersByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.PermanentDeleteUsersByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	start := time.Now()
 
@@ -11981,6 +12269,22 @@ func (s *TimerLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.GetTotalActiveUsersCount", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerStatusStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.StatusStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerStatusStore) ResetAll() error {
@@ -13564,6 +13868,22 @@ func (s *TimerLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentio
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerThreadStore) PermanentDeleteMembershipsByUser(userID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.PermanentDeleteMembershipsByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.PermanentDeleteMembershipsByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
 	start := time.Now()
 
@@ -13785,6 +14105,22 @@ func (s *TimerLayerUploadSessionStore) GetForUser(userID string) ([]*model.Uploa
 		s.Root.Metrics.ObserveStoreMethodDuration("UploadSessionStore.GetForUser", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerUploadSessionStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.UploadSessionStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UploadSessionStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerUploadSessionStore) Save(session *model.UploadSession) (*model.UploadSession, error) {
@@ -15557,6 +15893,22 @@ func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userID string) (*model.Use
 		s.Root.Metrics.ObserveStoreMethodDuration("UserTermsOfServiceStore.GetByUser", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerUserTermsOfServiceStore) PermanentDeleteByUser(userID string) error {
+	start := time.Now()
+
+	err := s.UserTermsOfServiceStore.PermanentDeleteByUser(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserTermsOfServiceStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {

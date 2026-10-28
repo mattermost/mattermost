@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/mattermost/logr/v2"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -46,21 +47,39 @@ func (ps *PlatformService) initLogging() error {
 		}
 	}
 
+	// Validate log and audit file paths before configuring any target. ConfigureTargets opens
+	// the target files, so a check placed after it would already have written outside the root.
+	logPathErr := config.ValidateLogPaths(ps.Config(), ps.getLogRootPath())
+	if logPathErr != nil && config.IsLogPathEnforcementEnabled(ps.Config()) {
+		// At startup this aborts the boot via platform.New. On a config reload it leaves the
+		// previously configured (valid) targets in place, so the offending file is never opened.
+		return logPathErr
+	}
+
 	// configure app logger. This will replace any existing targets with new ones as defined in the config.
 	if err := ps.ConfigureLogger("logging", ps.logger, &ps.Config().LogSettings, config.GetLogFileLocation); err != nil {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			// revert to default logger if the config is invalid
-			mlog.InitGlobalLogger(nil)
+			if !ps.skipGlobalLogger {
+				mlog.InitGlobalLogger(nil)
+			}
 			return err
 		}
 	}
 
-	// redirect default Go logger to app logger.
-	ps.logger.RedirectStdLog(mlog.LvlWarn)
+	if !ps.skipGlobalLogger {
+		// redirect default Go logger to app logger.
+		ps.logger.RedirectStdLog(mlog.LvlWarn)
 
-	// use the app logger as the global logger (eventually remove all instances of global logging).
-	mlog.InitGlobalLogger(ps.logger)
+		// use the app logger as the global logger (eventually remove all instances of global logging).
+		mlog.InitGlobalLogger(ps.logger)
+	}
+
+	// logged after the targets are configured so the line reaches them rather than the default logger
+	if logPathErr != nil {
+		ps.logger.Error(config.LogPathOutsideRootWarning, mlog.Err(logPathErr))
+	}
 
 	return nil
 }
@@ -69,12 +88,21 @@ func (ps *PlatformService) Logger() *mlog.Logger {
 	return ps.logger
 }
 
-func (ps *PlatformService) EnableLoggingMetrics() {
+// LoggerMetricsCollector returns the collector for logger metrics, or nil if metrics are disabled.
+func (ps *PlatformService) LoggerMetricsCollector() mlog.MetricsCollector {
 	if ps.metrics == nil || ps.metricsIFace == nil {
+		return nil
+	}
+	return ps.metricsIFace.GetLoggerMetricsCollector()
+}
+
+func (ps *PlatformService) EnableLoggingMetrics() {
+	collector := ps.LoggerMetricsCollector()
+	if collector == nil {
 		return
 	}
 
-	ps.logger.SetMetricsCollector(ps.metricsIFace.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+	ps.logger.SetMetricsCollector(collector, mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
 	if err := ps.initLogging(); err != nil {
@@ -87,7 +115,7 @@ func (ps *PlatformService) EnableLoggingMetrics() {
 
 // RemoveUnlicensedLogTargets removes any unlicensed log target types.
 func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
-	if license != nil && *license.Features.AdvancedLogging {
+	if license.HasAdvancedLogging() {
 		// advanced logging enabled via license; no need to remove any targets
 		return
 	}
@@ -242,7 +270,8 @@ func (ps *PlatformService) getLogRootPath() string {
 // This prevents arbitrary file read/write vulnerabilities in logging configuration.
 // The logging root is determined by MM_LOG_PATH environment variable or the default logs directory.
 // Used to validate paths when reading logs via GetLogsSkipSend, GetLogFile, and GetAdvancedLogs.
-// In future versions, this will also be used to validate paths when saving logging config.
+// The write side is covered separately by config.ValidateLogPaths, which validates every
+// log and audit path in the config on save and before the logger is configured.
 func (ps *PlatformService) validateLogFilePath(filePath string) error {
 	loggingRoot := ps.getLogRootPath()
 
@@ -336,7 +365,8 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 		dateTo = time.Now()
 	}
 
-	timestamp, err := time.Parse(model.LogFilterDateLayout, entry.Timestamp)
+	// Entries use mlog's layout, which writes UTC as "Z" rather than "+00:00".
+	timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
 	if err != nil {
 		rctx.Logger().Debug("Cannot parse timestamp, skipping")
 		return false

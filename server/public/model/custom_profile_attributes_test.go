@@ -133,6 +133,26 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 	}
 }
 
+func TestNewCPAFieldFromPropertyField_DropsPermissions(t *testing.T) {
+	source := &PropertyField{
+		ID:      NewId(),
+		GroupID: AccessControlPropertyGroupName,
+		Name:    "Test Field",
+		Type:    PropertyFieldTypeText,
+		Permissions: &Permissions{
+			Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionValueWrite}},
+			},
+		},
+	}
+
+	cpaField, err := NewCPAFieldFromPropertyField(source)
+	require.NoError(t, err)
+	require.Nil(t, cpaField.Permissions, "CPAField must never carry the source field's permissions object")
+
+	require.NotNil(t, source.Permissions, "converting to a CPAField must not mutate the source field")
+}
+
 func TestCPAFieldToPropertyField(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -598,6 +618,42 @@ func TestCPAField_ToPropertyField_WithheldOptions(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 0, roundTripped.Attrs.OptionsCount)
 		require.False(t, roundTripped.Attrs.OptionsOmitted)
+	})
+}
+
+func TestCPAField_OpenIDLink(t *testing.T) {
+	newField := func(openID string) *CPAField {
+		return &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: AccessControlPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{Visibility: CustomProfileAttributesVisibilityAlways, OpenID: openID},
+		}
+	}
+
+	t.Run("a linked field round-trips its claim path and is synced", func(t *testing.T) {
+		field := newField("address.country")
+		require.True(t, field.IsSynced())
+
+		pf := field.ToPropertyField()
+		require.Equal(t, "address.country", pf.Attrs[PropertyFieldAttrOpenID])
+		require.Equal(t, PropertySyncSourceOpenID, GetPropertyFieldSyncSource(pf))
+
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Equal(t, "address.country", roundTripped.Attrs.OpenID)
+	})
+
+	t.Run("an unlinked field adds no openid key", func(t *testing.T) {
+		field := newField("")
+		require.False(t, field.IsSynced())
+
+		pf := field.ToPropertyField()
+		require.NotContains(t, pf.Attrs, PropertyFieldAttrOpenID)
+		require.False(t, IsPropertyFieldSynced(pf))
 	})
 }
 

@@ -7,6 +7,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -35,7 +37,9 @@ type fakeImportApp struct {
 	receivedOpts     model.BulkImportOpts
 	bulkImportErr    *model.AppError
 	bulkImportLines  int
+	bulkImportReport *imports.ImportReport
 	removeFileCalled bool
+	writtenFiles     map[string][]byte
 }
 
 func (a *fakeImportApp) RemoveFile(_ string) *model.AppError {
@@ -49,13 +53,29 @@ func (a *fakeImportApp) FileReader(_ string) (filestore.ReadCloseSeeker, *model.
 	return nil, nil
 }
 
+func (a *fakeImportApp) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+	b, err := io.ReadAll(fr)
+	if err != nil {
+		return 0, model.NewAppError("WriteFile", "test.write_file", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if a.writtenFiles == nil {
+		a.writtenFiles = make(map[string][]byte)
+	}
+	a.writtenFiles[path] = b
+	return int64(len(b)), nil
+}
+
 func (a *fakeImportApp) BulkImportWithPath(_ request.CTX, _ io.Reader, _ *zip.Reader, _, _ bool, _ int, _ string) (int, *model.AppError) {
 	return 0, nil
 }
 
-func (a *fakeImportApp) BulkImportWithPathAndOpts(_ request.CTX, _ io.Reader, _ *zip.Reader, _, _ bool, _ int, _ string, opts model.BulkImportOpts) (int, *model.AppError) {
+func (a *fakeImportApp) BulkImportWithPathAndOpts(_ request.CTX, _ io.Reader, _ *zip.Reader, _, _ bool, _ int, _ string, opts model.BulkImportOpts) (int, *imports.ImportReport, *model.AppError) {
 	a.receivedOpts = opts
-	return a.bulkImportLines, a.bulkImportErr
+	report := a.bulkImportReport
+	if report == nil {
+		report = &imports.ImportReport{}
+	}
+	return a.bulkImportLines, report, a.bulkImportErr
 }
 
 func (a *fakeImportApp) Log() *mlog.Logger {
@@ -389,4 +409,74 @@ func TestMakeWorkerMissingImportFile(t *testing.T) {
 	worker.DoJob(job)
 
 	mockStore.JobStore.AssertNotCalled(t, "UpdateStatus", job.Id, model.JobStatusSuccess)
+}
+
+// TestMakeWorkerUnmatchedUsersReport verifies that when a scoped import leaves users
+// that could not be matched on the destination, the worker serializes them to a CSV
+// report and records the count and path in the job's Data for mmctl to surface.
+func TestMakeWorkerUnmatchedUsersReport(t *testing.T) {
+	t.Run("writes report and records job data when users are unmatched", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		report := &imports.ImportReport{}
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "alice", Reason: "username_not_found", Action: imports.UnmatchedUserCreatedInactive,
+		})
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "bob", Team: "eng", Channel: "off-topic",
+			Reason: "channel_not_found", Action: imports.UnmatchedUserMembershipSkipped,
+		})
+		app.bulkImportReport = report
+
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		job := &model.Job{
+			Id: model.NewId(),
+			Data: map[string]string{
+				"import_file":    zipPath,
+				"local_mode":     "true",
+				"imported_users": "inactive",
+			},
+		}
+		expectWorkerJobCompletion(mockStore, job)
+
+		worker.DoJob(job)
+
+		require.Equal(t, "2", job.Data["unmatched_users_count"])
+		reportPath := job.Data["unmatched_users_report"]
+		require.Equal(t, zipPath+".unmatched-users.csv", reportPath)
+
+		content, err := os.ReadFile(reportPath)
+		require.NoError(t, err)
+		require.Contains(t, string(content), "username,auth_service,team,channel,reason,action")
+		require.Contains(t, string(content), "alice,,,,username_not_found,created_inactive")
+		require.Contains(t, string(content), "bob,,eng,off-topic,channel_not_found,membership_skipped")
+	})
+
+	t.Run("no report file and no job data when all users matched", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		app.bulkImportReport = &imports.ImportReport{} // empty: nothing unmatched
+
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		job := &model.Job{
+			Id:   model.NewId(),
+			Data: map[string]string{"import_file": zipPath, "local_mode": "true"},
+		}
+		expectWorkerJobCompletion(mockStore, job)
+
+		worker.DoJob(job)
+
+		_, ok := job.Data["unmatched_users_count"]
+		require.False(t, ok, "no count should be recorded when nothing was unmatched")
+		_, err := os.Stat(zipPath + ".unmatched-users.csv")
+		require.True(t, os.IsNotExist(err), "no report file should be written when nothing was unmatched")
+	})
 }

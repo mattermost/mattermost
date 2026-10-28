@@ -73,6 +73,7 @@ export type ClientConfig = {
     EnableEmailInvitations: string;
     EnableEmojiPicker: string;
     EnableFileAttachments: string;
+    EnableFileSearch: string;
     EnableFile: string;
     EnableGifPicker: string;
     EnableGuestAccounts: string;
@@ -136,6 +137,7 @@ export type ClientConfig = {
     FeatureFlagChannelAttributesRequired: string;
     FeatureFlagPropertyFieldRank: string;
     FeatureFlagPropertyFieldGraph: string;
+    FeatureFlagOpenIdAttributeSync: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;
@@ -719,6 +721,10 @@ export type SSOSettings = {
     ButtonText: string;
     ButtonColor: string;
     UsePreferredUsername: boolean;
+
+    // Space-separated scopes requested on top of profile, openid and email.
+    // Applied to the OpenID Connect service only.
+    AdditionalScopes: string;
 };
 
 export type Office365Settings = {
@@ -941,6 +947,7 @@ export type ElasticsearchSettings = {
     Trace: string;
     IgnoredPurgeIndexes: string;
     EnableSearchPublicChannelsWithoutMembership: boolean;
+    EnableFileIndexing: boolean;
 };
 
 export type DataRetentionSettings = {

@@ -358,7 +358,8 @@
         "DiscoveryEndpoint": null,
         "ButtonText": null,
         "ButtonColor": null,
-        "UsePreferredUsername": null
+        "UsePreferredUsername": null,
+        "AdditionalScopes": null
     },
     "GoogleSettings": {
         "Enable": null,
@@ -371,7 +372,8 @@
         "DiscoveryEndpoint": null,
         "ButtonText": null,
         "ButtonColor": null,
-        "UsePreferredUsername": null
+        "UsePreferredUsername": null,
+        "AdditionalScopes": null
     },
     "Office365Settings": {
         "Enable": null,
@@ -396,7 +398,8 @@
         "DiscoveryEndpoint": null,
         "ButtonText": null,
         "ButtonColor": null,
-        "UsePreferredUsername": null
+        "UsePreferredUsername": null,
+        "AdditionalScopes": null
     },
     "LdapSettings": {
         "Enable": null,
@@ -569,7 +572,8 @@
         "ClientKey": null,
         "Trace": null,
         "IgnoredPurgeIndexes": null,
-        "EnableSearchPublicChannelsWithoutMembership": null
+        "EnableSearchPublicChannelsWithoutMembership": null,
+        "EnableFileIndexing": null
     },
     "DataRetentionSettings": {
         "EnableMessageDeletion": null,
@@ -745,6 +749,7 @@
         "MobileEphemeralMode": false,
         "PropertyFieldRank": false,
         "PropertyFieldGraph": false,
+        "PropertyFieldPermissionsV3": false,
         "TeamMembershipAccessControl": false,
         "ChannelAttributes": false,
         "ChannelAttributesRequired": false,
@@ -753,6 +758,10 @@
         "ClusterGracefulDrain": false,
         "EnableMFIPluginSignaturePublicKey": false,
         "RecurringScheduledPosts": false,
-        "PostDeliveryTracking": false
+        "PostDeliveryTracking": false,
+        "EnforceLogPathRoot": false,
+        "HealthDashboard": false,
+        "EnableBrotliCompression": false,
+        "OpenIdAttributeSync": false
     }
 }
