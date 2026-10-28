@@ -67,6 +67,7 @@ Cypress.Commands.add('uiGetDownloadLinkFilePreviewModal', () => {
     return cy.uiGetFilePreviewModal().find('[aria-label="Get a public link"], [aria-label="Public link copied"]');
 });
 
+// Resolves to the download anchor itself, which carries the download attribute and href.
 Cypress.Commands.add('uiGetDownloadFilePreviewModal', () => {
     return cy.uiGetFilePreviewModal().find('.file-preview-modal-main-actions__download');
 });
