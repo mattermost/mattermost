@@ -3,7 +3,7 @@
 
 /**
  * System Console — Global Attributes listing source filter.
- * Options: All, Managed here, LDAP, SAML, OpenID, Plugin. Managed here means no plugin, no sync
+ * Options: All, Managed here, AD/LDAP, SAML, OpenID Connect, Plugin. Managed here means no plugin, no sync
  * mapping and no owners; rows with only service/role/user owners ("Managed by X") match All only.
  * A row synced from several sources matches each of them.
  *
@@ -48,11 +48,14 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             await globalAttributes.search(suffix);
 
             const all = [managed, ldap, saml, openid, plugin];
-            const cases: Array<{source: 'Managed here' | 'LDAP' | 'SAML' | 'OpenID' | 'Plugin'; shown: string}> = [
+            const cases: Array<{
+                source: 'Managed here' | 'AD/LDAP' | 'SAML' | 'OpenID Connect' | 'Plugin';
+                shown: string;
+            }> = [
                 {source: 'Managed here', shown: managed},
-                {source: 'LDAP', shown: ldap},
+                {source: 'AD/LDAP', shown: ldap},
                 {source: 'SAML', shown: saml},
-                {source: 'OpenID', shown: openid},
+                {source: 'OpenID Connect', shown: openid},
                 {source: 'Plugin', shown: plugin},
             ];
 
@@ -108,7 +111,7 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             );
 
             // * Absent under every specific source
-            for (const source of ['Managed here', 'LDAP', 'SAML', 'OpenID', 'Plugin'] as const) {
+            for (const source of ['Managed here', 'AD/LDAP', 'SAML', 'OpenID Connect', 'Plugin'] as const) {
                 await globalAttributes.selectSourceFilter(source);
                 await expect(globalAttributes.rowByLabel(label)).toHaveCount(0);
             }
@@ -136,7 +139,7 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             await globalAttributes.search(suffix);
 
             // # Filter by LDAP
-            await globalAttributes.selectSourceFilter('LDAP');
+            await globalAttributes.selectSourceFilter('AD/LDAP');
 
             // * The row shows
             await expect(globalAttributes.rowByLabel(label)).toBeVisible();
@@ -148,7 +151,7 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             await expect(globalAttributes.rowByLabel(label)).toBeVisible();
 
             // # Filter by OpenID
-            await globalAttributes.selectSourceFilter('OpenID');
+            await globalAttributes.selectSourceFilter('OpenID Connect');
 
             // * It does not match a source it is not mapped to
             await expect(globalAttributes.rowByLabel(label)).toHaveCount(0);
@@ -180,7 +183,7 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             await globalAttributes.gotoListing();
 
             // # Filter to LDAP, then search for the shared stem
-            await globalAttributes.selectSourceFilter('LDAP');
+            await globalAttributes.selectSourceFilter('AD/LDAP');
             await globalAttributes.search(`Alpha ${suffix}`);
 
             // * Only the LDAP row that also matches the term shows
@@ -218,7 +221,7 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             await globalAttributes.search(suffix);
 
             // # Filter to a source the row is not from
-            await globalAttributes.selectSourceFilter('OpenID');
+            await globalAttributes.selectSourceFilter('OpenID Connect');
 
             // * The no-match state shows with Clear filters, not the empty-listing state
             await expect(globalAttributes.emptySearchState).toContainText(
