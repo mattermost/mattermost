@@ -464,10 +464,6 @@ type logSearch struct {
 	// The longest part of the term that the log encoders never escape. A line whose raw bytes
 	// don't contain it can't contain the term in any value either.
 	raw []byte
-
-	// Whether the term was ASCII before lowercasing. Some characters, such as İ, lowercase to
-	// ASCII, so a line holding them only matches once it is lowercased too.
-	ascii bool
 }
 
 func newLogSearch(logFilter *model.LogFilter) *logSearch {
@@ -485,22 +481,21 @@ func newLogSearch(logFilter *model.LogFilter) *logSearch {
 		}
 	}
 
-	return &logSearch{term: []byte(term), raw: []byte(raw), ascii: isASCII(logFilter.Search)}
+	return &logSearch{term: []byte(term), raw: []byte(raw)}
 }
 
 // rejectsRaw reports whether the line's raw bytes show it can't contain the term.
 func (s *logSearch) rejectsRaw(line []byte) bool {
-	return s != nil && len(s.raw) > 0 && !containsFold(line, s.raw, s.ascii)
+	return s != nil && len(s.raw) > 0 && !containsFold(line, s.raw)
 }
 
-// containsFold reports whether b contains the lowercased term, ignoring case. ascii tells whether
-// the term was ASCII before lowercasing.
-func containsFold(b, term []byte, ascii bool) bool {
-	if !ascii {
+// containsFold reports whether b, lowercased, contains the lowercased term.
+func containsFold(b, term []byte) bool {
+	if !isASCII(b) {
 		return bytes.Contains(bytes.ToLower(b), term)
 	}
 
-	// Comparing ASCII bytes in place avoids lowercasing a copy of every scanned line
+	// ASCII lowercases byte by byte, so comparing in place gives the same result without a copy
 	for i := 0; i+len(term) <= len(b); i++ {
 		j := 0
 		for j < len(term) && toLowerASCII(b[i+j]) == term[j] {
@@ -513,9 +508,9 @@ func containsFold(b, term []byte, ascii bool) bool {
 	return false
 }
 
-func isASCII(s string) bool {
-	for i := range len(s) {
-		if s[i] >= utf8.RuneSelf {
+func isASCII(b []byte) bool {
+	for _, c := range b {
+		if c >= utf8.RuneSelf {
 			return false
 		}
 	}
@@ -551,7 +546,7 @@ func isLogFilteredBySearch(search *logSearch, line []byte) bool {
 		if len(raw) > 0 && raw[0] == '"' && json.Unmarshal(raw, &s) == nil {
 			value = []byte(s)
 		}
-		if containsFold(value, search.term, search.ascii) {
+		if containsFold(value, search.term) {
 			return false
 		}
 	}

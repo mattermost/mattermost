@@ -618,10 +618,13 @@ func TestIsLogFilteredBySearch(t *testing.T) {
 		assert.True(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "äpfel"}), line))
 	})
 
-	t.Run("terms that lowercase to ASCII match their own text", func(t *testing.T) {
+	t.Run("characters that lowercase to ASCII match either way", func(t *testing.T) {
 		line := []byte(`{"level":"info","msg":"Flight to İstanbul at 300 K"}`)
-		assert.False(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "İstanbul"}), line))
-		assert.False(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "300 \u212a"}), line))
+		for _, term := range []string{"İstanbul", "istanbul", "300 \u212a", "300 k"} {
+			search := newLogSearch(&model.LogFilter{Search: term})
+			assert.False(t, search.rejectsRaw(line), term)
+			assert.False(t, isLogFilteredBySearch(search, line), term)
+		}
 	})
 
 	t.Run("unparseable lines are filtered", func(t *testing.T) {
