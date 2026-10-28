@@ -555,69 +555,44 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 }
 
 func TestNotifySearchEngineWatcher(t *testing.T) {
-	t.Run("notify resets backoff and triggers immediate evaluation", func(t *testing.T) {
-		w, engineMock := setupWatcherTest(t)
+	for name, wake := range map[string]func(w *searchEngineWatcher){
+		"reevaluate":             (*searchEngineWatcher).reevaluate,
+		"ReevaluateSearchEngine": func(w *searchEngineWatcher) { w.ps.ReevaluateSearchEngine() },
+	} {
+		t.Run(name+" resets backoff and triggers immediate evaluation", func(t *testing.T) {
+			w, engineMock := setupWatcherTest(t)
 
-		engineMock.On("IsEnabled").Return(true).Maybe()
-		engineMock.On("IsActive").Return(false).Maybe()
+			engineMock.On("IsEnabled").Return(true).Maybe()
+			engineMock.On("IsActive").Return(false).Maybe()
 
-		// Use a long retry so the watcher is in a backoff wait.
-		searchEngineRetryInitial = 10 * time.Second
+			// Use a long retry so the watcher is in a backoff wait.
+			searchEngineRetryInitial = 10 * time.Second
 
-		var startCalls atomic.Int32
-		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
-			startCalls.Add(1)
-			return model.NewAppError("test", "start_failed", nil, "", 500)
+			var startCalls atomic.Int32
+			engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
+				startCalls.Add(1)
+				return model.NewAppError("test", "start_failed", nil, "", 500)
+			})
+
+			w.start()
+			t.Cleanup(w.stop)
+
+			// Wait for first Start() call.
+			require.Eventually(t, func() bool {
+				return startCalls.Load() >= 1
+			}, 2*time.Second, 5*time.Millisecond)
+
+			// Watcher is now in backoff (10s). Send notify to wake it.
+			before := startCalls.Load()
+			wake(w)
+
+			// Start should be called again quickly (not after 10s).
+			require.Eventually(t, func() bool {
+				return startCalls.Load() > before
+			}, 1*time.Second, 5*time.Millisecond,
+				"notify should have triggered an immediate Start retry")
 		})
-
-		w.start()
-		t.Cleanup(w.stop)
-
-		// Wait for first Start() call.
-		require.Eventually(t, func() bool {
-			return startCalls.Load() >= 1
-		}, 2*time.Second, 5*time.Millisecond)
-
-		// Watcher is now in backoff (10s). Send notify to wake it.
-		before := startCalls.Load()
-		w.reevaluate()
-
-		// Start should be called again quickly (not after 10s).
-		require.Eventually(t, func() bool {
-			return startCalls.Load() > before
-		}, 1*time.Second, 5*time.Millisecond,
-			"notify should have triggered an immediate Start retry")
-	})
-
-	t.Run("ReevaluateSearchEngine wakes the watcher", func(t *testing.T) {
-		w, engineMock := setupWatcherTest(t)
-
-		engineMock.On("IsEnabled").Return(true).Maybe()
-		engineMock.On("IsActive").Return(false).Maybe()
-
-		searchEngineRetryInitial = 10 * time.Second
-
-		var startCalls atomic.Int32
-		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
-			startCalls.Add(1)
-			return model.NewAppError("test", "start_failed", nil, "", 500)
-		})
-
-		w.start()
-		t.Cleanup(w.stop)
-
-		require.Eventually(t, func() bool {
-			return startCalls.Load() >= 1
-		}, 2*time.Second, 5*time.Millisecond)
-
-		before := startCalls.Load()
-		w.ps.ReevaluateSearchEngine()
-
-		require.Eventually(t, func() bool {
-			return startCalls.Load() > before
-		}, 1*time.Second, 5*time.Millisecond,
-			"ReevaluateSearchEngine should have triggered an immediate Start retry")
-	})
+	}
 
 	t.Run("ReevaluateSearchEngine is a no-op without a watcher", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
