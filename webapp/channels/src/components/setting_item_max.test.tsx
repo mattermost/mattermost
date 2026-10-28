@@ -3,14 +3,11 @@
 
 import React from 'react';
 
-import {Combobox} from '@mattermost/compass-ui/components/combobox';
-import type {ComboboxProps} from '@mattermost/compass-ui/components/combobox';
-
 import SettingItemMax from 'components/setting_item_max';
 
 import {installA11yFocusShim} from 'tests/helpers/a11y_focus_shim';
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {A11yAttributeNames, A11yCustomEventTypes} from 'utils/constants';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 
 describe('components/SettingItemMax', () => {
@@ -165,246 +162,15 @@ describe('components/SettingItemMax', () => {
     describe('initial focus', () => {
         installA11yFocusShim();
 
-        const options = [
-            {value: 'a', label: 'Alpha'},
-            {value: 'b', label: 'Bravo'},
-            {value: 'c', label: 'Charlie'},
-        ];
-
-        const SkipFocusCombobox = (props: ComboboxProps) => (
-            <div {...{[A11yAttributeNames.SKIP_INITIAL_FOCUS]: ''}}>
-                <Combobox {...props}/>
-            </div>
-        );
-
-        const getSettingList = () => document.querySelector('.setting-list');
-
-        const expectClosed = (combobox: HTMLElement) => {
-            expect(combobox).toHaveAttribute('aria-expanded', 'false');
-            expect(screen.queryAllByRole('option')).toHaveLength(0);
-        };
-
-        test('should focus the setting list, not an empty single Combobox input, and keep its menu closed', () => {
+        test('should focus the setting list when the section has no focusable control', () => {
             renderWithContext(
                 <SettingItemMax
                     {...baseProps}
-                    inputs={[
-                        <SkipFocusCombobox
-                            key='combobox'
-                            aria-label='Attr'
-                            options={options}
-                            value=''
-                            onChange={jest.fn()}
-                        />,
-                    ]}
+                    inputs={[<div key='static'/>]}
                 />,
             );
 
-            const input = screen.getByRole('combobox', {name: 'Attr'});
-            expect(getSettingList()).toHaveFocus();
-            expect(input).not.toHaveFocus();
-            expectClosed(input);
-        });
-
-        test('should not focus the clear button of a single Combobox with a value', () => {
-            renderWithContext(
-                <SettingItemMax
-                    {...baseProps}
-                    inputs={[
-                        <SkipFocusCombobox
-                            key='combobox'
-                            aria-label='Attr'
-                            options={options}
-                            value='b'
-                            clearable={true}
-                            clearButtonProps={{'data-testid': 'attr-clear'}}
-                            onChange={jest.fn()}
-                        />,
-                    ]}
-                />,
-            );
-
-            expect(getSettingList()).toHaveFocus();
-            expect(screen.getByTestId('attr-clear')).not.toHaveFocus();
-            expectClosed(screen.getByRole('combobox', {name: 'Attr'}));
-        });
-
-        test('should not focus a chip or its remove button of a multiple Combobox', () => {
-            renderWithContext(
-                <SettingItemMax
-                    {...baseProps}
-                    inputs={[
-                        <SkipFocusCombobox
-                            key='combobox'
-                            aria-label='Attr'
-                            options={options}
-                            multiple={true}
-                            value={['a', 'b']}
-                            onChange={jest.fn()}
-                        />,
-                    ]}
-                />,
-            );
-
-            const chips = document.querySelectorAll('[data-chip]');
-            expect(chips).toHaveLength(2);
-            expect(chips[0]).toHaveAttribute('tabindex', '0');
-            expect(document.querySelectorAll('[data-chip] button').length).toBeGreaterThan(0);
-
-            expect(getSettingList()).toHaveFocus();
-            expect(document.activeElement?.closest('[data-chip]')).toBeNull();
-            expectClosed(screen.getByRole('combobox', {name: 'Attr'}));
-        });
-
-        test('should open the Combobox menu only once the user clicks the input', async () => {
-            const user = userEvent.setup();
-            renderWithContext(
-                <SettingItemMax
-                    {...baseProps}
-                    inputs={[
-                        <SkipFocusCombobox
-                            key='combobox'
-                            aria-label='Attr'
-                            options={options}
-                            value=''
-                            onChange={jest.fn()}
-                        />,
-                    ]}
-                />,
-            );
-
-            const input = screen.getByRole('combobox', {name: 'Attr'});
-            expectClosed(input);
-
-            await user.click(input);
-
-            expect(input).toHaveFocus();
-            expect(input).toHaveAttribute('aria-expanded', 'true');
-            expect(screen.getAllByRole('option')).toHaveLength(3);
-        });
-
-        test('should submit on Enter right after expanding a Combobox-only section', async () => {
-            const user = userEvent.setup();
-            const submit = jest.fn();
-            renderWithContext(
-                <SettingItemMax
-                    {...baseProps}
-                    submit={submit}
-                    inputs={[
-                        <SkipFocusCombobox
-                            key='combobox'
-                            aria-label='Attr'
-                            options={options}
-                            value='b'
-                            onChange={jest.fn()}
-                        />,
-                    ]}
-                />,
-            );
-
-            await user.keyboard('{Enter}');
-
-            expect(submit).toHaveBeenCalledTimes(1);
-            expect(submit).toHaveBeenCalledWith(baseProps.setting);
-        });
-
-        test('should keep DOM order, focusing a form-control input placed before a Combobox', () => {
-            renderWithContext(
-                <SettingItemMax
-                    {...baseProps}
-                    inputs={[
-                        <input
-                            key='text'
-                            className='form-control'
-                            aria-label='Text'
-                        />,
-                        <SkipFocusCombobox
-                            key='combobox'
-                            aria-label='Attr'
-                            options={options}
-                            value=''
-                            onChange={jest.fn()}
-                        />,
-                    ]}
-                />,
-            );
-
-            expect(screen.getByRole('textbox', {name: 'Text'})).toHaveFocus();
-            expectClosed(screen.getByRole('combobox', {name: 'Attr'}));
-        });
-
-        test('should skip a Combobox and focus a form-control input placed after it', () => {
-            renderWithContext(
-                <SettingItemMax
-                    {...baseProps}
-                    inputs={[
-                        <SkipFocusCombobox
-                            key='combobox'
-                            aria-label='Attr'
-                            options={options}
-                            multiple={true}
-                            value={['a']}
-                            onChange={jest.fn()}
-                        />,
-                        <input
-                            key='text'
-                            className='form-control'
-                            aria-label='Text'
-                        />,
-                    ]}
-                />,
-            );
-
-            expect(screen.getByRole('textbox', {name: 'Text'})).toHaveFocus();
-            expectClosed(screen.getByRole('combobox', {name: 'Attr'}));
-        });
-
-        test('should focus a button placed before a Combobox rather than the Combobox input', () => {
-            renderWithContext(
-                <SettingItemMax
-                    {...baseProps}
-                    inputs={[
-                        <button key='button'>
-                            {'Pick'}
-                        </button>,
-                        <SkipFocusCombobox
-                            key='combobox'
-                            aria-label='Attr'
-                            options={options}
-                            multiple={true}
-                            value={['a']}
-                            onChange={jest.fn()}
-                        />,
-                    ]}
-                />,
-            );
-
-            expect(screen.getByRole('button', {name: 'Pick'})).toHaveFocus();
-            expectClosed(screen.getByRole('combobox', {name: 'Attr'}));
-        });
-
-        test('should skip any input or button inside an opted-out wrapper', () => {
-            renderWithContext(
-                <SettingItemMax
-                    {...baseProps}
-                    inputs={[
-                        <div
-                            key='opted-out'
-                            {...{[A11yAttributeNames.SKIP_INITIAL_FOCUS]: ''}}
-                        >
-                            <input
-                                className='form-control'
-                                aria-label='Skipped'
-                            />
-                            <button>{'Skipped button'}</button>
-                        </div>,
-                    ]}
-                />,
-            );
-
-            expect(screen.getByRole('textbox', {name: 'Skipped'})).not.toHaveFocus();
-            expect(screen.getByRole('button', {name: 'Skipped button'})).not.toHaveFocus();
-            expect(getSettingList()).toHaveFocus();
+            expect(document.querySelector('.setting-list')).toHaveFocus();
         });
     });
 });

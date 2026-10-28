@@ -11,7 +11,7 @@ import type {ButtonVariant} from '@mattermost/shared/components/button';
 
 import SaveButton from 'components/save_button';
 
-import Constants, {A11yAttributeNames} from 'utils/constants';
+import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {a11yFocus} from 'utils/utils';
 
@@ -128,9 +128,7 @@ const SettingItemMax = ({
             const buttons = Array.from(settingList.current.querySelectorAll<HTMLElement>(
                 'button:not(#saveSetting):not(#cancelSetting)',
             )).filter((button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className));
-            const initialFocus = [...formControls, ...buttons].find(
-                (el) => !el.closest(`[${A11yAttributeNames.SKIP_INITIAL_FOCUS}]`),
-            );
+            const initialFocus = formControls[0] ?? buttons[0];
 
             // The <section> isn't focusable; .setting-list (tabindex -1) keeps focus in the section.
             a11yFocus(initialFocus ?? settingList.current.querySelector<HTMLElement>('.setting-list') ?? settingList.current);

@@ -624,9 +624,6 @@ export const A11yAttributeNames = {
     FOCUS_CHILD: 'data-a11y-focus-child',
     LOOP_NAVIGATION: 'data-a11y-loop-navigation',
     DISABLE_NAVIGATION: 'data-a11y-disable-nav',
-
-    // Widgets that open a popup on focus opt out of SettingItemMax's initial focus.
-    SKIP_INITIAL_FOCUS: 'data-skip-initial-focus',
 };
 
 export const A11yCustomEventTypes = {
