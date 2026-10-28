@@ -157,7 +157,18 @@ export function nameSuggestionsForUser(user: UserProfile, includeFullEmail = fal
     const first = (user.first_name || '').toLowerCase();
     const last = (user.last_name || '').toLowerCase();
     const full = first + ' ' + last;
-    profileSuggestions.push(first, last, full);
+
+    // Also suggest "last first" order, not just "first last". The server
+    // already matches name tokens regardless of order (generateSearchQuery
+    // in server/channels/store/sqlstore/user_store.go ANDs each
+    // whitespace-split search token against an OR across username/first
+    // name/last name/nickname, so which field matches which token doesn't
+    // matter), so the client-side suggestion list should too, otherwise a
+    // successful server search can still show "Nothing found" in the UI
+    // for locales/habits where people search by surname first (e.g. "Иванов
+    // Иван" instead of "Иван Иванов").
+    const fullReversed = last + ' ' + first;
+    profileSuggestions.push(first, last, full, fullReversed);
     profileSuggestions.push((user.nickname || '').toLowerCase());
     const positionSuggestions = getSuggestionsSplitBy((user.position || '').toLowerCase(), ' ');
     profileSuggestions.push(...positionSuggestions);
