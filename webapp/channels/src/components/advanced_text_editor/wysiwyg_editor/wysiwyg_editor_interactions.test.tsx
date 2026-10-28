@@ -217,6 +217,35 @@ describe('WysiwygEditor interactions', () => {
         jest.useRealTimers();
     });
 
+    test('sending keeps draft changes made after the last keystroke', () => {
+        jest.useFakeTimers();
+        const onSend = jest.fn();
+        const ref = React.createRef<WysiwygEditorHandle>();
+        let attachFile = () => {};
+        const Composer = () => {
+            const [draft, setDraft] = useState({message: '', files: 0});
+            attachFile = () => setDraft({...draft, files: 1});
+            return (
+                <WysiwygEditor
+                    ref={ref}
+                    value={draft.message}
+                    onChange={(message) => setDraft({...draft, message})}
+                    onSubmit={() => onSend(draft)}
+                    channelId='c1'
+                />
+            );
+        };
+        renderWithContext(<Composer/>);
+        const editor = ref.current!.getEditor()!;
+
+        typeText(editor, 'hello');
+        act(() => attachFile());
+        press(editor, 'Enter');
+
+        expect(onSend).toHaveBeenCalledWith({message: 'hello', files: 1});
+        jest.useRealTimers();
+    });
+
     describe('switching channels', () => {
         const switchTo = (rerender: (ui: React.ReactElement) => void, ref: React.RefObject<WysiwygEditorHandle | null>, value: string, channelId: string) => {
             rerender(

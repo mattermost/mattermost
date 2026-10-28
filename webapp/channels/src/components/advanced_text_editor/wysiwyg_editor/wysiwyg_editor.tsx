@@ -21,7 +21,7 @@ import StarterKit from '@tiptap/starter-kit';
 import emojiRegex from 'emoji-regex';
 import isPlainObject from 'lodash/isPlainObject';
 import {common, createLowlight} from 'lowlight';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -237,7 +237,6 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const rootIdRef = useLatest(rootId);
 
     const onSubmitRef = useLatest(onSubmit);
-    const onChangeRef = useLatest(onChange);
     const onFocusRef = useLatest(onFocus);
     const onBlurRef = useLatest(onBlur);
     const disabledRef = useLatest(disabled);
@@ -251,6 +250,16 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     // What the editor holds as far as the consumer knows, so the value it echoes back isn't reloaded.
     const syncedRef = useRef({value, channelId, rootId});
+
+    // The latest onChange for the channel or thread the content belongs to, so a report doesn't undo
+    // draft changes made since the typing. It moves to a new location only once pending typing is reported.
+    const onChangeRef = useRef(onChange);
+    useLayoutEffect(() => {
+        if (syncedRef.current.channelId === channelId && syncedRef.current.rootId === rootId) {
+            onChangeRef.current = onChange;
+        }
+    });
+
     const pendingChangeRef = useRef<(() => void) | null>(null);
     const flushPendingChange = useCallback(() => {
         const pendingChange = pendingChangeRef.current;
@@ -268,13 +277,12 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
         const content = jsonMode ? JSON.stringify(editor.getJSON()) : serializeToMarkdown(editor);
-        const onChangeForLocation = onChangeRef.current;
         pendingChangeRef.current = () => {
             syncedRef.current.value = content;
-            onChangeForLocation(content);
+            onChangeRef.current(content);
         };
         debouncedFlushPendingChange();
-    }, [debouncedFlushPendingChange, jsonMode, onChangeRef]);
+    }, [debouncedFlushPendingChange, jsonMode]);
 
     const baseExtensions: Extensions = [
         StarterKit.configure({
@@ -667,6 +675,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             pendingChangeRef.current = null;
         }
         syncedRef.current = {value, channelId, rootId};
+        onChangeRef.current = onChange;
 
         if (jsonMode) {
             editor.commands.setContent(parseJsonModeContent(value).content, {emitUpdate: false});
@@ -674,7 +683,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             editor.commands.setContent(value, {contentType: 'markdown', emitUpdate: false});
         }
         moveCursorToEnd(editor);
-    }, [value, channelId, rootId, editor, jsonMode, debouncedFlushPendingChange, flushPendingChange]);
+    }, [value, channelId, rootId, onChange, editor, jsonMode, debouncedFlushPendingChange, flushPendingChange]);
 
     useEffect(() => {
         if (editor && !editor.isDestroyed) {
