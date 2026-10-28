@@ -85,7 +85,7 @@ const HeaderIconWrapper = (props: Props) => {
                     ref={buttonRef}
                     id={buttonId}
                     size={size}
-                    className={buttonClass ?? 'channel-header__icon'}
+                    className={buttonClass || 'channel-header__icon'}
                     icon={children}
                     count={count}
                     active={active}

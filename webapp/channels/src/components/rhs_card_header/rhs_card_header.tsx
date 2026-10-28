@@ -176,7 +176,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                             size='small'
                             className='sidebar--right__close'
                             icon={<Icon glyph={<CloseIcon/>}/>}
-                            aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
+                            aria-label={this.props.intl.formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                             onClick={this.props.actions.closeRightHandSide}
                         />
                     </WithTooltip>

@@ -50,7 +50,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
           </span>
         </button>
         <button
-          aria-label="Close Sidebar Icon"
+          aria-label="Close"
           class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 sidebar--right__close"
           type="button"
         >
@@ -256,7 +256,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
           </span>
         </button>
         <button
-          aria-label="Close Sidebar Icon"
+          aria-label="Close"
           class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 sidebar--right__close"
           type="button"
         >
@@ -462,7 +462,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
           </span>
         </button>
         <button
-          aria-label="Close Sidebar Icon"
+          aria-label="Close"
           class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 sidebar--right__close"
           type="button"
         >

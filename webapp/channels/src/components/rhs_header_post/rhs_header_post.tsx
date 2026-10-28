@@ -246,7 +246,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                             size='small'
                             className='sidebar--right__close'
                             icon={<Icon glyph={<CloseIcon/>}/>}
-                            aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
+                            aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                             onClick={this.props.closeRightHandSide}
                         />
                     </WithTooltip>

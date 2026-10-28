@@ -84,14 +84,6 @@ declare namespace Cypress {
         uiCloseButton(): Chainable;
 
         /**
-         * Close the team settings modal via its header close control
-         *
-         * @example
-         *   cy.uiCloseTeamSettingsModal();
-         */
-        uiCloseTeamSettingsModal(): Chainable;
-
-        /**
          * Get a Compass radio's visible label by accessible name.
          * The native input is opacity:0; callers should click the returned label.
          *

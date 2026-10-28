@@ -91,7 +91,7 @@ exports[`components/post_edit_history should display error screen if errors are 
                       </span>
                     </button>
                     <button
-                      aria-label="Close Sidebar Icon"
+                      aria-label="Close"
                       class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 sidebar--right__close"
                       id="searchResultsCloseButton"
                       type="button"
@@ -333,7 +333,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                       </span>
                     </button>
                     <button
-                      aria-label="Close Sidebar Icon"
+                      aria-label="Close"
                       class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 sidebar--right__close"
                       id="searchResultsCloseButton"
                       type="button"

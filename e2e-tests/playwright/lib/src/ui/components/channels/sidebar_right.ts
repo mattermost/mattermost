@@ -58,8 +58,7 @@ export default class ChannelsSidebarRight {
             .getByText(/Message scheduled for/);
         this.rhsPostBody = container.getByTestId('post-message-text');
         this.postCreate = new ChannelsPostCreate(container.getByTestId('comment-create'), true);
-        // Compass IconButton uses the icon-level name ("Close Sidebar Icon"), not "Close".
-        this.closeButton = container.getByRole('button', {name: 'Close Sidebar Icon'});
+        this.closeButton = container.getByRole('button', {name: 'Close'});
         this.backButton = container.getByRole('button', {name: 'Back to channel'});
         this.expandButton = container.getByRole('button', {name: 'Expand Sidebar Icon'});
         this.collapseButton = container.getByRole('button', {name: 'Collapse Sidebar Icon'});

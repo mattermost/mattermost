@@ -34,16 +34,6 @@ Cypress.Commands.add('uiCloseButton', () => {
     return cy.uiGetButton('Close');
 });
 
-Cypress.Commands.add('uiCloseTeamSettingsModal', () => {
-    // Query from document.body so this works when called inside
-    // cy.get('#teamSettingsModal').within(...) — a nested cy.get('#teamSettingsModal')
-    // would look for the modal inside itself and time out.
-    return cy.document().its('body').
-        find('#teamSettingsModal .modal-header button[aria-label="Close"]').
-        should('be.visible').
-        click();
-});
-
 Cypress.Commands.add('uiGetRadioButton', (name) => {
     // Compass Radio keeps the native input at opacity:0. Resolve via role
     // (including hidden) and return the visible label for click/assert.
