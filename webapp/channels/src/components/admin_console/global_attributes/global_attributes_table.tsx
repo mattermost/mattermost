@@ -14,7 +14,7 @@ import {AlertOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, O
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {GlobalAttributeListingRow, GlobalAttributeSource, GlobalAttributeSourceKind} from '@mattermost/types/global_attributes';
+import type {GlobalAttributeListingRow, GlobalAttributeResourceType, GlobalAttributeSource, GlobalAttributeSourceKind} from '@mattermost/types/global_attributes';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {valueRefersToOptions} from '@mattermost/types/properties';
 
@@ -438,13 +438,14 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
 type GlobalAttributesTableProps = {
     searchQuery?: string;
     source?: GlobalAttributeSource;
+    resourceType?: GlobalAttributeResourceType;
 
     // Resets the search and every filter; offered when they leave nothing to show.
     onClearFilters?: () => void;
     disabled?: boolean;
 };
 
-export default function GlobalAttributesTable({searchQuery = '', source, onClearFilters, disabled = false}: GlobalAttributesTableProps) {
+export default function GlobalAttributesTable({searchQuery = '', source, resourceType, onClearFilters, disabled = false}: GlobalAttributesTableProps) {
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [deleteModalExited, setDeleteModalExited] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
@@ -452,7 +453,7 @@ export default function GlobalAttributesTable({searchQuery = '', source, onClear
     const classificationAttributePageReachable = useClassificationAttributePageReachable();
     const isMobileView = useSelector(getIsMobileView);
 
-    const {rows: listingRows, loaded, error: loadError, refetch} = useGlobalAttributesListing({term: searchQuery, source});
+    const {rows: listingRows, loaded, error: loadError, refetch} = useGlobalAttributesListing({term: searchQuery, source, resourceType});
 
     const rows = useMemo<ListingTableRow[]>(
         () => listingRows.map((row) => ({...row, id: row.field.id})),
@@ -633,7 +634,8 @@ export default function GlobalAttributesTable({searchQuery = '', source, onClear
 
     if (rows.length === 0) {
         const isSearching = Boolean(searchQuery.trim());
-        if (!isSearching && !source) {
+        const isFiltered = Boolean(source || resourceType);
+        if (!isSearching && !isFiltered) {
             return (
                 <div
                     className='GlobalAttributesTable__empty'
@@ -648,7 +650,7 @@ export default function GlobalAttributesTable({searchQuery = '', source, onClear
                 className='GlobalAttributesTable__empty'
                 data-testid='global-attributes-empty-search'
             >
-                <FormattedMessage {...(source ? messages.emptyFiltered : messages.emptySearch)}/>
+                <FormattedMessage {...(isFiltered ? messages.emptyFiltered : messages.emptySearch)}/>
                 {onClearFilters && (
                     <Button
                         emphasis='tertiary'

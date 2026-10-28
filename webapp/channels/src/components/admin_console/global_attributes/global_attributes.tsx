@@ -7,7 +7,7 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 import {MagnifyIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
-import type {GlobalAttributeSource} from '@mattermost/types/global_attributes';
+import type {GlobalAttributeResourceType, GlobalAttributeSource} from '@mattermost/types/global_attributes';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
@@ -16,7 +16,9 @@ import {getHistory} from 'utils/browser_history';
 
 import {ATTRIBUTE_DETAILS_ROUTE} from './constants';
 import GlobalAttributesTable from './global_attributes_table';
+import ResourceTypeFilter from './resource_type_filter';
 import SourceFilter from './source_filter';
+import useAllowedResourceTypes from './use_allowed_resource_types';
 
 import './global_attributes.scss';
 
@@ -39,6 +41,14 @@ type Props = {
 const GlobalAttributes = ({disabled = false}: Props) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [source, setSource] = useState<GlobalAttributeSource>();
+    const [selectedResourceType, setResourceType] = useState<GlobalAttributeResourceType>();
+
+    // With a single resource type on offer, filtering by it would only hide the
+    // templates applied to nothing, so the filter is not shown. A type the
+    // server stops offering is dropped rather than kept as a hidden filter.
+    const allowedResourceTypes = useAllowedResourceTypes();
+    const showResourceTypeFilter = allowedResourceTypes.length > 1;
+    const resourceType = showResourceTypeFilter && selectedResourceType && allowedResourceTypes.includes(selectedResourceType) ? selectedResourceType : undefined;
 
     const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setSearchQuery(event.target.value);
@@ -51,6 +61,7 @@ const GlobalAttributes = ({disabled = false}: Props) => {
     const handleClearFilters = useCallback(() => {
         setSearchQuery('');
         setSource(undefined);
+        setResourceType(undefined);
     }, []);
 
     return (
@@ -105,10 +116,18 @@ const GlobalAttributes = ({disabled = false}: Props) => {
                             value={source}
                             onChange={setSource}
                         />
+                        {showResourceTypeFilter && (
+                            <ResourceTypeFilter
+                                allowedTypes={allowedResourceTypes}
+                                value={resourceType}
+                                onChange={setResourceType}
+                            />
+                        )}
                     </div>
                     <GlobalAttributesTable
                         searchQuery={searchQuery}
                         source={source}
+                        resourceType={resourceType}
                         onClearFilters={handleClearFilters}
                         disabled={disabled}
                     />

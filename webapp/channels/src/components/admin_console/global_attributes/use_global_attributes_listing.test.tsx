@@ -134,7 +134,7 @@ describe('useGlobalAttributesListing', () => {
             setup({term: 'clear', source: 'ldap'});
             await advance(0);
 
-            expect(lastRequest()).toStrictEqual({term: 'clear', source: 'ldap'});
+            expect(lastRequest()).toStrictEqual({term: 'clear', source: 'ldap', resource_type: undefined});
         });
 
         it('sends no source for All', async () => {
@@ -153,7 +153,7 @@ describe('useGlobalAttributesListing', () => {
             await advance(0);
 
             expect(searchGlobalAttributes).toHaveBeenCalledTimes(1);
-            expect(lastRequest()).toStrictEqual({term: 'clear', source: 'plugin'});
+            expect(lastRequest()).toStrictEqual({term: 'clear', source: 'plugin', resource_type: undefined});
 
             update({source: undefined});
             await advance(0);
@@ -191,7 +191,73 @@ describe('useGlobalAttributesListing', () => {
                 await result.current.listing.refetch();
             });
 
-            expect(lastRequest()).toStrictEqual({term: undefined, source: 'openid'});
+            expect(lastRequest()).toStrictEqual({term: undefined, source: 'openid', resource_type: undefined});
+        });
+    });
+
+    describe('resource type', () => {
+        it('sends the resource type with the term and source', async () => {
+            setup({term: 'clear', source: 'ldap', resourceType: 'channel'});
+            await advance(0);
+
+            expect(lastRequest()).toStrictEqual({term: 'clear', source: 'ldap', resource_type: 'channel'});
+        });
+
+        it('sends no resource type for All', async () => {
+            setup();
+            await advance(0);
+
+            expect(lastRequest().resource_type).toBeUndefined();
+        });
+
+        it('requests a new resource type right away, without waiting for the debounce', async () => {
+            const {update} = setup({term: 'clear'});
+            await advance(0);
+            searchGlobalAttributes.mockClear();
+
+            update({resourceType: 'post'});
+            await advance(0);
+
+            expect(searchGlobalAttributes).toHaveBeenCalledTimes(1);
+            expect(lastRequest()).toStrictEqual({term: 'clear', source: undefined, resource_type: 'post'});
+
+            update({resourceType: undefined});
+            await advance(0);
+
+            expect(searchGlobalAttributes).toHaveBeenCalledTimes(2);
+            expect(lastRequest().resource_type).toBeUndefined();
+        });
+
+        it('ignores a slower response for the previous resource type', async () => {
+            const users = deferred<GlobalAttributeListing>();
+            const channels = deferred<GlobalAttributeListing>();
+            searchGlobalAttributes.
+                mockReturnValueOnce(users.promise).
+                mockReturnValueOnce(channels.promise);
+
+            const {result, update} = setup({resourceType: 'user'});
+            await advance(0);
+            update({resourceType: 'channel'});
+            await advance(0);
+
+            await act(async () => {
+                channels.resolve(listing(['channel_row']));
+                users.resolve(listing(['user_row']));
+            });
+
+            expect(result.current.listing.rows.map((row) => row.field.id)).toEqual(['channel_row']);
+        });
+
+        it('refetches with the current resource type', async () => {
+            const {result} = setup({resourceType: 'channel'});
+            await advance(0);
+            searchGlobalAttributes.mockClear();
+
+            await act(async () => {
+                await result.current.listing.refetch();
+            });
+
+            expect(lastRequest()).toStrictEqual({term: undefined, source: undefined, resource_type: 'channel'});
         });
     });
 

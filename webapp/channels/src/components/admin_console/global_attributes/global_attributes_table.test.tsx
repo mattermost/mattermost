@@ -420,6 +420,44 @@ describe('GlobalAttributesTable', () => {
             expect(searchGlobalAttributes).toHaveBeenLastCalledWith({term: 'dep', source: 'saml'});
         });
 
+        it('shows the filtered no-match state, not the empty state, when only a resource type is set', async () => {
+            searchGlobalAttributes.mockResolvedValue(makeListing([]));
+            const onClearFilters = jest.fn();
+
+            renderWithContext(
+                <GlobalAttributesTable
+                    resourceType='channel'
+                    onClearFilters={onClearFilters}
+                />,
+                getBaseState(),
+            );
+            await advance(0);
+
+            expect(await screen.findByTestId('global-attributes-empty-search')).toHaveTextContent('No attributes match your search or filters.');
+            expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+
+            await act(async () => {
+                screen.getByRole('button', {name: 'Clear filters'}).click();
+            });
+            expect(onClearFilters).toHaveBeenCalledTimes(1);
+        });
+
+        it('sends the resource type with the term and source', async () => {
+            searchGlobalAttributes.mockResolvedValue(makeListing([]));
+
+            renderWithContext(
+                <GlobalAttributesTable
+                    searchQuery='dep'
+                    source='saml'
+                    resourceType='post'
+                />,
+                getBaseState(),
+            );
+            await advance(300);
+
+            expect(searchGlobalAttributes).toHaveBeenLastCalledWith({term: 'dep', source: 'saml', resource_type: 'post'});
+        });
+
         it('keeps showing the rows it has while the next search is in flight', async () => {
             mockListing([makeField({id: 'f1', name: 'clearance', attrs: {display_name: 'Clearance'}})]);
 

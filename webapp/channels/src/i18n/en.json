@@ -6987,6 +6987,22 @@
     "defaultMessage": "Remove {resources}?",
     "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Attribute Management before removing an attribute from resources. {resources} is a list of resource names."
   },
+  "admin.global_attributes.filter.resource_type": {
+    "defaultMessage": "Resource type",
+    "description": "Label of the Resource type filter beside the Source filter above the attributes table in System Console > System Attributes > Attribute Management. The filter narrows the table to attributes that apply to one kind of resource (users, channels or posts)."
+  },
+  "admin.global_attributes.filter.resource_type.all": {
+    "defaultMessage": "All",
+    "description": "Option of the Resource type filter in System Console > Attribute Management that shows attributes for every resource type. The default."
+  },
+  "admin.global_attributes.filter.resource_type.menuAriaLabel": {
+    "defaultMessage": "Resource type menu",
+    "description": "Screen-reader label of the open Resource type filter menu in System Console > Attribute Management."
+  },
+  "admin.global_attributes.filter.resource_type.menuButtonAriaLabel": {
+    "defaultMessage": "Filter attributes by resource type",
+    "description": "Screen-reader label of the Resource type filter control in System Console > Attribute Management, which opens a menu of resource types (users, channels, posts)."
+  },
   "admin.global_attributes.filter.source": {
     "defaultMessage": "Source",
     "description": "Label of the Source filter beside the search field above the attributes table in System Console > System Attributes > Attribute Management. The filter narrows the table to attributes from one source."
