@@ -28,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
@@ -574,6 +575,15 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	assert.Equal(t, "Test Remote", systemPost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
 }
 
+type handlerRecordingCluster struct {
+	testlib.FakeClusterInterface
+	handlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
+}
+
+func (c *handlerRecordingCluster) RegisterClusterMessageHandler(event model.ClusterEvent, h einterfaces.ClusterMessageHandler) {
+	c.handlers[event] = h
+}
+
 func TestSharedChannelSyncFromFollowerNode(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSharedChannels(t).InitBasic(t)
@@ -582,8 +592,9 @@ func TestSharedChannelSyncFromFollowerNode(t *testing.T) {
 	require.True(t, ok)
 	require.True(t, service.Active())
 
-	testCluster := &testlib.FakeClusterInterface{}
+	testCluster := &handlerRecordingCluster{handlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{}}
 	th.Server.Platform().SetCluster(testCluster)
+	th.Server.registerClusterHandlers()
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "cluster"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = true })
 	th.Server.InvokeClusterLeaderChangedListeners()
@@ -625,8 +636,11 @@ func TestSharedChannelSyncFromFollowerNode(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = false })
 	th.Server.InvokeClusterLeaderChangedListeners()
 	require.Eventually(t, service.Active, 5*time.Second, 10*time.Millisecond)
+	require.False(t, service.HasPendingTasksForTesting())
 
-	th.Server.clusterSharedChannelSyncTaskHandler(msgs[0])
+	handler := testCluster.handlers[model.ClusterEventSharedChannelSyncTask]
+	require.NotNil(t, handler, "the sync task cluster event must have a registered handler")
+	handler(msgs[0])
 	assert.True(t, service.HasPendingTasksForTesting(), "the leader must queue the forwarded task")
 }
 

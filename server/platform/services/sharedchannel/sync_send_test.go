@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -521,6 +522,10 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 		scStore.On("GetUsersForUser", "user-1").Return([]*model.SharedChannelUser{
 			{UserId: "user-1", RemoteId: "remote-1", ChannelId: channelID},
 		}, nil)
+		scStore.On("GetRemotes", 0, 999999, model.SharedChannelRemoteFilterOpts{RemoteId: "remote-1"}).Return([]*model.SharedChannelRemote{
+			{ChannelId: channelID, RemoteId: "remote-1"},
+			{ChannelId: "channel-2", RemoteId: "remote-1"},
+		}, nil)
 		mockStore := &mocks.Store{}
 		mockStore.On("SharedChannel").Return(scStore)
 
@@ -538,38 +543,50 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 		return scs
 	}
 
-	newCluster := func() (*einterfacesmocks.ClusterInterface, *[]*model.ClusterMessage) {
+	newCluster := func() (*einterfacesmocks.ClusterInterface, func() []*model.ClusterMessage) {
+		var mu sync.Mutex
 		sent := []*model.ClusterMessage{}
 		cluster := &einterfacesmocks.ClusterInterface{}
 		cluster.On("SendClusterMessage", mock.Anything).Run(func(args mock.Arguments) {
+			mu.Lock()
+			defer mu.Unlock()
 			sent = append(sent, args.Get(0).(*model.ClusterMessage))
 		})
-		return cluster, &sent
+		return cluster, func() []*model.ClusterMessage {
+			mu.Lock()
+			defer mu.Unlock()
+			return slices.Clone(sent)
+		}
 	}
 
-	forwardFromFollower := func(t *testing.T, notify func(follower *Service)) *model.ClusterMessage {
+	forwardFromFollower := func(t *testing.T, wantMsgs int, notify func(follower *Service)) []*model.ClusterMessage {
 		t.Helper()
 		cluster, sent := newCluster()
 		follower := newNode(t, false, false, cluster)
 
 		notify(follower)
 
+		require.Eventually(t, func() bool { return len(sent()) >= wantMsgs }, time.Second, 5*time.Millisecond)
+		msgs := sent()
+		require.Len(t, msgs, wantMsgs)
+		for _, msg := range msgs {
+			assert.Equal(t, model.ClusterEventSharedChannelSyncTask, msg.Event)
+			assert.Equal(t, model.ClusterSendReliable, msg.SendType)
+		}
+		follower.mux.RLock()
+		defer follower.mux.RUnlock()
 		assert.Empty(t, follower.tasks, "a follower never processes its queue, so it must not queue tasks")
-		require.Len(t, *sent, 1)
-		msg := (*sent)[0]
-		assert.Equal(t, model.ClusterEventSharedChannelSyncTask, msg.Event)
-		assert.Equal(t, model.ClusterSendReliable, msg.SendType)
-		return msg
+		return msgs
 	}
 
 	t.Run("membership change on a follower is queued by the leader with its origin remote", func(t *testing.T) {
-		msg := forwardFromFollower(t, func(follower *Service) {
+		msgs := forwardFromFollower(t, 1, func(follower *Service) {
 			follower.NotifyMembershipChanged(channelID, "remote-A")
 		})
 
 		leader := newNode(t, true, true, nil)
 		before := time.Now()
-		leader.HandleClusterSyncTask(msg)
+		leader.HandleClusterSyncTask(msgs[0])
 
 		require.Len(t, leader.tasks, 1)
 		task := leader.tasks[newSyncTask(channelID, "", "", nil, nil).id]
@@ -581,12 +598,12 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 
 	t.Run("status change on a follower reaches the leader with the status", func(t *testing.T) {
 		status := &model.Status{UserId: "user-1", Status: model.StatusDnd, Manual: true}
-		msg := forwardFromFollower(t, func(follower *Service) {
+		msgs := forwardFromFollower(t, 1, func(follower *Service) {
 			follower.NotifyUserStatusChanged(status)
 		})
 
 		leader := newNode(t, true, true, nil)
-		leader.HandleClusterSyncTask(msg)
+		leader.HandleClusterSyncTask(msgs[0])
 
 		require.Len(t, leader.tasks, 1)
 		task := leader.tasks[newSyncTask(channelID, "user-1", "remote-1", nil, nil).id]
@@ -596,14 +613,50 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 		assert.Equal(t, status, task.existingMsg.Statuses[0])
 	})
 
+	t.Run("forced sync for a remote on a follower queues every shared channel on the leader", func(t *testing.T) {
+		msgs := forwardFromFollower(t, 2, func(follower *Service) {
+			follower.ForceSyncForRemote(&model.RemoteCluster{RemoteId: "remote-1"})
+		})
+
+		leader := newNode(t, true, true, nil)
+		for _, msg := range msgs {
+			leader.HandleClusterSyncTask(msg)
+		}
+
+		require.Len(t, leader.tasks, 2)
+		for _, id := range []string{channelID, "channel-2"} {
+			task, ok := leader.tasks[newSyncTask(id, "", "remote-1", nil, nil).id]
+			require.True(t, ok, "missing task for %s", id)
+			assert.Equal(t, id, task.channelID)
+			assert.Equal(t, "remote-1", task.remoteID)
+		}
+	})
+
+	t.Run("global user sync scheduled on a follower runs on the leader", func(t *testing.T) {
+		rc := &model.RemoteCluster{RemoteId: "remote-1"}
+		msgs := forwardFromFollower(t, 1, func(follower *Service) {
+			follower.server.Config().ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen = new(true)
+			follower.scheduleGlobalUserSync(rc)
+		})
+
+		leader := newNode(t, true, true, nil)
+		leader.HandleClusterSyncTask(msgs[0])
+
+		require.Len(t, leader.tasks, 1)
+		task, ok := leader.tasks[newSyncTask("", "", rc.RemoteId, nil, nil).id]
+		require.True(t, ok)
+		assert.Empty(t, task.channelID, "an empty channel ID marks a global user sync task")
+		assert.Equal(t, rc.RemoteId, task.remoteID)
+	})
+
 	t.Run("forwarded task merges with a task the leader already queued", func(t *testing.T) {
-		msg := forwardFromFollower(t, func(follower *Service) {
+		msgs := forwardFromFollower(t, 1, func(follower *Service) {
 			follower.NotifyMembershipChanged(channelID, "remote-A")
 		})
 
 		leader := newNode(t, true, true, nil)
 		leader.NotifyMembershipChanged(channelID, "")
-		leader.HandleClusterSyncTask(msg)
+		leader.HandleClusterSyncTask(msgs[0])
 
 		require.Len(t, leader.tasks, 1)
 		task := leader.tasks[newSyncTask(channelID, "", "", nil, nil).id]
@@ -611,12 +664,12 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 	})
 
 	t.Run("inactive node ignores forwarded tasks", func(t *testing.T) {
-		msg := forwardFromFollower(t, func(follower *Service) {
+		msgs := forwardFromFollower(t, 1, func(follower *Service) {
 			follower.NotifyChannelChanged(channelID)
 		})
 
 		otherFollower := newNode(t, false, false, nil)
-		otherFollower.HandleClusterSyncTask(msg)
+		otherFollower.HandleClusterSyncTask(msgs[0])
 
 		assert.Empty(t, otherFollower.tasks)
 	})
@@ -628,7 +681,7 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 		leader.NotifyChannelChanged(channelID)
 
 		assert.Len(t, leader.tasks, 1)
-		assert.Empty(t, *sent)
+		assert.Empty(t, sent())
 	})
 
 	t.Run("newly elected leader queues locally before its sync loop resumes", func(t *testing.T) {
@@ -638,7 +691,7 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 		node.NotifyChannelChanged(channelID)
 
 		assert.Len(t, node.tasks, 1, "resume() drains this queue")
-		assert.Empty(t, *sent)
+		assert.Empty(t, sent())
 	})
 
 	t.Run("inactive node without a cluster queues locally", func(t *testing.T) {
