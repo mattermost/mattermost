@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {GlobalAttributeListing, GlobalAttributeListingRow} from '@mattermost/types/global_attributes';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
@@ -19,11 +20,12 @@ jest.mock('utils/browser_history', () => ({
 }));
 
 describe('components/admin_console/global_attributes/GlobalAttributes', () => {
-    const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields');
+    const searchGlobalAttributes = jest.spyOn(Client4, 'searchGlobalAttributes');
+    const emptyListing: GlobalAttributeListing = {rows: []};
 
     beforeEach(() => {
-        getPropertyFields.mockReset();
-        getPropertyFields.mockResolvedValue([]);
+        searchGlobalAttributes.mockReset();
+        searchGlobalAttributes.mockResolvedValue(emptyListing);
         mockHistoryPush.mockReset();
     });
 
@@ -91,7 +93,22 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
                 attrs: {display_name: 'Department'},
             },
         ] as PropertyField[];
-        getPropertyFields.mockResolvedValueOnce(fields).mockResolvedValue([]);
+        const rowFor = (field: PropertyField): GlobalAttributeListingRow => ({
+            field,
+            applies_to: [],
+            owners: [],
+            source_kind: 'managed',
+            sync_sources: [],
+            is_classification: false,
+        });
+
+        // The server does the matching, so the mock answers by the term it is sent.
+        searchGlobalAttributes.mockImplementation(async ({term}) => {
+            const rows = fields.
+                filter((field) => !term || String(field.attrs?.display_name).toLowerCase().includes(term)).
+                map(rowFor);
+            return {rows};
+        });
 
         renderWithContext(<GlobalAttributes/>);
 
@@ -105,7 +122,12 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         const search = screen.getByTestId('global-attributes-search');
         await userEvent.type(search, 'clear');
 
+        await waitFor(() => {
+            expect(searchGlobalAttributes).toHaveBeenLastCalledWith(expect.objectContaining({term: 'clear'}));
+        });
+        await waitFor(() => {
+            expect(screen.queryByText('Department')).not.toBeInTheDocument();
+        });
         expect(screen.getByText('Clearance')).toBeInTheDocument();
-        expect(screen.queryByText('Department')).not.toBeInTheDocument();
     });
 });
