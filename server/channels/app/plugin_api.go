@@ -127,9 +127,9 @@ func (api *PluginAPI) GetPluginConfig() map[string]any {
 }
 
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]any) *model.AppError {
-	cfg := api.app.Config().Clone()
-	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
-	_, _, err := api.app.SaveConfig(cfg, true)
+	_, _, err := api.app.PatchConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
+	})
 	return err
 }
 

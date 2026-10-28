@@ -45,11 +45,7 @@ func (s *Server) syncPushNotificationServerWithLicense() {
 
 	entitled := license.HasMHPNS()
 
-	// Decide and mutate on the same snapshot so a concurrent config write between the
-	// decision and the save can't be stomped with a stale value. The residual race between
-	// Clone and Set is inherent to every SaveConfig caller.
-	cfg := s.platform.Config().Clone()
-	current := *cfg.EmailSettings.PushNotificationServer
+	current := *s.platform.Config().EmailSettings.PushNotificationServer
 
 	var target string
 	switch {
@@ -61,10 +57,20 @@ func (s *Server) syncPushNotificationServerWithLicense() {
 		return
 	}
 
-	cfg.EmailSettings.PushNotificationServer = model.NewPointer(target)
-	if _, _, appErr := s.platform.SaveConfig(cfg, true); appErr != nil {
+	// Only switch if the setting still holds the value the decision was based on, so a
+	// concurrent admin change isn't overwritten with a stale target.
+	switched := false
+	if _, _, appErr := s.platform.PatchConfig(func(cfg *model.Config) {
+		if *cfg.EmailSettings.PushNotificationServer == current {
+			cfg.EmailSettings.PushNotificationServer = model.NewPointer(target)
+			switched = true
+		}
+	}); appErr != nil {
 		mlog.Warn("Failed to switch push notification server for license entitlement",
 			mlog.String("old", current), mlog.String("new", target), mlog.Err(appErr))
+		return
+	}
+	if !switched {
 		return
 	}
 	mlog.Info("Automatically switched push notification server based on license entitlement",

@@ -70,7 +70,7 @@ func (ps *PlatformService) RemoveConfigListener(id string) {
 }
 
 // UpdateConfig persists a change to the configuration without notifying other cluster nodes.
-// Use SaveConfig with sendConfigChangeClusterMessage set for changes that must apply cluster-wide.
+// Use PatchConfig for changes that must apply cluster-wide.
 func (ps *PlatformService) UpdateConfig(f func(*model.Config)) {
 	if ps.configStore.IsReadOnly() {
 		return
@@ -137,6 +137,16 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 	}
 
 	return oldCfg, newCfg, nil
+}
+
+// PatchConfig applies f to a copy of the active configuration, validates the result, saves it and notifies cluster peers.
+func (ps *PlatformService) PatchConfig(f func(*model.Config)) (*model.Config, *model.Config, *model.AppError) {
+	cfg := ps.Config().Clone()
+	f(cfg)
+	if appErr := cfg.IsValid(); appErr != nil {
+		return nil, nil, appErr
+	}
+	return ps.SaveConfig(cfg, true)
 }
 
 func (ps *PlatformService) ReloadConfig() error {

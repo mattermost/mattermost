@@ -1045,17 +1045,17 @@ func (a *App) SaveContentFlaggingConfig(config model.ContentFlaggingSettingsRequ
 	// The reviewer settings are already stored, so the cache is stale even if saving the config fails.
 	defer a.clearContentFlaggingConfigCache()
 
-	cfg := a.Config().Clone()
-	cfg.ContentFlaggingSettings = model.ContentFlaggingSettings{}
-	cfg.ContentFlaggingSettings.EnableContentFlagging = config.EnableContentFlagging
-	cfg.ContentFlaggingSettings.NotificationSettings = config.NotificationSettings
-	cfg.ContentFlaggingSettings.AdditionalSettings = config.AdditionalSettings
-	cfg.ContentFlaggingSettings.ReviewerSettings = &model.ReviewerSettings{
-		CommonReviewers:         config.ReviewerSettings.CommonReviewers,
-		SystemAdminsAsReviewers: config.ReviewerSettings.SystemAdminsAsReviewers,
-		TeamAdminsAsReviewers:   config.ReviewerSettings.TeamAdminsAsReviewers,
-	}
-	if _, _, appErr := a.SaveConfig(cfg, true); appErr != nil {
+	if _, _, appErr := a.PatchConfig(func(cfg *model.Config) {
+		cfg.ContentFlaggingSettings = model.ContentFlaggingSettings{}
+		cfg.ContentFlaggingSettings.EnableContentFlagging = config.EnableContentFlagging
+		cfg.ContentFlaggingSettings.NotificationSettings = config.NotificationSettings
+		cfg.ContentFlaggingSettings.AdditionalSettings = config.AdditionalSettings
+		cfg.ContentFlaggingSettings.ReviewerSettings = &model.ReviewerSettings{
+			CommonReviewers:         config.ReviewerSettings.CommonReviewers,
+			SystemAdminsAsReviewers: config.ReviewerSettings.SystemAdminsAsReviewers,
+			TeamAdminsAsReviewers:   config.ReviewerSettings.TeamAdminsAsReviewers,
+		}
+	}); appErr != nil {
 		return appErr
 	}
 

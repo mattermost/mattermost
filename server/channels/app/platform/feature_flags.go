@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/featureflag"
 )
@@ -37,16 +38,16 @@ func (ps *PlatformService) SetupFeatureFlags() {
 }
 
 func (ps *PlatformService) updateFeatureFlagValuesFromManagement() {
-	newCfg := ps.configStore.GetNoEnv().Clone()
-	oldFlags := *newCfg.FeatureFlags
+	oldFlags := *ps.configStore.GetNoEnv().FeatureFlags
 	newFlags := ps.featureFlagSynchronizer.UpdateFeatureFlagValues(oldFlags)
 	oldFlagsBytes, _ := json.Marshal(oldFlags)
 	newFlagsBytes, _ := json.Marshal(newFlags)
 	ps.logger.Debug("Checking feature flags from management service", mlog.String("old_flags", oldFlagsBytes), mlog.String("new_flags", newFlagsBytes))
 	if oldFlags != newFlags {
 		ps.logger.Debug("Feature flag change detected, updating config")
-		*newCfg.FeatureFlags = newFlags
-		_, _, appErr := ps.SaveConfig(newCfg, true)
+		_, _, appErr := ps.PatchConfig(func(cfg *model.Config) {
+			*cfg.FeatureFlags = newFlags
+		})
 		if appErr != nil {
 			ps.logger.Error("Failed to save config with updated feature flags", mlog.Err(appErr))
 		}

@@ -62,14 +62,9 @@ func (a *App) AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PublicCertificateFile = SamlPublicCertificateName
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.SamlSettings.PublicCertificateFile = SamlPublicCertificateName
+	}); err != nil {
 		return err
 	}
 
@@ -81,14 +76,9 @@ func (a *App) AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.A
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PrivateKeyFile = SamlPrivateKeyName
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.SamlSettings.PrivateKeyFile = SamlPrivateKeyName
+	}); err != nil {
 		return err
 	}
 
@@ -100,14 +90,9 @@ func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppEr
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
+	}); err != nil {
 		return err
 	}
 
@@ -127,15 +112,10 @@ func (a *App) RemoveSamlPublicCertificate() *model.AppError {
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PublicCertificateFile = ""
-	*cfg.SamlSettings.Encrypt = false
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.SamlSettings.PublicCertificateFile = ""
+		*cfg.SamlSettings.Encrypt = false
+	}); err != nil {
 		return err
 	}
 
@@ -147,15 +127,10 @@ func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PrivateKeyFile = ""
-	*cfg.SamlSettings.Encrypt = false
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.SamlSettings.PrivateKeyFile = ""
+		*cfg.SamlSettings.Encrypt = false
+	}); err != nil {
 		return err
 	}
 
@@ -167,15 +142,10 @@ func (a *App) RemoveSamlIdpCertificate() *model.AppError {
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.IdpCertificateFile = ""
-	*cfg.SamlSettings.Enable = false
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.SamlSettings.IdpCertificateFile = ""
+		*cfg.SamlSettings.Enable = false
+	}); err != nil {
 		return err
 	}
 
@@ -285,14 +255,9 @@ func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
 		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_save_idp_certificate_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
+	}); err != nil {
 		return err
 	}
 

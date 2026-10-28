@@ -465,12 +465,10 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.addon_not_licensed.app_error", map[string]any{"AddOn": addOn}, "", http.StatusForbidden)
 	}
 
-	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
-		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
-	})
-
 	// This call will implicitly invoke SyncPluginsActiveState which will activate enabled plugins.
-	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {
+	if _, _, err := ch.cfgSvc.PatchConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
+	}); err != nil {
 		if err.Id == "ent.cluster.save_config.error" {
 			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -516,15 +514,13 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 		return model.NewAppError("DisablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
-	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
-		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
-	})
-	ch.unregisterPluginCommands(id)
-
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
-	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {
+	if _, _, err := ch.cfgSvc.PatchConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
+	}); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	ch.unregisterPluginCommands(id)
 
 	return nil
 }

@@ -110,6 +110,44 @@ func TestConfigSave(t *testing.T) {
 	})
 }
 
+func TestPatchConfig(t *testing.T) {
+	mainHelper.Parallel(t)
+	cm := &mocks.ClusterInterface{}
+	cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
+	cm.On("Shutdown").Return()
+	cm.On("ConfigChanged", mock.Anything, mock.Anything, true).Return(nil)
+	th := SetupWithCluster(t, cm)
+
+	t.Run("applies the patch to a copy and notifies the cluster", func(t *testing.T) {
+		active := th.Service.Config()
+		originalSiteURL := *active.ServiceSettings.SiteURL
+
+		oldCfg, newCfg, appErr := th.Service.PatchConfig(func(cfg *model.Config) {
+			assert.NotSame(t, active, cfg)
+			cfg.ServiceSettings.SiteURL = new("http://patched.me")
+		})
+		require.Nil(t, appErr)
+
+		assert.Equal(t, originalSiteURL, *active.ServiceSettings.SiteURL)
+		assert.Equal(t, originalSiteURL, *oldCfg.ServiceSettings.SiteURL)
+		assert.Equal(t, "http://patched.me", *newCfg.ServiceSettings.SiteURL)
+		assert.Equal(t, "http://patched.me", *th.Service.Config().ServiceSettings.SiteURL)
+		cm.AssertCalled(t, "ConfigChanged", mock.Anything, mock.Anything, true)
+	})
+
+	t.Run("rejects an invalid patch", func(t *testing.T) {
+		before := th.Service.Config()
+
+		_, _, appErr := th.Service.PatchConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("not a url")
+		})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.config.is_valid.site_url.app_error", appErr.Id)
+
+		assert.Same(t, before, th.Service.Config())
+	})
+}
+
 func TestIsFirstUserAccount(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)

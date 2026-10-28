@@ -103,9 +103,9 @@ func (s *Server) doAdvancedPermissionsMigration(rctx request.CTX) error {
 		return multiErr
 	}
 
-	config := s.platform.Config()
-	*config.ServiceSettings.PostEditTimeLimit = -1
-	if _, _, err := s.platform.SaveConfig(config, true); err != nil {
+	if _, _, err := s.platform.PatchConfig(func(config *model.Config) {
+		*config.ServiceSettings.PostEditTimeLimit = -1
+	}); err != nil {
 		return fmt.Errorf("failed to update config in Advanced Permissions Phase 1 Migration: %w", err)
 	}
 

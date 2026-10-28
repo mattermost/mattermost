@@ -179,14 +179,6 @@ func (a *App) AddAuditLogCertificate(rctx request.CTX, fileData *multipart.FileH
 		return model.NewAppError("AddAuditLogCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	cfg := a.Config().Clone()
-
-	*cfg.ExperimentalAuditSettings.Certificate = AuditCertificateFilename
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
 	if a.License().IsCloud() {
 		err = a.Cloud().CreateAuditLoggingCert(rctx.Session().UserId, fileData)
 		if err != nil {
@@ -194,7 +186,9 @@ func (a *App) AddAuditLogCertificate(rctx request.CTX, fileData *multipart.FileH
 		}
 	}
 
-	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalAuditSettings.Certificate = AuditCertificateFilename
+	}); err != nil {
 		return err
 	}
 
@@ -207,14 +201,6 @@ func (a *App) RemoveAuditLogCertificate(rctx request.CTX) *model.AppError {
 		return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	cfg := a.Config().Clone()
-
-	*cfg.ExperimentalAuditSettings.Certificate = ""
-
-	if err := cfg.IsValid(); err != nil {
-		return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	if a.License().IsCloud() {
 		err = a.Cloud().RemoveAuditLoggingCert(rctx.Session().UserId)
 		if err != nil {
@@ -222,7 +208,9 @@ func (a *App) RemoveAuditLogCertificate(rctx request.CTX) *model.AppError {
 		}
 	}
 
-	if _, _, err := a.SaveConfig(cfg, true); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalAuditSettings.Certificate = ""
+	}); err != nil {
 		return err
 	}
 

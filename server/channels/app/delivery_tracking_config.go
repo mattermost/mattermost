@@ -42,10 +42,10 @@ func (a *App) SaveDeliveryTrackingConfig(rctx request.CTX, cfg *model.DeliveryTr
 		}
 	}
 
-	newCfg := a.Config().Clone()
-	newCfg.DeliveryTrackingSettings.Enable = cfg.Enable
-	newCfg.DeliveryTrackingSettings.EnableForAllChannels = cfg.EnableForAllChannels
-	if _, _, appErr := a.SaveConfig(newCfg, true); appErr != nil {
+	if _, _, appErr := a.PatchConfig(func(newCfg *model.Config) {
+		newCfg.DeliveryTrackingSettings.Enable = cfg.Enable
+		newCfg.DeliveryTrackingSettings.EnableForAllChannels = cfg.EnableForAllChannels
+	}); appErr != nil {
 		return appErr
 	}
 

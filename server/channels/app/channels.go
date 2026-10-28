@@ -33,6 +33,7 @@ type configService interface {
 	RemoveConfigListener(id string)
 	UpdateConfig(f func(*model.Config))
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
+	PatchConfig(f func(*model.Config)) (*model.Config, *model.Config, *model.AppError)
 }
 
 // Channels contains all channels related state.

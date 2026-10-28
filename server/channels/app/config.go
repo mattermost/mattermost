@@ -37,7 +37,7 @@ func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[strin
 }
 
 // UpdateConfig persists a change to the configuration without notifying other cluster nodes.
-// Use SaveConfig with sendConfigChangeClusterMessage set for changes that must apply cluster-wide.
+// Use PatchConfig for changes that must apply cluster-wide.
 func (a *App) UpdateConfig(f func(*model.Config)) {
 	a.Srv().platform.UpdateConfig(f)
 }
@@ -312,6 +312,11 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
+}
+
+// PatchConfig applies f to a copy of the active configuration, validates the result, saves it and notifies cluster peers.
+func (a *App) PatchConfig(f func(*model.Config)) (*model.Config, *model.Config, *model.AppError) {
+	return a.Srv().platform.PatchConfig(f)
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
