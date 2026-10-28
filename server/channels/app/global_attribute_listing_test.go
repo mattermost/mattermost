@@ -586,6 +586,27 @@ func TestSearchGlobalAttributeListingNameConflicts(t *testing.T) {
 	th := setupListingHelperAllFlags(t)
 	env := newListingEnv(t, th)
 
+	t.Run("a user row that is also an earlier row's conflict keeps its options", func(t *testing.T) {
+		options := []map[string]any{{"name": "secret"}, {"name": "top secret"}}
+		userField := env.create(model.PropertyFieldObjectTypeUser, env.name("Grade"), func(f *model.PropertyField) {
+			f.Type = model.PropertyFieldTypeSelect
+			f.Attrs = model.StringInterface{"options": options}
+		})
+		// Sorts before the user field by its display name.
+		template := env.template(env.name("grade"), withAttrs(model.StringInterface{"display_name": env.name("a grade")}))
+
+		listing := env.mustSearch()
+		require.Equal(t, template.ID, listing.Rows[0].Field.ID)
+
+		conflict := env.row(listing, template.Name).NameConflict
+		require.NotNil(t, conflict)
+		assert.Equal(t, userField.ID, conflict.Field.ID)
+		assert.Len(t, conflict.Field.Attrs["options"], len(options))
+
+		row := env.row(listing, userField.Name)
+		assert.Len(t, row.Field.Attrs["options"], len(options))
+	})
+
 	t.Run("a template and a standalone user field sharing a name ignoring case conflict, as a case-only match", func(t *testing.T) {
 		standalone := env.create(model.PropertyFieldObjectTypeUser, env.name("Clearance"))
 		template := env.template(env.name("clearance"))
