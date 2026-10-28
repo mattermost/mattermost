@@ -159,21 +159,20 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.5
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.6
 PLUGIN_PACKAGES += mattermost-plugin-github-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v5.0.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.1
-PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0
-PLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0
+PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-dataminr-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-dataminr-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
@@ -183,7 +182,7 @@ PLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.12.1%2Bf370c05-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0%2Bc234d17-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0%2B05efecf-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0%2B23ece5d-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -307,7 +306,7 @@ else
 	docker compose down -v
 	docker compose rm -v
 
-	docker volume rm mattermost-server_postgres-14-data || true
+	docker volume rm mattermost-server_postgres-15-data || true
 endif
 
 .PHONY: plugin-checker
@@ -341,7 +340,7 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 
 .PHONY: install-golangci-lint
 install-golangci-lint:
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 
 .PHONY: golangci-lint
 golangci-lint: setup-go-work install-golangci-lint ## Run golangci-lint on codebase
@@ -360,6 +359,14 @@ i18n-extract: ## Extract strings for translation from the source code
 i18n-verify: ## Verify the non-English translation files against en.json
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n verify --warn-missing-ids
+
+.PHONY: i18n-verify-all
+i18n-verify-all: i18n-verify ## Run every translation check: both surfaces' catalogs, the glossary and the translation pipeline
+	cd ../tools/mmgotool && $(GO) test ./commands/ -run TestServerPluralTableMatchesGoI18n
+	@test -d $(BUILD_WEBAPP_DIR)/node_modules || { echo "$(BUILD_WEBAPP_DIR)/node_modules is missing; run make -C $(BUILD_WEBAPP_DIR) node_modules"; exit 1; }
+	cd $(BUILD_WEBAPP_DIR)/channels && npm run i18n-verify-translations -- --warn-missing-keys
+	cd .. && node --test i18n/scripts/*.test.mjs
+	cd .. && node i18n/scripts/check_glossary.mjs
 
 .PHONY: i18n-check
 i18n-check: ## Exit on empty translation strings and translation source strings
@@ -442,9 +449,15 @@ pluginapi: setup-go-work ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
 .PHONY: default-roles-permissions
-default-roles-permissions: setup-go-work start-docker ## Generates default_roles_permissions.js by snapshotting a live database.
+default-roles-permissions: setup-go-work start-docker ## Generates the Cypress and Playwright default_roles_permissions files from a live database.
 	$(GO) run $(GOFLAGS) ./scripts/default_permissions_generator \
-		-out ../e2e-tests/cypress/tests/support/api/default_roles_permissions.js
+		-out ../e2e-tests/cypress/tests/support/api/default_roles_permissions.js \
+		-out ../e2e-tests/playwright/lib/src/server/default_roles_permissions.ts
+
+.PHONY: default-feature-flags
+default-feature-flags: setup-go-work ## Generates the Playwright default_feature_flags file from the model defaults.
+	$(GO) run $(GOFLAGS) ./scripts/default_feature_flags_generator \
+		-out ../e2e-tests/playwright/lib/src/server/default_feature_flags.ts
 
 .PHONY: mocks
 mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
@@ -453,7 +466,7 @@ mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks sea
 layers: store-layers pluginapi
 
 .PHONY: generated
-generated: mocks layers gen-serialized migrations-extract build-templates mmctl-docs modules-tidy default-roles-permissions ## Regenerate every committed generated asset checked by the check-generated CI job.
+generated: mocks layers gen-serialized migrations-extract build-templates mmctl-docs modules-tidy default-roles-permissions default-feature-flags ## Regenerate every committed generated asset checked by the check-generated CI job.
 
 .PHONY: check-prereqs-enterprise
 check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.

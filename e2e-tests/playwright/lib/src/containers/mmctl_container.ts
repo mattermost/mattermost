@@ -7,7 +7,7 @@ import {promisify} from 'node:util';
 import {GenericContainer} from 'testcontainers';
 import type {WaitStrategy} from 'testcontainers';
 
-import {MATTERMOST_ALIAS, MATTERMOST_PORT, TESTCONTAINERS_LABELS} from './constants';
+import {TESTCONTAINERS_LABELS} from './constants';
 
 import {testConfig} from '@/test_config';
 
@@ -33,7 +33,7 @@ function buildCredentialsFileContent(username: string, authToken: string): strin
             username,
             authToken,
             authMethod: 'T',
-            instanceUrl: `http://${MATTERMOST_ALIAS}:${MATTERMOST_PORT}`,
+            instanceUrl: testConfig.internalBaseURL,
             active: true,
         },
     };

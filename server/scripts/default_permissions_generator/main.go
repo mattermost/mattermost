@@ -36,11 +36,15 @@ export const defaultRolesPermissions = {
 `))
 
 func main() {
-	outPath := flag.String("out", "", "output file path")
+	var outPaths []string
+	flag.Func("out", "output file path (repeatable)", func(v string) error {
+		outPaths = append(outPaths, v)
+		return nil
+	})
 	flag.Parse()
 
-	if *outPath == "" {
-		fmt.Fprintln(os.Stderr, "usage: generate_default_roles_permissions -out <path>")
+	if len(outPaths) == 0 {
+		fmt.Fprintln(os.Stderr, "usage: generate_default_roles_permissions -out <path> [-out <path> ...]")
 		os.Exit(1)
 	}
 
@@ -116,10 +120,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := os.WriteFile(*outPath, []byte(b.String()), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "error writing %s: %v\n", *outPath, err)
-		os.Exit(1)
-	}
+	for _, outPath := range outPaths {
+		if err := os.WriteFile(outPath, []byte(b.String()), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "error writing %s: %v\n", outPath, err)
+			os.Exit(1)
+		}
 
-	fmt.Printf("Generated %s\n", *outPath)
+		fmt.Printf("Generated %s\n", outPath)
+	}
 }

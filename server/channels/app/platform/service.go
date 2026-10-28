@@ -64,6 +64,7 @@ type PlatformService struct {
 	clientConfig         atomic.Value
 	clientConfigHash     atomic.Value
 	limitedClientConfig  atomic.Value
+	auditLoggingActive   atomic.Pointer[func() bool]
 
 	isFirstUserAccountLock sync.Mutex
 	isFirstUserAccount     atomic.Bool
@@ -143,6 +144,13 @@ type PlatformService struct {
 
 	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
 	logRootPathOverride string
+
+	// activeManagedDirs accumulates the managed directories of every config applied since startup.
+	activeManagedDirsMut sync.Mutex
+	activeManagedDirs    []string
+
+	// skipGlobalLogger suppresses this service's claim on the process-wide logging globals.
+	skipGlobalLogger bool
 
 	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
 }

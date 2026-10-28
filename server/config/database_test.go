@@ -1043,21 +1043,121 @@ func TestDatabaseRemoveFile(t *testing.T) {
 }
 
 func TestDatabaseStoreString(t *testing.T) {
-	if testing.Short() {
-		t.SkipNow()
-	}
-	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
-	defer tearDown()
+	// Only URL-form connection strings are partially redacted; anything else is
+	// reported without any part of the original. parseDSN is what
+	// NewDatabaseStore accepts, so pinning the two together is what lets
+	// String() rely on always having a description of its own DSN available.
+	t.Run("connection string formats", func(t *testing.T) {
+		testCases := []struct {
+			name string
+			dsn  string
+			// credential is the part of the connection string that must never
+			// be reported.
+			credential string
+			// described, when set, is the exact value reported for a connection
+			// string that can be partially redacted.
+			described string
+			// accepted records whether parseDSN takes the connection string,
+			// which is what NewDatabaseStore requires of it.
+			accepted bool
+		}{
+			{
+				name:       "postgres scheme",
+				dsn:        "postgres://mmuser:sentinel_pw_alpha@localhost:5432/mattermost?sslmode=disable",
+				credential: "sentinel_pw_alpha",
+				described:  "postgres://" + model.SanitizedPassword + ":" + model.SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable",
+				accepted:   true,
+			},
+			{
+				name:       "postgresql scheme",
+				dsn:        "postgresql://mmuser:sentinel_pw_bravo@localhost:5432/mattermost?sslmode=disable",
+				credential: "sentinel_pw_bravo",
+				described:  "postgresql://" + model.SanitizedPassword + ":" + model.SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable",
+				accepted:   true,
+			},
+			{
+				name:       "credentials in the query string",
+				dsn:        "postgres://localhost:5432/mattermost?user=mmuser&password=sentinel_pw_charlie",
+				credential: "sentinel_pw_charlie",
+				accepted:   true,
+			},
+			{
+				name:       "another scheme",
+				dsn:        "mysql://mmuser:sentinel_pw_delta@localhost/mattermost",
+				credential: "sentinel_pw_delta",
+			},
+			{
+				name:       "upper case scheme",
+				dsn:        "POSTGRES://mmuser:sentinel_pw_echo@localhost/mattermost",
+				credential: "sentinel_pw_echo",
+			},
+			{
+				name:       "keyword/value connection string",
+				dsn:        "user=mmuser password=sentinel_pw_foxtrot host=localhost dbname=mattermost",
+				credential: "sentinel_pw_foxtrot",
+			},
+			{
+				name:       "keyword/value connection string with an sslmode parameter",
+				dsn:        "user=mmuser password=sentinel_pw_bravo host=localhost dbname=mattermost sslmode=disable",
+				credential: "sentinel_pw_bravo",
+			},
+			{
+				name: "file path",
+				dsn:  "/opt/mattermost/config/config.json",
+			},
+		}
 
-	ds, err := newTestDatabaseStore(nil)
-	require.NoError(t, err)
-	require.NotNil(t, ds)
-	defer ds.Close()
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				_, _, parseErr := parseDSN(tc.dsn)
+				assert.Equal(t, tc.accepted, parseErr == nil)
+				assert.Equal(t, tc.accepted, IsDatabaseDSN(tc.dsn))
 
-	maskedDSN := ds.String()
-	assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
-	assert.False(t, strings.Contains(maskedDSN, "mmuser"))
-	assert.False(t, strings.Contains(maskedDSN, "mostest_password"))
+				// A store is only ever built from an accepted connection string,
+				// and always records the registered driver name.
+				ds := &DatabaseStore{
+					driverName:  model.DatabaseDriverPostgres,
+					originalDsn: tc.dsn,
+				}
+
+				maskedDSN := ds.String()
+				assert.NotContains(t, maskedDSN, "sentinel_pw_")
+				if tc.credential != "" {
+					assert.NotContains(t, maskedDSN, tc.credential)
+				}
+				if tc.described != "" {
+					assert.Equal(t, tc.described, maskedDSN)
+				}
+				if !tc.accepted {
+					return
+				}
+				assert.NotEmpty(t, maskedDSN, "an accepted DSN must still be described")
+
+				described, err := model.SanitizeDataSource(model.DatabaseDriverPostgres, tc.dsn)
+				require.NoError(t, err)
+				assert.NotContains(t, described, "sentinel_pw_")
+			})
+		}
+	})
+
+	t.Run("against a live store", func(t *testing.T) {
+		if testing.Short() {
+			t.SkipNow()
+		}
+
+		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
+		defer tearDown()
+
+		ds, err := newTestDatabaseStore(nil)
+		require.NoError(t, err)
+		require.NotNil(t, ds)
+		defer ds.Close()
+
+		maskedDSN := ds.String()
+		assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
+		assert.False(t, strings.Contains(maskedDSN, "mmuser"))
+		assert.False(t, strings.Contains(maskedDSN, "mostest_password"))
+	})
 }
 
 func TestCleanUp(t *testing.T) {

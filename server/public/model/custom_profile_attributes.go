@@ -30,6 +30,7 @@ const (
 	CustomProfileAttributesPropertyAttrsVisibility  = PropertyFieldAttrVisibility
 	CustomProfileAttributesPropertyAttrsLDAP        = PropertyFieldAttrLDAP
 	CustomProfileAttributesPropertyAttrsSAML        = PropertyFieldAttrSAML
+	CustomProfileAttributesPropertyAttrsOpenID      = PropertyFieldAttrOpenID
 	CustomProfileAttributesPropertyAttrsManaged     = PropertyFieldAttrManaged
 	CustomProfileAttributesPropertyAttrsDisplayName = PropertyFieldAttrDisplayName
 
@@ -173,6 +174,7 @@ type CPAAttrs struct {
 	ValueType      string                                                `json:"value_type"`
 	LDAP           string                                                `json:"ldap"`
 	SAML           string                                                `json:"saml"`
+	OpenID         string                                                `json:"openid,omitempty"`
 	Managed        string                                                `json:"managed"`
 	Protected      bool                                                  `json:"protected"`
 	SourcePluginID string                                                `json:"source_plugin_id"`
@@ -186,7 +188,7 @@ type CPAAttrs struct {
 }
 
 func (c *CPAField) IsSynced() bool {
-	return c.Attrs.LDAP != "" || c.Attrs.SAML != ""
+	return c.Attrs.LDAP != "" || c.Attrs.SAML != "" || c.Attrs.OpenID != ""
 }
 
 func (c *CPAField) IsAdminManaged() bool {
@@ -248,6 +250,12 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 		pf.Attrs[PropertyAttrsOwners] = c.Attrs.Owners
 	}
 
+	// Same for the OpenID Connect link: unlike ldap and saml, which predate it
+	// and are always written, it appears only on fields that are linked.
+	if c.Attrs.OpenID != "" {
+		pf.Attrs[CustomProfileAttributesPropertyAttrsOpenID] = c.Attrs.OpenID
+	}
+
 	// Only write the withheld-options markers when the list was actually
 	// withheld, so a field with an inlined list keeps its attrs blob
 	// byte-for-byte unchanged.
@@ -275,6 +283,7 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 		PropertyField: *pf,
 		Attrs:         attrs,
 	}
+	cpaField.Permissions = nil
 
 	return cpaField, nil
 }

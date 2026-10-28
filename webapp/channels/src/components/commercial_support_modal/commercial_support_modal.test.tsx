@@ -50,13 +50,39 @@ describe('components/CommercialSupportModal', () => {
         isCloud: false,
         currentUser: TestHelper.getUserMock(),
         packetContents: [
-            {id: 'basic.server.logs', label: 'Server Logs', selected: true, mandatory: true},
+            {id: 'basic.contents', label: 'Basic contents', selected: true, mandatory: true},
+            {id: 'basic.server.logs', label: 'Server Logs', selected: true, mandatory: false},
         ],
     };
 
     test('should match snapshot', () => {
         const {container} = renderWithContext(<CommercialSupportModal {...baseProps}/>);
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render packet content checkboxes with mandatory disabled', () => {
+        renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+        const basicContents = screen.getByRole('checkbox', {name: 'Basic contents'});
+        const serverLogs = screen.getByRole('checkbox', {name: 'Server Logs'});
+
+        expect(basicContents).toBeChecked();
+        expect(basicContents).toBeDisabled();
+        expect(serverLogs).toBeChecked();
+        expect(serverLogs).toBeEnabled();
+    });
+
+    test('should toggle optional packet content checkbox', async () => {
+        renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+        const user = userEvent.setup();
+        const serverLogs = screen.getByRole('checkbox', {name: 'Server Logs'});
+
+        expect(serverLogs).toBeChecked();
+        await user.click(serverLogs);
+        expect(serverLogs).not.toBeChecked();
+        await user.click(serverLogs);
+        expect(serverLogs).toBeChecked();
     });
 
     test('should show error message when download fails', async () => {

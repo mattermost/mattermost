@@ -100,7 +100,6 @@ var supportedLocales = []string{
 	"nb-NO",
 	"pt",
 	"fi",
-	"be",
 }
 
 var (
@@ -139,7 +138,7 @@ func TranslationsPreInitFromFileBytes(filename string, buf []byte) error {
 	t = tfuncWithFallback(defaultLocale)
 	tDefault = tfuncWithFallback(defaultLocale)
 
-	locale := strings.Split(filename, ".")[0]
+	locale, _, _ := strings.Cut(filename, ".")
 	if !isSupportedLocale(locale) {
 		return fmt.Errorf("locale not supported: %s", locale)
 	}
@@ -172,7 +171,7 @@ func initTranslationsWithDir(dir string) error {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()
 
-			locale := strings.Split(filename, ".")[0]
+			locale, _, _ := strings.Cut(filename, ".")
 			if !isSupportedLocale(locale) {
 				continue
 			}
@@ -199,7 +198,7 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 			continue
 		}
 
-		locale := strings.Split(f.Name(), ".")[0]
+		locale, _, _ := strings.Cut(f.Name(), ".")
 		if !isSupportedLocale(locale) {
 			continue
 		}
@@ -273,9 +272,9 @@ func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string
 	mut.Lock()
 	defer mut.Unlock()
 	// This is for checking against locales like pt_BR or zn_CN
-	headerLocaleFull := strings.Split(r.Header.Get("Accept-Language"), ",")[0]
+	headerLocaleFull, _, _ := strings.Cut(r.Header.Get("Accept-Language"), ",")
 	// This is for checking against locales like en, es
-	headerLocale := strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
+	headerLocale, _, _ := strings.Cut(headerLocaleFull, "-")
 	defaultLocale := defaultClientLocale
 	if locales[headerLocaleFull] != "" {
 		translations := tfuncWithFallback(headerLocaleFull)

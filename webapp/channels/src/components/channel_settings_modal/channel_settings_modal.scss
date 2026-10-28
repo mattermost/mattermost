@@ -132,24 +132,12 @@
         margin-top: 16px;
     }
 
-    // Discoverable Private Channels — same header/toggle layout as Channel Banner
-    // in the Configuration tab (no extra fields when toggled on).
+    // Discoverable Private Channels — Compass Switch settings-row (label + secondary).
     &__discoverableSection {
         display: flex;
         flex-direction: column;
         margin-top: 24px;
         gap: 8px;
-
-        .channel_banner_header {
-            display: flex;
-        }
-
-        .channel_banner_header__text {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            gap: 8px;
-        }
     }
 
     &__discoverableReadOnly {
@@ -229,7 +217,10 @@
         flex-direction: column;
         gap: 16px;
 
-        .btn-danger {
+        // A flex item in a column stretches by default, so the button needs
+        // this to keep its own width. Was `.btn-danger`, which the Compass
+        // button does not carry -- it takes `destructive` as a prop.
+        #channelSettingsArchiveChannelButton {
             align-self: flex-start;
         }
     }

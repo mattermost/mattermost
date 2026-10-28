@@ -1371,6 +1371,24 @@ func (_m *PostStore) PermanentDeleteByUser(rctx request.CTX, userID string) erro
 	return r0
 }
 
+// PermanentDeletePostRemindersByUser provides a mock function with given fields: userId
+func (_m *PostStore) PermanentDeletePostRemindersByUser(userId string) error {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeletePostRemindersByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RefreshPostStats provides a mock function with no fields
 func (_m *PostStore) RefreshPostStats() error {
 	ret := _m.Called()
