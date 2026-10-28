@@ -22,6 +22,7 @@ Write a release note if this PR includes any of:
 
 The release-note block must always be present. Use past tense. Write NONE if none of the above apply. Newlines are stripped.
 If a docs page documents the change, add it on its own line starting with "Docs:" so the changelog links it.
+Tick "Breaking change" if admins or integrators must act when upgrading: a removed or renamed setting or API, changed defaults or behavior they rely on, or a new minimum requirement.
 
 Example:
 ```release-note
@@ -36,3 +37,5 @@ NONE
 ```release-note
 
 ```
+
+- [ ] Breaking change
