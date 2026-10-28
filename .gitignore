@@ -170,6 +170,12 @@ docker-compose.override.yaml
 **/CLAUDE.local.md
 **/CLAUDE.md
 .claude
+# Except the ABAC rules that the enterprise repo's rulegen writes here.
+!/.claude/
+/.claude/*
+!/.claude/rules/
+/.claude/rules/*
+!/.claude/rules/abac/
 .cursorrules
 
 # Planning files (local only)
