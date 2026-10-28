@@ -35,7 +35,7 @@ describe('SourceFilter', () => {
         unmount();
 
         renderFilter('openid');
-        expect(shownValue()).toHaveValue('OpenID');
+        expect(shownValue()).toHaveValue('OpenID Connect');
     });
 
     test('is a single tab stop that names what it filters', () => {
@@ -53,7 +53,7 @@ describe('SourceFilter', () => {
         await userEvent.click(trigger());
 
         const labels = screen.getAllByRole('menuitemradio').map((item) => item.textContent);
-        expect(labels).toEqual(['All', 'Managed here', 'LDAP', 'SAML', 'OpenID', 'Plugin']);
+        expect(labels).toEqual(['All', 'Managed here', 'AD/LDAP', 'SAML', 'OpenID Connect', 'Plugin']);
     });
 
     test('marks only the current selection as checked', async () => {
@@ -67,9 +67,9 @@ describe('SourceFilter', () => {
 
     test.each([
         ['Managed here', 'managed'],
-        ['LDAP', 'ldap'],
+        ['AD/LDAP', 'ldap'],
         ['SAML', 'saml'],
-        ['OpenID', 'openid'],
+        ['OpenID Connect', 'openid'],
         ['Plugin', 'plugin'],
     ])('picking %s reports %s and closes the menu', async (label, expected) => {
         renderFilter();

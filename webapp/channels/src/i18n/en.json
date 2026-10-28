@@ -6996,7 +6996,7 @@
     "description": "Option of the Source filter in System Console > Attribute Management that shows attributes from every source. The default."
   },
   "admin.global_attributes.filter.source.ldap": {
-    "defaultMessage": "LDAP",
+    "defaultMessage": "AD/LDAP",
     "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes synced from LDAP. Product name; usually left untranslated."
   },
   "admin.global_attributes.filter.source.managed": {
@@ -7012,7 +7012,7 @@
     "description": "Screen-reader label of the Source filter control in System Console > Attribute Management, which opens a menu of attribute sources."
   },
   "admin.global_attributes.filter.source.openid": {
-    "defaultMessage": "OpenID",
+    "defaultMessage": "OpenID Connect",
     "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes synced from OpenID Connect. Product name; usually left untranslated."
   },
   "admin.global_attributes.filter.source.plugin": {
