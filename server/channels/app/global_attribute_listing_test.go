@@ -137,6 +137,10 @@ func withSource(source string) func(*model.GlobalAttributeListingSearch) {
 	return func(s *model.GlobalAttributeListingSearch) { s.Source = source }
 }
 
+func withResourceType(resourceType string) func(*model.GlobalAttributeListingSearch) {
+	return func(s *model.GlobalAttributeListingSearch) { s.ResourceType = resourceType }
+}
+
 func withTerm(term string) func(*model.GlobalAttributeListingSearch) {
 	return func(s *model.GlobalAttributeListingSearch) { s.Term = term }
 }
@@ -268,6 +272,29 @@ func TestSearchGlobalAttributeListingGating(t *testing.T) {
 								assert.Equal(t, row.Field.ID == classification.ID, row.IsClassification, row.Field.Name)
 							}
 
+							expectedUsers := []string{userField.Name, template.Name}
+							if classificationReachable {
+								expectedUsers = append(expectedUsers, classification.Name)
+							}
+							assert.ElementsMatch(t, expectedUsers, listingRowNames(env.mustSearch(withResourceType(model.PropertyFieldObjectTypeUser))))
+
+							// A resource type that is not allowed lists nothing, though
+							// both a field of it and a template linked to it exist.
+							for resourceType, tc := range map[string]struct {
+								allowed bool
+								field   string
+							}{
+								model.PropertyFieldObjectTypeChannel: {channelAllowed, channelField.Name},
+								model.PropertyFieldObjectTypePost:    {postAllowed, postField.Name},
+							} {
+								filtered := listingRowNames(env.mustSearch(withResourceType(resourceType)))
+								if tc.allowed {
+									assert.ElementsMatch(t, []string{tc.field, template.Name}, filtered, resourceType)
+								} else {
+									assert.Empty(t, filtered, resourceType)
+								}
+							}
+
 							conflict := env.row(listing, clash.Name).NameConflict
 							require.NotNil(t, conflict)
 							if classificationReachable {
@@ -357,6 +384,20 @@ func TestSearchGlobalAttributeListingAppliesTo(t *testing.T) {
 		child := env.linked(template, model.PropertyFieldObjectTypeUser, env.name("parent_child"))
 
 		assert.NotContains(t, listingRowNames(env.mustSearch(withTerm(child.Name))), child.Name)
+	})
+
+	t.Run("the resource type filter agrees with applies_to", func(t *testing.T) {
+		template := env.template(env.name("agree"))
+		env.linked(template, model.PropertyFieldObjectTypeChannel, env.name("agree_c"))
+		env.create(model.PropertyFieldObjectTypePost, env.name("agree_post"))
+
+		for _, resourceType := range []string{"user", "channel", "post"} {
+			listing := env.mustSearch(withResourceType(resourceType))
+			assert.NotEmpty(t, listing.Rows, resourceType)
+			for _, row := range listing.Rows {
+				assert.Contains(t, row.AppliesTo, resourceType, row.Field.Name)
+			}
+		}
 	})
 }
 

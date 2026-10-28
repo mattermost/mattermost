@@ -10,6 +10,7 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -217,15 +218,19 @@ func TestSearchGlobalAttributeListing(t *testing.T) {
 
 	t.Run("invalid input is a bad request", func(t *testing.T) {
 		for name, body := range map[string]string{
-			"malformed JSON":        `{"term":`,
-			"not JSON":              `term=abc`,
-			"empty body":            ``,
-			"wrong type for term":   `{"term":5}`,
-			"term too long":         `{"term":"` + strings.Repeat("a", model.PropertyFieldNameMaxRunes+1) + `"}`,
-			"unknown source":        `{"source":"bogus"}`,
-			"source kind":           `{"source":"external"}`,
-			"uppercase source":      `{"source":"LDAP"}`,
-			"wrong type for source": `{"source":["ldap"]}`,
+			"malformed JSON":          `{"term":`,
+			"not JSON":                `term=abc`,
+			"empty body":              ``,
+			"wrong type for term":     `{"term":5}`,
+			"term too long":           `{"term":"` + strings.Repeat("a", model.PropertyFieldNameMaxRunes+1) + `"}`,
+			"unknown source":          `{"source":"bogus"}`,
+			"source kind":             `{"source":"external"}`,
+			"uppercase source":        `{"source":"LDAP"}`,
+			"wrong type for source":   `{"source":["ldap"]}`,
+			"unknown resource type":   `{"resource_type":"team"}`,
+			"template resource":       `{"resource_type":"template"}`,
+			"uppercase resource":      `{"resource_type":"User"}`,
+			"wrong type for resource": `{"resource_type":["user"]}`,
 		} {
 			t.Run(name, func(t *testing.T) {
 				_, resp, err := searchGlobalAttributes(t, th.SystemAdminClient, body)
@@ -271,6 +276,26 @@ func TestSearchGlobalAttributeListing(t *testing.T) {
 		listing, _, err = searchGlobalAttributes(t, th.SystemAdminClient, byToken(model.GlobalAttributeListingSearch{Source: model.GlobalAttributeSourcePlugin}))
 		require.NoError(t, err)
 		assert.Empty(t, listing.Rows)
+	})
+
+	t.Run("term, source and resource type filter together", func(t *testing.T) {
+		listing, _, err := searchGlobalAttributes(t, th.SystemAdminClient, byToken(model.GlobalAttributeListingSearch{ResourceType: model.PropertyFieldObjectTypeUser}))
+		require.NoError(t, err)
+		require.Len(t, listing.Rows, 1)
+		assert.Equal(t, token+"_ldap_user", listing.Rows[0].Field.Name)
+
+		listing, _, err = searchGlobalAttributes(t, th.SystemAdminClient, byToken(model.GlobalAttributeListingSearch{Source: model.GlobalAttributeSourceLDAP, ResourceType: model.PropertyFieldObjectTypeUser}))
+		require.NoError(t, err)
+		require.Len(t, listing.Rows, 1)
+		assert.Equal(t, token+"_ldap_user", listing.Rows[0].Field.Name)
+
+		listing, _, err = searchGlobalAttributes(t, th.SystemAdminClient, byToken(model.GlobalAttributeListingSearch{Source: model.GlobalAttributeSourceManaged, ResourceType: model.PropertyFieldObjectTypeUser}))
+		require.NoError(t, err)
+		assert.Empty(t, listing.Rows, "the only user field is LDAP-synced")
+
+		listing, _, err = searchGlobalAttributes(t, th.SystemAdminClient, byToken(model.GlobalAttributeListingSearch{ResourceType: model.PropertyFieldObjectTypeChannel}))
+		require.NoError(t, err)
+		assert.Empty(t, listing.Rows, "the templates are linked to nothing")
 	})
 
 	t.Run("a term with LIKE wildcards matches them literally", func(t *testing.T) {
@@ -370,4 +395,61 @@ func TestSearchGlobalAttributeListingClassificationGating(t *testing.T) {
 	require.Len(t, listing.Rows, 1)
 	assert.Equal(t, classification.ID, listing.Rows[0].Field.ID)
 	assert.True(t, listing.Rows[0].IsClassification)
+}
+
+func TestSearchGlobalAttributeListingResourceTypeGating(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_CHANNELATTRIBUTES", "true")
+	t.Setenv("MM_FEATUREFLAGS_POSTATTRIBUTES", "false")
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.PostAttributes = false
+	}).InitBasic(t)
+	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
+
+	token := "ga" + strings.ToLower(model.NewId()[:10])
+	template := seedListingTemplates(t, th, token, "linked")[0]
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	for _, objectType := range []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypePost} {
+		for _, linked := range []bool{false, true} {
+			field := &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       token + "_" + objectType + "_" + strconv.FormatBool(linked),
+				Type:       model.PropertyFieldTypeText,
+				ObjectType: objectType,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+			}
+			if linked {
+				field.LinkedFieldID = &template.ID
+			}
+			_, err := th.App.Srv().Store().PropertyField().Create(field)
+			require.NoError(t, err)
+		}
+	}
+
+	search := func(tb testing.TB, resourceType string) []string {
+		tb.Helper()
+		listing, resp, err := searchGlobalAttributes(tb, th.SystemAdminClient, searchGlobalAttributesBody(tb, model.GlobalAttributeListingSearch{Term: token, ResourceType: resourceType}))
+		require.NoError(tb, err)
+		CheckOKStatus(tb, resp)
+		names := make([]string, 0, len(listing.Rows))
+		for _, row := range listing.Rows {
+			names = append(names, row.Field.Name)
+		}
+		return names
+	}
+
+	t.Run("a type the server does not offer lists nothing, though fields of it exist", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		assert.Empty(t, search(t, model.PropertyFieldObjectTypeChannel), "channel attributes need Enterprise Advanced")
+		assert.Empty(t, search(t, model.PropertyFieldObjectTypePost), "post attributes need the PostAttributes flag")
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		assert.Empty(t, search(t, model.PropertyFieldObjectTypePost), "post attributes need the PostAttributes flag")
+	})
+
+	t.Run("an offered type lists its unlinked fields and the templates linked to it", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		assert.Equal(t, []string{token + "_channel_false", template.Name}, search(t, model.PropertyFieldObjectTypeChannel))
+	})
 }
