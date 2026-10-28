@@ -292,12 +292,13 @@ func SanitizePropertyValue(raw json.RawMessage) json.RawMessage {
 //   - number: a JSON number that fits a float64. Strings, booleans, and numbers
 //     too large to be finite are refused. JSON cannot spell NaN or Infinity, so
 //     a value that would decode to either is refused as not being JSON at all.
+//   - checkbox: a JSON boolean. false means unchecked.
 //
-// An empty raw value or null is the empty value and is accepted. Other types
-// are not checked here and always pass: their shape is left to the hooks of the
-// groups that constrain it, as it always has been.
+// For both, an empty raw value or null is the empty value and is accepted.
+// Other types are not checked here and always pass: their shape is left to the
+// hooks of the groups that constrain it, as it always has been.
 func ValidatePropertyValueForFieldType(fieldType PropertyFieldType, raw json.RawMessage) error {
-	if fieldType != PropertyFieldTypeNumber {
+	if fieldType != PropertyFieldTypeNumber && fieldType != PropertyFieldTypeCheckbox {
 		return nil
 	}
 
@@ -324,6 +325,12 @@ func ValidatePropertyValueForFieldType(fieldType PropertyFieldType, raw json.Raw
 		f, err := strconv.ParseFloat(n.String(), 64)
 		if err != nil || math.IsInf(f, 0) || math.IsNaN(f) {
 			return errors.New("a number field's value must be a finite number")
+		}
+	case PropertyFieldTypeCheckbox:
+		switch string(trimmed) {
+		case "true", "false":
+		default:
+			return errors.New("a checkbox field's value must be true or false")
 		}
 	}
 

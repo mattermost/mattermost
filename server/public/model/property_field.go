@@ -46,6 +46,9 @@ const (
 	// PropertyFieldTypeNumber holds a JSON number. A null or absent value is
 	// empty. See ValidatePropertyValueForFieldType.
 	PropertyFieldTypeNumber PropertyFieldType = "number"
+	// PropertyFieldTypeCheckbox holds a JSON boolean. False, null, or an absent
+	// value is unchecked. See ValidatePropertyValueForFieldType.
+	PropertyFieldTypeCheckbox PropertyFieldType = "checkbox"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -129,6 +132,7 @@ var validPropertyFieldTypes = []PropertyFieldType{
 	PropertyFieldTypeRank,
 	PropertyFieldTypeGraph,
 	PropertyFieldTypeNumber,
+	PropertyFieldTypeCheckbox,
 }
 
 // IsValid reports whether t is a known field type.
@@ -139,10 +143,11 @@ func (t PropertyFieldType) IsValid() bool {
 // accessControlUnsupportedFieldTypes are the field types the access control
 // group does not accept. Access policies (CEL) and the attribute views they read
 // compare option names, user IDs, and strings; nothing in that pipeline knows
-// how to compare a number, so these types are refused there rather than half
-// supported.
+// how to compare a number or a boolean, so these types are refused there rather
+// than half supported.
 var accessControlUnsupportedFieldTypes = []PropertyFieldType{
 	PropertyFieldTypeNumber,
+	PropertyFieldTypeCheckbox,
 }
 
 // SupportsAccessControl reports whether a field of this type may live in the

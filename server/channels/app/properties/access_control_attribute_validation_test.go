@@ -3928,7 +3928,7 @@ func TestAccessControlAttributeValidationHookRefusesUnsupportedTypes(t *testing.
 	require.NoError(t, err)
 	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID))
 
-	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeNumber} {
+	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeNumber, model.PropertyFieldTypeCheckbox} {
 		t.Run("refuses creating a "+string(fieldType)+" field", func(t *testing.T) {
 			_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
 				GroupID:    group.ID,

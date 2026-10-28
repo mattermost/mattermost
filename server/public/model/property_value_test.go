@@ -421,6 +421,15 @@ func TestValidatePropertyValueForFieldType(t *testing.T) {
 		}
 	})
 
+	t.Run("checkbox", func(t *testing.T) {
+		for _, raw := range []string{``, `null`, `true`, `false`, ` true `} {
+			assert.NoError(t, ValidatePropertyValueForFieldType(PropertyFieldTypeCheckbox, json.RawMessage(raw)), "value %q", raw)
+		}
+		for _, raw := range []string{`"true"`, `""`, `1`, `0`, `[]`, `{}`, `[true]`, `truefalse`} {
+			assert.Error(t, ValidatePropertyValueForFieldType(PropertyFieldTypeCheckbox, json.RawMessage(raw)), "value %q", raw)
+		}
+	})
+
 	t.Run("other types are not checked", func(t *testing.T) {
 		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeText, PropertyFieldTypeSelect, PropertyFieldTypeDate, PropertyFieldType("bogus")} {
 			assert.NoError(t, ValidatePropertyValueForFieldType(fieldType, json.RawMessage(`12`)), "type %q", fieldType)

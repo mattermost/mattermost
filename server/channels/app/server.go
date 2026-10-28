@@ -429,7 +429,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.propertyService.AddHook(properties.NewSessionAttributesHook(s.propertyService, saGroup.ID))
 
 	// Value shape validation for the field types core checks in every group
-	// (number). A pre-hook, so its place in the chain does not matter
+	// (number, checkbox). A pre-hook, so its place in the chain does not matter
 	// beyond running before the store write.
 	s.propertyService.AddHook(properties.NewValueTypeValidationHook(s.propertyService))
 
