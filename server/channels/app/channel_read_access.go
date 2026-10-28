@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 	"slices"
-	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -200,7 +199,9 @@ func (a *App) attachChannelReadAccessHook(message *model.WebSocketEvent) {
 	}
 
 	eventType := message.EventType()
-	if _, exempt := channelReadAccessExemptEvents[eventType]; exempt || strings.HasPrefix(string(eventType), "custom_") {
+	// Plugin events (custom_*) are filtered too: a plugin that sends to the whole channel
+	// can carry post content, as Agents does while streaming a bot reply.
+	if _, exempt := channelReadAccessExemptEvents[eventType]; exempt {
 		return
 	}
 

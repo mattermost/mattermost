@@ -1604,7 +1604,16 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 		mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
 	})
 
-	t.Run("leaves exempt events and plugin events alone", func(t *testing.T) {
+	t.Run("hooks a plugin event sent to a governed channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		message := event("custom_com.example.plugin_refresh", h.th.BasicChannel.Id, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		requireHooked(t, message, h.th.BasicChannel.Id)
+	})
+
+	t.Run("leaves exempt events alone", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
@@ -1615,7 +1624,6 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 			model.WebsocketEventTyping,
 			model.WebsocketEventEphemeralMessage,
 			model.WebsocketEventThreadReadChanged,
-			"custom_com.example.plugin_refresh",
 		} {
 			message := event(eventType, h.th.BasicChannel.Id, "")
 			h.th.App.attachChannelReadAccessHook(message)
@@ -1682,6 +1690,20 @@ func TestPublishAttachesTheReadAccessHook(t *testing.T) {
 		events := []model.WebsocketEventType{model.WebsocketEventPostEdited}
 		requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
 			h.th.Server.Platform().Publish(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", h.th.BasicChannel.Id, "", nil, ""))
+		})
+	})
+
+	// What the Agents plugin publishes while streaming a bot reply: the reply text,
+	// sent to the whole channel.
+	t.Run("a plugin event sent to the channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		events := []model.WebsocketEventType{"custom_mattermost-ai_postupdate"}
+		requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
+			api := NewPluginAPI(h.th.App, h.rctx, &model.Manifest{Id: "mattermost-ai"})
+			api.PublishWebSocketEvent("postupdate", map[string]any{"post_id": model.NewId(), "next": "streamed reply"},
+				&model.WebsocketBroadcast{ChannelId: h.th.BasicChannel.Id})
 		})
 	})
 }

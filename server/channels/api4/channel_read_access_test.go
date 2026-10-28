@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
@@ -657,4 +659,62 @@ func stubReadAccessNotGoverned(m *mocks.AccessControlServiceInterface) {
 		Return(false, nil).Maybe()
 	m.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
 		Return(false, nil).Maybe()
+}
+
+// A plugin event sent to the whole channel can carry post content: the Agents plugin
+// streams a bot reply this way, as custom_mattermost-ai_postupdate with the text in
+// "next". A member the channel's read rules deny must not receive it, any more than
+// they receive the post itself.
+func TestChannelReadAccessFiltersPluginChannelEvents(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// BasicUser2 is denied; BasicUser, the control, is allowed.
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelReadAccess && req.Subject.ID == th.BasicUser2.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	listen := func(client *model.Client4) *model.WebSocketClient {
+		wsc, err := th.CreateWebSocketClientWithClient(client)
+		require.NoError(t, err)
+		t.Cleanup(wsc.Close)
+		wsc.Listen()
+		return wsc
+	}
+	allowedWS := listen(th.Client)
+	deniedClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, deniedClient)
+	deniedWS := listen(deniedClient)
+
+	const eventType = model.WebsocketEventType("custom_mattermost-ai_postupdate")
+	// received waits up to d for the plugin event on wsc.
+	received := func(wsc *model.WebSocketClient, d time.Duration) bool {
+		deadline := time.After(d)
+		for {
+			select {
+			case ev := <-wsc.EventChannel:
+				if ev.EventType() == eventType {
+					return true
+				}
+			case <-deadline:
+				return false
+			}
+		}
+	}
+
+	api := app.NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "mattermost-ai"})
+	api.PublishWebSocketEvent("postupdate", map[string]any{"post_id": model.NewId(), "next": "streamed reply"},
+		&model.WebsocketBroadcast{ChannelId: th.BasicChannel.Id})
+
+	require.True(t, received(allowedWS, 5*time.Second), "an allowed member must still receive the plugin event")
+	require.False(t, received(deniedWS, time.Second), "a denied member must not receive the plugin event")
 }
