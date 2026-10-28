@@ -206,14 +206,17 @@ func TestSaveConfigLogPathEnforcement(t *testing.T) {
 
 	outOfRootTarget := json.RawMessage(`{"evil": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + filepath.Join(outside, "out.log") + `"}}}`)
 
+	fileTargetIn := func(path string) json.RawMessage {
+		return json.RawMessage(`{"t": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + path + `"}}}`)
+	}
+
 	// setup returns a minimal service whose log root is pinned to root and whose active config
 	// is clean, with enforcement set to enforce. It deliberately skips the full test helper:
 	// SaveConfig only needs a config store and a logger here, and registering no config
 	// listeners keeps the store mock out of the picture.
-	setup := func(t *testing.T, enforce bool) *PlatformService {
+	setupWithStore := func(t *testing.T, enforce bool, configStore *config.Store) *PlatformService {
 		t.Helper()
 
-		configStore := config.NewTestMemoryStore()
 		// feature flag writes are dropped by the store unless read-only FF mode is disabled
 		configStore.SetReadOnlyFF(false)
 
@@ -231,6 +234,11 @@ func TestSaveConfigLogPathEnforcement(t *testing.T) {
 		require.Equal(t, enforce, config.IsLogPathEnforcementEnabled(ps.Config()))
 
 		return ps
+	}
+
+	setup := func(t *testing.T, enforce bool) *PlatformService {
+		t.Helper()
+		return setupWithStore(t, enforce, config.NewTestMemoryStore())
 	}
 
 	t.Run("flag on rejects an out-of-root advanced logging target", func(t *testing.T) {
@@ -269,6 +277,113 @@ func TestSaveConfigLogPathEnforcement(t *testing.T) {
 
 		cfg := ps.Config().Clone()
 		*cfg.LogSettings.FileLocation = outside
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+	})
+
+	t.Run("flag on rejects a target inside the active plugin directory", func(t *testing.T) {
+		ps := setup(t, true)
+
+		activePlugins := filepath.Join(root, "plugins")
+		cfg := ps.Config().Clone()
+		*cfg.PluginSettings.Directory = activePlugins
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
+
+		// the new config moves the plugin directory, but the active one is still in use until a restart
+		cfg = ps.Config().Clone()
+		*cfg.PluginSettings.Directory = filepath.Join(root, "moved")
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetIn(filepath.Join(activePlugins, "x", "plugin"))
+
+		_, _, appErr = ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+	})
+
+	t.Run("flag on rejects a target inside a plugin directory an earlier save moved away from", func(t *testing.T) {
+		ps := setup(t, true)
+
+		activePlugins := filepath.Join(root, "plugins")
+		cfg := ps.Config().Clone()
+		*cfg.PluginSettings.Directory = activePlugins
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
+
+		cfg = ps.Config().Clone()
+		*cfg.PluginSettings.Directory = filepath.Join(root, "moved")
+		_, _, appErr = ps.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
+
+		// without a restart the first directory is still in use, though neither config names it
+		cfg = ps.Config().Clone()
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetIn(filepath.Join(activePlugins, "x", "plugin"))
+
+		_, _, appErr = ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+	})
+
+	t.Run("flag on rejects a target inside the loaded config file's directory", func(t *testing.T) {
+		configDir := filepath.Join(root, "custom-config")
+		require.NoError(t, os.MkdirAll(configDir, 0700))
+		fileStore, err := config.NewFileStore(filepath.Join(configDir, "config.json"), true)
+		require.NoError(t, err)
+		configStore, err := config.NewStoreFromBacking(fileStore, nil, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { configStore.Close() })
+
+		ps := setupWithStore(t, true, configStore)
+
+		cfg := ps.Config().Clone()
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetIn(filepath.Join(configDir, "config.json"))
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+	})
+
+	t.Run("flag on rejects a target inside the directory of a symlinked config file", func(t *testing.T) {
+		realDir := filepath.Join(root, "real-config")
+		linkDir := filepath.Join(root, "link-config")
+		require.NoError(t, os.MkdirAll(realDir, 0700))
+		require.NoError(t, os.MkdirAll(linkDir, 0700))
+		realFile, err := config.NewFileStore(filepath.Join(realDir, "config.json"), true)
+		require.NoError(t, err)
+		require.NoError(t, realFile.Close())
+
+		linkFile := filepath.Join(linkDir, "config.json")
+		if err = os.Symlink(filepath.Join(realDir, "config.json"), linkFile); err != nil {
+			t.Skipf("symlinks unavailable: %v", err)
+		}
+		fileStore, err := config.NewFileStore(linkFile, false)
+		require.NoError(t, err)
+		configStore, err := config.NewStoreFromBacking(fileStore, nil, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { configStore.Close() })
+
+		ps := setupWithStore(t, true, configStore)
+
+		for name, dir := range map[string]string{"symlink directory": linkDir, "resolved directory": realDir} {
+			t.Run(name, func(t *testing.T) {
+				cfg := ps.Config().Clone()
+				cfg.LogSettings.AdvancedLoggingJSON = fileTargetIn(filepath.Join(dir, "out.log"))
+
+				_, _, appErr := ps.SaveConfig(cfg, false)
+				require.NotNil(t, appErr)
+				assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+			})
+		}
+	})
+
+	t.Run("flag on rejects a target inside the new plugin directory", func(t *testing.T) {
+		ps := setup(t, true)
+
+		newPlugins := filepath.Join(root, "new-plugins")
+		cfg := ps.Config().Clone()
+		*cfg.PluginSettings.Directory = newPlugins
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetIn(filepath.Join(newPlugins, "x", "plugin"))
 
 		_, _, appErr := ps.SaveConfig(cfg, false)
 		require.NotNil(t, appErr)
