@@ -26,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
@@ -571,6 +572,62 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote"}), systemPost.Message)
 	assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
 	assert.Equal(t, "Test Remote", systemPost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
+}
+
+func TestSharedChannelSyncFromFollowerNode(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSharedChannels(t).InitBasic(t)
+
+	service, ok := th.Server.GetSharedChannelSyncService().(*sharedchannel.Service)
+	require.True(t, ok)
+	require.True(t, service.Active())
+
+	testCluster := &testlib.FakeClusterInterface{}
+	th.Server.Platform().SetCluster(testCluster)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "cluster"))
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = true })
+	th.Server.InvokeClusterLeaderChangedListeners()
+	require.False(t, th.Server.IsLeader())
+	require.Eventually(t, func() bool { return !service.Active() }, 5*time.Second, 10*time.Millisecond,
+		"the sync service only runs on the cluster leader")
+
+	rc, err := th.App.Srv().Store().RemoteCluster().Save(&model.RemoteCluster{
+		Name:      "remote",
+		SiteURL:   "http://example.com",
+		Token:     model.NewId(),
+		CreatorId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+	remoteID := rc.RemoteId
+	_, err = th.App.Srv().Store().SharedChannel().SaveUser(&model.SharedChannelUser{
+		UserId:    th.BasicUser.Id,
+		RemoteId:  remoteID,
+		ChannelId: th.BasicChannel.Id,
+	})
+	require.NoError(t, err)
+
+	_, appErr := th.App.PatchUser(th.Context, th.BasicUser.Id, &model.UserPatch{FirstName: new("Renamed")}, false)
+	require.Nil(t, appErr)
+
+	msgs := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+		return msg.Event == model.ClusterEventSharedChannelSyncTask
+	})
+	require.Len(t, msgs, 1, "a profile change on a follower must be handed to the leader")
+	var forwarded struct {
+		ChannelID string `json:"channel_id"`
+		RemoteID  string `json:"remote_id"`
+	}
+	require.NoError(t, json.Unmarshal(msgs[0].Data, &forwarded))
+	assert.Equal(t, th.BasicChannel.Id, forwarded.ChannelID)
+	assert.Equal(t, remoteID, forwarded.RemoteID)
+	assert.False(t, service.HasPendingTasksForTesting(), "a follower must not queue tasks it never processes")
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = false })
+	th.Server.InvokeClusterLeaderChangedListeners()
+	require.Eventually(t, service.Active, 5*time.Second, 10*time.Millisecond)
+
+	th.Server.clusterSharedChannelSyncTaskHandler(msgs[0])
+	assert.True(t, service.HasPendingTasksForTesting(), "the leader must queue the forwarded task")
 }
 
 // TestUninviteRemoteFromChannel_OnlyRemovesRequestedRemote verifies that when a channel has multiple

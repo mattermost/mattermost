@@ -17,6 +17,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -505,4 +507,145 @@ func TestStripSharedChannelStatePostsForSync(t *testing.T) {
 	require.Len(t, sd.posts, 1)
 	assert.Equal(t, "user-1", sd.posts[0].Id)
 	assert.Equal(t, model.PostTypeDefault, sd.posts[0].Type)
+}
+
+func TestEnqueueTask_ClusterForwarding(t *testing.T) {
+	const channelID = "channel-1"
+
+	newNode := func(t *testing.T, active, isLeader bool, cluster einterfaces.ClusterInterface) *Service {
+		t.Helper()
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		scStore := &mocks.SharedChannelStore{}
+		scStore.On("GetUsersForUser", "user-1").Return([]*model.SharedChannelUser{
+			{UserId: "user-1", RemoteId: "remote-1", ChannelId: channelID},
+		}, nil)
+		mockStore := &mocks.Store{}
+		mockStore.On("SharedChannel").Return(scStore)
+
+		mockServer := &MockServerIface{}
+		mockServer.On("Config").Return(cfg)
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetRemoteClusterService").Return(&mockRCSForSync{})
+		mockServer.On("GetCluster").Return(cluster)
+		mockServer.On("IsLeader").Return(isLeader)
+		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+		scs := newTestService()
+		scs.server = mockServer
+		scs.active = active
+		return scs
+	}
+
+	newCluster := func() (*einterfacesmocks.ClusterInterface, *[]*model.ClusterMessage) {
+		sent := []*model.ClusterMessage{}
+		cluster := &einterfacesmocks.ClusterInterface{}
+		cluster.On("SendClusterMessage", mock.Anything).Run(func(args mock.Arguments) {
+			sent = append(sent, args.Get(0).(*model.ClusterMessage))
+		})
+		return cluster, &sent
+	}
+
+	forwardFromFollower := func(t *testing.T, notify func(follower *Service)) *model.ClusterMessage {
+		t.Helper()
+		cluster, sent := newCluster()
+		follower := newNode(t, false, false, cluster)
+
+		notify(follower)
+
+		assert.Empty(t, follower.tasks, "a follower never processes its queue, so it must not queue tasks")
+		require.Len(t, *sent, 1)
+		msg := (*sent)[0]
+		assert.Equal(t, model.ClusterEventSharedChannelSyncTask, msg.Event)
+		assert.Equal(t, model.ClusterSendReliable, msg.SendType)
+		return msg
+	}
+
+	t.Run("membership change on a follower is queued by the leader with its origin remote", func(t *testing.T) {
+		msg := forwardFromFollower(t, func(follower *Service) {
+			follower.NotifyMembershipChanged(channelID, "remote-A")
+		})
+
+		leader := newNode(t, true, true, nil)
+		before := time.Now()
+		leader.HandleClusterSyncTask(msg)
+
+		require.Len(t, leader.tasks, 1)
+		task := leader.tasks[newSyncTask(channelID, "", "", nil, nil).id]
+		assert.Equal(t, channelID, task.channelID)
+		assert.Empty(t, task.remoteID)
+		assert.Equal(t, "remote-A", task.originRemoteID)
+		assert.False(t, task.schedule.Before(before.Add(NotifyMinimumDelay)), "the leader's NotifyMinimumDelay debounce must apply")
+	})
+
+	t.Run("status change on a follower reaches the leader with the status", func(t *testing.T) {
+		status := &model.Status{UserId: "user-1", Status: model.StatusDnd, Manual: true}
+		msg := forwardFromFollower(t, func(follower *Service) {
+			follower.NotifyUserStatusChanged(status)
+		})
+
+		leader := newNode(t, true, true, nil)
+		leader.HandleClusterSyncTask(msg)
+
+		require.Len(t, leader.tasks, 1)
+		task := leader.tasks[newSyncTask(channelID, "user-1", "remote-1", nil, nil).id]
+		assert.Equal(t, "remote-1", task.remoteID)
+		require.NotNil(t, task.existingMsg)
+		require.Len(t, task.existingMsg.Statuses, 1)
+		assert.Equal(t, status, task.existingMsg.Statuses[0])
+	})
+
+	t.Run("forwarded task merges with a task the leader already queued", func(t *testing.T) {
+		msg := forwardFromFollower(t, func(follower *Service) {
+			follower.NotifyMembershipChanged(channelID, "remote-A")
+		})
+
+		leader := newNode(t, true, true, nil)
+		leader.NotifyMembershipChanged(channelID, "")
+		leader.HandleClusterSyncTask(msg)
+
+		require.Len(t, leader.tasks, 1)
+		task := leader.tasks[newSyncTask(channelID, "", "", nil, nil).id]
+		assert.Empty(t, task.originRemoteID, "local and remote origins merged, so the sync must fan out to all remotes")
+	})
+
+	t.Run("inactive node ignores forwarded tasks", func(t *testing.T) {
+		msg := forwardFromFollower(t, func(follower *Service) {
+			follower.NotifyChannelChanged(channelID)
+		})
+
+		otherFollower := newNode(t, false, false, nil)
+		otherFollower.HandleClusterSyncTask(msg)
+
+		assert.Empty(t, otherFollower.tasks)
+	})
+
+	t.Run("active leader queues locally", func(t *testing.T) {
+		cluster, sent := newCluster()
+		leader := newNode(t, true, true, cluster)
+
+		leader.NotifyChannelChanged(channelID)
+
+		assert.Len(t, leader.tasks, 1)
+		assert.Empty(t, *sent)
+	})
+
+	t.Run("newly elected leader queues locally before its sync loop resumes", func(t *testing.T) {
+		cluster, sent := newCluster()
+		node := newNode(t, false, true, cluster)
+
+		node.NotifyChannelChanged(channelID)
+
+		assert.Len(t, node.tasks, 1, "resume() drains this queue")
+		assert.Empty(t, *sent)
+	})
+
+	t.Run("inactive node without a cluster queues locally", func(t *testing.T) {
+		node := newNode(t, false, false, nil)
+
+		node.NotifyChannelChanged(channelID)
+
+		assert.Len(t, node.tasks, 1)
+	})
 }
