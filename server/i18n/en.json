@@ -9593,10 +9593,6 @@
     "translation": "{{.Backend}} searching is disabled on this server"
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Failed to parse search result matches"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "Search failed to complete"
   },
