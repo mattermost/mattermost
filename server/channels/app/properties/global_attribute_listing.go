@@ -23,8 +23,8 @@ const classificationTemplateName = "classification"
 // allow the Global Attributes listing to show. The service holds neither, so the
 // app layer decides and passes the outcome in.
 type GlobalAttributeListingPolicy struct {
-	// AllowedResourceTypes are the resource types that may appear in a row or in
-	// its applies_to. Order is irrelevant.
+	// AllowedResourceTypes are the resource types that may appear in a row, in
+	// its applies_to, or as a filter. Order is irrelevant.
 	AllowedResourceTypes []string
 
 	// ClassificationReachable reports whether the Classification Markings page
@@ -52,6 +52,7 @@ func (ps *PropertyService) SearchGlobalAttributeListing(rctx request.CTX, groupI
 		GroupID:              groupID,
 		Term:                 search.Term,
 		Source:               search.Source,
+		ResourceType:         search.ResourceType,
 		AllowedResourceTypes: policy.AllowedResourceTypes,
 	}
 	if classificationID != "" && !policy.ClassificationReachable {

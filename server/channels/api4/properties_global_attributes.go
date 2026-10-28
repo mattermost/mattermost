@@ -51,8 +51,9 @@ func shapeListingFields(c *Context, group *model.PropertyGroup, listing *model.G
 }
 
 // searchGlobalAttributeListing serves the System Console's Global Attributes
-// listing: every row matching the search term and source, already composed
-// with its applies-to resources, owners, source and name conflict.
+// listing: every row matching the search term, source and resource type,
+// already composed with its applies-to resources, owners, source and name
+// conflict.
 func searchGlobalAttributeListing(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventSearchGlobalAttributeListing, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
@@ -73,6 +74,7 @@ func searchGlobalAttributeListing(c *Context, w http.ResponseWriter, r *http.Req
 	}
 	model.AddEventParameterToAuditRec(auditRec, "term", search.Term)
 	model.AddEventParameterToAuditRec(auditRec, "source", search.Source)
+	model.AddEventParameterToAuditRec(auditRec, "resource_type", search.ResourceType)
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 

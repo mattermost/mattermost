@@ -38,7 +38,7 @@ var globalAttributeListingSources = []string{
 }
 
 // globalAttributeListingResourceTypes are the resources a template can be
-// applied to.
+// applied to, and so the values the resource type filter accepts.
 var globalAttributeListingResourceTypes = []string{
 	PropertyFieldObjectTypeUser,
 	PropertyFieldObjectTypeChannel,
@@ -46,21 +46,25 @@ var globalAttributeListingResourceTypes = []string{
 }
 
 // GlobalAttributeListingSearch is the request body of the Global Attributes
-// listing search. An empty Term matches every row, and an empty Source means no
-// filter on the source.
+// listing search. An empty Term matches every row, and an empty Source or
+// ResourceType means no filter on that facet.
 type GlobalAttributeListingSearch struct {
-	Term   string `json:"term,omitempty"`
-	Source string `json:"source,omitempty"`
+	Term         string `json:"term,omitempty"`
+	Source       string `json:"source,omitempty"`
+	ResourceType string `json:"resource_type,omitempty"`
 }
 
 // IsValid rejects a term longer than any field name, which could match no row,
-// and a source outside the filter values.
+// and a source or resource type outside the filter values.
 func (s *GlobalAttributeListingSearch) IsValid() error {
 	if utf8.RuneCountInString(s.Term) > PropertyFieldNameMaxRunes {
 		return fmt.Errorf("term is longer than %d characters", PropertyFieldNameMaxRunes)
 	}
 	if s.Source != "" && !slices.Contains(globalAttributeListingSources, s.Source) {
 		return fmt.Errorf("invalid source %q", s.Source)
+	}
+	if s.ResourceType != "" && !slices.Contains(globalAttributeListingResourceTypes, s.ResourceType) {
+		return fmt.Errorf("invalid resource_type %q", s.ResourceType)
 	}
 	return nil
 }
@@ -106,11 +110,12 @@ type GlobalAttributeListing struct {
 // the store. AllowedResourceTypes bounds which unlinked resource fields are rows
 // at all, and ExcludeIDs removes fields the caller has decided to hide, such as
 // the Classification template when Classification Markings is unreachable.
-// An empty Source means no filter on the source.
+// An empty Source or ResourceType means no filter on that facet.
 type GlobalAttributeListingOpts struct {
 	GroupID              string
 	Term                 string
 	Source               string
+	ResourceType         string
 	AllowedResourceTypes []string
 	ExcludeIDs           []string
 }
@@ -121,6 +126,9 @@ func (o *GlobalAttributeListingOpts) IsValid() error {
 	}
 	if o.Source != "" && !slices.Contains(globalAttributeListingSources, o.Source) {
 		return fmt.Errorf("invalid source %q", o.Source)
+	}
+	if o.ResourceType != "" && !slices.Contains(globalAttributeListingResourceTypes, o.ResourceType) {
+		return fmt.Errorf("invalid resource_type %q", o.ResourceType)
 	}
 	for _, resourceType := range o.AllowedResourceTypes {
 		if !slices.Contains(globalAttributeListingResourceTypes, resourceType) {
