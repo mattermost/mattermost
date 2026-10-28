@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState, type JSX} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CloseCircleIcon, PencilOutlineIcon, RefreshIcon, SyncIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {ChevronDownIcon, CloseCircleIcon, PencilOutlineIcon, RefreshIcon, SyncIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {openModal} from 'actions/views/modals';
@@ -16,6 +16,7 @@ import {openModal} from 'actions/views/modals';
 import AttributeModal from 'components/admin_console/system_properties/attribute_modal';
 import Divider from 'components/divider/divider';
 import * as Menu from 'components/menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -30,6 +31,23 @@ import type {AttributeTypeId} from '../utils';
 import './attribute_external_source.scss';
 
 const TRIGGER_ID = 'attribute-external-source-trigger';
+
+const ExternalSourceMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
+    const {children, ...rest} = props;
+    return (
+        <Button
+            {...rest}
+            ref={ref}
+            emphasis='quaternary'
+            className='AttributeExternalSource__trigger'
+            leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
+            trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
+        >
+            {children}
+        </Button>
+    );
+});
+ExternalSourceMenuTrigger.displayName = 'ExternalSourceMenuTrigger';
 
 const LINK_MODAL_IDS: Record<ExternalSource, string> = {
     ldap: ModalIdentifiers.ATTRIBUTE_MODAL_LDAP,
@@ -231,15 +249,11 @@ function AttributeExternalSource({links, fieldType, onLink, disabled = false, di
                         <Menu.Container
                             menuButton={{
                                 id: TRIGGER_ID,
-                                class: classNames(buttonClassNames({emphasis: 'quaternary'}), 'AttributeExternalSource__trigger'),
+                                as: ExternalSourceMenuTrigger,
                                 disabled: disabled || disableAdding,
                                 onMouseDown: handleTriggerMouseDown,
                                 children: (
-                                    <>
-                                        <RefreshIcon size={16}/>
-                                        <FormattedMessage {...messages.triggerLabel}/>
-                                        <i className='icon icon-chevron-down'/>
-                                    </>
+                                    <FormattedMessage {...messages.triggerLabel}/>
                                 ),
                                 dataTestId: 'attributeExternalSourceTrigger',
                             }}

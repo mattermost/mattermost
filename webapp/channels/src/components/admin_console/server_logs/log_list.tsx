@@ -6,7 +6,11 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import {LogNodeKey} from '@mattermost/types/admin';
 
 import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
@@ -16,7 +20,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {LogObjectWithAdditionalInfo} from './types';
-import {formatLogValue} from './utils';
+import {formatLogValue, presetStartMs} from './utils';
 
 import './log_list.scss';
 
@@ -34,6 +38,9 @@ type Props = {
     // Owned by the parent, which sends them with the query
     enabledLevels: Set<string>;
     onEnabledLevelsChange: React.Dispatch<React.SetStateAction<Set<string>>>;
+    nodes: string[];
+    selectedNode: string;
+    onSelectedNodeChange: (node: string) => void;
 
     onReload: () => void;
     downloadUrl: string;
@@ -76,15 +83,21 @@ const messages = defineMessages({
     allLevels: {id: 'admin.logs.allLevels', defaultMessage: 'All levels'},
     liveTail: {id: 'admin.logs.liveTail', defaultMessage: 'Live tail'},
     liveTailOff: {id: 'admin.logs.liveTail.off', defaultMessage: 'Off'},
+    allNodes: {id: 'admin.logs.allNodes', defaultMessage: 'All nodes'},
+    node: {id: 'admin.logs.node', defaultMessage: 'Node'},
 });
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
+
+// Logged by the server in place of a node it could not reach
+const FAILED_NODE_MSG = 'Failed to fetch logs from node';
 
 type StoredPrefs = {
     pageSize: number;
     wrapText: boolean;
     enabledLevels: string[];
     sortAsc: boolean;
+    node: string;
 };
 
 const DEFAULT_PREFS: StoredPrefs = {
@@ -92,6 +105,7 @@ const DEFAULT_PREFS: StoredPrefs = {
     wrapText: true,
     enabledLevels: [...LEVEL_ORDER],
     sortAsc: false,
+    node: '',
 };
 
 // Stored prefs may predate the current shape, so every field is validated
@@ -118,12 +132,15 @@ export function loadPrefs(): StoredPrefs {
         wrapText: typeof stored.wrapText === 'boolean' ? stored.wrapText : DEFAULT_PREFS.wrapText,
         enabledLevels: levels.length > 0 ? levels : DEFAULT_PREFS.enabledLevels,
         sortAsc: typeof stored.sortAsc === 'boolean' ? stored.sortAsc : DEFAULT_PREFS.sortAsc,
+        node: typeof stored.node === 'string' ? stored.node : DEFAULT_PREFS.node,
     };
 }
 
-// Every field counts: concurrent requests log the same message, caller and millisecond
+// Every field counts: concurrent requests log the same message, caller and millisecond.
+// The node is a symbol, which Object.keys skips, so it's added for nodes logging the same line
 function logKey(log: LogObjectWithAdditionalInfo): string {
-    return Object.keys(log).sort().map((field) => `${field}=${formatLogValue(log[field])}`).join('|');
+    const fields = Object.keys(log).sort().map((field) => `${field}=${formatLogValue(log[field])}`).join('|');
+    return `${log[LogNodeKey] ?? ''}|${fields}`;
 }
 
 // Content keys keep rows mounted across reloads; identical entries get a suffix
@@ -153,6 +170,7 @@ function savePrefs(prefs: StoredPrefs) {
 export default function LogList({
     loading, logs, onSearchChange, search,
     enabledLevels, onEnabledLevelsChange: setEnabledLevels,
+    nodes, selectedNode, onSelectedNodeChange,
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
     pollIntervals, pollIntervalLabels,
@@ -173,6 +191,9 @@ export default function LogList({
 
     // Kept local so typing repaints the input without waiting for the debounced filtering
     const [searchInput, setSearchInput] = useState(search);
+
+    const showNodes = nodes.length >= 2;
+    const showNodeMenu = showNodes || selectedNode !== '';
 
     const listRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -203,23 +224,42 @@ export default function LogList({
             wrapText,
             enabledLevels: Array.from(enabledLevels),
             sortAsc,
+            node: selectedNode,
         });
-    }, [pageSize, wrapText, enabledLevels, sortAsc]);
+    }, [pageSize, wrapText, enabledLevels, sortAsc, selectedNode]);
+
+    // Older nodes ignore the server's date filter, and a node switch shows before its fetch returns
+    const scopedLogs = useMemo(() => {
+        const cutoff = activeTimePreset === null ? null : presetStartMs(activeTimePreset);
+        if (!selectedNode && cutoff === null) {
+            return logs;
+        }
+        return logs.filter((log) => {
+            if (selectedNode && log[LogNodeKey] !== selectedNode) {
+                return false;
+            }
+            if (cutoff === null || log.msg === FAILED_NODE_MSG) {
+                return true;
+            }
+            const time = parseTimestamp(log.timestamp);
+            return Number.isNaN(time) || time >= cutoff;
+        });
+    }, [logs, selectedNode, activeTimePreset]);
 
     const levelCounts = useMemo(() => {
         const counts: Record<string, number> = {error: 0, warn: 0, info: 0, debug: 0};
-        for (const log of logs) {
+        for (const log of scopedLogs) {
             if (log.level in counts) {
                 counts[log.level]++;
             }
         }
         return counts;
-    }, [logs]);
+    }, [scopedLogs]);
 
     const allLevelsEnabled = useMemo(() => LEVEL_ORDER.every((level) => enabledLevels.has(level)), [enabledLevels]);
 
     const processedLogs = useMemo(() => {
-        let filtered = logs;
+        let filtered = scopedLogs;
 
         if (!allLevelsEnabled) {
             filtered = filtered.filter((log) => enabledLevels.has(log.level));
@@ -227,7 +267,7 @@ export default function LogList({
 
         if (search) {
             const lowerSearch = search.toLowerCase();
-            filtered = filtered.filter((log) => Object.entries(log).some(([key, value]) =>
+            filtered = filtered.filter((log) => (showNodes && log[LogNodeKey]?.toLowerCase().includes(lowerSearch)) || Object.entries(log).some(([key, value]) =>
                 key !== 'level' && key !== 'timestamp' && formatLogValue(value).toLowerCase().includes(lowerSearch),
             ));
         }
@@ -238,10 +278,10 @@ export default function LogList({
             map((log, index) => ({log, index, time: parseTimestamp(log.timestamp)})).
             sort((a, b) => direction * ((a.time - b.time) || (a.index - b.index))).
             map(({log}) => log);
-    }, [logs, allLevelsEnabled, enabledLevels, search, sortAsc]);
+    }, [scopedLogs, allLevelsEnabled, enabledLevels, search, sortAsc, showNodes]);
 
     const matchCount = search ? processedLogs.length : null;
-    const totalCount = logs.length;
+    const totalCount = scopedLogs.length;
 
     const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
     const startIndex = page * pageSize;
@@ -277,7 +317,7 @@ export default function LogList({
         setPage(0);
         setExpandedKey(null);
         setFocusedKey(null);
-    }, [search, enabledLevels, sortAsc]);
+    }, [search, enabledLevels, sortAsc, selectedNode]);
 
     // Clamp the page when a reload or poll shrinks the dataset
     useEffect(() => {
@@ -425,6 +465,44 @@ export default function LogList({
                     </button>
                 ) : undefined}
             />
+
+            {showNodeMenu && (
+                <Menu.Container
+                    menuButton={{
+                        id: 'serverLogsNodeMenuButton',
+                        class: 'inputWithMenu',
+                        'aria-label': intl.formatMessage({id: 'admin.logs.node.menuButtonAriaLabel', defaultMessage: 'Open menu to select a node'}),
+                        as: 'div',
+                        children: (
+                            <Input
+                                label={intl.formatMessage(messages.node)}
+                                name='serverLogsNode'
+                                value={selectedNode || intl.formatMessage(messages.allNodes)}
+                                readOnly={true}
+                                inputSuffix={<i className='icon icon-chevron-down'/>}
+                            />
+                        ),
+                    }}
+                    menu={{
+                        id: 'serverLogsNodeMenu',
+                        'aria-label': intl.formatMessage({id: 'admin.logs.node.dropdownAriaLabel', defaultMessage: 'Node menu'}),
+                        width: '260px',
+                    }}
+                >
+                    {['', ...nodes].map((node) => (
+                        <Menu.Item
+                            key={node}
+                            id={node ? `serverLogsNode-node-${node}` : 'serverLogsNode-all'}
+                            role='menuitemradio'
+                            aria-checked={selectedNode === node}
+                            forceCloseOnSelect={true}
+                            labels={node ? <span>{node}</span> : <FormattedMessage {...messages.allNodes}/>}
+                            trailingElements={selectedNode === node && <i className='icon icon-check'/>}
+                            onClick={() => onSelectedNodeChange(node)}
+                        />
+                    ))}
+                </Menu.Container>
+            )}
 
             <Menu.Container
                 menuButton={{
@@ -586,34 +664,33 @@ export default function LogList({
 
             <div className='LogViewer__filters-spacer'/>
 
-            <button
-                type='button'
-                className='btn btn-sm btn-tertiary'
+            <Button
+                emphasis='tertiary'
+                size='medium'
                 onClick={onReload}
+                leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
             >
-                <i
-                    className='icon icon-refresh'
-                    aria-hidden='true'
-                />
                 <FormattedMessage
                     id='admin.logs.ReloadLogs'
                     defaultMessage='Reload'
                 />
-            </button>
-            <ExternalLink
-                location='download_logs'
-                className='btn btn-sm btn-primary'
-                href={downloadUrl}
+            </Button>
+            <Button
+                asChild={true}
+                emphasis='primary'
+                size='medium'
+                leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
             >
-                <i
-                    className='icon icon-download-outline'
-                    aria-hidden='true'
-                />
-                <FormattedMessage
-                    id='admin.logs.DownloadLogs'
-                    defaultMessage='Download'
-                />
-            </ExternalLink>
+                <ExternalLink
+                    location='download_logs'
+                    href={downloadUrl}
+                >
+                    <FormattedMessage
+                        id='admin.logs.DownloadLogs'
+                        defaultMessage='Download'
+                    />
+                </ExternalLink>
+            </Button>
         </div>
     );
 
@@ -664,6 +741,14 @@ export default function LogList({
                         aria-hidden='true'
                     />
                 </button>
+                {showNodes && (
+                    <span className='LogViewer__header-node'>
+                        <FormattedMessage
+                            id='admin.logs.header.node'
+                            defaultMessage='Node'
+                        />
+                    </span>
+                )}
                 <span className='LogViewer__header-message'>
                     <FormattedMessage
                         id='admin.logs.header.message'
@@ -681,7 +766,7 @@ export default function LogList({
             {/* Empty state — kept outside the list so it only owns rows */}
             {visibleLogs.length === 0 && !loading && (
                 <div className='LogViewer__placeholder'>
-                    {search || !allLevelsEnabled ? (
+                    {search || !allLevelsEnabled || selectedNode ? (
                         <FormattedMessage
                             id='admin.logs.noMatchingLogs'
                             defaultMessage='No logs match your filters. {clearLink}'
@@ -692,6 +777,7 @@ export default function LogList({
                                         onClick={() => {
                                             clearSearch();
                                             enableAllLevels();
+                                            onSelectedNodeChange('');
                                         }}
                                         type='button'
                                     >
@@ -728,6 +814,7 @@ export default function LogList({
                         onFocus={handleFocus}
                         searchTerm={search}
                         wrapText={wrapText}
+                        showNode={showNodes}
                     />
                 ))}
             </div>
@@ -776,9 +863,9 @@ export default function LogList({
                 </span>
 
                 <div className='LogViewer__footer-controls'>
-                    <button
-                        type='button'
-                        className={`btn btn-sm ${wrapText ? 'btn-tertiary' : 'btn-quaternary'}`}
+                    <Button
+                        emphasis={wrapText ? 'tertiary' : 'quaternary'}
+                        size='small'
                         onClick={() => setWrapText(!wrapText)}
                         aria-pressed={wrapText}
                     >
@@ -786,7 +873,7 @@ export default function LogList({
                             id='admin.logs.wrap'
                             defaultMessage='Wrap text'
                         />
-                    </button>
+                    </Button>
 
                     <div className='LogViewer__pagesize'>
                         <label htmlFor='logPageSize'>

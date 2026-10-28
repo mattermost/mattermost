@@ -18,7 +18,7 @@ import (
 // mirroring patchPropertyField's preamble order. On any failure it sets c.Err
 // and returns nil.
 func resolveChannelAttributeComplianceGroup(c *Context, callerName string) *model.PropertyGroup {
-	group := getV2Group(c, callerName)
+	group := getPropertyAPIGroup(c, callerName)
 	if c.Err != nil {
 		return nil
 	}

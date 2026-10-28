@@ -4215,6 +4215,11 @@
     "description": "API error when creating a custom property field with an unsupported target type (the kind of object the field attaches to)."
   },
   {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Only an administrator of the field's channel, team or system can set its permissions when creating it.",
+    "description": "API error when a user who does not administer the channel, team or system a new custom property field belongs to (e.g. a channel attribute) submits a permissions configuration with it. Such users can still create the field, but it gets the default permissions."
+  },
+  {
     "id": "api.property_field.create.protected_via_api.app_error",
     "translation": "Cannot create a protected property field via API.",
     "description": "API error when a client tries to create a system-protected property field through the public API, which is not allowed."
@@ -4310,6 +4315,21 @@
     "description": "API error when a single request tries to add, update or delete more property field options than allowed. {{.Max}} is the maximum number of options per request."
   },
   {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "You cannot change a property field's permissions in a way that would prevent you from editing it.",
+    "description": "API error (403) when a user updates the permissions of a custom property field (e.g. a channel attribute) in a way that would leave them unable to edit or delete the field afterwards."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "A submitted restrictions object must set all five permission levels: value read, value write, option read, option write and field write.",
+    "description": "API error (400) when a property field update sends the restrictions part of a permissions object with some of its five permission levels left out. Leaving a level out would otherwise remove that permission, so the whole object must be sent."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "The submitted permissions object is invalid.",
+    "description": "API error (400) when a property field patch carries a permissions object whose restrictions, grants or masking cannot be read, for example grants sent as something other than a list."
+  },
+  {
     "id": "api.property_field.patch.legacy_field.app_error",
     "translation": "Cannot patch a v1 property field via this API.",
     "description": "API error when a client tries to update an old (v1) custom property field through the newer v2 API endpoint."
@@ -4323,6 +4343,16 @@
     "id": "api.property_field.patch.permission_values_not_linked.app_error",
     "translation": "permission_values can only be set on a field linked to a template.",
     "description": "API error when trying to change who may set values on a property field that is not linked to a shared template field. 'permission_values' is a literal API field name; keep it in English."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "This property group does not support submitting a permissions object.",
+    "description": "API error (400) when a request to create or patch a property field carries a permissions object for a property group that does not accept one, such as custom profile attributes."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "The permissions object must let system administrators edit the field, so its field write level cannot be none.",
+    "description": "API error (400) when a request to create or update a custom property field (e.g. a channel attribute) submits permissions whose field write level is none, which would leave no system administrator able to edit or delete the field."
   },
   {
     "id": "api.property_field.required.channels_missing_values.app_error",
@@ -9231,6 +9261,11 @@
     "description": "Bulk import error shown to admins when saving a user's per-team theme preference during import fails."
   },
   {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Error importing user teams. Team not found.",
+    "description": "Returned during a bulk import when a user's team membership references a team that does not exist on the destination server. Only surfaces on non-scoped imports; scoped imports skip the membership and log it in the unmatched-users report instead."
+  },
+  {
     "id": "app.import.pre_create_sso_user.missing_fields.app_error",
     "translation": "SSO user import data is missing required fields (username or email).",
     "description": "Bulk import error when a single sign-on (SSO) user record in the import file lacks the data needed to create the account ahead of the main import."
@@ -11211,6 +11246,11 @@
     "description": "API error when deleting a property field that other linked fields still depend on; the user must unlink or delete the dependents first."
   },
   {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Cannot delete this field because a masked template reads each person's holdings from it. Change or remove the template's masking first.",
+    "description": "API error when deleting a property field that a masked template names as the field holding each person's own values ('holdings'); masking shows a reader only the values that overlap their own."
+  },
+  {
     "id": "app.property_field.delete.not_found.app_error",
     "translation": "Property field not found.",
     "description": "API error when the property field targeted for deletion does not exist."
@@ -11254,6 +11294,11 @@
     "id": "app.property_field.invalid_input.app_error",
     "translation": "Invalid input provided.",
     "description": "API error returned when a property-field request contains invalid parameters; generic validation failure."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "A linked field's option.read tier ({{.FieldTier}}) cannot be more permissive than its template ({{.TemplateID}})'s tier ({{.TemplateTier}}).",
+    "description": "API error when creating or updating a property field linked to a shared template with an option.read permission level that lets more people read its options than the template allows. FieldTier and TemplateTier are permission levels such as 'member' or 'everyone'; TemplateID is a field ID."
   },
   {
     "id": "app.property_field.managed_admin.permission.app_error",
@@ -11316,6 +11361,11 @@
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."
   },
   {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "This field is the holdings source for its masked template, so its value write level cannot be '{{.ValueWrite}}'. The people the template filters could otherwise edit their own holdings and widen what they can see.",
+    "description": "API error when an admin or integration saves a property field that its masked template reads each person's own values ('holdings') from, with a value write level that lets regular members edit it. ValueWrite is a permission level such as 'member' or 'everyone'."
+  },
+  {
     "id": "app.property_field.sync_source_exclusive.app_error",
     "translation": "An attribute synced from OpenID Connect can't also be synced from AD/LDAP or SAML.",
     "description": "API error (400) when an admin links one custom attribute to both an OpenID Connect claim and an AD/LDAP or SAML attribute. 'OpenID Connect', 'AD/LDAP' and 'SAML' should stay as-is."
@@ -11376,6 +11426,11 @@
     "description": "API error when renaming a property (custom attribute) to a name that already exists; {{.Name}} is the attempted name and {{.ConflictLevel}} is where the conflict is."
   },
   {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Cannot update: linked field {{.DependentID}} is at option.read tier {{.DependentTier}}, which would exceed the new tier {{.NewTier}}.",
+    "description": "API error when an admin or integration lowers a shared property template's option.read permission level below that of a field already linked to it. DependentID is a field ID; DependentTier and NewTier are permission levels such as 'member' or 'everyone'."
+  },
+  {
     "id": "app.property_field.update.options_withheld.app_error",
     "translation": "This property has more than {{.Max}} options, so its option list was not loaded and cannot be replaced. Edit its options individually instead.",
     "description": "API error when a request tries to replace the whole option list of a property field that has too many options to be loaded at once. {{.Max}} is that option count limit."
@@ -11386,9 +11441,19 @@
     "description": "API error returned when a request tries to modify a property field that is marked protected (system-managed) and cannot be edited."
   },
   {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Cannot update: linked field {{.DependentID}} would supply its own holdings under this masking, but its value write level is '{{.ValueWrite}}'. Lower that field's value write level to admin or below first.",
+    "description": "API error returned when an admin or integration adds masking to a shared property template while a field linked to it can be edited by regular members. DependentID is a field ID; ValueWrite is a permission level such as 'member' or 'everyone'."
+  },
+  {
     "id": "app.property_field.update.type_change_with_dependents.app_error",
     "translation": "Cannot change type of a field with active linked dependents.",
     "description": "API error when changing the data type of a property field that linked fields still depend on."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Cannot unlink this field because a masked template reads each person's holdings from it. Change or remove the template's masking first.",
+    "description": "API error when unlinking a property field from its template while that masked template names it as the field holding each person's own values ('holdings'); masking shows a reader only the values that overlap their own."
   },
   {
     "id": "app.property_field.version_mismatch.app_error",
@@ -13487,6 +13552,11 @@
     "description": "Error shown to admins trying to change settings from the System Console when the server runs in High Availability mode; 'System Console' is the admin UI and 'ReadOnlyConfig' is a config setting name that should stay untranslated."
   },
   {
+    "id": "ent.cluster.send.error",
+    "translation": "Failed to send cluster request",
+    "description": "Log/error message for admins when a node in a high-availability cluster cannot send a request to another node."
+  },
+  {
     "id": "ent.cluster.timeout.error",
     "translation": "Timed out waiting for cluster response",
     "description": "Log/error message for admins when a node in a high-availability cluster does not answer a request in time."
@@ -14642,9 +14712,14 @@
     "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment; {{.posts}} is the number of posts."
   },
   {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "With {{.posts}} posts and database search, the primary and replicas absorb full-text scans. This causes CPU pressure and search timeouts at this scale. Your license includes Elasticsearch, which takes search off the database entirely.",
+    "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment whose license includes Elasticsearch; {{.posts}} is the number of posts. 'Elasticsearch' is a product name and should not be translated."
+  },
+  {
     "id": "health.rule.db_no_search_replica.remediation",
-    "translation": "Enable Elasticsearch search (preferred) or configure SqlSettings.DataSourceSearchReplicas.",
-    "description": "Health dashboard fix-it step when search runs on the database without a search replica. 'Elasticsearch' is a product name and 'SqlSettings.DataSourceSearchReplicas' is a setting name; do not translate them."
+    "translation": "Configure SqlSettings.DataSourceSearchReplicas.",
+    "description": "Health dashboard fix-it step when search runs on the database without a search replica. 'SqlSettings.DataSourceSearchReplicas' is a setting name and should not be translated."
   },
   {
     "id": "health.rule.db_no_search_replica.title",
@@ -15352,9 +15427,14 @@
     "description": "Health dashboard finding detail when the push notification server is push-test.mattermost.com, Mattermost's test push proxy that is not meant for production; 'SLA' means service level agreement."
   },
   {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com is the Mattermost test push proxy. It has no SLA, limited throughput, and is not intended for production use. Your license includes the Mattermost Hosted Push Notification Service: set PushNotificationServer to https://global.push.mattermost.com.",
+    "description": "Health dashboard finding detail when the push notification server is push-test.mattermost.com on a server whose license includes the hosted push service; 'SLA' means service level agreement, 'Mattermost Hosted Push Notification Service' is a product name and 'PushNotificationServer' is a config setting name, do not translate them."
+  },
+  {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Switch to https://push.mattermost.com (the production Hosted Push Notification Service included with Enterprise) or to a self-hosted push proxy.",
-    "description": "Health dashboard fix-it step for a server using the test push proxy; 'Hosted Push Notification Service' is a Mattermost product name."
+    "translation": "Point PushNotificationServer at a production push proxy: a self-hosted Mattermost Push Proxy serving your own builds of the mobile apps.",
+    "description": "Health dashboard fix-it step for a server using the test push proxy; 'PushNotificationServer' is a config setting name and 'Mattermost Push Proxy' is a product name, do not translate them."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -15528,12 +15608,17 @@
   },
   {
     "id": "health.rule.search_unavailable.message",
-    "translation": "Database search is disabled and Elasticsearch searching is off. Searches return no results.",
-    "description": "Health dashboard finding detail when neither the database nor Elasticsearch or OpenSearch serves search."
+    "translation": "Database search is disabled and Elasticsearch searching is off. Searches return no results. Enabling searching with Elasticsearch or OpenSearch also restores search.",
+    "description": "Health dashboard finding detail when neither the database nor Elasticsearch or OpenSearch serves search. 'Elasticsearch' and 'OpenSearch' are product names and should not be translated."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Database search is disabled and the license does not include Elasticsearch, so Elasticsearch settings have no effect. Searches return no results.",
+    "description": "Health dashboard finding detail when database search is disabled on a server whose license does not include Elasticsearch. 'Elasticsearch' is a product name and should not be translated."
   },
   {
     "id": "health.rule.search_unavailable.remediation",
-    "translation": "Set SqlSettings.DisableDatabaseSearch to false in config.json (or MM_SQLSETTINGS_DISABLEDATABASESEARCH=false), or enable searching with Elasticsearch or OpenSearch.",
+    "translation": "Set SqlSettings.DisableDatabaseSearch to false in config.json (or MM_SQLSETTINGS_DISABLEDATABASESEARCH=false).",
     "description": "Health dashboard fix-it step when search is fully disabled; 'SqlSettings.DisableDatabaseSearch', 'config.json' and 'MM_SQLSETTINGS_DISABLEDATABASESEARCH=false' are literal names and should not be translated."
   },
   {
@@ -19332,14 +19417,39 @@
     "description": "Login error for GitLab SSO users who must accept GitLab's updated Terms of Service; {{.URL}} is the GitLab ToS page link. Keep 'GitLab' and 'Mattermost' as product names."
   },
   {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Unable to get the followers of the thread.",
+    "description": "Error returned to plugins when GetThreadFollowers cannot read the thread's followers from the database; developer-facing."
+  },
+  {
     "id": "plugin.api.get_users_in_channel",
     "translation": "Unable to get the users, invalid sorting criteria.",
     "description": "Error returned to plugins when listing channel users is called with an unsupported sort option; developer-facing."
   },
   {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Invalid thread id.",
+    "description": "Error returned to plugins when GetThreadFollowers or SetThreadFollowing is called with a thread id that is not a valid Mattermost id; developer-facing."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Invalid user id.",
+    "description": "Error returned to plugins when SetThreadFollowing is called with a user id that is not a valid Mattermost id; developer-facing."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "The post is a reply, not the root post of a thread.",
+    "description": "Error returned to plugins when SetThreadFollowing is called with the id of a reply instead of a thread's root post; developer-facing."
+  },
+  {
     "id": "plugin.api.update_post.mm_blocks_actions.app_error",
     "translation": "Invalid mm_blocks_actions in plugin post update.",
     "description": "Error returned to plugins when a post update contains invalid 'mm_blocks_actions' data (interactive blocks); developer-facing, keep the property name untranslated."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Invalid file creator.",
+    "description": "Error returned to plugins when UpdatePostWithOptions is called with a FileCreatorID that is not a valid Mattermost user id; developer-facing."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",

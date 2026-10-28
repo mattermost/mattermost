@@ -84,6 +84,27 @@ func saveChannelWithoutTeam(t *testing.T, rctx request.CTX, ss store.Store, disp
 	return channel
 }
 
+// saveRemoteSharedChannel marks channel as shared from a remote (non-home).
+// The row is removed when the test ends: a later cleanupChannels permanently
+// deletes the channel but not its SharedChannels row, and an orphaned row
+// breaks clearSharedChannels in TestSharedChannelStore.
+func saveRemoteSharedChannel(t *testing.T, ss store.Store, channel *model.Channel) {
+	t.Helper()
+	_, err := ss.SharedChannel().Save(&model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		CreatorId: model.NewId(),
+		ShareName: "testremote" + model.NewId(),
+		Home:      false,
+		RemoteId:  model.NewId(),
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err := ss.SharedChannel().Delete(channel.Id)
+		assert.NoError(t, err)
+	})
+}
+
 func channelToJSON(t *testing.T, channel *model.Channel) string {
 	t.Helper()
 	js, err := json.Marshal(channel)
@@ -7927,15 +7948,7 @@ func testChannelStoreGetChannelAdminsForChannelsMissingPropertyValue(t *testing.
 	require.NoError(t, err)
 	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: remoteChannel.Id, UserId: admin.Id, SchemeAdmin: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 	require.NoError(t, err)
-	_, scErr := ss.SharedChannel().Save(&model.SharedChannel{
-		ChannelId: remoteChannel.Id,
-		TeamId:    remoteChannel.TeamId,
-		CreatorId: model.NewId(),
-		ShareName: "testremote" + model.NewId(),
-		Home:      false,
-		RemoteId:  model.NewId(),
-	})
-	require.NoError(t, scErr)
+	saveRemoteSharedChannel(t, ss, remoteChannel)
 
 	rows, nErr := ss.Channel().GetChannelAdminsForChannelsMissingPropertyValue(groupID, fieldID, 1000, 0)
 	require.NoError(t, nErr)
@@ -7985,6 +7998,10 @@ func testChannelStoreGetChannelAdminsForChannelsMissingPropertyValue(t *testing.
 	})
 
 	t.Run("ties on DisplayName are broken by ChannelId, so page-size-1 pagination never skips or duplicates a row", func(t *testing.T) {
+		// Unshare before the wipe: cleanupChannels drops the channel but not
+		// its SharedChannels row.
+		_, err := ss.SharedChannel().Delete(remoteChannel.Id)
+		require.NoError(t, err)
 		cleanupChannels(t, rctx, ss)
 
 		tieGroupID := model.NewId()
@@ -8077,15 +8094,7 @@ func testChannelStoreCountChannelAdminAssignmentsForChannelsMissingPropertyValue
 	require.NoError(t, err)
 	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: remoteChannel.Id, UserId: adminC.Id, SchemeAdmin: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 	require.NoError(t, err)
-	_, scErr := ss.SharedChannel().Save(&model.SharedChannel{
-		ChannelId: remoteChannel.Id,
-		TeamId:    remoteChannel.TeamId,
-		CreatorId: model.NewId(),
-		ShareName: "testremote" + model.NewId(),
-		Home:      false,
-		RemoteId:  model.NewId(),
-	})
-	require.NoError(t, scErr)
+	saveRemoteSharedChannel(t, ss, remoteChannel)
 
 	// A sixth channel whose team row does not exist, with its own admin,
 	// must not count either -- same as the notify rows, which join Teams.
@@ -8177,15 +8186,7 @@ func testChannelStoreExistsChannelMissingPropertyValue(t *testing.T, rctx reques
 	// shown only informationally in the channel-list modal.
 	remoteChannel, err := ss.Channel().Save(rctx, &model.Channel{TeamId: team.Id, DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}, -1)
 	require.NoError(t, err)
-	_, scErr := ss.SharedChannel().Save(&model.SharedChannel{
-		ChannelId: remoteChannel.Id,
-		TeamId:    remoteChannel.TeamId,
-		CreatorId: model.NewId(),
-		ShareName: "testremote" + model.NewId(),
-		Home:      false,
-		RemoteId:  model.NewId(),
-	})
-	require.NoError(t, scErr)
+	saveRemoteSharedChannel(t, ss, remoteChannel)
 
 	exists, nErr = ss.Channel().ExistsChannelMissingPropertyValue(groupID, fieldID)
 	require.NoError(t, nErr)

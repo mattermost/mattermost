@@ -47,7 +47,7 @@ func Merge[T any](base T, patch T, mergeConfig *MergeConfig) (T, error) {
 		ret.Elem().Set(val)
 	}
 
-	r, ok := ret.Elem().Interface().(T)
+	r, ok := reflect.TypeAssert[T](ret.Elem())
 	if !ok {
 		return r, fmt.Errorf(
 			"Unexpected type of return element, expected %s, is %s",
