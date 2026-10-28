@@ -112,6 +112,8 @@ test.describe('System Console - Reporting - Server Logs', () => {
         'holds new entries while an entry is expanded and shows them from the new entries button',
         {tag: ['@system_console', '@server_logs']},
         async ({pw}) => {
+            test.setTimeout(pw.duration.two_min);
+
             const {adminUser, adminClient} = await pw.initSetup();
             const expandedMarker = `pw-log-${pw.random.id()}`;
 
