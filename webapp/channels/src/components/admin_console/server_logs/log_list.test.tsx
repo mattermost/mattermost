@@ -703,16 +703,6 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(levelMenuItem('Error')).toHaveTextContent('Error1');
         });
 
-        test('should highlight the node name matching the search', () => {
-            renderListWith({
-                logs: [makeNodeLog('node-b', 'b')],
-                nodes: ['node-a', 'node-b'],
-                search: 'node-b',
-            });
-
-            expect(document.querySelector('.LogRow__node mark')).toHaveTextContent('node-b');
-        });
-
         test('should offer to clear the selected node when it has no entries', () => {
             const onSelectedNodeChange = jest.fn();
             renderListWith({logs: [], nodes: ['node-a', 'node-b'], selectedNode: 'node-b', onSelectedNodeChange});

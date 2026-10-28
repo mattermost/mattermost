@@ -303,7 +303,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                         className='LogRow__node'
                         title={log[LogNodeKey]}
                     >
-                        {highlightSearchTerm(log[LogNodeKey] ?? '', searchTerm)}
+                        {log[LogNodeKey]}
                     </span>
                 )}
                 <span className='LogRow__message'>

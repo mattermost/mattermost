@@ -540,10 +540,11 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(getRow()).toHaveClass('LogRow--with-node');
         });
 
-        test('should highlight the search term in the node', () => {
+        // The search doesn't match node names
+        test('should not highlight the search term in the node', () => {
             renderLogRow({log: nodeLog, showNode: true, searchTerm: 'node'});
 
-            expect(document.querySelector('.LogRow__node mark')).toHaveTextContent('node');
+            expect(document.querySelector('.LogRow__node mark')).not.toBeInTheDocument();
         });
 
         test('should not list the node among the extra fields', () => {

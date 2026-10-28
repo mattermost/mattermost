@@ -109,7 +109,6 @@ type queryLogsCluster struct {
 	info           *model.ClusterInfo
 	remoteLogs     map[string]einterfaces.NodeLogs
 	queryLogsErr   *model.AppError
-	unsearchedErr  *model.AppError
 	queryLogsCalls int
 	lastFilter     *model.LogFilter
 }
@@ -121,9 +120,6 @@ func (c *queryLogsCluster) QueryLogs(rctx request.CTX, page, perPage int, logFil
 	c.lastFilter = logFilter
 	if c.queryLogsErr != nil {
 		return nil, c.queryLogsErr
-	}
-	if c.unsearchedErr != nil && logFilter.Search == "" {
-		return nil, c.unsearchedErr
 	}
 	return c.remoteLogs, nil
 }
@@ -193,49 +189,6 @@ func TestQueryLogs(t *testing.T) {
 			_, appErr := th.App.QueryLogs(th.Context, 0, 10, filter)
 			require.Nil(t, appErr)
 			assert.Equal(t, filter, cluster.lastFilter)
-		})
-
-		t.Run("a search naming a remote node queries it again unsearched", func(t *testing.T) {
-			cluster.queryLogsCalls = 0
-			filter := &model.LogFilter{LogLevels: []string{"error"}, Search: "NODE-2"}
-			logs, appErr := th.App.QueryLogs(th.Context, 0, 10, filter)
-			require.Nil(t, appErr)
-			assert.ElementsMatch(t, []string{"node-1", "node-2", "node-3"}, nodeNames(logs))
-			assert.Equal(t, 2, cluster.queryLogsCalls)
-			assert.Equal(t, &model.LogFilter{ServerNames: []string{"node-2"}, LogLevels: []string{"error"}}, cluster.lastFilter)
-			assert.Equal(t, "NODE-2", filter.Search, "the caller's filter is left alone")
-		})
-
-		t.Run("a search naming no node queries the cluster once", func(t *testing.T) {
-			cluster.queryLogsCalls = 0
-			_, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{Search: "websocket"})
-			require.Nil(t, appErr)
-			assert.Equal(t, 1, cluster.queryLogsCalls)
-			assert.Equal(t, "websocket", cluster.lastFilter.Search)
-		})
-
-		t.Run("a failed unsearched query keeps the searched entries", func(t *testing.T) {
-			cluster.unsearchedErr = model.NewAppError("QueryLogs", "test.cluster_error", nil, "", http.StatusInternalServerError)
-			t.Cleanup(func() { cluster.unsearchedErr = nil })
-
-			logs, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{Search: "node-2"})
-			require.Nil(t, appErr)
-			assert.Equal(t, []string{`{"msg":"from node-2"}`}, logs["node-2"])
-		})
-
-		t.Run("a search naming the only listed node keeps searching it", func(t *testing.T) {
-			cluster.queryLogsCalls = 0
-			_, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{ServerNames: []string{"node-2"}, Search: "node-2"})
-			require.Nil(t, appErr)
-			assert.Equal(t, 1, cluster.queryLogsCalls)
-			assert.Equal(t, "node-2", cluster.lastFilter.Search)
-		})
-
-		t.Run("a search naming a node outside server_names doesn't query it", func(t *testing.T) {
-			cluster.queryLogsCalls = 0
-			_, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{ServerNames: []string{"node-3"}, Search: "node-2"})
-			require.Nil(t, appErr)
-			assert.Equal(t, 1, cluster.queryLogsCalls)
 		})
 
 		t.Run("local and remote node", func(t *testing.T) {

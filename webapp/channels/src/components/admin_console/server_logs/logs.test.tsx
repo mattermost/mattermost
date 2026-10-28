@@ -446,18 +446,6 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
         expect(document.querySelector('.LogRow__node')).toBeNull();
     });
 
-    // The server matches node names too, by returning a matching node's entries unsearched
-    test('should send a search for a node name and show what the server returns', async () => {
-        const {getLogs, rerenderLogs} = renderLogs([nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]);
-
-        await userEvent.type(screen.getByLabelText('Search logs'), 'NODE-B');
-
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'NODE-B'})));
-        rerenderLogs([nodeLog('node-b', 'b')]);
-        await waitFor(() => expect(screen.queryByText('a')).not.toBeInTheDocument());
-        expect(screen.getByText('b')).toBeInTheDocument();
-    });
-
     test('should show the truncation notice for a node that returned a full page', async () => {
         renderWithContext(
             <Logs

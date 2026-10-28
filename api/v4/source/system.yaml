@@ -1326,9 +1326,7 @@
                   description: >
                     Returns only entries with a field, other than `level` and `timestamp`,
                     whose value contains this text, ignoring case. Fields that aren't strings
-                    are matched against their JSON. Leave empty to return every entry. When
-                    more than one node is returned, a node whose name contains this text
-                    returns its entries unsearched.
+                    are matched against their JSON. Leave empty to return every entry.
                   example: "websocket"
       responses:
         "200":
