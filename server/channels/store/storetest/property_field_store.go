@@ -5678,7 +5678,7 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 	t.Run("returns every matching row", func(t *testing.T) {
 		f := newListingFixture(t, ss)
 		var expected []string
-		for i := range 210 {
+		for i := range model.AccessControlGroupFieldLimit {
 			name := fmt.Sprintf("row_%03d", i)
 			if i%2 == 0 {
 				f.template(name)
