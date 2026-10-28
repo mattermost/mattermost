@@ -10,9 +10,14 @@ export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classifi
 
 export type ChannelDisplayLocation = 'display_label_header' | 'display_banner_top';
 
-// Test ids of the listing's search and empty states.
+// Menu labels of the listing's source filter, in the order the menu offers them.
+export type ListingSourceFilter = 'All' | 'Managed here' | 'LDAP' | 'SAML' | 'OpenID' | 'Plugin';
+
+// Test ids of the listing's search, filters and empty states.
 export const LISTING_TEST_IDS = {
     search: 'global-attributes-search',
+    sourceFilter: 'global-attributes-source-filter',
+    clearFilters: 'global-attributes-clear-filters',
     empty: 'global-attributes-empty',
     emptySearch: 'global-attributes-empty-search',
 } as const;
@@ -172,6 +177,14 @@ export default class GlobalAttributes {
         return this.container.page().getByTestId(LISTING_TEST_IDS.search);
     }
 
+    get sourceFilter() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.sourceFilter);
+    }
+
+    get clearFiltersButton() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.clearFilters);
+    }
+
     get emptyState() {
         return this.container.page().getByTestId(LISTING_TEST_IDS.empty);
     }
@@ -219,6 +232,19 @@ export default class GlobalAttributes {
     async clearSearch() {
         const response = this.waitForListingResponse();
         await this.searchInput.clear();
+        await response;
+    }
+
+    async selectSourceFilter(source: ListingSourceFilter) {
+        const response = this.waitForListingResponse();
+        await this.sourceFilter.click();
+        await this.container.page().getByRole('menuitemradio', {name: source, exact: true}).click();
+        await response;
+    }
+
+    async clearFilters() {
+        const response = this.waitForListingResponse();
+        await this.clearFiltersButton.click();
         await response;
     }
 
