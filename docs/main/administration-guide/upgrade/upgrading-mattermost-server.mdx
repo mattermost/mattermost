@@ -69,6 +69,7 @@ Make sure that you understand how to [prepare for your upgrade](/administration-
 - **Location and size of your local storage directory**: The local storage directory contains all the files that users have attached to their messages.
   - If you don't know its location, open the System Console and go to **Environment \> File Storage**, then read the value in **Local Storage Directory**.
   - Paths are relative to the `mattermost` directory. For example, if the local storage directory is `./data/` then the absolute path is `&#123;install-path&#125;/mattermost/data`.
+  - Installs created with `mattermost setup` store files, plugins, and logs at the absolute paths in the configuration, by default under `/var/lib/mattermost` and `/var/log/mattermost`. Back those up, and back up `/etc/mattermost/mattermost.env`. The steps below do not delete `/var` or `/etc`. Do not run `mattermost setup` during an upgrade, and do not move an existing install onto those paths as part of this procedure.
 - **Database disk space**: If you're upgrading a Mattermost deployment on the same server as your database, we recommend a minimum 2GB of free disk space to allow for extraction, copy, and cleanup, and a minimum of twice the size of your Mattermost installation available for the database.
 
 <Tip>

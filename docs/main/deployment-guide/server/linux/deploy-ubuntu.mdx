@@ -67,9 +67,14 @@ sudo apt install mattermost -y
 Mattermost installs to `/opt/mattermost`. The package creates a `mattermost` user and group and a systemd unit file. The service is **not** enabled or started at this point.
 
 :::note[systemd dependencies]
-The Mattermost package doesn't declare a database dependency in its systemd unit (the package is used for both single-host and external-database installs). If you installed PostgreSQL on the same host, add the following to the `[Unit]` section of `/lib/systemd/system/mattermost.service`:
+The Mattermost package doesn't declare a database dependency in its systemd unit (the package is used for both single-host and external-database installs). If you installed PostgreSQL on the same host, add a drop-in. Do not edit `/lib/systemd/system/mattermost.service`. Package upgrades replace that file.
+
+```sh
+sudo systemctl edit mattermost
+```
 
 ```ini
+[Unit]
 After=postgresql.service
 BindsTo=postgresql.service
 ```
@@ -77,29 +82,11 @@ BindsTo=postgresql.service
 
 ## Step 5: Configure the server
 
-Copy the default configuration to the active config file with the right ownership and permissions:
+The package already installs the systemd unit and the `mattermost` user. Run setup as root. It writes `/etc/mattermost/mattermost.env` (mode `0600`) and adds a drop-in so the unit loads that file. By default the active configuration is stored in PostgreSQL. On a new installation, files go to `/var/lib/mattermost/data`, plugins to `/var/lib/mattermost/plugins` and `/var/lib/mattermost/client/plugins`, and logs to `/var/log/mattermost`. An existing installation keeps its current paths. Setup does not enable or start the service, and package install scripts do not run it.
 
 ```sh
-sudo install -C -m 600 -o mattermost -g mattermost \
-  /opt/mattermost/config/config.defaults.json \
-  /opt/mattermost/config/config.json
-```
-
-Edit `/opt/mattermost/config/config.json` and set:
-
-- `SqlSettings.DriverName`: `"postgres"`
-- `SqlSettings.DataSource`: `"postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable&connect_timeout=10"` — replace each placeholder.
-- `ServiceSettings.SiteURL`: the public URL of your deployment (e.g., `https://mattermost.example.com`).
-- (Recommended) [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address): the email address users contact for help.
-
-:::note[TLS mode for `DataSource`]
-The `sslmode` value depends on your database environment. The two relevant options are `disable` and `require`. Managed services such as AWS Lightsail require `sslmode=require`. Check your provider's documentation.
-:::
-
-Start the server:
-
-```sh
-sudo systemctl start mattermost
+sudo mattermost setup
+sudo systemctl enable --now mattermost
 ```
 
 Verify it's running:
@@ -108,11 +95,30 @@ Verify it's running:
 curl http://localhost:8065
 ```
 
-You should see the Mattermost HTML response. Enable the service on boot:
+You should see the Mattermost HTML response.
+
+On a new installation, setup asks for the PostgreSQL URL and the Site URL. A non-interactive install:
 
 ```sh
-sudo systemctl enable mattermost.service
+printf '%s\n' 'postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable' | sudo tee /root/mattermost-database.url >/dev/null
+sudo chmod 600 /root/mattermost-database.url
+sudo mattermost setup \
+  --database-url-file /root/mattermost-database.url \
+  --site-url 'https://mattermost.example.com' \
+  --non-interactive
 ```
+
+The URL file keeps the password out of the shell history and the process list. Remove it after setup. `--database-url -` reads one line from stdin instead.
+
+:::note[TLS mode for `DataSource`]
+The `sslmode` value depends on your database environment. The two relevant options are `disable` and `require`. Managed services such as AWS Lightsail require `sslmode=require`. Check your provider's documentation.
+:::
+
+Pass `--config-store file` to keep configuration in a file. Setup then writes `/etc/mattermost/config.json` and sets `MM_CONFIG` to that path.
+
+Once the environment file is in place, Mattermost does not read `/opt/mattermost/config/config.json`. Change settings afterward in the System Console, with `mmctl`, or by editing `/etc/mattermost/config.json` when you chose file storage. Set [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address) to the address users contact for help.
+
+An existing server that already has configuration in PostgreSQL can be joined with the same command. Setup reports that this is an existing installation, checks connectivity, and writes this host's environment file. It adds a systemd drop-in only when the unit does not already load that file. It does not change the stored configuration or the Site URL. Do not run setup as part of an `apt upgrade`.
 
 ## Step 6: Update Mattermost
 
@@ -123,6 +129,8 @@ sudo systemctl stop mattermost
 sudo apt update && sudo apt upgrade
 sudo systemctl start mattermost
 ```
+
+`apt upgrade` replaces the package files under `/opt/mattermost`. It leaves `/var/lib/mattermost`, `/var/log/mattermost`, and `/etc/mattermost` in place. Do not run `mattermost setup` as part of the upgrade. Ubuntu does not ship an AppArmor profile for the Mattermost binary, so those directories need no profile change.
 
 :::important[Stop the server before upgrading]
 `apt upgrade` will replace the Mattermost binary while it's running. Stop the systemd service first to avoid corrupt state.
@@ -135,7 +143,7 @@ sudo systemctl stop mattermost
 sudo apt remove --purge mattermost
 ```
 
-This removes the package but leaves `/opt/mattermost/data`, `/opt/mattermost/logs`, `/opt/mattermost/plugins`, and `/opt/mattermost/config` in place. Back these up before deleting if you may need to restore.
+This removes the package. An install that used `mattermost setup` keeps files in `/var/lib/mattermost`, logs in `/var/log/mattermost`, and configuration in `/etc/mattermost`. Back those up before deleting them. Older installs may still have `data/`, `logs/`, `plugins/`, and `config/` under `/opt/mattermost`.
 
 ## Next steps
 
