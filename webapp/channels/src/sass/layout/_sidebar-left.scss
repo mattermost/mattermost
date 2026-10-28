@@ -311,6 +311,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
         font-weight: 400;
     }
 
+    // As the product rail's filter menu, the button is a <button>; drop the browser's styling.
+    .SidebarFilters button.SidebarFilters_filterButton {
+        padding: 0;
+        border: none;
+    }
+
     .SidebarFilters .SidebarFilters_filterButton:hover {
         color: rgba(var(--sidebar-text-rgb), 0.8);
     }

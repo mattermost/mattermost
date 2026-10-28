@@ -39,6 +39,9 @@ type Props = {
     category: ChannelCategory;
     categoryIndex: number;
     channelIds: string[];
+
+    // Hidden because the product rail's section left it with nothing to show.
+    hiddenByProductRail?: boolean;
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     isNewCategory: boolean;
@@ -267,6 +270,10 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         }
 
         if (category.type === CategoryTypes.FAVORITES && !channelIds?.length) {
+            return null;
+        }
+
+        if (this.props.hiddenByProductRail) {
             return null;
         }
 

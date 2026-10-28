@@ -18,6 +18,31 @@
         }
     }
 
+    .team-sidebar__hide {
+        display: flex;
+        width: 32px;
+        height: 32px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-m);
+        margin: 4px auto 12px;
+        background: none;
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+
+        svg {
+            fill: currentColor;
+        }
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+        }
+    }
+
     .team-sidebar-bottom-plugin {
         width: 100%;
         flex: 0 0 auto;
