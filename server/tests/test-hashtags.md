@@ -6,6 +6,7 @@ Hashtags in Mattermosts should render as specified below.
 
 #testing
 #testing123
+#123test
 #test-test
 #test_test
 #test! (punctuation should be excluded from linking)
@@ -14,7 +15,6 @@ Hashtags in Mattermosts should render as specified below.
 
 #### These strings should not auto-link:
 
-#123test
 #?test
 #-test
 
