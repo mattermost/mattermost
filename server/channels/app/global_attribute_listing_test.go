@@ -228,6 +228,10 @@ func TestSearchGlobalAttributeListingGating(t *testing.T) {
 						f.Type = model.PropertyFieldTypeRank
 						f.Attrs = model.StringInterface{"display_name": env.name("classification display")}
 					})
+					// A row sharing its name with a user field linked to the
+					// Classification template.
+					env.linked(classification, model.PropertyFieldObjectTypeUser, env.name("level"))
+					clash := env.template(env.name("LEVEL"))
 
 					for _, l := range licenses {
 						t.Run(l.name, func(t *testing.T) {
@@ -239,7 +243,7 @@ func TestSearchGlobalAttributeListingGating(t *testing.T) {
 
 							listing := env.mustSearch()
 
-							expected := []string{userField.Name, template.Name}
+							expected := []string{userField.Name, template.Name, clash.Name}
 							expectedAppliesTo := []string{model.PropertyFieldObjectTypeUser}
 							if channelAllowed {
 								expected = append(expected, channelField.Name)
@@ -258,6 +262,15 @@ func TestSearchGlobalAttributeListingGating(t *testing.T) {
 
 							for _, row := range listing.Rows {
 								assert.Equal(t, row.Field.ID == classification.ID, row.IsClassification, row.Field.Name)
+							}
+
+							conflict := env.row(listing, clash.Name).NameConflict
+							require.NotNil(t, conflict)
+							if classificationReachable {
+								require.NotNil(t, conflict.OwnerTemplate)
+								assert.Equal(t, classification.ID, conflict.OwnerTemplate.ID)
+							} else {
+								assert.Nil(t, conflict.OwnerTemplate, "a hidden Classification template must not come back as an owner template")
 							}
 						})
 					}

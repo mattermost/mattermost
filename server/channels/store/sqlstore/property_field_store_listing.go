@@ -18,11 +18,11 @@ func listingWhere(opts model.GlobalAttributeListingOpts) sq.Sqlizer {
 	where := sq.And{
 		sq.Eq{"GroupID": opts.GroupID},
 		sq.Eq{"DeleteAt": 0},
+		sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelSystem)},
 		sq.Or{
 			sq.Eq{"ObjectType": model.PropertyFieldObjectTypeTemplate},
 			sq.And{
 				sq.Eq{"ObjectType": opts.AllowedResourceTypes},
-				sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelSystem)},
 				sq.Or{sq.Eq{"LinkedFieldID": nil}, sq.Eq{"LinkedFieldID": ""}},
 			},
 		},
@@ -44,7 +44,7 @@ func listingWhere(opts model.GlobalAttributeListingOpts) sq.Sqlizer {
 }
 
 // SearchGlobalAttributeListing returns the Global Attributes listing rows
-// matching the term: every live template in the group plus the live
+// matching the term: every live system-level template in the group plus the live
 // system-level fields of an allowed resource type that link to no template.
 func (s *SqlPropertyFieldStore) SearchGlobalAttributeListing(rctx request.CTX, opts model.GlobalAttributeListingOpts) ([]*model.PropertyField, error) {
 	if err := opts.IsValid(); err != nil {

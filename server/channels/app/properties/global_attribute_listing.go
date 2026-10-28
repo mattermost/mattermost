@@ -72,7 +72,7 @@ func (ps *PropertyService) SearchGlobalAttributeListing(rctx request.CTX, groupI
 		return nil, fmt.Errorf("SearchGlobalAttributeListing: %w", err)
 	}
 
-	conflicts, err := ps.nameConflicts(rctx, groupID, fields)
+	conflicts, err := ps.nameConflicts(rctx, groupID, fields, opts.ExcludeIDs)
 	if err != nil {
 		return nil, fmt.Errorf("SearchGlobalAttributeListing: %w", err)
 	}
@@ -216,8 +216,9 @@ func listingSyncSources(field *model.PropertyField) []string {
 // user field that shares its name ignoring case without belonging to it. CEL
 // names user fields as user.attributes.<name>, so such a field is read by a
 // policy that means the row. Channel and post rows are another namespace and
-// never conflict.
-func (ps *PropertyService) nameConflicts(rctx request.CTX, groupID string, fields []*model.PropertyField) (map[string]*model.GlobalAttributeNameConflict, error) {
+// never conflict. A conflicting field linked to a template in hiddenIDs is
+// reported without its owner template, so a hidden template is never returned.
+func (ps *PropertyService) nameConflicts(rctx request.CTX, groupID string, fields []*model.PropertyField, hiddenIDs []string) (map[string]*model.GlobalAttributeNameConflict, error) {
 	var names []string
 	for _, field := range fields {
 		if sharesUserNamespace(field) {
@@ -250,7 +251,7 @@ func (ps *PropertyService) nameConflicts(rctx request.CTX, groupID string, field
 			continue
 		}
 		found[field.ID] = conflicting
-		if conflicting.LinkedFieldID != nil && *conflicting.LinkedFieldID != "" {
+		if conflicting.LinkedFieldID != nil && *conflicting.LinkedFieldID != "" && !slices.Contains(hiddenIDs, *conflicting.LinkedFieldID) {
 			templateIDs[*conflicting.LinkedFieldID] = struct{}{}
 		}
 	}

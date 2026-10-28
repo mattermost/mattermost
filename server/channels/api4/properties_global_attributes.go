@@ -54,6 +54,9 @@ func shapeListingFields(c *Context, group *model.PropertyGroup, listing *model.G
 // listing: every row matching the search term, already composed with its
 // applies-to resources, owners, source and name conflict.
 func searchGlobalAttributeListing(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord(model.AuditEventSearchGlobalAttributeListing, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), globalAttributesReadPermissions) {
 		c.SetPermissionError(globalAttributesReadPermissions...)
 		return
@@ -68,9 +71,6 @@ func searchGlobalAttributeListing(c *Context, w http.ResponseWriter, r *http.Req
 		c.SetInvalidParamWithErr("global_attribute_listing_search", err)
 		return
 	}
-
-	auditRec := c.MakeAuditRecord(model.AuditEventSearchGlobalAttributeListing, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "term", search.Term)
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
