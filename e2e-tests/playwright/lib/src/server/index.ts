@@ -86,7 +86,15 @@ export {opensearchServerConfig, ensureOpensearch} from './opensearch';
 export {ensureAzurite, listAzuriteBlobNames} from './azurite';
 export {ensureLocalFile, listMattermostDataFiles} from './filestore';
 export {ensurePostgresSearch} from './postgres_search';
-export {ensureFeatureFlag} from './feature_flags';
+export {
+    defineFeatureFlags,
+    ensureFeatureFlag,
+    getFeatureFlagKey,
+    patchFeatureFlags,
+    setFeatureFlagSegments,
+} from './feature_flags';
+export {flagPropagationTimeoutMs} from './split_mock';
+export type {FeatureFlagDefinition, FeatureFlagRule, FeatureFlagValue} from './split_mock';
 export {ensureDefaultServerEnv} from './default_server_env';
 export {defaultFeatureFlags} from './default_feature_flags';
 export {ensurePhase2MigrationCompleted} from './migrations';

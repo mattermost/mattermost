@@ -3,6 +3,8 @@
 
 import type {Client4} from '@mattermost/client';
 
+import {patchFeatureFlags} from '@mattermost/playwright-lib';
+
 /**
  * Enable team-membership ABAC end to end: the umbrella attribute-based access
  * control setting plus the `TeamMembershipAccessControl` feature flag that gates
@@ -10,13 +12,11 @@ import type {Client4} from '@mattermost/client';
  * render the membership-policy toggle — mirroring the server enforcement gate.
  */
 export async function enableTeamMembershipPolicies(client: Client4): Promise<void> {
+    await patchFeatureFlags(client, {TeamMembershipAccessControl: true});
     await client.patchConfig({
         AccessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: true,
-        },
-        FeatureFlags: {
-            TeamMembershipAccessControl: true,
         },
     } as any);
 }
