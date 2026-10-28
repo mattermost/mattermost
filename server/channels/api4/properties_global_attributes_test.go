@@ -301,6 +301,35 @@ func TestSearchGlobalAttributeListing(t *testing.T) {
 		}
 	})
 
+	t.Run("a stored permissions object is withheld like the field endpoints withhold it from a v2 group", func(t *testing.T) {
+		permissionsToken := "gaperm" + strings.ToLower(model.NewId()[:10])
+		created, storeErr := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:    group.ID,
+			Name:       permissionsToken,
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()},
+					Allow:    []string{model.PropertyActionValueWrite},
+				}},
+			},
+		})
+		require.NoError(t, storeErr)
+		require.NotNil(t, created.Permissions)
+
+		listing, resp, err := searchGlobalAttributes(t, th.SystemAdminClient, searchGlobalAttributesBody(t, model.GlobalAttributeListingSearch{Term: permissionsToken}))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, listing.Rows, 1)
+		assert.Equal(t, created.ID, listing.Rows[0].Field.ID)
+		assert.Nil(t, listing.Rows[0].Field.Permissions)
+	})
+
 	t.Run("only POST is routed", func(t *testing.T) {
 		r, err := th.SystemAdminClient.DoAPIRequestWithHeaders(context.Background(), http.MethodGet, th.SystemAdminClient.APIURL+globalAttributesSearchRoute, "", nil)
 		if r != nil {
