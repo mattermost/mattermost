@@ -89,9 +89,9 @@ test.describe('System Console - Reporting - Server Logs', () => {
             // * Verify live tail is on
             await expect(serverLogs.liveTailValue).toHaveValue('Every 10 seconds');
 
-            // * Verify the poll asks a single node only for entries from its newest loaded one onwards
+            // * Verify the poll asks every node at once, only for what was logged since the page loaded
             const body = (await pollRequest).postDataJSON();
-            expect(body.server_names).toHaveLength(1);
+            expect(body.server_names).toEqual([]);
             expect(body.date_from).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/);
 
             // # Write an entry only after the page has loaded, so it can only arrive by polling

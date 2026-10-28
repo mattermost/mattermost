@@ -12,17 +12,16 @@ import type {
 } from '@mattermost/types/admin';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-
-import {useLatest} from 'hooks/useLatest';
 
 import LogFormatMenu from './log_format_menu';
 import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
 import useLogPolling from './use_log_polling';
-import {newestLogTimes, presetStartMs} from './utils';
+import {presetStartMs} from './utils';
 
 import './logs.scss';
 
@@ -32,8 +31,8 @@ type Props = {
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
-        getLogs: (logFilter: LogFilter) => Promise<unknown>;
-        getNewLogs: (logFilters: LogFilter[]) => Promise<unknown>;
+        getLogs: (logFilter: LogFilter) => Promise<ActionResult | undefined>;
+        getNewLogs: (logFilter: LogFilter) => Promise<ActionResult | undefined>;
         getPlainLogs: (
             page?: number | undefined,
             perPage?: number | undefined,
@@ -77,6 +76,10 @@ function formatFilterDate(date: Date): string {
     const pad = (n: number, width = 2) => String(n).padStart(width, '0');
     return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.${pad(date.getUTCMilliseconds(), 3)} +00:00`;
 }
+
+// A poll asks for everything logged since the previous fetch started, reaching back this much further
+// for a browser clock ahead of the servers' and for entries flushed late. The repeats are dropped when merged
+const POLL_OVERLAP_MS = 30000;
 
 const ALL_SERVER_NAMES: LogServerNames = [];
 const LOG_LEVELS: LogLevels = [LogLevelEnum.ERROR, LogLevelEnum.WARN, LogLevelEnum.INFO, LogLevelEnum.DEBUG];
@@ -130,9 +133,9 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         selectedNode && !knownNodes.includes(selectedNode) ? [...knownNodes, selectedNode].sort() : knownNodes
     ), [knownNodes, selectedNode]);
 
-    // Read by polls, which must not change reload and so trigger a full reload
-    const logsRef = useLatest(logs);
-    const logNodesRef = useLatest(logNodes);
+    // When the last successful fetch started, so a poll only asks for what's been logged since.
+    // Only a success moves it, so a failed poll's gap is covered by the next one
+    const lastFetchStartRef = useRef<number | null>(null);
 
     // One fetch at a time, so a slow response can't overwrite a newer one
     const fetchQueueRef = useRef<Promise<unknown>>(Promise.resolve());
@@ -166,27 +169,24 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
             const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
             const logLevels = allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level));
 
+            // A full reload covers the whole range, a poll only what's been logged since the last fetch
+            if (!silent) {
+                lastFetchStartRef.current = null;
+            }
+            const since = lastFetchStartRef.current === null ? rangeStart : Math.max(lastFetchStartRef.current - POLL_OVERLAP_MS, rangeStart ?? 0);
+            const startedAt = Date.now();
+
             // No end date, so the server ends the range at its own clock rather than the browser's
-            const fullQuery = {
+            const query = {
                 serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES,
                 logLevels,
-                dateFrom: rangeStart === null ? '' : formatFilterDate(new Date(rangeStart)),
+                dateFrom: since === null ? '' : formatFilterDate(new Date(since)),
                 dateTo: '',
             };
-            if (!silent) {
-                await actions.getLogs(fullQuery);
-                return;
+            const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query));
+            if (!result?.error) {
+                lastFetchStartRef.current = startedAt;
             }
-
-            // A poll asks each node only for entries from its newest loaded one onwards. New nodes
-            // aren't known until a full reload
-            const nodes = selectedNode ? [selectedNode] : logNodesRef.current;
-            const newest = newestLogTimes(logsRef.current);
-            await actions.getNewLogs(nodes.length === 0 ? [fullQuery] : nodes.map((node) => ({
-                ...fullQuery,
-                serverNames: [node],
-                dateFrom: node in newest ? formatFilterDate(new Date(newest[node])) : fullQuery.dateFrom,
-            })));
         };
 
         pendingFetchesRef.current++;
@@ -198,7 +198,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         });
         fetchQueueRef.current = fetched.catch(() => undefined);
         return fetched;
-    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, actions, logsRef, logNodesRef]);
+    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, actions]);
 
     // reload's deps are the query's inputs, so this also covers every filter and page change
     useEffect(() => {
