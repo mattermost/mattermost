@@ -428,6 +428,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.propertyService.AddHook(properties.NewSessionAttributesHook(s.propertyService, saGroup.ID))
 
+	// Value shape validation for the field types core checks in every group
+	// (number). A pre-hook, so its place in the chain does not matter
+	// beyond running before the store write.
+	s.propertyService.AddHook(properties.NewValueTypeValidationHook(s.propertyService))
+
 	// Type-change value cleanup — registered last so the field write has
 	// passed every other gate (license, access control, validation, limit)
 	// before we cascade-delete dependent values. PostUpdate hooks run after
