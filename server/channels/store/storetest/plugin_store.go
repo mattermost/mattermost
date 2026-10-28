@@ -1502,22 +1502,15 @@ func testPluginListWithOptions(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		keys1, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "p_"}, 0, 4)
 		require.NoError(t, err)
-		require.Len(t, keys1, 4)
+		assert.Equal(t, []string{"p_00", "p_01", "p_02", "p_03"}, keys1)
 
 		keys2, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "p_"}, 4, 4)
 		require.NoError(t, err)
-		require.Len(t, keys2, 4)
+		assert.Equal(t, []string{"p_04", "p_05", "p_06", "p_07"}, keys2)
 
 		keys3, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "p_"}, 8, 4)
 		require.NoError(t, err)
-		require.Len(t, keys3, 2)
-
-		allKeys := append(append(keys1, keys2...), keys3...)
-		expected := make([]string, 10)
-		for i := range 10 {
-			expected[i] = fmt.Sprintf("p_%02d", i)
-		}
-		assert.ElementsMatch(t, expected, allKeys)
+		assert.Equal(t, []string{"p_08", "p_09"}, keys3)
 	})
 
 	t.Run("expired keys excluded", func(t *testing.T) {

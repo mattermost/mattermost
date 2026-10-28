@@ -118,10 +118,7 @@ func buildTestPlugin(t *testing.T) []byte {
 	cmd.Dir = serverPublicDir
 	cmd.Env = append(os.Environ(), "GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=0")
 	out, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Logf("Plugin compilation output:\n%s", out)
-	}
-	require.NoError(t, err, "failed to compile test plugin")
+	require.NoError(t, err, "failed to compile test plugin:\n%s", out)
 
 	pluginBinaryData, err := os.ReadFile(pluginBinary)
 	require.NoError(t, err)
@@ -244,19 +241,11 @@ func startMattermost(t *testing.T, ctx context.Context, image string) (mmURL str
 	})
 	require.NoError(t, err)
 
-	// Get PostgreSQL network address (accessible from other containers in the same network).
-	pgHost, err := pgContainer.Host(ctx)
-	require.NoError(t, err)
-	pgPort, err := pgContainer.MappedPort(ctx, "5432")
-	require.NoError(t, err)
-
 	// For container-to-container communication, we need the container's internal IP.
 	pgInternalIP, err := pgContainer.ContainerIP(ctx)
 	require.NoError(t, err)
 
 	dsn := fmt.Sprintf("postgres://mmuser:mostest@%s:5432/mattermost_test?sslmode=disable", pgInternalIP)
-	_ = pgHost // used only for diagnostics
-	_ = pgPort // used only for diagnostics
 
 	// Start Mattermost.
 	mmReq := testcontainers.ContainerRequest{
