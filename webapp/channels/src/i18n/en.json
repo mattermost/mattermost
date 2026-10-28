@@ -3008,7 +3008,7 @@
     "description": "Admin console setting label on the System Console Cache Settings page for the file path of the CA certificate used to verify the Redis server."
   },
   "admin.cacheSettings.redisTLSCADesc": {
-    "defaultMessage": "Path on the server to a PEM-encoded CA certificate used to verify the Redis server. Leave blank to use the system trust store.",
+    "defaultMessage": "Path on each server to a PEM-encoded CA certificate used to verify the Redis server. Leave blank to use the system trust store.",
     "description": "Help text for the Redis TLS CA certificate path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
   },
   "admin.cacheSettings.redisTLSClientCert": {
@@ -3016,7 +3016,7 @@
     "description": "Admin console setting label on the System Console Cache Settings page for the file path of the client certificate used for mutual TLS with Redis."
   },
   "admin.cacheSettings.redisTLSClientCertDesc": {
-    "defaultMessage": "Path on the server to a PEM-encoded client certificate for mutual TLS.",
+    "defaultMessage": "Path on each server to a PEM-encoded client certificate for mutual TLS.",
     "description": "Help text for the Redis TLS client certificate path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
   },
   "admin.cacheSettings.redisTLSClientKey": {
@@ -3024,7 +3024,7 @@
     "description": "Admin console setting label on the System Console Cache Settings page for the file path of the private key for the Redis client certificate."
   },
   "admin.cacheSettings.redisTLSClientKeyDesc": {
-    "defaultMessage": "Path on the server to the PEM-encoded private key for the client certificate.",
+    "defaultMessage": "Path on each server to the PEM-encoded private key for the client certificate.",
     "description": "Help text for the Redis TLS client key path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
   },
   "admin.cacheSettings.redisTLSSkipVerify": {

@@ -283,13 +283,13 @@ const adminDefinitionMessages = defineMessages({
     redis_tls_skip_verify_desc: {id: 'admin.cacheSettings.redisTLSSkipVerifyDesc', defaultMessage: 'When true, the Redis server certificate is not verified. Not recommended for production.'},
 
     redis_tls_ca_title: {id: 'admin.cacheSettings.redisTLSCA', defaultMessage: 'TLS CA Certificate Path'},
-    redis_tls_ca_desc: {id: 'admin.cacheSettings.redisTLSCADesc', defaultMessage: 'Path on the server to a PEM-encoded CA certificate used to verify the Redis server. Leave blank to use the system trust store.'},
+    redis_tls_ca_desc: {id: 'admin.cacheSettings.redisTLSCADesc', defaultMessage: 'Path on each server to a PEM-encoded CA certificate used to verify the Redis server. Leave blank to use the system trust store.'},
 
     redis_tls_client_cert_title: {id: 'admin.cacheSettings.redisTLSClientCert', defaultMessage: 'TLS Client Certificate Path'},
-    redis_tls_client_cert_desc: {id: 'admin.cacheSettings.redisTLSClientCertDesc', defaultMessage: 'Path on the server to a PEM-encoded client certificate for mutual TLS.'},
+    redis_tls_client_cert_desc: {id: 'admin.cacheSettings.redisTLSClientCertDesc', defaultMessage: 'Path on each server to a PEM-encoded client certificate for mutual TLS.'},
 
     redis_tls_client_key_title: {id: 'admin.cacheSettings.redisTLSClientKey', defaultMessage: 'TLS Client Key Path'},
-    redis_tls_client_key_desc: {id: 'admin.cacheSettings.redisTLSClientKeyDesc', defaultMessage: 'Path on the server to the PEM-encoded private key for the client certificate.'},
+    redis_tls_client_key_desc: {id: 'admin.cacheSettings.redisTLSClientKeyDesc', defaultMessage: 'Path on each server to the PEM-encoded private key for the client certificate.'},
 
     redis_clientcache_title: {id: 'admin.cacheSettings.redisClientCache', defaultMessage: 'Disable Client Cache'},
     redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},

@@ -281,8 +281,8 @@ func TestCacheSettingsIsValid(t *testing.T) {
 		}{
 			"neither":            {enableTLS: true, valid: true},
 			"both":               {enableTLS: true, cert: "client.crt", key: "client.key", valid: true},
-			"cert only":          {enableTLS: true, cert: "client.crt"},
-			"key only":           {enableTLS: true, key: "client.key"},
+			"cert only":          {enableTLS: true, cert: "client.crt", valid: false},
+			"key only":           {enableTLS: true, key: "client.key", valid: false},
 			"cert only, tls off": {enableTLS: false, cert: "client.crt", valid: true},
 		} {
 			t.Run(name, func(t *testing.T) {
