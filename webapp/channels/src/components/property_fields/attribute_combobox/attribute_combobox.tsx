@@ -109,8 +109,8 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
 
         // Wrap only the Combobox. Both guards are needed: without the mousedown
         // guard, focus can leave the input and the key guard stops seeing Escape.
-        // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- key and focus guards only; the Combobox input owns keyboard interaction
         <div
+            role='presentation'
             onKeyDown={attributeComboboxKeyGuard}
             onMouseDown={attributeComboboxMouseDownGuard}
         >
