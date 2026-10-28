@@ -401,6 +401,22 @@ func ReadFileSafely(fb filestore.FileBackend, path string) ([]byte, error) {
 	}
 }
 
+// stripInvalidXMLChars removes characters outside the XML 1.0 Char production
+// (e.g. terminal escape codes), which encoding/xml rejects. Invalid UTF-8 is
+// replaced with U+FFFD.
+func stripInvalidXMLChars(s string) string {
+	return strings.Map(func(r rune) rune {
+		switch {
+		case r == '\t', r == '\n', r == '\r',
+			r >= 0x20 && r <= 0xD7FF,
+			r >= 0xE000 && r <= 0xFFFD,
+			r >= 0x10000 && r <= 0x10FFFF:
+			return r
+		}
+		return -1
+	}, s)
+}
+
 func GetMatchesForHit(highlights map[string][]string) ([]string, error) {
 	matchMap := make(map[string]bool)
 
@@ -408,7 +424,7 @@ func GetMatchesForHit(highlights map[string][]string) ([]string, error) {
 		// Highlighted matches are returned as an array of snippets of the post where
 		// each snippet has the highlighted text surrounded by html <em> tags
 		for _, snippet := range snippets {
-			decoder := xml.NewDecoder(strings.NewReader(snippet))
+			decoder := xml.NewDecoder(strings.NewReader(stripInvalidXMLChars(snippet)))
 			inMatch := false
 
 			for {
