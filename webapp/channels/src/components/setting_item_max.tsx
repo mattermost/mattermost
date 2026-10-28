@@ -122,16 +122,25 @@ const SettingItemMax = ({
             // Prefer form controls over footer Save/Cancel (Compass Buttons no longer use .btn).
             // Include [tabindex]:not([tabindex="-1"]) so react-select (and similar) receive
             // Edit→expand focus; .setting-list itself uses tabindex="-1" and is excluded.
+            // Compass Combobox inputs have no tabindex, and its chips must never take initial focus.
             const formControls = Array.from(settingList.current.querySelectorAll<HTMLElement>(
-                'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])',
+                'input.form-control, input[role="combobox"], input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"]):not([data-chip])',
             )).filter((el) => !el.closest('.setting-list-item__buttons'));
-            const buttons = Array.from(settingList.current.querySelectorAll<HTMLElement>(
-                'button:not(#saveSetting):not(#cancelSetting)',
-            )).filter((button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className));
-            const initialFocus = formControls[0] ?? buttons[0];
-
-            // The <section> isn't focusable; .setting-list (tabindex -1) keeps focus in the section.
-            a11yFocus(initialFocus ?? settingList.current.querySelector<HTMLElement>('.setting-list') ?? settingList.current);
+            if (formControls.length > 0) {
+                a11yFocus(formControls[0]);
+            } else {
+                const buttons: NodeListOf<HTMLElement> = settingList.current.querySelectorAll(
+                    'button:not(#saveSetting):not(#cancelSetting)',
+                );
+                const focusableButton = Array.from(buttons).find(
+                    (button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className),
+                );
+                if (focusableButton) {
+                    a11yFocus(focusableButton);
+                } else {
+                    a11yFocus(settingList.current);
+                }
+            }
         }
 
         document.addEventListener('keydown', onKeyDown);

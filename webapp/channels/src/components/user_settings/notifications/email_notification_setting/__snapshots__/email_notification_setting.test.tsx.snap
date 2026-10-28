@@ -437,7 +437,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, not send email notifications 1`] = `
 <div>
   <section
-    class="section-max form-horizontal "
+    class="section-max form-horizontal a11y--active a11y--focused"
   >
     <h4
       class="col-sm-12 section-title"
@@ -449,7 +449,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        class="setting-list a11y--active a11y--focused"
+        class="setting-list"
         tabindex="-1"
       >
         <div

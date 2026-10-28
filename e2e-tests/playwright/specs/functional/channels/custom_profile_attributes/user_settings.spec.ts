@@ -187,8 +187,8 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
 });
 
 /**
- * @objective Verify that a select custom profile attribute's menu stays closed when its section opens and
- * opens on click, and that keyboard use stays inside its dropdown: Escape with the menu open closes the menu
+ * @objective Verify that a select custom profile attribute's input takes focus when its section opens and
+ * its menu opens on click, and that keyboard use stays inside its dropdown: Escape with the menu open closes the menu
  * but not the profile modal, and Enter on an option picks it
  * without saving the section, which only saves when Save is clicked.
  *
@@ -214,11 +214,9 @@ test(
         await editButton.scrollIntoViewIfNeeded();
         await editButton.click();
 
-        // * The menu stays closed when the section opens, with focus on the section's setting list
+        // * The input takes focus when the section opens
         const input = page.locator(`#customProfileAttribute_${fieldId}`);
-        await expect(page.locator('.setting-list', {has: input})).toBeFocused();
-        await expect(input).toHaveAttribute('aria-expanded', 'false');
-        await expect(input).not.toBeFocused();
+        await expect(input).toBeFocused();
         const valueBefore = await input.inputValue();
 
         // # Click the input
@@ -291,10 +289,9 @@ test(
         await editButton.scrollIntoViewIfNeeded();
         await editButton.click();
 
-        // * The menu stays closed when the section opens, with focus on the section's setting list
+        // * The input takes focus when the section opens
         const input = page.locator(`#customProfileAttribute_${fieldId}`);
-        await expect(page.locator('.setting-list', {has: input})).toBeFocused();
-        await expect(input).toHaveAttribute('aria-expanded', 'false');
+        await expect(input).toBeFocused();
 
         // # Click the input to open the menu
         await input.click();
