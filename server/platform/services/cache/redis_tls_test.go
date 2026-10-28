@@ -75,8 +75,8 @@ func newTestCA(t *testing.T, dir, name string) *testCert {
 	}, nil)
 }
 
-func newRedisTLSSettings(enable bool) *model.CacheSettings {
-	settings := &model.CacheSettings{
+func newRedisTLSSettings(enable bool) model.CacheSettings {
+	settings := model.CacheSettings{
 		CacheType:      model.NewPointer(model.CacheTypeRedis),
 		RedisAddress:   model.NewPointer("localhost:6379"),
 		RedisEnableTLS: model.NewPointer(enable),

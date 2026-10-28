@@ -15,7 +15,7 @@ import (
 
 // NewRedisTLSConfig builds the TLS configuration for connecting to Redis from the given settings.
 // It returns nil when TLS is disabled.
-func NewRedisTLSConfig(settings *model.CacheSettings) (*tls.Config, error) {
+func NewRedisTLSConfig(settings model.CacheSettings) (*tls.Config, error) {
 	if !*settings.RedisEnableTLS {
 		return nil, nil
 	}

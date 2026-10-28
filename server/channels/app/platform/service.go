@@ -256,7 +256,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.cacheProvider = cache.NewProvider()
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
 		var tlsConfig *tls.Config
-		tlsConfig, err = cache.NewRedisTLSConfig(&cacheConfig)
+		tlsConfig, err = cache.NewRedisTLSConfig(cacheConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to configure Redis TLS: %w", err)
 		}
