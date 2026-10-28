@@ -35,7 +35,6 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-// Each node returns its newest LOGS_PAGE_SIZE_DEFAULT entries that match the filter
 export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo, search = ''}: LogFilter) {
     const logFilter = {
         server_names: serverNames,
@@ -49,8 +48,6 @@ export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo, sea
         onSuccess: [AdminTypes.RECEIVED_LOGS],
         params: [
             logFilter,
-            0,
-            General.LOGS_PAGE_SIZE_DEFAULT,
         ],
     });
 }

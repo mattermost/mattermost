@@ -106,7 +106,7 @@ type LogFilter struct {
 	DateFrom    string   `json:"date_from"`
 	DateTo      string   `json:"date_to"`
 	// Search keeps entries with a value other than level and timestamp that contains it,
-	// ignoring case. Nodes that predate it ignore it and return unsearched entries.
+	// ignoring case.
 	Search string `json:"search"`
 }
 
