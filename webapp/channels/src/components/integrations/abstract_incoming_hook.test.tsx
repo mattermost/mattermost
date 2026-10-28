@@ -236,6 +236,29 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         expect(usernameInput).toHaveValue(newUsername);
     });
 
+    test('should fill in the username from the title when creating a hook', async () => {
+        const createProps = {...requiredProps, initialHook: undefined};
+        renderWithContext(<AbstractIncomingWebhook {...createProps}/>, initialState as GlobalState);
+
+        const usernameInput = screen.getByRole('textbox', {name: 'Username'});
+        await userEvent.type(screen.getByRole('textbox', {name: 'Title'}), 'Build Alerts!');
+        expect(usernameInput).toHaveValue('build-alerts');
+
+        await userEvent.clear(usernameInput);
+        await userEvent.type(usernameInput, 'custom');
+        await userEvent.type(screen.getByRole('textbox', {name: 'Title'}), ' 2');
+        expect(usernameInput).toHaveValue('custom');
+    });
+
+    test('should not change the username from the title when editing a hook', async () => {
+        renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
+
+        const usernameInput = screen.getByRole('textbox', {name: 'Username'});
+        const username = (usernameInput as HTMLInputElement).value;
+        await userEvent.type(screen.getByRole('textbox', {name: 'Title'}), 'Renamed');
+        expect(usernameInput).toHaveValue(username);
+    });
+
     test('should update state.iconURL on post icon url change', async () => {
         const newIconURL = 'http://example.com/icon';
         renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
