@@ -326,8 +326,8 @@ func TestUploadPluginConflictDetails(t *testing.T) {
 func TestUploadPluginRemovesMultipartTempFiles(t *testing.T) {
 	// Not parallel: t.Setenv redirects the multipart temp files for the whole process.
 	tmpDir := t.TempDir()
-	t.Setenv("TMPDIR", tmpDir)
 	th := Setup(t)
+	t.Setenv("TMPDIR", tmpDir)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
