@@ -1245,7 +1245,7 @@ type PropertyFieldStore interface {
 	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	SearchGlobalAttributeListing(rctx request.CTX, opts model.GlobalAttributeListingOpts) ([]*model.PropertyField, error)
-	GetLiveLinkedFieldsByObjectTypes(fieldIDs, objectTypes []string) ([]*model.PropertyField, error)
+	GetLiveLinkedFieldsByObjectTypes(groupID string, fieldIDs, objectTypes []string) ([]*model.PropertyField, error)
 	GetLiveUserFieldsByNames(groupID string, names []string) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error

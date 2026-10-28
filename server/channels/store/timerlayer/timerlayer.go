@@ -9136,10 +9136,10 @@ func (s *TimerLayerPropertyFieldStore) GetLinkedFields(fieldIDs []string, exclud
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(fieldIDs []string, objectTypes []string) ([]*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(groupID string, fieldIDs []string, objectTypes []string) ([]*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.GetLiveLinkedFieldsByObjectTypes(fieldIDs, objectTypes)
+	result, err := s.PropertyFieldStore.GetLiveLinkedFieldsByObjectTypes(groupID, fieldIDs, objectTypes)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

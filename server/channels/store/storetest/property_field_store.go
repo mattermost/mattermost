@@ -6052,7 +6052,7 @@ func testGetLiveLinkedFieldsByObjectTypes(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("returns live linked fields of the given object types across templates", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID,
 			[]string{first.ID, second.ID, untouched.ID},
 			[]string{model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypeChannel},
 		)
@@ -6060,20 +6060,30 @@ func testGetLiveLinkedFieldsByObjectTypes(t *testing.T, ss store.Store) {
 		require.ElementsMatch(t, []string{firstUser.ID, firstChannel.ID, secondUser.ID}, ids(fields))
 	})
 
+	t.Run("leaves out a field of another group linked to the template", func(t *testing.T) {
+		f.create(model.NewId(), model.PropertyFieldObjectTypeUser, "foreign_child", func(pf *model.PropertyField) {
+			pf.LinkedFieldID = &untouched.ID
+		})
+
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{untouched.ID}, allListingResourceTypes)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
 	t.Run("leaves out object types that were not asked for", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes([]string{first.ID}, []string{model.PropertyFieldObjectTypePost})
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{first.ID}, []string{model.PropertyFieldObjectTypePost})
 		require.NoError(t, err)
 		require.Equal(t, []string{firstPost.ID}, ids(fields))
 	})
 
 	t.Run("leaves out deleted linked fields", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes([]string{second.ID}, allListingResourceTypes)
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{second.ID}, allListingResourceTypes)
 		require.NoError(t, err)
 		require.Equal(t, []string{secondUser.ID}, ids(fields))
 	})
 
 	t.Run("carries the linked field's object type, link and attrs", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes([]string{second.ID}, []string{model.PropertyFieldObjectTypeUser})
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{second.ID}, []string{model.PropertyFieldObjectTypeUser})
 		require.NoError(t, err)
 		require.Len(t, fields, 1)
 		require.Equal(t, model.PropertyFieldObjectTypeUser, fields[0].ObjectType)
@@ -6083,17 +6093,17 @@ func testGetLiveLinkedFieldsByObjectTypes(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("returns nothing for a template nothing links to", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes([]string{untouched.ID}, allListingResourceTypes)
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{untouched.ID}, allListingResourceTypes)
 		require.NoError(t, err)
 		require.Empty(t, fields)
 	})
 
 	t.Run("returns nothing for no templates or no object types", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(nil, allListingResourceTypes)
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, nil, allListingResourceTypes)
 		require.NoError(t, err)
 		require.Empty(t, fields)
 
-		fields, err = ss.PropertyField().GetLiveLinkedFieldsByObjectTypes([]string{first.ID}, nil)
+		fields, err = ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{first.ID}, nil)
 		require.NoError(t, err)
 		require.Empty(t, fields)
 	})

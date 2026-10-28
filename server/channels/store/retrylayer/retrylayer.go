@@ -11399,11 +11399,11 @@ func (s *RetryLayerPropertyFieldStore) GetLinkedFields(fieldIDs []string, exclud
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(fieldIDs []string, objectTypes []string) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(groupID string, fieldIDs []string, objectTypes []string) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetLiveLinkedFieldsByObjectTypes(fieldIDs, objectTypes)
+		result, err := s.PropertyFieldStore.GetLiveLinkedFieldsByObjectTypes(groupID, fieldIDs, objectTypes)
 		if err == nil {
 			return result, nil
 		}
