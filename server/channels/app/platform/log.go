@@ -202,11 +202,11 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 			}
 
 			// A line that can't hold the search term needs no decoding, unless the date scan counts it
-			if !hasDateFrom && search.rejectsRaw(line) {
+			filtered := search.rejectsRaw(line)
+			if filtered && !hasDateFrom {
 				continue
 			}
 
-			filtered := false
 			var entry *model.LogEntry
 			err = json.Unmarshal(line, &entry)
 			if err != nil || entry == nil {
@@ -534,10 +534,6 @@ func toLowerASCII(c byte) byte {
 func isLogFilteredBySearch(search *logSearch, line []byte) bool {
 	if search == nil {
 		return false
-	}
-
-	if search.rejectsRaw(line) {
-		return true
 	}
 
 	var fields map[string]json.RawMessage

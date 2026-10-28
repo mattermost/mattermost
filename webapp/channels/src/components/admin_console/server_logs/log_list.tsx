@@ -73,6 +73,9 @@ const DEFAULT_PAGE_SIZE = 200;
 // Each search change queries the server, so keep it off the keystroke path
 const SEARCH_DEBOUNCE_MS = 200;
 
+// The server rejects longer terms (model.LogFilterSearchMaxLength)
+const SEARCH_MAX_LENGTH = 256;
+
 // Rows are focused programmatically by the keyboard navigation below
 const ROW_FOCUS_SELECTOR = '.LogRow__main';
 
@@ -442,7 +445,7 @@ export default function LogList({
                 ref={searchInputRef}
                 type='text'
                 name='serverLogsSearch'
-                maxLength={256}
+                maxLength={SEARCH_MAX_LENGTH}
                 containerClassName='LogViewer__search'
                 placeholder={intl.formatMessage({id: 'admin.logs.search.placeholder', defaultMessage: 'Search logs'})}
                 value={searchInput}

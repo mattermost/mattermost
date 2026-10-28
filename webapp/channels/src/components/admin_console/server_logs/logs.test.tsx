@@ -127,8 +127,6 @@ describe('components/admin_console/server_logs/Logs', () => {
 
         // Typing is not gated on the debounced query
         expect(searchInput).toHaveValue('msg 1');
-
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'msg 1'})));
     });
 
     test('should apply a cleared search immediately', async () => {

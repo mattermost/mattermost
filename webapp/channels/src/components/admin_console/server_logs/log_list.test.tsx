@@ -405,18 +405,7 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(screen.getByText("Older entries aren't loaded or counted.")).toBeInTheDocument();
         });
 
-        test('should name the limit for the selected node', () => {
-            renderListWith({
-                logs: [makeNodeLog('node-b', 'b')],
-                nodes: ['node-a', 'node-b'],
-                selectedNode: 'node-b',
-                truncatedNodes: ['node-b'],
-            });
-
-            expect(screen.getByText('Only the latest 10,000 entries are shown')).toBeInTheDocument();
-        });
-
-        test('should only show the notice for the selected node', () => {
+        test('should only show the notice for the selected node, and name its limit', () => {
             const props = {logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')], nodes: ['node-a', 'node-b'], truncatedNodes: ['node-b']};
 
             const {rerender} = renderListWith({...props, selectedNode: 'node-a'});
@@ -429,7 +418,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                     selectedNode='node-b'
                 />,
             );
-            expect(screen.getByText(/Only the latest/)).toBeInTheDocument();
+            expect(screen.getByText('Only the latest 10,000 entries are shown')).toBeInTheDocument();
         });
     });
 
