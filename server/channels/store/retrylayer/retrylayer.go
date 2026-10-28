@@ -17057,11 +17057,11 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userID string, teamID stri
 
 }
 
-func (s *RetryLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
+func (s *RetryLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string) (map[string]*model.TeamUnread, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount)
+		result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs)
 		if err == nil {
 			return result, nil
 		}
@@ -18809,11 +18809,11 @@ func (s *RetryLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, e
 
 }
 
-func (s *RetryLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
+func (s *RetryLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool, excludeChannelIDs []string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled)
+		result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled, excludeChannelIDs)
 		if err == nil {
 			return result, nil
 		}

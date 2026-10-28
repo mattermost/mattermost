@@ -2832,20 +2832,24 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Channel().SaveMember(rctx, &mSpace)
 	require.NoError(t, nErr)
 
-	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id, false)
+	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id, false, nil)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(3), badge, "should have 3 unread messages")
 
-	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, false)
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, false, nil)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(1), badge, "should have 1 unread message")
+
+	badge, unreadCountErr = ss.User().GetUnreadCount(u2.Id, false, []string{c1.Id})
+	require.NoError(t, unreadCountErr)
+	require.Equal(t, int64(2), badge, "an excluded channel's mention should not be counted")
 
 	// Increment root mentions by 1
 	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u3.Id}, true, false)
 	require.NoError(t, nErr)
 
 	// CRT is enabled, only root mentions are counted
-	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, true)
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, true, nil)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(1), badge, "should have 1 unread message with CRT")
 

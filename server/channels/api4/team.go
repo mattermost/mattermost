@@ -769,7 +769,7 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := r.URL.Query().Get("exclude_team")
 	includeCollapsedThreads := r.URL.Query().Get("include_collapsed_threads") == "true"
 
-	unreadTeamsList, appErr := c.App.GetTeamsUnreadForUser(teamId, c.Params.UserId, includeCollapsedThreads)
+	unreadTeamsList, appErr := c.App.GetTeamsUnreadForUser(c.AppContext, teamId, c.Params.UserId, includeCollapsedThreads)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1327,7 +1327,7 @@ func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unreadTeam, err := c.App.GetTeamUnread(c.Params.TeamId, c.Params.UserId)
+	unreadTeam, err := c.App.GetTeamUnread(c.AppContext, c.Params.TeamId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return

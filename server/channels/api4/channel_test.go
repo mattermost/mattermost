@@ -8000,7 +8000,7 @@ func TestRootMentionsCount(t *testing.T) {
 	require.EqualValues(t, int64(1), channelMember.MentionCountRoot)
 
 	// validate that Team level counts are calculated
-	counts, appErr := th.App.GetTeamUnread(channel.TeamId, user.Id)
+	counts, appErr := th.App.GetTeamUnread(th.Context, channel.TeamId, user.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(1), counts.MentionCountRoot)
 	require.Equal(t, int64(2), counts.MentionCount)

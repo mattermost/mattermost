@@ -375,7 +375,7 @@ type ThreadStore interface {
 	GetTotalUnreadUrgentMentions(userID, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetThreadsForUser(rctx request.CTX, userID, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error)
 	GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended, postPriorityIsEnabled bool) (*model.ThreadResponse, error)
-	GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error)
+	GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string) (map[string]*model.TeamUnread, error)
 
 	MarkAllAsRead(userID string, threadIds []string) error
 	MarkAllAsReadByTeam(userID, teamID string) error
@@ -514,7 +514,7 @@ type UserStore interface {
 	PermanentDelete(rctx request.CTX, userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
 	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error)
-	GetUnreadCount(userID string, isCRTEnabled bool) (int64, error)
+	GetUnreadCount(userID string, isCRTEnabled bool, excludeChannelIDs []string) (int64, error)
 	GetUnreadCountForChannel(userID string, channelID string) (int64, error)
 	GetAnyUnreadPostCountForChannel(userID string, channelID string) (int64, error)
 	GetRecentlyActiveUsersForTeam(teamID string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)

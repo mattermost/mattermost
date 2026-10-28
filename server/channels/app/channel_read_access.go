@@ -467,6 +467,56 @@ func (a *App) FilterChannelIDsByReadAccess(rctx request.CTX, userID string, chan
 	return filtered
 }
 
+// channelReadAccessDeniedChannelIDs returns the channels userID is a member of that the
+// channel_read_access policy denies them. Unread counts are summed in the store over every
+// membership, and a denied channel left in them is a badge the user can never clear, since
+// clearing it means opening the channel. Nil while enforcement is off.
+func (a *App) channelReadAccessDeniedChannelIDs(rctx request.CTX, userID string) ([]string, *model.AppError) {
+	if userID == "" || !a.channelReadAccessEnforcementActive() {
+		return nil, nil
+	}
+
+	memberships, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(rctx, userID, true, false)
+	if err != nil {
+		return nil, model.NewAppError("channelReadAccessDeniedChannelIDs", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	channelIDs := make([]string, 0, len(memberships))
+	for channelID := range memberships {
+		channelIDs = append(channelIDs, channelID)
+	}
+
+	allowed := a.FilterChannelIDsByReadAccess(WithChannelReadAccessMemo(rctx), userID, channelIDs)
+	if len(allowed) == len(channelIDs) {
+		return nil, nil
+	}
+
+	allowedSet := make(map[string]struct{}, len(allowed))
+	for _, channelID := range allowed {
+		allowedSet[channelID] = struct{}{}
+	}
+	var denied []string
+	for _, channelID := range channelIDs {
+		if _, ok := allowedSet[channelID]; !ok {
+			denied = append(denied, channelID)
+		}
+	}
+	return denied, nil
+}
+
+// channelReadAccessDeniedChannelSet is channelReadAccessDeniedChannelIDs as a set, for
+// callers that sum per-channel unread rows themselves.
+func (a *App) channelReadAccessDeniedChannelSet(rctx request.CTX, userID string) (map[string]struct{}, *model.AppError) {
+	denied, appErr := a.channelReadAccessDeniedChannelIDs(rctx, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	set := make(map[string]struct{}, len(denied))
+	for _, channelID := range denied {
+		set[channelID] = struct{}{}
+	}
+	return set, nil
+}
+
 func (a *App) FilterChannelsByReadAccess(rctx request.CTX, userID string, channels []*model.Channel) []*model.Channel {
 	if len(channels) == 0 || !a.channelReadAccessEnforcementActive() {
 		return channels
