@@ -144,6 +144,10 @@ type PlatformService struct {
 	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
 	logRootPathOverride string
 
+	// activeManagedDirs accumulates the managed directories of every config applied since startup.
+	activeManagedDirsMut sync.Mutex
+	activeManagedDirs    []string
+
 	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
 }
 
