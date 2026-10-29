@@ -56,6 +56,7 @@ func setupChannelActionAccessAPI(t *testing.T, evaluation any, allow bool) (*cha
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -400,6 +401,7 @@ func TestChannelAccessDoesNotGateReviewerAssignment(t *testing.T) {
 func TestChannelWriteAccessChecksScheduledPostStoredChannel(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -495,6 +497,7 @@ func TestChannelWriteAccessGatesIncomingWebhooks(t *testing.T) {
 func TestChannelWriteAccessInertWithoutAWritePolicy(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -594,6 +597,7 @@ func TestChannelManagementAccessGatesSharedChannelInvites(t *testing.T) {
 		t.Run(fmt.Sprintf("allow=%t", allow), func(t *testing.T) {
 			th := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.PermissionPolicies = true
+				cfg.FeatureFlags.ChannelPermissionActions = true
 				*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 				*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
 			}).InitBasic(t)
@@ -671,6 +675,7 @@ func setupChannelPolicyManagementAccessAPI(t *testing.T, allow bool) (*TestHelpe
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 		cfg.FeatureFlags.AttributeValueMasking = false
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))

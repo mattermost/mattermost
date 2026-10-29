@@ -426,7 +426,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
     });
 
-    test('does not offer Channel Read Access while the ChannelPermissionActions flag is off', async () => {
+    test('does not offer the channel access actions while the ChannelPermissionActions flag is off', async () => {
         const flagOffState = {entities: {general: {config: {FeatureFlagPermissionPolicies: 'true'}}}};
         renderWithContext(<PermissionPolicyDetails {...baseProps}/>, flagOffState);
         await screen.findByText('Add permission');
@@ -434,6 +434,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
         expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
         expect(document.getElementById('pp-add-permission-channel_read_access')).toBeNull();
+        expect(document.getElementById('pp-add-permission-channel_write_access')).toBeNull();
+        expect(document.getElementById('pp-add-permission-channel_management_access')).toBeNull();
     });
 
     test('confirms before saving a policy that carries channel_read_access', async () => {

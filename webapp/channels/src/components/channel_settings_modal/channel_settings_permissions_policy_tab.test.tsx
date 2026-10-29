@@ -887,13 +887,15 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
         expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
     });
 
-    test('does not offer Channel Read Access while the ChannelPermissionActions flag is off', async () => {
+    test('does not offer the channel access actions while the ChannelPermissionActions flag is off', async () => {
         await openEditor({
             ...baseState,
             entities: {...baseState.entities, general: {config: {FeatureFlagPermissionPolicies: 'true', FeatureFlagChannelPermissionActions: 'false'}}},
         });
 
         expect(screen.queryByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`)).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cpp-add-permission-channel_write_access')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cpp-add-permission-channel_management_access')).not.toBeInTheDocument();
         expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
     });
 

@@ -453,6 +453,7 @@ func TestChannelWriteAccessGateIsInertUntilEnabled(t *testing.T) {
 	t.Run("attribute-based access control disabled", func(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.ChannelPermissionActions = true
 		}).InitBasic(t)
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -466,6 +467,7 @@ func TestChannelWriteAccessGateIsInertUntilEnabled(t *testing.T) {
 	t.Run("licence below Enterprise Advanced", func(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.ChannelPermissionActions = true
 		}).InitBasic(t)
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 		th.App.UpdateConfig(func(cfg *model.Config) {
