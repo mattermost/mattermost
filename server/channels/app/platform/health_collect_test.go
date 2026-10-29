@@ -233,7 +233,9 @@ func TestHandleHealthCollect(t *testing.T) {
 
 	th.Service.handleHealthCollect(&model.ClusterMessage{Event: model.ClusterEventHealthCollect, Data: data})
 
-	require.Eventually(t, func() bool { return len(cluster.sentTo("requester")) == 1 }, 30*time.Second, 50*time.Millisecond)
+	// Shutdown waits for the collection, so the reply is sent by the time the wait returns.
+	th.Service.waitForGoroutines()
+	require.Len(t, cluster.sentTo("requester"), 1)
 	msg := cluster.sentTo("requester")[0]
 	assert.Equal(t, model.ClusterEventHealthCollectReply, msg.Event)
 	assert.Equal(t, model.ClusterSendReliable, msg.SendType)
