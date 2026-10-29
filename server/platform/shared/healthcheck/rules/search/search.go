@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/versions"
 )
 
@@ -278,19 +279,20 @@ func evalESLocalhostURL(s *healthcheck.Snapshot) healthcheck.Result {
 }
 
 func evalESServerError(s *healthcheck.Snapshot) healthcheck.Result {
-	diag, ok := s.LeaderDiag(model.SectionSearchProbe)
+	return probes.Eval(s, esProbe, esServerErrorMessage(s), healthcheck.TranslationId("health.rule.es_server_error.message.partial"))
+}
+
+// A disabled status means the node does not use the search engine, so it counts as passing.
+func esProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
+	diag, ok := n.SectionDiag(model.SectionSearchProbe)
 	if !ok {
-		return unknownDiag()
+		return "", ""
 	}
 
-	switch diag.ElasticSearch.Status {
-	case model.StatusFail:
-		return healthcheck.Firing(esServerErrorMessage(s)).WithDetail("error", maskURLCredentials(diag.ElasticSearch.Error))
-	case model.StatusOk, model.StatusDisabled:
-		return healthcheck.Resolved()
-	default:
-		return unknownDiag()
+	if diag.ElasticSearch.Status == model.StatusDisabled {
+		return model.StatusOk, ""
 	}
+	return diag.ElasticSearch.Status, maskURLCredentials(diag.ElasticSearch.Error)
 }
 
 // esServerErrorMessage says search is fully down when Elasticsearch serves search and there is no database fallback.
