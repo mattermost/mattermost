@@ -52,6 +52,7 @@ const (
 	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 	JobTypeCleanupExpiredAccessTokens    = "cleanup_expired_access_tokens"
 	JobTypeNotifyExpiringAccessTokens    = "notify_expiring_access_tokens"
+	JobTypeHealthCheck                   = "health_check"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -87,6 +88,7 @@ var AllJobTypes = [...]string{
 	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
 	JobTypeScheduledRecap,
+	JobTypeHealthCheck,
 }
 
 type Job struct {
