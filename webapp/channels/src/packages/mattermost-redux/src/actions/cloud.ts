@@ -36,15 +36,6 @@ export function getCloudCustomer() {
     });
 }
 
-export function getInvoices() {
-    return bindClientFunc({
-        clientFunc: Client4.getInvoices,
-        onSuccess: [CloudTypes.RECEIVED_CLOUD_INVOICES],
-        onFailure: CloudTypes.CLOUD_INVOICES_FAILED,
-        onRequest: CloudTypes.CLOUD_INVOICES_REQUEST,
-    });
-}
-
 export function updateCloudCustomer(customerPatch: CloudCustomerPatch) {
     return bindClientFunc({
         clientFunc: Client4.updateCloudCustomer,

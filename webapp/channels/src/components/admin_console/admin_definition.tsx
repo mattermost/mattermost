@@ -52,7 +52,6 @@ import {getRestrictedIndicator, it, usesLegacyOauth, validators} from './admin_d
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
-import BillingHistory, {searchableStrings as billingHistorySearchableStrings} from './billing/billing_history';
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
@@ -355,17 +354,6 @@ const AdminDefinition: AdminDefinitionType = {
                 },
 
                 // cloud only view
-                isHidden: it.not(it.licensedForFeature('Cloud')),
-                isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
-            },
-            billing_history: {
-                url: 'billing/billing_history',
-                title: defineMessage({id: 'admin.sidebar.billing_history', defaultMessage: 'Billing History'}),
-                searchableStrings: billingHistorySearchableStrings,
-                schema: {
-                    id: 'BillingHistory',
-                    component: BillingHistory,
-                },
                 isHidden: it.not(it.licensedForFeature('Cloud')),
                 isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
             },

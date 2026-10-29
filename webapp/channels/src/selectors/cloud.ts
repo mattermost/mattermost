@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Invoice, Subscription} from '@mattermost/types/cloud';
+import type {Subscription} from '@mattermost/types/cloud';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -16,18 +16,6 @@ export const getExpandSeatsLink: (state: GlobalState) => (licenseId: string) => 
         return (licenseId: string) => {
             return `${cwsUrl}/subscribe/expand?licenseId=${licenseId}`;
         };
-    },
-);
-
-export const getCloudDelinquentInvoices = createSelector(
-    'getCloudDelinquentInvoices',
-    (state: GlobalState) => state.entities.cloud.invoices as Record<string, Invoice>,
-    (invoices: Record<string, Invoice>) => {
-        if (!invoices) {
-            return [];
-        }
-
-        return Object.values(invoices || []).filter((invoice) => invoice.status !== 'paid' && invoice.total > 0);
     },
 );
 
