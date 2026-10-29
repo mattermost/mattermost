@@ -26,6 +26,7 @@ webapp/platform/types/src/render_permissions.ts, and in any code that asks
 for an access decision through AccessEvaluation.
 
 Before you change any of it, read the ABAC rules in the enterprise repo,
-checked out next to this one: ../enterprise/abac/rules/. Each rule's
-header lists the paths it covers. Follow every rule that covers your
-change. No exceptions, however small the change.
+checked out next to this one: ../enterprise/abac/rules/, or abac/rules/
+under the BUILD_ENTERPRISE_DIR that server/config.override.mk sets. Each
+rule's header lists the paths it covers. Follow every rule that covers
+your change. No exceptions, however small the change.
