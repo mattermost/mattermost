@@ -72,8 +72,8 @@ describe('ChannelSettingsArchiveTab', () => {
         expect(screen.getByText(/Archiving a board removes it from the user interface/)).toBeInTheDocument();
         expect(screen.queryByText(/Archiving a channel/)).not.toBeInTheDocument();
 
-        const archiveButton = screen.getByText('Archive this board');
-        expect(archiveButton).toHaveAttribute('aria-label', 'Archive board Test Channel');
+        const archiveButton = screen.getByRole('button', {name: 'Archive board Test Channel'});
+        expect(archiveButton).toHaveTextContent('Archive this board');
         expect(screen.queryByText('Archive this channel')).not.toBeInTheDocument();
 
         await userEvent.click(archiveButton);
