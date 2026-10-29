@@ -259,7 +259,7 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 
 	// The group's field budget is capped, so every caller reads one oversized page
 	// rather than paginating.
-	fields, appErr := c.App.SearchPropertyFields(c.AppContext, group.ID, model.PropertyFieldSearchOpts{
+	fields, appErr := c.App.SearchPropertyFields(app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c)), group.ID, model.PropertyFieldSearchOpts{
 		GroupID:    group.ID,
 		ObjectType: model.PropertyFieldObjectTypeChannel,
 		TargetType: model.PropertyValueTargetTypeSystem,
