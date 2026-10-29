@@ -158,16 +158,17 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                     <Button
                         type='button'
                         emphasis='tertiary'
-                        className={classNames({disabled: firstPage})}
+                        className={classNames('prev', {disabled: firstPage})}
                         onClick={firstPage ? undefined : this.previousPage}
                         disabled={firstPage}
+                        data-testid='page-link-prev'
                     >
                         <PreviousIcon/>
                     </Button>
                     <Button
                         type='button'
                         emphasis='tertiary'
-                        className={classNames({disabled: lastPage})}
+                        className={classNames('next', {disabled: lastPage})}
                         onClick={lastPage ? undefined : this.nextPage}
                         disabled={lastPage}
                         data-testid='page-link-next'

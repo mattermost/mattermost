@@ -518,18 +518,20 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                         <SharedButton
                             type='button'
                             emphasis='tertiary'
-                            className={classNames({disabled: firstPage})}
+                            className={classNames('prev', {disabled: firstPage})}
                             onClick={(e: any) => this.previousPage(e)}
                             disabled={firstPage}
+                            data-testid='page-link-prev'
                         >
                             <PreviousIcon/>
                         </SharedButton>
                         <SharedButton
                             type='button'
                             emphasis='tertiary'
-                            className={classNames({disabled: lastPage})}
+                            className={classNames('next', {disabled: lastPage})}
                             onClick={(e: any) => this.nextPage(e)}
                             disabled={lastPage}
+                            data-testid='page-link-next'
                         >
                             <NextIcon/>
                         </SharedButton>
