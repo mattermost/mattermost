@@ -1172,7 +1172,7 @@ If indexing is disabled and then re-enabled after an index is created, purge and
 
 Before permanently deleting a large number of channels, turn off **Enable Elasticsearch indexing**. Each permanent delete reindexes every member of that channel, and that indexing work can exhaust Mattermost memory on a delete of about 100,000 memberships.
 
-Leave the Elasticsearch or OpenSearch cluster running. Indexing is the only setting that needs to stay off while the deletes run. The server rejects a configuration where [search queries](#enable-elasticsearch-for-search-queries) or [autocomplete](#enable-elasticsearch-for-autocomplete-queries) stay on while indexing is off, so set those to `false` in the same change. If [CJK analyzers](#enable-cjk-analyzers) are on, set those to `false` too, because they require search queries. Save and restart, run the deletes with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/&#123;channel_id&#125;?permanent=true`, then restore indexing, search queries, autocomplete, and CJK analyzers together. Run **Index Now** so changes made while indexing was off are included.
+Leave the Elasticsearch or OpenSearch cluster running. Save and restart, run the deletes with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/&#123;channel_id&#125;?permanent=true`, then turn indexing back on and run **Index Now** so changes made while indexing was off are included. The System Console clears search queries and autocomplete when indexing is turned off, because the server will not store those while indexing is off. Turn them back on with indexing.
 
 </Warning>
 

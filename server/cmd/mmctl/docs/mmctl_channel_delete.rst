@@ -12,7 +12,7 @@ Synopsis
 Permanently delete some channels.
 Permanently deletes one or multiple channels along with all related information including posts from the database.
 
-Before deleting a large number of channels, turn off Elasticsearch indexing (ElasticsearchSettings.EnableIndexing) and leave the Elasticsearch or OpenSearch cluster running. Search queries and autocomplete must be off in that same change, because the server rejects them while indexing is off. If CJK analyzers are on, turn those off too, because they require search queries. After the deletes finish, restore those settings and run a bulk index. See https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing
+Before deleting a large number of channels, turn off Elasticsearch indexing (ElasticsearchSettings.EnableIndexing) and leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, turn indexing back on and run a bulk index. See https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing
 
 ::
 
