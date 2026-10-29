@@ -22,11 +22,8 @@ const MaxRemoteResponseSize = 1024 * 1024
 // and a reply longer than MaxRemoteResponseSize wraps errRemoteResponseTooLarge. A non-200 status is
 // an error, returned with the body when it was read in full.
 //
-// A remote can drop a pooled connection just as a request is written on it, for instance after a
-// reply that overran its declared length. Marking req idempotent lets the transport resend it on a
-// new connection when the connection was reused, no reply byte arrived and the body is replayable.
-// Failed sends are resent anyway, so receivers already handle a repeated request. The nil value
-// keeps the header off the wire.
+// The nil Idempotency-Key marks req as replayable, so the transport resends it on a new connection
+// when a reused one is dropped before any reply byte arrives. A nil value is not sent.
 func (rcs *Service) sendRemoteRequest(req *http.Request) ([]byte, error) {
 	req.Header["Idempotency-Key"] = nil
 

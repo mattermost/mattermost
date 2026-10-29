@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -457,23 +458,13 @@ func TestService_sendFrameToRemote_AfterOverrunReply(t *testing.T) {
 	reply, err := json.Marshal(&Response{Status: ResponseStatusOK})
 	require.NoError(t, err)
 
-	var mu sync.Mutex
-	var received []string
-	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts, listener, received := startOverrunServer(t, reply, func(r *http.Request) string {
 		var frame model.RemoteClusterFrame
-		if json.NewDecoder(r.Body).Decode(&frame) == nil {
-			mu.Lock()
-			received = append(received, frame.Msg.Id)
-			mu.Unlock()
+		if json.NewDecoder(r.Body).Decode(&frame) != nil {
+			return ""
 		}
-
-		w.Header().Set("Content-Length", strconv.Itoa(len(reply)))
-		w.Write(reply)
-		w.Write([]byte("past the declared length"))
-	}))
-	listener := &heldCloseListener{Listener: ts.Listener}
-	ts.Listener = listener
-	ts.Start()
+		return frame.Msg.Id
+	})
 	defer ts.Close()
 
 	rc := makeRemoteCluster("remote_test_overrun_reply", ts.URL, TestTopics)
@@ -504,10 +495,80 @@ func TestService_sendFrameToRemote_AfterOverrunReply(t *testing.T) {
 
 	assert.Equal(t, int32(1), listener.dropped.Load(),
 		"the second send should first have been written on the connection the remote closed")
+	assert.Equal(t, sent, received(), "the remote should have received every send once")
+}
 
-	mu.Lock()
-	defer mu.Unlock()
-	assert.Equal(t, sent, received, "the remote should have received every send once")
+// TestService_sendFileToRemote_AfterOverrunReply covers an upload that follows a reply longer than
+// the length the remote declared, as when an upload goes out right after the reply that created
+// its upload session.
+func TestService_sendFileToRemote_AfterOverrunReply(t *testing.T) {
+	fi := &model.FileInfo{Id: model.NewId(), Name: "test.png", Path: "remote/test.png"}
+	reply, err := json.Marshal(&model.FileInfo{Id: fi.Id, Name: fi.Name})
+	require.NoError(t, err)
+
+	ts, listener, received := startOverrunServer(t, reply, func(r *http.Request) string {
+		data, _ := io.ReadAll(r.Body)
+		return string(data)
+	})
+	defer ts.Close()
+
+	service, err := NewRemoteClusterService(newMockServer(t, nil), newMockApp(t, nil))
+	require.NoError(t, err)
+	service.disablePing = true
+
+	require.NoError(t, service.Start())
+	defer service.Shutdown()
+	defer service.httpClient.CloseIdleConnections()
+
+	var sent []string
+	for i := range 2 {
+		contents := fmt.Sprintf("file contents %d", i+1)
+		sent = append(sent, contents)
+		task := sendFileTask{
+			rc: makeRemoteCluster("remote_test_file_overrun_reply", ts.URL, TestTopics),
+			us: &model.UploadSession{Id: model.NewId(), Path: fi.Path},
+			fi: fi,
+			rp: testReaderProvider{data: []byte(contents)},
+		}
+
+		got, err := service.sendFileToRemote(defaultCallTimeout, task)
+		require.NoError(t, err, "upload %d should reach the remote", i+1)
+		assert.Equal(t, fi.Id, got.Id)
+	}
+
+	assert.Equal(t, int32(1), listener.dropped.Load(),
+		"the second upload should first have been written on the connection the remote closed")
+	assert.Equal(t, sent, received(), "the remote should have received every upload once")
+}
+
+// startOverrunServer starts a remote that replies with reply followed by bytes past its declared
+// length, which makes the server close each connection after replying. record extracts what the
+// remote received from each request; received returns those values in order.
+func startOverrunServer(t *testing.T, reply []byte, record func(r *http.Request) string) (ts *httptest.Server, listener *heldCloseListener, received func() []string) {
+	t.Helper()
+
+	var mu sync.Mutex
+	var got []string
+	ts = httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if v := record(r); v != "" {
+			mu.Lock()
+			got = append(got, v)
+			mu.Unlock()
+		}
+
+		w.Header().Set("Content-Length", strconv.Itoa(len(reply)))
+		w.Write(reply)
+		w.Write([]byte("past the declared length"))
+	}))
+	listener = &heldCloseListener{Listener: ts.Listener}
+	ts.Listener = listener
+	ts.Start()
+
+	return ts, listener, func() []string {
+		mu.Lock()
+		defer mu.Unlock()
+		return slices.Clone(got)
+	}
 }
 
 // heldCloseListener hands out connections whose close by the server is held back until the client
@@ -537,8 +598,21 @@ func (c *heldCloseConn) Close() error {
 		if err := c.Conn.SetReadDeadline(time.Now().Add(time.Second * 10)); err != nil {
 			return
 		}
-		if n, _ := c.Conn.Read(make([]byte, 1)); n > 0 {
-			c.dropped.Add(1)
+		if n, _ := c.Conn.Read(make([]byte, 1)); n == 0 {
+			return
+		}
+		c.dropped.Add(1)
+
+		// Like the server's own lingering close, read what the client is still writing, so the
+		// close does not reset the connection partway through a request written in several parts.
+		buf := make([]byte, 4096)
+		for {
+			if err := c.Conn.SetReadDeadline(time.Now().Add(time.Millisecond * 100)); err != nil {
+				return
+			}
+			if _, err := c.Conn.Read(buf); err != nil {
+				return
+			}
 		}
 	})
 	return c.Conn.Close()
