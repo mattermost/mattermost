@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -12,7 +12,8 @@ import {deleteChannel} from 'actions/views/channel';
 
 import ConfirmationModal from 'components/confirm_modal';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 
 type ChannelSettingsArchiveTabProps = {
     channel: Channel;
@@ -25,7 +26,7 @@ function ChannelSettingsArchiveTab({
 }: ChannelSettingsArchiveTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const isBoard = useIsBoardChannel(channel);
+    const kind = useChannelKind(channel);
 
     const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
 
@@ -43,77 +44,35 @@ function ChannelSettingsArchiveTab({
 
     return (
         <div className='ChannelSettingsModal__archiveTab'>
-            {isBoard ? (
-                <FormattedMessage
-                    id='channel_settings.archive.warning.board'
-                    defaultMessage="Archiving a board removes it from the user interface, but doesn't permanently delete the board. New messages can't be posted to archived boards."
-                />
-            ) : (
-                <FormattedMessage
-                    id='channel_settings.archive.warning'
-                    defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
-                />
-            )}
+            <FormattedMessage {...messages.warning[kind]}/>
             <Button
                 type='button'
                 variant='destructive'
                 onClick={handleArchiveChannel}
                 id='channelSettingsArchiveChannelButton'
-                aria-label={isBoard ? `Archive board ${channel.display_name}` : `Archive channel ${channel.display_name}`}
+                aria-label={`Archive ${kind} ${channel.display_name}`}
             >
-                {isBoard ? (
-                    <FormattedMessage
-                        id='channel_settings.archive.button.board'
-                        defaultMessage='Archive this board'
-                    />
-                ) : (
-                    <FormattedMessage
-                        id='channel_settings.archive.button'
-                        defaultMessage='Archive this channel'
-                    />
-                )}
+                <FormattedMessage {...messages.button[kind]}/>
             </Button>
 
             {showArchiveConfirmModal && (
                 <ConfirmationModal
                     id='archiveChannelConfirmModal'
                     show={true}
-                    title={isBoard ? formatMessage({id: 'channel_settings.modal.archiveTitle.board', defaultMessage: 'Archive board?'}) : formatMessage({id: 'channel_settings.modal.archiveTitle', defaultMessage: 'Archive channel?'})}
+                    title={formatMessage(messages.confirmTitle[kind])}
                     message={
                         <div>
                             <p>
-                                {isBoard ? (
-                                    <FormattedMessage
-                                        id='deleteChannelModal.canViewArchivedChannelsWarning.board'
-                                        defaultMessage='This will archive the board from the team. Board contents will still be accessible by board members.'
-                                    />
-                                ) : (
-                                    <FormattedMessage
-                                        id='deleteChannelModal.canViewArchivedChannelsWarning'
-                                        defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
-                                    />
-                                )}
+                                <FormattedMessage {...messages.confirmWarning[kind]}/>
                             </p>
                             <p>
-                                {isBoard ? (
-                                    <FormattedMessage
-                                        id='deleteChannelModal.confirmArchive.board'
-                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> board?'
-                                        values={{
-                                            display_name: channel.display_name,
-                                            strong: (chunks) => <strong>{chunks}</strong>,
-                                        }}
-                                    />
-                                ) : (
-                                    <FormattedMessage
-                                        id='deleteChannelModal.confirmArchive'
-                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
-                                        values={{
-                                            display_name: channel.display_name,
-                                            strong: (chunks) => <strong>{chunks}</strong>,
-                                        }}
-                                    />
-                                )}
+                                <FormattedMessage
+                                    {...messages.confirmArchive[kind]}
+                                    values={{
+                                        display_name: channel.display_name,
+                                        strong: (chunks) => <strong>{chunks}</strong>,
+                                    }}
+                                />
                             </p>
                         </div>
                     }
@@ -129,5 +88,60 @@ function ChannelSettingsArchiveTab({
         </div>
     );
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    warning: {
+        channel: defineMessage({
+            id: 'channel_settings.archive.warning',
+            defaultMessage: "Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels.",
+        }),
+        board: defineMessage({
+            id: 'channel_settings.archive.warning.board',
+            defaultMessage: "Archiving a board removes it from the user interface, but doesn't permanently delete the board. New messages can't be posted to archived boards.",
+        }),
+    },
+    button: {
+        channel: defineMessage({
+            id: 'channel_settings.archive.button',
+            defaultMessage: 'Archive this channel',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.archive.button.board',
+            defaultMessage: 'Archive this board',
+        }),
+    },
+    confirmTitle: {
+        channel: defineMessage({
+            id: 'channel_settings.modal.archiveTitle',
+            defaultMessage: 'Archive channel?',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.modal.archiveTitle.board',
+            defaultMessage: 'Archive board?',
+        }),
+    },
+    confirmWarning: {
+        channel: defineMessage({
+            id: 'deleteChannelModal.canViewArchivedChannelsWarning',
+            defaultMessage: 'This will archive the channel from the team. Channel contents will still be accessible by channel members.',
+        }),
+        board: defineMessage({
+            id: 'deleteChannelModal.canViewArchivedChannelsWarning.board',
+            defaultMessage: 'This will archive the board from the team. Board contents will still be accessible by board members.',
+        }),
+    },
+    confirmArchive: {
+        channel: defineMessage({
+            id: 'deleteChannelModal.confirmArchive',
+            defaultMessage: 'Are you sure you wish to archive the <strong>{display_name}</strong> channel?',
+        }),
+        board: defineMessage({
+            id: 'deleteChannelModal.confirmArchive.board',
+            defaultMessage: 'Are you sure you wish to archive the <strong>{display_name}</strong> board?',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default ChannelSettingsArchiveTab;

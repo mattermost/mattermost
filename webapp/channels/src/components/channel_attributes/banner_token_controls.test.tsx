@@ -119,7 +119,7 @@ describe('BannerTokenControls', () => {
             <BannerTokenControls
                 attributes={[attribute('program', 'AURORA')]}
                 onInsertToken={jest.fn()}
-                isBoard={true}
+                channelKind='board'
             />,
         );
 

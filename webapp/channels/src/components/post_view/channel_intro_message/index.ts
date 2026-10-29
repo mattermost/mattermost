@@ -17,7 +17,7 @@ import {getCurrentUser, getProfilesInCurrentChannel, getCurrentUserId, getUser, 
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {isBoardChannel} from 'utils/channel_kind';
+import {getChannelKind} from 'utils/channel_kind';
 import {Preferences} from 'utils/constants';
 import {getDisplayNameByUser} from 'utils/utils';
 
@@ -59,7 +59,7 @@ function mapStateToProps(state: GlobalState) {
         usersLimit,
         channelMember,
         isMobileView: getIsMobileView(state),
-        isBoard: isBoardChannel(state, channel),
+        channelKind: getChannelKind(state, channel),
     };
 }
 

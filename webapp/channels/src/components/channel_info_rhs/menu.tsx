@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, type JSX} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -16,7 +16,8 @@ import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {canSearchFiles} from 'utils/file_utils';
 
@@ -109,6 +110,29 @@ function MenuItem(props: MenuItemProps) {
     );
 }
 
+const messages = {
+    title: {
+        channel: defineMessage({
+            id: 'channel_info_rhs.menu.title',
+            defaultMessage: 'Channel Info Actions',
+        }),
+        board: defineMessage({
+            id: 'channel_info_rhs.menu.title.board',
+            defaultMessage: 'Board Info Actions',
+        }),
+    },
+    settings: {
+        channel: defineMessage({
+            id: 'channel_header.channel_settings',
+            defaultMessage: 'Channel Settings',
+        }),
+        board: defineMessage({
+            id: 'channel_header.channel_settings.board',
+            defaultMessage: 'Board Settings',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+
 interface MenuProps {
     channel: Channel;
     channelStats: ChannelStats;
@@ -136,7 +160,7 @@ export default function Menu(props: MenuProps) {
         actions,
     } = props;
 
-    const isBoard = useIsBoardChannel(channel);
+    const kind = useChannelKind(channel);
     const [loadingStats, setLoadingStats] = useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
@@ -173,25 +197,13 @@ export default function Menu(props: MenuProps) {
         <MenuContainer
             className={className}
             data-testid='channel_info_rhs-menu'
-            aria-label={isBoard ? formatMessage({
-                id: 'channel_info_rhs.menu.title.board',
-                defaultMessage: 'Board Info Actions',
-            }) : formatMessage({
-                id: 'channel_info_rhs.menu.title',
-                defaultMessage: 'Channel Info Actions',
-            })}
+            aria-label={formatMessage(messages.title[kind])}
         >
             {showChannelSettings && canAccessSettings && (
                 <MenuItem
                     id='channelInfoRHSChannelSettings'
                     icon={<i className='icon icon-cog-outline'/>}
-                    text={isBoard ? formatMessage({
-                        id: 'channel_header.channel_settings.board',
-                        defaultMessage: 'Board Settings',
-                    }) : formatMessage({
-                        id: 'channel_header.channel_settings',
-                        defaultMessage: 'Channel Settings',
-                    })}
+                    text={formatMessage(messages.settings[kind])}
                     onClick={openChannelSettings}
                 />
             )}

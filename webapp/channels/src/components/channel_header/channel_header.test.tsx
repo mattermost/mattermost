@@ -51,7 +51,7 @@ describe('components/ChannelHeader', () => {
 
         isChannelAutotranslated: false,
         hasPendingJoinRequests: false,
-        isBoard: false,
+        channelKind: 'channel' as const,
     };
 
     const populatedProps = {
@@ -383,7 +383,7 @@ describe('components/ChannelHeader', () => {
         const props = {
             ...populatedProps,
             hasGuests: true,
-            isBoard: true,
+            channelKind: 'board' as const,
         };
 
         const boardState = boardChannelsState('channel_id');

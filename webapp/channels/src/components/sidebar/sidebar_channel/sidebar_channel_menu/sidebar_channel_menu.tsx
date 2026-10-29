@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useRef, memo, type JSX} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {
@@ -25,7 +25,8 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {copyToClipboard} from 'utils/utils';
@@ -57,7 +58,7 @@ const SidebarChannelMenu = ({
 }: Props) => {
     const isLeaving = useRef(false);
     const isInManagedCategory = useSelector((state: GlobalState) => isChannelInManagedCategory(state, channel.id));
-    const isBoard = useIsBoardChannel(channel);
+    const kind = useChannelKind(channel);
 
     const {formatMessage} = useIntl();
 
@@ -158,20 +159,7 @@ const SidebarChannelMenu = ({
 
     let muteUnmuteChannelMenuItem: JSX.Element | null = null;
     if (isMuted) {
-        let muteChannelText = (
-            <FormattedMessage
-                id='sidebar_left.sidebar_channel_menu.unmuteChannel'
-                defaultMessage='Unmute Channel'
-            />
-        );
-        if (isBoard) {
-            muteChannelText = (
-                <FormattedMessage
-                    id='sidebar_left.sidebar_channel_menu.unmuteChannel.board'
-                    defaultMessage='Unmute Board'
-                />
-            );
-        }
+        let muteChannelText = <FormattedMessage {...messages.unmute[kind]}/>;
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
@@ -194,20 +182,7 @@ const SidebarChannelMenu = ({
             />
         );
     } else {
-        let muteChannelText = (
-            <FormattedMessage
-                id='sidebar_left.sidebar_channel_menu.muteChannel'
-                defaultMessage='Mute Channel'
-            />
-        );
-        if (isBoard) {
-            muteChannelText = (
-                <FormattedMessage
-                    id='sidebar_left.sidebar_channel_menu.muteChannel.board'
-                    defaultMessage='Mute Board'
-                />
-            );
-        }
+        let muteChannelText = <FormattedMessage {...messages.mute[kind]}/>;
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
@@ -280,20 +255,7 @@ const SidebarChannelMenu = ({
 
     let leaveChannelMenuItem: JSX.Element | null = null;
     if (channel.name !== Constants.DEFAULT_CHANNEL) {
-        let leaveChannelText = (
-            <FormattedMessage
-                id='sidebar_left.sidebar_channel_menu.leaveChannel'
-                defaultMessage='Leave Channel'
-            />
-        );
-        if (isBoard) {
-            leaveChannelText = (
-                <FormattedMessage
-                    id='sidebar_left.sidebar_channel_menu.leaveChannel.board'
-                    defaultMessage='Leave Board'
-                />
-            );
-        }
+        let leaveChannelText = <FormattedMessage {...messages.leave[kind]}/>;
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             leaveChannelText = (
                 <FormattedMessage
@@ -331,22 +293,16 @@ const SidebarChannelMenu = ({
             menuButton={{
                 id: `SidebarChannelMenu-Button-${channel.id}`,
                 class: 'SidebarMenu_menuButton',
-                'aria-label': isBoard ? formatMessage({
-                    id: 'sidebar_left.sidebar_channel_menu.editChannel.ariaLabel.board',
-                    defaultMessage: 'Board options for {channelName}',
-                }, {channelName: channel.name}) : formatMessage({
-                    id: 'sidebar_left.sidebar_channel_menu.editChannel.ariaLabel',
-                    defaultMessage: 'Channel options for {channelName}',
-                }, {channelName: channel.name}),
+                'aria-label': formatMessage(messages.optionsAriaLabel[kind], {channelName: channel.name}),
                 children: <DotsVerticalIcon size={16}/>,
             }}
             menuButtonTooltip={{
                 class: 'hidden-xs',
-                text: isBoard ? formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel.board', defaultMessage: 'Board options'}) : formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
+                text: formatMessage(messages.options[kind]),
             }}
             menu={{
                 id: `SidebarChannelMenu-MenuList-${channel.id}`,
-                'aria-label': isBoard ? formatMessage({id: 'sidebar_left.sidebar_channel_menu.dropdownAriaLabel.board', defaultMessage: 'Edit board menu'}) : formatMessage({id: 'sidebar_left.sidebar_channel_menu.dropdownAriaLabel', defaultMessage: 'Edit channel menu'}),
+                'aria-label': formatMessage(messages.menuAriaLabel[kind]),
                 onToggle: onMenuToggle,
             }}
         >
@@ -366,5 +322,70 @@ const SidebarChannelMenu = ({
         </Menu.Container>
     );
 };
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    mute: {
+        channel: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.muteChannel',
+            defaultMessage: 'Mute Channel',
+        }),
+        board: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.muteChannel.board',
+            defaultMessage: 'Mute Board',
+        }),
+    },
+    unmute: {
+        channel: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.unmuteChannel',
+            defaultMessage: 'Unmute Channel',
+        }),
+        board: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.unmuteChannel.board',
+            defaultMessage: 'Unmute Board',
+        }),
+    },
+    leave: {
+        channel: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.leaveChannel',
+            defaultMessage: 'Leave Channel',
+        }),
+        board: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.leaveChannel.board',
+            defaultMessage: 'Leave Board',
+        }),
+    },
+    options: {
+        channel: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.editChannel',
+            defaultMessage: 'Channel options',
+        }),
+        board: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.editChannel.board',
+            defaultMessage: 'Board options',
+        }),
+    },
+    optionsAriaLabel: {
+        channel: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.editChannel.ariaLabel',
+            defaultMessage: 'Channel options for {channelName}',
+        }),
+        board: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.editChannel.ariaLabel.board',
+            defaultMessage: 'Board options for {channelName}',
+        }),
+    },
+    menuAriaLabel: {
+        channel: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.dropdownAriaLabel',
+            defaultMessage: 'Edit channel menu',
+        }),
+        board: defineMessage({
+            id: 'sidebar_left.sidebar_channel_menu.dropdownAriaLabel.board',
+            defaultMessage: 'Edit board menu',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default memo(SidebarChannelMenu);

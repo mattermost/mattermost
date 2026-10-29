@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
@@ -12,7 +12,8 @@ import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
 
 import * as Menu from 'components/menu';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {Constants, NotificationLevels} from 'utils/constants';
 
 type Props = {
@@ -27,7 +28,7 @@ export default function ToggleMuteChannel({
     userID,
 }: Props) {
     const dispatch = useDispatch();
-    const isBoard = useIsBoardChannel(channel);
+    const kind = useChannelKind(channel);
 
     const handleClick = () => {
         dispatch(updateChannelNotifyProps(
@@ -56,34 +57,8 @@ export default function ToggleMuteChannel({
                 />
             );
         }
-    } else if (isBoard && isMuted) {
-        text = (
-            <FormattedMessage
-                id='channel_header.unmute.board'
-                defaultMessage='Unmute Board'
-            />
-        );
-    } else if (isBoard) {
-        text = (
-            <FormattedMessage
-                id='channel_header.mute.board'
-                defaultMessage='Mute Board'
-            />
-        );
-    } else if (isMuted) {
-        text = (
-            <FormattedMessage
-                id='channel_header.unmute'
-                defaultMessage='Unmute Channel'
-            />
-        );
     } else {
-        text = (
-            <FormattedMessage
-                id='channel_header.mute'
-                defaultMessage='Mute Channel'
-            />
-        );
+        text = <FormattedMessage {...(isMuted ? messages.unmute : messages.mute)[kind]}/>;
     }
 
     return (
@@ -95,3 +70,26 @@ export default function ToggleMuteChannel({
         />
     );
 }
+
+const messages = {
+    mute: {
+        channel: defineMessage({
+            id: 'channel_header.mute',
+            defaultMessage: 'Mute Channel',
+        }),
+        board: defineMessage({
+            id: 'channel_header.mute.board',
+            defaultMessage: 'Mute Board',
+        }),
+    },
+    unmute: {
+        channel: defineMessage({
+            id: 'channel_header.unmute',
+            defaultMessage: 'Unmute Channel',
+        }),
+        board: defineMessage({
+            id: 'channel_header.unmute.board',
+            defaultMessage: 'Unmute Board',
+        }),
+    },
+} satisfies Record<string, KindMessages>;

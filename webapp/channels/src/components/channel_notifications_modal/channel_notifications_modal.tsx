@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 
 import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
@@ -19,8 +19,9 @@ import ModalSection from 'components/widgets/modals/components/modal_section';
 import RadioSettingItem from 'components/widgets/modals/components/radio_setting_item';
 import type {SelectOption} from 'components/widgets/modals/components/react_select_item';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
 import {focusElement} from 'utils/a11y_utils';
+import type {KindMessages} from 'utils/channel_kind';
 import {NotificationLevels, DesktopSound, IgnoreChannelMentions} from 'utils/constants';
 import {convertDesktopSoundNotifyPropFromUserToDesktop, DesktopNotificationSounds, getValueOfNotificationSoundsSelect, stopTryNotificationRing, tryNotificationSound} from 'utils/notification_sounds';
 
@@ -54,9 +55,92 @@ export type Props = PropsFromRedux & {
     focusOriginElement?: string;
 };
 
+const messages = {
+    muteTitle: {
+        channel: defineMessage({
+            id: 'channel_notifications.muteChannelTitle',
+            defaultMessage: 'Mute channel',
+        }),
+        board: defineMessage({
+            id: 'channel_notifications.muteChannelTitle.board',
+            defaultMessage: 'Mute board',
+        }),
+    },
+    muteDesc: {
+        channel: defineMessage({
+            id: 'channel_notifications.muteChannelDesc',
+            defaultMessage: 'Turns off notifications for this channel. You’ll still see badges if you’re mentioned.',
+        }),
+        board: defineMessage({
+            id: 'channel_notifications.muteChannelDesc.board',
+            defaultMessage: 'Turns off notifications for this board. You’ll still see badges if you’re mentioned.',
+        }),
+    },
+    ignoreMentionsDesc: {
+        channel: defineMessage({
+            id: 'channel_notifications.ignoreMentionsDesc',
+            defaultMessage: 'When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel',
+        }),
+        board: defineMessage({
+            id: 'channel_notifications.ignoreMentionsDesc.board',
+            defaultMessage: 'When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this board',
+        }),
+    },
+    autoFollowThreadsCheckbox: {
+        channel: defineMessage({
+            id: 'channel_notifications.checkbox.autoFollowThreadsTitle',
+            defaultMessage: 'Automatically follow threads in this channel',
+        }),
+        board: defineMessage({
+            id: 'channel_notifications.checkbox.autoFollowThreadsTitle.board',
+            defaultMessage: 'Automatically follow threads in this board',
+        }),
+    },
+    mutedBannerTitle: {
+        channel: defineMessage({
+            id: 'channel_notifications.alertBanner.title',
+            defaultMessage: 'This channel is muted',
+        }),
+        board: defineMessage({
+            id: 'channel_notifications.alertBanner.title.board',
+            defaultMessage: 'This board is muted',
+        }),
+    },
+    mutedBannerDescription: {
+        channel: defineMessage({
+            id: 'channel_notifications.alertBanner.description',
+            defaultMessage: 'All other notification preferences for this channel are disabled',
+        }),
+        board: defineMessage({
+            id: 'channel_notifications.alertBanner.description.board',
+            defaultMessage: 'All other notification preferences for this board are disabled',
+        }),
+    },
+    autoFollowThreadsTitle: {
+        channel: defineMessage({
+            id: 'channel_notifications.autoFollowThreadsTitle',
+            defaultMessage: 'Follow all threads in this channel',
+        }),
+        board: defineMessage({
+            id: 'channel_notifications.autoFollowThreadsTitle.board',
+            defaultMessage: 'Follow all threads in this board',
+        }),
+    },
+    autoFollowThreadsDesc: {
+        channel: defineMessage({
+            id: 'channel_notifications.autoFollowThreadsDesc',
+            defaultMessage: 'When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.',
+        }),
+        board: defineMessage({
+            id: 'channel_notifications.autoFollowThreadsDesc.board',
+            defaultMessage: 'When enabled, all new replies in this board will be automatically followed and will appear in your Threads view.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+
 export default function ChannelNotificationsModal(props: Props) {
     const {formatMessage} = useIntl();
-    const isBoard = useIsBoardChannel(props.channel);
+    const kind = useChannelKind(props.channel);
 
     const [show, setShow] = useState(true);
     const [serverError, setServerError] = useState('');
@@ -133,24 +217,8 @@ export default function ChannelNotificationsModal(props: Props) {
     const muteOrIgnoreSectionContent = (
         <>
             <CheckboxSettingItem
-                inputFieldTitle={isBoard ? (
-                    <FormattedMessage
-                        id='channel_notifications.muteChannelTitle.board'
-                        defaultMessage='Mute board'
-                    />
-                ) : (
-                    <FormattedMessage
-                        id='channel_notifications.muteChannelTitle'
-                        defaultMessage='Mute channel'
-                    />
-                )}
-                description={isBoard ? formatMessage({
-                    id: 'channel_notifications.muteChannelDesc.board',
-                    defaultMessage: 'Turns off notifications for this board. You’ll still see badges if you’re mentioned.',
-                }) : formatMessage({
-                    id: 'channel_notifications.muteChannelDesc',
-                    defaultMessage: 'Turns off notifications for this channel. You’ll still see badges if you’re mentioned.',
-                })}
+                inputFieldTitle={<FormattedMessage {...messages.muteTitle[kind]}/>}
+                description={formatMessage(messages.muteDesc[kind])}
                 inputFieldValue={settings.mark_unread === 'mention'}
                 inputFieldData={utils.MuteChannelInputFieldData}
                 handleChange={(e) => handleChange({mark_unread: e ? 'mention' : 'all'})}
@@ -162,13 +230,7 @@ export default function ChannelNotificationsModal(props: Props) {
                         defaultMessage='Ignore mentions for @channel, @here and @all'
                     />
                 }
-                description={isBoard ? formatMessage({
-                    id: 'channel_notifications.ignoreMentionsDesc.board',
-                    defaultMessage: 'When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this board',
-                }) : formatMessage({
-                    id: 'channel_notifications.ignoreMentionsDesc',
-                    defaultMessage: 'When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel',
-                })}
+                description={formatMessage(messages.ignoreMentionsDesc[kind])}
                 inputFieldValue={settings.ignore_channel_mentions === 'on'}
                 inputFieldData={utils.IgnoreMentionsInputFieldData}
                 handleChange={(e) => handleChange({ignore_channel_mentions: e ? 'on' : 'off'})}
@@ -290,17 +352,7 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const autoFollowThreadsSectionContent = (
         <CheckboxSettingItem
-            inputFieldTitle={isBoard ? (
-                <FormattedMessage
-                    id='channel_notifications.checkbox.autoFollowThreadsTitle.board'
-                    defaultMessage='Automatically follow threads in this board'
-                />
-            ) : (
-                <FormattedMessage
-                    id='channel_notifications.checkbox.autoFollowThreadsTitle'
-                    defaultMessage='Automatically follow threads in this channel'
-                />
-            )}
+            inputFieldTitle={<FormattedMessage {...messages.autoFollowThreadsCheckbox[kind]}/>}
             inputFieldValue={settings.channel_auto_follow_threads === 'on'}
             inputFieldData={utils.AutoFollowThreadsInputFieldData}
             handleChange={(e) => handleChange({channel_auto_follow_threads: e ? 'on' : 'off'})}
@@ -361,28 +413,8 @@ export default function ChannelNotificationsModal(props: Props) {
                     color={'currentColor'}
                 />
             }
-            title={isBoard ? (
-                <FormattedMessage
-                    id='channel_notifications.alertBanner.title.board'
-                    defaultMessage='This board is muted'
-                />
-            ) : (
-                <FormattedMessage
-                    id='channel_notifications.alertBanner.title'
-                    defaultMessage='This channel is muted'
-                />
-            )}
-            message={isBoard ? (
-                <FormattedMessage
-                    id='channel_notifications.alertBanner.description.board'
-                    defaultMessage='All other notification preferences for this board are disabled'
-                />
-            ) : (
-                <FormattedMessage
-                    id='channel_notifications.alertBanner.description'
-                    defaultMessage='All other notification preferences for this channel are disabled'
-                />
-            )}
+            title={<FormattedMessage {...messages.mutedBannerTitle[kind]}/>}
+            message={<FormattedMessage {...messages.mutedBannerDescription[kind]}/>}
         />
     );
 
@@ -467,20 +499,8 @@ export default function ChannelNotificationsModal(props: Props) {
                     <>
                         <div className='ChannelNotificationModal__divider'/>
                         <ModalSection
-                            title={isBoard ? formatMessage({
-                                id: 'channel_notifications.autoFollowThreadsTitle.board',
-                                defaultMessage: 'Follow all threads in this board',
-                            }) : formatMessage({
-                                id: 'channel_notifications.autoFollowThreadsTitle',
-                                defaultMessage: 'Follow all threads in this channel',
-                            })}
-                            description={isBoard ? formatMessage({
-                                id: 'channel_notifications.autoFollowThreadsDesc.board',
-                                defaultMessage: 'When enabled, all new replies in this board will be automatically followed and will appear in your Threads view.',
-                            }) : formatMessage({
-                                id: 'channel_notifications.autoFollowThreadsDesc',
-                                defaultMessage: 'When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.',
-                            })}
+                            title={formatMessage(messages.autoFollowThreadsTitle[kind])}
+                            description={formatMessage(messages.autoFollowThreadsDesc[kind])}
                             content={autoFollowThreadsSectionContent}
                         />
                     </>

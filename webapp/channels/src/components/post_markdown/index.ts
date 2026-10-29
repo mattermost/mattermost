@@ -19,7 +19,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys, getHighlightWithoutNotificationKeys} from 'mattermost-redux/selectors/entities/users';
 
-import {isBoardChannel} from 'utils/channel_kind';
+import {getChannelKind} from 'utils/channel_kind';
 import {canManageMembers} from 'utils/channel_utils';
 import {Preferences} from 'utils/constants';
 import {isEnterpriseOrCloudOrSKUStarterFree} from 'utils/license_utils';
@@ -76,7 +76,7 @@ function makeMapStateToProps() {
 
         return {
             channel,
-            isBoard: ownProps.post ? isBoardChannel(state, {id: ownProps.post.channel_id}) : false,
+            channelKind: getChannelKind(state, ownProps.post ? {id: ownProps.post.channel_id} : null),
             currentTeam,
             pluginHooks: state.plugins.components.MessageWillFormat,
             hasPluginTooltips: hasPluginTooltips(state.plugins.components.LinkTooltip),

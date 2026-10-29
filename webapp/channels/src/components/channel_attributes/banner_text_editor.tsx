@@ -3,13 +3,17 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+
+import type {KindMessages} from 'utils/channel_kind';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 import type {BannerSegment} from './banner_template';
 import {attributeToken, insertToken, parseBannerTemplate} from './banner_template';
@@ -123,8 +127,8 @@ type Props = {
     maxLength?: number;
     hasError?: boolean;
 
-    // The channel is a board, so the editor says board rather than channel.
-    isBoard?: boolean;
+    // The channel's kind, which picks the words: board rather than channel for a board.
+    channelKind?: ChannelKind;
 };
 
 /**
@@ -136,7 +140,7 @@ type Props = {
  * chips with free text in a single caret flow; everything below exists to keep that
  * DOM and the template string in agreement.
  */
-const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, hasError, isBoard = false}: Props) => {
+const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, hasError, channelKind = 'channel'}: Props) => {
     const {formatMessage} = useIntl();
     const editorRef = useRef<HTMLDivElement>(null);
 
@@ -348,7 +352,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                     aria-multiline='false'
                     aria-label={formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'})}
                     data-testid='bannerTextEditor'
-                    data-placeholder={isBoard ? formatMessage({id: 'channel_banner.banner_text.placeholder.board', defaultMessage: 'Board banner text'}) : formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'})}
+                    data-placeholder={formatMessage(placeholderMessages[channelKind])}
                     onInput={emit}
                     onBlur={rememberCaret}
                     onKeyUp={rememberCaret}
@@ -414,12 +418,23 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                         attributes={attributes}
                         onInsertToken={handleInsertToken}
                         disabled={disabled}
-                        isBoard={isBoard}
+                        channelKind={channelKind}
                     />
                 </div>
             </div>
         </div>
     );
+};
+
+const placeholderMessages: KindMessages = {
+    channel: defineMessage({
+        id: 'channel_banner.banner_text.placeholder',
+        defaultMessage: 'Channel banner text',
+    }),
+    board: defineMessage({
+        id: 'channel_banner.banner_text.placeholder.board',
+        defaultMessage: 'Board banner text',
+    }),
 };
 
 export default BannerTextEditor;

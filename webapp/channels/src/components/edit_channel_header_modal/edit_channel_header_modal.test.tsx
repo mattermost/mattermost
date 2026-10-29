@@ -46,7 +46,7 @@ describe('components/EditChannelHeaderModal', () => {
         markdownPreviewFeatureIsEnabled: false,
         channel,
         ctrlSend: false,
-        isBoard: false,
+        channelKind: 'channel' as const,
         show: false,
         onExited: jest.fn(),
         actions: {
@@ -146,7 +146,7 @@ describe('components/EditChannelHeaderModal', () => {
         renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
-                isBoard={true}
+                channelKind='board'
                 actions={{...baseProps.actions, patchChannel}}
             />,
             boardChannelsState(channel.id),

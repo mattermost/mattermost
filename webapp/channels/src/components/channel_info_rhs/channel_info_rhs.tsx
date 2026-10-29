@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
@@ -25,7 +25,8 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 import RenameChannelModal from 'components/rename_channel_modal';
 import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
@@ -94,6 +95,17 @@ export interface Props {
     };
 }
 
+const archivedTitleMessages: KindMessages = {
+    channel: defineMessage({
+        id: 'channel_info_rhs.archived.title',
+        defaultMessage: 'This channel is archived.',
+    }),
+    board: defineMessage({
+        id: 'channel_info_rhs.archived.title.board',
+        defaultMessage: 'This board is archived.',
+    }),
+};
+
 const ChannelInfoRhs = ({
     channel,
     channelStats,
@@ -110,7 +122,7 @@ const ChannelInfoRhs = ({
     canManageProperties,
     actions,
 }: Props) => {
-    const isBoard = useIsBoardChannel(channel);
+    const kind = useChannelKind(channel);
     const currentUserId = currentUser.id;
     const channelURL = getSiteURL() + '/' + currentTeam.name + '/channels/' + channel.name;
 
@@ -203,17 +215,7 @@ const ChannelInfoRhs = ({
                                 icon={<Icon glyph={<ArchiveOutlineIcon/>}/>}
                                 title={
                                     <>
-                                        {isBoard ? (
-                                            <FormattedMessage
-                                                id='channel_info_rhs.archived.title.board'
-                                                defaultMessage='This board is archived.'
-                                            />
-                                        ) : (
-                                            <FormattedMessage
-                                                id='channel_info_rhs.archived.title'
-                                                defaultMessage='This channel is archived.'
-                                            />
-                                        )}
+                                        <FormattedMessage {...archivedTitleMessages[kind]}/>
                                         {channel.name !== Constants.DEFAULT_CHANNEL && (
                                             <ChannelPermissionGate
                                                 channelId={channel.id}
@@ -237,7 +239,7 @@ const ChannelInfoRhs = ({
                         </ArchivedNoticeContainer>
                     )}
                     <TopButtons
-                        channelId={channel.id}
+                        channelKind={kind}
                         channelType={channel.type}
                         channelURL={channelURL}
                         isFavorite={isFavorite}

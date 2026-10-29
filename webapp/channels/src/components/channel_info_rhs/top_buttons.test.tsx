@@ -4,7 +4,6 @@
 import React from 'react';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import Constants from 'utils/constants';
 
 import TopButtons from './top_buttons';
@@ -223,9 +222,8 @@ describe('channel_info_rhs/top_buttons', () => {
         renderWithContext(
             <TopButtons
                 {...topButtonDefaultProps}
-                channelId='board1'
+                channelKind='board'
             />,
-            boardChannelsState('board1'),
         );
 
         await userEvent.hover(screen.getByRole('button', {name: 'Mute'}));

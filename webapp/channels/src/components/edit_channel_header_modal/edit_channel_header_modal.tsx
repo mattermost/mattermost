@@ -4,7 +4,7 @@
 import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import {isMobile} from '@mattermost/shared/utils/user_agent';
@@ -15,6 +15,7 @@ import Textbox, {TextboxLinks} from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 
+import type {KindMessages} from 'utils/channel_kind';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {insertLineBreakFromKeyEvent, isUnhandledLineBreakKeyCombo} from 'utils/utils';
@@ -164,18 +165,9 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
 
         let errorMsg;
         if (serverError.server_error_id === 'model.channel.is_valid.header.app_error') {
-            errorMsg = this.props.isBoard ? (
+            errorMsg = (
                 <FormattedMessage
-                    id='edit_channel_header_modal.error.board'
-                    defaultMessage='The text entered exceeds the character limit. The board header is limited to {maxLength} characters.'
-                    values={{
-                        maxLength: headerMaxLength,
-                    }}
-                />
-            ) : (
-                <FormattedMessage
-                    id='edit_channel_header_modal.error'
-                    defaultMessage='The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.'
+                    {...messages.error[this.props.channelKind]}
                     values={{
                         maxLength: headerMaxLength,
                     }}
@@ -242,17 +234,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                             htmlFor='edit_textbox'
                             className='textarea-label'
                         >
-                            {this.props.isBoard ? (
-                                <FormattedMessage
-                                    id='edit_channel_header_modal.description.board'
-                                    defaultMessage='Edit the text appearing next to the board name in the header.'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='edit_channel_header_modal.description'
-                                    defaultMessage='Edit the text appearing next to the channel name in the header.'
-                                />
-                            )}
+                            <FormattedMessage {...messages.description[this.props.channelKind]}/>
                         </label>
                         <div className='textarea-wrapper'>
                             <Textbox
@@ -262,7 +244,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                                 onKeyDown={this.handleKeyDown}
                                 supportsCommands={false}
                                 suggestionListPosition='bottom'
-                                createMessage={this.props.isBoard ? this.props.intl.formatMessage({id: 'edit_channel_header_modal.placeholder.board', defaultMessage: 'Enter the Board Header'}) : this.props.intl.formatMessage({id: 'edit_channel_header_modal.placeholder', defaultMessage: 'Enter the Channel Header'})}
+                                createMessage={this.props.intl.formatMessage(messages.placeholder[this.props.channelKind])}
                                 handlePostError={this.handlePostError}
                                 channelId={this.props.channel.id!}
                                 id='edit_textbox'
@@ -316,5 +298,40 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
         );
     }
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    error: {
+        channel: defineMessage({
+            id: 'edit_channel_header_modal.error',
+            defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
+        }),
+        board: defineMessage({
+            id: 'edit_channel_header_modal.error.board',
+            defaultMessage: 'The text entered exceeds the character limit. The board header is limited to {maxLength} characters.',
+        }),
+    },
+    description: {
+        channel: defineMessage({
+            id: 'edit_channel_header_modal.description',
+            defaultMessage: 'Edit the text appearing next to the channel name in the header.',
+        }),
+        board: defineMessage({
+            id: 'edit_channel_header_modal.description.board',
+            defaultMessage: 'Edit the text appearing next to the board name in the header.',
+        }),
+    },
+    placeholder: {
+        channel: defineMessage({
+            id: 'edit_channel_header_modal.placeholder',
+            defaultMessage: 'Enter the Channel Header',
+        }),
+        board: defineMessage({
+            id: 'edit_channel_header_modal.placeholder.board',
+            defaultMessage: 'Enter the Board Header',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default injectIntl(EditChannelHeaderModal);

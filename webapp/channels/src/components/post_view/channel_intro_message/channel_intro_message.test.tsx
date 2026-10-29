@@ -73,7 +73,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         stats: {},
         usersLimit: 10,
         isMobileView: false,
-        isBoard: false,
+        channelKind: 'channel' as const,
         actions: {
             getTotalUsersStats: jest.fn().mockResolvedValue([]),
             favoriteChannel: jest.fn().mockResolvedValue([]),
@@ -132,7 +132,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
             renderWithContext(
                 <ChannelIntroMessage
                     {...baseProps}
-                    isBoard={true}
+                    channelKind='board'
                 />,
                 {...initialState, plugins: {...initialState.plugins, ...boardState.plugins}},
             );

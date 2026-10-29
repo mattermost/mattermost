@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -13,6 +13,10 @@ import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
+
+import type {KindMessages} from 'utils/channel_kind';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 import './channel_access_rules_confirm_modal.scss';
 
@@ -28,8 +32,8 @@ type ChannelAccessRulesConfirmModalProps = {
     isStacked?: boolean;
     willShowActivityWarning?: boolean;
 
-    /** Whether the channel is a board, so the message says "board" rather than "channel". */
-    isBoard?: boolean;
+    /** The channel's kind, which picks the words: "board" rather than "channel" for a board. */
+    channelKind?: ChannelKind;
 };
 
 const USERS_PER_PAGE = 50;
@@ -45,7 +49,7 @@ function ChannelAccessRulesConfirmModal({
     autoSyncEnabled = false,
     isStacked = false,
     willShowActivityWarning = false,
-    isBoard = false,
+    channelKind = 'channel',
 }: ChannelAccessRulesConfirmModalProps) {
     const dispatch = useDispatch();
 
@@ -155,20 +159,9 @@ function ChannelAccessRulesConfirmModal({
 
     const modalSubtitle = channelName;
 
-    const membershipChangeMessage = isBoard ? (
+    const membershipChangeMessage = (
         <FormattedMessage
-            id='channel_settings.access_rules.confirm_modal.message.board'
-            defaultMessage='Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the board and remove <strong>{removeCount, number} current board {removeCount, plural, one {member} other {members}}</strong>.'
-            values={{
-                addCount: usersToAdd.length,
-                removeCount: usersToRemove.length,
-                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-            }}
-        />
-    ) : (
-        <FormattedMessage
-            id='channel_settings.access_rules.confirm_modal.message'
-            defaultMessage='Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.'
+            {...messages.membershipChange[channelKind]}
             values={{
                 addCount: usersToAdd.length,
                 removeCount: usersToRemove.length,
@@ -348,5 +341,20 @@ function ChannelAccessRulesConfirmModal({
         </GenericModal>
     );
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    membershipChange: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.confirm_modal.message',
+            defaultMessage: 'Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.confirm_modal.message.board',
+            defaultMessage: 'Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the board and remove <strong>{removeCount, number} current board {removeCount, plural, one {member} other {members}}</strong>.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default ChannelAccessRulesConfirmModal;

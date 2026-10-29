@@ -1532,7 +1532,8 @@ export default class PluginRegistry {
      * translated message beside the channel one.
      *
      * `matcher` receives the full GlobalState and a Channel, as for registerChannelIconOverride;
-     * throws are caught and treated as no-match, and the first match wins. `kind` must be one the
+     * throws are caught and treated as no-match, and the first match wins. It runs once per channel
+     * for each store state, however many components ask. `kind` must be one the
      * webapp knows: 'board'. Registrations are cleaned up automatically when the plugin is removed.
      *
      * @returns Auto-generated unique id for this registration.

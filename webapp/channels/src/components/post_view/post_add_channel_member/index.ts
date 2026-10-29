@@ -11,7 +11,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {isBoardChannel} from 'utils/channel_kind';
+import {getChannelKind} from 'utils/channel_kind';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 
 import type {GlobalState} from 'types/store';
@@ -42,7 +42,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     return {
         channelType,
-        isBoard: post && post.channel_id ? isBoardChannel(state, {id: post.channel_id}) : false,
+        channelKind: getChannelKind(state, post?.channel_id ? {id: post.channel_id} : null),
         currentUser: getCurrentUser(state),
         post,
         isPolicyEnforced,

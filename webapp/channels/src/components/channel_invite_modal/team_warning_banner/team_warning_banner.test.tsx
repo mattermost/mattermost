@@ -9,7 +9,6 @@ import TeamWarningBanner from 'components/channel_invite_modal/team_warning_bann
 import type {Value} from 'components/multiselect/multiselect';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -143,11 +142,11 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
         renderWithContext(
             <TeamWarningBanner
                 teamId={teamId}
-                channelId='board1'
+                channelKind='board'
                 users={createUsers(2)}
                 guests={createUsers(2)}
             />,
-            {...state, ...boardChannelsState('board1')},
+            state,
         );
 
         expect(screen.getByText(/to this board once they are members of the/)).toBeInTheDocument();

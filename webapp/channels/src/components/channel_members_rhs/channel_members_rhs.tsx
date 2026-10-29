@@ -3,7 +3,7 @@
 
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
@@ -22,7 +22,8 @@ import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
@@ -39,6 +40,39 @@ import SearchBar from './search';
 import './channel_members_rhs.scss';
 
 const USERS_PER_PAGE = 100;
+
+const messages = {
+    adminTitle: {
+        channel: defineMessage({
+            id: 'channel_members_rhs.list.channel_admin_title',
+            defaultMessage: 'CHANNEL ADMINS',
+        }),
+        board: defineMessage({
+            id: 'channel_members_rhs.list.channel_admin_title.board',
+            defaultMessage: 'BOARD ADMINS',
+        }),
+    },
+    policyRecommended: {
+        channel: defineMessage({
+            id: 'channel_members_rhs.policy_recommended_description',
+            defaultMessage: 'This channel has recommended members based on user attributes',
+        }),
+        board: defineMessage({
+            id: 'channel_members_rhs.policy_recommended_description.board',
+            defaultMessage: 'This board has recommended members based on user attributes',
+        }),
+    },
+    policyRestricted: {
+        channel: defineMessage({
+            id: 'channel_members_rhs.policy_enforced_restrictions',
+            defaultMessage: 'Channel access is restricted by user attributes',
+        }),
+        board: defineMessage({
+            id: 'channel_members_rhs.policy_enforced_restrictions.board',
+            defaultMessage: 'Board access is restricted by user attributes',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export interface Props {
     channel: Channel;
@@ -92,7 +126,7 @@ export default function ChannelMembersRHS({
     const [page, setPage] = useState(0);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
-    const isBoard = useIsBoardChannel(channel);
+    const kind = useChannelKind(channel);
 
     // Only channels whose policy controls membership surface attribute
     // tags in the RHS — a permission-only policy (e.g. file upload) has
@@ -158,20 +192,8 @@ export default function ChannelMembersRHS({
             const member = channelMembers[i];
             if (listcp.length === 0) {
                 let text = null;
-                if (member.membership?.scheme_admin === true && isBoard) {
-                    text = (
-                        <FormattedMessage
-                            id='channel_members_rhs.list.channel_admin_title.board'
-                            defaultMessage='BOARD ADMINS'
-                        />
-                    );
-                } else if (member.membership?.scheme_admin === true) {
-                    text = (
-                        <FormattedMessage
-                            id='channel_members_rhs.list.channel_admin_title'
-                            defaultMessage='CHANNEL ADMINS'
-                        />
-                    );
+                if (member.membership?.scheme_admin === true) {
+                    text = <FormattedMessage {...messages.adminTitle[kind]}/>;
                 } else {
                     text = (
                         <FormattedMessage
@@ -204,7 +226,7 @@ export default function ChannelMembersRHS({
         if (JSON.stringify(list) !== JSON.stringify(listcp)) {
             setList(listcp);
         }
-    }, [channelMembers, isBoard]);
+    }, [channelMembers, kind]);
 
     useEffect(() => {
         if (channel.type === Constants.DM_CHANNEL) {
@@ -303,24 +325,7 @@ export default function ChannelMembersRHS({
                     <AlertBanner
                         mode='info'
                         variant='app'
-                        title={(() => {
-                            if (channel.type === Constants.OPEN_CHANNEL) {
-                                return isBoard ? formatMessage({
-                                    id: 'channel_members_rhs.policy_recommended_description.board',
-                                    defaultMessage: 'This board has recommended members based on user attributes',
-                                }) : formatMessage({
-                                    id: 'channel_members_rhs.policy_recommended_description',
-                                    defaultMessage: 'This channel has recommended members based on user attributes',
-                                });
-                            }
-                            return isBoard ? formatMessage({
-                                id: 'channel_members_rhs.policy_enforced_restrictions.board',
-                                defaultMessage: 'Board access is restricted by user attributes',
-                            }) : formatMessage({
-                                id: 'channel_members_rhs.policy_enforced_restrictions',
-                                defaultMessage: 'Channel access is restricted by user attributes',
-                            });
-                        })()}
+                        title={formatMessage((channel.type === Constants.OPEN_CHANNEL ? messages.policyRecommended : messages.policyRestricted)[kind])}
                     >
                         {accessControlTags}
                         {loading && <span className='loading-indicator'>{'Loading...'}</span>}

@@ -99,7 +99,7 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
         renderWithContext(
             <LastUsers
                 {...baseProps}
-                isBoard={true}
+                channelKind='board'
             />, initialState,
         );
 

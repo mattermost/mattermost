@@ -15,7 +15,7 @@ import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
 import {Constants} from 'utils/constants';
 
 import MenuItemArchiveChannel from '../menu_items/archive_channel';
@@ -48,7 +48,7 @@ interface Props extends Menu.FirstMenuItemProps {
 }
 
 const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
-    const isBoard = useIsBoardChannel(channel);
+    const kind = useChannelKind(channel);
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
@@ -176,7 +176,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
             )}
 
             {isArchived && (
-                <MenuItemCloseChannel isBoard={isBoard}/>
+                <MenuItemCloseChannel kind={kind}/>
             )}
 
             {!isArchived && !isDefault && (

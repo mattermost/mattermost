@@ -7,7 +7,7 @@ import type {Dispatch} from 'redux';
 
 import {updateChannelPrivacy} from 'mattermost-redux/actions/channels';
 
-import {isBoardChannel} from 'utils/channel_kind';
+import {getChannelKind} from 'utils/channel_kind';
 
 import type {GlobalState} from 'types/store';
 
@@ -19,7 +19,7 @@ type OwnProps = {
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {
-        isBoard: isBoardChannel(state, {id: ownProps.channelId}),
+        channelKind: getChannelKind(state, {id: ownProps.channelId}),
     };
 }
 

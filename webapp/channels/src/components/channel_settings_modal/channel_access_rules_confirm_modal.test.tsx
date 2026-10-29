@@ -27,7 +27,7 @@ describe('ChannelAccessRulesConfirmModal', () => {
         renderWithContext(
             <ChannelAccessRulesConfirmModal
                 {...baseProps}
-                isBoard={true}
+                channelKind='board'
             />,
         );
 

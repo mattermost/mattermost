@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {type JSX} from 'react';
-import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {connect, shallowEqual} from 'react-redux';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
@@ -21,11 +21,12 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {isBoardChannel} from 'utils/channel_kind';
+import {getChannelKind, type KindMessages} from 'utils/channel_kind';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import type {GlobalState} from 'types/store';
+import type {ChannelKind} from 'types/store/plugins';
 
 import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';
@@ -61,8 +62,8 @@ interface Props extends WrappedComponentProps {
     handleRequestToJoin?: (channel: Channel, done: () => void) => void;
     handleWithdrawRequest?: (channel: Channel, done: () => void) => void;
 
-    // The ids of the listed channels that are boards, whose rows say "board" rather than "channel".
-    boardChannelIds?: string[];
+    // The kinds of the listed channels that aren't plain channels, by id, which pick the words their rows use.
+    channelKinds?: Record<string, ChannelKind>;
 }
 
 type State = {
@@ -184,7 +185,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
     }
 
     createChannelRow = (channel: Channel) => {
-        const isBoard = Boolean(this.props.boardChannelIds?.includes(channel.id));
+        const kind = this.props.channelKinds?.[channel.id] ?? 'channel';
         const channelTypeIcon = (
             <ChannelIcon
                 channel={channel}
@@ -231,7 +232,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <div
                 className='discoverableIndicatorContainer'
                 data-testid='discoverable-indicator'
-                aria-label={isBoard ? this.props.intl.formatMessage({id: 'more_channels.discoverable.aria.board', defaultMessage: 'Discoverable private board'}) : this.props.intl.formatMessage({id: 'more_channels.discoverable.aria', defaultMessage: 'Discoverable private channel'})}
+                aria-label={this.props.intl.formatMessage(kindMessages.discoverableAria[kind])}
             >
                 <AccountPlusOutlineIcon size={14}/>
                 <FormattedMessage
@@ -242,7 +243,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         ) : null;
 
         const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
-            isBoard ? messages.boardPurpose : messages.channelPurpose,
+            kindMessages.channelPurpose[kind],
             {memberCount, channelPurpose: channel.purpose || ''},
         );
 
@@ -408,23 +409,12 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                             className='sr-only'
                             role='alert'
                         >
-                            {isBoard ? (
-                                <FormattedMessage
-                                    id='more_channels.joinedChannel.board'
-                                    defaultMessage='Joined board {channelName}'
-                                    values={{
-                                        channelName: channel.display_name,
-                                    }}
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='more_channels.joinedChannel'
-                                    defaultMessage='Joined channel {channelName}'
-                                    values={{
-                                        channelName: channel.display_name,
-                                    }}
-                                />
-                            )}
+                            <FormattedMessage
+                                {...kindMessages.joinedChannel[kind]}
+                                values={{
+                                    channelName: channel.display_name,
+                                }}
+                            />
                         </span>
                     )}
                 </div>
@@ -965,14 +955,6 @@ const messages = defineMessages({
         id: 'more_channels.count',
         defaultMessage: '{count} Results',
     },
-    channelPurpose: {
-        id: 'more_channels.channel_purpose',
-        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
-    },
-    boardPurpose: {
-        id: 'more_channels.channel_purpose.board',
-        defaultMessage: 'Board Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
-    },
     joiningButton: {
         id: 'joinChannel.joiningButton',
         defaultMessage: 'Joining...',
@@ -991,22 +973,63 @@ const messages = defineMessages({
     },
 });
 
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const kindMessages = {
+    discoverableAria: {
+        channel: defineMessage({
+            id: 'more_channels.discoverable.aria',
+            defaultMessage: 'Discoverable private channel',
+        }),
+        board: defineMessage({
+            id: 'more_channels.discoverable.aria.board',
+            defaultMessage: 'Discoverable private board',
+        }),
+    },
+    channelPurpose: {
+        channel: defineMessage({
+            id: 'more_channels.channel_purpose',
+            defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
+        }),
+        board: defineMessage({
+            id: 'more_channels.channel_purpose.board',
+            defaultMessage: 'Board Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
+        }),
+    },
+    joinedChannel: {
+        channel: defineMessage({
+            id: 'more_channels.joinedChannel',
+            defaultMessage: 'Joined channel {channelName}',
+        }),
+        board: defineMessage({
+            id: 'more_channels.joinedChannel.board',
+            defaultMessage: 'Joined board {channelName}',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
+
 type OwnProps = {
     channels: Channel[];
 };
 
-// Each list gets its own last result, so the ids keep their identity while the boards among the
+// Each list gets its own last result, so the kinds keep their identity while the kinds of the
 // listed channels stay the same, and the list doesn't re-render on every store change.
 function makeMapStateToProps() {
-    let boardChannelIds: string[] = [];
+    let channelKinds: Record<string, ChannelKind> = {};
 
     return (state: GlobalState, ownProps: OwnProps) => {
-        const ids = ownProps.channels.filter((channel) => isBoardChannel(state, channel)).map((channel) => channel.id);
-        if (!shallowEqual(ids, boardChannelIds)) {
-            boardChannelIds = ids;
+        const kinds: Record<string, ChannelKind> = {};
+        for (const channel of ownProps.channels) {
+            const kind = getChannelKind(state, channel);
+            if (kind !== 'channel') {
+                kinds[channel.id] = kind;
+            }
+        }
+        if (!shallowEqual(kinds, channelKinds)) {
+            channelKinds = kinds;
         }
 
-        return {boardChannelIds};
+        return {channelKinds};
     };
 }
 

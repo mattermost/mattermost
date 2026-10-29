@@ -11,7 +11,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {deleteChannel} from 'actions/views/channel';
 
-import {isBoardChannel} from 'utils/channel_kind';
+import {getChannelKind} from 'utils/channel_kind';
 
 import type {GlobalState} from 'types/store';
 
@@ -24,7 +24,7 @@ type OwnProps = {
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {
         currentTeamDetails: getCurrentTeam(state),
-        isBoard: isBoardChannel(state, ownProps.channel),
+        channelKind: getChannelKind(state, ownProps.channel),
     };
 }
 

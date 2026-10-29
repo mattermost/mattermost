@@ -97,7 +97,7 @@ describe('components/channel_view', () => {
         canRestrictDirectMessage: false,
         restrictDirectMessage: false,
         channelViewPluginComponent: null,
-        isBoard: false,
+        channelKind: 'channel' as const,
     };
 
     it('Should match snapshot with base props', () => {
@@ -120,7 +120,7 @@ describe('components/channel_view', () => {
             <ChannelView
                 {...baseProps}
                 channelIsArchived={true}
-                isBoard={true}
+                channelKind='board'
             />,
             boardChannelsState('channelId'),
         );

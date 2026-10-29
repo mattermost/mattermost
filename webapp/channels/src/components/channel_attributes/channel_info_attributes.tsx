@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
@@ -19,7 +19,8 @@ import useIsChannelAttributeAdmin from 'components/common/hooks/useIsChannelAttr
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
 import * as Menu from 'components/menu';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 
 import AttributeChip from './attribute_chip';
 import ChannelAttributeRowEditor from './channel_attribute_row_editor';
@@ -71,6 +72,17 @@ const lockReasons = defineMessages({
     },
 });
 
+const headingMessages: KindMessages = {
+    channel: defineMessage({
+        id: 'channel_attributes.info.heading',
+        defaultMessage: 'Channel Attributes',
+    }),
+    board: defineMessage({
+        id: 'channel_attributes.info.heading.board',
+        defaultMessage: 'Board Attributes',
+    }),
+};
+
 type Props = {
     channelId: string;
 
@@ -105,7 +117,7 @@ function withPendingValue(attribute: ResolvedChannelAttribute, raw: ChannelAttri
  */
 const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({channelId, deferred, onPendingChange}, ref) => {
     const {formatMessage} = useIntl();
-    const isBoard = useIsBoardChannel({id: channelId});
+    const kind = useChannelKind({id: channelId});
     const dispatch = useDispatch();
 
     // One resolved list, two views: a second hook would duplicate the fetch.
@@ -298,17 +310,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
             data-testid='channelInfoAttributes'
         >
             <div className='ChannelInfoAttributes__heading'>
-                {isBoard ? (
-                    <FormattedMessage
-                        id='channel_attributes.info.heading.board'
-                        defaultMessage='Board Attributes'
-                    />
-                ) : (
-                    <FormattedMessage
-                        id='channel_attributes.info.heading'
-                        defaultMessage='Channel Attributes'
-                    />
-                )}
+                <FormattedMessage {...headingMessages[kind]}/>
             </div>
 
             <div className='ChannelInfoAttributes__body'>

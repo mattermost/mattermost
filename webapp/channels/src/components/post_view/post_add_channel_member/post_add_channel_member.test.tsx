@@ -82,7 +82,7 @@ describe('components/post_view/PostAddChannelMember', () => {
         renderWithContext(
             <PostAddChannelMember
                 {...requiredProps}
-                isBoard={true}
+                channelKind='board'
             />,
         );
 
@@ -96,7 +96,7 @@ describe('components/post_view/PostAddChannelMember', () => {
             <PostAddChannelMember
                 {...requiredProps}
                 channelType='P'
-                isBoard={true}
+                channelKind='board'
             />,
         );
 

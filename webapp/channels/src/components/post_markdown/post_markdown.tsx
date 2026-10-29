@@ -85,7 +85,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 this.props.isUserCanManageMembers,
                 this.props.isMilitaryTime,
                 this.props.timezone,
-                this.props.isBoard) : null;
+                this.props.channelKind) : null;
             if (renderedSystemMessage) {
                 return <div>{renderedSystemMessage}</div>;
             }

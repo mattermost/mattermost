@@ -5,6 +5,8 @@ import React from 'react';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
+import type {ChannelKind} from 'types/store/plugins';
+
 import type {WorkspaceWithStatus} from './share_channel_with_workspaces';
 import ShareChannelWithWorkspaces from './share_channel_with_workspaces';
 
@@ -38,7 +40,7 @@ const mockRemotes = [
     },
 ];
 
-function renderShareChannelWithWorkspaces(remotes: WorkspaceWithStatus[], initialRemotes: WorkspaceWithStatus[], isBoard = false) {
+function renderShareChannelWithWorkspaces(remotes: WorkspaceWithStatus[], initialRemotes: WorkspaceWithStatus[], channelKind: ChannelKind = 'channel') {
     const Wrapper = () => {
         const [rem, setRemotes] = React.useState<WorkspaceWithStatus[]>(remotes);
         const [enabled, setEnabled] = React.useState(remotes.length > 0);
@@ -49,7 +51,7 @@ function renderShareChannelWithWorkspaces(remotes: WorkspaceWithStatus[], initia
                 onRemotesChange={setRemotes}
                 enabled={enabled}
                 onToggle={setEnabled}
-                isBoard={isBoard}
+                channelKind={channelKind}
             />
         );
     };
@@ -77,7 +79,7 @@ describe('ShareChannelWithWorkspaces', () => {
     });
 
     it('says board rather than channel for a board', async () => {
-        renderShareChannelWithWorkspaces([], [], true);
+        renderShareChannelWithWorkspaces([], [], 'board');
 
         expect(screen.getByText('Collaborate with trusted organizations in this board.')).toBeInTheDocument();
         expect(screen.queryByText('Collaborate with trusted organizations in this channel.')).not.toBeInTheDocument();
@@ -92,7 +94,7 @@ describe('ShareChannelWithWorkspaces', () => {
     });
 
     it('says which workspaces a board is shared with', async () => {
-        renderShareChannelWithWorkspaces(mockRemotes, [], true);
+        renderShareChannelWithWorkspaces(mockRemotes, [], 'board');
 
         expect(await screen.findByText('Workspaces this board is shared with')).toBeInTheDocument();
         expect(screen.queryByText('Workspaces this channel is shared with')).not.toBeInTheDocument();

@@ -9,7 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
 
-import {isBoardChannel} from 'utils/channel_kind';
+import {getChannelKind} from 'utils/channel_kind';
 
 import type {GlobalState} from 'types/store';
 
@@ -17,7 +17,7 @@ import RenameChannelModal from './rename_channel_modal';
 
 function mapStateToProps(state: GlobalState, ownProps: {channel: Channel}) {
     return {
-        isBoard: isBoardChannel(state, ownProps.channel),
+        channelKind: getChannelKind(state, ownProps.channel),
     };
 }
 

@@ -92,7 +92,7 @@ describe('components/post_view/CombinedSystemMessage', () => {
         const {container} = renderWithContext(
             <CombinedSystemMessage
                 {...baseProps}
-                isBoard={true}
+                channelKind='board'
             />,
         );
 

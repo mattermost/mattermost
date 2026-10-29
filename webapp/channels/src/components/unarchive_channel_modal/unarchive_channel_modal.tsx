@@ -3,21 +3,24 @@
 
 import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import type {KindMessages} from 'utils/channel_kind';
 import Constants from 'utils/constants';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 type Props = {
     onExited: () => void;
     channel: Channel;
 
-    /** Whether the channel is a board, so the modal says "board" rather than "channel". */
-    isBoard?: boolean;
+    /** The kind of channel, so the modal says "board" rather than "channel" for a board. */
+    channelKind?: ChannelKind;
     actions: ChannelDetailsActions;
 };
 
@@ -49,6 +52,8 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
     };
 
     render(): JSX.Element {
+        const {channelKind = 'channel'} = this.props;
+
         return (
             <Modal
                 dialogClassName='a11y__modal'
@@ -64,40 +69,18 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                         componentClass='h1'
                         id='unarchiveChannelModalLabel'
                     >
-                        {this.props.isBoard ? (
-                            <FormattedMessage
-                                id='unarchive_channel.confirm.board'
-                                defaultMessage='Confirm UNARCHIVE Board'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='unarchive_channel.confirm'
-                                defaultMessage='Confirm UNARCHIVE Channel'
-                            />
-                        )}
+                        <FormattedMessage {...messages.title[channelKind]}/>
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='alert alert-danger'>
-                        {this.props.isBoard ? (
-                            <FormattedMessage
-                                id='unarchiveChannelModal.viewArchived.question.board'
-                                defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> board?'}
-                                values={{
-                                    display_name: this.props.channel.display_name,
-                                    b: (chunks) => <b>{chunks}</b>,
-                                }}
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='unarchiveChannelModal.viewArchived.question'
-                                defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> channel?'}
-                                values={{
-                                    display_name: this.props.channel.display_name,
-                                    b: (chunks) => <b>{chunks}</b>,
-                                }}
-                            />
-                        )}
+                        <FormattedMessage
+                            {...messages.question[channelKind]}
+                            values={{
+                                display_name: this.props.channel.display_name,
+                                b: (chunks) => <b>{chunks}</b>,
+                            }}
+                        />
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
@@ -129,3 +112,28 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
         );
     }
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    title: {
+        channel: defineMessage({
+            id: 'unarchive_channel.confirm',
+            defaultMessage: 'Confirm UNARCHIVE Channel',
+        }),
+        board: defineMessage({
+            id: 'unarchive_channel.confirm.board',
+            defaultMessage: 'Confirm UNARCHIVE Board',
+        }),
+    },
+    question: {
+        channel: defineMessage({
+            id: 'unarchiveChannelModal.viewArchived.question',
+            defaultMessage: 'Are you sure you wish to unarchive the <b>{display_name}</b> channel?',
+        }),
+        board: defineMessage({
+            id: 'unarchiveChannelModal.viewArchived.question.board',
+            defaultMessage: 'Are you sure you wish to unarchive the <b>{display_name}</b> board?',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */

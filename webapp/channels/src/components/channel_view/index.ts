@@ -23,7 +23,7 @@ import {getChannelViewPluginComponent} from 'selectors/channel_view_plugin';
 
 import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 
-import {isBoardChannel} from 'utils/channel_kind';
+import {getChannelKind} from 'utils/channel_kind';
 
 import type {GlobalState} from 'types/store';
 
@@ -56,7 +56,7 @@ function mapStateToProps(state: GlobalState) {
         isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
         missingChannelRole,
         channelViewPluginComponent: getChannelViewPluginComponent(state, channel),
-        isBoard: isBoardChannel(state, channel),
+        channelKind: getChannelKind(state, channel),
     };
 }
 

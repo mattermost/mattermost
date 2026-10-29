@@ -29,7 +29,7 @@ describe('ChannelActivityWarningModal', () => {
         renderWithContext(
             <ChannelActivityWarningModal
                 {...defaultProps}
-                isBoard={true}
+                channelKind='board'
             />,
         );
 

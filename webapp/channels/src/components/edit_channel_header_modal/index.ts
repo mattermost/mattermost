@@ -12,7 +12,7 @@ import {patchChannel} from 'mattermost-redux/actions/channels';
 import {Preferences} from 'mattermost-redux/constants';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {isBoardChannel} from 'utils/channel_kind';
+import {getChannelKind} from 'utils/channel_kind';
 
 import type {GlobalState} from 'types/store';
 
@@ -21,7 +21,7 @@ import EditChannelHeaderModal from './edit_channel_header_modal';
 function mapStateToProps(state: GlobalState, ownProps: {channel: Channel}) {
     return {
         ctrlSend: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-        isBoard: isBoardChannel(state, ownProps.channel),
+        channelKind: getChannelKind(state, ownProps.channel),
     };
 }
 

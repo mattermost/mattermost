@@ -7,7 +7,7 @@ import React, {
     useState,
     useRef,
 } from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 import {shallowEqual, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -24,8 +24,9 @@ import {getChannelSettingsTabs} from 'selectors/plugins';
 import type {Tab as SidebarTab} from 'components/settings_sidebar/settings_sidebar';
 import {normalizePluginIcon} from 'components/settings_sidebar/settings_sidebar';
 
-import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
+import {useChannelKind} from 'hooks/useChannelKind';
 import {focusElement} from 'utils/a11y_utils';
+import type {KindMessages} from 'utils/channel_kind';
 import Constants from 'utils/constants';
 import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
@@ -107,7 +108,7 @@ function initialTabName(initialTab: string | undefined): string {
 function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, initialTab}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
-    const isBoard = useIsBoardChannel(channel);
+    const kind = useChannelKind(channel);
     const visiblePluginTabRegistrations = useSelector((state: GlobalState) => {
         const currentChannel = getChannel(state, channelId);
         if (!currentChannel) {
@@ -260,7 +261,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
             },
             {
                 name: BuiltInTabIds.ARCHIVE,
-                uiName: isBoard ? formatMessage({id: 'channel_settings.tab.archive.board', defaultMessage: 'Archive Board'}) : formatMessage({id: 'channel_settings.tab.archive', defaultMessage: 'Archive Channel'}),
+                uiName: formatMessage(messages.archiveTab[kind]),
                 icon: 'icon icon-archive-outline',
                 iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
                 display: shouldShowArchiveTab,
@@ -268,7 +269,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
         ];
     }, [
         formatMessage,
-        isBoard,
+        kind,
         shouldShowInfoTab,
         shouldShowAccessRulesTab,
         shouldShowPermissionsPolicyTab,
@@ -481,7 +482,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
         );
     };
 
-    const modalTitle = isBoard ? formatMessage({id: 'channel_settings.modal.title.board', defaultMessage: 'Board Settings'}) : formatMessage({id: 'channel_settings.modal.title', defaultMessage: 'Channel Settings'});
+    const modalTitle = formatMessage(messages.title[kind]);
 
     return (
         <GenericModal
@@ -504,5 +505,28 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
         </GenericModal>
     );
 }
+
+const messages = {
+    archiveTab: {
+        channel: defineMessage({
+            id: 'channel_settings.tab.archive',
+            defaultMessage: 'Archive Channel',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.tab.archive.board',
+            defaultMessage: 'Archive Board',
+        }),
+    },
+    title: {
+        channel: defineMessage({
+            id: 'channel_settings.modal.title',
+            defaultMessage: 'Channel Settings',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.modal.title.board',
+            defaultMessage: 'Board Settings',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default ChannelSettingsModal;
