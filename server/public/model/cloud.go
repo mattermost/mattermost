@@ -18,6 +18,7 @@ const (
 	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
 
+// Deprecated: Cloud invoices are no longer exposed by the API.
 const UpcomingInvoice = "upcoming"
 
 var MockCWS string
@@ -170,17 +171,19 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID                      string   `json:"id"`
-	CustomerID              string   `json:"customer_id"`
-	ProductID               string   `json:"product_id"`
-	AddOns                  []string `json:"add_ons"`
-	StartAt                 int64    `json:"start_at"`
-	EndAt                   int64    `json:"end_at"`
-	CreateAt                int64    `json:"create_at"`
-	Seats                   int      `json:"seats"`
-	Status                  string   `json:"status"`
-	DNS                     string   `json:"dns"`
-	LastInvoice             *Invoice `json:"last_invoice"`
+	ID         string   `json:"id"`
+	CustomerID string   `json:"customer_id"`
+	ProductID  string   `json:"product_id"`
+	AddOns     []string `json:"add_ons"`
+	StartAt    int64    `json:"start_at"`
+	EndAt      int64    `json:"end_at"`
+	CreateAt   int64    `json:"create_at"`
+	Seats      int      `json:"seats"`
+	Status     string   `json:"status"`
+	DNS        string   `json:"dns"`
+	// Deprecated: Cloud invoices are no longer exposed by the API.
+	LastInvoice *Invoice `json:"last_invoice"`
+	// Deprecated: Cloud invoices are no longer exposed by the API.
 	UpcomingInvoice         *Invoice `json:"upcoming_invoice"`
 	IsFreeTrial             string   `json:"is_free_trial"`
 	TrialEndAt              int64    `json:"trial_end_at"`
@@ -227,6 +230,8 @@ func (s *Subscription) GetWorkSpaceNameFromDNS() string {
 }
 
 // Invoice model represents a cloud invoice
+//
+// Deprecated: Cloud invoices are no longer exposed by the API.
 type Invoice struct {
 	ID                 string             `json:"id"`
 	Number             string             `json:"number"`
@@ -243,6 +248,8 @@ type Invoice struct {
 }
 
 // InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
+//
+// Deprecated: Cloud invoices are no longer exposed by the API.
 type InvoiceLineItem struct {
 	PriceID      string         `json:"price_id"`
 	Total        int64          `json:"total"`

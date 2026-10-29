@@ -7482,15 +7482,6 @@ func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response
 	return DecodeJSONFromResponse[*Subscription](r)
 }
 
-func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("subscription", "invoices"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Invoice](r)
-}
-
 func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
 	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer"), customerInfo)
 	if err != nil {
