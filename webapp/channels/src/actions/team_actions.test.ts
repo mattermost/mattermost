@@ -6,6 +6,7 @@ import * as TeamActions from 'mattermost-redux/actions/teams';
 import * as userActions from 'mattermost-redux/actions/users';
 
 import * as Actions from 'actions/team_actions';
+import LocalStorageStore from 'stores/local_storage_store';
 
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
@@ -95,6 +96,35 @@ describe('Actions.Team', () => {
 
             expect(getHistory().push).not.toHaveBeenCalled();
             expect(testStore.getActions()).toContainEqual(TeamActions.selectTeam(team));
+        });
+
+        test('should remember a team selected without changing URL, so a refresh keeps it', () => {
+            const setPreviousTeamId = jest.spyOn(LocalStorageStore, 'setPreviousTeamId').mockImplementation(() => {});
+            const testStore = configureStore({
+                ...initialState,
+                entities: {...initialState.entities, users: {currentUserId: 'user-one'}},
+            });
+
+            const team = TestHelper.getTeamMock({id: 'team-two'});
+
+            testStore.dispatch(Actions.switchTeam('/test', team));
+
+            expect(setPreviousTeamId).toHaveBeenCalledWith('user-one', 'team-two');
+            setPreviousTeamId.mockRestore();
+        });
+
+        test('should still select the team when storage is blocked', () => {
+            const setPreviousTeamId = jest.spyOn(LocalStorageStore, 'setPreviousTeamId').mockImplementation(() => {
+                throw new Error('blocked');
+            });
+            const testStore = configureStore(initialState);
+
+            const team = TestHelper.getTeamMock();
+
+            testStore.dispatch(Actions.switchTeam('/test', team));
+
+            expect(testStore.getActions()).toContainEqual(TeamActions.selectTeam(team));
+            setPreviousTeamId.mockRestore();
         });
     });
 
