@@ -306,7 +306,7 @@ else
 	docker compose down -v
 	docker compose rm -v
 
-	docker volume rm mattermost-server_postgres-14-data || true
+	docker volume rm mattermost-server_postgres-15-data || true
 endif
 
 .PHONY: plugin-checker

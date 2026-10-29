@@ -5,6 +5,8 @@ import React, {useCallback, useMemo, useRef, useState, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -265,13 +267,10 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         );
 
         const nextMessage = (
-            <>
-                <FormattedMessage
-                    id='create_team.display_name.next'
-                    defaultMessage='Next'
-                />
-                <i className='icon icon-chevron-right'/>
-            </>
+            <FormattedMessage
+                id='create_team.display_name.next'
+                defaultMessage='Next'
+            />
         );
 
         if (UseAnonymousURLs) {
@@ -283,6 +282,16 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
         }
 
         return nextMessage;
+    }, [UseAnonymousURLs, isLoading, step]);
+
+    // Only the Next step carries a chevron, and it belongs in the Button's
+    // trailing slot rather than in the label alongside the text.
+    const buttonTrailingIcon = useMemo(() => {
+        if (UseAnonymousURLs || isLoading || step === 'team_url') {
+            return undefined;
+        }
+
+        return <Icon glyph={<ChevronRightIcon/>}/>;
     }, [UseAnonymousURLs, isLoading, step]);
 
     if (step === 'team_url') {
@@ -308,6 +317,7 @@ export default function CreateTeamForm({step, state: parentState, updateParent, 
             onDisplayNameChange={handleDisplayNameChange}
             onSubmit={submitDisplayName}
             buttonText={buttonText}
+            buttonTrailingIcon={buttonTrailingIcon}
             isLoading={isLoading}
             nameError={nameError}
         />
