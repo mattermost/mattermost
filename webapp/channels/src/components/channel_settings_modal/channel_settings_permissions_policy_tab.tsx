@@ -6,7 +6,9 @@ import {defineMessage, defineMessages, FormattedMessage, useIntl} from 'react-in
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
@@ -786,12 +788,11 @@ function ChannelSettingsPermissionsPolicyTab({
                     <FormattedMessage {...messages.sectionTitle[channelKind]}/>
                 </h3>
                 <Button
-                    className='ChannelSettingsModal__permissionsPolicyAddRule'
                     onClick={startNew}
                     disabled={!attributesLoaded}
                     data-testid='permissions-policy-add-rule'
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <i className='icon icon-plus'/>
                     <FormattedMessage
                         id='channel_settings.permissions_policy.add_rule'
                         defaultMessage='Add rule'
@@ -965,9 +966,10 @@ function ChannelSettingsPermissionsPolicyTab({
                             }}
                         />
                     </span>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
+                        className='ChannelSettingsModal__permissionsPolicyPaginationButton'
                         onClick={() => setPage(Math.max(0, safePage - 1))}
                         disabled={safePage === 0}
                         aria-label={formatMessage({
@@ -976,10 +978,11 @@ function ChannelSettingsPermissionsPolicyTab({
                         })}
                     >
                         <i className='icon icon-chevron-left'/>
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
+                        className='ChannelSettingsModal__permissionsPolicyPaginationButton'
                         onClick={() => setPage(Math.min(totalPages - 1, safePage + 1))}
                         disabled={safePage >= totalPages - 1}
                         aria-label={formatMessage({
@@ -988,7 +991,7 @@ function ChannelSettingsPermissionsPolicyTab({
                         })}
                     >
                         <i className='icon icon-chevron-right'/>
-                    </button>
+                    </Button>
                 </div>
             )}
 

@@ -47,7 +47,6 @@ import type {ValueType} from 'components/dropdown_input';
 import type {TextboxElement} from 'components/textbox';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import Input from 'components/widgets/inputs/input/input';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import type {PluginOptionButtonProps} from 'components/widgets/public-private-selector/public-private-selector';
 
@@ -580,12 +579,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
 
     let confirmButtonText: React.ReactNode = activePluginOption?.createButtonText ?? formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'});
     if (isSubmitting) {
-        confirmButtonText = (
-            <LoadingSpinner
-                legacy={true}
-                text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
-            />
-        );
+        confirmButtonText = formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'});
     }
 
     return (
@@ -594,6 +588,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
             className='new-channel-modal'
             modalHeaderText={modalHeaderText ?? formatMessage({id: 'channel_modal.modalTitle', defaultMessage: 'Create a new channel'})}
             confirmButtonText={confirmButtonText}
+            isConfirmLoading={isSubmitting}
             cancelButtonText={formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'})}
             errorText={serverError}
             isConfirmDisabled={!canCreate}

@@ -18,6 +18,7 @@ import modals from './modals';
 import notice from './notice';
 import onboardingTasks from './onboarding_tasks';
 import posts from './posts';
+import productRail from './product_rail';
 import readout from './readout';
 import rhs from './rhs';
 import rhsSuppressed from './rhs_suppressed';
@@ -45,6 +46,7 @@ export default combineReducers({
     settings,
     marketplace,
     channelSidebar,
+    productRail,
     onboardingTasks,
     threads,
     drafts,

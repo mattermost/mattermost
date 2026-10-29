@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -31,7 +31,6 @@ import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator
 import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
-import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
@@ -96,8 +95,6 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
-
-const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
 export type Props = {
 
@@ -855,9 +852,6 @@ const AdvancedTextEditor = ({
             className={(!rootId && !fullWidthTextBox) ? 'center' : undefined}
             onSubmit={handleSubmitWithEvent}
         >
-            {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
-                <FileLimitStickyBanner/>
-            )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
             {showOooWarning && <OutOfOfficeWarning displayName={teammateDisplayName}/>}
             {!isInEditMode && (

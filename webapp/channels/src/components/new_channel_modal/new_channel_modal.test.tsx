@@ -161,7 +161,7 @@ describe('components/new_channel_modal', () => {
         const editUrl = screen.getByText('Edit');
         expect(editUrl).toBeInTheDocument();
         expect(editUrl).toHaveClass('url-input-button-label');
-        expect(editUrl.parentElement).toHaveClass('url-input-button');
+        expect(editUrl.closest('button')).toHaveClass('url-input-button');
 
         const publicChannelSvg = screen.getByLabelText('Globe Circle Solid Icon');
         expect(publicChannelSvg).toBeInTheDocument();
@@ -184,13 +184,13 @@ describe('components/new_channel_modal', () => {
         const purposeDesc = screen.getByText('This will be displayed when browsing for channels.');
         expect(purposeDesc).toBeInTheDocument();
 
-        const cancelButton = screen.getByText('Cancel');
+        const cancelButton = screen.getByRole('button', {name: 'Cancel'});
         expect(cancelButton).toBeInTheDocument();
-        expect(cancelButton).toHaveClass('btn-tertiary');
+        expect(cancelButton.className).toMatch(/button--emphasis-tertiary/);
 
-        const createChannelButton = screen.getByText('Create channel');
+        const createChannelButton = screen.getByRole('button', {name: 'Create channel'});
         expect(createChannelButton).toBeInTheDocument();
-        expect(createChannelButton).toHaveClass('btn-primary');
+        expect(createChannelButton.className).toMatch(/button--emphasis-primary/);
         expect(createChannelButton).toBeDisabled();
     });
 
@@ -315,7 +315,7 @@ describe('components/new_channel_modal', () => {
         );
 
         // Confirm button should be disabled
-        const createChannelButton = screen.getByText('Create channel');
+        const createChannelButton = screen.getByRole('button', {name: 'Create channel'});
         expect(createChannelButton).toBeInTheDocument();
         expect(createChannelButton).toBeDisabled();
 
@@ -356,7 +356,7 @@ describe('components/new_channel_modal', () => {
         await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
-        const createChannelButton = screen.getByText('Create channel');
+        const createChannelButton = screen.getByRole('button', {name: 'Create channel'});
         expect(createChannelButton).toBeEnabled();
 
         // Change display name to invalid
@@ -386,7 +386,7 @@ describe('components/new_channel_modal', () => {
         await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
-        const createChannelButton = screen.getByText('Create channel');
+        const createChannelButton = screen.getByRole('button', {name: 'Create channel'});
         expect(createChannelButton).toBeEnabled();
 
         // Change url to invalid
@@ -413,7 +413,7 @@ describe('components/new_channel_modal', () => {
         );
 
         // Confirm button should be disabled
-        const createChannelButton = screen.getByText('Create channel');
+        const createChannelButton = screen.getByRole('button', {name: 'Create channel'});
         expect(createChannelButton).toBeDisabled();
 
         // Change display name
@@ -452,7 +452,7 @@ describe('components/new_channel_modal', () => {
         );
 
         // Confirm button should be disabled
-        const createChannelButton = screen.getByText('Create channel');
+        const createChannelButton = screen.getByRole('button', {name: 'Create channel'});
         expect(createChannelButton).toBeDisabled();
 
         // Enter data
@@ -556,7 +556,7 @@ describe('components/new_channel_modal', () => {
             // Toggle the discoverable switch on
             await userEvent.click(screen.getByTestId('newChannelDiscoverableToggle'));
 
-            await userEvent.click(screen.getByText('Create channel'));
+            await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
 
             await waitFor(() => {
                 expect(createChannel).toHaveBeenCalledWith(
@@ -575,7 +575,7 @@ describe('components/new_channel_modal', () => {
             await userEvent.click(screen.getByText('Private Channel'));
 
             // Don't touch the toggle
-            await userEvent.click(screen.getByText('Create channel'));
+            await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
 
             await waitFor(() => {
                 expect(createChannel).toHaveBeenCalledWith(
@@ -959,7 +959,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         });
         expect(screen.getByText('Plugin Channel')).toBeInTheDocument();
         expect(switchToChannel).not.toHaveBeenCalled();
-        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument();
     });
 
     test('onCreate throws - modal stays open with generic error', async () => {
@@ -1050,7 +1050,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         await userEvent.click(createButton);
 
         await waitFor(() => {
-            expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(screen.getByLabelText('Loading')).toBeInTheDocument();
             expect(createButton).toBeDisabled();
         });
 
@@ -1153,7 +1153,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
 
         await waitFor(() => {
             expect(screen.getByText('first try failed')).toBeInTheDocument();
-            expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument();
         });
 
         // Typing in the purpose field clears the server error, re-enabling the Create button
@@ -1377,7 +1377,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         await userEvent.click(createButton);
 
         await waitFor(() => {
-            expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(screen.getByLabelText('Loading')).toBeInTheDocument();
         });
 
         // Click "Public Channel" while onCreate is still pending
@@ -1392,7 +1392,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
             resolveOnCreate({status: 'deferred'});
         });
 
-        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument();
         expect(pluginButton.closest('button')).toHaveClass('selected');
     });
 });
@@ -1484,7 +1484,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         renderWithContext(<NewChannelModal/>, state);
 
         await fillAndSelect();
-        await userEvent.click(screen.getByText('Create channel'));
+        await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
 
         // One call, not two: the server needs the values in hand to refuse a
         // channel that would not meet its own requirements.
@@ -1502,9 +1502,9 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         // The server enforces this too; the dialog does it as well so the user
         // finds out while typing rather than on submit.
-        expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeDisabled();
 
-        await userEvent.click(screen.getByText('Create channel'));
+        await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
         expect(createChannel).not.toHaveBeenCalled();
     });
 
@@ -1528,7 +1528,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
-        await userEvent.click(screen.getByText('Create channel'));
+        await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
 
         await waitFor(() => expect(createChannel).toHaveBeenCalled());
         expect((createChannel as jest.Mock).mock.calls[0][0]).not.toHaveProperty('property_values');
@@ -1557,9 +1557,9 @@ describe('components/new_channel_modal - channel attributes', () => {
         expect(screen.queryByTestId('channelAttributeRow-classification')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
-        expect(screen.getByText('Create channel').closest('button')).toBeEnabled();
+        expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeEnabled();
 
-        await userEvent.click(screen.getByText('Create channel'));
+        await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
         await waitFor(() => expect(createChannel).toHaveBeenCalled());
     });
 
@@ -1572,7 +1572,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         renderWithContext(<NewChannelModal/>, state);
 
         await fillAndSelect();
-        await userEvent.click(screen.getByText('Create channel'));
+        await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
 
         await waitFor(() => expect(screen.getByText('This channel is missing required attributes.')).toBeInTheDocument());
     });
@@ -1591,9 +1591,9 @@ describe('components/new_channel_modal - channel attributes', () => {
         expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
-        expect(screen.getByText('Create channel').closest('button')).toBeEnabled();
+        expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeEnabled();
 
-        await userEvent.click(screen.getByText('Create channel'));
+        await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
         await waitFor(() => expect(createChannel).toHaveBeenCalled());
         expect((createChannel as jest.Mock).mock.calls[0][0]).not.toHaveProperty('property_values');
     });
@@ -1634,9 +1634,9 @@ describe('components/new_channel_modal - channel attributes', () => {
         expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
-        expect(screen.getByText('Create channel').closest('button')).toBeEnabled();
+        expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeEnabled();
 
-        await userEvent.click(screen.getByText('Create channel'));
+        await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
         await waitFor(() => expect(createChannel).toHaveBeenCalled());
     });
 
@@ -1704,7 +1704,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         expect(row).toHaveTextContent('Classification*');
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
-        expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeDisabled();
     });
 
     describe('graph attributes', () => {
@@ -1727,9 +1727,9 @@ describe('components/new_channel_modal - channel attributes', () => {
             renderWithContext(<NewChannelModal/>, state);
 
             await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
-            expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
+            expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeDisabled();
 
-            await userEvent.click(screen.getByText('Create channel'));
+            await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
             expect(createChannel).not.toHaveBeenCalled();
         });
 
@@ -1739,7 +1739,15 @@ describe('components/new_channel_modal - channel attributes', () => {
             await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
             await userEvent.click(screen.getByTestId('channelAttribute-program'));
             await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'}));
-            await userEvent.click(screen.getByText('Create channel'));
+
+            // Graph attribute menus stay open for multi-select; close so the confirm
+            // button is no longer aria-hidden by the floating focus manager.
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => {
+                expect(screen.queryByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'})).not.toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
 
             await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));
             expect((createChannel as jest.Mock).mock.calls[0][0]).toMatchObject({

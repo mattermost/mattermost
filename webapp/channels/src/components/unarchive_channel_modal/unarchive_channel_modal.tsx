@@ -5,7 +5,7 @@ import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -96,11 +96,11 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                     </Button>
                     <Button
                         type='button'
-                        variant='destructive'
                         data-dismiss='modal'
                         onClick={this.handleUnarchive}
                         autoFocus={true}
                         id='unarchiveChannelModalDeleteButton'
+                        destructive={true}
                     >
                         <FormattedMessage
                             id='unarchive_channel.del'

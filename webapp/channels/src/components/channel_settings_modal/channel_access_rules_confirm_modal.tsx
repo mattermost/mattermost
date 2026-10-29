@@ -5,8 +5,8 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
@@ -191,9 +191,9 @@ function ChannelAccessRulesConfirmModal({
                     />
                 </Button>
                 <Button
-                    variant='destructive'
                     onClick={onConfirm}
                     disabled={isProcessing}
+                    destructive={true}
                 >
                     {(() => {
                         if (isProcessing) {

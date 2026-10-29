@@ -4796,6 +4796,185 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 	})
 }
 
+// TestPluginAPIGetPropertyFieldProjectsLegacyPermissions asserts that a
+// plugin -- a v2 caller with no version negotiation -- reads Protected,
+// PermissionField/Values/Options and owners computed from a field's
+// permissions object, on every read method, even for a field whose legacy
+// columns were never written directly.
+func TestPluginAPIGetPropertyFieldProjectsLegacyPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	// api.RegisterPropertyGroup hardcodes v1, which never holds a permissions
+	// object, so register the v2 group directly through the app layer.
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "plugin_projection_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	ownerID := model.NewId()
+	field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "projected field",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+			},
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: ownerID}, Allow: []string{model.PropertyActionValueWrite}},
+			},
+		},
+	})
+	require.NoError(t, sErr)
+
+	assertProjected := func(t *testing.T, got *model.PropertyField) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.True(t, got.Protected)
+		require.NotNil(t, got.PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *got.PermissionField)
+		require.NotNil(t, got.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *got.PermissionValues)
+		require.NotNil(t, got.PermissionOptions)
+		assert.Equal(t, model.PermissionLevelAdmin, *got.PermissionOptions)
+		owners := model.GetPropertyFieldOwners(got)
+		require.Len(t, owners, 1)
+		assert.Equal(t, ownerID, owners[0].ID)
+	}
+
+	t.Run("GetPropertyField", func(t *testing.T) {
+		got, err := api.GetPropertyField(group.ID, field.ID)
+		require.NoError(t, err)
+		assertProjected(t, got)
+	})
+
+	t.Run("GetPropertyFields", func(t *testing.T) {
+		got, err := api.GetPropertyFields(group.ID, []string{field.ID})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assertProjected(t, got[0])
+	})
+
+	t.Run("SearchPropertyFields", func(t *testing.T) {
+		got, err := api.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{GroupID: group.ID, PerPage: 10})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assertProjected(t, got[0])
+	})
+
+	t.Run("GetPropertyFieldByName", func(t *testing.T) {
+		got, err := api.GetPropertyFieldByName(group.ID, "", field.Name)
+		require.NoError(t, err)
+		assertProjected(t, got)
+	})
+
+	// Store hydration overrides the stored Protected/Permission* columns with the
+	// values projected from Permissions, so a load-modify-save does not look like a
+	// legacy-column change. Attrs (owners, access_mode) are still projected only on
+	// the plugin/v2 copy via ProjectLegacyPermissions.
+	stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, stored)
+	assert.True(t, stored.Protected)
+	require.NotNil(t, stored.PermissionField)
+	assert.Equal(t, model.PermissionLevelNone, *stored.PermissionField)
+	require.NotNil(t, stored.PermissionValues)
+	assert.Equal(t, model.PermissionLevelMember, *stored.PermissionValues)
+	require.NotNil(t, stored.PermissionOptions)
+	assert.Equal(t, model.PermissionLevelAdmin, *stored.PermissionOptions)
+}
+
+func TestPluginAPIPropertyFieldReadsFollowLinkedTemplate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "plugin_linked_projection_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	restrictions := func() *model.Restrictions {
+		return &model.Restrictions{
+			Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+		}
+	}
+	template, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:     group.ID,
+		Name:        "masked_template",
+		Type:        model.PropertyFieldTypeText,
+		ObjectType:  model.PropertyFieldObjectTypeTemplate,
+		TargetType:  string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{Restrictions: restrictions(), Masking: &model.Masking{}},
+	})
+	require.NoError(t, sErr)
+	linked, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       group.ID,
+		Name:          "linked_field",
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Permissions:   &model.Permissions{Restrictions: restrictions()},
+	})
+	require.NoError(t, sErr)
+	require.NotContains(t, linked.Attrs, model.PropertyAttrsAccessMode)
+
+	assertFollowsTemplate := func(t *testing.T, got *model.PropertyField) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, got.Attrs[model.PropertyAttrsAccessMode])
+		assert.Equal(t, true, got.Attrs[model.PropertyAttrsProtected])
+		assert.True(t, got.Protected)
+	}
+	findLinked := func(t *testing.T, fields []*model.PropertyField) *model.PropertyField {
+		t.Helper()
+		for _, f := range fields {
+			if f.ID == linked.ID {
+				return f
+			}
+		}
+		require.Fail(t, "linked field not returned")
+		return nil
+	}
+
+	t.Run("GetPropertyField", func(t *testing.T) {
+		got, err := api.GetPropertyField(group.ID, linked.ID)
+		require.NoError(t, err)
+		assertFollowsTemplate(t, got)
+	})
+
+	t.Run("GetPropertyFields", func(t *testing.T) {
+		got, err := api.GetPropertyFields(group.ID, []string{linked.ID})
+		require.NoError(t, err)
+		assertFollowsTemplate(t, findLinked(t, got))
+	})
+
+	t.Run("SearchPropertyFields", func(t *testing.T) {
+		got, err := api.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{GroupID: group.ID, PerPage: 10})
+		require.NoError(t, err)
+		assertFollowsTemplate(t, findLinked(t, got))
+	})
+
+	t.Run("GetPropertyFieldByName", func(t *testing.T) {
+		got, err := api.GetPropertyFieldByName(group.ID, "", linked.Name)
+		require.NoError(t, err)
+		assertFollowsTemplate(t, got)
+	})
+}
+
 func TestPluginAPIPropertyValueWithOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -5099,7 +5278,9 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 	t.Cleanup(func() {
 		th.ConfigStore.SetReadOnlyFF(true)
 	})
-	api := th.SetupPluginAPI()
+	// The untagged context a real plugin gets, so the managed category write
+	// only succeeds if CreateChannel tags the plugin as the caller itself.
+	api := th.SetupPluginAPIWithPluginContext(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	defer func() {
@@ -5778,5 +5959,90 @@ func TestPluginAPICluster(t *testing.T) {
 		assert.Equal(t, "pluginid", msgs[0].Props["PluginID"])
 		assert.Equal(t, "event", msgs[0].Props["EventID"])
 		assert.Equal(t, "node1", msgs[0].Props["SourceID"])
+	})
+}
+
+func TestPluginThreadFollowing(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	root, appErr := api.CreatePost(&model.Post{
+		Message:   "a root post",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	t.Run("a new thread has no followers", func(t *testing.T) {
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, followers)
+	})
+
+	t.Run("following and unfollowing a root post", func(t *testing.T) {
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, true))
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{th.BasicUser2.Id}, followers)
+
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, false))
+		followers, appErr = api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, followers)
+	})
+
+	t.Run("rejects a reply", func(t *testing.T) {
+		reply, appErr := api.CreatePost(&model.Post{
+			Message:   "a reply",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			RootId:    root.Id,
+		})
+		require.Nil(t, appErr)
+
+		appErr = api.SetThreadFollowing(th.BasicUser2.Id, reply.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.not_root_post.app_error", appErr.Id)
+	})
+
+	t.Run("rejects invalid ids", func(t *testing.T) {
+		appErr := api.SetThreadFollowing("not-an-id", root.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_user_id.app_error", appErr.Id)
+
+		appErr = api.SetThreadFollowing(th.BasicUser2.Id, "not-an-id", true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_thread_id.app_error", appErr.Id)
+
+		_, appErr = api.GetThreadFollowers("not-an-id")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_thread_id.app_error", appErr.Id)
+	})
+
+	t.Run("rejects a user that does not exist", func(t *testing.T) {
+		unknownID := model.NewId()
+		appErr := api.SetThreadFollowing(unknownID, root.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, followers, unknownID)
+	})
+
+	t.Run("leaves out a deactivated follower", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		require.Nil(t, api.SetThreadFollowing(user.Id, root.Id, true))
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, true))
+
+		_, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Contains(t, followers, th.BasicUser2.Id)
+		assert.NotContains(t, followers, user.Id)
 	})
 }

@@ -5,7 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {KindMessages} from 'utils/channel_kind';
@@ -97,11 +97,11 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                     </Button>
                     <Button
                         type='button'
-                        variant='destructive'
                         data-dismiss='modal'
                         onClick={this.handleDelete}
                         autoFocus={true}
                         id='deleteChannelModalDeleteButton'
+                        destructive={true}
                     >
                         <FormattedMessage
                             id='delete_channel.del'
