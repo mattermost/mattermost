@@ -1042,6 +1042,8 @@ func (a *App) SaveContentFlaggingConfig(config model.ContentFlaggingSettingsRequ
 	if err != nil {
 		return model.NewAppError("SaveContentFlaggingConfig", "app.data_spillage.save_reviewer_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	// The reviewer settings are already stored, so the cache is stale even if saving the config fails.
+	defer a.clearContentFlaggingConfigCache()
 
 	cfg := a.Config().Clone()
 	cfg.ContentFlaggingSettings = model.ContentFlaggingSettings{}
@@ -1057,7 +1059,6 @@ func (a *App) SaveContentFlaggingConfig(config model.ContentFlaggingSettingsRequ
 		return appErr
 	}
 
-	a.clearContentFlaggingConfigCache()
 	return nil
 }
 

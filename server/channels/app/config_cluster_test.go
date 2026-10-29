@@ -181,3 +181,41 @@ func wrapAppErr(appErr *model.AppError) error {
 	}
 	return appErr
 }
+
+func TestSaveContentFlaggingConfigClearsCacheWhenClusterNotifyFails(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	var (
+		mut         sync.Mutex
+		invalidated bool
+	)
+	clusterMock := &clustermocks.ClusterInterface{}
+	clusterMock.On("IsLeader").Return(true).Maybe()
+	clusterMock.On("GetClusterId").Return("").Maybe()
+	clusterMock.On("SendClusterMessage", mock.Anything).Return().Run(func(args mock.Arguments) {
+		if args.Get(0).(*model.ClusterMessage).Event == model.ClusterEventInvalidateCacheForContentFlagging {
+			mut.Lock()
+			defer mut.Unlock()
+			invalidated = true
+		}
+	}).Maybe()
+	clusterMock.On("RegisterClusterMessageHandler", mock.Anything, mock.Anything).Return().Maybe()
+	clusterMock.On("StopInterNodeCommunication").Return().Maybe()
+	clusterMock.On("Shutdown").Return().Maybe()
+	clusterMock.On("ConfigChanged", mock.Anything, mock.Anything, true).Return(model.NewAppError("ConfigChanged", "peer_failed", nil, "", 500)).Maybe()
+
+	th := SetupWithClusterMock(t, clusterMock).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ClusterSettings.Enable = true
+	})
+
+	config := getBaseConfig(th)
+	config.EnableContentFlagging = model.NewPointer(true)
+	appErr := th.App.SaveContentFlaggingConfig(config)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "peer_failed", appErr.Id)
+
+	mut.Lock()
+	defer mut.Unlock()
+	assert.True(t, invalidated, "expected the content flagging cache to be invalidated across the cluster")
+}
