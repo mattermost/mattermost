@@ -77,6 +77,7 @@ export type PluginsState = {
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
         ChannelView: ChannelViewRegistration[];
+        ChannelSidebarSubItems: ChannelSidebarSubItemsRegistration[];
         PostHeader: PostHeaderComponent[];
         ComposerPlaceholder: ComposerPlaceholderRegistration[];
         ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
@@ -514,6 +515,25 @@ export type ChannelViewRegistration = PluginComponent & {
 
     /** When true, channel URLs with a trailing sub-path render the component with `subpath`. */
     handlesSubpaths?: boolean;
+};
+
+export type ChannelSidebarSubItem = {
+
+    /** Unique within the plugin's items for the channel. */
+    id: string;
+    label: string;
+
+    /** Path after the channel without a leading slash (e.g. `views/abc`), opened at `/:team/channels/:channel/<subpath>`. */
+    subpath: string;
+
+    /** Compass glyph name. Unknown names are ignored. */
+    iconName?: IconGlyphTypes;
+};
+
+export type ChannelSidebarSubItemsRegistration = PluginComponent & {
+
+    /** Items shown as collapsible sub-items under the channel in the sidebar. Only called for public and private channels. */
+    getItems: (state: GlobalState, channel: Channel) => ChannelSidebarSubItem[] | null | undefined;
 };
 
 export type PostHeaderComponent = PluginComponent & {
