@@ -79,8 +79,7 @@ def _start(event: dict) -> str:
 
 
 def _differs(existing: dict, body: dict) -> bool:
-    return any(existing.get(field) != body[field] for field in COMPARED) or \
-        _key(existing) != _key(body)
+    return any(existing.get(field) != body[field] for field in COMPARED)
 
 
 def plan(desired: dict, existing: list[dict], today: date) -> list[Action]:
