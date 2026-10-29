@@ -53,10 +53,11 @@ func (a *App) GetMaskedVisualAST(rctx request.CTX, expression string, callerID s
 
 // maskingHoldings pairs the field whose per-caller values determine which
 // literals are visible (holdings) with the access mode that governs the
-// reference. For a channel attribute these come from different fields: the
-// access mode is the channel field's own (it defines whether the attribute is
-// protected), while holdings are read from the user-side sibling — see
-// holdingsFieldFor.
+// reference. For a channel attribute these can come from different fields:
+// the access mode is the channel field's own effective mode (it defines
+// whether the attribute is protected), while holdings are read from the field
+// named by the reference's template's mask_by_field_id, or failing that the
+// user field linked to the same template — see holdingsFieldFor.
 type maskingHoldings struct {
 	field      *model.PropertyField
 	accessMode string
@@ -138,25 +139,33 @@ func (r *appMaskingResolver) Resolve(objectType, fieldName string) (*model.Maski
 }
 
 // holdingsFieldFor returns the holdings-bearing field plus the access mode that
-// governs a reference to (objectType, fieldName). The field is fetched with
-// caller context so its options are already filtered to the caller's holdings.
+// governs a reference to (objectType, fieldName). Fields are fetched with
+// caller context so their options are already filtered to the caller's
+// holdings.
 //
-// For a user reference both come from the field itself. For a channel reference
-// they come from different fields: the access mode is the CHANNEL field's own —
-// whether the attribute is protected is a property of the channel field, and a
-// linked field does NOT inherit access mode from its template at creation, so
-// reading it off the user sibling can silently under-protect. Holdings, by
-// contrast, must come from the user-side sibling linked to the same template,
-// because users never hold channel-side values directly.
+// Access mode is always the reference's own effective mode (see
+// effectiveAccessMode) — whether the attribute is protected is a property of
+// the reference itself, the stricter of its own and its template's when it is
+// linked and carries no masking of its own.
 //
-// A caller's held option names are only pre-filtered onto the sibling by the
-// read path when the sibling is itself shared_only. If the channel field is
-// shared_only but the sibling is not, the sibling's option list is unfiltered,
-// so its options are dropped (fail closed); text holdings are queried directly
-// and are unaffected. When a channel field is unlinked or has no user sibling,
-// its own (caller-filtered) field is used — for shared_only that yields no
-// visible values (the caller holds nothing channel-side), the fail-closed
-// direction.
+// Holdings come from the reference's template's mask_by_field_id when it names
+// one (see resolveHoldingsFieldID). A channel field whose template names none
+// falls back to the user-side sibling linked to the same template (see
+// userSiblingField), because users never hold channel-side values directly —
+// the lookup the policy editor made before mask_by_field_id existed, kept so a
+// scheme that never set one still shows its channel attributes. The fallback
+// belongs to policy masking alone: the property read path (AccessControlHook)
+// resolves holdings from mask_by_field_id only. When a channel field is
+// unlinked or has no user sibling, its own (caller-filtered) field is used —
+// for shared_only that yields no visible values (the caller holds nothing
+// channel-side), the fail-closed direction. A user reference's holdings are
+// always its own.
+//
+// A caller's held option names are only pre-filtered onto the holdings field
+// by the read path when that field is itself shared_only. If the reference is
+// shared_only but the holdings field is not, the holdings field's option list
+// is unfiltered, so its options are dropped (fail closed); text holdings are
+// queried directly and are unaffected.
 func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName string) (*maskingHoldings, *model.AppError) {
 	var lookupType string
 	switch objectType {
@@ -174,32 +183,162 @@ func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName 
 	if appErr != nil {
 		return nil, appErr
 	}
+	accessMode := a.effectiveAccessMode(rctx, groupID, field)
 	if lookupType != model.PropertyFieldObjectTypeChannel {
-		return &maskingHoldings{field: field, accessMode: field.GetAccessMode()}, nil
+		return &maskingHoldings{field: field, accessMode: accessMode}, nil
 	}
 
-	accessMode := field.GetAccessMode()
-	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		sibling, appErr := a.userSiblingField(rctx, groupID, *field.LinkedFieldID)
+	holdingsFieldID, declared, appErr := a.resolveHoldingsFieldID(rctx, groupID, field)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	var holdingsField *model.PropertyField
+	switch {
+	case declared && holdingsFieldID != field.ID:
+		holdingsField, appErr = a.GetPropertyField(rctx, groupID, holdingsFieldID)
 		if appErr != nil {
 			return nil, appErr
 		}
-		if sibling != nil {
-			// The sibling supplies the caller's held values, but its options are
-			// only held-filtered by the read path when the sibling is itself
-			// shared_only. If the channel field is protected but the sibling is
-			// not, the sibling's option list is unfiltered — drop it so no
-			// unheld option name leaks (text holdings query the caller directly
-			// and are unaffected).
-			if accessMode == model.PropertyAccessModeSharedOnly &&
-				sibling.GetAccessMode() != model.PropertyAccessModeSharedOnly &&
-				sibling.Type.SupportsOptions() {
-				sibling = fieldWithEmptyOptions(sibling)
-			}
-			return &maskingHoldings{field: sibling, accessMode: accessMode}, nil
+	case !declared && field.LinkedFieldID != nil && *field.LinkedFieldID != "":
+		// An ambiguous sibling errors here, and callers fail the reference
+		// closed on that error.
+		holdingsField, appErr = a.userSiblingField(rctx, groupID, *field.LinkedFieldID)
+		if appErr != nil {
+			return nil, appErr
 		}
 	}
-	return &maskingHoldings{field: field, accessMode: accessMode}, nil
+	if holdingsField == nil {
+		return &maskingHoldings{field: field, accessMode: accessMode}, nil
+	}
+
+	if accessMode == model.PropertyAccessModeSharedOnly &&
+		a.effectiveAccessMode(rctx, groupID, holdingsField) != model.PropertyAccessModeSharedOnly &&
+		holdingsField.Type.SupportsOptions() {
+		holdingsField = fieldWithEmptyOptions(holdingsField)
+	}
+	return &maskingHoldings{field: holdingsField, accessMode: accessMode}, nil
+}
+
+// effectiveAccessModeUsing is model.EffectiveAccessMode, reading a linked
+// field's template via getTemplate (the hook-mediated property service, for
+// effectiveAccessMode).
+//
+// A linked field whose template can't be read is reported masked. Its own
+// mode would usually say public, since a linked field never carries masking
+// of its own, and these callers decide from the answer which values to strip.
+// A field whose own tiers already say source_only keeps that, which is
+// stricter still.
+//
+// A field that could hold a permissions object and does not is reported
+// masked rather than public. The backfill fills one in for every PSAv2/v3
+// field, so that state is a row the conversion has not reached — and the
+// property system's own read hook already refuses it. These callers read
+// around that hook, so answering public here is the one place an unconverted
+// row could hand out values nothing has established the caller may see. A
+// PSAv1 field is not that case: it cannot hold a permissions object at all,
+// by design and indefinitely, so it keeps whatever GetAccessMode says.
+func effectiveAccessModeUsing(field *model.PropertyField, getTemplate func(id string) (*model.PropertyField, error)) string {
+	if field.Permissions == nil {
+		if field.IsPSAv1() {
+			return field.GetAccessMode()
+		}
+		return model.PropertyAccessModeSharedOnly
+	}
+	var template *model.PropertyField
+	if field.Permissions.Masking == nil && field.LinkSourceID() != "" {
+		t, err := getTemplate(field.LinkSourceID())
+		if err != nil || t == nil {
+			if field.GetAccessMode() == model.PropertyAccessModeSourceOnly {
+				return model.PropertyAccessModeSourceOnly
+			}
+			return model.PropertyAccessModeSharedOnly
+		}
+		template = t
+	}
+	return model.EffectiveAccessMode(field, template)
+}
+
+// effectiveAccessMode is effectiveAccessModeUsing reading the template through
+// the caller-context property service, the same path holdingsFieldFor already
+// reads the reference itself through.
+func (a *App) effectiveAccessMode(rctx request.CTX, groupID string, field *model.PropertyField) string {
+	return effectiveAccessModeUsing(field, func(id string) (*model.PropertyField, error) {
+		f, appErr := a.GetPropertyField(rctx, groupID, id)
+		if appErr != nil {
+			return nil, appErr
+		}
+		return f, nil
+	})
+}
+
+// readableByEveryoneUsing reports model.PropertyFieldReadableByEveryone for
+// every one of actions, reading a linked field's template once via
+// getTemplate. A template that can't be read leaves the field unreadable by
+// everyone. Shared by callers that read the template through different paths:
+// the hook-mediated property service (readableByEveryone) and the direct store
+// read GetAccessControlPolicyAttributes uses to bypass those hooks.
+func readableByEveryoneUsing(field *model.PropertyField, getTemplate func(id string) (*model.PropertyField, error), actions ...string) bool {
+	var template *model.PropertyField
+	if field.Permissions != nil && field.Permissions.Masking == nil && field.LinkSourceID() != "" {
+		t, err := getTemplate(field.LinkSourceID())
+		if err != nil {
+			return false
+		}
+		template = t
+	}
+	for _, action := range actions {
+		if !model.PropertyFieldReadableByEveryone(field, template, action) {
+			return false
+		}
+	}
+	return true
+}
+
+// readableByEveryone is readableByEveryoneUsing reading the template through
+// the caller-context property service, as effectiveAccessMode does.
+func (a *App) readableByEveryone(rctx request.CTX, groupID string, field *model.PropertyField, actions ...string) bool {
+	return readableByEveryoneUsing(field, func(id string) (*model.PropertyField, error) {
+		f, appErr := a.GetPropertyField(rctx, groupID, id)
+		if appErr != nil {
+			return nil, appErr
+		}
+		return f, nil
+	}, actions...)
+}
+
+// attributeReadActions names the read actions everyone must hold for an
+// attribute's values to be shown outside the property read path, as the
+// attribute views and policy literals show them: value.read, and for a field
+// with options option.read too, since those values are option names and the
+// read path hides the names from a caller denied option.read.
+func attributeReadActions(field *model.PropertyField) []string {
+	if field.Type.SupportsOptions() {
+		return []string{model.PropertyActionValueRead, model.PropertyActionOptionRead}
+	}
+	return []string{model.PropertyActionValueRead}
+}
+
+// resolveHoldingsFieldID names the field whose per-caller values are field's
+// holdings: field's template's mask_by_field_id, or — if field has no
+// template, or the template sets none — field itself. Mirrors
+// AccessControlHook.resolveFieldMasking's holdings resolution
+// (channels/app/properties/masking.go). The bool reports whether the answer
+// came from a mask_by_field_id, so holdingsFieldFor can tell an explicit
+// setting, which always wins, from the default it may replace with a sibling.
+func (a *App) resolveHoldingsFieldID(rctx request.CTX, groupID string, field *model.PropertyField) (string, bool, *model.AppError) {
+	target := field
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		template, appErr := a.GetPropertyField(rctx, groupID, *field.LinkedFieldID)
+		if appErr != nil {
+			return "", false, appErr
+		}
+		target = template
+	}
+	if target.Permissions != nil && target.Permissions.Masking != nil && target.Permissions.Masking.MaskByFieldID != "" {
+		return target.Permissions.Masking.MaskByFieldID, true, nil
+	}
+	return field.ID, false, nil
 }
 
 // fieldWithEmptyOptions returns a shallow copy of f with its options hidden, so

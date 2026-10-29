@@ -65,6 +65,31 @@ func TestCreateCPAField(t *testing.T) {
 	}, "an invalid field should be rejected")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		createdField, resp, err := client.CreateCPAField(context.Background(), field)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.patch.permissions_not_supported.app_error")
+		require.Empty(t, createdField)
+
+		fields, _, err := client.ListCPAFields(context.Background())
+		require.NoError(t, err)
+		for _, f := range fields {
+			require.NotEqual(t, field.Name, f.Name)
+		}
+	}, "a field carrying a permissions object should be rejected")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
 		name := celSafeName()
@@ -228,6 +253,61 @@ func TestListCPAFields(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.Empty(t, fields)
+	})
+}
+
+// TestCPAFieldWithoutOwnersHasNoOwnersAttr guards the v2 read of an unowned
+// field. Clients take any attrs.owners entry to mean an integration owns the
+// values and lock the field for people, so the plugin wildcard every unowned
+// field converts to must not surface there.
+func TestCPAFieldWithoutOwnersHasNoOwnersAttr(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+		Name:  celSafeName(),
+		Type:  model.PropertyFieldTypeText,
+		Attrs: map[string]any{"sort_order": 0},
+	})
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotContains(t, createdField.Attrs, model.PropertyAttrsOwners)
+
+	findField := func(t *testing.T, fields []*model.PropertyField) *model.PropertyField {
+		t.Helper()
+		for _, field := range fields {
+			if field.ID == createdField.ID {
+				return field
+			}
+		}
+		require.FailNow(t, "created field not listed")
+		return nil
+	}
+
+	t.Run("the CPA endpoint", func(t *testing.T) {
+		fields, resp, err := th.Client.ListCPAFields(context.Background())
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		assert.NotContains(t, findField(t, fields).Attrs, model.PropertyAttrsOwners)
+	})
+
+	t.Run("the generic properties endpoint", func(t *testing.T) {
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		assert.NotContains(t, findField(t, fields).Attrs, model.PropertyAttrsOwners)
+	})
+
+	t.Run("the user can still set their own value", func(t *testing.T) {
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			createdField.ID: json.RawMessage(`"Self Value"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
 	})
 }
 
@@ -942,7 +1022,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test SAML field
 		values = map[string]json.RawMessage{
@@ -951,7 +1031,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test multiple fields with one being LDAP synced
 		values = map[string]json.RawMessage{
@@ -961,7 +1041,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
@@ -1173,18 +1253,13 @@ func TestPatchCPAValues(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, createdNonPublicField)
 
-		// The write gate keys off Protected, not access_mode
-		// (checkLegacyFieldWriteAccess), so leaving Protected unset keeps this
-		// field writable by its owner despite being non-public. Only a store
-		// write can produce that combination: ValidatePropertyFieldAccessMode
-		// rejects it over the API.
+		// A value.read of none makes the field non-public while its value.write
+		// keeps it writable by its owner. Only a store write can produce that
+		// combination: over the API a non-public field must be protected.
 		store := th.App.Srv().Store().PropertyField()
 		storedField, err := store.Get(request.TestContext(t), createdNonPublicField.GroupID, createdNonPublicField.ID)
 		require.NoError(t, err)
-		if storedField.Attrs == nil {
-			storedField.Attrs = model.StringInterface{}
-		}
-		storedField.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
+		storedField.Permissions.Restrictions.Value.Read = model.PermissionLevelNone
 		_, err = store.Update(storedField.GroupID, []*model.PropertyField{storedField}, nil)
 		require.NoError(t, err)
 
@@ -1216,6 +1291,112 @@ func TestPatchCPAValues(t *testing.T) {
 
 		require.Contains(t, wsValues, createdNonPublicField.ID)
 		require.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[createdNonPublicField.ID]))
+	})
+
+	t.Run("a value not everyone may read is withheld from the websocket event", func(t *testing.T) {
+		store := th.App.Srv().Store().PropertyField()
+		storeUpdate := func(t *testing.T, field *model.PropertyField) {
+			t.Helper()
+			_, err := store.Update(field.GroupID, []*model.PropertyField{field}, nil)
+			require.NoError(t, err)
+		}
+
+		// A value.read narrower than everyone, with value.write still open to
+		// the value's owner: only a store write produces that combination.
+		sysadminField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		})
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		storedSysadminField, err := store.Get(request.TestContext(t), sysadminField.GroupID, sysadminField.ID)
+		require.NoError(t, err)
+		storedSysadminField.Permissions.Restrictions.Value.Read = model.PermissionLevelSysadmin
+		storeUpdate(t, storedSysadminField)
+
+		// A field linked to a masked template: the linked field carries no
+		// masking of its own, so only the template says its values are masked.
+		rctx := request.TestContext(t)
+		template, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    sysadminField.GroupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		linkedField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       sysadminField.GroupID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, linkedField.Permissions)
+		require.Nil(t, linkedField.Permissions.Masking)
+		linkedField.Permissions.Restrictions.Value.Read = model.PermissionLevelEveryone
+		linkedField.Permissions.Restrictions.Value.Write = model.PermissionLevelMember
+		storeUpdate(t, linkedField)
+		template.Permissions.Masking = &model.Masking{}
+		storeUpdate(t, template)
+
+		// A field linked to a template that masks nothing, with tiers of
+		// everyone: its value is broadcast as is.
+		openTemplate, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    sysadminField.GroupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		openLinkedField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       sysadminField.GroupID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &openTemplate.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, openLinkedField.Permissions)
+		openLinkedField.Permissions.Restrictions.Value.Read = model.PermissionLevelEveryone
+		openLinkedField.Permissions.Restrictions.Option.Read = model.PermissionLevelEveryone
+		openLinkedField.Permissions.Restrictions.Value.Write = model.PermissionLevelMember
+		storeUpdate(t, openLinkedField)
+
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		values := map[string]json.RawMessage{
+			sysadminField.ID:   json.RawMessage(`"Sysadmin Value"`),
+			linkedField.ID:     json.RawMessage(`"Linked Value"`),
+			openLinkedField.ID: json.RawMessage(`"Open Linked Value"`),
+		}
+		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		var wsValues map[string]json.RawMessage
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventCPAValuesUpdated {
+					valuesData, err := json.Marshal(event.GetData()["values"])
+					require.NoError(t, err)
+					require.NoError(t, json.Unmarshal(valuesData, &wsValues))
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[sysadminField.ID]), "a sysadmin value.read is withheld")
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[linkedField.ID]), "a linked field's template masking is withheld")
+		assert.JSONEq(t, `"Open Linked Value"`, string(wsValues[openLinkedField.ID]), "a linked field everyone may read is broadcast as is")
 	})
 }
 
@@ -1402,7 +1583,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test SAML field
 		values = map[string]json.RawMessage{
@@ -1411,7 +1592,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test multiple fields with one being LDAP synced
 		values = map[string]json.RawMessage{
@@ -1421,7 +1602,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
@@ -1839,12 +2020,14 @@ func TestPatchCPAValuesForBotTarget(t *testing.T) {
 			CheckErrorID(t, err, errorID)
 		}
 
+		// Every lock is a value.write the field's permissions refuse the
+		// caller, which the API checks before the hook.
 		t.Run("protected", func(t *testing.T) {
-			requireLocked(t, protectedField.ID, "app.property.access_denied.app_error")
+			requireLocked(t, protectedField.ID, "api.property_value.patch.no_values_permission.app_error")
 		})
 
 		t.Run("synced", func(t *testing.T) {
-			requireLocked(t, syncedField.ID, "app.property.sync_lock.app_error")
+			requireLocked(t, syncedField.ID, "api.property_value.patch.no_values_permission.app_error")
 		})
 
 		t.Run("owner-managed", func(t *testing.T) {
@@ -2235,11 +2418,11 @@ func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 	})
 }
 
-// TestCPABackwardCompatAfterRefactor spot-checks invariants that could have
-// drifted in the Phase 7 refactor of the CPA handlers into thin shims. Broad
-// behavioral equivalence is already covered by the existing CPA tests (they
-// still pass); these subtests target invariants that those tests don't
-// exercise directly.
+// TestCPABackwardCompatAfterRefactor pins CPA-handler invariants the rest of
+// the CPA tests do not: ListCPAFields returns fields in sort_order, create
+// responses fill typed CPAField attrs the caller omitted, and an LDAP-synced
+// write through the CPA path is still refused. The CPA handlers map onto the
+// generic properties API; these cases fail if that mapping drops those fields.
 func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -2330,7 +2513,7 @@ func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 		)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 }
 
@@ -2355,18 +2538,17 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	require.NoError(t, err)
 	require.NotNil(t, created)
-	// Owner-managed fields pin PermissionValues to sysadmin so that if the
-	// owners list is ever dropped, the field stays admin-only instead of
-	// becoming writable by every member. Human writes are additionally blocked
-	// in the property-service hook (like the ldap/saml sync lock).
+	// Owner-managed conversion sets value.write to none (a grant restores
+	// write for a listed owner). Projected PermissionValues therefore reads
+	// none, not the create-path sysadmin pin; PermissionField stays sysadmin
+	// so dropping owners does not make the definition member-editable.
 	require.NotNil(t, created.PermissionValues)
-	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+	assert.Equal(t, model.PermissionLevelNone, *created.PermissionValues)
 	require.NotNil(t, created.PermissionField)
 	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
 
 	t.Run("member cannot write values on an owner-managed field", func(t *testing.T) {
-		// The sysadmin PermissionValues pin denies the member at the API
-		// permission layer, before reaching the property-service hook.
+		// value.write none denies the member at the API permission layer.
 		_, resp, err := th.Client.PatchCPAValues(context.Background(), map[string]json.RawMessage{
 			created.ID: json.RawMessage(`"member write"`),
 		})
@@ -2376,12 +2558,14 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 	})
 
 	t.Run("system admin cannot write own values on an owner-managed field", func(t *testing.T) {
+		// value.write is none on an owner-managed field, so the API permission
+		// layer refuses the sysadmin before the property-service hook runs.
 		_, resp, err := th.SystemAdminClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
 			created.ID: json.RawMessage(`"admin write"`),
 		})
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.access_denied.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	t.Run("system admin cannot write values for another user on an owner-managed field", func(t *testing.T) {
@@ -2390,12 +2574,28 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 		})
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.access_denied.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	// The machine-owner write path (a listed owner acting as a matching scope
 	// is allowed) is covered by the property-service tests in
 	// channels/app/properties, which can stub the plugin checker.
+}
+
+// findOwner returns the owner in owners with the given ID, or nil. A field's
+// owners now come from its permissions object's grants, not only from what
+// was explicitly submitted -- a public, unprotected field also carries a "*"
+// plugin grant for the ambient access every such field already had under the
+// legacy model (TestProjectLegacyPermissionsWildcardGrantBecomesOwner), so
+// asserting on one owner by ID is the stable check rather than the total
+// count.
+func findOwner(owners []model.PropertyOwner, id string) *model.PropertyOwner {
+	for i := range owners {
+		if owners[i].ID == id {
+			return &owners[i]
+		}
+	}
+	return nil
 }
 
 func TestSysadminManagesCPAFieldOwners(t *testing.T) {
@@ -2422,10 +2622,10 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		require.NotNil(t, created)
 
 		owners := model.GetPropertyFieldOwners(created)
-		require.Len(t, owners, 1)
-		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
-		assert.Equal(t, model.PropertyOwnerTypePlugin, owners[0].Type)
-		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+		scim := findOwner(owners, "com.mattermost.scim")
+		require.NotNil(t, scim)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, scim.Type)
+		assert.Equal(t, []string{"entra"}, scim.Scopes)
 	})
 
 	t.Run("member cannot create a field with owners", func(t *testing.T) {
@@ -2464,8 +2664,9 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		owners := model.GetPropertyFieldOwners(patched)
-		require.Len(t, owners, 1)
-		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+		scim := findOwner(owners, "com.mattermost.scim")
+		require.NotNil(t, scim)
+		assert.Equal(t, []string{"entra"}, scim.Scopes)
 
 		// Change scopes
 		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
@@ -2478,8 +2679,9 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		owners = model.GetPropertyFieldOwners(patched)
-		require.Len(t, owners, 1)
-		assert.ElementsMatch(t, []string{"entra", "okta"}, owners[0].Scopes)
+		scim = findOwner(owners, "com.mattermost.scim")
+		require.NotNil(t, scim)
+		assert.ElementsMatch(t, []string{"entra", "okta"}, scim.Scopes)
 
 		// Remove owners
 		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
@@ -2489,7 +2691,17 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		})
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		assert.False(t, model.HasPropertyFieldOwners(patched))
+		// A public, unprotected field with no explicit owner is ambiently
+		// writable by any plugin under the legacy model. That access is kept
+		// as a stored wildcard grant, but a v2 reader sees no owners, as it
+		// would for any field nobody owns; a "*" owner would lock the field
+		// for people.
+		assert.Empty(t, model.GetPropertyFieldOwners(patched), "the field must read as unowned")
+		stored, storeErr := th.App.Srv().Store().PropertyField().Get(th.Context, "", created.ID)
+		require.NoError(t, storeErr)
+		require.Len(t, stored.Permissions.Grants, 1)
+		assert.Equal(t, model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"}, stored.Permissions.Grants[0].Identity,
+			"the field's ambient plugin access must be kept")
 	})
 
 	t.Run("member cannot patch owners on a field", func(t *testing.T) {

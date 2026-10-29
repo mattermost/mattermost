@@ -1209,7 +1209,7 @@ type ScheduledPostStore interface {
 
 type PropertyGroupStore interface {
 	Register(group *model.PropertyGroup) (*model.PropertyGroup, error)
-	IncrementVersion(name string) error
+	SetVersion(name string, version int) error
 	Get(name string) (*model.PropertyGroup, error)
 	GetByID(id string) (*model.PropertyGroup, error)
 }
@@ -1217,6 +1217,7 @@ type PropertyGroupStore interface {
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
 	Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error)
+	ValidateMaskByFieldID(rctx request.CTX, groupID, fieldID, maskByFieldID string) error
 	GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error)
 	GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error)
@@ -1243,9 +1244,16 @@ type PropertyFieldStore interface {
 	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	// GetFieldsMissingPermissions returns one page, in (CreateAt, Id) order
+	// after cursor, of the live PSAv2 fields in version 2 and 3 groups that
+	// have no permissions object: the fields the permissions backfill converts.
+	GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
+	GetFieldsByGrant(rctx request.CTX, ownerType, ownerID, action string) ([]string, error)
+	GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error)
+	HasGrantForIdentity(rctx request.CTX, ownerType, ownerID string) (bool, error)
 }
 
 type PropertyValueStore interface {

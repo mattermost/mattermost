@@ -46,6 +46,13 @@ const (
 	PropertyOwnerScopesMax     = 32  // scopes per owner
 	PropertyOwnerScopeMaxRunes = 64  // length of a single scope label
 	PropertyOwnerIDMaxRunes    = 255 // length of an owner id
+	// PropertyGrantsMaxPerField bounds grants per field. Higher than the owners
+	// cap: a legitimate grantsFromLegacy conversion can emit more grants than the
+	// field had owners (up to 20 owners plus source plugin, sync source and the
+	// ambient wildcard, with a scope split that can double an identity), so 20
+	// would reject rows the backfill must convert. Well below the ~13k-row
+	// bind-parameter ceiling on a field's fanned-out grant rows.
+	PropertyGrantsMaxPerField = 64 // grants per field
 )
 
 // PropertyOwner is an identity trusted to manage an attribute's data. When a
@@ -75,6 +82,10 @@ type PropertyOwner struct {
 	ID     string   `json:"id"`
 	Type   string   `json:"type"`
 	Scopes []string `json:"scopes"`
+	// Allow lists the actions this owner may perform. Empty means every action
+	// enumerated in validPropertyActions — the legacy shape had no way to say
+	// less, so an owner written before this field existed keeps its full access.
+	Allow []string `json:"allow,omitempty"`
 }
 
 // IsValidPropertyOwnerType reports whether the given owner type is recognized.
@@ -155,17 +166,102 @@ func IsPropertyFieldProtected(field *PropertyField) bool {
 	return ok && protected
 }
 
-// GetAccessMode returns the field's access mode. Returns the public mode (empty
-// string) when no access_mode is configured or the field has no attrs at all.
+// GetAccessMode returns the field's own access mode -- never a linked
+// field's template; a caller that must account for the template of a linked
+// field with no masking of its own uses EffectiveAccessMode.
+//
+// Computed from Permissions when non-nil: a set Masking means shared_only
+// (masking is what shared_only became); else either read tier resolving to
+// none means source_only; else public. Reads the tiers through
+// Restrictions.TierFor, which is nil-receiver safe, so a Permissions with no
+// Restrictions reports source_only rather than panicking.
+//
+// A field with no Permissions object reports public here. Unconverted
+// PSAv2/v3 rows are fail-closed by effectiveAccessModeUsing (shared_only).
+// PSAv1 fields cannot hold a permissions object; callers that still need
+// their Attrs access_mode should use LegacyAccessMode.
 func (f *PropertyField) GetAccessMode() string {
-	if f.Attrs == nil {
-		return PropertyAccessModePublic
+	if f.Permissions != nil {
+		switch {
+		case f.Permissions.Masking != nil:
+			return PropertyAccessModeSharedOnly
+		case f.Permissions.Restrictions.TierFor(PropertyActionValueRead) == PermissionLevelNone ||
+			f.Permissions.Restrictions.TierFor(PropertyActionOptionRead) == PermissionLevelNone:
+			return PropertyAccessModeSourceOnly
+		default:
+			return PropertyAccessModePublic
+		}
 	}
-	accessMode, ok := f.Attrs[PropertyAttrsAccessMode].(string)
-	if !ok {
-		return PropertyAccessModePublic
+
+	return PropertyAccessModePublic
+}
+
+// EffectiveAccessMode returns field's access mode, taking its template into
+// account when field is linked and carries Permissions but no Masking of its
+// own: a linked field's Masking is always nil (a masked scheme is declared on
+// the template alone), so GetAccessMode alone would report the linked field's
+// own unmasked tiers even when its scheme is shared_only. Such a field reports
+// the stricter of its own mode and its template's (see stricterAccessMode):
+// its own read tiers still bind, so a field whose reads are none reports
+// source_only even under a public template. template is nil when field isn't
+// linked or its template couldn't be read; field's own mode is reported then.
+func EffectiveAccessMode(field, template *PropertyField) string {
+	if template == nil || field.Permissions == nil || field.Permissions.Masking != nil || field.LinkSourceID() == "" {
+		return field.GetAccessMode()
 	}
-	return accessMode
+	return stricterAccessMode(field.GetAccessMode(), template.GetAccessMode())
+}
+
+// stricterAccessMode returns the stricter of a and b: source_only over
+// shared_only over public. A mode it doesn't recognise counts as source_only,
+// so an unexpected value fails closed.
+func stricterAccessMode(a, b string) string {
+	strictness := func(mode string) int {
+		switch mode {
+		case PropertyAccessModePublic:
+			return 0
+		case PropertyAccessModeSharedOnly:
+			return 1
+		default:
+			return 2
+		}
+	}
+	switch max(strictness(a), strictness(b)) {
+	case 0:
+		return PropertyAccessModePublic
+	case 1:
+		return PropertyAccessModeSharedOnly
+	default:
+		return PropertyAccessModeSourceOnly
+	}
+}
+
+// PropertyFieldReadableByEveryone reports whether every reader may read
+// field's values (action PropertyActionValueRead) or its option list
+// (PropertyActionOptionRead): field carries a permissions object, nothing
+// masks it, and that action's read tier is everyone. A websocket broadcast has
+// no single reader to decide for, so it may carry only what this allows. Any
+// other action reports false.
+//
+// A linked field never declares masking of its own; its masking is its
+// template's, so template must be the template field links to. A linked field
+// whose template is nil (missing or unreadable), is some other field, or
+// carries no permissions object reports false. template is ignored when field
+// isn't linked. The tier is field's own, the one the read path judges a human
+// by.
+func PropertyFieldReadableByEveryone(field, template *PropertyField, action string) bool {
+	if action != PropertyActionValueRead && action != PropertyActionOptionRead {
+		return false
+	}
+	if field == nil || field.Permissions == nil || field.Permissions.Masking != nil {
+		return false
+	}
+	if templateID := field.LinkSourceID(); templateID != "" {
+		if template == nil || template.ID != templateID || template.Permissions == nil || template.Permissions.Masking != nil {
+			return false
+		}
+	}
+	return field.Permissions.Restrictions.TierFor(action) == PermissionLevelEveryone
 }
 
 // ValidatePropertyFieldAccessMode validates that the access_mode attribute is valid
