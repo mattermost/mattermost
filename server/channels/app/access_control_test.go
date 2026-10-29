@@ -2612,7 +2612,9 @@ func TestBuildAccessControlSubjectNativeAttributes(t *testing.T) {
 }
 
 func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelPermissionActions = true
+	}).InitBasic(t)
 
 	originalACS := th.App.Srv().ch.AccessControl
 	t.Cleanup(func() { th.App.Srv().ch.AccessControl = originalACS })

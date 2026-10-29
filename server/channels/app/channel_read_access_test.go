@@ -37,6 +37,7 @@ func setupChannelReadAccessTest(t *testing.T) *channelReadAccessHarness {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -354,6 +355,14 @@ func TestHasChannelReadAccess(t *testing.T) {
 
 func TestHasChannelReadAccessShortCircuits(t *testing.T) {
 	cases := map[string]func(t *testing.T, h *channelReadAccessHarness) *model.Channel{
+		"ChannelPermissionActions flag off": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
+			h.th.Server.platform.SetConfigReadOnlyFF(false)
+			t.Cleanup(func() { h.th.Server.platform.SetConfigReadOnlyFF(true) })
+			h.th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.ChannelPermissionActions = false
+			})
+			return h.th.BasicChannel
+		},
 		"ABAC disabled": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
 			h.th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
@@ -1695,9 +1704,18 @@ func captureWebsocketEvents(t *testing.T, h *channelReadAccessHarness, run func(
 // An email reaches no session, so a policy can't be evaluated for its recipient: while
 // channel_read_access governs the channel, every recipient gets the generic email.
 func TestNotificationEmailWithholdsContentsUnderReadAccessPolicy(t *testing.T) {
+	// Creating a post also sends push notifications in the background, whose badge count
+	// asks the mock ACS questions this test doesn't answer and races its assertions.
+	disablePushes := func(h *channelReadAccessHarness) {
+		h.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SendPushNotifications = false
+		})
+	}
+
 	buildFor := func(t *testing.T, h *channelReadAccessHarness, channel *model.Channel) *model.EmailNotification {
 		t.Helper()
 
+		disablePushes(h)
 		post := h.th.CreatePost(t, channel)
 		notification := buildTestPostNotification(post, channel, h.th.BasicUser)
 		return h.th.App.buildEmailNotification(h.rctx, notification, h.th.BasicUser2, h.th.BasicTeam)
@@ -1790,6 +1808,7 @@ func TestNotificationEmailWithholdsContentsUnderReadAccessPolicy(t *testing.T) {
 		h.th.App.Srv().EmailService = emailServiceMock
 		t.Cleanup(func() { h.th.App.Srv().EmailService = original })
 
+		disablePushes(h)
 		post := h.th.CreatePost(t, h.th.BasicChannel)
 		notification := buildTestPostNotification(post, h.th.BasicChannel, h.th.BasicUser)
 		emailNotification, err := h.th.App.sendNotificationEmail(h.rctx, notification, h.th.BasicUser2, h.th.BasicTeam, nil)

@@ -17,12 +17,13 @@ import {
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+    ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS,
 } from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isChannelPermissionActionsEnabled, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
@@ -188,6 +189,7 @@ function PermissionPolicyDetails({
     // that would only surface a backend error. Mirror gate exists on
     // the channel-settings Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
+    const channelPermissionActionsEnabled = useSelector(isChannelPermissionActionsEnabled);
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
     // and the accessed channel's attributes (resource.attributes.*), tagged by
@@ -396,7 +398,8 @@ function PermissionPolicyDetails({
     };
 
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !selectedPermissions.includes(p.value),
+        (p) => !selectedPermissions.includes(p.value) &&
+            (channelPermissionActionsEnabled || !ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS.includes(p.value)),
     );
 
     return (

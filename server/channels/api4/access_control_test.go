@@ -90,6 +90,7 @@ func restoreABACFeatureFlagDefaults(cfg *model.Config) {
 	cfg.FeatureFlags.PermissionPolicies = true
 	cfg.FeatureFlags.ChannelPermissionPolicies = true
 	cfg.FeatureFlags.PolicySimulation = true
+	cfg.FeatureFlags.ChannelPermissionActions = true
 	cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 }
 
@@ -3808,6 +3809,21 @@ func TestCreateAccessControlPolicyChannelReadAccess(t *testing.T) {
 		// gate, whose helper also requires the umbrella.
 		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
 		CheckErrorID(t, err, channelPermissionsDisabledID)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("ChannelPermissionActions off rejects both policy types", func(t *testing.T) {
+		installMockACS(t)
+		setFlags(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelPermissionActions = false
+		})
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
+		CheckErrorID(t, err, "api.access_control_policy.channel_permission_actions.feature_disabled")
+		CheckNotImplementedStatus(t, resp)
+
+		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
+		CheckErrorID(t, err, "api.access_control_policy.channel_permission_actions.feature_disabled")
 		CheckNotImplementedStatus(t, resp)
 	})
 

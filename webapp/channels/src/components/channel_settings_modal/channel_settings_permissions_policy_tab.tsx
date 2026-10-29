@@ -15,6 +15,7 @@ import {
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+    ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -30,7 +31,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {getFeatureFlagValue, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, isChannelPermissionActionsEnabled, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
@@ -1242,9 +1243,12 @@ function PermissionRuleEditor({
         setDraft((prev) => ({...prev, actions: prev.actions.filter((a) => a !== action)}));
     }, []);
 
+    const channelPermissionActionsEnabled = useSelector(isChannelPermissionActionsEnabled);
+
     const selectedRoleDef = AVAILABLE_ROLES.find((r) => r.value === draft.role);
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !draft.actions.includes(p.value),
+        (p) => !draft.actions.includes(p.value) &&
+            (channelPermissionActionsEnabled || !ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS.includes(p.value)),
     );
 
     return (

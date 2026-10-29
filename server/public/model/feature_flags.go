@@ -63,6 +63,12 @@ type FeatureFlags struct {
 	// PermissionPolicies dependency is enforced at every call site.
 	PolicySimulation bool
 
+	// FEATURE_FLAG_REMOVAL: ChannelPermissionActions - Remove this when the feature is GA.
+	// Gates the channel permission actions (channel_read_access) on permission
+	// and channel policies. When off, saving a policy that uses one is rejected,
+	// the webapp doesn't offer them, and rules already stored aren't enforced.
+	ChannelPermissionActions bool
+
 	ContentFlagging bool
 
 	EnableMattermostEntry bool
@@ -218,6 +224,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResourceAttributesInPolicies = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
+	f.ChannelPermissionActions = false
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 

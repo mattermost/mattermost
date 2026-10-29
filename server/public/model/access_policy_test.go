@@ -1883,6 +1883,26 @@ func TestChannelReadAccessAction(t *testing.T) {
 		require.True(t, policy.HasPermissionRuleAction())
 	})
 
+	t.Run("is gated by the ChannelPermissionActions flag", func(t *testing.T) {
+		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelReadAccess))
+		require.False(t, IsChannelPermissionAction(AccessControlPolicyActionUploadFileAttachment))
+		require.False(t, IsChannelPermissionAction(AccessControlPolicyActionMembership))
+
+		policy := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
+			{Actions: []string{AccessControlPolicyActionMembership}},
+			{Actions: []string{AccessControlPolicyActionChannelReadAccess}},
+		}}
+		require.True(t, policy.HasChannelPermissionAction())
+
+		fileOnly := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
+			{Actions: []string{AccessControlPolicyActionUploadFileAttachment}},
+		}}
+		require.False(t, fileOnly.HasChannelPermissionAction())
+
+		var nilPolicy *AccessControlPolicy
+		require.False(t, nilPolicy.HasChannelPermissionAction())
+	})
+
 	t.Run("accepted on a v0.3 system permission policy", func(t *testing.T) {
 		// Session attributes are allowed here, unlike on a membership rule.
 		policy := &AccessControlPolicy{
