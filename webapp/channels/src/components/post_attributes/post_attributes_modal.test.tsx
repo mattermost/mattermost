@@ -392,6 +392,30 @@ describe('PostAttributesModal', () => {
             expect(screen.queryByTestId('post-attribute-row-classification')).not.toBeInTheDocument();
         });
 
+        test('shows, with nothing editable, when the post\'s channel is not loaded', () => {
+            // Fields a channel admin could set. Without the channel there is no
+            // admin check to pass, so none of them may open up.
+            const fields = [
+                makeField({id: 'f_a', name: 'admin_a', permission_values: 'admin'}),
+                makeField({id: 'f_b', name: 'admin_b', permission_values: 'admin', attrs: {options: OPTIONS, visibility: 'always'}}),
+            ];
+            const state = makeState(fields, []);
+            state.entities!.channels!.channels = {};
+
+            renderWithContext(
+                <PostAttributesModal
+                    post={post}
+                    onExited={jest.fn()}
+                />,
+                state,
+            );
+
+            expect(screen.queryAllByTestId(/^post-attribute-trigger-/)).toHaveLength(0);
+            expect(screen.queryAllByTestId(/^post-attribute-clear-/)).toHaveLength(0);
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            expect(screen.getByTestId('post-attributes-empty')).toBeInTheDocument();
+        });
+
         test('does not appear when the user adds the only field they can set', async () => {
             const fields = [spareField()];
 

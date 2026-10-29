@@ -60,10 +60,7 @@ export default function PostAttributesModal({post, onExited}: Props) {
     const teammateNameDisplay = useSelector(getTeammateNameDisplaySetting);
     const authorName = displayUsername(author, teammateNameDisplay);
 
-    const isChannelAdmin = useSelector((state: GlobalState) => {
-        const postChannel = getChannel(state, post.channel_id);
-        return postChannel ? isChannelPropertyAdmin(state, postChannel) : true;
-    });
+    const isChannelAdmin = useSelector((state: GlobalState) => (channel ? isChannelPropertyAdmin(state, channel) : false));
 
     const fields = usePostAttributeFields(channel);
     const values = usePostAttributeValues(post.id);

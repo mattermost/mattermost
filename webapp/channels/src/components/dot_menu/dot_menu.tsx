@@ -625,7 +625,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showDelete = (!isBurnOnReadPost && this.state.canDelete) || shouldShowDeleteForBoR;
 
         const firstSectionHasItems = showReply || showForward || showReactions || showFollowPost || showMarkAsUnread || showSave || showRemind || showPin || showMove;
-        const showPostAttributes = Boolean(!isSystemMessage && this.props.hasPostAttributes);
+        const showPostAttributes = Boolean(!isSystemMessage && !this.props.isUnrevealedBurnOnReadPost && this.props.hasPostAttributes);
         const secondSectionHasItems = showPostAttributes || showShowTranslation || showCopyText || showCopyLink;
         const thirdSectionHasItems = showEdit || showDelete || showFlagContent;
 

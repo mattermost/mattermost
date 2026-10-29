@@ -8,7 +8,7 @@ import type {Post, PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {Locations} from 'utils/constants';
+import {Locations, PostTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -656,12 +656,13 @@ describe('components/dot_menu/DotMenu', () => {
             updated_by: 'user_1',
         };
 
-        function stateWith({flag, fields, permission, hasValue, channelAdmin}: {
+        function stateWith({flag, fields, permission, hasValue, channelAdmin, post = post1}: {
             flag: boolean;
             fields: boolean;
             permission?: string;
             hasValue?: boolean;
             channelAdmin?: boolean;
+            post?: Post;
         }): DeepPartial<GlobalState> {
             const fieldWithPermission = {...field, permission_values: permission ?? field.permission_values};
             const byId = fields ? {[field.id]: fieldWithPermission} : {};
@@ -691,6 +692,13 @@ describe('components/dot_menu/DotMenu', () => {
                             channel_id_1: new Set(channelAdmin ? ['channel_admin'] : []),
                         },
                     },
+                    posts: {
+                        ...initialState.entities!.posts,
+                        posts: {
+                            ...initialState.entities!.posts!.posts,
+                            [post.id]: post,
+                        },
+                    },
                     roles: {
                         roles: {
                             channel_admin: {id: 'channel_admin', name: 'channel_admin', permissions: ['manage_channel_roles']},
@@ -711,10 +719,10 @@ describe('components/dot_menu/DotMenu', () => {
             } as DeepPartial<GlobalState>;
         }
 
-        async function openDotMenu(state: DeepPartial<GlobalState>) {
+        async function openDotMenu(state: DeepPartial<GlobalState>, post: Post = post1) {
             const props = {
                 ...baseProps,
-                post: post1,
+                post,
                 location: Locations.CENTER,
             };
 
@@ -757,6 +765,37 @@ describe('components/dot_menu/DotMenu', () => {
             await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin', channelAdmin: true}));
 
             expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
+        });
+
+        describe('on a burn-on-read post', () => {
+            // Same id as `post1`, so the value `stateWith` writes lands on it.
+            const borPost = {
+                ...post1,
+                type: PostTypes.BURN_ON_READ,
+                user_id: 'other_user_id',
+            } as Post;
+
+            test('is hidden from a recipient who has not revealed it', async () => {
+                const post = {...borPost, metadata: {}} as Post;
+                await openDotMenu(stateWith({flag: true, fields: true, hasValue: true, post}), post);
+
+                expect(screen.getByRole('menu')).toBeInTheDocument();
+                expect(screen.queryByTestId(`post_attributes_${post.id}`)).not.toBeInTheDocument();
+            });
+
+            test('is shown to a recipient once revealed', async () => {
+                const post = {...borPost, metadata: {expire_at: Date.now() + 60000}} as Post;
+                await openDotMenu(stateWith({flag: true, fields: true, hasValue: true, post}), post);
+
+                expect(screen.getByTestId(`post_attributes_${post.id}`)).toBeInTheDocument();
+            });
+
+            test('is shown to the sender', async () => {
+                const post = {...borPost, user_id: 'current_user_id', metadata: {}} as Post;
+                await openDotMenu(stateWith({flag: true, fields: true, hasValue: true, post}), post);
+
+                expect(screen.getByTestId(`post_attributes_${post.id}`)).toBeInTheDocument();
+            });
         });
     });
 });

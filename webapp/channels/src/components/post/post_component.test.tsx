@@ -18,6 +18,8 @@ jest.mock('utils/channel_utils', () => ({
 }));
 
 import {PostPriority} from '@mattermost/types/posts';
+import type {PostType} from '@mattermost/types/posts';
+import type {PropertyField} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
@@ -27,7 +29,7 @@ import {compassIconForName} from 'components/channel_type_icon';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
-import {Locations} from 'utils/constants';
+import {Locations, PostTypes} from 'utils/constants';
 import * as PopoutWindows from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
 
@@ -149,6 +151,86 @@ describe('PostComponent', () => {
             rerender(<PostComponent {...props}/>);
 
             expect(screen.getByLabelText('reactions')).toBeInTheDocument();
+        });
+    });
+
+    describe('post attributes chips', () => {
+        const GROUP_ID = 'post_attributes_group_id';
+
+        const field: PropertyField = {
+            id: 'field_1',
+            group_id: GROUP_ID,
+            name: 'classification',
+            type: 'select',
+            object_type: 'post',
+            target_type: 'channel',
+            target_id: channel.id,
+            attrs: {options: [{id: 'opt_secret', name: 'SECRET'}]},
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: 'user_1',
+            updated_by: 'user_1',
+        };
+
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                properties: {
+                    fields: {byId: {[field.id]: field}, byObjectType: {post: {[GROUP_ID]: {[field.id]: field}}}},
+                    values: {
+                        byTargetId: {
+                            [baseProps.post.id]: {
+                                [field.id]: {
+                                    id: 'value_1',
+                                    target_id: baseProps.post.id,
+                                    target_type: 'post',
+                                    group_id: GROUP_ID,
+                                    field_id: field.id,
+                                    value: 'opt_secret',
+                                },
+                            },
+                        },
+                        byFieldId: {},
+                    },
+                    groups: {
+                        byId: {[GROUP_ID]: {id: GROUP_ID, name: 'post_attributes'}},
+                        byName: {post_attributes: {id: GROUP_ID, name: 'post_attributes'}},
+                    },
+                },
+            },
+        };
+
+        const props: Props = {
+            ...baseProps,
+            post: {...baseProps.post, type: PostTypes.BURN_ON_READ as PostType},
+            channel,
+            isPostAttributesEnabled: true,
+        };
+
+        test('should show chips on a burn-on-read post that is not concealed', () => {
+            renderWithContext(
+                <PostComponent
+                    {...props}
+                    shouldDisplayBurnOnReadConcealed={false}
+                />,
+                state,
+            );
+
+            expect(screen.getByTestId('post-attributes-chips')).toBeInTheDocument();
+            expect(screen.getByText('SECRET')).toBeInTheDocument();
+        });
+
+        test('should not show chips on a concealed burn-on-read post', () => {
+            renderWithContext(
+                <PostComponent
+                    {...props}
+                    shouldDisplayBurnOnReadConcealed={true}
+                />,
+                state,
+            );
+
+            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
         });
     });
 

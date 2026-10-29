@@ -910,7 +910,7 @@ function PostComponent(props: Props) {
                             />
                             }
                         </div>
-                        {props.isPostAttributesEnabled && (
+                        {props.isPostAttributesEnabled && !props.shouldDisplayBurnOnReadConcealed && (
                             <PostAttributesChips
                                 post={post}
                                 channel={props.channel}
