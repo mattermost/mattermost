@@ -8,9 +8,14 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
+	"net/rpc"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // TestReceiveSharedChannelAttachmentSyncMsgReturns_GobRoundTrip pins the fix
@@ -42,5 +47,35 @@ func TestReceiveSharedChannelAttachmentSyncMsgReturns_GobRoundTrip(t *testing.T)
 		require.NoError(t, gob.NewDecoder(&buf).Decode(&decoded))
 		require.Error(t, decoded.B)
 		require.Equal(t, wrapped.Error(), decoded.B.Error())
+	})
+}
+
+// TestKVListWithOptionsRPCErrors pins the AppError status codes that
+// pluginapi's ListKeys relies on to decide whether to fall back to KVList.
+func TestKVListWithOptionsRPCErrors(t *testing.T) {
+	t.Run("server without the method returns StatusNotImplemented", func(t *testing.T) {
+		serverConnection, clientConnection := net.Pipe()
+		server := rpc.NewServer()
+		require.NoError(t, server.RegisterName("Plugin", &legacyRPCServer{}))
+		go server.ServeConn(serverConnection)
+
+		client := rpc.NewClient(clientConnection)
+		defer client.Close()
+
+		keys, appErr := (&apiRPCClient{client: client}).KVListWithOptions(0, 10, model.PluginKVListOptions{Prefix: "p_"})
+		require.Nil(t, keys)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+	})
+
+	t.Run("other RPC failures return StatusInternalServerError", func(t *testing.T) {
+		_, clientConnection := net.Pipe()
+		client := rpc.NewClient(clientConnection)
+		require.NoError(t, client.Close())
+
+		keys, appErr := (&apiRPCClient{client: client}).KVListWithOptions(0, 10, model.PluginKVListOptions{Prefix: "p_"})
+		require.Nil(t, keys)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 	})
 }
