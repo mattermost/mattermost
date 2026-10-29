@@ -2355,21 +2355,9 @@
     "defaultMessage": "Try Again",
     "description": "Button on a failure dialog that retries the failed request (shared with the delete workspace flow)."
   },
-  "admin.billing.deleteWorkspace.progressModal.title": {
-    "defaultMessage": "Deleting your workspace",
-    "description": "Title of the full-screen progress modal shown while a cloud workspace deletion is running."
-  },
   "admin.billing.deleteWorkspace.resultModal.ContactSupport": {
     "defaultMessage": "Contact Support",
     "description": "Tertiary button on the workspace deletion result modal that opens a support form."
-  },
-  "admin.billing.deleteWorkspace.successModal.subtitle": {
-    "defaultMessage": "Your workspace has now been deleted. Thank you for being a customer.",
-    "description": "Body of the modal confirming the cloud workspace was deleted."
-  },
-  "admin.billing.deleteWorkspace.successModal.title": {
-    "defaultMessage": "Your workspace has been deleted",
-    "description": "Title of the modal confirming the cloud workspace was deleted."
   },
   "admin.billing.history.allPaymentsShowHere": {
     "defaultMessage": "All of your invoices will be shown here",
@@ -2439,22 +2427,6 @@
     "defaultMessage": "Transactions",
     "description": "Card heading above the invoice table on the Billing History page."
   },
-  "admin.billing.subscription.byClickingYouAgree": {
-    "defaultMessage": "By clicking {buttonContent}, you agree to the <linkAgreement>{legalText}</linkAgreement>",
-    "description": "Legal consent line under a purchase button; {buttonContent} is the lowercase button label (e.g. 'upgrade'), {legalText} is the license agreement name wrapped in a link."
-  },
-  "admin.billing.subscription.cancelSubscriptionSection.contactUs": {
-    "defaultMessage": "Contact Us",
-    "description": "Button in the cancel-subscription section that opens a support contact channel."
-  },
-  "admin.billing.subscription.cancelSubscriptionSection.description": {
-    "defaultMessage": "At this time, deleting a workspace can only be done with the help of a customer support representative.",
-    "description": "Body text of the cancel-subscription section explaining workspace deletion requires customer support."
-  },
-  "admin.billing.subscription.cancelSubscriptionSection.title": {
-    "defaultMessage": "Cancel your subscription",
-    "description": "Heading of the section on the cloud Subscription page about cancelling the subscription."
-  },
   "admin.billing.subscription.cloudMonthlyBadge": {
     "defaultMessage": "Monthly",
     "description": "Small badge next to the plan name on the Subscription page indicating monthly billing; very compact."
@@ -2487,10 +2459,6 @@
     "defaultMessage": "Annual",
     "description": "Small badge next to the plan name on the Subscription page indicating yearly billing; very compact."
   },
-  "admin.billing.subscription.complianceScreenShippingSameAsBilling": {
-    "defaultMessage": "My shipping address is the same as my billing address",
-    "description": "Checkbox-style toggle label on the cloud billing/purchase compliance screen letting the admin reuse the billing address as the shipping address."
-  },
   "admin.billing.subscription.creditCardHasExpired": {
     "defaultMessage": "Your credit card has expired",
     "description": "Title of a danger banner on the cloud Subscription page when the stored credit card has expired."
@@ -2498,10 +2466,6 @@
   "admin.billing.subscription.creditCardHasExpired.description": {
     "defaultMessage": "Please <link>update your payment information</link> to avoid any disruption.",
     "description": "Banner text on the Cloud billing subscription page when the credit card on file has expired; <link> wraps 'update your payment information'."
-  },
-  "admin.billing.subscription.downgrading": {
-    "defaultMessage": "Downgrading your workspace",
-    "description": "Title of the progress modal shown while a cloud workspace's plan downgrade is being processed; 'Downgrading' is a present participle."
   },
   "admin.billing.subscription.freeTrial.description": {
     "defaultMessage": "Your free trial will expire in {daysLeftOnTrial} days. Contact Sales to continue after the trial ends.",
@@ -2683,10 +2647,6 @@
     "defaultMessage": "Contact Sales",
     "description": "Button on subscription/billing cards that opens the sales contact flow."
   },
-  "admin.billing.subscription.privateCloudCard.contactSupport": {
-    "defaultMessage": "Contact Support",
-    "description": "Tertiary button in the failed-plan-change modal (and billing screens) that opens the Mattermost support contact page."
-  },
   "admin.billing.subscription.privateCloudCard.freeTrial.description": {
     "defaultMessage": "We love to work with our customers and their needs. Contact sales for subscription, billing or trial-specific questions.",
     "description": "Body of the contact-sales card shown to customers on a free trial."
@@ -2699,10 +2659,6 @@
     "defaultMessage": "Upgrade Now",
     "description": "Button on the subscription upgrade card that starts the purchase flow immediately."
   },
-  "admin.billing.subscription.proratedPayment.title": {
-    "defaultMessage": "You are now subscribed to {selectedProductName}",
-    "description": "Title of the success modal after a cloud plan change; {selectedProductName} is the purchased plan's name (e.g. 'Cloud Professional')."
-  },
   "admin.billing.subscription.stateprovince": {
     "defaultMessage": "State/Province",
     "description": "Label of the state/province dropdown in the billing address form of the payment/checkout screen."
@@ -2710,14 +2666,6 @@
   "admin.billing.subscription.title": {
     "defaultMessage": "Subscription",
     "description": "Page title of the Subscription section under Billing in the System Console; noun."
-  },
-  "admin.billing.subscription.userCount.tooltipText": {
-    "defaultMessage": "You must purchase at least the current number of active users.",
-    "description": "Tooltip body next to the seats input in the purchase seats calculator, explaining the minimum purchase requirement."
-  },
-  "admin.billing.subscription.userCount.tooltipTitle": {
-    "defaultMessage": "Current User Count",
-    "description": "Tooltip hint/title next to the seats input in the purchase seats calculator."
   },
   "admin.billing.subscriptions.billing_summary.lastInvoice.monthlyFlatFee": {
     "defaultMessage": "Monthly Flat Fee",
@@ -17963,14 +17911,6 @@
     "defaultMessage": "Select a bot",
     "description": "Fallback text on the AI agent dropdown button when no bot is selected yet."
   },
-  "air_gapped_contact_sales_modal.body": {
-    "defaultMessage": "Please access the link below to contact sales.",
-    "description": "Body text of the modal shown to admins without internet access, above a static contact-sales URL."
-  },
-  "air_gapped_contact_sales_modal.title": {
-    "defaultMessage": "Looks like you do not have access to the internet",
-    "description": "Title of the modal shown when a contact-sales action is attempted on a server without internet access."
-  },
   "air_gapped_modal.close": {
     "defaultMessage": "Close",
     "description": "Button that closes the air-gapped trial modal."
@@ -21635,14 +21575,6 @@
     "defaultMessage": "Skip for now",
     "description": "Button on the first slide of the cloud preview walkthrough modal that dismisses the whole walkthrough."
   },
-  "cloud_signup.signup_consequences": {
-    "defaultMessage": "Your credit card will be charged today. <a>See how billing works.</a>",
-    "description": "Billing notice shown during Cloud purchase checkout; the <a> tags wrap a link to billing documentation."
-  },
-  "cloud_upgrade.error_min_seats": {
-    "defaultMessage": "Minimum of 10 seats required",
-    "description": "Validation error under the seats input when fewer than 10 seats are entered during purchase."
-  },
   "cloud.fetch_error": {
     "defaultMessage": "Error fetching billing data. Please try again later.",
     "description": "Error banner shown to admins in cloud billing screens when billing data fails to load; displayed with a Retry button."
@@ -21846,26 +21778,6 @@
   "confirm_reset_failed_attempts_modal.title": {
     "defaultMessage": "Reset failed login attempts for {username} and unlock account",
     "description": "Title of the confirmation modal for resetting failed login attempts and unlocking a user's account; {username} is the affected user's username."
-  },
-  "confirm_switch_to_yearly_modal.confirm": {
-    "defaultMessage": "Confirm",
-    "description": "Confirm button of the dialog for switching a Cloud subscription from monthly to annual billing."
-  },
-  "confirm_switch_to_yearly_modal.contact_sales": {
-    "defaultMessage": "Contact Sales",
-    "description": "Cancel-side button of the switch-to-annual-plan dialog that contacts the sales team instead."
-  },
-  "confirm_switch_to_yearly_modal.subtitle": {
-    "defaultMessage": "Changing to the annual plan is irreversible. Are you sure you want to switch from monthly to the annual plan?",
-    "description": "Body of the confirmation dialog warning that switching from monthly to annual billing cannot be reversed."
-  },
-  "confirm_switch_to_yearly_modal.subtitle2": {
-    "defaultMessage": "For more information, please contact sales.",
-    "description": "Second subtitle line in the confirmation modal for switching a Cloud subscription from monthly to yearly billing; audience is a workspace admin."
-  },
-  "confirm_switch_to_yearly_modal.title": {
-    "defaultMessage": "Confirm switch to annual plan",
-    "description": "Title of the confirmation dialog for switching from a monthly to an annual billing plan."
   },
   "convert_channel.cancel": {
     "defaultMessage": "No, cancel",
@@ -22455,10 +22367,6 @@
     "defaultMessage": "This message has {count, number} {count, plural, one {comment} other {comments}} on it.",
     "description": "Warning in the delete-post modal that replies will also be removed; {count} is the number of replies and drives the plural branches comment/comments."
   },
-  "delete_success_modal.button_text": {
-    "defaultMessage": "Go to mattermost.com",
-    "description": "Primary button on the workspace-deleted modal; navigates to the mattermost.com website; keep the domain as-is."
-  },
   "deleteChannelModal.canViewArchivedChannelsWarning": {
     "defaultMessage": "This will archive the channel from the team. Channel contents will still be accessible by channel members.",
     "description": "Body text of the archive-channel confirmation dialog when archived channels remain viewable by members."
@@ -23014,18 +22922,6 @@
   "emoji_skin.medium_skin_tone": {
     "defaultMessage": "Medium skin tone",
     "description": "Name of the medium skin tone option in the emoji picker's skin tone selector."
-  },
-  "error_modal.subtitle": {
-    "defaultMessage": "An error occurred while changing your plan. Please go back and try again, or contact the support team.",
-    "description": "Body text of the modal shown to admins when a cloud subscription plan change fails."
-  },
-  "error_modal.title": {
-    "defaultMessage": "We were unable to change your plan",
-    "description": "Title of the modal shown to admins when a cloud subscription plan change fails."
-  },
-  "error_modal.try_again": {
-    "defaultMessage": "Try again",
-    "description": "Primary button in the failed-plan-change modal; retries the purchase flow."
   },
   "error.channel_not_found.message": {
     "defaultMessage": "The channel you're requesting is private or does not exist. Please contact an Administrator to be added to the channel.",
@@ -27671,25 +27567,9 @@
     "defaultMessage": "Password Requirements:",
     "description": "Label on the Password admin page preceding the list of password requirement checkboxes; ends with a colon."
   },
-  "payment_form.address": {
-    "defaultMessage": "Address",
-    "description": "Form field label for the street address in the billing address form of the payment/checkout screen."
-  },
-  "payment_form.address_2": {
-    "defaultMessage": "Address 2",
-    "description": "Label for the second address line (apartment/suite) field in the billing payment form."
-  },
-  "payment_form.city": {
-    "defaultMessage": "City",
-    "description": "Form field label for the city in the billing address form of the payment/checkout screen."
-  },
   "payment_form.country": {
     "defaultMessage": "Country/Region",
     "description": "Label of the country/region dropdown in the billing address form of the payment/checkout screen."
-  },
-  "payment_form.zipcode": {
-    "defaultMessage": "Zip/Postal Code",
-    "description": "Form field label for the postal/ZIP code in the billing address form of the payment/checkout screen."
   },
   "pending_post_actions.cancel": {
     "defaultMessage": "Cancel",
@@ -27766,14 +27646,6 @@
   "persist_notification.too_many.title": {
     "defaultMessage": "Too many recipients",
     "description": "Title of the dialog shown when a persistent-notification message mentions more recipients than allowed."
-  },
-  "plan.cloud": {
-    "defaultMessage": "Cloud",
-    "description": "Plan name 'Cloud'; concatenated directly before the 'license purchase only supports purchases up to {num} seats' error message."
-  },
-  "plan.self_serve": {
-    "defaultMessage": "Self-serve",
-    "description": "Plan name 'Self-serve'; concatenated directly before the 'license purchase only supports purchases up to {num} seats' error message."
   },
   "pluggable.errorOccurred": {
     "defaultMessage": "An error occurred in the {pluginId} plugin.",
@@ -28374,10 +28246,6 @@
   "pricing_modal.btn.viewPlans": {
     "defaultMessage": "View plans",
     "description": "Button in the global header that opens the pricing/plans modal; visible to system admins."
-  },
-  "pricing_modal.plan_label_trialDays": {
-    "defaultMessage": "{days} DAYS LEFT ON TRIAL",
-    "description": "All-caps badge on a plan card in the pricing modal during a free trial; {days} is the number of days remaining."
   },
   "pricing_modal.wantToTry": {
     "defaultMessage": "Want to try? ",
@@ -29995,54 +29863,6 @@
     "defaultMessage": "Recommended based on your attributes",
     "description": "Accessibility label for the 'Recommended' badge on a team in the team selection page; the recommendation is based on the user's attributes matching the team's access rules."
   },
-  "self_hosted_signup.air_gapped_content": {
-    "defaultMessage": "It appears that your instance is air-gapped, or it may not be connected to the internet. To purchase a license, please visit",
-    "description": "Body text of the purchase modal on air-gapped servers; the customer portal URL is rendered immediately after this sentence, so it intentionally ends mid-sentence."
-  },
-  "self_hosted_signup.air_gapped_title": {
-    "defaultMessage": "Purchase through the customer portal",
-    "description": "Title of the modal telling admins on air-gapped servers to purchase a license through the customer portal."
-  },
-  "self_hosted_signup.close": {
-    "defaultMessage": "Close",
-    "description": "Button closing the dialog that says a self-hosted license purchase is under review."
-  },
-  "self_hosted_signup.error_invalid_number": {
-    "defaultMessage": "Enter a valid number of seats",
-    "description": "Validation error under the seats input when the entered value is not a valid number."
-  },
-  "self_hosted_signup.error_max_seats": {
-    "defaultMessage": " license purchase only supports purchases up to {num} seats",
-    "description": "Validation error for too many seats; a plan name ('Cloud' or 'Self-serve') is concatenated immediately before it, hence the leading space. {num} is the maximum seat count."
-  },
-  "self_hosted_signup.error_min_seats": {
-    "defaultMessage": "Your workspace currently has {num} users",
-    "description": "Validation error when fewer seats than existing users are entered; {num} is the workspace's current user count."
-  },
-  "self_hosted_signup.line_item_subtotal": {
-    "defaultMessage": "{num} seats × 12 mo.",
-    "description": "Line item label in the purchase seats calculator; {num} is the seat count, '12 mo.' abbreviates 12 months of an annual plan."
-  },
-  "self_hosted_signup.screening_description": {
-    "defaultMessage": "We will check things on our side and get back to you within 3 days once your license is approved. In the meantime, please feel free to continue using the free version of our product.",
-    "description": "Body of the dialog telling an admin their self-hosted license purchase is being manually screened before approval."
-  },
-  "self_hosted_signup.screening_title": {
-    "defaultMessage": "Your transaction is being reviewed",
-    "description": "Title of the dialog telling an admin their self-hosted license purchase transaction is being reviewed."
-  },
-  "self_hosted_signup.seats": {
-    "defaultMessage": "Seats",
-    "description": "Placeholder for the number-of-seats input in the purchase seats calculator; 'Seats' means purchased user licenses."
-  },
-  "self_hosted_signup.signup_consequences": {
-    "defaultMessage": "You will be billed today. Your license will be applied automatically. <a>See how billing works.</a>",
-    "description": "Billing notice shown during self-hosted license purchase; the <a> tags wrap a link to billing documentation."
-  },
-  "self_hosted_signup.total": {
-    "defaultMessage": "Total",
-    "description": "Label for the total price row in the purchase seats calculator."
-  },
   "setting_item_max.cancel": {
     "defaultMessage": "Cancel",
     "description": "Cancel button in an expanded section of the Settings panels; discards the edits in that section."
@@ -31191,14 +31011,6 @@
     "defaultMessage": "Slash Commands",
     "description": "Breadcrumb link on the slash command setup confirmation page; navigates back to the Slash Commands list."
   },
-  "start_cloud_trial.modal.enter_trial_email.input.label": {
-    "defaultMessage": "Enter business email",
-    "description": "Label of the email input in the modal where an admin enters a business email to start a cloud trial."
-  },
-  "start_cloud_trial.modal.enter_trial_email.input.placeholder": {
-    "defaultMessage": "name@companyname.com",
-    "description": "Placeholder showing an example email address format in the cloud trial business-email input; may be kept as-is."
-  },
   "start_trial_form_modal.failureModal.subtitle": {
     "defaultMessage": "There was an issue processing your trial request.",
     "description": "Body text of the error dialog shown when submitting the start-trial form fails."
@@ -31270,14 +31082,6 @@
   "start_trial.tutorialTip.title": {
     "defaultMessage": "Try our premium features for free",
     "description": "Title of the tour tip shown during the 'start trial' onboarding task."
-  },
-  "success_modal.return_to_workspace": {
-    "defaultMessage": "Return to workspace",
-    "description": "Primary button in the successful-plan-change modal that closes it and returns the admin to the app."
-  },
-  "success_modal.subtitle": {
-    "defaultMessage": "Your final bill will be prorated. Your workspace now has {plan} limits.",
-    "description": "Body text of the successful-plan-change modal; {plan} is the new plan's name and refers to its usage limits."
   },
   "suggestion.all": {
     "defaultMessage": "All channel types",
@@ -34951,10 +34755,6 @@
     "defaultMessage": "Unarchive this file by upgrading",
     "description": "Tooltip title on an archived file attachment prompting an upgrade to a paid plan to restore access."
   },
-  "workspace_limits.file_storage": {
-    "defaultMessage": "File storage",
-    "description": "Name of the file storage usage meter in the cloud workspace limits panel; compact space."
-  },
   "workspace_limits.file_storage.short": {
     "defaultMessage": "Files",
     "description": "Compact label for the file storage usage bar in the Cloud workspace usage panel; refers to uploaded file storage."
@@ -34962,10 +34762,6 @@
   "workspace_limits.file_storage.short.usage": {
     "defaultMessage": "{actual} / {limit}",
     "description": "Compact usage readout next to the file storage bar in the Cloud usage panel; {actual} is current storage used and {limit} the plan's cap (both sizes like '5GB')."
-  },
-  "workspace_limits.file_storage.usage": {
-    "defaultMessage": "{actual} of {limit} ({percent}%)",
-    "description": "Usage readout for file storage on the admin billing/subscription page; {actual} is used storage, {limit} the plan cap, {percent} the numeric percentage used."
   },
   "workspace_limits.menu_limit.critical.files_storage": {
     "defaultMessage": "You’re getting closer to the {limit} file storage limit. <a>{callToAction}</a>",
@@ -35031,10 +34827,6 @@
     "defaultMessage": "You're getting closer to the free {limit} message limit. <a>{callToAction}</a>",
     "description": "Cloud usage warning in the main menu as message history approaches the free limit; {limit} is a message count; <a> wraps {callToAction}."
   },
-  "workspace_limits.message_history": {
-    "defaultMessage": "Message history",
-    "description": "Name of the message history usage meter in the cloud workspace limits panel; compact space."
-  },
   "workspace_limits.message_history.locked.description.admin": {
     "defaultMessage": "Full access to message history is included in <a>paid plans</a>",
     "description": "Description shown to admins in the banner at the top of a channel when older messages are hidden by the Cloud Free message-history limit; <a> wraps the 'paid plans' link text."
@@ -35050,10 +34842,6 @@
   "workspace_limits.message_history.short.usage": {
     "defaultMessage": "{actual} / {limit}",
     "description": "Compact usage readout next to the message history bar in the Cloud usage panel; {actual} is the current message count (e.g. '8K') and {limit} the plan's cap."
-  },
-  "workspace_limits.message_history.usage": {
-    "defaultMessage": "{actual} of {limit} messages ({percent}%)",
-    "description": "Usage readout for message history on the admin billing/subscription page; {actual} is the current message count, {limit} the plan cap, {percent} the numeric percentage used."
   },
   "workspace_limits.modals.close": {
     "defaultMessage": "Close",
@@ -35106,14 +34894,6 @@
   "workspace_limits.teams_limit_reached.view_upgrade_options": {
     "defaultMessage": "View upgrade options",
     "description": "Button next to the disabled Unarchive Team button; opens plan upgrade options."
-  },
-  "workspace_limits.upgrade": {
-    "defaultMessage": "Upgrade to avoid {planName} data limits",
-    "description": "Heading of the workspace limits panel urging an upgrade; {planName} is the current free plan's name."
-  },
-  "workspace_limits.upgrade_reasons.free": {
-    "defaultMessage": "{planName} is restricted to {messagesLimit} message history and {storageLimit} file storage. You can delete items to free up space or upgrade to a paid plan.",
-    "description": "Description on the admin billing page explaining Free plan restrictions; {planName} is the plan name, {messagesLimit} a message count, {storageLimit} a storage size."
   },
   "wysiwyg.link.display_text": {
     "defaultMessage": "Display text",
