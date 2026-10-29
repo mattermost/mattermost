@@ -22,7 +22,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
-	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
 )
@@ -53,7 +52,8 @@ func TestBuildHealthSnapshotStandaloneLeaderDiagnostics(t *testing.T) {
 	assert.Equal(t, hostname, nodes[0].Hostname)
 }
 
-// threeNodeCluster reports this node as id-2 of three.
+// threeNodeCluster reports this node as id-2 of three. None of the nodes is connected, so a
+// run does not wait for the other two.
 type threeNodeCluster struct {
 	captureClusterMock
 }
@@ -62,14 +62,14 @@ func (c *threeNodeCluster) GetClusterId() string { return "id-2" }
 
 func (c *threeNodeCluster) GetClusterInfos() ([]*model.ClusterInfo, error) {
 	return []*model.ClusterInfo{
-		{Id: "id-1", Hostname: "node-1"},
-		{Id: "id-2", Hostname: "node-2"},
+		{Id: "id-1", Hostname: "node-1", Version: "10.0.0.12345"},
+		{Id: "id-2", Hostname: "node-2", Version: model.CurrentVersion + ".12345"},
 		{Id: "id-3", Hostname: "node-3"},
 	}, nil
 }
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
-func TestBuildHealthSnapshotOnlyLeaderHasDiagnostics(t *testing.T) {
+func TestBuildHealthSnapshotMarksNodesThatDidNotReply(t *testing.T) {
 	th := SetupWithClusterMock(t, &threeNodeCluster{})
 
 	err := th.App.clearLatestVersionCache()
@@ -81,16 +81,19 @@ func TestBuildHealthSnapshotOnlyLeaderHasDiagnostics(t *testing.T) {
 
 	nodes := snapshot.Nodes()
 	require.Len(t, nodes, 3)
-	for _, node := range nodes {
-		if node.IsLeader {
-			assert.Equal(t, "id-2", node.ClusterInfo.Id)
-			require.NotNil(t, node.Diagnostics)
-			require.NotNil(t, node.Diagnostics.Diagnostics.Cluster.NumberOfNodes)
-			assert.Equal(t, 3, *node.Diagnostics.Diagnostics.Cluster.NumberOfNodes)
-		} else {
-			assert.Nil(t, node.Diagnostics, "follower %q", node.ClusterInfo.Id)
-		}
-	}
+
+	assert.Nil(t, nodes[0].Diagnostics)
+	assert.ErrorIs(t, nodes[0].CollectErr, healthcheck.ErrNodeOlderVersion)
+
+	require.NotNil(t, nodes[1].Diagnostics)
+	require.NotNil(t, nodes[1].Diagnostics.Diagnostics.Cluster.NumberOfNodes)
+	assert.Equal(t, 3, *nodes[1].Diagnostics.Diagnostics.Cluster.NumberOfNodes)
+	assert.NoError(t, nodes[1].CollectErr)
+
+	assert.Nil(t, nodes[2].Diagnostics)
+	assert.ErrorIs(t, nodes[2].CollectErr, healthcheck.ErrNodeNoReply)
+
+	// No node reports itself as leader, so the local node stands in.
 	leader, ok := snapshot.Leader()
 	require.True(t, ok)
 	assert.Equal(t, "id-2", leader.ClusterInfo.Id)
@@ -355,73 +358,6 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 				assert.Equal(t, liveEvaluations[i], evaluation, evaluation.Code)
 			}
 		}
-	})
-}
-
-func TestClusterNodes(t *testing.T) {
-	t.Parallel()
-
-	t.Run("nil cluster creates standalone leader", func(t *testing.T) {
-		nodes, err := clusterNodes(nil)
-		require.NoError(t, err)
-		require.Len(t, nodes, 1)
-		require.True(t, nodes[0].IsLeader)
-		require.Nil(t, nodes[0].ClusterInfo)
-		require.Nil(t, nodes[0].Diagnostics)
-	})
-
-	t.Run("empty cluster infos creates standalone leader", func(t *testing.T) {
-		cluster := emocks.NewClusterInterface(t)
-		cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{}, nil)
-
-		nodes, err := clusterNodes(cluster)
-		require.NoError(t, err)
-		require.Len(t, nodes, 1)
-		require.True(t, nodes[0].IsLeader)
-		require.Nil(t, nodes[0].ClusterInfo)
-		require.Nil(t, nodes[0].Diagnostics)
-	})
-
-	t.Run("leader selection and db-only entry", func(t *testing.T) {
-		cluster := emocks.NewClusterInterface(t)
-		cluster.On("GetClusterId").Return("id-2")
-		cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{
-			{Id: "id-1", Hostname: "node-1", Version: "10.0.0"},
-			{Id: "id-2", Hostname: "node-2", Version: "10.0.0"},
-			{Id: "id-3", Hostname: "node-3"},
-		}, nil)
-
-		nodes, err := clusterNodes(cluster)
-		require.NoError(t, err)
-		require.Len(t, nodes, 3)
-		require.Nil(t, nodes[0].Diagnostics)
-		require.Nil(t, nodes[1].Diagnostics)
-		require.Nil(t, nodes[2].Diagnostics)
-
-		leaders := 0
-		var dbOnlyNode *model.ClusterInfo
-		for _, node := range nodes {
-			if node.IsLeader {
-				leaders++
-				assert.Equal(t, "id-2", node.ClusterInfo.Id)
-			}
-			if node.ClusterInfo != nil && node.ClusterInfo.Id == "id-3" {
-				dbOnlyNode = node.ClusterInfo
-				_, ok := node.NodeVersion()
-				require.False(t, ok)
-			}
-		}
-		require.Equal(t, 1, leaders)
-		require.NotNil(t, dbOnlyNode)
-	})
-
-	t.Run("cluster info failure returns error", func(t *testing.T) {
-		cluster := emocks.NewClusterInterface(t)
-		cluster.On("GetClusterInfos").Return(nil, assert.AnError)
-
-		nodes, err := clusterNodes(cluster)
-		require.Error(t, err)
-		require.Nil(t, nodes)
 	})
 }
 

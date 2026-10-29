@@ -94,6 +94,10 @@ type PlatformService struct {
 	clusterIFace           einterfaces.ClusterInterface
 	Busy                   *Busy
 
+	// healthCollectRuns routes health collect replies to the run waiting for them, by run ID.
+	healthCollectMut  sync.Mutex
+	healthCollectRuns map[string]*healthCollectRun
+
 	SearchEngine            *searchengine.Broker
 	searchConfigListenerId  string
 	searchLicenseListenerId string
