@@ -2249,6 +2249,39 @@ describe('AppsFormComponent', () => {
                     });
                     expect(submit.mock.calls[0][0].values.access).toEqual(['r1:c1']);
                 });
+
+                test('should not restore selections when a removed matrix returns in a later refresh', async () => {
+                    const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+                    const refreshForm = jest.fn().
+                        mockResolvedValueOnce(formResponse([textField('text_b', 'refreshed b')])).
+                        mockResolvedValueOnce(formResponse([matrixField(['r1'], ['c1'])]));
+                    const {bump} = renderForm(refreshForm, {
+                        form: {...initialForm, fields: [matrixField(['r1'], ['c1'])]},
+                        actions: {...baseProps.actions, submit},
+                    });
+
+                    await userEvent.click(screen.getByRole('checkbox', {name: 'R1, C1'}));
+
+                    // # The first refresh removes the matrix
+                    bump(1);
+                    await waitFor(() => {
+                        expect(screen.queryByRole('checkbox', {name: 'R1, C1'})).not.toBeInTheDocument();
+                    });
+
+                    // # The second refresh brings it back unchanged
+                    bump(2);
+                    await waitFor(() => {
+                        expect(screen.getByRole('checkbox', {name: 'R1, C1'})).toBeInTheDocument();
+                        expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+                    });
+                    expect(screen.getByRole('checkbox', {name: 'R1, C1'})).not.toBeChecked();
+
+                    await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+                    await waitFor(() => {
+                        expect(submit).toHaveBeenCalled();
+                    });
+                    expect(submit.mock.calls[0][0].values.access).toBeNull();
+                });
             });
 
             test('should not re-apply a user value to a field that changed type', async () => {

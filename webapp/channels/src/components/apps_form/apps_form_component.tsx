@@ -308,8 +308,7 @@ const keepUserValue = (field: AppField, previousField: AppField | undefined, val
         }
         return value;
     case AppFieldTypes.CHECKBOX_MATRIX: {
-        // A field removed by one refresh and brought back as a matrix by a later one
-        // skips the type check above, so the stored value may not be matrix entries.
+        // Guard against a stored value that isn't matrix entries.
         if (!Array.isArray(value)) {
             return undefined;
         }
@@ -448,7 +447,18 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const refreshedForm = res.data?.type === AppCallResponseTypes.FORM ? res.data.form : undefined;
         if (refreshedForm) {
             const values = initFormValues(refreshedForm, this.props.timezone);
-            flattenFields(refreshedForm.fields).forEach((field) => {
+            const refreshedFields = flattenFields(refreshedForm.fields);
+
+            // Forget values for fields the refresh removed, so they are not restored if a
+            // later refresh brings the field back.
+            const refreshedNames = new Set(refreshedFields.map((field) => field.name));
+            for (const name of Object.keys(this.userValues)) {
+                if (!refreshedNames.has(name)) {
+                    delete this.userValues[name];
+                }
+            }
+
+            refreshedFields.forEach((field) => {
                 if (!(field.name in this.userValues) || field.type === AppFieldTypes.ACTION_BUTTON) {
                     return;
                 }
