@@ -205,9 +205,8 @@ func (scs *Service) onClusterLeaderChange() {
 
 func (scs *Service) resume() {
 	scs.mux.Lock()
-	defer scs.mux.Unlock()
-
 	if scs.active {
+		scs.mux.Unlock()
 		return // already active
 	}
 
@@ -215,8 +214,39 @@ func (scs *Service) resume() {
 	scs.done = make(chan struct{})
 
 	go scs.syncLoop(scs.done)
+	scs.mux.Unlock()
+
+	go scs.catchUpRemotes()
 
 	scs.server.Log().Debug("Shared Channel Service active")
+}
+
+// catchUpRemotes queues a sync for every online remote, since tasks queued on a previous
+// leader are lost and a leader change does not trigger onConnectionStateChange.
+// Offline remotes are synced by onConnectionStateChange when they come back online.
+func (scs *Service) catchUpRemotes() {
+	filter := model.RemoteClusterQueryFilter{
+		OnlyConfirmed:  true,
+		ExcludeOffline: true,
+	}
+	remotes, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
+	if err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to fetch remote clusters for catch-up sync",
+			mlog.Err(err),
+		)
+		return
+	}
+
+	for _, rc := range remotes {
+		scs.SendPendingInvitesForRemote(rc)
+		scs.forceSyncForRemote(rc, true)
+		scs.scheduleGlobalUserSync(rc)
+
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Queued catch-up sync for remote",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remote_id", rc.RemoteId),
+		)
+	}
 }
 
 func (scs *Service) pause() {
