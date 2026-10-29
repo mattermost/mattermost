@@ -164,13 +164,18 @@ function SidebarChannel({
                                 noFloat: isAutoSortedCategory && !snapshot.isDragging,
                             })}
                             {...provided.draggableProps}
-                            {...provided.dragHandleProps}
                             onAnimationStart={handleAnimationStart}
                             onAnimationEnd={handleAnimationEnd}
                             role='listitem'
-                            tabIndex={-1}
                         >
-                            {component}
+                            <div
+                                className='SidebarChannel__dragHandle'
+                                {...provided.dragHandleProps}
+                                role='presentation'
+                                tabIndex={-1}
+                            >
+                                {component}
+                            </div>
                             {renderSubItems(snapshot.isDragging)}
                             {selectedCount}
                         </li>

@@ -412,6 +412,41 @@ describe('components/sidebar/sidebar_channel', () => {
             expect(channelItem).toContainElement(getToggle());
         });
 
+        test('should put the drag handle on the channel row and not on the list item or sub-items', () => {
+            const {container} = renderChannel({isDraggable: true}, makeState(storedExpanded(true)));
+
+            const channelItem = screen.getAllByRole('listitem')[0];
+            const handle = container.querySelector('[data-rfd-drag-handle-draggable-id="channel_id"]')!;
+
+            expect(handle).toBeInTheDocument();
+            expect(handle).toHaveClass('SidebarChannel__dragHandle');
+            expect(handle).not.toBe(channelItem);
+            expect(channelItem).not.toHaveAttribute('data-rfd-drag-handle-draggable-id');
+            expect(channelItem).toHaveAttribute('data-rfd-draggable-id', 'channel_id');
+            expect(channelItem).not.toHaveAttribute('tabindex');
+            expect(handle).toHaveAttribute('tabindex', '-1');
+            expect(handle).not.toHaveAttribute('role', 'button');
+            expect(handle).toContainElement(screen.getByRole('link', {name: /channel_display_name/}));
+            expect(handle).toContainElement(getToggle());
+            expect(handle).not.toContainElement(screen.getByRole('list'));
+            expect(handle).not.toContainElement(screen.getByRole('link', {name: 'Board view'}));
+        });
+
+        test('should keep a single tab stop for the channel row', () => {
+            const {container} = renderChannel({isDraggable: true}, makeState(storedExpanded(true)));
+
+            const tabbable = Array.from(container.querySelectorAll('[tabindex="0"]'));
+            expect(tabbable).toHaveLength(1);
+            expect(tabbable[0]).toHaveAttribute('id', 'sidebarItem_town-square');
+        });
+
+        test('should not render a drag handle when the channel is not draggable', () => {
+            const {container} = renderChannel({isDraggable: false}, makeState(storedExpanded(true)));
+
+            expect(container.querySelector('[data-rfd-drag-handle-draggable-id]')).not.toBeInTheDocument();
+            expect(container.querySelector('.SidebarChannel__dragHandle')).not.toBeInTheDocument();
+        });
+
         test('should hide the list while the channel is part of a multi-select drag', () => {
             renderChannel({
                 isChannelSelected: true,
