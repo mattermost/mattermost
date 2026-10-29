@@ -143,14 +143,21 @@ export function isProductRailShown(state: GlobalState): boolean {
 /**
  * The team to select when none is, as after loading a global product's page (Agents, say), whose
  * URL names no team: the last one the user was in, or else their first. Empty while a team is
- * selected.
+ * selected, and where the rail never shows (flag off, mobile).
  */
 export function getProductRailTeamIdToRestore(state: GlobalState): string {
-    if (getCurrentTeamId(state)) {
+    if (!isProductRailEnabled(state) || getIsMobileView(state) || getCurrentTeamId(state)) {
         return '';
     }
     const myTeamIds = getMySortedTeamIds(state, getCurrentLocale(state));
-    const previousTeamId = getPreviousTeamId(state);
+
+    // Storage can be blocked (a private window, say); the first team will do then.
+    let previousTeamId: string | null = null;
+    try {
+        previousTeamId = getPreviousTeamId(state);
+    } catch {
+        // Fall through to the first team.
+    }
     if (previousTeamId && myTeamIds.includes(previousTeamId)) {
         return previousTeamId;
     }

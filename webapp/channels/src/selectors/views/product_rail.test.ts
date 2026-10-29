@@ -221,4 +221,22 @@ describe('getProductRailTeamIdToRestore', () => {
         localStorageStore.setPreviousTeamId('user', 'left');
         expect(getProductRailTeamIdToRestore(withTeams())).toBe('alpha');
     });
+
+    test('should fall back to the first team when storage can\'t be read', () => {
+        const getItem = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+            throw new Error('blocked');
+        });
+        expect(getProductRailTeamIdToRestore(withTeams())).toBe('alpha');
+        getItem.mockRestore();
+    });
+
+    test('should restore nothing where the rail never shows', () => {
+        localStorageStore.setPreviousTeamId('user', 'beta');
+        const state = withTeams();
+        expect(getProductRailTeamIdToRestore({...state, views: {...state.views, browser: {windowSize: 'mobileView'}}} as GlobalState)).toBe('');
+        expect(getProductRailTeamIdToRestore({
+            ...state,
+            entities: {...state.entities, general: {...state.entities.general, config: {FeatureFlagProductRail: 'false'}}},
+        } as GlobalState)).toBe('');
+    });
 });
