@@ -15,6 +15,7 @@ import ChannelNameFormField from 'components/channel_name_form_field/channel_nam
 
 import {getHistory} from 'utils/browser_history';
 import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import Constants from 'utils/constants';
 
 import type {ChannelKind} from 'types/store/plugins';
@@ -111,6 +112,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                     <ChannelNameFormField
                         value={this.state.displayName}
                         name='rename-channel'
+                        label={formatMessage(channelKindMessages.nameLabel[this.props.channelKind ?? 'channel'])}
                         placeholder={formatMessage({
                             id: 'rename_channel.displayNameHolder',
                             defaultMessage: 'Enter display name',

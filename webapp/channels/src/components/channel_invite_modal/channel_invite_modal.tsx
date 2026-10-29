@@ -588,7 +588,7 @@ const ChannelInviteModalComponent = (props: Props) => {
 
             const userMapping: Record<string, string> = {};
             for (let i = 0; i < ProfilesInGroup.length; i++) {
-                userMapping[ProfilesInGroup[i]] = 'Already in channel';
+                userMapping[ProfilesInGroup[i]] = props.intl.formatMessage(messages.alreadyMember[channelKind]);
             }
             const displayName = displayUsername(option, props.teammateNameDisplaySetting);
             const isRecommended = isPolicyRecommendedPublic && recommendedUserIds.has(option.id);
@@ -945,6 +945,16 @@ const InviteModalLink = ({
 };
 
 const messages = {
+    alreadyMember: {
+        channel: defineMessage({
+            id: 'channel_invite.already_member',
+            defaultMessage: 'Already in channel',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.already_member.board',
+            defaultMessage: 'Already in board',
+        }),
+    },
     recommendedTagTooltip: {
         channel: defineMessage({
             id: 'channel_invite.recommended_tag.tooltip',

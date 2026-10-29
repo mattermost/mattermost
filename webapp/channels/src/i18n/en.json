@@ -20211,6 +20211,14 @@
     "defaultMessage": "Add people to {channel}",
     "description": "Title of the modal for adding people to a channel; {channel} is the channel's display name."
   },
+  "channel_invite.already_member": {
+    "defaultMessage": "Already in channel",
+    "description": "Note beside a person in the add-people-to-channel results who is already a member of the channel."
+  },
+  "channel_invite.already_member.board": {
+    "defaultMessage": "Already in board",
+    "description": "Board version of the note beside a person in the add-people-to-board results who is already a member of the board."
+  },
   "channel_invite.invite_guest": {
     "defaultMessage": "Invite as a Guest",
     "description": "Link at the bottom of the add-people-to-channel modal; starts the flow for inviting someone as a guest user."

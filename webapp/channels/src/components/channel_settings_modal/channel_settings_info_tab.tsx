@@ -504,7 +504,7 @@ function ChannelSettingsInfoTab({
                 <ChannelNameFormField
                     value={displayName}
                     name='channel-settings-name'
-                    label={formatMessage(messages.nameLabel[channelKind])}
+                    label={formatMessage(channelKindMessages.nameLabel[channelKind])}
                     placeholder={formatMessage(messages.namePlaceholder[channelKind])}
                     onDisplayNameChange={(name) => {
                         setDisplayName(name);
@@ -734,16 +734,6 @@ const messages = {
         board: defineMessage({
             id: 'channel_settings.channel_info_tab.name.board',
             defaultMessage: 'Board Info',
-        }),
-    },
-    nameLabel: {
-        channel: defineMessage({
-            id: 'channel_modal.name.label',
-            defaultMessage: 'Channel name',
-        }),
-        board: defineMessage({
-            id: 'channel_modal.name.label.board',
-            defaultMessage: 'Board name',
         }),
     },
     namePlaceholder: {

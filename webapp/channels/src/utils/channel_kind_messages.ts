@@ -8,6 +8,16 @@ import type {KindMessages} from 'utils/channel_kind';
 /** Channel/board message pairs that more than one component shows, defined once. */
 /* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
 export const channelKindMessages = {
+    nameLabel: {
+        channel: defineMessage({
+            id: 'channel_modal.name.label',
+            defaultMessage: 'Channel name',
+        }),
+        board: defineMessage({
+            id: 'channel_modal.name.label.board',
+            defaultMessage: 'Board name',
+        }),
+    },
     closeChannel: {
         channel: defineMessage({
             id: 'center_panel.archived.closeChannel',
