@@ -155,6 +155,7 @@ func setupJoinRequestChannelAccess(t *testing.T, readAllowed, writeAllowed, mana
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.DiscoverableChannels = true
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {

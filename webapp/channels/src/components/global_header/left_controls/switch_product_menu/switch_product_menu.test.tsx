@@ -83,4 +83,33 @@ describe('SwitchProductMenu', () => {
             expect(openedAboutModal).toBe(true);
         });
     });
+
+    test('should leave Channels to the product rail while it shows', async () => {
+        renderWithContext(
+            <SwitchProductMenu productId={null}/>,
+            {...initialState, entities: {...initialState.entities, general: {...initialState.entities!.general, config: {FeatureFlagProductRail: 'true'}}}},
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Open product menu'}));
+
+        expect(screen.queryByRole('menuitem', {name: 'Channels'})).not.toBeInTheDocument();
+    });
+
+    test('should keep Channels when the product rail has no team to show', async () => {
+        renderWithContext(
+            <SwitchProductMenu productId={null}/>,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {...initialState.entities!.general, config: {FeatureFlagProductRail: 'true'}},
+                    teams: {currentTeamId: '', teams: {}},
+                },
+            },
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Open product menu'}));
+
+        expect(screen.getByRole('menuitem', {name: 'Channels'})).toBeInTheDocument();
+    });
 });

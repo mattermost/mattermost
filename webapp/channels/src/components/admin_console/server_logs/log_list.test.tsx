@@ -33,6 +33,7 @@ function makeFailedNodeLog(node: string, timestamp = '2026-03-12 10:00:02.000 +0
         level: LogLevelEnum.ERROR,
         msg: 'Failed to fetch logs from node',
         error: 'connection refused',
+        failed_node: true,
         [LogNodeKey]: node,
     } as unknown as LogObjectWithAdditionalInfo;
 }
@@ -760,6 +761,44 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             expect(rowMessages()).not.toContain('Failed to fetch logs from node');
             expect(rowMessages().sort()).toEqual(['recent', 'unparseable']);
+        });
+
+        test('should only keep an entry older than the time range when the server marked it as a failed node', () => {
+            // Same message as the failed-node entry, but logged by the node itself
+            const logged = makeLog('Failed to fetch logs from node', '2026-03-12T09:00:00.000Z', LogLevelEnum.ERROR);
+            renderListWith({logs: [logged, makeLog('recent', '2026-03-12T10:05:30.000Z')], activeTimePreset: 5});
+
+            expect(rowMessages()).toEqual(['recent']);
+        });
+
+        test('should offer to clear a time range that filters out every entry', () => {
+            const onClearTimePreset = jest.fn();
+            renderListWith({logs: [makeLog('old', '2026-03-12T10:04:59.000Z')], activeTimePreset: 5, onClearTimePreset});
+
+            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+            expect(screen.queryByText(/No logs found/)).not.toBeInTheDocument();
+
+            fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+            expect(onClearTimePreset).toHaveBeenCalledTimes(1);
+        });
+
+        test('should go back to the first page when the time range changes', () => {
+            pinAscendingSort({pageSize: 50});
+            const {rerender} = renderListWith({logs: makeLogs(60)});
+
+            fireEvent.click(screen.getByLabelText('Next page'));
+            expect(document.querySelector('.LogViewer__page-indicator')).toHaveTextContent('Page 2 of 2');
+
+            // Every entry is inside the range, so only the reset can move the page
+            rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={makeLogs(60)}
+                    activeTimePreset={15}
+                />,
+            );
+
+            expect(document.querySelector('.LogViewer__page-indicator')).toHaveTextContent('Page 1 of 2');
         });
 
         test('should apply the time range and the selected node together', () => {

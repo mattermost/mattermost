@@ -6,7 +6,9 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
@@ -15,6 +17,7 @@ import {
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+    ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -30,7 +33,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {getFeatureFlagValue, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, isChannelPermissionActionsEnabled, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
@@ -898,12 +901,11 @@ function ChannelSettingsPermissionsPolicyTab({
                     />
                 </h3>
                 <Button
-                    className='ChannelSettingsModal__permissionsPolicyAddRule'
                     onClick={startNew}
                     disabled={!attributesLoaded || isReadOnly}
                     data-testid='permissions-policy-add-rule'
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <i className='icon icon-plus'/>
                     <FormattedMessage
                         id='channel_settings.permissions_policy.add_rule'
                         defaultMessage='Add rule'
@@ -1082,9 +1084,10 @@ function ChannelSettingsPermissionsPolicyTab({
                             }}
                         />
                     </span>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
+                        className='ChannelSettingsModal__permissionsPolicyPaginationButton'
                         onClick={() => setPage(Math.max(0, safePage - 1))}
                         disabled={safePage === 0}
                         aria-label={formatMessage({
@@ -1093,10 +1096,11 @@ function ChannelSettingsPermissionsPolicyTab({
                         })}
                     >
                         <i className='icon icon-chevron-left'/>
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
+                        className='ChannelSettingsModal__permissionsPolicyPaginationButton'
                         onClick={() => setPage(Math.min(totalPages - 1, safePage + 1))}
                         disabled={safePage >= totalPages - 1}
                         aria-label={formatMessage({
@@ -1105,7 +1109,7 @@ function ChannelSettingsPermissionsPolicyTab({
                         })}
                     >
                         <i className='icon icon-chevron-right'/>
-                    </button>
+                    </Button>
                 </div>
             )}
 
@@ -1242,9 +1246,12 @@ function PermissionRuleEditor({
         setDraft((prev) => ({...prev, actions: prev.actions.filter((a) => a !== action)}));
     }, []);
 
+    const channelPermissionActionsEnabled = useSelector(isChannelPermissionActionsEnabled);
+
     const selectedRoleDef = AVAILABLE_ROLES.find((r) => r.value === draft.role);
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !draft.actions.includes(p.value),
+        (p) => !draft.actions.includes(p.value) &&
+            (channelPermissionActionsEnabled || !ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS.includes(p.value)),
     );
 
     return (

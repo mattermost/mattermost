@@ -90,6 +90,7 @@ func restoreABACFeatureFlagDefaults(cfg *model.Config) {
 	cfg.FeatureFlags.PermissionPolicies = true
 	cfg.FeatureFlags.ChannelPermissionPolicies = true
 	cfg.FeatureFlags.PolicySimulation = true
+	cfg.FeatureFlags.ChannelPermissionActions = true
 	cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 }
 
@@ -3809,6 +3810,37 @@ func TestCreateAccessControlPolicyChannelReadAccess(t *testing.T) {
 		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
 		CheckErrorID(t, err, channelPermissionsDisabledID)
 		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("ChannelPermissionActions off rejects both policy types", func(t *testing.T) {
+		installMockACS(t)
+		setFlags(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelPermissionActions = false
+		})
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
+		CheckErrorID(t, err, "api.access_control_policy.channel_permission_actions.feature_disabled")
+		CheckNotImplementedStatus(t, resp)
+
+		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
+		CheckErrorID(t, err, "api.access_control_policy.channel_permission_actions.feature_disabled")
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("ChannelPermissionActions off also rejects write and management access", func(t *testing.T) {
+		// The three channel-access actions share the one flag.
+		installMockACS(t)
+		setFlags(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelPermissionActions = false
+		})
+
+		for _, action := range []string{model.AccessControlPolicyActionChannelWriteAccess, model.AccessControlPolicyActionChannelManagementAccess} {
+			policy := systemPolicy()
+			policy.Rules[0].Actions = []string{action}
+			_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
+			CheckErrorID(t, err, "api.access_control_policy.channel_permission_actions.feature_disabled")
+			CheckNotImplementedStatus(t, resp)
+		}
 	})
 
 	t.Run("channel policy still needs ChannelPermissionPolicies", func(t *testing.T) {

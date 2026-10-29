@@ -26,6 +26,10 @@ export function isPostAttributesEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPostAttributes === 'true';
 }
 
+export function isProductRailEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagProductRail === 'true';
+}
+
 export function isPostDeliveryTrackingEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPostDeliveryTracking === 'true';
 }
@@ -91,6 +95,15 @@ export function isChannelPermissionPoliciesEnabled(state: GlobalState): boolean 
 export function isPolicySimulationEnabled(state: GlobalState): boolean {
     return isPermissionPoliciesEnabled(state) &&
         getConfig(state).FeatureFlagPolicySimulation === 'true';
+}
+
+/**
+ * Whether policies may use the channel permission actions
+ * (channel_read_access). The server rejects saving a policy that uses one
+ * while this is off, so the policy editors don't offer them.
+ */
+export function isChannelPermissionActionsEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagChannelPermissionActions === 'true';
 }
 
 export type PasswordConfig = {

@@ -37,6 +37,7 @@ func setupChannelReadAccessTest(t *testing.T) *channelReadAccessHarness {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -354,6 +355,14 @@ func TestHasChannelReadAccess(t *testing.T) {
 
 func TestHasChannelReadAccessShortCircuits(t *testing.T) {
 	cases := map[string]func(t *testing.T, h *channelReadAccessHarness) *model.Channel{
+		"ChannelPermissionActions flag off": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
+			h.th.Server.platform.SetConfigReadOnlyFF(false)
+			t.Cleanup(func() { h.th.Server.platform.SetConfigReadOnlyFF(true) })
+			h.th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.ChannelPermissionActions = false
+			})
+			return h.th.BasicChannel
+		},
 		"ABAC disabled": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
 			h.th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
@@ -466,7 +475,15 @@ func TestBuildPushNotificationMessageChannelReadAccess(t *testing.T) {
 				true, false, "",
 			)
 			require.Nil(t, appErr)
-			mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+			// The badge count evaluates the recipient's other channels too; the post's
+			// channel is evaluated once.
+			evaluations := 0
+			for _, call := range mockACS.Calls {
+				if call.Method == "AccessEvaluation" && call.Arguments.Get(1).(model.AccessRequest).Resource.ID == h.th.BasicChannel.Id {
+					evaluations++
+				}
+			}
+			require.Equal(t, 1, evaluations)
 
 			if tc.allow {
 				require.Contains(t, msg.Message, h.th.BasicPost.Message)
@@ -1687,9 +1704,18 @@ func captureWebsocketEvents(t *testing.T, h *channelReadAccessHarness, run func(
 // An email reaches no session, so a policy can't be evaluated for its recipient: while
 // channel_read_access governs the channel, every recipient gets the generic email.
 func TestNotificationEmailWithholdsContentsUnderReadAccessPolicy(t *testing.T) {
+	// Creating a post also sends push notifications in the background, whose badge count
+	// asks the mock ACS questions this test doesn't answer and races its assertions.
+	disablePushes := func(h *channelReadAccessHarness) {
+		h.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SendPushNotifications = false
+		})
+	}
+
 	buildFor := func(t *testing.T, h *channelReadAccessHarness, channel *model.Channel) *model.EmailNotification {
 		t.Helper()
 
+		disablePushes(h)
 		post := h.th.CreatePost(t, channel)
 		notification := buildTestPostNotification(post, channel, h.th.BasicUser)
 		return h.th.App.buildEmailNotification(h.rctx, notification, h.th.BasicUser2, h.th.BasicTeam)
@@ -1782,6 +1808,7 @@ func TestNotificationEmailWithholdsContentsUnderReadAccessPolicy(t *testing.T) {
 		h.th.App.Srv().EmailService = emailServiceMock
 		t.Cleanup(func() { h.th.App.Srv().EmailService = original })
 
+		disablePushes(h)
 		post := h.th.CreatePost(t, h.th.BasicChannel)
 		notification := buildTestPostNotification(post, h.th.BasicChannel, h.th.BasicUser)
 		emailNotification, err := h.th.App.sendNotificationEmail(h.rctx, notification, h.th.BasicUser2, h.th.BasicTeam, nil)
@@ -1860,7 +1887,16 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 		mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
 	})
 
-	t.Run("leaves exempt events and plugin events alone", func(t *testing.T) {
+	t.Run("hooks a plugin event sent to a governed channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		message := event("custom_com.example.plugin_refresh", h.th.BasicChannel.Id, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		requireHooked(t, message, h.th.BasicChannel.Id)
+	})
+
+	t.Run("leaves exempt events alone", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
@@ -1871,7 +1907,6 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 			model.WebsocketEventTyping,
 			model.WebsocketEventEphemeralMessage,
 			model.WebsocketEventThreadReadChanged,
-			"custom_com.example.plugin_refresh",
 		} {
 			message := event(eventType, h.th.BasicChannel.Id, "")
 			h.th.App.attachChannelReadAccessHook(message)
@@ -1940,6 +1975,20 @@ func TestPublishAttachesTheReadAccessHook(t *testing.T) {
 			h.th.Server.Platform().Publish(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", h.th.BasicChannel.Id, "", nil, ""))
 		})
 	})
+
+	// What the Agents plugin publishes while streaming a bot reply: the reply text,
+	// sent to the whole channel.
+	t.Run("a plugin event sent to the channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		events := []model.WebsocketEventType{"custom_mattermost-ai_postupdate"}
+		requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
+			api := NewPluginAPI(h.th.App, h.rctx, &model.Manifest{Id: "mattermost-ai"})
+			api.PublishWebSocketEvent("postupdate", map[string]any{"post_id": model.NewId(), "next": "streamed reply"},
+				&model.WebsocketBroadcast{ChannelId: h.th.BasicChannel.Id})
+		})
+	})
 }
 
 // TestPostRevealedCarriesTheReadAccessHook covers post_revealed, which carries the revealed
@@ -1954,4 +2003,28 @@ func TestPostRevealedCarriesTheReadAccessHook(t *testing.T) {
 		require.Nil(t, h.th.App.publishPostRevealedEventToAuthor(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
 		require.Nil(t, h.th.App.publishPostRevealedEventToUser(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
 	})
+}
+
+// The push badge sums mentions in the store, so a denied channel's mention would be a
+// badge the user can never clear: clearing it means opening the channel.
+func TestUserBadgeCountExcludesDeniedChannels(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	user := h.th.BasicUser2
+	h.th.AddUserToChannel(t, user, h.th.BasicChannel)
+	require.NoError(t, h.th.App.Srv().Store().Channel().IncrementMentionCount(h.th.BasicChannel.Id, []string{user.Id}, false, false))
+
+	mockACS := h.mockACS(t)
+	governed(mockACS)
+	decides(mockACS, false)
+
+	badge, appErr := h.th.App.getUserBadgeCount(h.rctx, user.Id, false)
+	require.Nil(t, appErr)
+	require.Zero(t, badge)
+
+	h.th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+	})
+	badge, appErr = h.th.App.getUserBadgeCount(h.rctx, user.Id, false)
+	require.Nil(t, appErr)
+	require.Equal(t, 1, badge, "with enforcement off the mention is counted")
 }

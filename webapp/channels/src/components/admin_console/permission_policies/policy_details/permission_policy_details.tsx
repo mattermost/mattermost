@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo, useRef, type JSX} from 'react';
+import React, {forwardRef, useState, useEffect, useCallback, useMemo, useRef, type JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
@@ -17,12 +19,13 @@ import {
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+    ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS,
 } from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isChannelPermissionActionsEnabled, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
@@ -31,6 +34,7 @@ import ChannelAccessConfirmModal from 'components/admin_console/permission_polic
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import * as Menu from 'components/menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
@@ -44,6 +48,23 @@ import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes, toCELEd
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
 
 import './permission_policy_details.scss';
+
+const AddPermissionMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
+    const {children, ...rest} = props;
+    return (
+        <Button
+            {...rest}
+            ref={ref}
+            emphasis='tertiary'
+            size='small'
+            className='pp-add-permission-button'
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
+        >
+            {children}
+        </Button>
+    );
+});
+AddPermissionMenuTrigger.displayName = 'AddPermissionMenuTrigger';
 
 const roleMessages = defineMessages({
     guestLabel: {id: 'admin.permission_policies.role.system_guest.label', defaultMessage: 'Guest users'},
@@ -188,6 +209,7 @@ function PermissionPolicyDetails({
     // that would only surface a backend error. Mirror gate exists on
     // the channel-settings Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
+    const channelPermissionActionsEnabled = useSelector(isChannelPermissionActionsEnabled);
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
     // and the accessed channel's attributes (resource.attributes.*), tagged by
@@ -396,7 +418,8 @@ function PermissionPolicyDetails({
     };
 
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !selectedPermissions.includes(p.value),
+        (p) => !selectedPermissions.includes(p.value) &&
+            (channelPermissionActionsEnabled || !ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS.includes(p.value)),
     );
 
     return (
@@ -514,6 +537,7 @@ function PermissionPolicyDetails({
                             {/* "Who this policy applies to" */}
                             <Card
                                 expanded={true}
+                                disableExpandAnimation={true}
                                 className={'console'}
                             >
                                 <Card.Header>
@@ -587,6 +611,7 @@ function PermissionPolicyDetails({
                             {/* Attribute-based access rules */}
                             <Card
                                 expanded={true}
+                                disableExpandAnimation={true}
                                 className={'console'}
                             >
                                 <Card.Header>
@@ -723,6 +748,7 @@ function PermissionPolicyDetails({
                             {/* "What permissions are modified" */}
                             <Card
                                 expanded={true}
+                                disableExpandAnimation={true}
                                 className={'console'}
                             >
                                 <Card.Header>
@@ -787,15 +813,12 @@ function PermissionPolicyDetails({
                                         <Menu.Container
                                             menuButton={{
                                                 id: 'pp-add-permission-btn',
-                                                class: 'pp-add-permission-button',
+                                                as: AddPermissionMenuTrigger,
                                                 children: (
-                                                    <>
-                                                        <i className='icon icon-plus'/>
-                                                        <FormattedMessage
-                                                            id='admin.permission_policies.edit.permissions.add'
-                                                            defaultMessage='Add permission'
-                                                        />
-                                                    </>
+                                                    <FormattedMessage
+                                                        id='admin.permission_policies.edit.permissions.add'
+                                                        defaultMessage='Add permission'
+                                                    />
                                                 ),
                                             }}
                                             menu={{
@@ -828,6 +851,7 @@ function PermissionPolicyDetails({
                             {policyId && (
                                 <Card
                                     expanded={true}
+                                    disableExpandAnimation={true}
                                     className={'console delete-policy'}
                                 >
                                     <Card.Header>
@@ -850,6 +874,7 @@ function PermissionPolicyDetails({
                                                     defaultMessage='Delete'
                                                 />
                                             }
+                                            destructive={true}
                                             onClick={() => setShowDeleteConfirmationModal(true)}
                                         />
                                     </Card.Header>
@@ -875,7 +900,7 @@ function PermissionPolicyDetails({
                                     defaultMessage='Delete Policy'
                                 />
                             }
-                            confirmButtonVariant='destructive'
+                            destructive={true}
                             compassDesign={true}
                         >
                             <FormattedMessage
@@ -939,15 +964,17 @@ function PermissionPolicyDetails({
                                 />
                             }
                         />
-                        <BlockableLink
-                            className={buttonClassNames({emphasis: 'quaternary'})}
-                            to='/admin_console/system_attributes/permission_policies'
+                        <Button
+                            asChild={true}
+                            emphasis='tertiary'
                         >
-                            <FormattedMessage
-                                id='admin.permission_policies.edit.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </BlockableLink>
+                            <BlockableLink to='/admin_console/system_attributes/permission_policies'>
+                                <FormattedMessage
+                                    id='admin.permission_policies.edit.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </BlockableLink>
+                        </Button>
                         {serverError && (
                             <span className='pp-error'>
                                 <i className='icon icon-alert-outline'/>

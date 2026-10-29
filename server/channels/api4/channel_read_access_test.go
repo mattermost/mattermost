@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
@@ -164,6 +166,7 @@ func setupChannelReadAccessAPI(t *testing.T, allow bool) (*channelReadAccessFixt
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -422,6 +425,7 @@ func setupContentReviewerChannelAccess(t *testing.T, readAllow, writeAllow, mana
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -575,6 +579,7 @@ func TestChannelReadAccessPolicyAdminEndpointsStayGeneric(t *testing.T) {
 func TestChannelReadAccessMembersForUserFilterFollowsTheSession(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -607,6 +612,7 @@ func TestChannelReadAccessMembersForUserFilterFollowsTheSession(t *testing.T) {
 func TestChannelReadAccessMembersForUserPagesSurviveDenials(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -659,6 +665,7 @@ func TestChannelReadAccessMembersForUserPagesSurviveDenials(t *testing.T) {
 func TestChannelReadAccessChannelsForUserFilterFollowsTheSession(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -770,4 +777,144 @@ func stubReadAccessNotGoverned(m *mocks.AccessControlServiceInterface) {
 		Return(false, nil).Maybe()
 	m.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
 		Return(false, nil).Maybe()
+}
+
+// A plugin event sent to the whole channel can carry post content: the Agents plugin
+// streams a bot reply this way, as custom_mattermost-ai_postupdate with the text in
+// "next". A member the channel's read rules deny must not receive it, any more than
+// they receive the post itself.
+func TestChannelReadAccessFiltersPluginChannelEvents(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// BasicUser2 is denied; BasicUser, the control, is allowed.
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelReadAccess && req.Subject.ID == th.BasicUser2.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	listen := func(client *model.Client4) *model.WebSocketClient {
+		wsc, err := th.CreateWebSocketClientWithClient(client)
+		require.NoError(t, err)
+		t.Cleanup(wsc.Close)
+		wsc.Listen()
+		return wsc
+	}
+	allowedWS := listen(th.Client)
+	deniedClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, deniedClient)
+	deniedWS := listen(deniedClient)
+
+	const eventType = model.WebsocketEventType("custom_mattermost-ai_postupdate")
+	// received waits up to d for the plugin event on wsc.
+	received := func(wsc *model.WebSocketClient, d time.Duration) bool {
+		deadline := time.After(d)
+		for {
+			select {
+			case ev := <-wsc.EventChannel:
+				if ev.EventType() == eventType {
+					return true
+				}
+			case <-deadline:
+				return false
+			}
+		}
+	}
+
+	api := app.NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "mattermost-ai"})
+	api.PublishWebSocketEvent("postupdate", map[string]any{"post_id": model.NewId(), "next": "streamed reply"},
+		&model.WebsocketBroadcast{ChannelId: th.BasicChannel.Id})
+
+	require.True(t, received(allowedWS, 5*time.Second), "an allowed member must still receive the plugin event")
+	require.False(t, received(deniedWS, time.Second), "a denied member must not receive the plugin event")
+}
+
+// Unread counts are summed in the store over every membership. A denied channel left in
+// them shows up as a Threads or team badge the user can never clear, since clearing it
+// means opening the channel, so every count leaves denied channels out, as the threads
+// list does.
+func TestChannelReadAccessUnreadCountsExcludeDeniedChannels(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+	ctx := context.Background()
+	user := th.BasicUser2
+	client := th.CreateClient()
+	th.LoginBasic2WithClient(t, client)
+
+	// The user follows a thread, then is mentioned in it and in the channel.
+	root := th.CreatePost(t)
+	_, _, err := client.CreatePost(ctx, &model.Post{ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "following"})
+	require.NoError(t, err)
+	_, _, err = th.Client.CreatePost(ctx, &model.Post{ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "@" + user.Username + " thread mention"})
+	require.NoError(t, err)
+	_, _, err = th.Client.CreatePost(ctx, &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + user.Username + " channel mention"})
+	require.NoError(t, err)
+
+	teamUnread := func(t *testing.T) *model.TeamUnread {
+		t.Helper()
+		unreads, _, err := client.GetTeamsUnreadForUser(ctx, user.Id, "", true)
+		require.NoError(t, err)
+		for _, unread := range unreads {
+			if unread.TeamId == th.BasicTeam.Id {
+				return unread
+			}
+		}
+		require.Fail(t, "no unreads for the team")
+		return nil
+	}
+
+	// Control: before any policy, the mentions are counted.
+	require.Eventually(t, func() bool {
+		threads, _, err := client.GetUserThreads(ctx, user.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		return err == nil && threads.TotalUnreadMentions == 1 && teamUnread(t).MentionCount == 2
+	}, 5*time.Second, 100*time.Millisecond)
+
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelReadAccess && req.Subject.ID == user.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	t.Run("threads totals", func(t *testing.T) {
+		threads, _, err := client.GetUserThreads(ctx, user.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Empty(t, threads.Threads)
+		require.Zero(t, threads.Total)
+		require.Zero(t, threads.TotalUnreadThreads)
+		require.Zero(t, threads.TotalUnreadMentions)
+	})
+
+	t.Run("teams unread", func(t *testing.T) {
+		unread := teamUnread(t)
+		require.Zero(t, unread.MentionCount)
+		require.Zero(t, unread.MsgCount)
+		require.Zero(t, unread.ThreadCount)
+		require.Zero(t, unread.ThreadMentionCount)
+	})
+
+	t.Run("team unread", func(t *testing.T) {
+		unread, _, err := client.GetTeamUnread(ctx, th.BasicTeam.Id, user.Id)
+		require.NoError(t, err)
+		require.Zero(t, unread.MentionCount)
+		require.Zero(t, unread.MsgCount)
+	})
 }

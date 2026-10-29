@@ -814,6 +814,7 @@ func TestProcessRecapChannel(t *testing.T) {
 // itself: a recap must not summarize a channel the user has since lost read access to.
 func TestProcessRecapChannelChecksChannelReadAccess(t *testing.T) {
 	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	t.Setenv("MM_FEATUREFLAGS_CHANNELPERMISSIONACTIONS", "true")
 
 	bridge := &testAgentsBridge{
 		completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {

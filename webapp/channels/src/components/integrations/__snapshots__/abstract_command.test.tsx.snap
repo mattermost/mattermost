@@ -371,17 +371,25 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/test/integrations/commands"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveCommand"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
           <div>
             renderExtra
@@ -766,18 +774,26 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/test/integrations/commands"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveCommand"
             type="submit"
           >
-            <span>
-              Footer as string
+            <span
+              class="_button__label_we8pe_31"
+            >
+              <span>
+                Footer as string
+              </span>
             </span>
           </button>
           <div>
@@ -1170,17 +1186,25 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/test/integrations/commands"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveCommand"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
           <div>
             renderExtra

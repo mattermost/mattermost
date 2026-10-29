@@ -123,6 +123,20 @@ func IsPermissionAction(action string) bool {
 	return allowedPermissionActionsV0_4[action]
 }
 
+// channelPermissionActions are the permission actions that govern access to a
+// channel itself, gated by the ChannelPermissionActions feature flag.
+var channelPermissionActions = map[string]bool{
+	AccessControlPolicyActionChannelReadAccess:       true,
+	AccessControlPolicyActionChannelWriteAccess:      true,
+	AccessControlPolicyActionChannelManagementAccess: true,
+}
+
+// IsChannelPermissionAction reports whether the given action is one of the
+// channel permission actions gated by the ChannelPermissionActions feature flag.
+func IsChannelPermissionAction(action string) bool {
+	return channelPermissionActions[action]
+}
+
 // pluginResourceTypeRe constrains the resource-type segment of a plugin-owned
 // policy type to the same charset as a plugin ID.
 var pluginResourceTypeRe = regexp.MustCompile(ValidIdRegex)
@@ -184,6 +198,21 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 	}
 	for i := range p.Rules {
 		if slices.ContainsFunc(p.Rules[i].Actions, IsPermissionAction) {
+			return true
+		}
+	}
+	return false
+}
+
+// HasChannelPermissionAction reports whether any rule on this policy carries a
+// channel permission action. API4 uses it to reject such policies while the
+// ChannelPermissionActions flag is off. Safe to call on a nil policy.
+func (p *AccessControlPolicy) HasChannelPermissionAction() bool {
+	if p == nil {
+		return false
+	}
+	for i := range p.Rules {
+		if slices.ContainsFunc(p.Rules[i].Actions, IsChannelPermissionAction) {
 			return true
 		}
 	}

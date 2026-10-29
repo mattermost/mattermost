@@ -1581,7 +1581,7 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	return v, nil
 }
 
-func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, error) {
+func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool, excludeChannelIDs []string) (int64, error) {
 	mentionCountColumn := "cm.MentionCount"
 	if isCRTEnabled {
 		mentionCountColumn = "cm.MentionCountRoot"
@@ -1590,7 +1590,7 @@ func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, 
 	// Space backing channels are internal and carry no chat read-state.
 	typeClause, typeArgs := nonMessageBackingChannelTypesNotIn()
 	query := `
-		SELECT SUM(` + mentionCountColumn + `)
+		SELECT COALESCE(SUM(` + mentionCountColumn + `), 0)
 		FROM Channels c
 		INNER JOIN ChannelMembers cm
 			ON cm.ChannelId = c.Id
@@ -1598,9 +1598,19 @@ func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, 
 			AND c.DeleteAt = 0
 		WHERE c.Type ` + typeClause + `
 	`
+	args := append([]any{userId}, typeArgs...)
+
+	if len(excludeChannelIDs) > 0 {
+		excludeClause, excludeArgs, err := sq.NotEq{"c.Id": excludeChannelIDs}.ToSql()
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to build the excluded channels clause")
+		}
+		query += " AND " + excludeClause
+		args = append(args, excludeArgs...)
+	}
 
 	var count int64
-	err := us.GetReplica().Get(&count, query, append([]any{userId}, typeArgs...)...)
+	err := us.GetReplica().Get(&count, query, args...)
 	if err != nil {
 		return count, errors.Wrapf(err, "failed to count unread Channels for userId=%s", userId)
 	}

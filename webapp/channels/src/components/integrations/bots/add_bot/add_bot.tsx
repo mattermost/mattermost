@@ -6,8 +6,8 @@ import type {ChangeEvent, FormEvent, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Bot} from '@mattermost/types/bots';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -131,6 +131,7 @@ export type State = {
 
 export default class AddBot extends React.PureComponent<Props, State> {
     previewBlob: string | null = null;
+    private readonly fileInputRef = React.createRef<HTMLInputElement>();
     private submitting = false;
     private unmounted = false;
 
@@ -285,6 +286,10 @@ export default class AddBot extends React.PureComponent<Props, State> {
         this.setState({
             postChannels: e.target.checked,
         });
+    };
+
+    openFilePicker = () => {
+        this.fileInputRef.current?.click();
     };
 
     updatePicture = (e: ChangeEvent<HTMLInputElement>) => {
@@ -606,20 +611,24 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     />
                                     {removeImageIcon}
                                 </div>
-                                <div
-                                    className={buttonClassNames({emphasis: 'primary'}, 'btn-file')}
+                                <input
+                                    ref={this.fileInputRef}
+                                    className='hidden'
+                                    accept={Constants.ACCEPT_STATIC_IMAGE}
+                                    type='file'
+                                    onChange={this.updatePicture}
+                                    aria-hidden={true}
+                                    tabIndex={-1}
+                                />
+                                <Button
+                                    emphasis='primary'
+                                    onClick={this.openFilePicker}
                                 >
                                     <FormattedMessage
                                         id='bots.image.upload'
                                         defaultMessage='Upload Image'
                                     />
-                                    <input
-                                        className='btn-file__input'
-                                        accept={Constants.ACCEPT_STATIC_IMAGE}
-                                        type='file'
-                                        onChange={this.updatePicture}
-                                    />
-                                </div>
+                                </Button>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -810,15 +819,17 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 type='backstage'
                                 errors={[this.state.error]}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={`/${this.props.team.name}/integrations/bots`}
+                            <Button
+                                asChild={true}
+                                emphasis='tertiary'
                             >
-                                <FormattedMessage
-                                    id='bots.manage.add.cancel'
-                                    defaultMessage='Cancel'
-                                />
-                            </Link>
+                                <Link to={`/${this.props.team.name}/integrations/bots`}>
+                                    <FormattedMessage
+                                        id='bots.manage.add.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
+                            </Button>
                             <SpinnerButton
                                 type='submit'
                                 spinning={this.state.adding}

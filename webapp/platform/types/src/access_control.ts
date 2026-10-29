@@ -120,8 +120,9 @@ export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
 ];
 
-// The channel-access actions share one feature flag, so pickers filter them together.
-export const ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS: string[] = [
+// Permission actions gated by the ChannelPermissionActions feature flag. They share
+// the one flag, so pickers filter them together.
+export const ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,

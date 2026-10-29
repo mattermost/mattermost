@@ -339,7 +339,23 @@ func NewServer(options ...Option) (*Server, error) {
 		return err == nil
 	}
 
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, cpaGroup.ID)
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
+		// Local-mode (unrestricted) sessions are tagged with
+		// CallerIDLocalAdmin by the HTTP layer; grant them without a
+		// user lookup, as permChecker below does for its own case. A value
+		// write to a field that is itself synced, owner-managed or
+		// protected is the exception: local mode was never let write those
+		// values, so there it is judged like any other caller. The field's
+		// own attrs decide, as they did before conversion, so a late-linked
+		// field carrying no copy of its template's sync link stays open.
+		if userID == model.CallerIDLocalAdmin {
+			if action != model.PropertyActionValueWrite ||
+				(!model.IsPropertyFieldSynced(field) && !model.HasPropertyFieldOwners(field) && !model.IsPropertyFieldProtected(field)) {
+				return true
+			}
+		}
+		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
+	}, app.propertyCallerRoles, cpaGroup.ID)
 	s.propertyService.AddHook(accessControlHook)
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
@@ -415,6 +431,11 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "failed to look up session attributes property group")
 	}
 	s.propertyService.AddHook(properties.NewSessionAttributesHook(s.propertyService, saGroup.ID))
+
+	// Value shape validation for the field types core checks in every group
+	// (number, checkbox). A pre-hook, so its place in the chain does not matter
+	// beyond running before the store write.
+	s.propertyService.AddHook(properties.NewValueTypeValidationHook(s.propertyService))
 
 	// Type-change value cleanup — registered last so the field write has
 	// passed every other gate (license, access control, validation, limit)

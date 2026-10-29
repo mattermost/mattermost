@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -57,7 +57,7 @@ export default function ActionsMenuEmptyPopover({
                     <Button
                         id='marketPlaceButton'
                         emphasis='primary'
-                        size='sm'
+                        size='small'
                         className='visit-marketplace-button'
                         onClick={onOpenMarketplace}
                     >
