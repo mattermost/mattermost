@@ -12532,11 +12532,6 @@
     "description": "API error when checking whether a user is a member of any of a given list of teams fails."
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Unable to get team count",
-    "description": "Internal API error when the statistics query counting teams fails; used by the admin usage endpoint."
-  },
-  {
     "id": "app.terms_of_service.create.app_error",
     "translation": "Unable to save terms of service.",
     "description": "API error shown to an admin when saving new custom terms of service text fails; 'terms of service' is the legal-agreement feature."
@@ -12695,11 +12690,6 @@
     "id": "app.upload.upload_data.update.app_error",
     "translation": "Failed to update the upload session.",
     "description": "API error when updating the upload session's progress in the database fails."
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Failed to get storage usage.",
-    "description": "Internal API error when computing total file storage usage fails; used by the admin usage endpoint."
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
