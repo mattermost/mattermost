@@ -1384,20 +1384,25 @@ export default class PluginRegistry {
      * - text - A string or React element to display in the menu
      * - action - A function to trigger when component is clicked on. It receives the teamId as an argument.
      * - icon - A React element to use as the button's icon
+     * - placement - Optional. 'afterCreateChannel' shows the item right below "Create new channel";
+     *   by default it follows the built-in items.
      * Returns a unique identifier.
      */
     registerSidebarBrowseOrAddChannelMenuAction = reArg([
         'text',
         'action',
         'icon',
+        'placement',
     ], ({
         text,
         action,
         icon,
+        placement,
     }: {
         text: ReactResolvable;
         action: SidebarBrowseOrAddChannelMenuAction['action'];
         icon: ReactResolvable;
+        placement?: SidebarBrowseOrAddChannelMenuAction['placement'];
     }) => {
         const id = generateId();
 
@@ -1407,6 +1412,7 @@ export default class PluginRegistry {
             text: resolveReactElement(text),
             action,
             icon: resolveReactElement(icon),
+            placement,
         });
 
         return id;
@@ -1424,6 +1430,9 @@ export default class PluginRegistry {
      * `isAvailable(state)` receives the full Redux state and gates whether this option appears. Plugins
      * may read their own plugin-scoped state (e.g. `state['plugins-<pluginId>']`) to decide visibility.
      *
+     * `showInNewChannelModal: false` keeps the option out of "Create a new channel"; it is then offered
+     * only when the plugin opens the published `new_channel_modal` with its own `channelTypePluginId`.
+     *
      * Returns a unique identifier for the registered option, which can be passed to
      * `unregisterComponent`.
      */
@@ -1435,6 +1444,7 @@ export default class PluginRegistry {
         'extraContent',
         'onCreate',
         'createButtonText',
+        'showInNewChannelModal',
     ], ({
         label,
         description,
@@ -1443,6 +1453,7 @@ export default class PluginRegistry {
         extraContent,
         onCreate,
         createButtonText,
+        showInNewChannelModal,
     }: {
         label: ReactResolvable;
         description: ReactResolvable;
@@ -1451,6 +1462,7 @@ export default class PluginRegistry {
         extraContent?: ChannelTypeOptionComponent['extraContent'];
         onCreate: ChannelTypeOptionComponent['onCreate'];
         createButtonText?: ReactResolvable;
+        showInNewChannelModal?: boolean;
     }) => {
         const id = generateId();
         this.dispatchPluginComponentWithData('ChannelTypeOption', {
@@ -1463,6 +1475,7 @@ export default class PluginRegistry {
             extraContent,
             onCreate,
             createButtonText: createButtonText === undefined ? undefined : resolveReactElement(createButtonText),
+            showInNewChannelModal,
         });
 
         return id;
