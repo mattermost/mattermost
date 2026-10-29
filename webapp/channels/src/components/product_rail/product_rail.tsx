@@ -34,7 +34,7 @@ import {
     isTeamSidebarHidden,
 } from 'selectors/views/product_rail';
 
-import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
+import {isBackstagePath, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getProductSwitcherLinkURL, useCurrentProduct} from 'utils/products';
 
 import type {GlobalState} from 'types/store';
@@ -225,7 +225,8 @@ export default function ProductRail() {
         }
     }, [enabled, currentUserId, lastPaths, lastPathsLoaded]);
 
-    if (!enabled || !currentTeam) {
+    // Backstage pages (Integrations, Custom Emoji) take the whole page, with their own way back.
+    if (!enabled || !currentTeam || isBackstagePath(pathname)) {
         return null;
     }
 
