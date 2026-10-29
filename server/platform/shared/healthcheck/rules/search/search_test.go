@@ -272,8 +272,18 @@ func TestESServerError(t *testing.T) {
 		return searchWant{
 			state:     healthcheck.StateFiring,
 			messageID: messageID,
-			details:   map[string]string{"error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+			details:   map[string]string{"nodes": "app-1", "error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
 		}
+	}
+	// withFollowers adds app-2 and app-3 with the given search diagnostics to s.
+	withFollowers := func(s *healthcheck.Snapshot, app2, app3 *healthcheck.NodeSnapshot) *healthcheck.Snapshot {
+		nodes := append(s.Nodes(), app2, app3)
+		cluster := healthcheck.NewSnapshot(nodes)
+		cluster.Config, cluster.Sections = s.Config, s.Sections
+		return cluster
+	}
+	follower := func(hostname string, diag *model.SupportPacketDiagnostics) *healthcheck.NodeSnapshot {
+		return &healthcheck.NodeSnapshot{Hostname: hostname, Diagnostics: &model.NodeDiagnostics{Diagnostics: diag}}
 	}
 
 	dbSearchDisabled := searchSnapshot(func(cfg *model.Config) {
@@ -306,6 +316,29 @@ func TestESServerError(t *testing.T) {
 		{name: "leader without diagnostics", snapshot: searchSnapshot(nil, nil, nil), want: unknownDiagWant},
 		{name: "no leader", snapshot: &healthcheck.Snapshot{}, want: unknownLicenseWant},
 		{name: "probe section failed", snapshot: sectionFailed, want: unknownDiagWant},
+		{
+			name:     "every node fails",
+			snapshot: withFollowers(searchSnapshot(nil, failed, nil), follower("app-2", failed), follower("app-3", failed)),
+			want: searchWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.es_server_error.message",
+				details:   map[string]string{"nodes": "app-1, app-2, app-3", "error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+			},
+		},
+		{
+			name:     "one node of three fails",
+			snapshot: withFollowers(searchSnapshot(nil, esDiag(model.StatusOk, "", ""), nil), follower("app-2", failed), follower("app-3", esDiag(model.StatusOk, "", ""))),
+			want: searchWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.es_server_error.message.partial",
+				details:   map[string]string{"nodes": "app-2", "error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+			},
+		},
+		{
+			name:     "nodes without the probe are left out",
+			snapshot: withFollowers(searchSnapshot(nil, failed, nil), &healthcheck.NodeSnapshot{Hostname: "app-2", CollectErr: healthcheck.ErrNodeNoReply}, follower("app-3", esDiag("", "", ""))),
+			want:     firing("health.rule.es_server_error.message"),
+		},
 	}
 
 	for _, tc := range testCases {
