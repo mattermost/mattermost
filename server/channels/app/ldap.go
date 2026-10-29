@@ -303,29 +303,23 @@ func (a *App) removeLdapFile(filename string) *model.AppError {
 }
 
 func (a *App) RemoveLdapPublicCertificate() *model.AppError {
-	if err := a.removeLdapFile(*a.Config().LdapSettings.PublicCertificateFile); err != nil {
-		return err
-	}
-
-	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+	oldCfg, _, err := a.PatchConfig(func(cfg *model.Config) {
 		*cfg.LdapSettings.PublicCertificateFile = ""
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
 
-	return nil
+	return a.removeLdapFile(*oldCfg.LdapSettings.PublicCertificateFile)
 }
 
 func (a *App) RemoveLdapPrivateCertificate() *model.AppError {
-	if err := a.removeLdapFile(*a.Config().LdapSettings.PrivateKeyFile); err != nil {
-		return err
-	}
-
-	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+	oldCfg, _, err := a.PatchConfig(func(cfg *model.Config) {
 		*cfg.LdapSettings.PrivateKeyFile = ""
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
 
-	return nil
+	return a.removeLdapFile(*oldCfg.LdapSettings.PrivateKeyFile)
 }

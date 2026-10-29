@@ -196,14 +196,14 @@ func (a *App) AddAuditLogCertificate(rctx request.CTX, fileData *multipart.FileH
 }
 
 func (a *App) RemoveAuditLogCertificate(rctx request.CTX) *model.AppError {
-	err := a.Srv().platform.RemoveConfigFile(AuditCertificateFilename)
-	if err != nil {
-		return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
 		*cfg.ExperimentalAuditSettings.Certificate = ""
 	}); err != nil {
+		return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err := a.Srv().platform.RemoveConfigFile(AuditCertificateFilename)
+	if err != nil {
 		return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

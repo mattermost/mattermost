@@ -108,48 +108,39 @@ func (a *App) removeSamlFile(filename string) *model.AppError {
 }
 
 func (a *App) RemoveSamlPublicCertificate() *model.AppError {
-	if err := a.removeSamlFile(*a.Config().SamlSettings.PublicCertificateFile); err != nil {
-		return err
-	}
-
-	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+	oldCfg, _, err := a.PatchConfig(func(cfg *model.Config) {
 		*cfg.SamlSettings.PublicCertificateFile = ""
 		*cfg.SamlSettings.Encrypt = false
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
 
-	return nil
+	return a.removeSamlFile(*oldCfg.SamlSettings.PublicCertificateFile)
 }
 
 func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
-	if err := a.removeSamlFile(*a.Config().SamlSettings.PrivateKeyFile); err != nil {
-		return err
-	}
-
-	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+	oldCfg, _, err := a.PatchConfig(func(cfg *model.Config) {
 		*cfg.SamlSettings.PrivateKeyFile = ""
 		*cfg.SamlSettings.Encrypt = false
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
 
-	return nil
+	return a.removeSamlFile(*oldCfg.SamlSettings.PrivateKeyFile)
 }
 
 func (a *App) RemoveSamlIdpCertificate() *model.AppError {
-	if err := a.removeSamlFile(*a.Config().SamlSettings.IdpCertificateFile); err != nil {
-		return err
-	}
-
-	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+	oldCfg, _, err := a.PatchConfig(func(cfg *model.Config) {
 		*cfg.SamlSettings.IdpCertificateFile = ""
 		*cfg.SamlSettings.Enable = false
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
 
-	return nil
+	return a.removeSamlFile(*oldCfg.SamlSettings.IdpCertificateFile)
 }
 
 func (a *App) GetSamlCertificateStatus() *model.SamlCertificateStatus {
