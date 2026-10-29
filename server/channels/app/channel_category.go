@@ -36,13 +36,10 @@ func (a *App) GetSidebarCategoriesForTeamForUser(rctx request.CTX, userID, teamI
 	}
 
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetSidebarCategoriesForTeamForUser", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetSidebarCategoriesForTeamForUser", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetSidebarCategoriesForTeamForUser", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return categories, nil
@@ -60,13 +57,10 @@ func (a *App) GetSidebarCategories(rctx request.CTX, userID string, teamID strin
 	}
 
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return categories, nil
@@ -75,13 +69,10 @@ func (a *App) GetSidebarCategories(rctx request.CTX, userID string, teamID strin
 func (a *App) GetSidebarCategoryOrder(rctx request.CTX, userID, teamID string) ([]string, *model.AppError) {
 	categories, err := a.Srv().Store().Channel().GetSidebarCategoryOrder(userID, teamID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return categories, nil
@@ -90,13 +81,10 @@ func (a *App) GetSidebarCategoryOrder(rctx request.CTX, userID, teamID string) (
 func (a *App) GetSidebarCategory(rctx request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	category, err := a.Srv().Store().Channel().GetSidebarCategory(categoryId)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return category, nil
@@ -105,13 +93,10 @@ func (a *App) GetSidebarCategory(rctx request.CTX, categoryId string) (*model.Si
 func (a *App) CreateSidebarCategory(rctx request.CTX, userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	category, err := a.Srv().Store().Channel().CreateSidebarCategory(userID, teamID, newCategory)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("CreateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("CreateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryCreated, teamID, "", userID, nil, "")
 	message.Add("category_id", category.Id)
@@ -122,16 +107,12 @@ func (a *App) CreateSidebarCategory(rctx request.CTX, userID, teamID string, new
 func (a *App) UpdateSidebarCategoryOrder(rctx request.CTX, userID, teamID string, categoryOrder []string) *model.AppError {
 	err := a.Srv().Store().Channel().UpdateSidebarCategoryOrder(userID, teamID, categoryOrder)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &invErr):
+		} else if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryOrderUpdated, teamID, "", userID, nil, "")
 	message.Add("order", categoryOrder)
@@ -269,13 +250,10 @@ func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWit
 func (a *App) DeleteSidebarCategory(rctx request.CTX, userID, teamID, categoryId string) *model.AppError {
 	err := a.Srv().Store().Channel().DeleteSidebarCategory(categoryId)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return model.NewAppError("DeleteSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return model.NewAppError("DeleteSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return model.NewAppError("DeleteSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryDeleted, teamID, "", userID, nil, "")
