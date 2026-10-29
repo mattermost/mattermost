@@ -554,15 +554,20 @@ func (h *Hub) recordPostDelivery(marker *model.PostDeliveryMarker, userID string
 
 // broadcastToConn delivers msg to a single web connection, if it is still registered and
 // should receive the event. A post delivery is recorded only when the event is actually
-// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, and
-// never on the default branch where the buffer is full and the connection is dropped.
+// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, never
+// when a broadcast hook rejected the event for this connection, and never on the default
+// branch where the buffer is full and the connection is dropped.
 func (h *Hub) broadcastToConn(connIndex *hubConnectionIndex, webConn *WebConn, msg *model.WebSocketEvent, marker *model.PostDeliveryMarker, broadcastHooks []string, broadcastHookArgs []map[string]any) {
 	if !connIndex.Has(webConn) {
 		return
 	}
 	if webConn.ShouldSendEvent(msg) {
+		ev, rejected := h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs)
+		if rejected {
+			return
+		}
 		select {
-		case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
+		case webConn.send <- ev:
 			h.recordPostDelivery(marker, webConn.UserId)
 		default:
 			// Don't log the warning if it's an inactive connection.
