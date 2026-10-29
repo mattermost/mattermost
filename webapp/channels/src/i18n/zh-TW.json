@@ -2752,7 +2752,7 @@
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.description": "允許送入的 Webhook 傳訊至任何頻道，而無需鎖定的預設頻道。",
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.name": "略過頻道鎖定",
   "admin.permissions.permission.convert_private_channel_to_public.description": "轉換私人頻道至公開",
-  "admin.permissions.permission.convert_private_channel_to_public.name": "轉換頻道",
+  "admin.permissions.permission.convert_private_channel_to_public.name": "轉換為公開頻道",
   "admin.permissions.permission.convert_public_channel_to_private.description": "轉換公開頻道至私人",
   "admin.permissions.permission.convert_public_channel_to_private.name": "轉換頻道",
   "admin.permissions.permission.create_custom_group.description": "建立自訂群組。",

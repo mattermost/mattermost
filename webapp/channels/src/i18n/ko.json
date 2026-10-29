@@ -6523,7 +6523,7 @@
   "mobile.set_status.away.icon": "자리비움",
   "mobile.set_status.dnd.icon": "방해 금지 아이콘",
   "mobile.set_status.offline.icon": "오프라인 아이콘",
-  "mobile.set_status.online.icon": "오프라인 아이콘",
+  "mobile.set_status.online.icon": "온라인",
   "modal.header_close": "닫기",
   "modal.manual_status.ask": "다시 묻지 않기",
   "modal.manual_status.auto_responder.message_away": "상태를 \"방해 금지\"로 전환하고 자동 회신을 비활성화 하시겠습니까?",

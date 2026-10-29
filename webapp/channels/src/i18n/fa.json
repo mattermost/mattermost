@@ -2752,7 +2752,7 @@
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.description": "به وب‌هوک‌های ورودی اجازه می‌دهد بدون نیاز به کانال پیش‌فرض قفل‌شده، در هر کانالی پست ارسال کنند.",
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.name": "دور زدن قفل کانال",
   "admin.permissions.permission.convert_private_channel_to_public.description": "تبدیل کانال های خصوصی به عمومی",
-  "admin.permissions.permission.convert_private_channel_to_public.name": "تبدیل کانال ها",
+  "admin.permissions.permission.convert_private_channel_to_public.name": "تبدیل به عمومی",
   "admin.permissions.permission.convert_public_channel_to_private.description": "تبدیل کانال های عمومی به خصوصی",
   "admin.permissions.permission.convert_public_channel_to_private.name": "تبدیل کانال ها",
   "admin.permissions.permission.create_custom_group.description": "ایجاد گروه‌های سفارشی.",
