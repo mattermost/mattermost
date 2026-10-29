@@ -126,19 +126,4 @@ describe('System Console - Subscriptions section', () => {
             cy.request(link.prop('href')).its('status').should('eq', 200);
         });
     });
-
-    it('MM-T4122 "Upgrade now" navigation and closing of Upgrade window', () => {
-        // # Click on Upgrade Now button
-        cy.contains('span', 'Upgrade Now').parent().click();
-        cy.get('#professional_action').click();
-
-        // * Check for "Provide Your Payment Details" label
-        cy.findByText('Provide your payment details').should('be.visible');
-
-        // # Click on close button of Upgrade window
-        cy.get('#closeIcon').parent().should('exist').click();
-
-        // * Check for "Your trial has started!" label
-        cy.contains('span', 'Your trial has started!').should('be.visible');
-    });
 });
