@@ -4,12 +4,12 @@
 package cluster
 
 import (
-	"net"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
 )
 
 func init() {
@@ -100,10 +100,8 @@ var clusterConfigWritable = healthcheck.Rule{
 	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterConfigWritable)),
 }
 
-func clusterFeature(f *model.Features) *bool { return f.Cluster }
-
 func clusterLicensed(eval func(*healthcheck.Snapshot) []healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return healthcheck.Licensed(clusterFeature, eval)
+	return healthcheck.Licensed(healthcheck.FeatureCluster, eval)
 }
 
 // haRunning is the HA gate shared by four codes. ok is false when Config is absent.
@@ -115,16 +113,6 @@ func haRunning(s *healthcheck.Snapshot) (running, ok bool) {
 
 	name, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.ClusterSettings.ClusterName })
 	return name != "", ok
-}
-
-// leaderDiag returns the leader's diagnostics when section was collected without error.
-func leaderDiag(s *healthcheck.Snapshot, section model.NodeSection) (*model.SupportPacketDiagnostics, bool) {
-	leader, ok := s.Leader()
-	if !ok || !leader.Has(section) {
-		return nil, false
-	}
-
-	return leader.Diag()
 }
 
 func evalClusterGossipUnencrypted(s *healthcheck.Snapshot) healthcheck.Result {
@@ -164,7 +152,7 @@ func evalClusterLRUCache(s *healthcheck.Snapshot) healthcheck.Result {
 // The server writes NumberOfConnectedNodes as 1 when it has no running cluster, so that also fires.
 // NumberOfNodes would hide a node cut off from gossip, because it still counts its database registration.
 func evalClusterSingleNode(s *healthcheck.Snapshot) healthcheck.Result {
-	diag, ok := leaderDiag(s, model.SectionCluster)
+	diag, ok := s.LeaderDiag(model.SectionCluster)
 	if !ok || diag.Cluster.NumberOfConnectedNodes == nil {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
@@ -174,23 +162,13 @@ func evalClusterSingleNode(s *healthcheck.Snapshot) healthcheck.Result {
 	return healthcheck.Resolved()
 }
 
-// isUnreachableAddress reports whether other nodes cannot reach address. Empty is fine: the
-// server then advertises its network interface address.
-func isUnreachableAddress(address string) bool {
-	if strings.EqualFold(address, "localhost") {
-		return true
-	}
-
-	ip := net.ParseIP(address)
-	return ip != nil && (ip.IsLoopback() || ip.IsUnspecified())
-}
-
 func evalClusterBadAdvertise(s *healthcheck.Snapshot) healthcheck.Result {
 	address, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.ClusterSettings.AdvertiseAddress })
 	switch {
 	case !ok:
 		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
-	case isUnreachableAddress(address):
+	// Empty is fine: the server then advertises its network interface address.
+	case hosts.IsLocal(address):
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_bad_advertise.message")).WithDetail("address", address)
 	default:
 		return healthcheck.Resolved()
@@ -207,7 +185,7 @@ func evalClusterConfigWritable(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved()
 	}
 
-	diag, ok := leaderDiag(s, model.SectionConfigSource)
+	diag, ok := s.LeaderDiag(model.SectionConfigSource)
 	switch {
 	case !ok || diag.Config.Source == "":
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)

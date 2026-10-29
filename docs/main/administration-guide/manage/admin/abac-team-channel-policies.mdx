@@ -144,6 +144,10 @@ Yes. A private channel can be assigned to multiple membership policies. Each pol
 
 No. Team-level policies are always additive. Users must satisfy both the system-wide policy and the team-level policy to access a channel. Team Admins cannot weaken or bypass restrictions set by System Admins.
 
+### Do team-level policies apply to bot accounts?
+
+Yes. Bot accounts are evaluated against team-level channel membership policies exactly like members. A bot that doesn't have the attribute values a policy requires can't be added to the policy's private channels and is removed during synchronization. Set the bot's attributes before adding it to those channels. See [Bot attributes](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes).
+
 ### How are membership changes communicated to users?
 
 Users receive standard Mattermost notifications when they are removed from or added to channels due to policy changes, consistent with other membership change notifications.

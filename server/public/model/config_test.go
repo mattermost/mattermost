@@ -223,6 +223,91 @@ func TestClusterSettingsIsValid(t *testing.T) {
 	})
 }
 
+func TestCacheSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &CacheSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("redis cache prefix", func(t *testing.T) {
+		for _, prefix := range []string{"", "hub", "c4ja3w3h8tgwiy5c5dbmhmkpje", "my-prefix_1"} {
+			t.Run("valid "+prefix, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:        NewPointer(CacheTypeRedis),
+					RedisAddress:     NewPointer("localhost:6379"),
+					RedisDB:          NewPointer(0),
+					RedisCachePrefix: NewPointer(prefix),
+				}
+				settings.SetDefaults()
+
+				assert.Nil(t, settings.isValid())
+			})
+		}
+
+		for _, prefix := range []string{"hub:", "a:b", "hub*", "hub?", "hub[0]", `hub\`} {
+			t.Run("invalid "+prefix, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:        NewPointer(CacheTypeRedis),
+					RedisAddress:     NewPointer("localhost:6379"),
+					RedisDB:          NewPointer(0),
+					RedisCachePrefix: NewPointer(prefix),
+				}
+				settings.SetDefaults()
+
+				appErr := settings.isValid()
+				require.NotNil(t, appErr)
+				assert.Equal(t, "model.config.is_valid.invalid_redis_cache_prefix.app_error", appErr.Id)
+			})
+		}
+	})
+
+	t.Run("redis cache prefix is ignored for lru", func(t *testing.T) {
+		settings := &CacheSettings{
+			CacheType:        NewPointer(CacheTypeLRU),
+			RedisCachePrefix: NewPointer("a:b"),
+		}
+		settings.SetDefaults()
+
+		assert.Nil(t, settings.isValid())
+	})
+	t.Run("redis tls client cert and key", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			enableTLS bool
+			cert      string
+			key       string
+			valid     bool
+		}{
+			"neither":            {enableTLS: true, valid: true},
+			"both":               {enableTLS: true, cert: "client.crt", key: "client.key", valid: true},
+			"cert only":          {enableTLS: true, cert: "client.crt", valid: false},
+			"key only":           {enableTLS: true, key: "client.key", valid: false},
+			"cert only, tls off": {enableTLS: false, cert: "client.crt", valid: true},
+		} {
+			t.Run(name, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:          NewPointer(CacheTypeRedis),
+					RedisAddress:       NewPointer("localhost:6379"),
+					RedisDB:            NewPointer(0),
+					RedisEnableTLS:     NewPointer(tc.enableTLS),
+					RedisTLSClientCert: NewPointer(tc.cert),
+					RedisTLSClientKey:  NewPointer(tc.key),
+				}
+				settings.SetDefaults()
+
+				appErr := settings.isValid()
+				if tc.valid {
+					assert.Nil(t, appErr)
+					return
+				}
+				require.NotNil(t, appErr)
+				assert.Equal(t, "model.config.is_valid.redis_tls_client_cert_key.app_error", appErr.Id)
+			})
+		}
+	})
+}
+
 func TestAnnouncementSettingsIsValid(t *testing.T) {
 	t.Run("defaults are valid", func(t *testing.T) {
 		settings := &AnnouncementSettings{}

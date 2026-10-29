@@ -56,8 +56,6 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("dnd status timed restore after time interval", func(t *testing.T) {
-		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
-		defer task.Cancel()
 		th.App.SetStatusOnline(th.BasicUser.Id, true)
 		userStatus, _, err := client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
@@ -65,7 +63,12 @@ func TestGetUserStatus(t *testing.T) {
 		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(2*time.Second).Unix())
 		userStatus, _, err = client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
-		assert.Equal(t, "dnd", userStatus.Status)
+		require.Equal(t, "dnd", userStatus.Status)
+
+		// Start the expiry job only after observing dnd. now+2s truncates to the current
+		// minute (DNDExpiryInterval), so the first 1s tick can restore PrevStatus immediately.
+		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
+		defer task.Cancel()
 		// Poll for status restore instead of sleeping a fixed duration (MM-63533).
 		// The recurring task runs every 1s but can lag under CI load.
 		require.Eventually(t, func() bool {
