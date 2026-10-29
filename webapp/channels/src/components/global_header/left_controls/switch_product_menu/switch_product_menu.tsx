@@ -21,7 +21,6 @@ import {isChannels} from 'utils/products';
 
 import ProductSwitcherAboutMenuItem from './switch_product_about_menuitem';
 import ProductSwitcherChannelsMenuItem from './switch_product_channels_menuitem';
-import ProductSwitcherCloudLimitsFooter from './switch_product_cloud_limits_footer';
 import ProductSwitcherCloudTrialMenuItem from './switch_product_cloud_trial_menuitem';
 import ProductSwitcherDownloadMenuItem from './switch_product_download_menuitem';
 import ProductSwitcherEditionMenuItem from './switch_product_edition_menuitem';
@@ -108,13 +107,6 @@ export function SwitchProductMenu(props: Props) {
                 className: 'globalHeader-leftControls-productSwitcherMenu',
                 'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.ariaLabel', defaultMessage: 'Product menu'}),
             }}
-            menuFooter={
-                <ProductSwitcherCloudLimitsFooter
-                    isUserAdmin={isUserAdmin}
-                    isCloudLicensed={isCloudLicensed}
-                    isFreeTrialSubscription={isFreeTrialSubscription}
-                />
-            }
         >
             {!productRailShown && (
                 <ProductSwitcherChannelsMenuItem
