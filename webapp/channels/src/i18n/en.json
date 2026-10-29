@@ -2459,10 +2459,6 @@
     "defaultMessage": "Annual",
     "description": "Small badge next to the plan name on the Subscription page indicating yearly billing; very compact."
   },
-  "admin.billing.subscription.creditCardExpired": {
-    "defaultMessage": "Your credit card has expired. Update your payment information to avoid disruption.",
-    "description": "Announcement banner for Cloud admins when the subscription's credit card has expired."
-  },
   "admin.billing.subscription.creditCardHasExpired": {
     "defaultMessage": "Your credit card has expired",
     "description": "Title of a danger banner on the cloud Subscription page when the stored credit card has expired."
@@ -2494,10 +2490,6 @@
   "admin.billing.subscription.invoice.next": {
     "defaultMessage": "Next Invoice",
     "description": "Card heading in the billing summary for the upcoming (not yet issued) invoice."
-  },
-  "admin.billing.subscription.mostRecentPaymentFailed": {
-    "defaultMessage": "Your most recent payment failed",
-    "description": "Announcement banner for Cloud admins when the latest subscription payment failed."
   },
   "admin.billing.subscription.planDetails.currentPlan": {
     "defaultMessage": "Current Plan",
@@ -2674,10 +2666,6 @@
   "admin.billing.subscription.title": {
     "defaultMessage": "Subscription",
     "description": "Page title of the Subscription section under Billing in the System Console; noun."
-  },
-  "admin.billing.subscription.updatePaymentInfo": {
-    "defaultMessage": "Update Payment Information",
-    "description": "Link/button in the billing announcement banner that opens the payment information page."
   },
   "admin.billing.subscriptions.billing_summary.lastInvoice.monthlyFlatFee": {
     "defaultMessage": "Monthly Flat Fee",
