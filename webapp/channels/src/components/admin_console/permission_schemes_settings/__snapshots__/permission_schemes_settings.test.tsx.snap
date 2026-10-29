@@ -540,7 +540,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             >
               Migration job in progress: Team Override Schemes are not available until the job server completes the permissions migration. Learn more in the 
               <a
-                href="https://docs.mattermost.com/administration/config-settings.html?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version=#jobs"
+                href="http://localhost:8065/_documentation/administration/config-settings#jobs"
                 location="permission_scheme_settings"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -806,7 +806,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             >
               Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the 
               <a
-                href="https://docs.mattermost.com/administration/config-settings.html?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version=#jobs"
+                href="http://localhost:8065/_documentation/administration/config-settings#jobs"
                 location="permission_scheme_settings"
                 rel="noopener noreferrer"
                 target="_blank"

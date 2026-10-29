@@ -145,6 +145,7 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
                 {...baseProps}
                 siteURL='https://example.com/mattermost'
             />,
+            {entities: {general: {config: {SiteURL: 'https://example.com/mattermost'}}}},
         );
 
         openMenu();

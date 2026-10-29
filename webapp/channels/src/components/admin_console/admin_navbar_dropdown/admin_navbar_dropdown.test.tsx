@@ -144,7 +144,7 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         const item = screen.getByRole('menuitem', {name: "Administrator's Guide"});
 
         expect(item.tagName).toBe('A');
-        expect(item).toHaveAttribute('href', expect.stringContaining('https://docs.mattermost.com/guides/administration.html'));
+        expect(item).toHaveAttribute('href', expect.stringContaining('/_documentation/guides/administration'));
         expect(item).toHaveAttribute('target', '_blank');
         expect(item).toHaveAttribute('rel', 'noopener noreferrer');
     });
