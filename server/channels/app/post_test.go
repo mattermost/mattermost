@@ -4846,7 +4846,9 @@ func TestValidateMoveOrCopy(t *testing.T) {
 
 func TestMoveThreadUploadFileAttachmentABACEnforcement(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
 
 	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
