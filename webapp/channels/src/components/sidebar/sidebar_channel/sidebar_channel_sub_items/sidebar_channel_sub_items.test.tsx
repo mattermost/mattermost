@@ -8,7 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import type {ResolvedChannelSidebarSubItem} from 'selectors/channel_sidebar_sub_items';
 
-import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {RHSStates, StoragePrefixes} from 'utils/constants';
 
 import SidebarChannelSubItems from './sidebar_channel_sub_items';
@@ -260,6 +260,148 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_sub_items', () => {
             renderItems({items: tree, activeKey: 'plugin:grandchild'}, stored('plugin:root', 'plugin:child'));
 
             expect(document.querySelector('.containsActive')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('item menu', () => {
+        const onEdit = jest.fn();
+        const onDelete = jest.fn();
+        const getItemActions = jest.fn();
+
+        const menuState = (withActions = true) => ({
+            plugins: {
+                components: {
+                    ChannelSidebarSubItems: [{id: 'reg', pluginId: 'plugin', getItems: () => [], ...(withActions ? {getItemActions} : {})}],
+                },
+            },
+        });
+
+        beforeEach(() => {
+            onEdit.mockClear();
+            onDelete.mockClear();
+            getItemActions.mockReset();
+            getItemActions.mockReturnValue([
+                {id: 'edit', text: 'Edit', iconName: 'pencil-outline', isDestructive: false, separatorBefore: false, onClick: onEdit},
+                {id: 'delete', text: 'Delete', iconName: 'trash-can-outline', isDestructive: true, separatorBefore: true, onClick: onDelete},
+            ]);
+        });
+
+        const menuButton = (label: string) => screen.getByRole('button', {name: `Item options for ${label}`});
+
+        test('does not render a menu button when the registration has no getItemActions', () => {
+            renderItems({}, menuState(false));
+
+            expect(screen.queryByRole('button', {name: /^Item options/})).not.toBeInTheDocument();
+        });
+
+        test('renders a labelled menu button inside the row, after the link', () => {
+            const {container} = renderItems({}, menuState());
+
+            expect(screen.getAllByRole('button', {name: /^Item options for/})).toHaveLength(3);
+            expect(menuButton('Board view')).toHaveAttribute('aria-haspopup', 'true');
+            expect(menuButton('Board view')).toHaveAttribute('aria-expanded', 'false');
+            expect(menuButton('Board view')).toHaveClass('SidebarChannelSubItem__menuButton');
+
+            const row = container.querySelector('.SidebarChannelSubItem__row')!;
+            expect(row).toHaveClass('hasMenu');
+            expect(row).toContainElement(menuButton('Board view'));
+            expect(screen.getByRole('link', {name: 'Board view'}).compareDocumentPosition(menuButton('Board view'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+            expect(getItemActions).not.toHaveBeenCalled();
+        });
+
+        test('asks the plugin for the actions when the menu opens, with the item id', async () => {
+            const {store} = renderItems({}, menuState());
+
+            await userEvent.click(menuButton('Table view'));
+
+            expect(getItemActions).toHaveBeenCalledWith(expect.anything(), channel, 'b');
+            expect(getItemActions.mock.calls[0][0]).toBe(store.getState());
+            expect(screen.getByRole('menu', {name: 'Item options for Table view'})).toBeInTheDocument();
+        });
+
+        test('lists the actions with icons and a separator before the flagged one', async () => {
+            renderItems({}, menuState());
+
+            await userEvent.click(menuButton('Board view'));
+
+            const menu = screen.getByRole('menu');
+            const entries = within(menu).getAllByRole('menuitem');
+            expect(entries.map((entry) => entry.textContent)).toEqual(['Edit', 'Delete']);
+            expect(entries[0].querySelector('i')).toHaveClass('icon', 'icon-pencil-outline');
+            expect(entries[1].querySelector('i')).toHaveClass('icon', 'icon-trash-can-outline');
+
+            const separators = within(menu).getAllByRole('separator');
+            expect(separators).toHaveLength(1);
+            expect(entries[0].compareDocumentPosition(separators[0])).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+            expect(separators[0].compareDocumentPosition(entries[1])).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+        });
+
+        test('marks destructive actions only', async () => {
+            renderItems({}, menuState());
+
+            await userEvent.click(menuButton('Board view'));
+
+            expect(screen.getByRole('menuitem', {name: 'Delete'})).toHaveClass('SidebarChannelSubItemMenu__item--destructive');
+            expect(screen.getByRole('menuitem', {name: 'Edit'})).not.toHaveClass('SidebarChannelSubItemMenu__item--destructive');
+        });
+
+        test('calls the action and closes the menu when an action is clicked', async () => {
+            renderItems({}, menuState());
+
+            await userEvent.click(menuButton('Board view'));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Delete'}));
+
+            await waitFor(() => expect(onDelete).toHaveBeenCalledTimes(1));
+            expect(onEdit).not.toHaveBeenCalled();
+            await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+        });
+
+        test('does not navigate when the menu button is clicked', async () => {
+            const {history} = renderItems({}, menuState());
+
+            await userEvent.click(menuButton('Calendar'));
+
+            expect(history.location.pathname).toBe('/team/channels/town-square');
+        });
+
+        test('keeps the row in its open state while the menu is open', async () => {
+            renderItems({}, menuState());
+            const row = screen.getByRole('link', {name: 'Board view'}).closest('.SidebarChannelSubItem__row')!;
+            expect(row).not.toHaveClass('menuOpen');
+
+            await userEvent.click(menuButton('Board view'));
+            expect(row).toHaveClass('menuOpen');
+
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(row).not.toHaveClass('menuOpen'));
+        });
+
+        test('reads the actions again each time the menu opens', async () => {
+            renderItems({}, menuState());
+
+            await userEvent.click(menuButton('Board view'));
+            expect(screen.getAllByRole('menuitem')).toHaveLength(2);
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+
+            getItemActions.mockReturnValue([
+                {id: 'rename', text: 'Rename', isDestructive: false, separatorBefore: false, onClick: jest.fn()},
+            ]);
+            await userEvent.click(menuButton('Board view'));
+
+            expect(screen.getAllByRole('menuitem').map((entry) => entry.textContent)).toEqual(['Rename']);
+            expect(screen.getByRole('menuitem', {name: 'Rename'}).querySelector('i')).not.toBeInTheDocument();
+        });
+
+        test('shows a disabled entry when there are no actions', async () => {
+            getItemActions.mockReturnValue(null);
+            renderItems({}, menuState());
+
+            await userEvent.click(menuButton('Board view'));
+
+            const entry = screen.getByRole('menuitem', {name: 'No actions available'});
+            expect(entry).toHaveAttribute('aria-disabled', 'true');
+            expect(screen.queryByRole('separator')).not.toBeInTheDocument();
         });
     });
 
