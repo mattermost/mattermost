@@ -1403,7 +1403,7 @@ func TestGetUserByEmail(t *testing.T) {
 	t.Run("should find a user stored with a legacy angle-bracket email", func(t *testing.T) {
 		legacyUser := th.CreateUser(t)
 		legacyEmail := "<" + legacyUser.Email + ">"
-		_, err := mainHelper.GetSQLStore().GetMaster().Exec("UPDATE Users SET Email = ? WHERE Id = ?", legacyEmail, legacyUser.Id)
+		_, err := th.Server.Store().GetInternalMasterDB().Exec("UPDATE Users SET Email = $1 WHERE Id = $2", legacyEmail, legacyUser.Id)
 		require.NoError(t, err)
 		th.App.InvalidateCacheForUser(legacyUser.Id)
 

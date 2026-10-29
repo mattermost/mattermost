@@ -304,7 +304,7 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 		user.Email = restoreEmail
 	}
 
-	if err := us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
+	if err = us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
 		return nil, err
 	}
 
