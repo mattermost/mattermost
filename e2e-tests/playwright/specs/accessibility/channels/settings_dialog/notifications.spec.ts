@@ -104,28 +104,31 @@ test(
             - heading "Notifications" [level=3]
             - link "Learn more about notifications":
               - /url: https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=${user.id}&sid=${clientConfig.DiagnosticId}&edition=enterprise&server_version=${clientConfig.Version}
-              - img
             - heading "Desktop and mobile notifications Permission required" [level=4]:
+              - text: Desktop and mobile notifications
               - img
-            - button "Desktop and mobile notifications Permission required Edit"
+              - text: Permission required
+            - button "Desktop and mobile notifications Permission required Edit": Edit
             - text: Mentions, direct messages, and group messages
             - heading "Desktop notification sounds" [level=4]
-            - button "Desktop notification sounds Edit"
+            - button "Desktop notification sounds Edit": Edit
             - text: "\\"Bing\\" for messages"
             - heading "Email notifications" [level=4]
-            - button "Email notifications Edit"
+            - button "Email notifications Edit": Edit
+            - text: "On"
             - heading "Auto-follow threads on channel-wide mentions" [level=4]
-            - button "Auto-follow threads on channel-wide mentions Edit"
+            - button "Auto-follow threads on channel-wide mentions Edit": Edit
             - text: "On"
             - heading "Keywords that trigger notifications" [level=4]
-            - button "Keywords that trigger notifications Edit"
+            - button "Keywords that trigger notifications Edit": Edit
             - text: "\\"@${user.username}\\", \\"@channel\\", \\"@all\\", \\"@here\\""
             - heading "Keywords that get highlighted (without notifications)" [level=4]
-            - button "Keywords that get highlighted (without notifications) Edit"
+            - button "Keywords that get highlighted (without notifications) Edit": Edit
+            - text: None
             - heading "Troubleshooting notifications" [level=4]
-            - paragraph: Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+            - text: Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
             - button "Send a test notification"
-            - button "Troubleshooting docs 󰏌"
+            - button "Troubleshooting docs"
         `);
 
         // * Analyze the Notifications settings panel for accessibility issues
