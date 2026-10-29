@@ -20,4 +20,14 @@ describe('PostAttributesButton', () => {
         expect(button).toBeInTheDocument();
         expect(button).toHaveAttribute('id', 'postAttributesButton');
     });
+
+    test('looks disabled but stays focusable', () => {
+        renderWithContext(<PostAttributesButton/>);
+
+        const button = screen.getByRole('button', {name: 'Add attributes'});
+
+        expect(button).toHaveAttribute('aria-disabled', 'true');
+        expect(button).not.toHaveAttribute('disabled');
+        expect(button).toHaveStyle({cursor: 'not-allowed'});
+    });
 });
