@@ -34,7 +34,7 @@
             background-color: rgba(0, 0, 0, 0.05);
 
             .view-details-link {
-                color: var(--button-bg);
+                --button-fg: var(--button-bg);
             }
         }
 
@@ -48,24 +48,22 @@
         text-align: right;
     }
 
-    .view-details-link.btn {
-        display: inline-flex;
-        align-items: center;
+    // Muted at rest so the row hover has something to reveal. Compass
+    // quaternary is --link-color out of the box, which left the link already
+    // blue and the hover a no-op. Colours go through --button-fg because the
+    // Compass label does not read `color`.
+    .view-details-link {
+        --button-fg: rgba(var(--sys-center-channel-color-rgb), 0.56);
+
         padding: 0;
         background: transparent;
-        color: rgba(var(--sys-center-channel-color-rgb), 0.56);
-        font-size: 12px;
-        font-weight: 600;
         white-space: nowrap;
 
         &:hover,
         &:focus {
-            background: transparent;
-            color: var(--button-bg);
-        }
+            --button-fg: var(--button-bg);
 
-        .icon {
-            font-size: 16px;
+            background: transparent;
         }
     }
 

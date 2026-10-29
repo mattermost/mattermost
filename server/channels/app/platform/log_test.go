@@ -431,7 +431,7 @@ func TestGetAdvancedLogsPathValidation(t *testing.T) {
 
 // newLogPathTestService builds a minimal PlatformService backed by an in-memory config store,
 // with its log root pinned to root so the test does not depend on MM_LOG_PATH.
-func newLogPathTestService(t *testing.T, root string, mutate func(*model.Config)) *PlatformService {
+func newLogPathTestService(t testing.TB, root string, mutate func(*model.Config)) *PlatformService {
 	t.Helper()
 
 	configStore := config.NewTestMemoryStore()
