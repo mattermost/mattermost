@@ -1536,11 +1536,31 @@ func TestDoClearLastAccessibleFileTimeMigration(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, th.Store.System().SaveOrUpdate(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}))
 
-	require.NoError(t, th.Server.doClearLastAccessibleFileTimeMigration())
+	var jobIDs []string
+	for _, status := range []string{model.JobStatusPending, model.JobStatusInProgress, model.JobStatusSuccess} {
+		job, jobErr := th.Store.Job().Save(&model.Job{Id: model.NewId(), Type: model.JobTypeLastAccessibleFile, Status: status, CreateAt: model.GetMillis()})
+		require.NoError(t, jobErr)
+		jobIDs = append(jobIDs, job.Id)
+	}
+	otherJob, err := th.Store.Job().Save(&model.Job{Id: model.NewId(), Type: model.JobTypeLastAccessiblePost, Status: model.JobStatusPending, CreateAt: model.GetMillis()})
+	require.NoError(t, err)
+	defer func() {
+		_, delErr := th.Store.Job().Delete(otherJob.Id)
+		require.NoError(t, delErr)
+	}()
+
+	require.NoError(t, th.Server.doClearLastAccessibleFileTimeMigration(th.Context))
 
 	_, err = th.Store.System().GetByName(model.SystemLastAccessibleFileTime)
 	require.Error(t, err)
 	assert.IsType(t, &store.ErrNotFound{}, err)
+
+	for _, id := range jobIDs {
+		_, err = th.Store.Job().Get(th.Context, id)
+		assert.IsType(t, &store.ErrNotFound{}, err)
+	}
+	_, err = th.Store.Job().Get(th.Context, otherJob.Id)
+	require.NoError(t, err, "jobs of other types must be kept")
 
 	done, err := th.Store.System().GetByName(clearLastAccessibleFileTimeMigrationKey)
 	require.NoError(t, err)
@@ -1548,7 +1568,7 @@ func TestDoClearLastAccessibleFileTimeMigration(t *testing.T) {
 
 	// Once marked as done, the migration does not run again.
 	require.NoError(t, th.Store.System().SaveOrUpdate(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}))
-	require.NoError(t, th.Server.doClearLastAccessibleFileTimeMigration())
+	require.NoError(t, th.Server.doClearLastAccessibleFileTimeMigration(th.Context))
 
 	marker, err := th.Store.System().GetByName(model.SystemLastAccessibleFileTime)
 	require.NoError(t, err)

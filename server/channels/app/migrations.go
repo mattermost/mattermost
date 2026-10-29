@@ -616,8 +616,9 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 }
 
 // doClearLastAccessibleFileTimeMigration removes the marker left by the former
-// Cloud file storage limit, which hid files created before it.
-func (s *Server) doClearLastAccessibleFileTimeMigration() error {
+// Cloud file storage limit, which hid files created before it, and the jobs of
+// its removed worker, which would otherwise never be processed.
+func (s *Server) doClearLastAccessibleFileTimeMigration(rctx request.CTX) error {
 	if _, err := s.Store().System().GetByName(clearLastAccessibleFileTimeMigrationKey); err == nil {
 		return nil
 	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
@@ -626,6 +627,16 @@ func (s *Server) doClearLastAccessibleFileTimeMigration() error {
 
 	if _, err := s.Store().System().PermanentDeleteByName(model.SystemLastAccessibleFileTime); err != nil {
 		return fmt.Errorf("failed to clear the last accessible file time: %w", err)
+	}
+
+	jobs, err := s.Store().Job().GetAllByType(rctx, model.JobTypeLastAccessibleFile)
+	if err != nil {
+		return fmt.Errorf("failed to get last accessible file jobs: %w", err)
+	}
+	for _, job := range jobs {
+		if _, err := s.Store().Job().Delete(job.Id); err != nil {
+			rctx.Logger().Warn("Failed to delete last accessible file job", mlog.String("job_id", job.Id), mlog.Err(err))
+		}
 	}
 
 	if err := s.Store().System().SaveOrUpdate(&model.System{
@@ -1525,7 +1536,7 @@ func (s *Server) doAppMigrations() {
 		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
-		{"Clear Last Accessible File Time Migration", s.doClearLastAccessibleFileTimeMigration},
+		{"Clear Last Accessible File Time Migration", func() error { return s.doClearLastAccessibleFileTimeMigration(rctx) }},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
