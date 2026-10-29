@@ -4,10 +4,11 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {ArrowDownIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import CloseIcon from 'components/widgets/icons/close_icon';
-import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
 
 import './scroll_to_bottom_toast.scss';
 
@@ -44,8 +45,8 @@ export const ScrollToBottomToast = ({onDismiss, onClick}: ScrollToBottomToastPro
             emphasis='primary'
             className='scroll-to-bottom-toast'
             onClick={handleScrollToBottom}
+            leadingIcon={<Icon glyph={<ArrowDownIcon/>}/>}
         >
-            <UnreadBelowIcon/>
             {jumpToRecentsMessage}
             <div
                 className='scroll-to-bottom-toast__dismiss'

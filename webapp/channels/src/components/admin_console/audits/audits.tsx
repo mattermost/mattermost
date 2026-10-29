@@ -5,7 +5,9 @@ import React, {useEffect, useState, memo, useCallback} from 'react';
 import type {CSSProperties} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Audit} from '@mattermost/types/audits';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -13,7 +15,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import ComplianceReports from 'components/admin_console/compliance_reports';
 import AuditTable from 'components/audit_table';
 import LoadingScreen from 'components/loading_screen';
-import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 
 type Props = {
     isLicensed: boolean;
@@ -74,8 +75,8 @@ const Audits = ({
                     emphasis='tertiary'
                     className='pull-right'
                     onClick={reload}
+                    leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
                 >
-                    <ReloadIcon/>
                     <FormattedMessage {...messages.reload}/>
                 </Button>
             </div>

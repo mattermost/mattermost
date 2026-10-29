@@ -134,22 +134,14 @@ const FileUploadSetting = ({
                     emphasis='primary'
                     disabled={!isFileSelected}
                     onClick={handleSubmit}
+                    loading={isUploading}
                 >
-                    {
-                        isUploading && (
-                            <>
-                                <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
-                                {uploadingText}
-                            </>
-                        )
-                    }
-                    {
-                        !isUploading &&
+                    {isUploading ? uploadingText : (
                         <FormattedMessage
                             id='admin.file_upload.uploadFile'
                             defaultMessage='Upload'
                         />
-                    }
+                    )}
                 </Button>
                 <div className='help-text m-0'>
                     {fileName}

@@ -8,6 +8,7 @@ import {Redirect, useHistory, useLocation} from 'react-router-dom';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps, getScheduledRecaps, getRecapLimitStatus as fetchRecapLimitStatus, markRecapsAsViewed} from 'mattermost-redux/actions/recaps';
@@ -209,8 +210,8 @@ const Recaps = () => {
                         onClick={handleAddRecap}
                         disabled={!agentsBridgeEnabled.available}
                         title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                        leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                     >
-                        <PlusIcon size={12}/>
                         {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
                     </Button>
                 )}

@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 type Props = {
     onCreateClick: () => void;
@@ -38,8 +39,8 @@ const ScheduledRecapsEmptyState = ({onCreateClick, disabled}: Props) => {
                 className='empty-state-cta'
                 onClick={onCreateClick}
                 disabled={disabled}
+                leadingIcon={<Icon glyph={<PlusIcon/>}/>}
             >
-                <PlusIcon size={16}/>
                 {formatMessage({id: 'recaps.scheduled.emptyState.cta', defaultMessage: 'Create a recap'})}
             </Button>
         </div>

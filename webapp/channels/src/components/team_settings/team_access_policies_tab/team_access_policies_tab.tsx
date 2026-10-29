@@ -4,7 +4,9 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
@@ -155,8 +157,8 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                     emphasis='primary'
                     className='TeamAccessPoliciesTab__add-btn'
                     onClick={handleAddPolicy}
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <i className='icon icon-plus'/>
                     <FormattedMessage
                         id='team_settings.access_policies.add_policy'
                         defaultMessage='Add policy'
