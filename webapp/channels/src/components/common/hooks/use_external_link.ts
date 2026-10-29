@@ -61,16 +61,16 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
             return [href, {}];
         }
 
+        if (isSameOrigin(parsedUrl, siteURL)) {
+            return [resolvedHref, {}];
+        }
+
         if (parsedUrl.hostname !== 'mattermost.com' && !parsedUrl.hostname.endsWith('.mattermost.com')) {
             return [href, {}];
         }
 
         if (parsedUrl.protocol === 'mailto:') {
             return [href, {}];
-        }
-
-        if (isSameOrigin(parsedUrl, siteURL)) {
-            return [resolvedHref, {}];
         }
 
         // Determine edition type (enterprise vs team)
