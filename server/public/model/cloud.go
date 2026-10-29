@@ -18,7 +18,7 @@ const (
 	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
 
-// Deprecated: Cloud invoices are no longer exposed by the API.
+// Deprecated: The cloud subscription invoice endpoints have been removed.
 const UpcomingInvoice = "upcoming"
 
 var MockCWS string
@@ -181,9 +181,9 @@ type Subscription struct {
 	Seats      int      `json:"seats"`
 	Status     string   `json:"status"`
 	DNS        string   `json:"dns"`
-	// Deprecated: Cloud invoices are no longer exposed by the API.
+	// Deprecated: Retained for compatibility; the cloud subscription invoice endpoints have been removed.
 	LastInvoice *Invoice `json:"last_invoice"`
-	// Deprecated: Cloud invoices are no longer exposed by the API.
+	// Deprecated: Retained for compatibility; the cloud subscription invoice endpoints have been removed.
 	UpcomingInvoice         *Invoice `json:"upcoming_invoice"`
 	IsFreeTrial             string   `json:"is_free_trial"`
 	TrialEndAt              int64    `json:"trial_end_at"`
@@ -231,7 +231,7 @@ func (s *Subscription) GetWorkSpaceNameFromDNS() string {
 
 // Invoice model represents a cloud invoice
 //
-// Deprecated: Cloud invoices are no longer exposed by the API.
+// Deprecated: The cloud subscription invoice endpoints have been removed.
 type Invoice struct {
 	ID                 string             `json:"id"`
 	Number             string             `json:"number"`
@@ -249,7 +249,7 @@ type Invoice struct {
 
 // InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
 //
-// Deprecated: Cloud invoices are no longer exposed by the API.
+// Deprecated: The cloud subscription invoice endpoints have been removed.
 type InvoiceLineItem struct {
 	PriceID      string         `json:"price_id"`
 	Total        int64          `json:"total"`
