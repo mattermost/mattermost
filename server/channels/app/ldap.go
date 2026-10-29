@@ -272,14 +272,11 @@ func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PublicCertificateFile = model.LdapPublicCertificateName
-
-	if err := cfg.IsValid(); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.LdapSettings.PublicCertificateFile = model.LdapPublicCertificateName
+	}); err != nil {
 		return err
 	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
 
 	return nil
 }
@@ -289,14 +286,11 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PrivateKeyFile = model.LdapPrivateKeyName
-
-	if err := cfg.IsValid(); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.LdapSettings.PrivateKeyFile = model.LdapPrivateKeyName
+	}); err != nil {
 		return err
 	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
 
 	return nil
 }
@@ -313,14 +307,11 @@ func (a *App) RemoveLdapPublicCertificate() *model.AppError {
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PublicCertificateFile = ""
-
-	if err := cfg.IsValid(); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.LdapSettings.PublicCertificateFile = ""
+	}); err != nil {
 		return err
 	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
 
 	return nil
 }
@@ -330,14 +321,11 @@ func (a *App) RemoveLdapPrivateCertificate() *model.AppError {
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PrivateKeyFile = ""
-
-	if err := cfg.IsValid(); err != nil {
+	if _, _, err := a.PatchConfig(func(cfg *model.Config) {
+		*cfg.LdapSettings.PrivateKeyFile = ""
+	}); err != nil {
 		return err
 	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
 
 	return nil
 }
