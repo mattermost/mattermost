@@ -40,12 +40,13 @@ func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 		return field
 	}
 
-	copied := *field
-
 	if !serveV3 {
-		copied.Permissions = nil
-		return &copied
+		projected := a.projectLegacyPermissions(rctx, field, templates)
+		projected.Permissions = nil
+		return projected
 	}
+
+	copied := *field
 
 	isLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
 	// A system admin reads the policy in full even without field.write, so
@@ -133,6 +134,32 @@ func (a *App) linkedFieldMaskingPresence(rctx request.CTX, field *model.Property
 		return nil, false
 	}
 	return maskingPresence(template.Permissions.Masking)
+}
+
+// projectLegacyPermissions is model.ProjectLegacyPermissionsWithTemplate,
+// reading a linked field's template through linkedFieldTemplate. A linked
+// field never carries masking of its own, so when that read fails its own mode
+// would say public; it is reported shared_only instead, as
+// linkedFieldMaskingPresence reports it masked. A field whose own tiers
+// already say source_only keeps that, which is stricter still.
+func (a *App) projectLegacyPermissions(rctx request.CTX, field *model.PropertyField, templates map[string]*model.PropertyField) *model.PropertyField {
+	var template *model.PropertyField
+	templateUnreadable := false
+	if field.Permissions != nil && field.LinkSourceID() != "" {
+		t, err := a.linkedFieldTemplate(rctx, field, templates)
+		if err != nil {
+			rctx.Logger().Error("Failed to resolve linked field's access mode template", mlog.String("field_id", field.ID), mlog.Err(err))
+			templateUnreadable = true
+		}
+		template = t
+	}
+	projected := model.ProjectLegacyPermissionsWithTemplate(field, template)
+	// An absent key means public. projected carries its own copy of Attrs,
+	// so this never touches field's.
+	if _, set := projected.Attrs[model.PropertyAttrsAccessMode]; templateUnreadable && !set {
+		projected.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSharedOnly
+	}
+	return projected
 }
 
 // linkedFieldTemplate returns field's linked template, reading it once per
