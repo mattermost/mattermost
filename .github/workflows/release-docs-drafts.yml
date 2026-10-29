@@ -1,0 +1,69 @@
+name: Release Docs - Drafts
+
+# Drafts for the release manager to review and share; nothing is sent, posted or written.
+# Output goes to the run summary and the release-docs-<task> artifact. See
+# release-docs-task.yml for settings.
+#
+#   drafts              Playbook T-16 and T-15. Claude drafts the blog outline and the
+#                       announcement email from the changelog's Improvements section, the
+#                       milestone's merged PRs and the release's Jira epics; every point
+#                       cites its PR or ticket. Manual only.
+#   release-highlights  Playbook T-0, "Update the Release Highlights deck". The month's slide:
+#                       the server and mobile Jira epics, internal ones left out with a reason,
+#                       each with a docs link and a one-sentence description, plus a
+#                       paste-ready HTML artifact. Runs when a feature release becomes the
+#                       latest release, and by hand. To check it against a past slide,
+#                       dispatch it with v12.0.0 (October 2026) or v11.7.0 (May 2026).
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Which draft'
+        required: false
+        default: drafts
+        type: choice
+        options:
+          - drafts
+          - release-highlights
+      version:
+        description: 'Release version, e.g. v12.2.0'
+        required: true
+        type: string
+      milestone:
+        description: 'drafts: milestone title. Defaults to vX.Y.0.'
+        required: false
+        type: string
+      jira_fix_version:
+        description: 'drafts: Jira fix version, e.g. "v12.2 (December 2026)". Defaults to the version and the month of its Release Day on the calendar.'
+        required: false
+        type: string
+
+permissions: {}
+
+jobs:
+  drafts:
+    if: github.event_name == 'workflow_dispatch' && inputs.task == 'drafts'
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: drafts
+      version: ${{ inputs.version }}
+      mode: dry_run
+      milestone: ${{ inputs.milestone }}
+      jira_fix_version: ${{ inputs.jira_fix_version }}
+    secrets: inherit
+    permissions:
+      contents: read
+
+  release-highlights:
+    if: github.event_name == 'release' || inputs.task == 'release-highlights'
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: release-highlights
+      version: ${{ inputs.version }}
+      mode: dry_run
+    secrets: inherit
+    permissions:
+      contents: read

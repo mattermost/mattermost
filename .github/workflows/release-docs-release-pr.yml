@@ -1,0 +1,50 @@
+name: Release Docs - Release Docs PR
+
+# Playbook T-16: one draft docs PR with the parts code can calculate: the server releases
+# table, the ESR chart (with the next ESR), ESR/PostgreSQL rows, Desktop compatibility and
+# the deploy pages' version strings, plus marked placeholders for the sections a person
+# writes. Runs when a release-X.Y branch is created (its first push; later pushes are
+# skipped). See release-docs-task.yml.
+
+on:
+  push:
+    branches:
+      - 'release-*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v12.2.0'
+        required: true
+        type: string
+      release_date:
+        description: 'Release day (YYYY-MM-DD). Defaults to the Release Dates calendar.'
+        required: false
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+
+permissions: {}
+
+concurrency:
+  group: release-docs-release-docs-${{ inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release-docs:
+    if: github.event_name == 'workflow_dispatch' || github.event.created
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: release-docs
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+      release_date: ${{ inputs.release_date }}
+    secrets: inherit
+    permissions:
+      contents: read

@@ -173,5 +173,24 @@ class UniqueCommitFilterTest(unittest.TestCase):
         self.assertFalse(any("/api/v4/foo" in item for item in result.additions))
 
 
+class BreakingRemovalsTest(unittest.TestCase):
+    def test_removed_config_settings_and_apis_are_breaking(self):
+        results = [
+            checker.CheckResult(label="`config.json` Field Changes", additions=["``A.New``"], removals=["``A.Old``"]),
+            checker.CheckResult(label="API Changes (`api4`)", removals=["``GET /api/v4/foo``"],
+                                changes=["🗑️  Removed API file: `foo.go`"]),
+        ]
+        self.assertEqual(checker.breaking_removals(results),
+                         ["``A.Old``", "``GET /api/v4/foo``", "🗑️  Removed API file: `foo.go`"])
+
+    def test_additions_audit_events_and_go_bumps_are_not(self):
+        results = [
+            checker.CheckResult(label="`config.json` Field Changes", additions=["``A.New``"]),
+            checker.CheckResult(label="Audit Log Event Changes", removals=["``oldEvent``"]),
+            checker.CheckResult(label="Go Runtime Version", changes=["Go 1.25 -> 1.26"]),
+        ]
+        self.assertEqual(checker.breaking_removals(results), [])
+
+
 if __name__ == "__main__":
     unittest.main()

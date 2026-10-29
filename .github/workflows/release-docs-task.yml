@@ -1,0 +1,152 @@
+name: Release Docs Task
+
+# One Phase 3 release docs or comms task for one version, shared by the release-docs-*.yml
+# workflows. The code is in .github/scripts/release_docs/.
+#
+# Mode: PHASE3_MODE (variable) is dry_run (the default) or live; a manual run's mode input
+# overrides it. dry_run writes the result to the run summary and the release-docs-<task>
+# artifact and changes nothing. live opens or updates a draft PR on the branch
+# release-agent/<version>/<task>, labelled release-agent, or sets the release description.
+# A missing input is written as TODO(release-agent) and fails the run.
+#
+# Settings (Settings → Secrets and variables → Actions):
+#   PHASE3_MODE                     (variable) dry_run or live
+#   RELEASE_DOCS_APP_ID             (variable) GitHub App with contents and pull requests write on
+#   RELEASE_DOCS_PRIVATE_KEY        (secret)   mattermost/mattermost, mattermost/notices and
+#                                              mattermost/docker. Required for live runs: PRs opened
+#                                              with GITHUB_TOKEN start no CI. Without it, dry runs
+#                                              read with GITHUB_TOKEN.
+#   CHANGELOG_ESR_VERSIONS          (variable) ESR lines, e.g. "v10.11,v11.7,v12.4"
+#   RELEASE_AGENT_CALENDAR_ICS_URL  (secret or variable) Release Dates calendar, shared with the release agent
+#   ANTHROPIC_API_KEY               (secret)   highlights, breaking-change notices, blog and email drafts
+#   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): Jira versions and epics
+#                                              for drafts and release-highlights
+#   CHANGELOG_READ_CLIENT_ID        (variable) and CHANGELOG_READ_PRIVATE_KEY (secret): reads
+#                                              mattermost/enterprise PRs for the drafts
+
+on:
+  workflow_call:
+    inputs:
+      task:
+        required: true
+        type: string
+      version:
+        description: Version, or the milestone for breaking-changes. Empty on release and branch events.
+        required: false
+        type: string
+        default: ''
+      mode:
+        required: false
+        type: string
+        default: ''
+      release_date:
+        required: false
+        type: string
+        default: ''
+      milestone:
+        required: false
+        type: string
+        default: ''
+      jira_fix_version:
+        required: false
+        type: string
+        default: ''
+
+permissions: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Resolve version and mode
+        id: resolve
+        working-directory: .github/scripts
+        env:
+          TASK: ${{ inputs.task }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_MODE: ${{ inputs.mode != 'default' && inputs.mode || '' }}
+          PHASE3_MODE: ${{ vars.PHASE3_MODE }}
+        run: python3 -m release_docs resolve "$TASK"
+
+      # Releases from the delivery pipeline are made with an app token, so they start this
+      # workflow; events made with the default GITHUB_TOKEN start no workflows.
+      - name: Get release docs token
+        id: app
+        if: steps.resolve.outputs.run == 'true' && vars.RELEASE_DOCS_APP_ID != ''
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          # GitHub accepts the app ID or the client ID here.
+          client-id: ${{ vars.RELEASE_DOCS_APP_ID }}
+          private-key: ${{ secrets.RELEASE_DOCS_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost,notices,docker
+
+      - name: Get read token (enterprise PRs)
+        id: read
+        if: steps.resolve.outputs.run == 'true' && contains(fromJSON('["breaking-changes","drafts"]'), inputs.task) && vars.CHANGELOG_READ_CLIENT_ID != ''
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
+          owner: mattermost
+
+      - name: Require the app token for live runs
+        if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && steps.app.outputs.token == ''
+        run: |
+          echo "::error::Live runs need RELEASE_DOCS_APP_ID and RELEASE_DOCS_PRIVATE_KEY: PRs opened with GITHUB_TOKEN start no CI."
+          exit 1
+
+      - name: Install dependencies
+        if: steps.resolve.outputs.run == 'true'
+        run: pip install requests==2.32.3 --quiet
+
+      - name: Run ${{ inputs.task }}
+        if: steps.resolve.outputs.run == 'true'
+        working-directory: .github/scripts
+        env:
+          TASK: ${{ inputs.task }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+          MODE: ${{ steps.resolve.outputs.mode }}
+          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          READ_TOKEN: ${{ steps.read.outputs.token }}
+          REPOS: ${{ steps.read.outputs.token && 'mattermost/mattermost,mattermost/enterprise' || 'mattermost/mattermost' }}
+          ESR_VERSIONS: ${{ vars.CHANGELOG_ESR_VERSIONS }}
+          CALENDAR_ICS_URL: ${{ secrets.RELEASE_AGENT_CALENDAR_ICS_URL || vars.RELEASE_AGENT_CALENDAR_ICS_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JIRA_EMAIL: ${{ vars.RELEASE_AGENT_JIRA_EMAIL }}
+          JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
+          JIRA_FIX_VERSION: ${{ inputs.jira_fix_version }}
+          RELEASE_DATE: ${{ inputs.release_date }}
+          MILESTONE: ${{ inputs.milestone }}
+          OUTPUT_DIR: ${{ runner.temp }}/release-docs-output
+        run: python3 -m release_docs run "$TASK"
+
+      - name: Upload output
+        if: always() && steps.resolve.outputs.run == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: release-docs-${{ inputs.task }}
+          path: ${{ runner.temp }}/release-docs-output/
+          if-no-files-found: ignore
+
+      - name: Not run
+        if: steps.resolve.outputs.run == 'false'
+        env:
+          REASON: ${{ steps.resolve.outputs.reason }}
+        run: |
+          echo "Skipped: $REASON" | tee -a "$GITHUB_STEP_SUMMARY"

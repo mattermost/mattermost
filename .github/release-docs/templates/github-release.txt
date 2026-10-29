@@ -1,0 +1,1 @@
+Mattermost Platform {{release_kind}} {{version}} contains multiple new quality of life improvements, including {{highlights}}.

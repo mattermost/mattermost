@@ -4,12 +4,23 @@ name: Changelog Link Check
 # is not served, or the #anchor is not a heading or id on it. Pages are rebuilt from
 # the docs sources in the PR's merge commit (the docs/main and docs/develop paths, slugs
 # and the legacy redirects), so a page added in the same PR counts. Only lines the PR
-# adds are checked.
+# adds are checked. On the release docs PR (branch release-agent/<version>/release-docs)
+# every page it changes is checked too.
 
 on:
   pull_request:
     paths:
       - "docs/main/product-overview/mattermost-v*-changelog.mdx"
+      # The pages the release docs PR changes; see release_docs_pr.FILES.
+      - "docs/main/product-overview/mattermost-server-releases.mdx"
+      - "docs/main/product-overview/release-policy.mdx"
+      - "docs/main/product-overview/mattermost-desktop-releases.mdx"
+      - "docs/main/deployment-guide/software-hardware-requirements.mdx"
+      - "docs/main/deployment-guide/server/linux/deploy-rhel.mdx"
+      - "docs/main/deployment-guide/server/linux/deploy-tar.mdx"
+      - "docs/main/product-overview/ui-ada-changelog.mdx"
+      - "docs/main/administration-guide/upgrade/important-upgrade-notes.mdx"
+      - "docs/main/product-overview/deprecated-features.mdx"
 
 permissions:
   contents: read
@@ -31,4 +42,11 @@ jobs:
           fetch-depth: 2
 
       - name: Check links added to the changelog
-        run: python3 .github/scripts/changelog_release.py check-links HEAD^1
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          paths=("docs/main/product-overview/mattermost-v*-changelog.mdx")
+          case "$HEAD_REF" in
+            release-agent/*/release-docs) paths+=("docs/main") ;;
+          esac
+          python3 .github/scripts/changelog_release.py check-links HEAD^1 "${paths[@]}"
