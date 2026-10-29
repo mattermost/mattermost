@@ -13,7 +13,7 @@ export default class DeletePostConfirmationDialog {
     constructor(container: Locator) {
         this.container = container;
 
-        this.cancelButton = container.locator('button.btn.btn-tertiary');
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
         this.confirmButton = container.locator('button#deletePostModalButton');
     }
 

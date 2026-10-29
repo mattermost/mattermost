@@ -4,7 +4,6 @@
 import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {TeamMembership, Team} from '@mattermost/types/teams';
 import type {UserProfile, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
@@ -241,7 +240,7 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
                 button={
                     <ToggleModalButton
                         id='addTeamMembers'
-                        className={buttonClassNames({emphasis: 'primary'})}
+                        emphasis='primary'
                         modalId={ModalIdentifiers.ADD_USER_TO_TEAM}
                         dialogType={AddUsersToTeamModal}
                         disabled={isDisabled}

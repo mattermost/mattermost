@@ -65,6 +65,31 @@ func TestCreateCPAField(t *testing.T) {
 	}, "an invalid field should be rejected")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		createdField, resp, err := client.CreateCPAField(context.Background(), field)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.patch.permissions_not_supported.app_error")
+		require.Empty(t, createdField)
+
+		fields, _, err := client.ListCPAFields(context.Background())
+		require.NoError(t, err)
+		for _, f := range fields {
+			require.NotEqual(t, field.Name, f.Name)
+		}
+	}, "a field carrying a permissions object should be rejected")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
 		name := celSafeName()

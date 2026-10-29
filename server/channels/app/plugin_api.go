@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type PluginAPI struct {
@@ -966,6 +967,57 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 	return list, appErr
 }
 
+func (api *PluginAPI) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	if !model.IsValidId(threadID) {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	followers, err := api.app.Srv().Store().Thread().GetThreadFollowers(threadID, true)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.get_thread_followers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(followers) == 0 {
+		return followers, nil
+	}
+
+	// A deactivated user keeps their memberships, so they are dropped here.
+	users, appErr := api.app.GetUsersByIds(api.ctx, followers, &store.UserGetByIdsOpts{IsAdmin: true})
+	if appErr != nil {
+		return nil, appErr
+	}
+	active := make([]string, 0, len(users))
+	for _, user := range users {
+		if user.DeleteAt == 0 {
+			active = append(active, user.Id)
+		}
+	}
+	return active, nil
+}
+
+func (api *PluginAPI) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	if !model.IsValidId(userID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !model.IsValidId(threadID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	// The membership table doesn't reference Users, so an unknown id would be stored as a follower.
+	if _, appErr := api.app.GetUser(api.ctx, userID); appErr != nil {
+		return appErr
+	}
+	post, appErr := api.app.GetSinglePost(api.ctx, threadID, false)
+	if appErr != nil {
+		return appErr
+	}
+	if post.RootId != "" {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.not_root_post.app_error", nil, "", http.StatusBadRequest)
+	}
+	channel, appErr := api.app.GetChannel(api.ctx, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+	return api.app.UpdateThreadFollowForUser(userID, channel.TeamId, threadID, following)
+}
+
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
@@ -1012,27 +1064,65 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	// Grant mm_blocks_actions write access only when the plugin's update
-	// actually includes the prop, AND the value passes validation.
-	// Otherwise the freeze in UpdatePost preserves whatever the original
-	// post had — plugins that update unrelated fields don't accidentally
-	// drop or corrupt mm_blocks_actions.
-	allowMmBlocksActionsUpdate := false
-	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
-		if err := model.ValidateMmBlocksActions(post); err != nil {
-			return nil, model.NewAppError("UpdatePost", "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		}
-		allowMmBlocksActionsUpdate = true
-	}
-
 	// Display-identity props are not granted AllowIdentityPropsUpdate: no
 	// render path honors a plugin-authored override (see CreatePost above), so
 	// SanitizeProps' default strip-and-preserve-from-old behavior applies to
 	// plugin edits like any other non-federated caller.
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{
-		SafeUpdate:                 false,
-		AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate,
-	})
+	options := &model.UpdatePostOptions{}
+	if appErr := api.grantPluginMmBlocksActionsUpdate("UpdatePost", post, options); appErr != nil {
+		return nil, appErr
+	}
+	return api.updatePostForPlugin(post, options)
+}
+
+// UpdatePostWithOptions updates a post using the supplied options.
+func (api *PluginAPI) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	options = options.Copy()
+	if options == nil {
+		options = &model.UpdatePostOptions{}
+	}
+
+	if options.FileCreatorID != "" {
+		if !model.IsValidId(options.FileCreatorID) {
+			return nil, model.NewAppError("UpdatePostWithOptions", "plugin.api.update_post_with_options.invalid_file_creator.app_error", nil, "", http.StatusBadRequest)
+		}
+		if _, appErr := api.app.GetUser(api.ctx, options.FileCreatorID); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	if options.AllowMmBlocksActionsUpdate {
+		if appErr := api.rejectInvalidMmBlocksActions("UpdatePostWithOptions", post); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	return api.updatePostForPlugin(post, options)
+}
+
+// grantPluginMmBlocksActionsUpdate sets the grant when the post carries a
+// valid mm_blocks_actions value. An invalid value is an error, so UpdatePost
+// does not save a post that tried to write a bad registry.
+func (api *PluginAPI) grantPluginMmBlocksActionsUpdate(where string, post *model.Post, options *model.UpdatePostOptions) *model.AppError {
+	if post.GetProp(model.PostPropsMmBlocksActions) == nil {
+		return nil
+	}
+	if appErr := api.rejectInvalidMmBlocksActions(where, post); appErr != nil {
+		return appErr
+	}
+	options.AllowMmBlocksActionsUpdate = true
+	return nil
+}
+
+func (api *PluginAPI) rejectInvalidMmBlocksActions(where string, post *model.Post) *model.AppError {
+	if err := model.ValidateMmBlocksActions(post); err != nil {
+		return model.NewAppError(where, "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	return nil
+}
+
+func (api *PluginAPI) updatePostForPlugin(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, options)
 	if post != nil {
 		post = post.ForPlugin()
 	}
