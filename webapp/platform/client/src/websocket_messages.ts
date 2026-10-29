@@ -456,11 +456,6 @@ export type FirstAdminVisitMarketplaceStatusReceived =
         firstAdminVisitMarketplaceStatus: JsonEncodedValue<boolean>;
     }>;
 
-export type HostedCustomerSignupProgressUpdated =
-    BaseWebSocketMessage<WebSocketEvents.HostedCustomerSignupProgressUpdated, {
-        progress: string;
-    }>;
-
 // Custom properties messages
 
 export type CPAFieldCreated = BaseWebSocketMessage<WebSocketEvents.CPAFieldCreated, {
