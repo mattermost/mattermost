@@ -313,10 +313,21 @@ func TestGetHealthFindingsEvaluatedAt(t *testing.T) {
 	th := setupHealthDashboard(t, true)
 
 	muted := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
-	internal := newHealthFinding("SITE_URL_EMPTY", healthcheck.SurfaceInternal)
-	internal.LastSeenAt = muted.LastSeenAt + 1000
-	storeHealthFindings(t, th, muted, internal)
+	storeHealthFindings(t, th, muted)
 	require.NoError(t, th.App.Srv().Store().HealthFinding().Mute(muted.Fingerprint, th.SystemAdminUser.Id, model.GetMillis()))
+
+	now := model.GetMillis()
+	lastSuccess := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusSuccess, CreateAt: now - 2000, LastActivityAt: now - 1000}
+	for _, job := range []*model.Job{
+		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusSuccess, CreateAt: now - 4000, LastActivityAt: now - 3000},
+		lastSuccess,
+		// A run that failed or is still going has not evaluated anything.
+		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusError, CreateAt: now - 500, LastActivityAt: now - 400},
+		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusInProgress, CreateAt: now - 300, LastActivityAt: now - 200},
+	} {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+	}
 
 	for _, tc := range []struct {
 		muted    model.MutedFilter
@@ -331,7 +342,7 @@ func TestGetHealthFindingsEvaluatedAt(t *testing.T) {
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			assert.Equal(t, tc.expected, findingFingerprints(list.Findings))
-			assert.Equal(t, internal.LastSeenAt, list.EvaluatedAt)
+			assert.Equal(t, lastSuccess.LastActivityAt, list.EvaluatedAt)
 		})
 	}
 }
