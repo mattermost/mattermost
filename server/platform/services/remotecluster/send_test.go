@@ -498,9 +498,9 @@ func TestService_sendFrameToRemote_AfterOverrunReply(t *testing.T) {
 	assert.Equal(t, sent, received(), "the remote should have received every send once")
 }
 
-// TestService_sendFileToRemote_AfterOverrunReply covers an upload that follows a reply longer than
-// the length the remote declared, as when an upload goes out right after the reply that created
-// its upload session.
+// TestService_sendFileToRemote_AfterOverrunReply covers an upload that goes out right after the
+// reply that created its upload session, when that reply was longer than the length the remote
+// declared and the remote closes the connection that carried it.
 func TestService_sendFileToRemote_AfterOverrunReply(t *testing.T) {
 	fi := &model.FileInfo{Id: model.NewId(), Name: "test.png", Path: "remote/test.png"}
 	reply, err := json.Marshal(&model.FileInfo{Id: fi.Id, Name: fi.Name})
@@ -512,6 +512,8 @@ func TestService_sendFileToRemote_AfterOverrunReply(t *testing.T) {
 	})
 	defer ts.Close()
 
+	rc := makeRemoteCluster("remote_test_file_overrun_reply", ts.URL, TestTopics)
+
 	service, err := NewRemoteClusterService(newMockServer(t, nil), newMockApp(t, nil))
 	require.NoError(t, err)
 	service.disablePing = true
@@ -520,25 +522,26 @@ func TestService_sendFileToRemote_AfterOverrunReply(t *testing.T) {
 	defer service.Shutdown()
 	defer service.httpClient.CloseIdleConnections()
 
-	var sent []string
-	for i := range 2 {
-		contents := fmt.Sprintf("file contents %d", i+1)
-		sent = append(sent, contents)
-		task := sendFileTask{
-			rc: makeRemoteCluster("remote_test_file_overrun_reply", ts.URL, TestTopics),
-			us: &model.UploadSession{Id: model.NewId(), Path: fi.Path},
-			fi: fi,
-			rp: testReaderProvider{data: []byte(contents)},
-		}
-
-		got, err := service.sendFileToRemote(defaultCallTimeout, task)
-		require.NoError(t, err, "upload %d should reach the remote", i+1)
-		assert.Equal(t, fi.Id, got.Id)
+	frame := &model.RemoteClusterFrame{
+		RemoteId: rc.RemoteId,
+		Msg:      makeRemoteClusterMsg(model.NewId(), NoteContent),
 	}
+	_, err = service.sendFrameToRemote(defaultCallTimeout, rc, frame, fmt.Sprintf("%s/%s", ts.URL, SendMsgURL))
+	require.NoError(t, err)
 
-	assert.Equal(t, int32(1), listener.dropped.Load(),
-		"the second upload should first have been written on the connection the remote closed")
-	assert.Equal(t, sent, received(), "the remote should have received every upload once")
+	contents := "file contents"
+	task := sendFileTask{
+		rc: rc,
+		us: &model.UploadSession{Id: model.NewId(), Path: fi.Path},
+		fi: fi,
+		rp: testReaderProvider{data: []byte(contents)},
+	}
+	got, err := service.sendFileToRemote(defaultCallTimeout, task)
+	require.NoError(t, err)
+	assert.Equal(t, fi.Id, got.Id)
+
+	assert.Zero(t, listener.dropped.Load(), "the upload should not be written on the connection the remote closed")
+	assert.Contains(t, received(), contents, "the remote should have received the upload")
 }
 
 // startOverrunServer starts a remote that replies with reply followed by bytes past its declared

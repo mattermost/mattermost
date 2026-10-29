@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -111,13 +110,6 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	if err != nil {
 		return nil, err
 	}
-	req.GetBody = func() (io.ReadCloser, error) {
-		body, readerErr := task.rp.FileReader(task.fi.Path)
-		if readerErr != nil {
-			return nil, readerErr
-		}
-		return body, nil
-	}
 
 	req.Header.Set(model.HeaderRemoteclusterId, task.rc.RemoteId)
 	req.Header.Set(model.HeaderRemoteclusterToken, task.rc.RemoteToken)
@@ -125,7 +117,7 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	body, err := rcs.sendRemoteRequest(req.WithContext(ctx))
+	body, err := rcs.sendRemoteRequest(rcs.uploadClient, req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
