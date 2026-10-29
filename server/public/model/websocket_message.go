@@ -83,6 +83,7 @@ const (
 	WebsocketEventAcknowledgementAdded                WebsocketEventType = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"
+	// Deprecated: Self-hosted signup has been removed and this event is no longer sent.
 	WebsocketEventHostedCustomerSignupProgressUpdated WebsocketEventType = "hosted_customer_signup_progress_updated"
 	WebsocketEventChannelBookmarkCreated              WebsocketEventType = "channel_bookmark_created"
 	WebsocketEventChannelBookmarkUpdated              WebsocketEventType = "channel_bookmark_updated"

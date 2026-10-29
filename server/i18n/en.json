@@ -4680,11 +4680,6 @@
     "description": "API error when a customer-portal-related endpoint is called on a server that is not Mattermost Enterprise edition; 'Mattermost Enterprise' is a product name."
   },
   {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portal unavailable for self-hosted signup.",
-    "description": "API error when the Mattermost customer portal cannot be reached during self-hosted license signup; 'Portal' is the customer portal; admin audience."
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Failed to send license up for renewal emails",
     "description": "Server error logged/returned when the emails reminding admins that the license is up for renewal fail to send."

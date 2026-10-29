@@ -34,7 +34,6 @@ const (
 	JobTypeTrialNotifyAdmin              = "trial_notify_admin"
 	JobTypePostPersistentNotifications   = "post_persistent_notifications"
 	JobTypeInstallPluginNotifyAdmin      = "install_plugin_notify_admin"
-	JobTypeHostedPurchaseScreening       = "hosted_purchase_screening"
 	JobTypeS3PathMigration               = "s3_path_migration"
 	JobTypeCleanupDesktopTokens          = "cleanup_desktop_tokens"
 	JobTypeDeleteEmptyDraftsMigration    = "delete_empty_drafts_migration"
@@ -61,6 +60,9 @@ const (
 	JobStatusCanceled        = "canceled"
 	JobStatusWarning         = "warning"
 )
+
+// Deprecated: The hosted purchase screening job has been removed.
+const JobTypeHostedPurchaseScreening = "hosted_purchase_screening"
 
 var AllJobTypes = [...]string{
 	JobTypeDataRetention,
