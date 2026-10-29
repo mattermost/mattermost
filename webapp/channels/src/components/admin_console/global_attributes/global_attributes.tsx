@@ -12,6 +12,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
+import {CPA_FIELD_NAME_MAX_RUNES} from 'utils/properties';
 
 import {ATTRIBUTE_DETAILS_ROUTE} from './constants';
 import GlobalAttributesTable from './global_attributes_table';
@@ -89,6 +90,7 @@ const GlobalAttributes = ({disabled = false}: Props) => {
                             placeholder={messages.searchPlaceholder}
                             inputPrefix={<MagnifyIcon size={16}/>}
                             value={searchQuery}
+                            maxLength={CPA_FIELD_NAME_MAX_RUNES}
                             onChange={handleSearchChange}
                             onClear={handleSearchClear}
                             data-testid='global-attributes-search'

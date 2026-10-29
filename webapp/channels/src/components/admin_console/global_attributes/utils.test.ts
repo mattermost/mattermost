@@ -12,7 +12,6 @@ import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_const
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
 import {
     ATTRIBUTE_FIELD_TYPES,
-    appliedResourceTypesByTemplateId,
     buildOptionsAttr,
     createAttributeField,
     createLinkedAttributeField,
@@ -748,28 +747,6 @@ describe('global_attributes/utils', () => {
 
         it('returns an empty string when the name is blank', () => {
             expect(formatAttributeHeadingName('   ')).toBe('');
-        });
-    });
-
-    describe('appliedResourceTypesByTemplateId', () => {
-        it('groups live linked fields by template and keeps Users, Channels, Posts order', () => {
-            const byTemplate = appliedResourceTypesByTemplateId([
-                {id: 'p1', object_type: 'post', linked_field_id: 't1', delete_at: 0} as PropertyField,
-                {id: 'u1', object_type: 'user', linked_field_id: 't1', delete_at: 0} as PropertyField,
-                {id: 'c1', object_type: 'channel', linked_field_id: 't2', delete_at: 0} as PropertyField,
-                {id: 'u2', object_type: 'user', linked_field_id: 't1', delete_at: 0} as PropertyField,
-                {id: 'dead', object_type: 'channel', linked_field_id: 't1', delete_at: 1} as PropertyField,
-            ]);
-
-            expect(byTemplate.t1).toEqual(['user', 'post']);
-            expect(byTemplate.t2).toEqual(['channel']);
-        });
-
-        it('ignores fields without a linked template or a known resource type', () => {
-            expect(appliedResourceTypesByTemplateId([
-                {id: 'orphan', object_type: 'user', delete_at: 0} as PropertyField,
-                {id: 'other', object_type: 'template', linked_field_id: 't1', delete_at: 0} as PropertyField,
-            ])).toEqual({});
         });
     });
 

@@ -172,6 +172,7 @@ import {
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
+import {notifyAttributeFieldChanged} from 'components/admin_console/global_attributes/listing_events';
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
@@ -1566,6 +1567,8 @@ export function handlePropertyFieldCreatedOrUpdated(
             data: {fields: [field]},
         });
 
+        notifyAttributeFieldChanged(field.group_id);
+
         if (isUserAttributeField(doGetState(), field)) {
             if (optionsOmitted) {
                 // The broadcast withheld this field's option list. The cached
@@ -1621,11 +1624,16 @@ export function handlePropertyFieldCreatedOrUpdated(
 export function handlePropertyFieldDeleted(
     msg: WebSocketMessages.PropertyFieldDeleted,
 ): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
+        // Read before the reducer drops the field; the payload itself names no group.
+        const groupId = getPropertyFieldById(doGetState(), msg.data.field_id)?.group_id;
+
         doDispatch({
             type: PropertyTypes.PROPERTY_FIELD_DELETED,
             data: {fieldId: msg.data.field_id},
         });
+
+        notifyAttributeFieldChanged(groupId);
 
         // The payload carries no field, so the group it belonged to is unknown
         // here. The reducer leaves the slice alone for an id it doesn't hold,

@@ -7,7 +7,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -39,6 +41,9 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetLinkedFields", func(t *testing.T) { testGetLinkedFields(t, rctx, ss) })
 	t.Run("UpdateWithLinkedDependents", func(t *testing.T) { testUpdateWithLinkedDependents(t, rctx, ss) })
 	t.Run("SearchByLinkedFieldID", func(t *testing.T) { testSearchByLinkedFieldID(t, rctx, ss) })
+	t.Run("SearchGlobalAttributeListing", func(t *testing.T) { testSearchGlobalAttributeListing(t, rctx, ss) })
+	t.Run("GetLiveLinkedFieldsByObjectTypes", func(t *testing.T) { testGetLiveLinkedFieldsByObjectTypes(t, ss) })
+	t.Run("GetLiveUserFieldsByNames", func(t *testing.T) { testGetLiveUserFieldsByNames(t, ss) })
 	t.Run("OptionStorage", func(t *testing.T) { testPropertyFieldOptionStorage(t, rctx, ss, s) })
 	t.Run("OptionEdges", func(t *testing.T) { testPropertyFieldOptionEdges(t, rctx, ss, s) })
 	t.Run("OptionHierarchy", func(t *testing.T) { testPropertyFieldOptionHierarchy(t, rctx, ss) })
@@ -5346,4 +5351,531 @@ func mustGetOptionEdges(t *testing.T, ss store.Store, fieldID string) []*model.P
 	edges, err := ss.PropertyField().GetOptionEdges(fieldID)
 	require.NoError(t, err)
 	return edges
+}
+
+// listingFixture builds the fields of one Global Attributes listing scenario in a
+// group of its own, so subtests never see each other's rows.
+type listingFixture struct {
+	t       *testing.T
+	ss      store.Store
+	groupID string
+}
+
+func newListingFixture(t *testing.T, ss store.Store) *listingFixture {
+	return &listingFixture{t: t, ss: ss, groupID: model.NewId()}
+}
+
+type listingFieldOption func(*model.PropertyField)
+
+func withAttrs(attrs map[string]any) listingFieldOption {
+	return func(f *model.PropertyField) {
+		if f.Attrs == nil {
+			f.Attrs = model.StringInterface{}
+		}
+		maps.Copy(f.Attrs, attrs)
+	}
+}
+
+func withDisplayName(displayName string) listingFieldOption {
+	return withAttrs(map[string]any{model.PropertyFieldAttrDisplayName: displayName})
+}
+
+func withOwner(ownerType, id string) listingFieldOption {
+	return withAttrs(map[string]any{model.PropertyAttrsOwners: []any{
+		map[string]any{"id": id, "type": ownerType, "scopes": []any{}},
+	}})
+}
+
+func (f *listingFixture) create(groupID, objectType, name string, opts ...listingFieldOption) *model.PropertyField {
+	f.t.Helper()
+	field := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       name,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: objectType,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}
+	for _, opt := range opts {
+		opt(field)
+	}
+	created, err := f.ss.PropertyField().Create(field)
+	require.NoError(f.t, err)
+	return created
+}
+
+func (f *listingFixture) field(objectType, name string, opts ...listingFieldOption) *model.PropertyField {
+	f.t.Helper()
+	return f.create(f.groupID, objectType, name, opts...)
+}
+
+func (f *listingFixture) template(name string, opts ...listingFieldOption) *model.PropertyField {
+	f.t.Helper()
+	return f.field(model.PropertyFieldObjectTypeTemplate, name, opts...)
+}
+
+func (f *listingFixture) linked(template *model.PropertyField, objectType, name string, opts ...listingFieldOption) *model.PropertyField {
+	f.t.Helper()
+	return f.field(objectType, name, append([]listingFieldOption{func(pf *model.PropertyField) {
+		pf.LinkedFieldID = &template.ID
+	}}, opts...)...)
+}
+
+func (f *listingFixture) remove(field *model.PropertyField) {
+	f.t.Helper()
+	require.NoError(f.t, f.ss.PropertyField().Delete(field.GroupID, field.ID))
+}
+
+var allListingResourceTypes = []string{
+	model.PropertyFieldObjectTypeUser,
+	model.PropertyFieldObjectTypeChannel,
+	model.PropertyFieldObjectTypePost,
+}
+
+// search runs the listing query over every resource type, unless mutate narrows
+// it, and returns the matched field names in listing order.
+func (f *listingFixture) search(rctx request.CTX, mutate ...func(*model.GlobalAttributeListingOpts)) []string {
+	f.t.Helper()
+	opts := model.GlobalAttributeListingOpts{
+		GroupID:              f.groupID,
+		AllowedResourceTypes: allListingResourceTypes,
+	}
+	for _, m := range mutate {
+		m(&opts)
+	}
+	fields, err := f.ss.PropertyField().SearchGlobalAttributeListing(rctx, opts)
+	require.NoError(f.t, err)
+
+	names := make([]string, 0, len(fields))
+	for _, field := range fields {
+		names = append(names, field.Name)
+	}
+	return names
+}
+
+func listingTerm(term string) func(*model.GlobalAttributeListingOpts) {
+	return func(o *model.GlobalAttributeListingOpts) { o.Term = term }
+}
+
+func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("row set", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		alpha := f.template("alpha")
+		f.linked(alpha, model.PropertyFieldObjectTypeUser, "alpha_user_child")
+		f.linked(alpha, model.PropertyFieldObjectTypeChannel, "alpha_channel_child")
+		f.template("beta")
+		f.field(model.PropertyFieldObjectTypeUser, "gamma_user")
+		f.field(model.PropertyFieldObjectTypeChannel, "delta_channel")
+		f.field(model.PropertyFieldObjectTypePost, "epsilon_post")
+
+		// None of these are rows.
+		f.field(model.PropertyFieldObjectTypeUser, "zeta_team_target", func(pf *model.PropertyField) {
+			pf.TargetType = string(model.PropertyFieldTargetLevelTeam)
+			pf.TargetID = model.NewId()
+		})
+		f.field(model.PropertyFieldObjectTypeChannel, "eta_channel_target", func(pf *model.PropertyField) {
+			pf.TargetType = string(model.PropertyFieldTargetLevelChannel)
+			pf.TargetID = model.NewId()
+		})
+		f.template("mu_channel_target_template", func(pf *model.PropertyField) {
+			pf.TargetType = string(model.PropertyFieldTargetLevelChannel)
+			pf.TargetID = model.NewId()
+		})
+		f.remove(f.field(model.PropertyFieldObjectTypeUser, "theta_deleted_user"))
+		f.remove(f.template("iota_deleted_template"))
+		f.create(model.NewId(), model.PropertyFieldObjectTypeTemplate, "kappa_other_group_template")
+		f.create(model.NewId(), model.PropertyFieldObjectTypeUser, "lambda_other_group_user")
+
+		t.Run("holds system templates and unlinked system resource fields only", func(t *testing.T) {
+			names := f.search(rctx)
+			require.Equal(t, []string{"alpha", "beta", "delta_channel", "epsilon_post", "gamma_user"}, names)
+		})
+
+		t.Run("leaves out resource fields of a type that is not allowed", func(t *testing.T) {
+			names := f.search(rctx, func(o *model.GlobalAttributeListingOpts) {
+				o.AllowedResourceTypes = []string{model.PropertyFieldObjectTypeUser}
+			})
+			require.Equal(t, []string{"alpha", "beta", "gamma_user"}, names)
+
+			names = f.search(rctx, func(o *model.GlobalAttributeListingOpts) {
+				o.AllowedResourceTypes = []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypePost}
+			})
+			require.Equal(t, []string{"alpha", "beta", "delta_channel", "epsilon_post"}, names)
+		})
+
+		t.Run("holds only templates when no resource type is allowed", func(t *testing.T) {
+			for _, allowed := range [][]string{nil, {}} {
+				names := f.search(rctx, func(o *model.GlobalAttributeListingOpts) {
+					o.AllowedResourceTypes = allowed
+				})
+				require.Equal(t, []string{"alpha", "beta"}, names)
+			}
+		})
+
+		t.Run("returns whole property fields", func(t *testing.T) {
+			fields, err := ss.PropertyField().SearchGlobalAttributeListing(rctx, model.GlobalAttributeListingOpts{
+				GroupID:              f.groupID,
+				Term:                 "alpha",
+				AllowedResourceTypes: allListingResourceTypes,
+			})
+			require.NoError(t, err)
+			require.Len(t, fields, 1)
+			require.Equal(t, alpha.ID, fields[0].ID)
+			require.Equal(t, model.PropertyFieldObjectTypeTemplate, fields[0].ObjectType)
+			require.Equal(t, f.groupID, fields[0].GroupID)
+		})
+
+		t.Run("holds nothing for a group with no fields", func(t *testing.T) {
+			empty := newListingFixture(t, ss)
+			names := empty.search(rctx)
+			require.Empty(t, names)
+		})
+	})
+
+	t.Run("exclude ids", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+		classification := f.template("classification")
+		other := f.template("other")
+		resource := f.field(model.PropertyFieldObjectTypePost, "post_field")
+
+		exclude := func(ids ...string) func(*model.GlobalAttributeListingOpts) {
+			return func(o *model.GlobalAttributeListingOpts) { o.ExcludeIDs = ids }
+		}
+
+		names := f.search(rctx, exclude(classification.ID))
+		require.Equal(t, []string{"other", "post_field"}, names)
+
+		names = f.search(rctx, exclude(classification.ID, resource.ID))
+		require.Equal(t, []string{"other"}, names)
+
+		names = f.search(rctx, exclude(model.NewId()))
+		require.Equal(t, []string{"classification", "other", "post_field"}, names)
+
+		names = f.search(rctx, exclude(classification.ID, other.ID, resource.ID))
+		require.Empty(t, names)
+
+		names = f.search(rctx, listingTerm("classification"), exclude(classification.ID))
+		require.Empty(t, names, "an excluded row stays out when the term matches it")
+	})
+
+	t.Run("term", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+		f.template("csv_export", withDisplayName("Quarterly Report"))
+		f.template("plain_name")
+		f.field(model.PropertyFieldObjectTypeUser, "percent", withDisplayName("50% off"))
+		f.field(model.PropertyFieldObjectTypeUser, "underscore", withDisplayName("a_b"))
+		f.field(model.PropertyFieldObjectTypeUser, "lookalike", withDisplayName("axb"))
+		f.field(model.PropertyFieldObjectTypeUser, "backslash", withDisplayName(`c\d`))
+		f.field(model.PropertyFieldObjectTypeUser, "emptydisplay", withDisplayName(""))
+
+		t.Run("matches the display name", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("quarterly"))
+			require.Equal(t, []string{"csv_export"}, names)
+		})
+
+		t.Run("matches the name even when a display name is set", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("csv"))
+			require.Equal(t, []string{"csv_export"}, names)
+		})
+
+		t.Run("matches a name when the display name is empty", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("emptydisp"))
+			require.Equal(t, []string{"emptydisplay"}, names)
+		})
+
+		t.Run("matches a substring in the middle", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("terly rep"))
+			require.Equal(t, []string{"csv_export"}, names)
+		})
+
+		t.Run("ignores case in the term and the stored value", func(t *testing.T) {
+			for _, term := range []string{"QUARTERLY", "QuArTeRlY", "CSV_EXPORT", "Plain_Name"} {
+				names := f.search(rctx, listingTerm(term))
+				require.Len(t, names, 1, term)
+			}
+		})
+
+		t.Run("matches nothing for an unrelated term", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("zzz-no-such-attribute"))
+			require.Empty(t, names)
+		})
+
+		t.Run("an empty term matches every row", func(t *testing.T) {
+			names := f.search(rctx, listingTerm(""))
+			require.Len(t, names, 7)
+		})
+
+		t.Run("drops an asterisk, the escape character, from the term", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("*"))
+			require.Len(t, names, 7)
+
+			names = f.search(rctx, listingTerm("plain*_name"))
+			require.Equal(t, []string{"plain_name"}, names)
+		})
+
+		t.Run("treats a percent sign literally", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("%"))
+			require.Equal(t, []string{"percent"}, names)
+
+			names = f.search(rctx, listingTerm("50%"))
+			require.Equal(t, []string{"percent"}, names)
+		})
+
+		t.Run("treats an underscore literally", func(t *testing.T) {
+			// Unescaped, "a_b" would also match "axb".
+			names := f.search(rctx, listingTerm("a_b"))
+			require.Equal(t, []string{"underscore"}, names)
+
+			names = f.search(rctx, listingTerm("_"))
+			require.ElementsMatch(t, []string{"csv_export", "plain_name", "underscore"}, names)
+		})
+
+		t.Run("treats a backslash literally", func(t *testing.T) {
+			names := f.search(rctx, listingTerm(`\`))
+			require.Equal(t, []string{"backslash"}, names)
+
+			names = f.search(rctx, listingTerm(`c\d`))
+			require.Equal(t, []string{"backslash"}, names)
+		})
+
+		t.Run("does not let a quote break the query", func(t *testing.T) {
+			names := f.search(rctx, listingTerm(`'; DROP TABLE PropertyFields; --`))
+			require.Empty(t, names)
+		})
+	})
+
+	t.Run("order", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		// The display name leads, falling back to the name, ignoring case.
+		f.template("zzz_name_first_alphabetically", withDisplayName("Aardvark"))
+		f.template("banana")
+		f.template("Cherry")
+		f.template("apple")
+		f.field(model.PropertyFieldObjectTypeUser, "dragonfruit", withDisplayName(""))
+
+		names := f.search(rctx)
+		require.Equal(t, []string{"zzz_name_first_alphabetically", "apple", "banana", "Cherry", "dragonfruit"}, names)
+
+		t.Run("breaks ties on the id", func(t *testing.T) {
+			tied := newListingFixture(t, ss)
+			ids := []string{
+				tied.template("tie_one", withDisplayName("Same")).ID,
+				tied.template("tie_two", withDisplayName("same")).ID,
+				tied.field(model.PropertyFieldObjectTypeUser, "tie_three", withDisplayName("SAME")).ID,
+			}
+			slices.Sort(ids)
+
+			fields, err := ss.PropertyField().SearchGlobalAttributeListing(rctx, model.GlobalAttributeListingOpts{
+				GroupID:              tied.groupID,
+				AllowedResourceTypes: allListingResourceTypes,
+			})
+			require.NoError(t, err)
+			got := make([]string, 0, len(fields))
+			for _, field := range fields {
+				got = append(got, field.ID)
+			}
+			require.Equal(t, ids, got)
+		})
+	})
+
+	t.Run("returns every matching row", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+		var expected []string
+		for i := range model.AccessControlGroupFieldLimit {
+			name := fmt.Sprintf("row_%03d", i)
+			if i%2 == 0 {
+				f.template(name)
+			} else {
+				f.field(model.PropertyFieldObjectTypeUser, name)
+			}
+			expected = append(expected, name)
+		}
+
+		require.Equal(t, expected, f.search(rctx))
+	})
+
+	t.Run("invalid opts", func(t *testing.T) {
+		valid := model.GlobalAttributeListingOpts{GroupID: model.NewId()}
+		for name, mutate := range map[string]func(*model.GlobalAttributeListingOpts){
+			"no group":         func(o *model.GlobalAttributeListingOpts) { o.GroupID = "" },
+			"bad allowed":      func(o *model.GlobalAttributeListingOpts) { o.AllowedResourceTypes = []string{"template"} },
+			"injected allowed": func(o *model.GlobalAttributeListingOpts) { o.AllowedResourceTypes = []string{"user' OR '1'='1"} },
+		} {
+			t.Run(name, func(t *testing.T) {
+				opts := valid
+				mutate(&opts)
+				_, err := ss.PropertyField().SearchGlobalAttributeListing(rctx, opts)
+				require.Error(t, err)
+			})
+		}
+	})
+}
+
+func testGetLiveLinkedFieldsByObjectTypes(t *testing.T, ss store.Store) {
+	f := newListingFixture(t, ss)
+
+	first := f.template("first")
+	second := f.template("second")
+	untouched := f.template("untouched")
+
+	firstUser := f.linked(first, model.PropertyFieldObjectTypeUser, "first_user")
+	firstChannel := f.linked(first, model.PropertyFieldObjectTypeChannel, "first_channel")
+	firstPost := f.linked(first, model.PropertyFieldObjectTypePost, "first_post")
+	secondUser := f.linked(second, model.PropertyFieldObjectTypeUser, "second_user", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+	f.remove(f.linked(second, model.PropertyFieldObjectTypeChannel, "second_channel_deleted"))
+
+	ids := func(fields []*model.PropertyField) []string {
+		out := make([]string, 0, len(fields))
+		for _, field := range fields {
+			out = append(out, field.ID)
+		}
+		return out
+	}
+
+	t.Run("returns live linked fields of the given object types across templates", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID,
+			[]string{first.ID, second.ID, untouched.ID},
+			[]string{model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypeChannel},
+		)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{firstUser.ID, firstChannel.ID, secondUser.ID}, ids(fields))
+	})
+
+	t.Run("leaves out a field of another group linked to the template", func(t *testing.T) {
+		f.create(model.NewId(), model.PropertyFieldObjectTypeUser, "foreign_child", func(pf *model.PropertyField) {
+			pf.LinkedFieldID = &untouched.ID
+		})
+
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{untouched.ID}, allListingResourceTypes)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("leaves out object types that were not asked for", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{first.ID}, []string{model.PropertyFieldObjectTypePost})
+		require.NoError(t, err)
+		require.Equal(t, []string{firstPost.ID}, ids(fields))
+	})
+
+	t.Run("leaves out deleted linked fields", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{second.ID}, allListingResourceTypes)
+		require.NoError(t, err)
+		require.Equal(t, []string{secondUser.ID}, ids(fields))
+	})
+
+	t.Run("carries the linked field's object type, link and attrs", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{second.ID}, []string{model.PropertyFieldObjectTypeUser})
+		require.NoError(t, err)
+		require.Len(t, fields, 1)
+		require.Equal(t, model.PropertyFieldObjectTypeUser, fields[0].ObjectType)
+		require.NotNil(t, fields[0].LinkedFieldID)
+		require.Equal(t, second.ID, *fields[0].LinkedFieldID)
+		require.True(t, model.HasPropertyFieldOwners(fields[0]))
+	})
+
+	t.Run("returns nothing for a template nothing links to", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{untouched.ID}, allListingResourceTypes)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("returns nothing for no templates or no object types", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, nil, allListingResourceTypes)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+
+		fields, err = ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{first.ID}, nil)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+}
+
+func testGetLiveUserFieldsByNames(t *testing.T, ss store.Store) {
+	f := newListingFixture(t, ss)
+
+	template := f.template("clearance_template")
+	alpha := f.field(model.PropertyFieldObjectTypeUser, "Alpha")
+	beta := f.field(model.PropertyFieldObjectTypeUser, "BETA")
+	linked := f.linked(template, model.PropertyFieldObjectTypeUser, "gamma")
+	f.remove(f.field(model.PropertyFieldObjectTypeUser, "delta"))
+	f.field(model.PropertyFieldObjectTypeChannel, "epsilon")
+	f.field(model.PropertyFieldObjectTypeUser, "zeta", func(pf *model.PropertyField) {
+		pf.TargetType = string(model.PropertyFieldTargetLevelTeam)
+		pf.TargetID = model.NewId()
+	})
+	f.create(model.NewId(), model.PropertyFieldObjectTypeUser, "alpha")
+
+	ids := func(fields []*model.PropertyField) []string {
+		out := make([]string, 0, len(fields))
+		for _, field := range fields {
+			out = append(out, field.ID)
+		}
+		return out
+	}
+
+	t.Run("matches names ignoring case in either direction", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"alpha", "Beta"})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{alpha.ID, beta.ID}, ids(fields))
+
+		fields, err = ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{strings.ToUpper("alpha")})
+		require.NoError(t, err)
+		require.Equal(t, []string{alpha.ID}, ids(fields))
+	})
+
+	t.Run("returns option sets like any other read", func(t *testing.T) {
+		selectField := f.field(model.PropertyFieldObjectTypeUser, "eta_select", func(pf *model.PropertyField) {
+			pf.Type = model.PropertyFieldTypeSelect
+			pf.Attrs = model.StringInterface{"options": []map[string]any{{"name": "one"}, {"name": "two"}}}
+		})
+
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"eta_select"})
+		require.NoError(t, err)
+		require.Equal(t, []string{selectField.ID}, ids(fields))
+		require.Len(t, fields[0].Attrs["options"], 2)
+	})
+
+	t.Run("includes a user field linked to a template", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"gamma"})
+		require.NoError(t, err)
+		require.Equal(t, []string{linked.ID}, ids(fields))
+		require.NotNil(t, fields[0].LinkedFieldID)
+		require.Equal(t, template.ID, *fields[0].LinkedFieldID)
+	})
+
+	t.Run("leaves out deleted fields", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"delta"})
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("leaves out fields that are not user fields", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"epsilon", "clearance_template"})
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("leaves out fields that are not system level", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"zeta"})
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("stays within the group", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"alpha"})
+		require.NoError(t, err)
+		require.Len(t, fields, 1)
+		require.Equal(t, f.groupID, fields[0].GroupID)
+	})
+
+	t.Run("returns nothing for no names or unknown names", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, nil)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+
+		fields, err = ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"nonexistent"})
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
 }
