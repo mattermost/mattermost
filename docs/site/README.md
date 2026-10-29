@@ -148,6 +148,15 @@ behavior: it stages `admin_guide.md`/`user_guide.md` as normal (but
 show the full vendored guide content directly, with zero extra clicks,
 instead of just linking out to a separate page.
 
+**Which Agents pages are listed:** `NAV_CHILDREN` in `stage-agents-docs.mjs`
+(keyed by path under the plugin's `docs/`, e.g. `features/managing_agents`)
+decides which staged pages are indexable; every other staged page is
+`unlisted` (`noindex`). The sidebar placement of the listed pages is in
+`gen-documentation-sidebar.mjs` (`ADMIN_CONFIGURE_GROUPS.agents` and
+`buildEndUserGuideSidebar`) via `agentsDocItems()`, which skips, with a
+warning, any page the pinned submodule doesn't contain yet, so bumping the
+submodule and extending these lists can land in either order.
+
 ### Plugin SDK reference generators
 
 Three developer pages render content generated at build time from the plugin SDK's own source

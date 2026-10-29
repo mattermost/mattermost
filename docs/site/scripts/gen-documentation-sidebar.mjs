@@ -16,6 +16,24 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const SITE_ROOT = resolve(HERE, '..');
 const REPO_ROOT = resolve(SITE_ROOT, '..');
 const SRC = join(REPO_ROOT, 'main');
+
+// Sidebar entries for pages staged from the Agents plugin submodule into
+// main/agents/docs/ (see stage-agents-docs.mjs). The pinned submodule can lag
+// the plugin repo, so a page listed here may not exist yet: skip it with a
+// warning instead of failing the build. `id` is the full doc id, e.g.
+// 'agents/docs/mcp_server'. `label` overrides the staged page's title.
+function agentsDocItems(specs) {
+  const items = [];
+  for (const spec of specs) {
+    const {id, label} = typeof spec === 'string' ? {id: spec} : spec;
+    if (!existsSync(join(SRC, `${id}.md`)) && !existsSync(join(SRC, `${id}.mdx`))) {
+      console.warn(`[sidebar] WARN: ${id} was not staged from the Agents plugin docs (submodule too old?) — skipping it in the sidebar.`);
+      continue;
+    }
+    items.push(label ? {doc: id, label} : {doc: id});
+  }
+  return items;
+}
 const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 
 // ===========================================================================
@@ -426,11 +444,15 @@ const ADMIN_CONFIGURE_GROUPS = {
   agents: {
     label: 'AI agents',
     landing: 'agents-admin-guide',
-    items: [
-      {doc: 'agents/docs/providers'},
-      {doc: 'agents/docs/aws_bedrock_setup'},
-      {doc: 'agents/docs/sovereign_ai'},
-    ],
+    items: agentsDocItems([
+      'agents/docs/providers',
+      'agents/docs/aws_bedrock_setup',
+      'agents/docs/sovereign_ai',
+      {id: 'agents/docs/mcp_server', label: 'Mattermost MCP server'},
+      {id: 'agents/docs/features/managing_agents', label: 'Manage agents'},
+      {id: 'agents/docs/features/multiplayer_tool_calling', label: 'Multiplayer tool calling'},
+      {id: 'agents/docs/upgrading_to_2.0', label: 'Upgrade to Agents 2.0'},
+    ]),
   },
 };
 
@@ -2055,8 +2077,15 @@ function buildEndUserGuideSidebar(autoCat) {
   // the plugin submodule and gitignored, so its frontmatter title can't be
   // corrected in this repo.
   const promoted = promoteDocToCategory(autoCat.items, 'end-user-guide/agents', [
-    {doc: 'agents/docs/usage_tips', label: 'Agents usage tips and best practices'},
+    ...agentsDocItems([
+      {id: 'agents/docs/personal_agent', label: 'Use Agents as your personal AI assistant'},
+      {id: 'agents/docs/usage_tips', label: 'Agents usage tips and best practices'},
+    ]),
     'end-user-guide/collaborate/agents-context-management',
+    ...agentsDocItems([
+      {id: 'agents/docs/features/custom_prompts', label: 'Custom prompts'},
+      {id: 'agents/docs/features/channel_summaries', label: 'Channel summaries'},
+    ]),
   ]);
   if (!promoted) {
     console.warn('[sidebar] WARN: End User Guide "agents" doc not found — Agents child pages were not nested.');
