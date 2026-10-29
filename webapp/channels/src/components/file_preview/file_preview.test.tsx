@@ -32,7 +32,6 @@ describe('FilePreview', () => {
             size: 100,
             mime_type: '',
             clientId: '',
-            archived: false,
         },
     ];
     const uploadsInProgress = ['clientID_1'];
@@ -54,7 +53,6 @@ describe('FilePreview', () => {
             size: 100,
             mime_type: '',
             clientId: '',
-            archived: false,
         },
     };
 
@@ -174,7 +172,7 @@ describe('FilePreview', () => {
         });
     });
 
-    /** Direct handler coverage: thumbnails for archived/deleted files are non-links, but guards must stay aligned. */
+    /** Direct handler coverage: thumbnails for deleted files are non-links, but guards must stay aligned. */
     const thumbnailClickMouseEvent = () =>
         ({
             preventDefault: jest.fn(),
@@ -182,22 +180,6 @@ describe('FilePreview', () => {
             blur: jest.fn(),
             target: document.createElement('a'),
         }) as unknown as React.MouseEvent<HTMLElement>;
-
-    test('should not open preview modal via handler when attachment is archived', () => {
-        const openModalFn = jest.fn();
-        const archivedInfos = [{...fileInfos[0], archived: true}];
-        const instance = new FilePreview({
-            enableSVGs: false,
-            fileInfos: archivedInfos,
-            uploadsInProgress: [],
-            uploadsProgressPercent: {},
-            actions: {openModal: openModalFn},
-        });
-
-        instance.handleThumbnailPreviewClick(thumbnailClickMouseEvent(), 0);
-
-        expect(openModalFn).not.toHaveBeenCalled();
-    });
 
     test('should not open preview modal via handler when attachment has delete_at set', () => {
         const openModalFn = jest.fn();
@@ -215,19 +197,8 @@ describe('FilePreview', () => {
         expect(openModalFn).not.toHaveBeenCalled();
     });
 
-    test('should render non-interactive thumbnail wrapper when attachment is archived or deleted', () => {
-        const {container, rerender} = renderWithContext(
-            <FilePreview
-                {...baseProps}
-                fileInfos={[{...fileInfos[0], archived: true}]}
-                uploadsInProgress={[]}
-            />,
-        );
-
-        expect(container.querySelector('.post-image__thumbnail')).toBeTruthy();
-        expect(container.querySelector('a.post-image__thumbnail')).not.toBeInTheDocument();
-
-        rerender(
+    test('should render non-interactive thumbnail wrapper when attachment is deleted', () => {
+        const {container} = renderWithContext(
             <FilePreview
                 {...baseProps}
                 fileInfos={[{...fileInfos[0], delete_at: 1}]}
@@ -235,6 +206,7 @@ describe('FilePreview', () => {
             />,
         );
 
+        expect(container.querySelector('.post-image__thumbnail')).toBeTruthy();
         expect(container.querySelector('a.post-image__thumbnail')).not.toBeInTheDocument();
         expect(screen.queryAllByRole('link', {name: /file thumbnail/i})).toHaveLength(0);
     });

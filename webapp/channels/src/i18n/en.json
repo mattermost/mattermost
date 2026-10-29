@@ -34947,22 +34947,6 @@
     "defaultMessage": "Add **{email}**",
     "description": "Option shown in the invite-people input to add the typed email address as an invitee; {email} is that address; ** is markdown bold."
   },
-  "workspace_limits.archived_file.archived": {
-    "defaultMessage": "This file is archived",
-    "description": "Label on a file attachment that is no longer available because it was archived due to workspace storage limits."
-  },
-  "workspace_limits.archived_file.archived_compact": {
-    "defaultMessage": "(archived)",
-    "description": "Parenthetical tag shown on a file attachment that was archived because the Cloud Free plan's storage limit was exceeded; compact inline space."
-  },
-  "workspace_limits.archived_file.tooltip_description": {
-    "defaultMessage": "Your workspace has hit the file storage limit of {storageLimit}. To view this again, upgrade to a paid plan",
-    "description": "Tooltip body on a file attachment that was archived because the Cloud free plan's storage limit was reached; {storageLimit} is a formatted size such as '10GB'."
-  },
-  "workspace_limits.archived_file.tooltip_title": {
-    "defaultMessage": "Unarchive this file by upgrading",
-    "description": "Tooltip title on an archived file attachment prompting an upgrade to a paid plan to restore access."
-  },
   "workspace_limits.file_storage": {
     "defaultMessage": "File storage",
     "description": "Name of the file storage usage meter in the cloud workspace limits panel; compact space."
