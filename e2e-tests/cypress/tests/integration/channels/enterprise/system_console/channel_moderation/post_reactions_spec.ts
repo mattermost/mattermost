@@ -20,6 +20,7 @@ import {
     enablePermission,
     goToPermissionsAndCreateTeamOverrideScheme,
     goToSystemScheme,
+    resetSystemSchemePermissionsToDefault,
     saveConfigForChannel,
     saveConfigForScheme,
     visitChannel,
@@ -75,8 +76,9 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // # Check Guest user should not have the permission to react to any post on a channel when the option is removed.
         // * Guest user should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            });
         });
 
         // # Visit test channel configuration page and enable post reactions for guest and save
@@ -89,8 +91,9 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // # Check Guest user should have the permission to react to any post on a channel when the option is allowed.
         // * Guest user should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            });
         });
     });
 
@@ -107,8 +110,9 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // # Check Member user should not have the permission to react to any post on a channel when the option is removed.
         // * Member user should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            });
         });
 
         // # Visit test Channel configuration page and enable post reactions for members and save
@@ -122,12 +126,18 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // # Check Member user should have the permission to react to any post on a channel when the option is allowed.
         // * Member user should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            });
         });
     });
 
     it('MM-T1545 Post Reactions option removed for Guests and Members in System Scheme', () => {
+        // # Other spec files sharing this server session (e.g. ones that edit the System
+        // # Scheme) may leave Post Reactions already toggled off; reset to the default
+        // # (checked) state first so the clicks below are guaranteed to disable it.
+        resetSystemSchemePermissionsToDefault();
+
         // # Login as sysadmin and visit the Permissions page in the system console.
         // # Edit the System Scheme and remove the Post Reaction option for Guests & Save.
         goToSystemScheme();
@@ -166,8 +176,9 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // # Check Guest User should not have the permission to react to any post on any channel when the option is removed from the System Scheme.
         // * Guest user should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            });
         });
 
         // # Login as a Member user and visit the same channel
@@ -176,14 +187,20 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // # Check Member should not have the permission to react to any post on any channel when the option is removed from the System Scheme.
         // * Member user should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            });
         });
     });
 
     // GUEST PERMISSIONS DON'T EXIST ON TEAM OVERRIDE SCHEMES SO GUEST PORTION NOT IMPLEMENTED!
     // ONLY THE MEMBERS PORTION OF THIS TEST IS IMPLEMENTED
     it('MM-T1546_4 Post Reactions option removed for Guests & Members in Team Override Scheme', () => {
+        // # The previous test (MM-T1545) leaves Post Reactions disabled in the
+        // # System Scheme; a new team override scheme inherits that, so reset it
+        // # first to get the default (checked) state this test expects.
+        resetSystemSchemePermissionsToDefault();
+
         const teamOverrideSchemeName = `post_reactions_${getRandomId()}`;
 
         // # Create a new team override scheme
@@ -192,7 +209,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         visitChannelConfigPage(testChannel);
 
         // * Assert that post reaction is disabled for members
-        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('have.class', 'checkbox checked');
+        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('be.checked');
 
         // # Login as a Member user and visit the same channel
         visitChannel(regularUser, testChannel, testTeam);
@@ -200,8 +217,9 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // # Check Member should have the permission to react to any post on any channel in that team
         // * User should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            });
         });
 
         // # Go to system admin page and then go to the system scheme and remove post reaction option for all members and save
@@ -215,7 +233,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         visitChannelConfigPage(testChannel);
 
         // * Assert that post reaction is disabled for members
-        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('have.class', 'checkbox disabled');
+        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('be.disabled');
 
         // # Login as a Member user and visit the same channel
         visitChannel(regularUser, testChannel, testTeam);
@@ -223,8 +241,9 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // # Check Member should not have the permission to react to any post on any channel in that team
         // * User should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            });
         });
     });
 });
