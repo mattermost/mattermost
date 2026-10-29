@@ -1,12 +1,6 @@
 .IPFiltering {
     height: 100%;
 
-    .admin-console-save {
-        .btn.btn-primary:disabled {
-            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
-        }
-    }
-
     // Both EnableSectionContent and EditSection are real AdminPanels now —
     // width/chrome come from the panel itself, this just stacks them with gap.
     .MainPanel {

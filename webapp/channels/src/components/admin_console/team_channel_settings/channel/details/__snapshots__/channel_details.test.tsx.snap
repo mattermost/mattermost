@@ -95,13 +95,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="_admin-panel-footer__left_13680_20"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -403,10 +429,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="style--none btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   id="addGroupsToChannelToggle"
+                  type="button"
                 >
-                  Add Group
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add Group
+                  </span>
                 </button>
               </div>
             </div>
@@ -464,25 +495,33 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   1 - 1 of 1
                 </div>
                 <button
-                  class="btn btn-tertiary disabled"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
                   disabled=""
                   type="button"
                 >
-                  <i
-                    class="icon icon-chevron-left"
-                    title="Previous Icon"
-                  />
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    <i
+                      class="icon icon-chevron-left"
+                      title="Previous Icon"
+                    />
+                  </span>
                 </button>
                 <button
-                  class="btn btn-tertiary disabled"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
                   data-testid="page-link-next"
                   disabled=""
                   type="button"
                 >
-                  <i
-                    class="icon icon-chevron-right"
-                    title="Next Icon"
-                  />
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    <i
+                      class="icon icon-chevron-right"
+                      title="Next Icon"
+                    />
+                  </span>
                 </button>
               </div>
             </div>
@@ -497,22 +536,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -617,13 +662,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="_admin-panel-footer__left_13680_20"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -925,10 +996,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="style--none btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   id="addGroupsToChannelToggle"
+                  type="button"
                 >
-                  Add Group
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add Group
+                  </span>
                 </button>
               </div>
             </div>
@@ -986,25 +1062,33 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   1 - 1 of 1
                 </div>
                 <button
-                  class="btn btn-tertiary disabled"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
                   disabled=""
                   type="button"
                 >
-                  <i
-                    class="icon icon-chevron-left"
-                    title="Previous Icon"
-                  />
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    <i
+                      class="icon icon-chevron-left"
+                      title="Previous Icon"
+                    />
+                  </span>
                 </button>
                 <button
-                  class="btn btn-tertiary disabled"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
                   data-testid="page-link-next"
                   disabled=""
                   type="button"
                 >
-                  <i
-                    class="icon icon-chevron-right"
-                    title="Next Icon"
-                  />
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    <i
+                      class="icon icon-chevron-right"
+                      title="Next Icon"
+                    />
+                  </span>
                 </button>
               </div>
             </div>
@@ -1019,22 +1103,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -1140,13 +1230,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="_admin-panel-footer__left_13680_20"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1364,22 +1480,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -1484,13 +1606,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="_admin-panel-footer__left_13680_20"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1708,22 +1856,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -1829,13 +1983,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="_admin-panel-footer__left_13680_20"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -2013,22 +2193,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -2133,13 +2319,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="_admin-panel-footer__left_13680_20"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -2317,22 +2529,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"

@@ -4,8 +4,10 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {ArchiveArrowUpOutlineIcon, ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
 import {AdminPanelFooter} from '@mattermost/compass-ui/components/admin-panel-footer';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
@@ -61,11 +63,15 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                         <Button
                             type='button'
                             emphasis='secondary'
-                            variant={isArchived ? undefined : 'destructive'}
+                            destructive={!isArchived}
                             disabled={isDisabled}
                             onClick={props.onToggleArchive}
+                            leadingIcon={(
+                                <Icon
+                                    glyph={isArchived ? <ArchiveArrowUpOutlineIcon/> : <ArchiveOutlineIcon/>}
+                                />
+                            )}
                         >
-                            {isArchived ? <i className='icon icon-archive-arrow-up-outline'/> : <i className='icon icon-archive-outline'/>}
                             <FormattedMessage {...archiveBtn}/>
                         </Button>
                     }

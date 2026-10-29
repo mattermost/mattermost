@@ -5,7 +5,8 @@ import React, {useEffect, useState, memo, useCallback} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {RefreshIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Audit} from '@mattermost/types/audits';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -89,8 +90,8 @@ const Audits = ({
                         type='button'
                         emphasis='tertiary'
                         onClick={reload}
+                        leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
                     >
-                        <RefreshIcon size={16}/>
                         <FormattedMessage {...messages.reload}/>
                     </Button>
                 }

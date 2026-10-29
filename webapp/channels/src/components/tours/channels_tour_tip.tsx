@@ -5,6 +5,8 @@ import type {Placement} from '@floating-ui/react';
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {PunchOutCoordsHeightAndWidth} from '@mattermost/components';
 import {TourTip} from '@mattermost/components';
 
@@ -72,46 +74,39 @@ export const ChannelsTourTip = ({
     } = useTourTipManager(tourCategory);
 
     const prevBtn = (
-        <>
-            <i className='icon icon-chevron-left'/>
-            <FormattedMessage
-                id='generic.previous'
-                defaultMessage='Previous'
-            />
-        </>
+        <FormattedMessage
+            id='generic.previous'
+            defaultMessage='Previous'
+        />
     );
 
-    const nextBtn = (): JSX.Element => {
-        let buttonText = (
-            <>
-                <FormattedMessage
-                    id={'tutorial_tip.ok'}
-                    defaultMessage={'Next'}
-                />
-                <i className='icon icon-chevron-right'/>
-            </>
+    const lastStep = getLastStep(tourSteps);
+    let nextBtn = (
+        <FormattedMessage
+            id='tutorial_tip.ok'
+            defaultMessage='Next'
+        />
+    );
+    let nextTrailingIcon: JSX.Element | undefined = (
+        <Icon glyph={<ChevronRightIcon/>}/>
+    );
+    if (singleTip) {
+        nextBtn = (
+            <FormattedMessage
+                id='tutorial_tip.got_it'
+                defaultMessage='Got it'
+            />
         );
-        if (singleTip) {
-            buttonText = (
-                <FormattedMessage
-                    id={'tutorial_tip.got_it'}
-                    defaultMessage={'Got it'}
-                />
-            );
-            return buttonText;
-        }
-
-        const lastStep = getLastStep(tourSteps);
-        if (currentStep === lastStep) {
-            buttonText = (
-                <FormattedMessage
-                    id={'tutorial_tip.done'}
-                    defaultMessage={'Done'}
-                />
-            );
-        }
-        return buttonText;
-    };
+        nextTrailingIcon = undefined;
+    } else if (currentStep === lastStep) {
+        nextBtn = (
+            <FormattedMessage
+                id='tutorial_tip.done'
+                defaultMessage='Done'
+            />
+        );
+        nextTrailingIcon = undefined;
+    }
 
     return (
         <TourTip
@@ -122,8 +117,10 @@ export const ChannelsTourTip = ({
             singleTip={singleTip}
             imageURL={imageURL}
             overlayPunchOut={overlayPunchOut}
-            nextBtn={nextBtn()}
+            nextBtn={nextBtn}
+            nextTrailingIcon={nextTrailingIcon}
             prevBtn={singleTip ? undefined : prevBtn}
+            prevLeadingIcon={singleTip ? undefined : <Icon glyph={<ChevronLeftIcon/>}/>}
             step={currentStep}
             placement={placement}
             pulsatingDotPlacement={pulsatingDotPlacement}

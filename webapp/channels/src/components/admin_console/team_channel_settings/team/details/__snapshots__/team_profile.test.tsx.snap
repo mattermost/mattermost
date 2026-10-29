@@ -3,492 +3,6 @@
 exports[`admin_console/team_channel_settings/team/TeamProfile should match snapshot (not cloud, freemium disabled 1`] = `
 <div>
   <section
-    aria-labelledby="_r_5_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
-    id="team_profile"
-  >
-    <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
-    >
-      <div
-        class="_admin-panel-header__main_19tix_10"
-      >
-        <div
-          class="_admin-panel-header__start_19tix_19"
-        >
-          <div
-            class="_admin-panel-header__title-stack_19tix_37"
-          >
-            <div
-              class="_admin-panel-header__title-row_19tix_46"
-            >
-              <h2
-                class="_admin-panel-header__title_19tix_37"
-                id="_r_5_"
-              >
-                Team Profile
-              </h2>
-            </div>
-            <p
-              class="_admin-panel-header__subtitle_19tix_66"
-            >
-              Summary of the team, including team name and description.
-            </p>
-          </div>
-        </div>
-      </div>
-    </header>
-    <div
-      class="_admin-panel__body_iwm08_25"
-    >
-      <div
-        class="d-flex"
-      >
-        <div
-          class="large-team-image-col"
-        >
-          <div
-            class="TeamIcon TeamIcon__lg no-hover"
-          >
-            <div
-              class="TeamIcon__content no-hover"
-            >
-              <div
-                aria-label="name Team Initials"
-                class="TeamIcon__initials TeamIcon__initials__lg"
-                data-testid="teamIconInitial"
-                role="img"
-              >
-                na
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="team-desc-col team-desc-col--edit"
-        >
-          <div
-            class="row row-bottom-padding"
-          >
-            <div
-              class="Input_container"
-            >
-              <div
-                class="Input_fieldset Input_fieldset___legend"
-                data-testid="input-wrapper"
-              >
-                <label
-                  class="Input_legend Input_legend___focus"
-                  for="input_"
-                >
-                                          
-                  Team Name
-                </label>
-                <div
-                  class="Input_wrapper"
-                >
-                  <input
-                    aria-label="Team Name"
-                    class="Input form-control medium Input__focus"
-                    data-testid="teamNameInput"
-                    id="teamName"
-                    maxlength="64"
-                    placeholder="Team Name"
-                    type="text"
-                    value="name"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="row"
-          >
-            <div
-              class="Input_container"
-            >
-              <div
-                class="Input_fieldset"
-                data-testid="input-wrapper"
-              >
-                <label
-                  class="Input_legend"
-                  for="input_"
-                >
-                                          
-                </label>
-                <div
-                  class="Input_wrapper"
-                >
-                  <textarea
-                    aria-label="Team Description"
-                    class="Input form-control medium"
-                    data-testid="teamDescriptionInput"
-                    id="teamDescription"
-                    maxlength="50"
-                    placeholder="Team Description"
-                    rows="3"
-                    type="textarea"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="_admin-panel-footer_13680_2 _admin-panel-footer--single_13680_35"
-    >
-      <div
-        class="_admin-panel-footer__content_13680_11"
-      >
-        <div
-          class="_admin-panel-footer__left_13680_20"
-        >
-          <button
-            class="btn btn-secondary btn-danger"
-            type="button"
-          >
-            <i
-              class="icon icon-archive-outline"
-            />
-            Archive Team
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-`;
-
-exports[`admin_console/team_channel_settings/team/TeamProfile should match snapshot with isArchived true 1`] = `
-<div>
-  <section
-    aria-labelledby="_r_6_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
-    id="team_profile"
-  >
-    <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
-    >
-      <div
-        class="_admin-panel-header__main_19tix_10"
-      >
-        <div
-          class="_admin-panel-header__start_19tix_19"
-        >
-          <div
-            class="_admin-panel-header__title-stack_19tix_37"
-          >
-            <div
-              class="_admin-panel-header__title-row_19tix_46"
-            >
-              <h2
-                class="_admin-panel-header__title_19tix_37"
-                id="_r_6_"
-              >
-                Team Profile
-              </h2>
-            </div>
-            <p
-              class="_admin-panel-header__subtitle_19tix_66"
-            >
-              Summary of the team, including team name and description.
-            </p>
-          </div>
-        </div>
-      </div>
-    </header>
-    <div
-      class="_admin-panel__body_iwm08_25"
-    >
-      <div
-        class="d-flex"
-      >
-        <div
-          class="large-team-image-col"
-        >
-          <div
-            class="TeamIcon TeamIcon__lg no-hover"
-          >
-            <div
-              class="TeamIcon__content no-hover"
-            >
-              <div
-                aria-label="name Team Initials"
-                class="TeamIcon__initials TeamIcon__initials__lg"
-                data-testid="teamIconInitial"
-                role="img"
-              >
-                na
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="team-desc-col team-desc-col--edit"
-        >
-          <div
-            class="row row-bottom-padding"
-          >
-            <div
-              class="Input_container"
-            >
-              <div
-                class="Input_fieldset Input_fieldset___legend"
-                data-testid="input-wrapper"
-              >
-                <label
-                  class="Input_legend Input_legend___focus"
-                  for="input_"
-                >
-                                          
-                  Team Name
-                </label>
-                <div
-                  class="Input_wrapper"
-                >
-                  <input
-                    aria-label="Team Name"
-                    class="Input form-control medium Input__focus"
-                    data-testid="teamNameInput"
-                    id="teamName"
-                    maxlength="64"
-                    placeholder="Team Name"
-                    type="text"
-                    value="name"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="row"
-          >
-            <div
-              class="Input_container"
-            >
-              <div
-                class="Input_fieldset"
-                data-testid="input-wrapper"
-              >
-                <label
-                  class="Input_legend"
-                  for="input_"
-                >
-                                          
-                </label>
-                <div
-                  class="Input_wrapper"
-                >
-                  <textarea
-                    aria-label="Team Description"
-                    class="Input form-control medium"
-                    data-testid="teamDescriptionInput"
-                    id="teamDescription"
-                    maxlength="50"
-                    placeholder="Team Description"
-                    rows="3"
-                    type="textarea"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="_admin-panel-footer_13680_2 _admin-panel-footer--single_13680_35"
-    >
-      <div
-        class="_admin-panel-footer__content_13680_11"
-      >
-        <div
-          class="_admin-panel-footer__left_13680_20"
-        >
-          <button
-            class="btn btn-secondary btn-danger"
-            type="button"
-          >
-            <i
-              class="icon icon-archive-arrow-up-outline"
-            />
-            Unarchive Team
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-`;
-
-exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore should not be disabled when below teams limit 1`] = `
-<div>
-  <section
-    aria-labelledby="_r_4_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
-    id="team_profile"
-  >
-    <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
-    >
-      <div
-        class="_admin-panel-header__main_19tix_10"
-      >
-        <div
-          class="_admin-panel-header__start_19tix_19"
-        >
-          <div
-            class="_admin-panel-header__title-stack_19tix_37"
-          >
-            <div
-              class="_admin-panel-header__title-row_19tix_46"
-            >
-              <h2
-                class="_admin-panel-header__title_19tix_37"
-                id="_r_4_"
-              >
-                Team Profile
-              </h2>
-            </div>
-            <p
-              class="_admin-panel-header__subtitle_19tix_66"
-            >
-              Summary of the team, including team name and description.
-            </p>
-          </div>
-        </div>
-      </div>
-    </header>
-    <div
-      class="_admin-panel__body_iwm08_25"
-    >
-      <div
-        class="d-flex"
-      >
-        <div
-          class="large-team-image-col"
-        >
-          <div
-            class="TeamIcon TeamIcon__lg no-hover"
-          >
-            <div
-              class="TeamIcon__content no-hover"
-            >
-              <div
-                aria-label="name Team Initials"
-                class="TeamIcon__initials TeamIcon__initials__lg"
-                data-testid="teamIconInitial"
-                role="img"
-              >
-                na
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="team-desc-col team-desc-col--edit"
-        >
-          <div
-            class="row row-bottom-padding"
-          >
-            <div
-              class="Input_container"
-            >
-              <div
-                class="Input_fieldset Input_fieldset___legend"
-                data-testid="input-wrapper"
-              >
-                <label
-                  class="Input_legend Input_legend___focus"
-                  for="input_"
-                >
-                                          
-                  Team Name
-                </label>
-                <div
-                  class="Input_wrapper"
-                >
-                  <input
-                    aria-label="Team Name"
-                    class="Input form-control medium Input__focus"
-                    data-testid="teamNameInput"
-                    id="teamName"
-                    maxlength="64"
-                    placeholder="Team Name"
-                    type="text"
-                    value="name"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="row"
-          >
-            <div
-              class="Input_container"
-            >
-              <div
-                class="Input_fieldset"
-                data-testid="input-wrapper"
-              >
-                <label
-                  class="Input_legend"
-                  for="input_"
-                >
-                                          
-                </label>
-                <div
-                  class="Input_wrapper"
-                >
-                  <textarea
-                    aria-label="Team Description"
-                    class="Input form-control medium"
-                    data-testid="teamDescriptionInput"
-                    id="teamDescription"
-                    maxlength="50"
-                    placeholder="Team Description"
-                    rows="3"
-                    type="textarea"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="_admin-panel-footer_13680_2 _admin-panel-footer--single_13680_35"
-    >
-      <div
-        class="_admin-panel-footer__content_13680_11"
-      >
-        <div
-          class="_admin-panel-footer__left_13680_20"
-        >
-          <button
-            class="btn btn-secondary btn-danger"
-            type="button"
-          >
-            <i
-              class="icon icon-archive-arrow-up-outline"
-            />
-            Unarchive Team
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-`;
-
-exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should match snapshot - archived, at teams limit 1`] = `
-<div>
-  <section
     aria-labelledby="_r_0_"
     class="_admin-panel_iwm08_2 AdminPanel clearfix"
     id="team_profile"
@@ -633,20 +147,39 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
           class="_admin-panel-footer__left_13680_20"
         >
           <button
-            class="btn btn-secondary btn-danger"
-            disabled=""
+            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
             type="button"
           >
-            <i
-              class="icon icon-archive-arrow-up-outline"
-            />
-            Unarchive Team
-          </button>
-          <button
-            class="btn btn-secondary"
-            type="button"
-          >
-            View upgrade options
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-16_1i355_38"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="18"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Archive Team
+            </span>
           </button>
         </div>
       </div>
@@ -655,10 +188,10 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
 </div>
 `;
 
-exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should match snapshot - not archived, at teams limit 1`] = `
+exports[`admin_console/team_channel_settings/team/TeamProfile should match snapshot with isArchived true 1`] = `
 <div>
   <section
-    aria-labelledby="_r_3_"
+    aria-labelledby="_r_1_"
     class="_admin-panel_iwm08_2 AdminPanel clearfix"
     id="team_profile"
   >
@@ -679,7 +212,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
             >
               <h2
                 class="_admin-panel-header__title_19tix_37"
-                id="_r_3_"
+                id="_r_1_"
               >
                 Team Profile
               </h2>
@@ -802,13 +335,39 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
           class="_admin-panel-footer__left_13680_20"
         >
           <button
-            class="btn btn-secondary btn-danger"
+            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
             type="button"
           >
-            <i
-              class="icon icon-archive-outline"
-            />
-            Archive Team
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-16_1i355_38"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="18"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M5 5V7H19V5M10.5 17V14H8L12 10L16 14H13.5V17"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Unarchive Team
+            </span>
           </button>
         </div>
       </div>

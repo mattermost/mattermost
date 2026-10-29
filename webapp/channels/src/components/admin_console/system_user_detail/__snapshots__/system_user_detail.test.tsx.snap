@@ -288,14 +288,24 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -340,10 +350,14 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                   class="add-team-button"
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     type="button"
                   >
-                    Add Team
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
                   </button>
                 </div>
               </div>
@@ -377,13 +391,15 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -686,14 +702,24 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -738,10 +764,14 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                   class="add-team-button"
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     type="button"
                   >
-                    Add Team
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
                   </button>
                 </div>
               </div>
@@ -775,13 +805,15 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -1084,14 +1116,24 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -1136,10 +1178,14 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                   class="add-team-button"
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     type="button"
                   >
-                    Add Team
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1173,13 +1219,15 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -1482,14 +1530,24 @@ exports[`SystemUserDetail should not show manage user settings button when user 
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -1534,10 +1592,14 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                   class="add-team-button"
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     type="button"
                   >
-                    Add Team
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1571,13 +1633,15 @@ exports[`SystemUserDetail should not show manage user settings button when user 
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -1880,20 +1944,35 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
             <button
-              class="btn btn-tertiary manageUserSettingsBtn"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 manageUserSettingsBtn"
               id="manageUserSettingsBtn"
+              type="button"
             >
-              Manage User Settings
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Manage User Settings
+              </span>
             </button>
           </div>
         </div>
@@ -1938,10 +2017,14 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                   class="add-team-button"
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     type="button"
                   >
-                    Add Team
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1975,13 +2058,15 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -2284,14 +2369,24 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -2336,10 +2431,14 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                   class="add-team-button"
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     type="button"
                   >
-                    Add Team
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
                   </button>
                 </div>
               </div>
@@ -2373,13 +2472,15 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -2718,17 +2819,27 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
               disabled=""
+              type="button"
             >
-              Deactivate
-               
-              (Managed By LDAP)
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+                 
+                (Managed By LDAP)
+              </span>
             </button>
           </div>
         </div>
@@ -2773,10 +2884,14 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                   class="add-team-button"
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     type="button"
                   >
-                    Add Team
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
                   </button>
                 </div>
               </div>
@@ -2810,13 +2925,15 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>

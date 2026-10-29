@@ -118,10 +118,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   data-testid="add-policy"
+                  type="button"
                 >
-                  Add policy
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add policy
+                  </span>
                 </button>
               </div>
             </div>
@@ -204,10 +209,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="btn btn-primary disabled"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 disabled"
                   data-testid="run-deletion-job-now"
+                  type="button"
                 >
-                  Run Deletion Job Now
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Run Deletion Job Now
+                  </span>
                 </button>
               </div>
             </div>
@@ -399,10 +409,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   data-testid="add-policy"
+                  type="button"
                 >
-                  Add policy
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add policy
+                  </span>
                 </button>
               </div>
             </div>
@@ -521,10 +536,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   data-testid="run-deletion-job-now"
+                  type="button"
                 >
-                  Run Deletion Job Now
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Run Deletion Job Now
+                  </span>
                 </button>
               </div>
             </div>
@@ -716,10 +736,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   data-testid="add-policy"
+                  type="button"
                 >
-                  Add policy
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add policy
+                  </span>
                 </button>
               </div>
             </div>
@@ -838,10 +863,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   data-testid="run-deletion-job-now"
+                  type="button"
                 >
-                  Run Deletion Job Now
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Run Deletion Job Now
+                  </span>
                 </button>
               </div>
             </div>
@@ -1033,10 +1063,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   data-testid="add-policy"
+                  type="button"
                 >
-                  Add policy
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add policy
+                  </span>
                 </button>
               </div>
             </div>
@@ -1119,10 +1154,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   data-testid="run-deletion-job-now"
+                  type="button"
                 >
-                  Run Deletion Job Now
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Run Deletion Job Now
+                  </span>
                 </button>
               </div>
             </div>

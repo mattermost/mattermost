@@ -260,18 +260,10 @@
 
             .ctaButtons {
                 display: flex;
+                flex-wrap: wrap;
                 justify-content: flex-start;
                 margin: var(--spacing-l) 0 0 0;
-
-                a,
-                button {
-                    max-height: 32px;
-                    padding: 5px 20px !important;
-                    border-radius: var(--radius-s) !important;
-                    margin-top: 0;
-                    margin-right: var(--spacing-s);
-                    font-weight: 600;
-                }
+                gap: var(--spacing-xs);
             }
         }
     }
