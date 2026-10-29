@@ -235,6 +235,103 @@ func TestCreateUpload(t *testing.T) {
 	})
 }
 
+func TestCreateUploadABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupUploadFileAttachmentABAC(t)
+
+	newUploadSession := func() *model.UploadSession {
+		return &model.UploadSession{
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "upload",
+			FileSize:  1024,
+		}
+	}
+
+	t.Run("rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		u, resp, err := th.Client.CreateUpload(context.Background(), newUploadSession())
+		require.Error(t, err)
+		require.Nil(t, u)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("succeeds when the policy allows the upload action", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th)
+
+		u, resp, err := th.Client.CreateUpload(context.Background(), newUploadSession())
+		require.NoError(t, err)
+		require.NotNil(t, u)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("unaffected when ABAC is disabled", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+		disableABACForTest(t, th)
+
+		u, resp, err := th.Client.CreateUpload(context.Background(), newUploadSession())
+		require.NoError(t, err)
+		require.NotNil(t, u)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("import uploads are not gated by the policy", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		us := &model.UploadSession{
+			Filename: "import.zip",
+			FileSize: 1024,
+			Type:     model.UploadTypeImport,
+		}
+		u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
+		require.NoError(t, err)
+		require.NotNil(t, u)
+		CheckCreatedStatus(t, resp)
+	})
+}
+
+func TestUploadDataABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupUploadFileAttachmentABAC(t)
+
+	// The session is created while the policy still allows uploads; the policy
+	// tightens before the bytes are sent.
+	createSession := func(t *testing.T) (*model.UploadSession, []byte) {
+		t.Helper()
+
+		us, resp, err := th.Client.CreateUpload(context.Background(), &model.UploadSession{
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "upload",
+			FileSize:  1024,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		return us, randomBytes(t, int(us.FileSize))
+	}
+
+	t.Run("rejected when the policy denies the upload action", func(t *testing.T) {
+		us, data := createSession(t)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		info, resp, err := th.Client.UploadData(context.Background(), us.Id, bytes.NewReader(data))
+		require.Error(t, err)
+		require.Nil(t, info)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("succeeds when the policy allows the upload action", func(t *testing.T) {
+		us, data := createSession(t)
+		mockUploadFileAttachmentPolicy(t, th)
+
+		info, _, err := th.Client.UploadData(context.Background(), us.Id, bytes.NewReader(data))
+		require.NoError(t, err)
+		require.NotNil(t, info)
+	})
+}
+
 func TestGetUpload(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

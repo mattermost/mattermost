@@ -4292,18 +4292,6 @@ components:
         value:
           description: System property value
           type: string
-    PostsUsage:
-      type: object
-      properties:
-        count:
-          type: number
-          description: Total no. of posts
-    StorageUsage:
-      type: object
-      properties:
-        bytes:
-          type: number
-          description: Total file storage usage for the instance in bytes rounded down to the most significant digit
     BridgeAgentInfo:
       type: object
       properties:
