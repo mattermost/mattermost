@@ -10337,8 +10337,13 @@
   },
   {
     "id": "app.pap.save_policy.membership_rule_not_sqlizable",
-    "translation": "This membership rule uses an operator or function that membership sync cannot evaluate, such as a conditional (?:). Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
-    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule cannot be converted to the database query used by membership sync (for example it uses the ternary ?: operator). Without this error the rule would be stored but never add or remove members."
+    "translation": "This membership rule uses an expression that membership sync cannot evaluate. Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
+    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule uses allowed functions in a shape that cannot be converted to the database query used by membership sync (for example has()). Without this error the rule would be stored but never add or remove members."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "This membership rule uses {{.Function}}, which membership sync cannot evaluate. Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
+    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule uses an operator or function that only works outside membership sync. {{.Function}} is the operator or function name, for example \"the conditional operator (?:)\" or \"inCIDR\"."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",

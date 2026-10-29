@@ -66,7 +66,7 @@ const invalidRule = () => `user.attributes.${LOC} ==`;
 const ternaryRule = () => `user.attributes.${LOC} == "US" ? true : false`;
 
 const ADVANCED_RULE_ERROR_ID = 'app.pap.save_policy.advanced_rule_requires_system_admin';
-const NOT_SQLIZABLE_ERROR_ID = 'app.pap.save_policy.membership_rule_not_sqlizable';
+const UNSUPPORTED_FUNCTION_ERROR_ID = 'app.pap.save_policy.membership_rule_unsupported_function';
 const NOT_SQLIZABLE_MESSAGE = 'membership sync cannot evaluate';
 
 async function expectServerRejection(
@@ -931,7 +931,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         await expectServerRejection(
             () => createTeamMembershipPolicy(adminClient, team.id, ternaryRule()),
             400,
-            NOT_SQLIZABLE_ERROR_ID,
+            UNSUPPORTED_FUNCTION_ERROR_ID,
             'system admin saved a ternary membership rule',
         );
 
@@ -944,6 +944,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         // * The editor's membership check flags it before save
         await waitForTeamRulesValidation(page, 'error');
         await expect(rulesPanel.locator('.cel-editor__status-bar')).toContainText(NOT_SQLIZABLE_MESSAGE);
+        await expect(rulesPanel.locator('.cel-editor__status-bar')).toContainText('the conditional operator (?:)');
 
         // * Save is blocked before anything is written
         await page.getByTestId('saveSetting').click();
