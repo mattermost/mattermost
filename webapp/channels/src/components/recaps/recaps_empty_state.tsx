@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
@@ -11,16 +12,20 @@ import AICopilotIntroSvg from './ai_copilot_intro_svg';
 type Props = {
     onCreateClick: () => void;
     disabled?: boolean;
+
+    // Overrides the default heading, e.g. for the Scheduled tab.
+    title?: string;
+    className?: string;
 };
 
-const RecapsEmptyState = ({onCreateClick, disabled}: Props) => {
+const RecapsEmptyState = ({onCreateClick, disabled, title, className}: Props) => {
     const {formatMessage} = useIntl();
 
     return (
-        <div className='recaps-placeholder'>
+        <div className={classNames('recaps-placeholder', className)}>
             <AICopilotIntroSvg/>
             <h2 className='recaps-placeholder-title'>
-                {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
+                {title ?? formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
             </h2>
             <p className='recaps-placeholder-description'>
                 {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}

@@ -28971,6 +28971,10 @@
     "defaultMessage": "Delete scheduled recap?",
     "description": "Title of the confirmation dialog asked before deleting a recurring scheduled recap."
   },
+  "recaps.scheduled.emptyState.title": {
+    "defaultMessage": "Set up your first recap",
+    "description": "Empty-state title on the scheduled-recaps tab prompting the user to create their first recap."
+  },
   "recaps.scheduled.lastRun": {
     "defaultMessage": "Last run: {date}",
     "description": "Caption on a scheduled recap item; {date} is the formatted date/time the recap last ran; 'run' is a verb (executed)."
