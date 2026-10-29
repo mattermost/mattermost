@@ -82,7 +82,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         viewManageChannelMembersRHS();
 
         // * Add Members button does not exist
-        cy.get('#showInviteModal').should('not.exist');
+        cy.get('.add-members').should('not.exist');
     });
 
     it('MM-T1560 Effect of changing System Schemes on a Channel for which Channel Moderation Settings was never modified', () => {
@@ -104,7 +104,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
             viewManageChannelMembersRHS();
 
             // * Add Members button does not exist
-            cy.get('#showInviteModal').should('not.exist');
+            cy.get('.add-members').should('not.exist');
         });
     });
 
@@ -130,7 +130,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
             viewManageChannelMembersRHS();
 
             // * Add Members button does not exist
-            cy.get('#showInviteModal').should('not.exist');
+            cy.get('.add-members').should('not.exist');
         });
     });
 
@@ -165,7 +165,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         viewManageChannelMembersRHS();
 
         // * Add Members button does not exist
-        cy.get('#showInviteModal').should('not.exist');
+        cy.get('.add-members').should('not.exist');
     });
 
     it('MM-T1578 Manage Members removed for Public Channels', () => {
@@ -176,33 +176,34 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         goToPermissionsAndCreateTeamOverrideScheme(teamOverrideSchemeName, testTeam);
         deleteOrEditTeamScheme(teamOverrideSchemeName, 'edit');
         cy.findByTestId(checkboxesTitleToIdMap.ALL_USERS_MANAGE_PUBLIC_CHANNEL_MEMBERS).click();
-        cy.findByTestId(checkboxesTitleToIdMap.ALL_USERS_MANAGE_PRIVATE_CHANNEL_MEMBERS).should('be.visible').and('have.class', 'checked');
+        cy.findByTestId(checkboxesTitleToIdMap.ALL_USERS_MANAGE_PRIVATE_CHANNEL_MEMBERS).scrollIntoView().should('be.visible').and('have.class', 'checked');
         saveConfigForScheme(false);
 
         // # Visit Channel page and Search for the channel.
         // * Ensure message is disabled and manage members for members is disabled
         visitChannelConfigPage(testChannel);
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
+        cy.findByTestId('allow-all-toggle-public').should('have.attr', 'aria-pressed', 'true');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
             should('have.text', `Manage members for members are disabled in ${teamOverrideSchemeName} Team Scheme.`);
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.disabled');
 
         // # Turn channel into a private channel
-        cy.findByTestId('allow-all-toggle').click();
+        cy.findByTestId('allow-all-toggle-private').click();
         saveConfigForChannel(testChannel.display_name, true);
 
         // * Ensure it is private and no error message is shown and that manage members for members is not disabled
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Private');
-        cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
-            should('not.have.text', `Manage members for members are disabled in ${teamOverrideSchemeName} Team Scheme.`);
+        cy.findByTestId('allow-all-toggle-private').should('have.attr', 'aria-pressed', 'true');
+        // The disabled-reason message is only rendered at all when the permission is
+        // actually disabled, so assert it doesn't exist rather than checking its text.
+        cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').should('not.exist');
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('not.be.disabled');
 
         // # Turn channel back to public channel
-        cy.findByTestId('allow-all-toggle').click();
+        cy.findByTestId('allow-all-toggle-public').click();
         saveConfigForChannel(testChannel.display_name, true);
 
         // * ensure it got reverted back to a Public channel
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
+        cy.findByTestId('allow-all-toggle-public').should('have.attr', 'aria-pressed', 'true');
     });
 
     it('MM-T1579 Manage Members removed for Private Channels / Permissions inherited when channel converted from Public to Private', () => {
@@ -213,40 +214,41 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         goToPermissionsAndCreateTeamOverrideScheme(teamOverrideSchemeName, testTeam);
         deleteOrEditTeamScheme(teamOverrideSchemeName, 'edit');
         cy.findByTestId(checkboxesTitleToIdMap.ALL_USERS_MANAGE_PRIVATE_CHANNEL_MEMBERS).click();
-        cy.findByTestId(checkboxesTitleToIdMap.ALL_USERS_MANAGE_PUBLIC_CHANNEL_MEMBERS).should('be.visible').and('have.class', 'checked');
+        cy.findByTestId(checkboxesTitleToIdMap.ALL_USERS_MANAGE_PUBLIC_CHANNEL_MEMBERS).scrollIntoView().should('be.visible').and('have.class', 'checked');
         saveConfigForScheme(false);
 
         // # Visit Channel page and Search for the channel.
         visitChannelConfigPage(testChannel);
 
         // * Ensure that error message is not displayed and manage members for members is not disabled
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
-        cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
-            should('not.have.text', `Manage members for members are disabled in ${teamOverrideSchemeName} Team Scheme.`);
+        cy.findByTestId('allow-all-toggle-public').should('have.attr', 'aria-pressed', 'true');
+        // The disabled-reason message is only rendered at all when the permission is
+        // actually disabled, so assert it doesn't exist rather than checking its text.
+        cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').should('not.exist');
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('not.be.disabled');
 
         // # Turn it into a private channel
-        cy.findByTestId('allow-all-toggle').click();
+        cy.findByTestId('allow-all-toggle-private').click();
         saveConfigForChannel(testChannel.display_name, true);
 
         // * Ensure it is a private channel and that a message is disabled and also manage members for members is disabled
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Private');
+        cy.findByTestId('allow-all-toggle-private').should('have.attr', 'aria-pressed', 'true');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
             should('have.text', `Manage members for members are disabled in ${teamOverrideSchemeName} Team Scheme.`);
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.disabled');
 
         // # Turn channel back to public channel
-        cy.findByTestId('allow-all-toggle').click();
+        cy.findByTestId('allow-all-toggle-public').click();
         saveConfigForChannel(testChannel.display_name, true);
 
         // * Ensure it got reset back to a public channel
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
+        cy.findByTestId('allow-all-toggle-public').should('have.attr', 'aria-pressed', 'true');
     });
 
     it('MM-T1581 Check if user is allowed to Edit or Delete their own posts on a Read-Only channel', () => {
         visitChannel(regularUser, testChannel, testTeam);
         cy.postMessage(`test message ${Date.now()}`);
-        cy.findByTestId('post_textbox_placeholder').should('not.have.text', 'This channel is read-only. Only members with permission can post here.');
+        cy.findByTestId('post_textbox').should('not.have.attr', 'placeholder', 'This channel is read-only. Only members with permission can post here.');
         cy.findByTestId('post_textbox').should('not.be.disabled');
 
         visitChannelConfigPage(testChannel);
@@ -257,7 +259,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         visitChannel(regularUser, testChannel, testTeam);
 
         // * user should see a message stating that this channel is read-only and the textbox area should be disabled
-        cy.findByTestId('post_textbox_placeholder').should('have.text', 'This channel is read-only. Only members with permission can post here.');
+        cy.findByTestId('post_textbox').should('have.attr', 'placeholder', 'This channel is read-only. Only members with permission can post here.');
         cy.findByTestId('post_textbox').should('be.disabled');
 
         cy.getLastPostId().then((postId) => {
@@ -280,15 +282,16 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         // # Check Channel Admin have the permission to react to any post on a channel when all channel moderation permissions are off.
         // * Channel Admin should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            });
         });
 
         // # View members modal
         viewManageChannelMembersRHS();
 
         // * Add Members button does not exist
-        cy.get('#showInviteModal').should('exist');
+        cy.get('.add-members').should('exist');
 
         demoteToChannelOrTeamMember(regularUser.id, testChannel.id);
     });
@@ -304,15 +307,16 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         // # Check Channel Admin have the permission to react to any post on a channel when all channel moderation permissions are off.
         // * Channel Admin should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.get(`#post_${postId}`).trigger('mouseover').within(() => {
+                cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            });
         });
 
         // # View members modal
         viewManageChannelMembersRHS();
 
         // * Add Members button does not exist
-        cy.get('#showInviteModal').should('exist');
+        cy.get('.add-members').should('exist');
 
         demoteToChannelOrTeamMember(regularUser.id, testTeam.id, 'teams');
     });
