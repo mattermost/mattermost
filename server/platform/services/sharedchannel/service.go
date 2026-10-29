@@ -224,6 +224,8 @@ func (scs *Service) resume() {
 // catchUpRemotes queues a sync for every online remote, since tasks queued on a previous
 // leader are lost and a leader change does not trigger onConnectionStateChange.
 // Offline remotes are synced by onConnectionStateChange when they come back online.
+// Like onConnectionStateChange, this only covers channels that already have a SharedChannelRemote
+// row; auto-invited remotes get theirs on the next channel event.
 func (scs *Service) catchUpRemotes() {
 	filter := model.RemoteClusterQueryFilter{
 		OnlyConfirmed:  true,
