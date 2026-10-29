@@ -6,7 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {getSubscriptionProduct, checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
+import {checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -17,7 +17,7 @@ import InvitationModal from 'components/invitation_modal';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
+import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -47,14 +47,12 @@ export default function InviteAs(props: Props) {
     }, []);
 
     const subscription = useSelector((state: GlobalState) => state.entities.cloud.subscription);
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
     const config = useSelector(getConfig);
 
-    const isCloudStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
     const isSelfHostedStarter = isEnterpriseReady && license.IsLicensed === 'false';
-    const isStarter = isCloudStarter || isSelfHostedStarter;
+    const isStarter = isSelfHostedStarter;
 
     let extraGuestLegend = true;
     let guestDisabledClass = '';

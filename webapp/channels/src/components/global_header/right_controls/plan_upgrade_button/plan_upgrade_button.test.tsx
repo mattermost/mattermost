@@ -53,20 +53,6 @@ describe('components/global/PlanUpgradeButton', () => {
         },
     };
 
-    it('should show Upgrade button in global header for admin users, cloud free subscription', () => {
-        const cloudSubscriptionSpy = jest.spyOn(cloudActions, 'getCloudSubscription');
-        const cloudProductsSpy = jest.spyOn(cloudActions, 'getCloudProducts');
-
-        renderWithContext(
-            <PlanUpgradeButton/>,
-            initialState,
-        );
-
-        expect(cloudSubscriptionSpy).toHaveBeenCalledTimes(1);
-        expect(cloudProductsSpy).toHaveBeenCalledTimes(1);
-        expect(screen.getByRole('button', {name: 'View plans'})).toBeInTheDocument();
-    });
-
     it('should show Upgrade button in global header for admin users, cloud and enterprise trial subscription', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud = {
