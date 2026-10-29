@@ -4575,6 +4575,11 @@
     "description": "API error shown to an admin when updating a secure connection to a URL already used by another connection."
   },
   {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Upload from a secure connection cannot resume a partially received file.",
+    "description": "API error returned to a connected Mattermost server when it sends file data for an upload that has already received some data, which would otherwise corrupt the file."
+  },
+  {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin.",
     "description": "API error when a restricted system admin (an admin role with limited settings access) attempts an action outside their allowed scope."
