@@ -3827,6 +3827,22 @@ func TestCreateAccessControlPolicyChannelReadAccess(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 
+	t.Run("ChannelPermissionActions off also rejects write and management access", func(t *testing.T) {
+		// The three channel-access actions share the one flag.
+		installMockACS(t)
+		setFlags(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelPermissionActions = false
+		})
+
+		for _, action := range []string{model.AccessControlPolicyActionChannelWriteAccess, model.AccessControlPolicyActionChannelManagementAccess} {
+			policy := systemPolicy()
+			policy.Rules[0].Actions = []string{action}
+			_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
+			CheckErrorID(t, err, "api.access_control_policy.channel_permission_actions.feature_disabled")
+			CheckNotImplementedStatus(t, resp)
+		}
+	})
+
 	t.Run("channel policy still needs ChannelPermissionPolicies", func(t *testing.T) {
 		// channel_read_access is a permission action, so the channel-scope gate
 		// applies. A channel policy needs that flag; a system permission policy

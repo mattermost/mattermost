@@ -1885,6 +1885,8 @@ func TestChannelReadAccessAction(t *testing.T) {
 
 	t.Run("is gated by the ChannelPermissionActions flag", func(t *testing.T) {
 		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelReadAccess))
+		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelWriteAccess))
+		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelManagementAccess))
 		require.False(t, IsChannelPermissionAction(AccessControlPolicyActionUploadFileAttachment))
 		require.False(t, IsChannelPermissionAction(AccessControlPolicyActionMembership))
 

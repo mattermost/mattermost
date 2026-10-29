@@ -126,7 +126,9 @@ func IsPermissionAction(action string) bool {
 // channelPermissionActions are the permission actions that govern access to a
 // channel itself, gated by the ChannelPermissionActions feature flag.
 var channelPermissionActions = map[string]bool{
-	AccessControlPolicyActionChannelReadAccess: true,
+	AccessControlPolicyActionChannelReadAccess:       true,
+	AccessControlPolicyActionChannelWriteAccess:      true,
+	AccessControlPolicyActionChannelManagementAccess: true,
 }
 
 // IsChannelPermissionAction reports whether the given action is one of the

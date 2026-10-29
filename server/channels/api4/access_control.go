@@ -149,8 +149,9 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Channel permission actions (channel_read_access) have a flag of their
-	// own, on permission and channel policies alike.
+	// Channel permission actions (channel_read_access, channel_write_access,
+	// channel_management_access) have a flag of their own, on permission and
+	// channel policies alike.
 	if policy.HasChannelPermissionAction() && !c.App.Config().FeatureFlags.ChannelPermissionActions {
 		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_permission_actions.feature_disabled", nil, "", http.StatusNotImplemented)
 		return

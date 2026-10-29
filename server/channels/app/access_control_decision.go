@@ -155,8 +155,9 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 			continue
 		}
 
-		// No active policy — the per-action default.
-		if !active {
+		// No active policy, or a channel permission action while its flag is off (enforcement
+		// doesn't evaluate those then) — the per-action default.
+		if !active || (model.IsChannelPermissionAction(action) && !a.Config().FeatureFlags.ChannelPermissionActions) {
 			record(action, model.RenderPermissionDecision{
 				Allowed:   renderableABACActions[action].DefaultWhenInactive,
 				Evaluated: true,

@@ -64,7 +64,8 @@ type FeatureFlags struct {
 	PolicySimulation bool
 
 	// FEATURE_FLAG_REMOVAL: ChannelPermissionActions - Remove this when the feature is GA.
-	// Gates the channel permission actions (channel_read_access) on permission
+	// Gates the channel permission actions (channel_read_access,
+	// channel_write_access, channel_management_access) on permission
 	// and channel policies. When off, saving a policy that uses one is rejected,
 	// the webapp doesn't offer them, and rules already stored aren't enforced.
 	ChannelPermissionActions bool

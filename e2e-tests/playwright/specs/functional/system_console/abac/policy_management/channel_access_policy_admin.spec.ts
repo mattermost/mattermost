@@ -52,7 +52,7 @@ test.describe(
             await pw.skipIfNoLicense();
 
             // Every test in this file requests the same combination, so the server restarts at most once.
-            await pw.ensureFeatureFlag({PermissionPolicies: true, ChannelPermissionPolicies: true});
+            await pw.ensureFeatureFlag({PermissionPolicies: true, ChannelPermissionPolicies: true, ChannelPermissionActions: true});
 
             const {adminUser, adminClient, user, team} = await pw.initSetup();
 
@@ -150,7 +150,7 @@ test.describe(
             await pw.skipIfNoLicense();
 
             // Every test in this file requests the same combination, so the server restarts at most once.
-            await pw.ensureFeatureFlag({PermissionPolicies: true, ChannelPermissionPolicies: true});
+            await pw.ensureFeatureFlag({PermissionPolicies: true, ChannelPermissionPolicies: true, ChannelPermissionActions: true});
 
             const {adminUser, adminClient, user, team} = await pw.initSetup();
 
