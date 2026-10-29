@@ -120,7 +120,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
         // * The row is on the graph attribute, which is what every caller assumes:
         //   a graph row defaults to the strictest hierarchy predicate
         const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
-        await expect(operatorButton).toContainText('covers all of');
+        await expect(operatorButton).toContainText('has each of or a parent of');
 
         return operatorButton;
     }
@@ -212,21 +212,18 @@ test.describe('System Console - Membership Policy graph operators', () => {
         const operatorButton = await openPolicyEditorOnGraphAttribute(page, `Graph Policy ${getRandomId()}`);
 
         // * The row defaults to the strictest hierarchy predicate, "covers all of"
-        await expect(operatorButton).toContainText('covers all of');
+        await expect(operatorButton).toContainText('has each of or a parent of');
 
         // # Open the operator dropdown
         await operatorButton.click();
 
-        // * The four hierarchy predicates and the two membership operators are offered
-        for (const label of [
-            'covers all of',
-            'covers any of',
-            'is within all of',
-            'is within any of',
-            'has any of',
-            'has all of',
-        ]) {
-            await expect(page.getByRole('menuitemradio', {name: label, exact: true})).toBeVisible();
+        // * The four hierarchy predicates and the two membership operators are offered.
+        //   Matched by the parenthesised tag each item's description ends with
+        //   rather than its leading label: the labels for "has any of" and "has all
+        //   of" are now substrings of the covers-any/within-any labels too ("has any
+        //   of or a parent/child of"), so only the tag stays unique per item.
+        for (const tag of ['(Covers All)', '(Covers Any)', '(Within All)', '(Within Any)', '(Has Any Of)', '(Has All Of)']) {
+            await expect(page.getByRole('menuitemradio', {name: tag})).toBeVisible();
         }
 
         // * Nothing that would compare a name against an option identifier, or
@@ -292,7 +289,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
             //   holds an option identifier, and surfacing that instead would be the
             //   visible symptom of a resolution that did not round-trip
             await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
-                'covers all of',
+                'has each of or a parent of',
             );
             await expect(page.locator('[data-testid="valueSelectorMenuButton"]').first()).toContainText(f18Program);
         } finally {
@@ -357,7 +354,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
             // * The reopened row is the same rule: the predicate, and the channel
             //   attribute as its target rather than a list of values
             await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
-                'covers all of',
+                'has each of or a parent of',
             );
             await expect(page.locator('[data-testid="valueSelectorMenuButton"]').first()).toContainText(
                 `Channel: ${hierarchy!.channelFieldName}`,
