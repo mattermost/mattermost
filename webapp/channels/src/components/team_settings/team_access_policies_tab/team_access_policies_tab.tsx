@@ -155,7 +155,6 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                 </h4>
                 <Button
                     emphasis='primary'
-                    className='TeamAccessPoliciesTab__add-btn'
                     onClick={handleAddPolicy}
                     leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
