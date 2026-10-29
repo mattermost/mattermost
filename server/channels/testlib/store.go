@@ -197,7 +197,30 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 	propertyGroupStore.On("Get", model.SessionAttributesPropertyGroupName).Return(sessionAttributesGroup, nil)
 
+	// The access control hook resolves a field's group by ID to read its
+	// version, which decides whether the field is under enforcement at all, so
+	// every group reachable by name has to be reachable by ID too.
+	propertyGroupStore.On("GetByID", mock.AnythingOfType("string")).Return(
+		func(id string) *model.PropertyGroup {
+			for _, group := range groupsByName {
+				if group.ID == id {
+					return group
+				}
+			}
+			return nil
+		},
+		func(id string) error {
+			for _, group := range groupsByName {
+				if group.ID == id {
+					return nil
+				}
+			}
+			return store.NewErrNotFound("PropertyGroup", id)
+		},
+	)
+
 	propertyFieldStore.On("SearchPropertyFields", mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil)
+	propertyFieldStore.On("GetFieldsMissingPermissions", mock.Anything, mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil)
 	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("CheckPropertyNameConflict", mock.AnythingOfType("*model.PropertyField"), mock.Anything).Return(model.PropertyFieldTargetLevel(""), nil)
