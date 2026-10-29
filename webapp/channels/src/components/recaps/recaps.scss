@@ -69,26 +69,6 @@
                 }
             }
         }
-
-        .recap-add-button {
-            display: flex;
-            align-items: center;
-            padding: 8px 16px;
-            border: none;
-            border-radius: var(--radius-s);
-            font-size: 12px;
-            font-weight: 600;
-            gap: 6px;
-            line-height: 16px;
-
-            .icon {
-                font-size: 12px;
-            }
-
-            &:hover {
-                background-color: rgba(var(--button-bg-rgb), 0.12);
-            }
-        }
     }
 
     .recaps-content {

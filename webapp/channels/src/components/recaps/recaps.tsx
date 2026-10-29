@@ -206,7 +206,7 @@ const Recaps = () => {
                 {(activeTab === 'scheduled' || !hasNoRecaps) && (
                     <Button
                         emphasis='tertiary'
-                        className='recap-add-button'
+                        size='small'
                         onClick={handleAddRecap}
                         disabled={!agentsBridgeEnabled.available}
                         title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
