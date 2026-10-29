@@ -1,0 +1,120 @@
+name: Release cherry-pick labels
+
+# Labels approved cherry-pick PRs, the step of /release-bugs that the release agent doesn't
+# cover. For MM tickets in Submitted status with a release's fix version (vX.Y (Month Year),
+# looked up through the Jira versions API), each linked GitHub PR in mattermost/mattermost
+# or mattermost/enterprise gets the CherryPick/Approved label and the vX.Y.0 milestone.
+# Linked PRs come from the ticket's Jira remote links, else PRs naming the ticket in their
+# title or branch. Labels and milestones are only added, never removed or overwritten:
+# another milestone is reported, PRs in other repos are reported, and dot-release fix
+# versions on a ticket are listed for the release manager.
+#
+# Runs:
+#   repository_dispatch jira-submitted — {"issue_key": "MM-12345"}, sent by a Jira Automation
+#                                         rule ("Send web request" to the dispatch API) when an
+#                                         MM ticket moves to Submitted
+#   schedule (weekdays)                 — every Submitted ticket of each active release: an
+#                                         unreleased fix version whose release-X.Y branch exists
+#   workflow_dispatch                   — one release (version) and an optional mode
+#
+# Modes (CHERRYPICK_LABEL_MODE, or the dispatch input):
+#   dry_run (default) — reports what it would change and changes nothing
+#   live              — labels PRs, sets milestones, and replies under the release agent's
+#                       status post in the release channel (or posts there)
+#
+# This repo is public, so its Actions logs are too. The run summary shows ticket keys and
+# PRs, but mattermost/enterprise PRs only as "(private repo)" and the number. Titles and
+# links for those go to Hub only.
+#
+# GitHub App: a separate app, not the Phase 3 release docs app (RELEASE_DOCS_*), with only
+# Pull requests: Read and write and Issues: Read and write, installed on mattermost/mattermost
+# and mattermost/enterprise. The release docs app has Contents: write on the docs repos, and
+# installing it on enterprise would give that write access to private source too.
+#
+# Secrets:
+#   CHERRYPICK_APP_PRIVATE_KEY  — the cherry-pick app's private key
+#   RELEASE_AGENT_JIRA_TOKEN    — read-only Atlassian API token
+#   RELEASE_AGENT_MM_TOKEN      — optional; Hub bot token for release-agent-log and live posts
+# Variables:
+#   CHERRYPICK_APP_CLIENT_ID    — the cherry-pick app's client ID
+#   CHERRYPICK_LABEL_MODE       — dry_run | live
+#   RELEASE_AGENT_JIRA_EMAIL    — the Jira token's account
+#   RELEASE_AGENT_LOG_CHANNEL_ID — optional; release-agent-log
+#   RELEASE_AGENT_MM_URL        — optional; defaults to https://hub.mattermost.com
+#
+# The Jira Automation rule needs a GitHub token stored in Jira that can call
+# POST /repos/mattermost/mattermost/dispatches: a fine-grained token for this repo only,
+# with Contents: Read and write (what the dispatch API requires), owned by a bot account.
+on:
+  repository_dispatch:
+    types: [jira-submitted]
+  schedule:
+    - cron: '30 8 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release to label (e.g. v12.2); empty for every active release'
+        required: false
+        type: string
+      mode:
+        description: 'repository-variable uses CHERRYPICK_LABEL_MODE'
+        required: false
+        default: repository-variable
+        type: choice
+        options:
+          - repository-variable
+          - dry_run
+          - live
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-cherry-pick-labels-${{ github.event.client_payload.issue_key || github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  label:
+    if: github.repository == 'mattermost/mattermost'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts/release_cherrypick
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.12'
+
+      - name: Get app token (mattermost and enterprise)
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: appToken
+        with:
+          client-id: ${{ vars.CHERRYPICK_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CHERRYPICK_APP_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost,enterprise
+          permission-pull-requests: write
+          permission-issues: write
+
+      - name: Label approved cherry-picks
+        working-directory: .github/scripts
+        env:
+          GH_TOKEN: ${{ steps.appToken.outputs.token }}
+          JIRA_EMAIL: ${{ vars.RELEASE_AGENT_JIRA_EMAIL }}
+          JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
+          MM_URL: ${{ vars.RELEASE_AGENT_MM_URL || 'https://hub.mattermost.com' }}
+          MM_TOKEN: ${{ secrets.RELEASE_AGENT_MM_TOKEN }}
+          LOG_CHANNEL_ID: ${{ vars.RELEASE_AGENT_LOG_CHANNEL_ID }}
+          CHERRYPICK_LABEL_MODE: ${{ vars.CHERRYPICK_LABEL_MODE }}
+          MODE_INPUT: ${{ inputs.mode }}
+          VERSION_INPUT: ${{ inputs.version }}
+          ISSUE_KEY: ${{ github.event.client_payload.issue_key }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 -m release_cherrypick run
