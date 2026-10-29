@@ -2371,11 +2371,6 @@
     "description": "Error shown (also as /share-channel slash command output) when Shared Channels is turned off in the server config; 'Shared Channels' is the cross-server channel feature name."
   },
   {
-    "id": "api.command_share.service_inactive",
-    "translation": "Shared Channels Service is enabled but not active.",
-    "description": "Error shown when the Shared Channels service is enabled in config but has not started/activated; audience is admins."
-  },
-  {
     "id": "api.command_share.share_channel.error",
     "translation": "Cannot share this channel: {{.Error}}",
     "description": "Ephemeral error when the /share-channel slash command fails to share the channel; {{.Error}} is the underlying error text."
@@ -13782,11 +13777,6 @@
     "description": "Error returned when message search is attempted while search is disabled; {{.Backend}} is 'Elasticsearch' or 'OpenSearch'."
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Failed to parse search result matches",
-    "description": "Error when the highlighted match data in message search results from the search backend cannot be parsed."
-  },
-  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "Search failed to complete",
     "description": "Error returned to the user when a message search query against the search backend fails."
@@ -17520,6 +17510,11 @@
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout.",
     "description": "Config validation error shown to system admins for the web server read timeout setting."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert and RedisTLSClientKey must be set together.",
+    "description": "Config validation error shown to system admins; 'RedisTLSClientCert' and 'RedisTLSClientKey' are config setting names and should not be translated."
   },
   {
     "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",

@@ -131,6 +131,9 @@ func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
 	}
 }
 
+// logDateFromStopEntries is how many consecutive entries older than LogFilter.DateFrom end a log scan.
+const logDateFromStopEntries = 100
+
 func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	var lines []string
 
@@ -154,67 +157,72 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 
 		defer file.Close()
 
-		var newLine = []byte{'\n'}
-		var lineCount int
-		const searchPos = -1
-		b := make([]byte, 1)
-		var endOffset int64
-
-		// if the file exists and it's last byte is '\n' - skip it
-		var stat os.FileInfo
-		if stat, err = os.Stat(logFile); err == nil {
-			if _, err = file.ReadAt(b, stat.Size()-1); err == nil && b[0] == newLine[0] {
-				endOffset = -1
-			}
-		}
-		lineEndPos, err := file.Seek(endOffset, io.SeekEnd)
+		stat, err := file.Stat()
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		for {
-			pos, err := file.Seek(searchPos, io.SeekCurrent)
-			if err != nil {
-				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+
+		// if the file's last byte is '\n' - skip it
+		size := stat.Size()
+		if size > 0 {
+			var b [1]byte
+			if _, err = file.ReadAt(b[:], size-1); err == nil && b[0] == '\n' {
+				size--
 			}
+		}
+		if size == 0 {
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(errors.New("log file is empty"))
+		}
 
-			_, err = file.ReadAt(b, pos)
-			if err != nil {
-				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
+		// Log files are written in chronological order, so once entries are older than DateFrom
+		// no entry before them can match. A single out-of-order entry, such as one queued behind
+		// newer ones, should not cut the scan short, so it only ends after logDateFromStopEntries
+		// consecutive older entries. A backwards clock step would still end it early, which is
+		// accepted to avoid reading the whole file.
+		dateFrom, err := time.Parse(model.LogFilterDateLayout, logFilter.DateFrom)
+		hasDateFrom := err == nil
+		var olderEntries int
 
-			if b[0] == newLine[0] || pos == 0 {
-				lineCount++
-				if lineCount > page*perPage {
-					line := make([]byte, lineEndPos-pos)
-					_, err := file.ReadAt(line, pos)
-					if err != nil {
-						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
-					}
-
-					filtered := false
-					var entry *model.LogEntry
-					err = json.Unmarshal(line, &entry)
-					if err != nil {
-						rctx.Logger().Debug("Failed to parse line, skipping")
-					} else {
-						filtered = isLogFilteredByLevel(logFilter, entry) || filtered
-						filtered = isLogFilteredByDate(rctx, logFilter, entry) || filtered
-					}
-
-					if filtered {
-						lineCount--
-					} else {
-						lines = append(lines, string(line))
-					}
-				}
-				if pos == 0 {
-					break
-				}
-				lineEndPos = pos
-			}
-
-			if len(lines) == perPage {
+		reader := newReverseLineReader(file, size, logReadBlockSize)
+		toSkip := page * perPage
+		for len(lines) < perPage {
+			line, err := reader.Next()
+			if err == io.EOF {
 				break
+			} else if err != nil {
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			if toSkip > 0 {
+				toSkip--
+				continue
+			}
+
+			filtered := false
+			var entry *model.LogEntry
+			err = json.Unmarshal(line, &entry)
+			if err != nil || entry == nil {
+				rctx.Logger().Debug("Failed to parse line, skipping")
+			} else {
+				if hasDateFrom {
+					if timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp); err == nil {
+						if timestamp.Before(dateFrom) {
+							olderEntries++
+						} else {
+							olderEntries = 0
+						}
+					}
+					if olderEntries == logDateFromStopEntries {
+						break
+					}
+				}
+
+				filtered = isLogFilteredByLevel(logFilter, entry) || filtered
+				filtered = isLogFilteredByDate(rctx, logFilter, entry) || filtered
+			}
+
+			if !filtered {
+				lines = append(lines, string(line))
 			}
 		}
 
@@ -229,19 +237,9 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 }
 
 func (ps *PlatformService) GetLogFile(rctx request.CTX) (*model.FileData, error) {
-	if !*ps.Config().LogSettings.EnableFile {
-		return nil, errors.New("Unable to retrieve mattermost logs because LogSettings.EnableFile is set to false")
-	}
-
-	mattermostLog := config.GetLogFileLocation(*ps.Config().LogSettings.FileLocation)
-
-	// Validate the file path to prevent arbitrary file reads
-	if err := ps.validateLogFilePath(mattermostLog); err != nil {
-		rctx.Logger().Error("Blocked attempt to read log file outside allowed root",
-			mlog.String("path", mattermostLog),
-			mlog.String("config_section", "LogSettings.FileLocation"),
-			mlog.Err(err))
-		return nil, errors.Wrapf(err, "log file path %s is outside allowed logging directory", mattermostLog)
+	mattermostLog, err := ps.getLogFilePath(rctx)
+	if err != nil {
+		return nil, err
 	}
 
 	mattermostLogFileData, err := os.ReadFile(mattermostLog)
@@ -253,6 +251,43 @@ func (ps *PlatformService) GetLogFile(rctx request.CTX) (*model.FileData, error)
 		Filename: config.LogFilename,
 		Body:     mattermostLogFileData,
 	}, nil
+}
+
+// OpenLogFile opens the Mattermost log file for reading, so that it can be streamed rather than
+// loaded into memory like GetLogFile does. The caller must close the returned file.
+func (ps *PlatformService) OpenLogFile(rctx request.CTX) (*os.File, error) {
+	mattermostLog, err := ps.getLogFilePath(rctx)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := os.Open(mattermostLog)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed read mattermost log file at path %s", mattermostLog)
+	}
+
+	return file, nil
+}
+
+// getLogFilePath returns the path of the Mattermost log file, once checked that file logging is
+// enabled and that the path is inside the logging root.
+func (ps *PlatformService) getLogFilePath(rctx request.CTX) (string, error) {
+	if !*ps.Config().LogSettings.EnableFile {
+		return "", errors.New("Unable to retrieve mattermost logs because LogSettings.EnableFile is set to false")
+	}
+
+	mattermostLog := config.GetLogFileLocation(*ps.Config().LogSettings.FileLocation)
+
+	// Validate the file path to prevent arbitrary file reads
+	if err := ps.validateLogFilePath(mattermostLog); err != nil {
+		rctx.Logger().Error("Blocked attempt to read log file outside allowed root",
+			mlog.String("path", mattermostLog),
+			mlog.String("config_section", "LogSettings.FileLocation"),
+			mlog.Err(err))
+		return "", errors.Wrapf(err, "log file path %s is outside allowed logging directory", mattermostLog)
+	}
+
+	return mattermostLog, nil
 }
 
 // getLogRootPath returns the log root directory, checking the instance override
@@ -300,7 +335,7 @@ func (ps *PlatformService) configFileDirs() []string {
 // validateLogFilePath validates that a log file path is within the logging root directory.
 // This prevents arbitrary file read/write vulnerabilities in logging configuration.
 // The logging root is determined by MM_LOG_PATH environment variable or the default logs directory.
-// Used to validate paths when reading logs via GetLogsSkipSend, GetLogFile, and GetAdvancedLogs.
+// Used to validate paths when reading logs via GetLogsSkipSend, GetLogFile, OpenLogFile, and GetAdvancedLogs.
 // The write side is covered separately by config.ValidateLogPaths, which validates every
 // log and audit path in the config on save and before the logger is configured.
 func (ps *PlatformService) validateLogFilePath(filePath string) error {
