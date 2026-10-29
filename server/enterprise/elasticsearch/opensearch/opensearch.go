@@ -1713,7 +1713,7 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 	// TestConfig only checks the connection: it must not change the running
 	// engine, since cfg may be an unsaved candidate config. Starting an engine
 	// that became reachable after server start is the search engine watcher's job.
-	if _, _, appErr = checkVersion(context.Background(), client, rctx.Logger()); appErr != nil {
+	if _, _, appErr = checkVersion(rctx.Context(), client, rctx.Logger()); appErr != nil {
 		return appErr
 	}
 
