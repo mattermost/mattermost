@@ -14,8 +14,10 @@ import {getChannelSidebarSubItemsRegistration} from 'selectors/channel_sidebar_s
 import type {ResolvedChannelSidebarSubItem} from 'selectors/channel_sidebar_sub_items';
 
 import type {GlobalState} from 'types/store';
+import type {ChannelSidebarSubItemDropPosition} from 'types/store/plugins';
 
 import SidebarChannelSubItemMenu from './sidebar_channel_sub_item_menu';
+import type {ChannelSidebarSubItemDragHandlers} from './use_channel_sidebar_sub_item_drag_and_drop';
 import {getChannelSidebarSubItemChildrenId, getChannelSidebarSubItemLink} from './use_channel_sidebar_sub_items';
 
 const messages = defineMessages({
@@ -42,6 +44,11 @@ type Props = {
     containsActive: boolean;
     onToggle: (itemKey: string) => void;
     onLinkClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+    dragHandlers: ChannelSidebarSubItemDragHandlers;
+    isDragging: boolean;
+
+    /** Where a dragged item would land relative to this item, only set while it is the drop target. */
+    dropPosition?: ChannelSidebarSubItemDropPosition;
 
     /** The nested list, only provided when the item is expanded. */
     children?: ReactNode;
@@ -56,6 +63,9 @@ export default function SidebarChannelSubItem({
     containsActive,
     onToggle,
     onLinkClick,
+    dragHandlers,
+    isDragging,
+    dropPosition,
     children,
 }: Props) {
     const {formatMessage} = useIntl();
@@ -67,6 +77,11 @@ export default function SidebarChannelSubItem({
         event.stopPropagation();
         onToggle(item.key);
     }, [onToggle, item.key]);
+
+    const handleDragStart = useCallback((event: React.DragEvent<HTMLElement>) => dragHandlers.onDragStart(item, event), [dragHandlers, item]);
+    const handleDragOver = useCallback((event: React.DragEvent<HTMLElement>) => dragHandlers.onDragOver(item, event), [dragHandlers, item]);
+    const handleDragLeave = useCallback((event: React.DragEvent<HTMLElement>) => dragHandlers.onDragLeave(item, event), [dragHandlers, item]);
+    const handleDrop = useCallback((event: React.DragEvent<HTMLElement>) => dragHandlers.onDrop(item, event), [dragHandlers, item]);
 
     let toggle: ReactNode = null;
     if (item.hasChildren) {
@@ -98,8 +113,22 @@ export default function SidebarChannelSubItem({
             data-item-key={item.key}
         >
             <div
-                className={classNames('SidebarChannelSubItem__row', {menuOpen: isMenuOpen, hasMenu: hasActions})}
+                className={classNames('SidebarChannelSubItem__row', {
+                    menuOpen: isMenuOpen,
+                    hasMenu: hasActions,
+                    dragging: isDragging,
+                    dropBefore: dropPosition === 'before',
+                    dropAfter: dropPosition === 'after',
+                    dropInside: dropPosition === 'inside',
+                })}
                 style={{'--sub-item-depth': item.depth} as React.CSSProperties}
+                draggable={item.draggable || undefined}
+                onDragStart={handleDragStart}
+                onDragEnter={handleDragOver}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onDragEnd={dragHandlers.onDragEnd}
             >
                 {toggle}
                 <Link
