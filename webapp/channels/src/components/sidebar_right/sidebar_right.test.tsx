@@ -59,8 +59,9 @@ describe('components/sidebar_right', () => {
     // channel in the centre — opening one from search or from saved posts puts a post
     // from another channel on screen, and fields are scoped per channel.
     describe('post attribute fields', () => {
-        // Mount is not where this happens: the component mounts once for the session
-        // and nothing is selected then, so the fetch is driven by the channel changing.
+        // Usually the component mounts once for the session with nothing selected, and
+        // the fetch is driven by the channel changing. It is lazy-loaded, though, so a
+        // selection can already be in place when it mounts, and then mount loads too.
         it('asks for nothing on mount, when nothing is selected', () => {
             renderWithContext(
                 <SidebarRight
@@ -70,6 +71,13 @@ describe('components/sidebar_right', () => {
             );
 
             expect(baseProps.actions.loadPostAttributeFields).not.toHaveBeenCalled();
+        });
+
+        it('loads them on mount when the RHS already shows a channel', () => {
+            renderWithContext(<SidebarRight {...baseProps}/>);
+
+            expect(baseProps.actions.loadPostAttributeFields).toHaveBeenCalledTimes(1);
+            expect(baseProps.actions.loadPostAttributeFields).toHaveBeenCalledWith('channel_id');
         });
 
         it('loads them when the RHS opens on a channel', () => {
@@ -96,8 +104,10 @@ describe('components/sidebar_right', () => {
                 />,
             );
 
-            expect(baseProps.actions.loadPostAttributeFields).toHaveBeenCalledTimes(1);
+            // Once on mount for the first channel, then once for the move.
+            expect(baseProps.actions.loadPostAttributeFields).toHaveBeenCalledTimes(2);
             expect(baseProps.actions.loadPostAttributeFields).toHaveBeenCalledWith('other_channel_id');
+            expect(baseProps.actions.loadPostAttributeFields).toHaveBeenNthCalledWith(2, 'other_channel_id');
         });
 
         it('does not reload them when the RHS channel has not changed', () => {
@@ -110,7 +120,9 @@ describe('components/sidebar_right', () => {
                 />,
             );
 
-            expect(baseProps.actions.loadPostAttributeFields).not.toHaveBeenCalled();
+            // Only the mount-time load; the rerender asks for nothing.
+            expect(baseProps.actions.loadPostAttributeFields).toHaveBeenCalledTimes(1);
+            expect(baseProps.actions.loadPostAttributeFields).toHaveBeenCalledWith('channel_id');
         });
     });
 });

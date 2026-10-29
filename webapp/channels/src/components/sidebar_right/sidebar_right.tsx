@@ -198,6 +198,12 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
         document.addEventListener('mousedown', this.handleClickOutside);
+
+        // Lazy-loaded, so the RHS can already be showing a channel by the time
+        // this mounts; componentDidUpdate only catches a later change.
+        if (this.props.rhsChannel) {
+            this.props.actions.loadPostAttributeFields(this.props.rhsChannel.id);
+        }
     }
 
     componentWillUnmount() {
