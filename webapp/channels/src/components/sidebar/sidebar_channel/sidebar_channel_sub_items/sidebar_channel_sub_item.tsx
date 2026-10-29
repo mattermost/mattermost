@@ -2,15 +2,20 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ReactNode} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {getChannelSidebarSubItemsRegistration} from 'selectors/channel_sidebar_sub_items';
 import type {ResolvedChannelSidebarSubItem} from 'selectors/channel_sidebar_sub_items';
 
+import type {GlobalState} from 'types/store';
+
+import SidebarChannelSubItemMenu from './sidebar_channel_sub_item_menu';
 import {getChannelSidebarSubItemChildrenId, getChannelSidebarSubItemLink} from './use_channel_sidebar_sub_items';
 
 const messages = defineMessages({
@@ -54,6 +59,8 @@ export default function SidebarChannelSubItem({
     children,
 }: Props) {
     const {formatMessage} = useIntl();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const hasActions = useSelector((state: GlobalState) => typeof getChannelSidebarSubItemsRegistration(state, item.registrationId)?.getItemActions === 'function');
 
     const handleToggle = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
@@ -91,7 +98,7 @@ export default function SidebarChannelSubItem({
             data-item-key={item.key}
         >
             <div
-                className='SidebarChannelSubItem__row'
+                className={classNames('SidebarChannelSubItem__row', {menuOpen: isMenuOpen, hasMenu: hasActions})}
                 style={{'--sub-item-depth': item.depth} as React.CSSProperties}
             >
                 {toggle}
@@ -109,6 +116,13 @@ export default function SidebarChannelSubItem({
                     )}
                     <span className='SidebarChannelSubItem__label'>{item.label}</span>
                 </Link>
+                {hasActions && (
+                    <SidebarChannelSubItemMenu
+                        channel={channel}
+                        item={item}
+                        onMenuToggle={setIsMenuOpen}
+                    />
+                )}
             </div>
             {children}
         </li>
