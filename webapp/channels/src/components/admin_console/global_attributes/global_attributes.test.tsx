@@ -5,6 +5,8 @@ import React from 'react';
 
 import type {GlobalAttributeListing, GlobalAttributeListingRow} from '@mattermost/types/global_attributes';
 import type {PropertyField} from '@mattermost/types/properties';
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -209,5 +211,121 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
             });
             expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
         });
+    });
+
+    describe('resource type filter', () => {
+        // Channels need the ChannelAttributes flag and Enterprise Advanced, posts
+        // the PostAttributes flag; users are always offered.
+        function stateOffering({channel = true, post = true} = {}): DeepPartial<GlobalState> {
+            return {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagChannelAttributes: String(channel),
+                            FeatureFlagPostAttributes: String(post),
+                        },
+                        license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+                    },
+                },
+            };
+        }
+
+        const trigger = () => screen.getByTestId('global-attributes-resource-type-filter');
+        const pickResourceType = async (label: string) => {
+            await userEvent.click(trigger());
+            await userEvent.click(screen.getByRole('menuitemradio', {name: label}));
+        };
+        const shownResourceType = () => within(trigger()).getByRole('textbox', {hidden: true});
+        const lastSearch = () => searchGlobalAttributes.mock.calls[searchGlobalAttributes.mock.calls.length - 1][0];
+
+        test('renders beside the source filter, defaulting to All, and sends no resource type', async () => {
+            renderWithContext(<GlobalAttributes/>, stateOffering());
+
+            expect(screen.getByTestId('global-attributes-source-filter').closest('.GlobalAttributes__actions')).toContainElement(trigger());
+            expect(shownResourceType()).toHaveValue('All');
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+            expect(searchGlobalAttributes.mock.calls[0][0].resource_type).toBeUndefined();
+        });
+
+        test('offers only the resource types the server allows', async () => {
+            renderWithContext(<GlobalAttributes/>, stateOffering({channel: false}));
+
+            await userEvent.click(trigger());
+
+            expect(screen.getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual(['All', 'Users', 'Posts']);
+        });
+
+        test('is not shown when users are the only resource type on offer', async () => {
+            renderWithContext(<GlobalAttributes/>, stateOffering({channel: false, post: false}));
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+
+            expect(screen.queryByTestId('global-attributes-resource-type-filter')).not.toBeInTheDocument();
+            expect(lastSearch().resource_type).toBeUndefined();
+        });
+
+        test('picking a resource type requests it, and All drops it again', async () => {
+            renderWithContext(<GlobalAttributes/>, stateOffering());
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+
+            await pickResourceType('Channels');
+            await waitFor(() => {
+                expect(searchGlobalAttributes).toHaveBeenLastCalledWith(expect.objectContaining({resource_type: 'channel'}));
+            });
+            expect(shownResourceType()).toHaveValue('Channels');
+
+            await pickResourceType('All');
+            await waitFor(() => expect(lastSearch().resource_type).toBeUndefined());
+        });
+
+        test('combines with the search term and the source', async () => {
+            renderWithContext(<GlobalAttributes/>, stateOffering());
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+
+            await pickResourceType('Posts');
+            await pickSourceIn('SAML');
+            await userEvent.type(screen.getByTestId('global-attributes-search'), 'dept');
+
+            await waitFor(() => {
+                expect(searchGlobalAttributes).toHaveBeenLastCalledWith({term: 'dept', source: 'saml', resource_type: 'post'});
+            });
+        });
+
+        test('Clear filters in the no-match state resets the resource type with the search and source', async () => {
+            renderWithContext(<GlobalAttributes/>, stateOffering());
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+
+            await pickResourceType('Users');
+            expect(await screen.findByTestId('global-attributes-empty-search')).toHaveTextContent('No attributes match your search or filters.');
+            expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+
+            await userEvent.type(screen.getByTestId('global-attributes-search'), 'zzz');
+            await pickSourceIn('Plugin');
+            await userEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+
+            expect(screen.getByTestId('global-attributes-search')).toHaveValue('');
+            expect(shownResourceType()).toHaveValue('All');
+            await waitFor(() => {
+                expect(lastSearch()).toEqual({term: undefined, source: undefined, resource_type: undefined});
+            });
+            expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
+        });
+
+        test('drops a picked type the server stops offering', async () => {
+            const {replaceStoreState} = renderWithContext(<GlobalAttributes/>, stateOffering());
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+
+            await pickResourceType('Channels');
+            await waitFor(() => expect(lastSearch().resource_type).toBe('channel'));
+
+            replaceStoreState(stateOffering({channel: false}));
+
+            await waitFor(() => expect(lastSearch().resource_type).toBeUndefined());
+            expect(shownResourceType()).toHaveValue('All');
+        });
+
+        async function pickSourceIn(label: string) {
+            await userEvent.click(screen.getByTestId('global-attributes-source-filter'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: label}));
+        }
     });
 });

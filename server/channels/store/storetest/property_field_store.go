@@ -5467,6 +5467,10 @@ func listingTerm(term string) func(*model.GlobalAttributeListingOpts) {
 	return func(o *model.GlobalAttributeListingOpts) { o.Term = term }
 }
 
+func listingResourceType(resourceType string) func(*model.GlobalAttributeListingOpts) {
+	return func(o *model.GlobalAttributeListingOpts) { o.ResourceType = resourceType }
+}
+
 func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("row set", func(t *testing.T) {
 		f := newListingFixture(t, ss)
@@ -5853,6 +5857,114 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 		require.Empty(t, names)
 	})
 
+	t.Run("resource type", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		userOnly := f.template("user_only")
+		f.linked(userOnly, model.PropertyFieldObjectTypeUser, "user_only_user")
+		userAndChannel := f.template("user_and_channel")
+		f.linked(userAndChannel, model.PropertyFieldObjectTypeUser, "user_and_channel_user")
+		f.linked(userAndChannel, model.PropertyFieldObjectTypeChannel, "user_and_channel_channel")
+		all := f.template("all_three")
+		f.linked(all, model.PropertyFieldObjectTypeUser, "all_three_user")
+		f.linked(all, model.PropertyFieldObjectTypeChannel, "all_three_channel")
+		f.linked(all, model.PropertyFieldObjectTypePost, "all_three_post")
+		f.template("nowhere")
+		deletedChild := f.template("deleted_post_child")
+		f.linked(deletedChild, model.PropertyFieldObjectTypeUser, "deleted_post_child_user")
+		f.remove(f.linked(deletedChild, model.PropertyFieldObjectTypePost, "deleted_post_child_post"))
+		otherGroupChild := f.template("other_group_channel_child")
+		f.create(model.NewId(), model.PropertyFieldObjectTypeChannel, "other_group_channel_child_channel", func(pf *model.PropertyField) {
+			pf.LinkedFieldID = &otherGroupChild.ID
+		})
+
+		f.field(model.PropertyFieldObjectTypeUser, "loose_user")
+		f.field(model.PropertyFieldObjectTypeChannel, "loose_channel")
+		f.field(model.PropertyFieldObjectTypePost, "loose_post")
+
+		t.Run("user", func(t *testing.T) {
+			names := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser))
+			require.Equal(t, []string{"all_three", "deleted_post_child", "loose_user", "user_and_channel", "user_only"}, names)
+		})
+
+		t.Run("channel, not counting a linked field in another group", func(t *testing.T) {
+			names := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeChannel))
+			require.Equal(t, []string{"all_three", "loose_channel", "user_and_channel"}, names)
+		})
+
+		t.Run("post, not counting a deleted linked field", func(t *testing.T) {
+			names := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypePost))
+			require.Equal(t, []string{"all_three", "loose_post"}, names)
+		})
+
+		t.Run("a template with no linked fields matches no type", func(t *testing.T) {
+			for _, resourceType := range allListingResourceTypes {
+				names := f.search(rctx, listingResourceType(resourceType))
+				require.NotContains(t, names, "nowhere", resourceType)
+			}
+		})
+
+		t.Run("a type that is not allowed matches nothing", func(t *testing.T) {
+			for _, resourceType := range []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypePost} {
+				names := f.search(rctx, listingResourceType(resourceType), func(o *model.GlobalAttributeListingOpts) {
+					o.AllowedResourceTypes = []string{model.PropertyFieldObjectTypeUser}
+				})
+				require.Empty(t, names, resourceType)
+			}
+		})
+
+		t.Run("linked fields of a type that is not allowed do not change what another type matches", func(t *testing.T) {
+			userOnlyAllowed := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser), func(o *model.GlobalAttributeListingOpts) {
+				o.AllowedResourceTypes = []string{model.PropertyFieldObjectTypeUser}
+			})
+			require.Equal(t, f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser)), userOnlyAllowed)
+		})
+
+		t.Run("no allowed type matches nothing, templates included", func(t *testing.T) {
+			names := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser), func(o *model.GlobalAttributeListingOpts) {
+				o.AllowedResourceTypes = nil
+			})
+			require.Empty(t, names)
+		})
+	})
+
+	t.Run("combined filters", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		match := f.template("clearance_ldap", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "clearance"}))
+		f.linked(match, model.PropertyFieldObjectTypeUser, "clearance_ldap_user")
+		wrongSource := f.template("clearance_managed")
+		f.linked(wrongSource, model.PropertyFieldObjectTypeUser, "clearance_managed_user")
+		wrongType := f.template("clearance_ldap_channel_only", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "clearance"}))
+		f.linked(wrongType, model.PropertyFieldObjectTypeChannel, "clearance_ldap_channel_only_child")
+		wrongTerm := f.template("department_ldap", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "department"}))
+		f.linked(wrongTerm, model.PropertyFieldObjectTypeUser, "department_ldap_user")
+
+		names := f.search(rctx,
+			listingTerm("clearance"),
+			listingSource(model.GlobalAttributeSourceLDAP),
+			listingResourceType(model.PropertyFieldObjectTypeUser),
+		)
+		require.Equal(t, []string{"clearance_ldap"}, names)
+
+		names = f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP), listingResourceType(model.PropertyFieldObjectTypeUser))
+		require.Equal(t, []string{"clearance_ldap", "department_ldap"}, names)
+
+		names = f.search(rctx, listingTerm("clearance"), listingResourceType(model.PropertyFieldObjectTypeUser))
+		require.Equal(t, []string{"clearance_ldap", "clearance_managed"}, names)
+
+		names = f.search(rctx, listingTerm("clearance"), listingResourceType(model.PropertyFieldObjectTypeChannel))
+		require.Equal(t, []string{"clearance_ldap_channel_only"}, names)
+
+		names = f.search(rctx,
+			listingTerm("clearance"),
+			listingSource(model.GlobalAttributeSourceLDAP),
+			listingResourceType(model.PropertyFieldObjectTypeUser),
+			func(o *model.GlobalAttributeListingOpts) { o.ExcludeIDs = []string{match.ID} },
+		)
+		require.Empty(t, names)
+	})
+
 	t.Run("order", func(t *testing.T) {
 		f := newListingFixture(t, ss)
 
@@ -5910,6 +6022,8 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 			"no group":         func(o *model.GlobalAttributeListingOpts) { o.GroupID = "" },
 			"bad source":       func(o *model.GlobalAttributeListingOpts) { o.Source = "ssh" },
 			"injected source":  func(o *model.GlobalAttributeListingOpts) { o.Source = "ldap' OR '1'='1" },
+			"bad type":         func(o *model.GlobalAttributeListingOpts) { o.ResourceType = "template" },
+			"injected type":    func(o *model.GlobalAttributeListingOpts) { o.ResourceType = "user' OR '1'='1" },
 			"bad allowed":      func(o *model.GlobalAttributeListingOpts) { o.AllowedResourceTypes = []string{"template"} },
 			"injected allowed": func(o *model.GlobalAttributeListingOpts) { o.AllowedResourceTypes = []string{"user' OR '1'='1"} },
 		} {

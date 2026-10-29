@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
@@ -128,6 +129,15 @@ func listingWhere(opts model.GlobalAttributeListingOpts) sq.Sqlizer {
 		})
 	}
 
+	if opts.ResourceType != "" {
+		// A template is a resource type through its live linked fields, anything
+		// else through its own object type.
+		where = append(where, sq.Or{
+			sq.Eq{"ObjectType": opts.ResourceType},
+			sq.And{sq.Eq{"ObjectType": model.PropertyFieldObjectTypeTemplate}, liveLinkedChild(opts.ResourceType)},
+		})
+	}
+
 	if opts.Source != "" {
 		where = append(where, listingSourceCondition(opts.Source))
 	}
@@ -136,11 +146,17 @@ func listingWhere(opts model.GlobalAttributeListingOpts) sq.Sqlizer {
 }
 
 // SearchGlobalAttributeListing returns the Global Attributes listing rows
-// matching the term: every live system-level template in the group plus the live
-// system-level fields of an allowed resource type that link to no template.
+// matching the filters: every live system-level template in the group plus the
+// live system-level fields of an allowed resource type that link to no template.
 func (s *SqlPropertyFieldStore) SearchGlobalAttributeListing(rctx request.CTX, opts model.GlobalAttributeListingOpts) ([]*model.PropertyField, error) {
 	if err := opts.IsValid(); err != nil {
 		return nil, fmt.Errorf("opts is invalid: %w", err)
+	}
+
+	// A resource type the caller is not allowed never lists, however the field
+	// comes to carry it.
+	if opts.ResourceType != "" && !slices.Contains(opts.AllowedResourceTypes, opts.ResourceType) {
+		return []*model.PropertyField{}, nil
 	}
 
 	db := s.DBXFromContext(rctx.Context())
