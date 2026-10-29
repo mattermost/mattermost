@@ -555,7 +555,9 @@ func (c *Context) SanitizeEmail() *Context {
 		return c
 	}
 	c.Params.Email = strings.ToLower(c.Params.Email)
-	if !model.IsValidEmail(c.Params.Email) {
+	// Legacy "<user@example.com>" rows must stay findable. Check that form first so
+	// IsValidEmail does not log its write-rejection warning on a lookup.
+	if !model.IsLegacyBracketedEmail(c.Params.Email) && !model.IsValidEmail(c.Params.Email) {
 		c.SetInvalidURLParam("email")
 	}
 

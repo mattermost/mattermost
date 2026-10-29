@@ -430,6 +430,83 @@ func TestUpdateUserActive(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestLegacyBracketedEmail(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.RequireEmailVerification = false
+	})
+
+	storeLegacyEmail := func(t *testing.T, user *model.User, authService string) string {
+		t.Helper()
+		legacyEmail := "<" + user.Email + ">"
+		_, err := th.SQLStore.GetMaster().Exec("UPDATE Users SET Email = ?, AuthService = ? WHERE Id = ?", legacyEmail, authService, user.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(user.Id)
+
+		reloaded, appErr := th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, legacyEmail, reloaded.Email)
+		*user = *reloaded
+		return legacyEmail
+	}
+
+	t.Run("deactivate and correct an email user", func(t *testing.T) {
+		user := th.CreateUser(t)
+		plainEmail := user.Email
+		legacyEmail := storeLegacyEmail(t, user, "")
+
+		require.Nil(t, th.App.UpdateUserActive(th.Context, user.Id, false))
+		deactivated, appErr := th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
+		require.NotZero(t, deactivated.DeleteAt)
+		require.Equal(t, legacyEmail, deactivated.Email)
+
+		require.Nil(t, th.App.UpdateUserActive(th.Context, user.Id, true))
+
+		corrected := "corrected-" + plainEmail
+		deactivated.Email = corrected
+		deactivated.DeleteAt = 0
+		updated, appErr := th.App.UpdateUser(th.Context, deactivated, false)
+		require.Nil(t, appErr)
+		require.Equal(t, corrected, updated.Email)
+
+		updated.Email = "<other@example.com>"
+		_, appErr = th.App.UpdateUser(th.Context, updated, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.user.is_valid.email.app_error", appErr.Id)
+	})
+
+	t.Run("correct a gitlab user email", func(t *testing.T) {
+		user := th.CreateUser(t)
+		plainEmail := user.Email
+		storeLegacyEmail(t, user, model.UserAuthServiceGitlab)
+
+		corrected := "gitlab-corrected-" + plainEmail
+		user.Email = corrected
+		updated, appErr := th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.Equal(t, corrected, updated.Email)
+		require.Equal(t, model.UserAuthServiceGitlab, updated.AuthService)
+	})
+
+	t.Run("gitlab user keeps a valid email on untrusted update", func(t *testing.T) {
+		user := th.CreateUser(t)
+		_, err := th.SQLStore.GetMaster().Exec("UPDATE Users SET AuthService = ? WHERE Id = ?", model.UserAuthServiceGitlab, user.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(user.Id)
+
+		reloaded, appErr := th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
+		original := reloaded.Email
+		reloaded.Email = "should-not-stick-" + original
+		updated, appErr := th.App.UpdateUser(th.Context, reloaded, false)
+		require.Nil(t, appErr)
+		require.Equal(t, original, updated.Email)
+	})
+}
+
 func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -1400,6 +1400,21 @@ func TestGetUserByEmail(t *testing.T) {
 		*cfg.PrivacySettings.ShowFullName = true
 	})
 
+	t.Run("should find a user stored with a legacy angle-bracket email", func(t *testing.T) {
+		legacyUser := th.CreateUser(t)
+		legacyEmail := "<" + legacyUser.Email + ">"
+		_, err := mainHelper.GetSQLStore().GetMaster().Exec("UPDATE Users SET Email = ? WHERE Id = ?", legacyEmail, legacyUser.Id)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(legacyUser.Id)
+
+		for _, client := range []*model.Client4{th.SystemAdminClient, th.LocalClient} {
+			ruser, _, err := client.GetUserByEmail(context.Background(), legacyEmail, "")
+			require.NoError(t, err)
+			require.Equal(t, legacyUser.Id, ruser.Id)
+			require.Equal(t, legacyEmail, ruser.Email)
+		}
+	})
+
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("should be able to get another user by email", func(t *testing.T) {
 			ruser, _, err := client.GetUserByEmail(context.Background(), user.Email, "")

@@ -104,6 +104,15 @@ export type State = {
     showSaveConfirmationModal: boolean;
 };
 
+// Matches server model.IsLegacyBracketedEmail: "<user@example.com>" only.
+function isLegacyBracketedEmail(email: string): boolean {
+    const normalized = email.toLowerCase();
+    if (normalized.length < 3 || normalized[0] !== '<' || normalized[normalized.length - 1] !== '>') {
+        return false;
+    }
+    return isEmail(normalized.slice(1, -1));
+}
+
 export class SystemUserDetail extends PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -262,6 +271,15 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return false;
     };
 
+    // Angle-bracket addresses were accepted before stricter validation. Those
+    // rows stay editable, including for SSO users, so an admin can replace them.
+    private emailIsEditable = (state: State = this.state): boolean => {
+        if (!state.user?.auth_service) {
+            return true;
+        }
+        return isLegacyBracketedEmail(state.user.email);
+    };
+
     private canEditPicture = (state: State = this.state): boolean => {
         if (!state.user) {
             return false;
@@ -412,7 +430,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
-        if (!this.state.user || this.state.user.auth_service) {
+        if (!this.state.user || !this.emailIsEditable()) {
             return;
         }
 
@@ -670,7 +688,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     defaultMessage='Email'
                 />
                 <EmailIcon/>
-                {this.state.user?.auth_service ? (
+                {this.state.user?.auth_service && !this.emailIsEditable() ? (
                     <WithTooltip
                         title={this.props.intl.formatMessage({
                             id: 'admin.userManagement.userDetail.managedByProvider.title',
@@ -1163,7 +1181,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             let updatedUser: UserProfile = {...this.state.user};
 
             // Track what changes are being made
-            const emailChanged = !this.state.user.auth_service && this.state.emailField !== this.state.user.email;
+            const emailChanged = this.emailIsEditable() && this.state.emailField !== this.state.user.email;
             const usernameChanged = !this.state.user.auth_service && this.state.usernameField !== this.state.user.username;
             const nameChanged = !this.state.user.auth_service && this.hasNameChanges();
             const authDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');

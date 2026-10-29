@@ -497,6 +497,30 @@ func TestIsValidEmail(t *testing.T) {
 	}
 }
 
+func TestUnwrapLegacyBracketedEmail(t *testing.T) {
+	for _, testCase := range []struct {
+		input string
+		inner string
+		ok    bool
+	}{
+		{input: "<billy@example.com>", inner: "billy@example.com", ok: true},
+		{input: "<Billy@Example.com>", inner: "billy@example.com", ok: true},
+		{input: "billy@example.com", ok: false},
+		{input: "Billy Bob <billy@example.com>", ok: false},
+		{input: "<not an email>", ok: false},
+		{input: "<billy@example.com> ", ok: false},
+		{input: "", ok: false},
+	} {
+		t.Run(testCase.input, func(t *testing.T) {
+			inner, ok := UnwrapLegacyBracketedEmail(testCase.input)
+			assert.Equal(t, testCase.ok, ok)
+			assert.Equal(t, testCase.inner, inner)
+			assert.Equal(t, testCase.ok, IsLegacyBracketedEmail(testCase.input))
+			assert.False(t, IsValidEmail(testCase.input) && testCase.ok)
+		})
+	}
+}
+
 func TestEtag(t *testing.T) {
 	etag := Etag("hello", 24)
 	require.NotEqual(t, "", etag)

@@ -26,7 +26,7 @@ func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 
 func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	var user *model.User
-	if !checkDots(userArg) && model.IsValidEmail(userArg) {
+	if !checkDots(userArg) && userArgIsEmail(userArg) {
 		user, _, _ = c.GetUserByEmail(context.TODO(), userArg, "")
 	}
 
@@ -41,6 +41,13 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	}
 
 	return user
+}
+
+// userArgIsEmail reports whether userArg should be looked up as an email.
+// Legacy angle-bracket addresses are included so existing rows can be found.
+// That check runs first because IsValidEmail logs when it rejects them.
+func userArgIsEmail(userArg string) bool {
+	return model.IsLegacyBracketedEmail(userArg) || model.IsValidEmail(userArg)
 }
 
 // returns true if slash is found in the arg
@@ -75,7 +82,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	var user *model.User
 	var response *model.Response
 	var err error
-	if !checkDots(userArg) && model.IsValidEmail(userArg) {
+	if !checkDots(userArg) && userArgIsEmail(userArg) {
 		user, response, err = c.GetUserByEmail(context.TODO(), userArg, "")
 		if err != nil {
 			nErr := ExtractErrorFromResponse(response, err)
