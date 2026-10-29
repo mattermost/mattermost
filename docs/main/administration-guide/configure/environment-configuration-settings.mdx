@@ -1170,21 +1170,9 @@ If indexing is disabled and then re-enabled after an index is created, purge and
 
 <Warning>
 
-Turn off Elasticsearch indexing before permanently deleting a large number of channels. Each permanent delete reindexes every member of that channel. A bulk delete that removes on the order of 100,000 channel memberships can exhaust Mattermost memory and terminate the server process.
+Before permanently deleting a large number of channels, turn off **Enable Elasticsearch indexing**. Each permanent delete reindexes every member of that channel, and that indexing work can exhaust Mattermost memory on a delete of about 100,000 memberships.
 
-Leave the Elasticsearch or OpenSearch cluster running. Stopping the cluster while Mattermost is still trying to index increases the load.
-
-1. In one configuration update, set these to `false`:
-    - [Enable CJK analyzers](#enable-cjk-analyzers), when that setting is on. CJK analyzers require search queries to stay enabled.
-    - [Enable Elasticsearch for search queries](#enable-elasticsearch-for-search-queries). Search queries require indexing to stay enabled.
-    - [Enable Elasticsearch for autocomplete queries](#enable-elasticsearch-for-autocomplete-queries). Autocomplete requires indexing to stay enabled.
-    - **Enable Elasticsearch indexing** (`ElasticsearchSettings.EnableIndexing`).
-2. Save the configuration and restart the Mattermost server. With indexing off, search uses the database unless [Disable database search](#disable-database-search) is `true`. When that setting is `true`, search returns no results until Elasticsearch search is on again. Turn database search on for the duration, or plan for a search outage. Database search adds load on large deployments.
-3. Permanently delete the channels with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/&#123;channel_id&#125;?permanent=true`. [Enable API channel deletion](#enable-api-channel-deletion) must be `true`.
-4. Turn indexing back on before the rebuild. If CJK analyzers were on, also turn search queries and CJK analyzers back on in that same update, then save and restart. The index template is written when the search engine starts, and a rebuild with CJK analyzers off leaves content without CJK analysis. Search results can be incomplete during that rebuild. If CJK analyzers were off, leave search queries off so database search stays available during the rebuild.
-5. If file search should include files after the rebuild, set [Enable file indexing](#enable-file-indexing) to `true` before purging. A rebuild with that setting off skips files, and the purge removes file documents already in the index.
-6. Confirm [Index prefix](#index-prefix) limits the purge to this Mattermost deployment. An empty prefix makes purge delete every index (`*`). Use [Indexes to skip while purging](#indexes-to-skip-while-purging) to keep unrelated indexes on a shared cluster. Then purge and rebuild the index from **System Console > Environment > Elasticsearch**, and wait until the bulk index finishes.
-7. Restore search queries if they are still off, then restore autocomplete and any other settings you changed. Save and restart.
+Leave the Elasticsearch or OpenSearch cluster running. Indexing is the only setting that needs to stay off while the deletes run. The server rejects a configuration where [search queries](#enable-elasticsearch-for-search-queries) or [autocomplete](#enable-elasticsearch-for-autocomplete-queries) stay on while indexing is off, so set those to `false` in the same change. If [CJK analyzers](#enable-cjk-analyzers) are on, set those to `false` too, because they require search queries. Save and restart, run the deletes with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/&#123;channel_id&#125;?permanent=true`, then restore indexing, search queries, autocomplete, and CJK analyzers together. Run **Index Now** so changes made while indexing was off are included.
 
 </Warning>
 
@@ -3956,7 +3944,7 @@ This setting isn’t available in the System Console and can only be set in `con
 
 <Warning>
 
-Before a large bulk permanent channel delete, turn off [Elasticsearch indexing](#enable-elasticsearch-indexing). Search queries, autocomplete, and CJK analyzers have to be off as well: search and autocomplete require indexing, and CJK analyzers require search. Each delete reindexes every channel member, and a bulk delete of about 100,000 memberships can exhaust server memory. Leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, restore indexing, and restore search and CJK analyzers before the rebuild when those were on. Purge and rebuild the index, then restore autocomplete.
+Before a large bulk permanent channel delete, turn off [Elasticsearch indexing](#enable-elasticsearch-indexing) and leave the Elasticsearch or OpenSearch cluster running. Each delete reindexes every channel member, and that indexing work can exhaust server memory on a delete of about 100,000 memberships. Restore indexing when the deletes finish, then run **Index Now**.
 
 </Warning>
 

@@ -991,7 +991,7 @@ Requires the [Enable API Channel Deletion](/administration-guide/configure/envir
 
 <Warning>
 
-Before permanently deleting a large number of channels, turn off [Elasticsearch indexing](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing). Search queries, autocomplete, and CJK analyzers have to be off as well: search and autocomplete require indexing, and CJK analyzers require search. Each delete reindexes every channel member, and a bulk delete of about 100,000 memberships can exhaust server memory. Leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, restore indexing, and restore search and CJK analyzers before the rebuild when those were on. Purge and rebuild the index, then restore autocomplete.
+Before permanently deleting a large number of channels, turn off [Elasticsearch indexing](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing) and leave the Elasticsearch or OpenSearch cluster running. Each delete reindexes every channel member, and that indexing work can exhaust server memory on a delete of about 100,000 memberships. Restore indexing when the deletes finish, then run a bulk index.
 
 </Warning>
 
