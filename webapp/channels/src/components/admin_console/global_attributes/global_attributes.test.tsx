@@ -134,4 +134,80 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         });
         expect(screen.getByText('Clearance')).toBeInTheDocument();
     });
+
+    describe('source filter', () => {
+        const pickSource = async (label: string) => {
+            await userEvent.click(screen.getByTestId('global-attributes-source-filter'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: label}));
+        };
+        const shownSource = () => within(screen.getByTestId('global-attributes-source-filter')).getByRole('textbox', {hidden: true});
+
+        test('renders beside the search field, defaulting to All, and sends no source', async () => {
+            renderWithContext(<GlobalAttributes/>);
+
+            expect(screen.getByTestId('global-attributes-search').closest('.GlobalAttributes__actions')).toContainElement(screen.getByTestId('global-attributes-source-filter'));
+            expect(shownSource()).toHaveValue('All');
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+            expect(searchGlobalAttributes.mock.calls[0][0].source).toBeUndefined();
+        });
+
+        test('picking a source requests it, and All drops it again', async () => {
+            renderWithContext(<GlobalAttributes/>);
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+
+            await pickSource('AD/LDAP');
+            await waitFor(() => {
+                expect(searchGlobalAttributes).toHaveBeenLastCalledWith(expect.objectContaining({source: 'ldap'}));
+            });
+            expect(shownSource()).toHaveValue('AD/LDAP');
+
+            await pickSource('All');
+            await waitFor(() => {
+                expect(searchGlobalAttributes.mock.calls[searchGlobalAttributes.mock.calls.length - 1][0].source).toBeUndefined();
+            });
+        });
+
+        test('combines with the search term', async () => {
+            renderWithContext(<GlobalAttributes/>);
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+
+            await pickSource('SAML');
+            await userEvent.type(screen.getByTestId('global-attributes-search'), 'dept');
+
+            await waitFor(() => {
+                expect(searchGlobalAttributes).toHaveBeenLastCalledWith({term: 'dept', source: 'saml'});
+            });
+        });
+
+        test('stays usable when the page is read-only, like the search field', async () => {
+            renderWithContext(<GlobalAttributes disabled={true}/>);
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+
+            await pickSource('Plugin');
+
+            await waitFor(() => {
+                expect(searchGlobalAttributes).toHaveBeenLastCalledWith(expect.objectContaining({source: 'plugin'}));
+            });
+        });
+
+        test('Clear filters in the no-match state resets the search and the source', async () => {
+            renderWithContext(<GlobalAttributes/>);
+            await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
+
+            await userEvent.type(screen.getByTestId('global-attributes-search'), 'zzz');
+            await pickSource('OpenID Connect');
+
+            expect(await screen.findByTestId('global-attributes-empty-search')).toBeInTheDocument();
+            expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+
+            expect(screen.getByTestId('global-attributes-search')).toHaveValue('');
+            expect(shownSource()).toHaveValue('All');
+            await waitFor(() => {
+                expect(searchGlobalAttributes).toHaveBeenLastCalledWith({term: undefined, source: undefined});
+            });
+            expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
+        });
+    });
 });

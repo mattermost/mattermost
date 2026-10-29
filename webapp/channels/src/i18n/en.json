@@ -6987,6 +6987,42 @@
     "defaultMessage": "Remove {resources}?",
     "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Attribute Management before removing an attribute from resources. {resources} is a list of resource names."
   },
+  "admin.global_attributes.filter.source": {
+    "defaultMessage": "Source",
+    "description": "Label of the Source filter beside the search field above the attributes table in System Console > System Attributes > Attribute Management. The filter narrows the table to attributes from one source."
+  },
+  "admin.global_attributes.filter.source.all": {
+    "defaultMessage": "All",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows attributes from every source. The default."
+  },
+  "admin.global_attributes.filter.source.ldap": {
+    "defaultMessage": "AD/LDAP",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes synced from LDAP. Product name; usually left untranslated."
+  },
+  "admin.global_attributes.filter.source.managed": {
+    "defaultMessage": "Managed here",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes defined in Mattermost itself: not synced from an identity provider and not created or owned by a plugin or service."
+  },
+  "admin.global_attributes.filter.source.menuAriaLabel": {
+    "defaultMessage": "Source menu",
+    "description": "Screen-reader label of the open Source filter menu in System Console > Attribute Management."
+  },
+  "admin.global_attributes.filter.source.menuButtonAriaLabel": {
+    "defaultMessage": "Filter attributes by source",
+    "description": "Screen-reader label of the Source filter control in System Console > Attribute Management, which opens a menu of attribute sources."
+  },
+  "admin.global_attributes.filter.source.openid": {
+    "defaultMessage": "OpenID Connect",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes synced from OpenID Connect. Product name; usually left untranslated."
+  },
+  "admin.global_attributes.filter.source.plugin": {
+    "defaultMessage": "Plugin",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes created or owned by a plugin."
+  },
+  "admin.global_attributes.filter.source.saml": {
+    "defaultMessage": "SAML",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes synced from SAML. Product name; usually left untranslated."
+  },
   "admin.global_attributes.name_conflict.details_notice": {
     "defaultMessage": "Another attribute already uses this name.",
     "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Attribute Management when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
@@ -7063,9 +7099,17 @@
     "defaultMessage": "Definition is read-only",
     "description": "Small subtitle shown under the name in the attributes table for the built-in Classification Markings row, indicating it cannot be edited from this screen."
   },
+  "admin.global_attributes.table.clear_filters": {
+    "defaultMessage": "Clear filters",
+    "description": "Button in the attributes table empty state in System Console > Attribute Management that clears the search text and resets every filter to All."
+  },
   "admin.global_attributes.table.empty": {
     "defaultMessage": "No attributes yet. Click \"New attribute\" to create one.",
     "description": "Empty-state message shown in place of the attributes table when no attributes exist. The quoted \"New attribute\" refers to the button above the table and should match that button's translation."
+  },
+  "admin.global_attributes.table.empty_filtered": {
+    "defaultMessage": "No attributes match your search or filters.",
+    "description": "Empty-state message in the attributes table in System Console > Attribute Management, shown when the search text and the selected filters together match no attributes."
   },
   "admin.global_attributes.table.empty_search": {
     "defaultMessage": "No attributes match your search.",

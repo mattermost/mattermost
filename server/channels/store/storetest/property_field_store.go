@@ -5386,6 +5386,13 @@ func withOwner(ownerType, id string) listingFieldOption {
 	}})
 }
 
+func withPluginSource(pluginID string, protected bool) listingFieldOption {
+	return withAttrs(map[string]any{
+		model.PropertyAttrsSourcePluginID: pluginID,
+		model.PropertyAttrsProtected:      protected,
+	})
+}
+
 func (f *listingFixture) create(groupID, objectType, name string, opts ...listingFieldOption) *model.PropertyField {
 	f.t.Helper()
 	field := &model.PropertyField{
@@ -5450,6 +5457,10 @@ func (f *listingFixture) search(rctx request.CTX, mutate ...func(*model.GlobalAt
 		names = append(names, field.Name)
 	}
 	return names
+}
+
+func listingSource(source string) func(*model.GlobalAttributeListingOpts) {
+	return func(o *model.GlobalAttributeListingOpts) { o.Source = source }
 }
 
 func listingTerm(term string) func(*model.GlobalAttributeListingOpts) {
@@ -5644,6 +5655,204 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 		})
 	})
 
+	t.Run("source", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		// Managed here: no plugin, no sync, no owners.
+		f.template("managed_template")
+		f.field(model.PropertyFieldObjectTypeChannel, "managed_channel")
+		withChildren := f.template("managed_with_plain_child")
+		f.linked(withChildren, model.PropertyFieldObjectTypeUser, "managed_plain_child")
+		// A plugin ID without protection does not make a plugin field.
+		f.field(model.PropertyFieldObjectTypePost, "unprotected_source", withPluginSource("com.example.plugin", false))
+
+		// Plugin through the row's own attrs.
+		f.field(model.PropertyFieldObjectTypeUser, "plugin_protected_user", withPluginSource("com.example.plugin", true))
+		f.template("plugin_protected_template", withPluginSource("com.example.plugin", true))
+		f.field(model.PropertyFieldObjectTypePost, "plugin_protected_post", withPluginSource("com.example.plugin", true))
+
+		// Plugin through an owner.
+		f.field(model.PropertyFieldObjectTypeUser, "plugin_owned_user", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+		ownedTemplate := f.template("plugin_owned_template")
+		f.linked(ownedTemplate, model.PropertyFieldObjectTypeUser, "plugin_owned_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+		f.linked(ownedTemplate, model.PropertyFieldObjectTypeChannel, "plugin_owned_channel_child")
+
+		// Owned by something other than a plugin: listed under All only.
+		for _, ownerType := range []string{model.PropertyOwnerTypeService, model.PropertyOwnerTypeRole, model.PropertyOwnerTypeUser} {
+			f.field(model.PropertyFieldObjectTypeUser, ownerType+"_owned_user", withOwner(ownerType, "someone"))
+		}
+		serviceOwned := f.template("service_owned_template")
+		f.linked(serviceOwned, model.PropertyFieldObjectTypeUser, "service_owned_child", withOwner(model.PropertyOwnerTypeService, "svc-sync"))
+
+		// A plugin owner that does not count.
+		deletedOwner := f.template("deleted_owner_template")
+		f.remove(f.linked(deletedOwner, model.PropertyFieldObjectTypeUser, "deleted_owner_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner")))
+		channelOwner := f.template("channel_owner_template")
+		f.linked(channelOwner, model.PropertyFieldObjectTypeChannel, "channel_owner_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+		f.field(model.PropertyFieldObjectTypeChannel, "channel_owner_resource", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+
+		// Synced from an identity source: the definition on the template or the unlinked field itself.
+		f.template("ldap_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "mail"}))
+		f.template("saml_template", withAttrs(map[string]any{model.PropertyFieldAttrSAML: "email"}))
+		f.template("openid_template", withAttrs(map[string]any{model.PropertyFieldAttrOpenID: "email"}))
+		f.template("ldap_and_saml_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "mail", model.PropertyFieldAttrSAML: "email"}))
+		f.field(model.PropertyFieldObjectTypeUser, "ldap_user", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "department"}))
+		f.template("blank_ldap_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: ""}))
+		syncedAndOwned := f.template("ldap_and_owned_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "mail"}))
+		f.linked(syncedAndOwned, model.PropertyFieldObjectTypeUser, "ldap_and_owned_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+
+		t.Run("plugin", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourcePlugin))
+			require.Equal(t, []string{
+				"ldap_and_owned_template",
+				"plugin_owned_template",
+				"plugin_owned_user",
+				"plugin_protected_post",
+				"plugin_protected_template",
+				"plugin_protected_user",
+			}, names)
+		})
+
+		t.Run("ldap", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP))
+			require.Equal(t, []string{"ldap_and_owned_template", "ldap_and_saml_template", "ldap_template", "ldap_user"}, names)
+		})
+
+		t.Run("saml", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourceSAML))
+			require.Equal(t, []string{"ldap_and_saml_template", "saml_template"}, names)
+		})
+
+		t.Run("openid", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourceOpenID))
+			require.Equal(t, []string{"openid_template"}, names)
+		})
+
+		t.Run("managed", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourceManaged))
+			require.Equal(t, []string{
+				"blank_ldap_template",
+				"channel_owner_resource",
+				"channel_owner_template",
+				"deleted_owner_template",
+				"managed_channel",
+				"managed_template",
+				"managed_with_plain_child",
+				"unprotected_source",
+			}, names)
+		})
+
+		t.Run("no filter lists every row, owner-only rows included", func(t *testing.T) {
+			names := f.search(rctx)
+			require.Len(t, names, 23)
+			require.Contains(t, names, "service_owned_template")
+			require.Contains(t, names, "role_owned_user")
+			require.Contains(t, names, "user_owned_user")
+			require.Contains(t, names, "service_owned_user")
+		})
+
+		t.Run("owner-only rows match no source filter but All", func(t *testing.T) {
+			ownerOnly := []string{"service_owned_template", "service_owned_user", "role_owned_user", "user_owned_user"}
+			for _, source := range []string{
+				model.GlobalAttributeSourceManaged,
+				model.GlobalAttributeSourcePlugin,
+				model.GlobalAttributeSourceLDAP,
+				model.GlobalAttributeSourceSAML,
+				model.GlobalAttributeSourceOpenID,
+			} {
+				names := f.search(rctx, listingSource(source))
+				for _, name := range ownerOnly {
+					require.NotContains(t, names, name, source)
+				}
+			}
+		})
+
+		t.Run("a row synced from several sources matches each", func(t *testing.T) {
+			ldap := f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP))
+			saml := f.search(rctx, listingSource(model.GlobalAttributeSourceSAML))
+			require.Contains(t, ldap, "ldap_and_saml_template")
+			require.Contains(t, saml, "ldap_and_saml_template")
+		})
+
+		t.Run("every row lands in a source filter or is owner-only", func(t *testing.T) {
+			// The five filters between them, plus the owner-only rows, cover the
+			// row set, so a row cannot fall out of the listing by source.
+			seen := map[string]bool{}
+			for _, source := range []string{
+				model.GlobalAttributeSourceManaged,
+				model.GlobalAttributeSourcePlugin,
+				model.GlobalAttributeSourceLDAP,
+				model.GlobalAttributeSourceSAML,
+				model.GlobalAttributeSourceOpenID,
+			} {
+				names := f.search(rctx, listingSource(source))
+				for _, name := range names {
+					seen[name] = true
+				}
+			}
+			all := f.search(rctx)
+			var missing []string
+			for _, name := range all {
+				if !seen[name] {
+					missing = append(missing, name)
+				}
+			}
+			require.ElementsMatch(t, []string{"service_owned_template", "service_owned_user", "role_owned_user", "user_owned_user"}, missing)
+		})
+	})
+
+	t.Run("source edge cases", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		// Protection is read from the attr, never the column.
+		f.field(model.PropertyFieldObjectTypeUser, "protected_column_user", withAttrs(map[string]any{
+			model.PropertyAttrsSourcePluginID: "com.example.plugin",
+		}), func(pf *model.PropertyField) {
+			pf.Protected = true
+			pf.PermissionField = model.NewPointer(model.PermissionLevelNone)
+		})
+
+		// One plugin-owned linked user field is enough.
+		twoChildren := f.template("two_children_template")
+		f.linked(twoChildren, model.PropertyFieldObjectTypeUser, "plain_child")
+		f.linked(twoChildren, model.PropertyFieldObjectTypeUser, "owned_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+
+		// Values of the wrong JSON type read as unset.
+		f.template("numeric_ldap_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: 123}))
+		f.field(model.PropertyFieldObjectTypePost, "numeric_plugin_post", withAttrs(map[string]any{
+			model.PropertyAttrsSourcePluginID: 5,
+			model.PropertyAttrsProtected:      true,
+		}))
+		f.field(model.PropertyFieldObjectTypeUser, "object_owners_user", withAttrs(map[string]any{model.PropertyAttrsOwners: map[string]any{}}))
+		f.field(model.PropertyFieldObjectTypeUser, "empty_owners_user", withAttrs(map[string]any{model.PropertyAttrsOwners: []any{}}))
+
+		names := f.search(rctx, listingSource(model.GlobalAttributeSourcePlugin))
+		require.Equal(t, []string{"two_children_template"}, names)
+
+		names = f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP))
+		require.Empty(t, names)
+
+		names = f.search(rctx, listingSource(model.GlobalAttributeSourceManaged))
+		require.Equal(t, []string{"empty_owners_user", "numeric_ldap_template", "numeric_plugin_post", "object_owners_user", "protected_column_user"}, names)
+	})
+
+	t.Run("source with term", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		f.template("clearance_ldap", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "clearance"}))
+		f.template("clearance_managed")
+		f.template("department_ldap", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "department"}))
+
+		names := f.search(rctx, listingTerm("clearance"), listingSource(model.GlobalAttributeSourceLDAP))
+		require.Equal(t, []string{"clearance_ldap"}, names)
+
+		names = f.search(rctx, listingTerm("clearance"), listingSource(model.GlobalAttributeSourceManaged))
+		require.Equal(t, []string{"clearance_managed"}, names)
+
+		names = f.search(rctx, listingTerm("department"), listingSource(model.GlobalAttributeSourceSAML))
+		require.Empty(t, names)
+	})
+
 	t.Run("order", func(t *testing.T) {
 		f := newListingFixture(t, ss)
 
@@ -5699,6 +5908,8 @@ func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.S
 		valid := model.GlobalAttributeListingOpts{GroupID: model.NewId()}
 		for name, mutate := range map[string]func(*model.GlobalAttributeListingOpts){
 			"no group":         func(o *model.GlobalAttributeListingOpts) { o.GroupID = "" },
+			"bad source":       func(o *model.GlobalAttributeListingOpts) { o.Source = "ssh" },
+			"injected source":  func(o *model.GlobalAttributeListingOpts) { o.Source = "ldap' OR '1'='1" },
 			"bad allowed":      func(o *model.GlobalAttributeListingOpts) { o.AllowedResourceTypes = []string{"template"} },
 			"injected allowed": func(o *model.GlobalAttributeListingOpts) { o.AllowedResourceTypes = []string{"user' OR '1'='1"} },
 		} {

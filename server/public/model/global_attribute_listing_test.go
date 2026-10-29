@@ -15,8 +15,8 @@ import (
 func TestGlobalAttributeListingJSON(t *testing.T) {
 	t.Run("search decodes the documented keys", func(t *testing.T) {
 		var s GlobalAttributeListingSearch
-		require.NoError(t, json.Unmarshal([]byte(`{"term":"50%_off \\ clearance"}`), &s))
-		assert.Equal(t, GlobalAttributeListingSearch{Term: "50%_off \\ clearance"}, s)
+		require.NoError(t, json.Unmarshal([]byte(`{"term":"50%_off \\ clearance","source":"ldap"}`), &s))
+		assert.Equal(t, GlobalAttributeListingSearch{Term: "50%_off \\ clearance", Source: "ldap"}, s)
 	})
 
 	t.Run("row omits a missing name conflict and owner template", func(t *testing.T) {
@@ -67,6 +67,34 @@ func TestGlobalAttributeListingSearchIsValid(t *testing.T) {
 	}
 }
 
+func TestGlobalAttributeListingSearchSourceIsValid(t *testing.T) {
+	for _, source := range []string{
+		"",
+		GlobalAttributeSourceManaged,
+		GlobalAttributeSourcePlugin,
+		GlobalAttributeSourceLDAP,
+		GlobalAttributeSourceSAML,
+		GlobalAttributeSourceOpenID,
+	} {
+		t.Run("accepts "+source, func(t *testing.T) {
+			s := GlobalAttributeListingSearch{Source: source}
+			assert.NoError(t, s.IsValid())
+		})
+	}
+
+	for name, source := range map[string]string{
+		"unknown source":             "scim",
+		"source with different case": "LDAP",
+		"source kind external":       GlobalAttributeSourceKindExternal,
+		"hostile source":             `ldap'); DROP TABLE PropertyFields; --`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			s := GlobalAttributeListingSearch{Source: source}
+			assert.Error(t, s.IsValid())
+		})
+	}
+}
+
 func TestGlobalAttributeListingOptsIsValid(t *testing.T) {
 	valid := func() GlobalAttributeListingOpts {
 		return GlobalAttributeListingOpts{GroupID: NewId()}
@@ -80,6 +108,7 @@ func TestGlobalAttributeListingOptsIsValid(t *testing.T) {
 	t.Run("fully populated", func(t *testing.T) {
 		o := valid()
 		o.Term = "x"
+		o.Source = GlobalAttributeSourcePlugin
 		o.AllowedResourceTypes = []string{PropertyFieldObjectTypeUser, PropertyFieldObjectTypeChannel, PropertyFieldObjectTypePost}
 		o.ExcludeIDs = []string{NewId()}
 		require.NoError(t, o.IsValid())
@@ -88,6 +117,12 @@ func TestGlobalAttributeListingOptsIsValid(t *testing.T) {
 	t.Run("missing group id", func(t *testing.T) {
 		o := valid()
 		o.GroupID = ""
+		assert.Error(t, o.IsValid())
+	})
+
+	t.Run("unknown source", func(t *testing.T) {
+		o := valid()
+		o.Source = "ssh"
 		assert.Error(t, o.IsValid())
 	})
 

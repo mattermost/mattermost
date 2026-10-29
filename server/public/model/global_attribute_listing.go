@@ -9,6 +9,17 @@ import (
 	"unicode/utf8"
 )
 
+// Source filter values for the Global Attributes listing. The sync sources
+// reuse the PropertySyncSource values so a filter value and the sync source it
+// selects are the same string.
+const (
+	GlobalAttributeSourceManaged = "managed"
+	GlobalAttributeSourcePlugin  = "plugin"
+	GlobalAttributeSourceLDAP    = PropertySyncSourceLDAP
+	GlobalAttributeSourceSAML    = PropertySyncSourceSAML
+	GlobalAttributeSourceOpenID  = PropertySyncSourceOpenID
+)
+
 // Source kinds a listing row reports, matching what the Source column renders:
 // a plugin-created protected field, a field synced from an identity source, or
 // neither.
@@ -17,6 +28,14 @@ const (
 	GlobalAttributeSourceKindExternal = "external"
 	GlobalAttributeSourceKindManaged  = "managed"
 )
+
+var globalAttributeListingSources = []string{
+	GlobalAttributeSourceManaged,
+	GlobalAttributeSourcePlugin,
+	GlobalAttributeSourceLDAP,
+	GlobalAttributeSourceSAML,
+	GlobalAttributeSourceOpenID,
+}
 
 // globalAttributeListingResourceTypes are the resources a template can be
 // applied to.
@@ -27,15 +46,21 @@ var globalAttributeListingResourceTypes = []string{
 }
 
 // GlobalAttributeListingSearch is the request body of the Global Attributes
-// listing search. An empty Term matches every row.
+// listing search. An empty Term matches every row, and an empty Source means no
+// filter on the source.
 type GlobalAttributeListingSearch struct {
-	Term string `json:"term,omitempty"`
+	Term   string `json:"term,omitempty"`
+	Source string `json:"source,omitempty"`
 }
 
-// IsValid rejects a term longer than any field name, which could match no row.
+// IsValid rejects a term longer than any field name, which could match no row,
+// and a source outside the filter values.
 func (s *GlobalAttributeListingSearch) IsValid() error {
 	if utf8.RuneCountInString(s.Term) > PropertyFieldNameMaxRunes {
 		return fmt.Errorf("term is longer than %d characters", PropertyFieldNameMaxRunes)
+	}
+	if s.Source != "" && !slices.Contains(globalAttributeListingSources, s.Source) {
+		return fmt.Errorf("invalid source %q", s.Source)
 	}
 	return nil
 }
@@ -81,9 +106,11 @@ type GlobalAttributeListing struct {
 // the store. AllowedResourceTypes bounds which unlinked resource fields are rows
 // at all, and ExcludeIDs removes fields the caller has decided to hide, such as
 // the Classification template when Classification Markings is unreachable.
+// An empty Source means no filter on the source.
 type GlobalAttributeListingOpts struct {
 	GroupID              string
 	Term                 string
+	Source               string
 	AllowedResourceTypes []string
 	ExcludeIDs           []string
 }
@@ -91,6 +118,9 @@ type GlobalAttributeListingOpts struct {
 func (o *GlobalAttributeListingOpts) IsValid() error {
 	if o.GroupID == "" {
 		return fmt.Errorf("group id is required")
+	}
+	if o.Source != "" && !slices.Contains(globalAttributeListingSources, o.Source) {
+		return fmt.Errorf("invalid source %q", o.Source)
 	}
 	for _, resourceType := range o.AllowedResourceTypes {
 		if !slices.Contains(globalAttributeListingResourceTypes, resourceType) {

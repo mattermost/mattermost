@@ -10,6 +10,12 @@ import type {ResourceObjectType} from './global_attributes_helpers';
 const PROPERTY_GROUP = 'access_control';
 const TARGET_TYPE = 'system';
 
+// Identity sources a field can sync from. An openid link cannot be combined with
+// an ldap or saml one (server: validateSyncSources), so a multi-source row is ldap + saml.
+export type SyncSource = 'ldap' | 'saml' | 'openid';
+
+export type SeedOwner = {id: string; type: 'plugin' | 'service' | 'role' | 'user'; scopes?: string[]};
+
 type CreateFieldInput = Parameters<Client4['createPropertyField']>[2];
 
 type SeededField = {objectType: string; id: string};
@@ -71,6 +77,24 @@ export class ListingSeeder {
     }
 
     /**
+     * A field of `objectType` linked to `template`.
+     */
+    async linkedChild(
+        template: PropertyField,
+        objectType: ResourceObjectType,
+        attrs?: Record<string, unknown>,
+    ): Promise<PropertyField> {
+        return this.create(objectType, {
+            name: `${template.name}_${objectType}`,
+            type: template.type,
+            target_type: TARGET_TYPE,
+            target_id: '',
+            linked_field_id: template.id,
+            ...(attrs ? {attrs} : {}),
+        } as CreateFieldInput);
+    }
+
+    /**
      * A system field of `objectType` linked to no template, which the listing shows
      * as its own row.
      */
@@ -85,6 +109,37 @@ export class ListingSeeder {
             target_id: '',
             attrs: {...(displayName ? {display_name: displayName} : {}), ...attrs},
         } as CreateFieldInput);
+    }
+
+    /**
+     * A template mapped to one or more identity sources (attrs.ldap / attrs.saml /
+     * attrs.openid hold the external attribute name). A row synced from several
+     * sources is expected under each source's filter.
+     */
+    async syncedTemplate(seed: TemplateSeed, sources: SyncSource[]): Promise<PropertyField> {
+        const mappings = Object.fromEntries(sources.map((source) => [source, `${source}_${this.suffix}`]));
+        return this.template({...seed, attrs: {...seed.attrs, ...mappings}});
+    }
+
+    /**
+     * A template whose linked user field declares `owners`. Owners are written by a
+     * sysadmin through the REST API, which is the only path that accepts them.
+     * A plugin-type owner makes the row a "Plugin" source row; service, role and
+     * user owners render "Managed by X" and match the All source filter only.
+     *
+     * A field written by a real plugin (attrs.source_plugin_id + protected) cannot be seeded:
+     * the server rejects both from any non-plugin caller (PreCreatePropertyField). A plugin
+     * owner lands in the same Plugin source bucket, so that is what specs seed instead.
+     */
+    async ownedTemplate(
+        seed: TemplateSeed,
+        owners: SeedOwner[],
+    ): Promise<{template: PropertyField; userField: PropertyField}> {
+        const template = await this.template(seed);
+        const userField = await this.linkedChild(template, 'user', {
+            owners: owners.map((owner) => ({scopes: [], ...owner})),
+        });
+        return {template, userField};
     }
 
     /**

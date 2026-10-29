@@ -44,6 +44,16 @@
     }
 }
 
+.GlobalAttributes__filter {
+    flex-shrink: 0;
+    margin-inline-start: 12px;
+
+    .inputWithMenu input.form-control {
+        width: 140px;
+        cursor: pointer;
+    }
+}
+
 .GlobalAttributes__headerGroup {
     min-width: 0;
 
