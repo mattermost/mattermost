@@ -16,6 +16,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {isProductRailShown} from 'selectors/views/product_rail';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {getHistory} from 'utils/browser_history';
@@ -100,11 +101,13 @@ export function switchTeam(url: string, team?: Team): ThunkActionFunc<void> {
         // from the team sidebar as well.
         if (team) {
             // The team controller records the last team on a team URL; a global product's page has
-            // none, so record it here, or a refresh brings back the earlier team.
-            try {
-                LocalStorageStore.setPreviousTeamId(getCurrentUserId(getState()), team.id);
-            } catch {
-                // Storage can be blocked (a private window, say); the team is still selected.
+            // none, so the product rail records it here, or a refresh brings back the earlier team.
+            if (isProductRailShown(getState())) {
+                try {
+                    LocalStorageStore.setPreviousTeamId(getCurrentUserId(getState()), team.id);
+                } catch {
+                    // Storage can be blocked (a private window, say); the team is still selected.
+                }
             }
             dispatch(selectTeam(team));
         } else {
