@@ -28,6 +28,7 @@ import {
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
 import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
+import {clearLoggedChannelSidebarSubItemsErrors} from 'selectors/channel_sidebar_sub_items';
 import {clearLoggedChannelViewErrors} from 'selectors/channel_view_plugin';
 import store from 'stores/redux_store';
 
@@ -80,6 +81,7 @@ import type {
     ChannelIconOverrideRegistration,
     ChannelIntroRegistration,
     ChannelViewRegistration,
+    ChannelSidebarSubItemsRegistration,
     ComposerPlaceholderRegistration,
     ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
@@ -1600,6 +1602,48 @@ export default class PluginRegistry {
             component,
             handlesSubpaths: handlesSubpaths === true,
         });
+        return id;
+    });
+
+    /**
+     * Register items shown as collapsible sub-items under a channel in the left sidebar (e.g. a
+     * Boards plugin listing each board's views under the board's channel).
+     *
+     * `getItems(state, channel)` receives the full GlobalState and a Channel and returns
+     * `{id, label, subpath, iconName?}[]`, or null/undefined for none. It is only called for public
+     * and private channels; DMs and GMs are not supported because sub-paths only exist under
+     * `/channels/`. `id` must be unique within the plugin's items for the channel, and `subpath`
+     * has no leading slash (e.g. `views/abc`).
+     *
+     * Clicking an item navigates to `/:team/channels/:channel/<subpath>`, so the channel must also
+     * have a view registered with `registerChannelViewComponent` and `handlesSubpaths: true`;
+     * otherwise core redirects to the channel root.
+     *
+     * `getItems` runs on every store update, so plugins should memoize it (e.g. with
+     * `createSelector`). Items from multiple registrations are concatenated in registration order
+     * (alphabetical pluginId, then insertion order). A throwing `getItems` is logged once per plugin
+     * and treated as returning no items. Items with an empty label or subpath, or a non-string
+     * id, label or subpath, are dropped. An unknown `iconName` is ignored and the item is rendered
+     * without an icon.
+     *
+     * Collapse state is per channel and stored locally. Channels are collapsed by default and
+     * auto-expand when one of their sub-items is active. Alt+Up/Down channel switching does not
+     * visit sub-items.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @example
+     * registry.registerChannelSidebarSubItems({getItems: (state, channel) =>
+     *     selectViewsForBoardChannel(state, channel.id)?.map((v) => ({id: v.id, label: v.title, subpath: `views/${v.id}`, iconName: iconForViewType(v.type)}))});
+     *
+     * @returns Auto-generated unique id for this registration, usable with `unregisterComponent`.
+     */
+    registerChannelSidebarSubItems = reArg(['getItems'], ({getItems}: {getItems: ChannelSidebarSubItemsRegistration['getItems']}) => {
+        if (this.isActive()) {
+            clearLoggedChannelSidebarSubItemsErrors(this.id);
+        }
+        const id = generateId();
+        this.dispatchPluginComponentWithData('ChannelSidebarSubItems', {id, pluginId: this.id, getItems});
         return id;
     });
 
