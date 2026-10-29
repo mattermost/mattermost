@@ -174,8 +174,8 @@ func (ps *PlatformService) handleHealthCollect(msg *model.ClusterMessage) {
 
 	// Collecting runs the external probes and can take minutes, so it must not block the
 	// cluster's message handling.
-	go func() {
-		diagnostics, _ := ps.GetSupportPacketDiagnostics(request.EmptyContext(ps.logger))
+	ps.Go(func() {
+		diagnostics, _ := ps.GetSupportPacketDiagnostics(request.EmptyContext(ps.logger).WithContext(ps.GoContext()))
 
 		data, err := encodeHealthCollectReply(req.RunID, ps.Cluster().GetClusterId(), diagnostics)
 		if err != nil {
@@ -191,7 +191,7 @@ func (ps *PlatformService) handleHealthCollect(msg *model.ClusterMessage) {
 		if err != nil {
 			ps.logger.Warn("Failed to send health collect reply", mlog.String("run_id", req.RunID), mlog.String("requester_id", req.RequesterID), mlog.Err(err))
 		}
-	}()
+	})
 }
 
 // healthCollectRun is a collect request waiting for replies.
