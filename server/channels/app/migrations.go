@@ -635,7 +635,7 @@ func (s *Server) doClearLastAccessibleFileTimeMigration(rctx request.CTX) error 
 	}
 	for _, job := range jobs {
 		if _, err := s.Store().Job().Delete(job.Id); err != nil {
-			rctx.Logger().Warn("Failed to delete last accessible file job", mlog.String("job_id", job.Id), mlog.Err(err))
+			return fmt.Errorf("failed to delete last accessible file job %q: %w", job.Id, err)
 		}
 	}
 

@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"maps"
 	"sync"
 	"sync/atomic"
@@ -12,7 +13,9 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1573,4 +1576,24 @@ func TestDoClearLastAccessibleFileTimeMigration(t *testing.T) {
 	marker, err := th.Store.System().GetByName(model.SystemLastAccessibleFileTime)
 	require.NoError(t, err)
 	assert.Equal(t, "10", marker.Value)
+}
+
+func TestDoClearLastAccessibleFileTimeMigrationJobDeleteFailure(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", clearLastAccessibleFileTimeMigrationKey).Return(nil, store.NewErrNotFound("System", clearLastAccessibleFileTimeMigrationKey))
+	mockSystemStore.On("PermanentDeleteByName", model.SystemLastAccessibleFileTime).Return(&model.System{}, nil)
+	mockJobStore := mocks.JobStore{}
+	mockJobStore.On("GetAllByType", mock.Anything, model.JobTypeLastAccessibleFile).Return([]*model.Job{{Id: "job1"}}, nil)
+	mockJobStore.On("Delete", "job1").Return("", errors.New("delete failed"))
+	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("Job").Return(&mockJobStore)
+
+	err := th.Server.doClearLastAccessibleFileTimeMigration(th.Context)
+	require.Error(t, err)
+
+	// The done-key is not saved, so the migration retries on the next start.
+	mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
 }
