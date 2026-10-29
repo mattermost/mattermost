@@ -447,6 +447,64 @@ describe('components/sidebar/sidebar_channel', () => {
             expect(container.querySelector('.SidebarChannel__dragHandle')).not.toBeInTheDocument();
         });
 
+        describe('nested sub-items', () => {
+            const nestedItems = [
+                {id: 'root', label: 'Root page', subpath: 'pages/root'},
+                {id: 'child', label: 'Child page', subpath: 'pages/child', parentId: 'root'},
+                {id: 'leaf', label: 'Leaf page', subpath: 'pages/leaf', parentId: 'child'},
+                {id: 'other', label: 'Other page', subpath: 'pages/other', parentId: 'root'},
+            ];
+            const itemKey = (id: string) => `${StoragePrefixes.CHANNEL_SIDEBAR_SUB_ITEM_EXPANDED}user_id_team_id_channel_id_plugin:${id}`;
+            const itemToggle = (label: string) => screen.getByRole('button', {name: new RegExp(`^(Expand|Collapse) ${label}$`)});
+
+            test('should expand every ancestor of the active item and persist it', () => {
+                const {store} = renderChannel({isCurrentChannel: true}, makeState({}, nestedItems), '/team_name/channels/town-square/pages/leaf');
+
+                expect(screen.getByRole('link', {name: 'Leaf page'})).toHaveAttribute('aria-current', 'page');
+                expect(itemToggle('Root page')).toHaveAttribute('aria-expanded', 'true');
+                expect(itemToggle('Child page')).toHaveAttribute('aria-expanded', 'true');
+                expect(store.getState().storage.storage[itemKey('root')].value).toBe(true);
+                expect(store.getState().storage.storage[itemKey('child')].value).toBe(true);
+                expect(store.getState().storage.storage[itemKey('leaf')]).toBeUndefined();
+            });
+
+            test('should keep an ancestor collapsed after the user collapses it while the item stays active', async () => {
+                const {history} = renderChannel({isCurrentChannel: true}, makeState({}, nestedItems), '/team_name/channels/town-square/pages/leaf');
+
+                await userEvent.click(itemToggle('Child page'));
+                expect(screen.queryByRole('link', {name: 'Leaf page'})).not.toBeInTheDocument();
+
+                act(() => {
+                    history.push('/team_name/channels/town-square/pages/leaf/details');
+                });
+
+                expect(itemToggle('Child page')).toHaveAttribute('aria-expanded', 'false');
+                expect(screen.queryByRole('link', {name: 'Leaf page'})).not.toBeInTheDocument();
+            });
+
+            test('should expand the ancestors again when navigating to another item', async () => {
+                const {history} = renderChannel({isCurrentChannel: true}, makeState({}, nestedItems), '/team_name/channels/town-square/pages/leaf');
+
+                await userEvent.click(itemToggle('Child page'));
+                await userEvent.click(itemToggle('Root page'));
+                expect(screen.queryByRole('link', {name: 'Other page'})).not.toBeInTheDocument();
+
+                act(() => {
+                    history.push('/team_name/channels/town-square/pages/other');
+                });
+
+                expect(itemToggle('Root page')).toHaveAttribute('aria-expanded', 'true');
+                expect(screen.getByRole('link', {name: 'Other page'})).toHaveAttribute('aria-current', 'page');
+            });
+
+            test('should not expand collapsed items when no nested item is active', () => {
+                const {store} = renderChannel({isCurrentChannel: true}, makeState(storedExpanded(true), nestedItems));
+
+                expect(itemToggle('Root page')).toHaveAttribute('aria-expanded', 'false');
+                expect(store.getState().storage.storage[itemKey('root')]).toBeUndefined();
+            });
+        });
+
         test('should hide the list while the channel is part of a multi-select drag', () => {
             renderChannel({
                 isChannelSelected: true,
