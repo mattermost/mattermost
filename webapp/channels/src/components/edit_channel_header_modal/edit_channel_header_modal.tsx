@@ -16,6 +16,7 @@ import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 
 import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {insertLineBreakFromKeyEvent, isUnhandledLineBreakKeyCombo} from 'utils/utils';
@@ -167,7 +168,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
         if (serverError.server_error_id === 'model.channel.is_valid.header.app_error') {
             errorMsg = (
                 <FormattedMessage
-                    {...messages.error[this.props.channelKind]}
+                    {...channelKindMessages.headerLengthError[this.props.channelKind]}
                     values={{
                         maxLength: headerMaxLength,
                     }}
@@ -301,16 +302,6 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
 
 /* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
 const messages = {
-    error: {
-        channel: defineMessage({
-            id: 'edit_channel_header_modal.error',
-            defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
-        }),
-        board: defineMessage({
-            id: 'edit_channel_header_modal.error.board',
-            defaultMessage: 'The text entered exceeds the character limit. The board header is limited to {maxLength} characters.',
-        }),
-    },
     description: {
         channel: defineMessage({
             id: 'edit_channel_header_modal.description',

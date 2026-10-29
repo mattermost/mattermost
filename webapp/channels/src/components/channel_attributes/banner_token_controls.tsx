@@ -74,10 +74,10 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled, channelKind =
                 {suggestions.map((suggestion) => {
                     // An unset attribute inserts a token that renders nothing, so it is
                     // flagged before the author picks it.
-                    let valueStatus = formatMessage(unsetValueMessage);
-                    if (suggestion.value) {
-                        valueStatus = formatMessage(messages.valueSet[channelKind], {value: suggestion.value});
-                    }
+                    const valueStatus = suggestion.value ? formatMessage(
+                        messages.valueSet[channelKind],
+                        {value: suggestion.value},
+                    ) : formatMessage(unsetValueMessage);
 
                     return (
                         <Menu.Item

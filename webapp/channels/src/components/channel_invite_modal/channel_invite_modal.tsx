@@ -92,59 +92,6 @@ export type Props = {
 };
 
 // Helper function to check if an option is a user
-const messages = {
-    recommendedTagTooltip: {
-        channel: defineMessage({
-            id: 'channel_invite.recommended_tag.tooltip',
-            defaultMessage: 'Matches the suggested membership for this channel',
-        }),
-        board: defineMessage({
-            id: 'channel_invite.recommended_tag.tooltip.board',
-            defaultMessage: 'Matches the suggested membership for this board',
-        }),
-    },
-    policyRecommendedTitle: {
-        channel: defineMessage({
-            id: 'channel_invite.policy_recommended.title',
-            defaultMessage: 'This channel has recommended members based on user attributes',
-        }),
-        board: defineMessage({
-            id: 'channel_invite.policy_recommended.title.board',
-            defaultMessage: 'This board has recommended members based on user attributes',
-        }),
-    },
-    policyRecommendedDescription: {
-        channel: defineMessage({
-            id: 'channel_invite.policy_recommended.description',
-            defaultMessage: 'A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.',
-        }),
-        board: defineMessage({
-            id: 'channel_invite.policy_recommended.description.board',
-            defaultMessage: 'A membership policy suggests who should be members of this board. You can still add anyone who can join a public board.',
-        }),
-    },
-    policyEnforcedTitle: {
-        channel: defineMessage({
-            id: 'channel_invite.policy_enforced.title',
-            defaultMessage: 'Channel access is restricted by user attributes',
-        }),
-        board: defineMessage({
-            id: 'channel_invite.policy_enforced.title.board',
-            defaultMessage: 'Board access is restricted by user attributes',
-        }),
-    },
-    policyEnforcedDescription: {
-        channel: defineMessage({
-            id: 'channel_invite.policy_enforced.description',
-            defaultMessage: 'Only people who match the specified access rules can be selected and added to this channel.',
-        }),
-        board: defineMessage({
-            id: 'channel_invite.policy_enforced.description.board',
-            defaultMessage: 'Only people who match the specified access rules can be selected and added to this board.',
-        }),
-    },
-} satisfies Record<string, KindMessages>;
-
 const isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {
     return (option as UserProfile).username !== undefined;
 };
@@ -181,13 +128,14 @@ const ChannelInviteModalComponent = (props: Props) => {
     // overwrite abacFilteredUsers after the user switches channels.
     const abacProfilesFetchRequestId = useRef<number>(0);
 
+    const channelKind = useChannelKind(props.channel);
+
     // Public channels with a membership policy are advisory — the invite
     // list is not filtered and matching users are merely surfaced as a
     // recommendation. Private channels with a membership policy remain a
     // hard gate. Permission-only policies (e.g. file upload) must not flip
     // either branch, which is why we read the membership action key
     // specifically instead of the broad policy_enforced flag.
-    const kind = useChannelKind(props.channel);
     const isMembershipPolicy = isMembershipPolicyEnforced(props.channel);
     const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
     const isPolicyRecommendedPublic = isMembershipPolicy && props.channel.type === Constants.OPEN_CHANNEL;
@@ -674,7 +622,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                                             id: 'channel_invite.recommended_tag',
                                             defaultMessage: 'Recommended',
                                         })}
-                                        tooltipTitle={props.intl.formatMessage(messages.recommendedTagTooltip[kind])}
+                                        tooltipTitle={props.intl.formatMessage(messages.recommendedTagTooltip[channelKind])}
                                     />
                                 )}
                                 <span
@@ -710,7 +658,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 selectedItemRef={selectedItemRef}
             />
         );
-    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds, kind]);
+    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds, channelKind]);
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
@@ -882,8 +830,8 @@ const ChannelInviteModalComponent = (props: Props) => {
     );
 
     const isPublicChannel = channel.type === Constants.OPEN_CHANNEL;
-    const policyBannerTitle = <FormattedMessage {...(isPublicChannel ? messages.policyRecommendedTitle : messages.policyEnforcedTitle)[kind]}/>;
-    const policyBannerMessage = <FormattedMessage {...(isPublicChannel ? messages.policyRecommendedDescription : messages.policyEnforcedDescription)[kind]}/>;
+    const policyBannerTitle = <FormattedMessage {...(isPublicChannel ? messages.policyRecommendedTitle : messages.policyEnforcedTitle)[channelKind]}/>;
+    const policyBannerMessage = <FormattedMessage {...(isPublicChannel ? messages.policyRecommendedDescription : messages.policyEnforcedDescription)[channelKind]}/>;
 
     const inviteGuestLink = (
         <InviteModalLink
@@ -939,7 +887,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     <TeamWarningBanner
                         guests={guestsNotInTeam}
                         teamId={channel.team_id}
-                        channelKind={kind}
+                        channelKind={channelKind}
                         users={usersNotInTeam}
                     />
                     {(props.emailInvitationsEnabled && props.canInviteGuests && !isPolicyEnforcedPrivate) && inviteGuestLink}
@@ -986,5 +934,58 @@ const InviteModalLink = ({
         </ToggleModalButton>
     );
 };
+
+const messages = {
+    recommendedTagTooltip: {
+        channel: defineMessage({
+            id: 'channel_invite.recommended_tag.tooltip',
+            defaultMessage: 'Matches the suggested membership for this channel',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.recommended_tag.tooltip.board',
+            defaultMessage: 'Matches the suggested membership for this board',
+        }),
+    },
+    policyRecommendedTitle: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_recommended.title',
+            defaultMessage: 'This channel has recommended members based on user attributes',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_recommended.title.board',
+            defaultMessage: 'This board has recommended members based on user attributes',
+        }),
+    },
+    policyRecommendedDescription: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_recommended.description',
+            defaultMessage: 'A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_recommended.description.board',
+            defaultMessage: 'A membership policy suggests who should be members of this board. You can still add anyone who can join a public board.',
+        }),
+    },
+    policyEnforcedTitle: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_enforced.title',
+            defaultMessage: 'Channel access is restricted by user attributes',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_enforced.title.board',
+            defaultMessage: 'Board access is restricted by user attributes',
+        }),
+    },
+    policyEnforcedDescription: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_enforced.description',
+            defaultMessage: 'Only people who match the specified access rules can be selected and added to this channel.',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_enforced.description.board',
+            defaultMessage: 'Only people who match the specified access rules can be selected and added to this board.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default injectIntl(ChannelInviteModalComponent);

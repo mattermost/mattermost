@@ -27,7 +27,7 @@ type Props = {
 
 const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, onExited}: Props) => {
     const [show, setShow] = useState(true);
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
     const handleSubmit = () => {
         if (channel) {
@@ -66,17 +66,16 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
     if (isPolicyEnforcedPublicChannel && channel?.display_name) {
         const title = (
             <FormattedMessage
-                {...messages.policyTitle[kind]}
+                {...messages.policyTitle[channelKind]}
                 values={{
                     channel: channel.display_name,
                 }}
             />
         );
 
-        let muteSentence;
-        if (!isMuted) {
-            muteSentence = <FormattedMessage {...messages.policyMuteHint[kind]}/>;
-        }
+        const muteSentence = !isMuted && (
+            <FormattedMessage {...messages.policyMuteHint[channelKind]}/>
+        );
 
         const leaveButton = (
             <button
@@ -85,7 +84,7 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                 onClick={handleSubmit}
                 id='confirmModalButton'
             >
-                <FormattedMessage {...messages.policyLeave[kind]}/>
+                <FormattedMessage {...messages.policyLeave[channelKind]}/>
             </button>
         );
 
@@ -143,7 +142,7 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
             >
                 <div className='LeavePolicyChannelModal__body'>
                     <p>
-                        <FormattedMessage {...messages.policyMessage[kind]}/>
+                        <FormattedMessage {...messages.policyMessage[channelKind]}/>
                     </p>
                     {muteSentence && <p>{muteSentence}</p>}
                 </div>
@@ -160,19 +159,19 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
         };
         title = (
             <FormattedMessage
-                {...(isPrivate ? messages.privateTitle : messages.publicTitle)[kind]}
+                {...(isPrivate ? messages.privateTitle : messages.publicTitle)[channelKind]}
                 values={values}
             />
         );
         message = (
             <FormattedMessage
-                {...(isPrivate ? messages.privateMessage : messages.publicMessage)[kind]}
+                {...(isPrivate ? messages.privateMessage : messages.publicMessage)[channelKind]}
                 values={values}
             />
         );
     }
 
-    const button = <FormattedMessage {...messages.confirmLeave[kind]}/>;
+    const button = <FormattedMessage {...messages.confirmLeave[channelKind]}/>;
 
     return (
         <ConfirmModal

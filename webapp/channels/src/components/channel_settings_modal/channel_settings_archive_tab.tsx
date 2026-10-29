@@ -14,6 +14,7 @@ import ConfirmationModal from 'components/confirm_modal';
 
 import {useChannelKind} from 'hooks/useChannelKind';
 import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 
 type ChannelSettingsArchiveTabProps = {
     channel: Channel;
@@ -26,7 +27,7 @@ function ChannelSettingsArchiveTab({
 }: ChannelSettingsArchiveTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
     const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
 
@@ -44,30 +45,30 @@ function ChannelSettingsArchiveTab({
 
     return (
         <div className='ChannelSettingsModal__archiveTab'>
-            <FormattedMessage {...messages.warning[kind]}/>
+            <FormattedMessage {...messages.warning[channelKind]}/>
             <Button
                 type='button'
                 variant='destructive'
                 onClick={handleArchiveChannel}
                 id='channelSettingsArchiveChannelButton'
-                aria-label={`Archive ${kind} ${channel.display_name}`}
+                aria-label={formatMessage(messages.buttonAriaLabel[channelKind], {displayName: channel.display_name})}
             >
-                <FormattedMessage {...messages.button[kind]}/>
+                <FormattedMessage {...messages.button[channelKind]}/>
             </Button>
 
             {showArchiveConfirmModal && (
                 <ConfirmationModal
                     id='archiveChannelConfirmModal'
                     show={true}
-                    title={formatMessage(messages.confirmTitle[kind])}
+                    title={formatMessage(messages.confirmTitle[channelKind])}
                     message={
                         <div>
                             <p>
-                                <FormattedMessage {...messages.confirmWarning[kind]}/>
+                                <FormattedMessage {...channelKindMessages.archivedChannelsWarning[channelKind]}/>
                             </p>
                             <p>
                                 <FormattedMessage
-                                    {...messages.confirmArchive[kind]}
+                                    {...channelKindMessages.confirmArchive[channelKind]}
                                     values={{
                                         display_name: channel.display_name,
                                         strong: (chunks) => <strong>{chunks}</strong>,
@@ -111,6 +112,16 @@ const messages = {
             defaultMessage: 'Archive this board',
         }),
     },
+    buttonAriaLabel: {
+        channel: defineMessage({
+            id: 'channel_settings.archive.button.aria_label',
+            defaultMessage: 'Archive channel {displayName}',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.archive.button.aria_label.board',
+            defaultMessage: 'Archive board {displayName}',
+        }),
+    },
     confirmTitle: {
         channel: defineMessage({
             id: 'channel_settings.modal.archiveTitle',
@@ -119,26 +130,6 @@ const messages = {
         board: defineMessage({
             id: 'channel_settings.modal.archiveTitle.board',
             defaultMessage: 'Archive board?',
-        }),
-    },
-    confirmWarning: {
-        channel: defineMessage({
-            id: 'deleteChannelModal.canViewArchivedChannelsWarning',
-            defaultMessage: 'This will archive the channel from the team. Channel contents will still be accessible by channel members.',
-        }),
-        board: defineMessage({
-            id: 'deleteChannelModal.canViewArchivedChannelsWarning.board',
-            defaultMessage: 'This will archive the board from the team. Board contents will still be accessible by board members.',
-        }),
-    },
-    confirmArchive: {
-        channel: defineMessage({
-            id: 'deleteChannelModal.confirmArchive',
-            defaultMessage: 'Are you sure you wish to archive the <strong>{display_name}</strong> channel?',
-        }),
-        board: defineMessage({
-            id: 'deleteChannelModal.confirmArchive.board',
-            defaultMessage: 'Are you sure you wish to archive the <strong>{display_name}</strong> board?',
         }),
     },
 } satisfies Record<string, KindMessages>;

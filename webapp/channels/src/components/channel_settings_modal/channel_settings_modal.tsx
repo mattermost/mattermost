@@ -108,7 +108,7 @@ function initialTabName(initialTab: string | undefined): string {
 function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, initialTab}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
     const visiblePluginTabRegistrations = useSelector((state: GlobalState) => {
         const currentChannel = getChannel(state, channelId);
         if (!currentChannel) {
@@ -261,7 +261,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
             },
             {
                 name: BuiltInTabIds.ARCHIVE,
-                uiName: formatMessage(messages.archiveTab[kind]),
+                uiName: formatMessage(messages.archiveTab[channelKind]),
                 icon: 'icon icon-archive-outline',
                 iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
                 display: shouldShowArchiveTab,
@@ -269,7 +269,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
         ];
     }, [
         formatMessage,
-        kind,
+        channelKind,
         shouldShowInfoTab,
         shouldShowAccessRulesTab,
         shouldShowPermissionsPolicyTab,
@@ -482,7 +482,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
         );
     };
 
-    const modalTitle = formatMessage(messages.title[kind]);
+    const modalTitle = formatMessage(messages.title[channelKind]);
 
     return (
         <GenericModal

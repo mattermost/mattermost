@@ -9,6 +9,7 @@ import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import Constants from 'utils/constants';
 
 import type {ChannelKind} from 'types/store/plugins';
@@ -70,11 +71,11 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                 <Modal.Body>
                     <div className='alert alert-danger'>
                         <p>
-                            <FormattedMessage {...messages.warning[channelKind]}/>
+                            <FormattedMessage {...channelKindMessages.archivedChannelsWarning[channelKind]}/>
                         </p>
                         <p>
                             <FormattedMessage
-                                {...messages.confirmArchive[channelKind]}
+                                {...channelKindMessages.confirmArchive[channelKind]}
                                 values={{
                                     display_name: this.props.channel.display_name,
                                     strong: (chunks) => <strong>{chunks}</strong>,
@@ -123,26 +124,6 @@ const messages = {
         board: defineMessage({
             id: 'delete_channel.confirm.board',
             defaultMessage: 'Confirm ARCHIVE Board',
-        }),
-    },
-    warning: {
-        channel: defineMessage({
-            id: 'deleteChannelModal.canViewArchivedChannelsWarning',
-            defaultMessage: 'This will archive the channel from the team. Channel contents will still be accessible by channel members.',
-        }),
-        board: defineMessage({
-            id: 'deleteChannelModal.canViewArchivedChannelsWarning.board',
-            defaultMessage: 'This will archive the board from the team. Board contents will still be accessible by board members.',
-        }),
-    },
-    confirmArchive: {
-        channel: defineMessage({
-            id: 'deleteChannelModal.confirmArchive',
-            defaultMessage: 'Are you sure you wish to archive the <strong>{display_name}</strong> channel?',
-        }),
-        board: defineMessage({
-            id: 'deleteChannelModal.confirmArchive.board',
-            defaultMessage: 'Are you sure you wish to archive the <strong>{display_name}</strong> board?',
         }),
     },
 } satisfies Record<string, KindMessages>;

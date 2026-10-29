@@ -140,7 +140,7 @@ const messages = {
 
 export default function ChannelNotificationsModal(props: Props) {
     const {formatMessage} = useIntl();
-    const kind = useChannelKind(props.channel);
+    const channelKind = useChannelKind(props.channel);
 
     const [show, setShow] = useState(true);
     const [serverError, setServerError] = useState('');
@@ -217,8 +217,8 @@ export default function ChannelNotificationsModal(props: Props) {
     const muteOrIgnoreSectionContent = (
         <>
             <CheckboxSettingItem
-                inputFieldTitle={<FormattedMessage {...messages.muteTitle[kind]}/>}
-                description={formatMessage(messages.muteDesc[kind])}
+                inputFieldTitle={<FormattedMessage {...messages.muteTitle[channelKind]}/>}
+                description={formatMessage(messages.muteDesc[channelKind])}
                 inputFieldValue={settings.mark_unread === 'mention'}
                 inputFieldData={utils.MuteChannelInputFieldData}
                 handleChange={(e) => handleChange({mark_unread: e ? 'mention' : 'all'})}
@@ -230,7 +230,7 @@ export default function ChannelNotificationsModal(props: Props) {
                         defaultMessage='Ignore mentions for @channel, @here and @all'
                     />
                 }
-                description={formatMessage(messages.ignoreMentionsDesc[kind])}
+                description={formatMessage(messages.ignoreMentionsDesc[channelKind])}
                 inputFieldValue={settings.ignore_channel_mentions === 'on'}
                 inputFieldData={utils.IgnoreMentionsInputFieldData}
                 handleChange={(e) => handleChange({ignore_channel_mentions: e ? 'on' : 'off'})}
@@ -352,7 +352,7 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const autoFollowThreadsSectionContent = (
         <CheckboxSettingItem
-            inputFieldTitle={<FormattedMessage {...messages.autoFollowThreadsCheckbox[kind]}/>}
+            inputFieldTitle={<FormattedMessage {...messages.autoFollowThreadsCheckbox[channelKind]}/>}
             inputFieldValue={settings.channel_auto_follow_threads === 'on'}
             inputFieldData={utils.AutoFollowThreadsInputFieldData}
             handleChange={(e) => handleChange({channel_auto_follow_threads: e ? 'on' : 'off'})}
@@ -413,8 +413,8 @@ export default function ChannelNotificationsModal(props: Props) {
                     color={'currentColor'}
                 />
             }
-            title={<FormattedMessage {...messages.mutedBannerTitle[kind]}/>}
-            message={<FormattedMessage {...messages.mutedBannerDescription[kind]}/>}
+            title={<FormattedMessage {...messages.mutedBannerTitle[channelKind]}/>}
+            message={<FormattedMessage {...messages.mutedBannerDescription[channelKind]}/>}
         />
     );
 
@@ -499,8 +499,8 @@ export default function ChannelNotificationsModal(props: Props) {
                     <>
                         <div className='ChannelNotificationModal__divider'/>
                         <ModalSection
-                            title={formatMessage(messages.autoFollowThreadsTitle[kind])}
-                            description={formatMessage(messages.autoFollowThreadsDesc[kind])}
+                            title={formatMessage(messages.autoFollowThreadsTitle[channelKind])}
+                            description={formatMessage(messages.autoFollowThreadsDesc[channelKind])}
                             content={autoFollowThreadsSectionContent}
                         />
                     </>

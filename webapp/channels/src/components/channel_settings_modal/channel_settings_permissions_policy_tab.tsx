@@ -271,7 +271,7 @@ function ChannelSettingsPermissionsPolicyTab({
     showTabSwitchError,
 }: ChannelSettingsPermissionsPolicyTabProps) {
     const {formatMessage} = useIntl();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
     const sessionAttributesEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'SessionAttributes') === 'true');
@@ -412,12 +412,12 @@ function ChannelSettingsPermissionsPolicyTab({
                 setLoadError('');
                 return;
             }
-            setLoadError(err?.message || formatMessage(messages.loadError[kind]));
+            setLoadError(err?.message || formatMessage(messages.loadError[channelKind]));
         })();
         return () => {
             cancelled = true;
         };
-    }, [channel.id, actions, formatMessage, kind]);
+    }, [channel.id, actions, formatMessage, channelKind]);
 
     // Notify parent of unsaved-state changes so the modal can guard tab switches.
     useEffect(() => {
@@ -505,7 +505,7 @@ function ChannelSettingsPermissionsPolicyTab({
         }
         const conflicting = rules.some((r) => r.name.trim() === trimmedName && (isNew || r.key !== draft.key));
         if (conflicting) {
-            return formatMessage(messages.nameUnique[kind], {name: trimmedName});
+            return formatMessage(messages.nameUnique[channelKind], {name: trimmedName});
         }
         if (draft.actions.length === 0) {
             return formatMessage({
@@ -520,7 +520,7 @@ function ChannelSettingsPermissionsPolicyTab({
             });
         }
         return '';
-    }, [rules, formatMessage, kind]);
+    }, [rules, formatMessage, channelKind]);
 
     const commitDraft = useCallback((draft: EditableRule, isNew: boolean) => {
         const validationError = validateDraft(draft, isNew);
@@ -776,14 +776,14 @@ function ChannelSettingsPermissionsPolicyTab({
                 >
                     <i className='icon icon-information-outline'/>
                     <span>
-                        <FormattedMessage {...messages.systemBanner[kind]}/>
+                        <FormattedMessage {...messages.systemBanner[channelKind]}/>
                     </span>
                 </div>
             )}
 
             <div className='ChannelSettingsModal__permissionsPolicyHeader'>
                 <h3 className='ChannelSettingsModal__permissionsPolicyTitle'>
-                    <FormattedMessage {...messages.sectionTitle[kind]}/>
+                    <FormattedMessage {...messages.sectionTitle[channelKind]}/>
                 </h3>
                 <Button
                     className='ChannelSettingsModal__permissionsPolicyAddRule'
@@ -831,7 +831,7 @@ function ChannelSettingsPermissionsPolicyTab({
                     data-testid='permissions-or-hint'
                 >
                     <i className='icon icon-information-outline'/>
-                    <FormattedMessage {...messages.orHint[kind]}/>
+                    <FormattedMessage {...messages.orHint[channelKind]}/>
                 </div>
             )}
 
@@ -1059,7 +1059,7 @@ function PermissionRuleEditor({
     policySimulationEnabled,
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
-    const kind = useChannelKind({id: channelId});
+    const channelKind = useChannelKind({id: channelId});
 
     // Seed once on mount. The parent passes a stable `key` so switching
     // rules remounts and re-seeds here. Re-seeding from an effect keyed on
@@ -1191,7 +1191,7 @@ function PermissionRuleEditor({
                                 labels={(
                                     <>
                                         <span>{formatMessage(role.label)}</span>
-                                        <span>{formatMessage(role.description[kind])}</span>
+                                        <span>{formatMessage(role.description[channelKind])}</span>
                                     </>
                                 )}
                                 trailingElements={draft.role === role.value ? <i className='icon icon-check'/> : undefined}
@@ -1341,7 +1341,7 @@ function PermissionRuleEditor({
                                     labels={(
                                         <>
                                             <span>{formatMessage(perm.label)}</span>
-                                            <span>{formatMessage(perm.description[kind])}</span>
+                                            <span>{formatMessage(perm.description[channelKind])}</span>
                                         </>
                                     )}
                                 />

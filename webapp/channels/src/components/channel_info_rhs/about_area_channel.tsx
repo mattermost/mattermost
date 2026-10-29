@@ -124,9 +124,9 @@ const messages = {
 
 const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) => {
     const {formatMessage} = useIntl();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
-    const renameLabel = formatMessage(messages.rename[kind]);
+    const renameLabel = formatMessage(messages.rename[channelKind]);
 
     return (
         <>
@@ -145,7 +145,7 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
             {(channel.purpose || canEditChannelProperties) && (
                 <ChannelPurpose>
                     <ChannelDescriptionHeading>
-                        {formatMessage(messages.purposeHeading[kind])}
+                        {formatMessage(messages.purposeHeading[channelKind])}
                     </ChannelDescriptionHeading>
                     <EditableArea
                         editable={canEditChannelProperties}
@@ -160,8 +160,8 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                             </LineLimiter>
                         )}
                         onEdit={actions.editChannelPurpose}
-                        editTooltip={formatMessage(messages.editPurpose[kind])}
-                        emptyLabel={formatMessage(messages.addPurpose[kind])}
+                        editTooltip={formatMessage(messages.editPurpose[channelKind])}
+                        emptyLabel={formatMessage(messages.addPurpose[channelKind])}
                     />
                 </ChannelPurpose>
             )}
@@ -169,7 +169,7 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
             {(channel.header || canEditChannelProperties) && (
                 <ChannelHeader>
                     <ChannelDescriptionHeading>
-                        {formatMessage(messages.headerHeading[kind])}
+                        {formatMessage(messages.headerHeading[channelKind])}
                     </ChannelDescriptionHeading>
                     <EditableArea
                         content={channel.header && (
@@ -184,14 +184,14 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                         )}
                         editable={canEditChannelProperties}
                         onEdit={actions.editChannelHeader}
-                        editTooltip={formatMessage(messages.editHeader[kind])}
-                        emptyLabel={formatMessage(messages.addHeader[kind])}
+                        editTooltip={formatMessage(messages.editHeader[channelKind])}
+                        emptyLabel={formatMessage(messages.addHeader[channelKind])}
                     />
                 </ChannelHeader>
             )}
 
             <ChannelId>
-                {formatMessage(messages.handle[kind])} {channel.name}
+                {formatMessage(messages.handle[channelKind])} {channel.name}
                 <SmallCopyButton
                     content={channel.name}
                     isForText={true}

@@ -117,7 +117,7 @@ function withPendingValue(attribute: ResolvedChannelAttribute, raw: ChannelAttri
  */
 const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({channelId, deferred, onPendingChange}, ref) => {
     const {formatMessage} = useIntl();
-    const kind = useChannelKind({id: channelId});
+    const channelKind = useChannelKind({id: channelId});
     const dispatch = useDispatch();
 
     // One resolved list, two views: a second hook would duplicate the fetch.
@@ -310,7 +310,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
             data-testid='channelInfoAttributes'
         >
             <div className='ChannelInfoAttributes__heading'>
-                <FormattedMessage {...headingMessages[kind]}/>
+                <FormattedMessage {...headingMessages[channelKind]}/>
             </div>
 
             <div className='ChannelInfoAttributes__body'>

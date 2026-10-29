@@ -18,6 +18,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {useChannelKind} from 'hooks/useChannelKind';
 import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {canSearchFiles} from 'utils/file_utils';
 
@@ -121,16 +122,6 @@ const messages = {
             defaultMessage: 'Board Info Actions',
         }),
     },
-    settings: {
-        channel: defineMessage({
-            id: 'channel_header.channel_settings',
-            defaultMessage: 'Channel Settings',
-        }),
-        board: defineMessage({
-            id: 'channel_header.channel_settings.board',
-            defaultMessage: 'Board Settings',
-        }),
-    },
 } satisfies Record<string, KindMessages>;
 
 interface MenuProps {
@@ -160,7 +151,7 @@ export default function Menu(props: MenuProps) {
         actions,
     } = props;
 
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
     const [loadingStats, setLoadingStats] = useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
@@ -197,13 +188,13 @@ export default function Menu(props: MenuProps) {
         <MenuContainer
             className={className}
             data-testid='channel_info_rhs-menu'
-            aria-label={formatMessage(messages.title[kind])}
+            aria-label={formatMessage(messages.title[channelKind])}
         >
             {showChannelSettings && canAccessSettings && (
                 <MenuItem
                     id='channelInfoRHSChannelSettings'
                     icon={<i className='icon icon-cog-outline'/>}
-                    text={formatMessage(messages.settings[kind])}
+                    text={formatMessage(channelKindMessages.channelSettings[channelKind])}
                     onClick={openChannelSettings}
                 />
             )}

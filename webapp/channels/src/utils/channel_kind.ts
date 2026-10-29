@@ -5,6 +5,7 @@ import type {MessageDescriptor} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {findMatchingRegistration} from 'utils/channel_matchers';
 import {createPluginErrorLog} from 'utils/plugin_error_log';
 
 import type {GlobalState} from 'types/store';
@@ -22,16 +23,17 @@ const matcherErrorLog = createPluginErrorLog('ChannelKind');
 /** Clears the log-once tracker for matcher errors, for one plugin or all; called when a plugin registers. */
 export const clearLoggedChannelKindErrors = matcherErrorLog.clear;
 
-// The kinds worked out for each store state, so the matchers run once per channel per state
-// however many components (every post, for post_markdown) ask about the same channel.
-const kindsByState = new WeakMap<GlobalState, Map<string, ChannelKind>>();
+// The kind worked out for each stored channel, kept until the channel or the registrations change,
+// so the matchers don't run again for every sidebar row and post on every store update.
+const kindsByChannel = new WeakMap<Channel, {registrations: ChannelKindRegistration[]; kind: ChannelKind}>();
 
 /**
  * The kind of channel this is, which picks the words the webapp uses for it: the kind of the first
  * registration (registerChannelKind) whose matcher accepts the channel, otherwise 'channel'.
  *
- * The matchers take the whole state, so what they read can't be known; the result is kept for the
- * state it was worked out from and worked out again once the state changes.
+ * The matcher gets the stored channel, and its answer is kept until that channel or the
+ * registrations change. For a channel not in the store yet, it gets what the caller passed and its
+ * answer isn't kept, so the kind is worked out again once the channel loads.
  */
 export function getChannelKind(state: GlobalState, channel?: Pick<Channel, 'id'> | null): ChannelKind {
     const registrations = state.plugins.components.ChannelKind;
@@ -39,30 +41,20 @@ export function getChannelKind(state: GlobalState, channel?: Pick<Channel, 'id'>
         return 'channel';
     }
 
-    let kinds = kindsByState.get(state);
-    if (!kinds) {
-        kinds = new Map();
-        kindsByState.set(state, kinds);
+    const stored = state.entities?.channels?.channels?.[channel.id];
+    if (!stored) {
+        return matchChannelKind(state, registrations, channel as Channel);
     }
-    let kind = kinds.get(channel.id);
-    if (!kind) {
-        kind = matchChannelKind(state, registrations, channel);
-        kinds.set(channel.id, kind);
+
+    const cached = kindsByChannel.get(stored);
+    if (cached?.registrations === registrations) {
+        return cached.kind;
     }
+    const kind = matchChannelKind(state, registrations, stored);
+    kindsByChannel.set(stored, {registrations, kind});
     return kind;
 }
 
-function matchChannelKind(state: GlobalState, registrations: ChannelKindRegistration[], channel: Pick<Channel, 'id'>): ChannelKind {
-    // Callers that only have the id pass {id}; the matcher is promised a whole channel.
-    const fullChannel = state.entities?.channels?.channels?.[channel.id] ?? channel as Channel;
-    for (const entry of registrations) {
-        try {
-            if (entry.matcher(state, fullChannel) === true) {
-                return entry.kind;
-            }
-        } catch (err) {
-            matcherErrorLog.logOnce(entry.pluginId, err);
-        }
-    }
-    return 'channel';
+function matchChannelKind(state: GlobalState, registrations: ChannelKindRegistration[], channel: Channel): ChannelKind {
+    return findMatchingRegistration(state, channel, registrations, matcherErrorLog)?.kind ?? 'channel';
 }

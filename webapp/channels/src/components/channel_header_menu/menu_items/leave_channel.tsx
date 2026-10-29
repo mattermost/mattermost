@@ -30,7 +30,7 @@ const LeaveChannel = ({
     id,
 }: Props) => {
     const dispatch = useDispatch();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
     const handleLeave = () => {
         if (channel.type === Constants.PRIVATE_CHANNEL || channel.policy_enforced) {
             dispatch(
@@ -52,7 +52,7 @@ const LeaveChannel = ({
             id={id}
             leadingElement={<LogoutVariantIcon size='18px'/>}
             onClick={handleLeave}
-            labels={<FormattedMessage {...messages.leave[kind]}/>}
+            labels={<FormattedMessage {...messages.leave[channelKind]}/>}
             isDestructive={true}
         />
     );

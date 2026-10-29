@@ -96,7 +96,7 @@ const addHeaderMessages: KindMessages = {
 
 function AddChannelHeaderTextButton({channel}: {channel: Channel}) {
     const dispatch = useDispatch();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
     function handleClick() {
         dispatch(openModal({
@@ -111,7 +111,7 @@ function AddChannelHeaderTextButton({channel}: {channel: Channel}) {
             className='header-placeholder style--none'
             onClick={handleClick}
         >
-            <FormattedMessage {...addHeaderMessages[kind]}/>
+            <FormattedMessage {...addHeaderMessages[channelKind]}/>
             <i
                 className='icon icon-pencil-outline edit-icon'
                 aria-hidden={true}

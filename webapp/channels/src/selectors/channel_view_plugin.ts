@@ -3,6 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {findMatchingRegistration} from 'utils/channel_matchers';
 import {createPluginErrorLog} from 'utils/plugin_error_log';
 
 import type {GlobalState} from 'types/store';
@@ -26,14 +27,5 @@ export function getChannelViewPluginComponent(
     if (!channel || !regs?.length) {
         return null;
     }
-    for (const reg of regs) {
-        try {
-            if (reg.matcher(state, channel) === true) {
-                return reg;
-            }
-        } catch (err) {
-            matcherErrorLog.logOnce(reg.pluginId, err);
-        }
-    }
-    return null;
+    return findMatchingRegistration(state, channel, regs, matcherErrorLog) ?? null;
 }

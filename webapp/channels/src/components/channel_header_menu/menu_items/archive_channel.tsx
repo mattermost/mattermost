@@ -24,7 +24,7 @@ type Props = {
 const ArchiveChannel = ({
     channel,
 }: Props) => {
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
     const dispatch = useDispatch();
 
     const handleArchiveChannel = () => {
@@ -46,7 +46,7 @@ const ArchiveChannel = ({
             id='channelArchiveChannel'
             leadingElement={<ArchiveIcon size={18}/>}
             onClick={handleArchiveChannel}
-            labels={<FormattedMessage {...messages.archive[kind]}/>}
+            labels={<FormattedMessage {...messages.archive[channelKind]}/>}
             isDestructive={true}
         />
     );

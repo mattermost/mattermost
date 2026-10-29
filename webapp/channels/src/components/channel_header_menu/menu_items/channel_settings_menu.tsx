@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, type JSX} from 'react';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {
@@ -17,7 +17,7 @@ import ChannelSettingsModal from 'components/channel_settings_modal/channel_sett
 import * as Menu from 'components/menu';
 
 import {useChannelKind} from 'hooks/useChannelKind';
-import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -28,7 +28,7 @@ type Props = {
 
 const ChannelSettingsMenu = ({channel}: Props): JSX.Element | null => {
     const dispatch = useDispatch();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
     const canAccess = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
 
     // Don't render the menu item if the user doesn't have access to any channel settings tab
@@ -53,24 +53,11 @@ const ChannelSettingsMenu = ({channel}: Props): JSX.Element | null => {
     return (
         <Menu.Item
             id={'channelSettings'}
-            labels={<FormattedMessage {...messages.settings[kind]}/>}
+            labels={<FormattedMessage {...channelKindMessages.channelSettings[channelKind]}/>}
             onClick={handleOpenChannelSettings}
             leadingElement={<CogOutlineIcon size={18}/>}
         />
     );
 };
-
-const messages = {
-    settings: {
-        channel: defineMessage({
-            id: 'channel_header.channel_settings',
-            defaultMessage: 'Channel Settings',
-        }),
-        board: defineMessage({
-            id: 'channel_header.channel_settings.board',
-            defaultMessage: 'Board Settings',
-        }),
-    },
-} satisfies Record<string, KindMessages>;
 
 export default memo(ChannelSettingsMenu);

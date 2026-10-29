@@ -33,17 +33,33 @@ describe('getChannelKind', () => {
         expect(getChannelKind(stateWith([]), board)).toBe('channel');
     });
 
-    test('runs the matchers once per channel for a given state', () => {
+    test('keeps a stored channel\'s kind until the channel or the registrations change', () => {
+        const stored = {id: 'board1'} as Channel;
+        const matcher = jest.fn((_state: GlobalState, c: Channel) => c.id === 'board1');
+        const registrations = [{pluginId: 'a', kind: 'board', matcher}];
+        const withChannel = (c: Channel, regs = registrations) => ({
+            plugins: {components: {ChannelKind: regs}},
+            entities: {channels: {channels: {board1: c}}},
+        } as unknown as GlobalState);
+
+        expect(getChannelKind(withChannel(stored), {id: 'board1'})).toBe('board');
+        expect(getChannelKind({...withChannel(stored)}, {id: 'board1'})).toBe('board');
+        expect(matcher).toHaveBeenCalledTimes(1);
+
+        expect(getChannelKind(withChannel({...stored}), {id: 'board1'})).toBe('board');
+        expect(matcher).toHaveBeenCalledTimes(2);
+
+        expect(getChannelKind(withChannel(stored, [...registrations]), {id: 'board1'})).toBe('board');
+        expect(matcher).toHaveBeenCalledTimes(3);
+    });
+
+    test('works a channel missing from the store out again each time', () => {
         const matcher = jest.fn((_state: GlobalState, c: Channel) => c.id === 'board1');
         const state = stateWith([{pluginId: 'a', kind: 'board', matcher}]);
 
         expect(getChannelKind(state, board)).toBe('board');
-        expect(getChannelKind(state, {id: 'board1'})).toBe('board');
-        expect(getChannelKind(state, channel)).toBe('channel');
+        expect(getChannelKind(state, board)).toBe('board');
         expect(matcher).toHaveBeenCalledTimes(2);
-
-        expect(getChannelKind({...state}, board)).toBe('board');
-        expect(matcher).toHaveBeenCalledTimes(3);
     });
 
     test('passes the matcher the stored channel when given only its id', () => {

@@ -126,7 +126,7 @@ export default function ChannelMembersRHS({
     const [page, setPage] = useState(0);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
     // Only channels whose policy controls membership surface attribute
     // tags in the RHS — a permission-only policy (e.g. file upload) has
@@ -193,7 +193,7 @@ export default function ChannelMembersRHS({
             if (listcp.length === 0) {
                 let text = null;
                 if (member.membership?.scheme_admin === true) {
-                    text = <FormattedMessage {...messages.adminTitle[kind]}/>;
+                    text = <FormattedMessage {...messages.adminTitle[channelKind]}/>;
                 } else {
                     text = (
                         <FormattedMessage
@@ -226,7 +226,7 @@ export default function ChannelMembersRHS({
         if (JSON.stringify(list) !== JSON.stringify(listcp)) {
             setList(listcp);
         }
-    }, [channelMembers, kind]);
+    }, [channelMembers, channelKind]);
 
     useEffect(() => {
         if (channel.type === Constants.DM_CHANNEL) {
@@ -325,7 +325,7 @@ export default function ChannelMembersRHS({
                     <AlertBanner
                         mode='info'
                         variant='app'
-                        title={formatMessage((channel.type === Constants.OPEN_CHANNEL ? messages.policyRecommended : messages.policyRestricted)[kind])}
+                        title={formatMessage((channel.type === Constants.OPEN_CHANNEL ? messages.policyRecommended : messages.policyRestricted)[channelKind])}
                     >
                         {accessControlTags}
                         {loading && <span className='loading-indicator'>{'Loading...'}</span>}

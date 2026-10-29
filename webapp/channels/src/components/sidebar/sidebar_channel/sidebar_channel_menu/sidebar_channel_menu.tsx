@@ -58,7 +58,7 @@ const SidebarChannelMenu = ({
 }: Props) => {
     const isLeaving = useRef(false);
     const isInManagedCategory = useSelector((state: GlobalState) => isChannelInManagedCategory(state, channel.id));
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
     const {formatMessage} = useIntl();
 
@@ -159,7 +159,7 @@ const SidebarChannelMenu = ({
 
     let muteUnmuteChannelMenuItem: JSX.Element | null = null;
     if (isMuted) {
-        let muteChannelText = <FormattedMessage {...messages.unmute[kind]}/>;
+        let muteChannelText = <FormattedMessage {...messages.unmute[channelKind]}/>;
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
@@ -182,7 +182,7 @@ const SidebarChannelMenu = ({
             />
         );
     } else {
-        let muteChannelText = <FormattedMessage {...messages.mute[kind]}/>;
+        let muteChannelText = <FormattedMessage {...messages.mute[channelKind]}/>;
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
@@ -255,7 +255,7 @@ const SidebarChannelMenu = ({
 
     let leaveChannelMenuItem: JSX.Element | null = null;
     if (channel.name !== Constants.DEFAULT_CHANNEL) {
-        let leaveChannelText = <FormattedMessage {...messages.leave[kind]}/>;
+        let leaveChannelText = <FormattedMessage {...messages.leave[channelKind]}/>;
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             leaveChannelText = (
                 <FormattedMessage
@@ -293,16 +293,16 @@ const SidebarChannelMenu = ({
             menuButton={{
                 id: `SidebarChannelMenu-Button-${channel.id}`,
                 class: 'SidebarMenu_menuButton',
-                'aria-label': formatMessage(messages.optionsAriaLabel[kind], {channelName: channel.name}),
+                'aria-label': formatMessage(messages.optionsAriaLabel[channelKind], {channelName: channel.name}),
                 children: <DotsVerticalIcon size={16}/>,
             }}
             menuButtonTooltip={{
                 class: 'hidden-xs',
-                text: formatMessage(messages.options[kind]),
+                text: formatMessage(messages.options[channelKind]),
             }}
             menu={{
                 id: `SidebarChannelMenu-MenuList-${channel.id}`,
-                'aria-label': formatMessage(messages.menuAriaLabel[kind]),
+                'aria-label': formatMessage(messages.menuAriaLabel[channelKind]),
                 onToggle: onMenuToggle,
             }}
         >

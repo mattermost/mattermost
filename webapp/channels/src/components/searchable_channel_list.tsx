@@ -1012,12 +1012,19 @@ type OwnProps = {
     channels: Channel[];
 };
 
-// Each list gets its own last result, so the kinds keep their identity while the kinds of the
-// listed channels stay the same, and the list doesn't re-render on every store change.
+// Each list keeps its last result, and works the kinds out again only when the listed channels,
+// the stored channels or the registrations change, not on every store update while it's open.
 function makeMapStateToProps() {
+    let inputs: unknown[] = [];
     let channelKinds: Record<string, ChannelKind> = {};
 
     return (state: GlobalState, ownProps: OwnProps) => {
+        const nextInputs = [ownProps.channels, state.entities.channels.channels, state.plugins.components.ChannelKind];
+        if (nextInputs.every((input, i) => input === inputs[i])) {
+            return {channelKinds};
+        }
+        inputs = nextInputs;
+
         const kinds: Record<string, ChannelKind> = {};
         for (const channel of ownProps.channels) {
             const kind = getChannelKind(state, channel);
@@ -1033,4 +1040,5 @@ function makeMapStateToProps() {
     };
 }
 
-export default connect(makeMapStateToProps)(injectIntl(SearchableChannelList));
+// An empty object leaves out the dispatch prop connect would otherwise add.
+export default connect(makeMapStateToProps, {})(injectIntl(SearchableChannelList));

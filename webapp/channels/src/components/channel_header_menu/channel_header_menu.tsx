@@ -69,7 +69,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
 
     const user = useSelector(getCurrentUser);
     const channel = useSelector(getCurrentChannel);
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
     const isDefault = useSelector(isCurrentChannelDefault);
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const isMuted = useSelector(isCurrentChannelMuted);
@@ -86,7 +86,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const isGroup = (channel.type === Constants.GM_CHANNEL);
 
     let channelTitle: ReactNode = channel.display_name;
-    let ariaLabel = intl.formatMessage(menuAriaLabels[kind], {
+    let ariaLabel = intl.formatMessage(menuAriaLabels[channelKind], {
         displayName: channel.display_name,
     });
     if (isDirect && dmUser) {

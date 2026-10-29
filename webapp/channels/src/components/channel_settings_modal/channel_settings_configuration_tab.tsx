@@ -45,6 +45,7 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 
 import {useChannelKind} from 'hooks/useChannelKind';
 import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 
 import type {GlobalState} from 'types/store';
 
@@ -111,7 +112,7 @@ function ChannelSettingsConfigurationTab({
 }: Props) {
     const {formatMessage, formatList} = useIntl();
     const dispatch = useDispatch();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
     const [formError, setFormError] = useState('');
     const [requireConfirm, setRequireConfirm] = useState(false);
@@ -125,11 +126,11 @@ function ChannelSettingsConfigurationTab({
     }, []);
 
     // Channel banner section
-    const bannerHeading = formatMessage(messages.bannerHeading[kind]);
-    const bannerSubHeading = formatMessage(messages.bannerSubHeading[kind]);
+    const bannerHeading = formatMessage(messages.bannerHeading[channelKind]);
+    const bannerSubHeading = formatMessage(messages.bannerSubHeading[channelKind]);
     const bannerTextSettingTitle = formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'});
     const bannerColorSettingTitle = formatMessage({id: 'channel_banner.banner_color.label', defaultMessage: 'Banner color'});
-    const bannerTextPlaceholder = formatMessage(messages.bannerTextPlaceholder[kind]);
+    const bannerTextPlaceholder = formatMessage(channelKindMessages.bannerTextPlaceholder[channelKind]);
     const bannerPreviewSettingTitle = formatMessage({id: 'channel_banner.banner_preview.label', defaultMessage: 'Preview'});
 
     const {enabled: channelAttributesEnabled} = useChannelAttributes();
@@ -374,13 +375,13 @@ function ChannelSettingsConfigurationTab({
             // With attributes on, emptiness is derived below instead: an author
             // clearing the text is on their way to turning the banner off, and a
             // stored error would outlive the condition that raised it.
-            setFormError(formatMessage(messages.bannerTextRequired[kind]));
+            setFormError(formatMessage(messages.bannerTextRequired[channelKind]));
             setCharacterLimitExceeded(true);
         } else {
             resetFormErrors();
             setCharacterLimitExceeded(false);
         }
-    }, [channelAttributesEnabled, formatMessage, kind, resetFormErrors]);
+    }, [channelAttributesEnabled, formatMessage, channelKind, resetFormErrors]);
 
     const handleBannerColorChange = useCallback((color: string) => {
         setUpdatedChannelBanner((prev) => ({
@@ -397,7 +398,7 @@ function ChannelSettingsConfigurationTab({
 
     // Auto-translation section
     const autoTranslationHeading = formatMessage({id: 'channel_translation.label.name', defaultMessage: 'Auto-translation'});
-    const autoTranslationSubHeading = formatMessage(messages.autoTranslationSubHeading[kind]);
+    const autoTranslationSubHeading = formatMessage(messages.autoTranslationSubHeading[channelKind]);
 
     const initialIsChannelAutotranslated = useSelector((state: GlobalState) => isChannelAutotranslatedSelector(state, channel.id));
     const [isChannelAutotranslated, setIsChannelAutotranslated] = useState(initialIsChannelAutotranslated);
@@ -409,7 +410,7 @@ function ChannelSettingsConfigurationTab({
 
     // Join/leave messages section
     const joinLeaveMessagesHeading = formatMessage({id: 'channel_settings.join_leave_messages.label.name', defaultMessage: 'Join/Leave System Messages'});
-    const joinLeaveMessagesSubHeading = formatMessage(messages.joinLeaveMessagesSubHeading[kind]);
+    const joinLeaveMessagesSubHeading = formatMessage(messages.joinLeaveMessagesSubHeading[channelKind]);
 
     const initialDisableJoinLeaveMessages = Boolean(channel.disable_join_leave_messages);
     const [disableJoinLeaveMessages, setDisableJoinLeaveMessages] = useState(initialDisableJoinLeaveMessages);
@@ -479,7 +480,7 @@ function ChannelSettingsConfigurationTab({
             workspaceNames: workspaceNamesFormatted,
             b: (chunks: React.ReactNode) => <b>{chunks}</b>,
         };
-        const removeSharingModalMessage = formatMessage(messages.removeSharing[kind], removeSharingModalValues);
+        const removeSharingModalMessage = formatMessage(messages.removeSharing[channelKind], removeSharingModalValues);
 
         return {
             removeSharingModalTitle,
@@ -490,7 +491,7 @@ function ChannelSettingsConfigurationTab({
         channel.name,
         formatList,
         formatMessage,
-        kind,
+        channelKind,
         savedSharing.remotes,
         workspaceRemotes,
     ]);
@@ -586,11 +587,7 @@ function ChannelSettingsConfigurationTab({
         if (bannerEnabledOnSave && bannerTextInvalid) {
             // Naming the toggle as the way out is only honest while it can be reached.
             const canTurnBannerOff = channelAttributesEnabled && !bannerLockedByClassification && !bannerRequiredByAttribute;
-            let emptyBannerError;
-            if (canTurnBannerOff) {
-                emptyBannerError = formatMessage(messages.bannerTextEmpty[kind]);
-            }
-            setFormError(emptyBannerError ?? formatMessage({
+            setFormError(canTurnBannerOff ? formatMessage(messages.bannerTextEmpty[channelKind]) : formatMessage({
                 id: 'channel_settings.error_banner_text_required',
                 defaultMessage: 'Banner text is required',
             }));
@@ -712,7 +709,7 @@ function ChannelSettingsConfigurationTab({
                 handleServerError(lastError as ServerError);
             }
             if (errorCount > 1) {
-                setFormError(formatMessage(messages.sharingErrors[kind]));
+                setFormError(formatMessage(messages.sharingErrors[channelKind]));
             }
 
             if (errorCount === 0) {
@@ -737,7 +734,7 @@ function ChannelSettingsConfigurationTab({
         classificationEnabled,
         dispatch,
         formatMessage,
-        kind,
+        channelKind,
         handleServerError,
         hasAutoTranslationChanges,
         hasBannerChanges,
@@ -879,7 +876,7 @@ function ChannelSettingsConfigurationTab({
                         onRemotesChange={handleWorkspaceRemotesChange}
                         enabled={sharingEnabled}
                         onToggle={handleSharingToggle}
-                        channelKind={kind}
+                        channelKind={channelKind}
                     />
                 </>
             )}
@@ -898,7 +895,7 @@ function ChannelSettingsConfigurationTab({
                         data-testid='channelClassificationToggle-button'
                         tabIndex={0}
                         semiBold={true}
-                        secondaryLabel={formatMessage(messages.classificationDescription[kind])}
+                        secondaryLabel={formatMessage(messages.classificationDescription[channelKind])}
                     >
                         <FormattedMessage
                             id='channel_settings.classification.title'
@@ -989,10 +986,10 @@ function ChannelSettingsConfigurationTab({
                                                 disabled={bannerLockedByClassification}
                                                 hasError={characterLimitExceeded}
                                                 maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
-                                                channelKind={kind}
+                                                channelKind={channelKind}
                                             />
                                             <p className='setting_help'>
-                                                <FormattedMessage {...messages.bannerTextHelp[kind]}/>
+                                                <FormattedMessage {...messages.bannerTextHelp[channelKind]}/>
                                             </p>
                                         </>
                                     ) : (
@@ -1137,16 +1134,6 @@ const messages = {
         board: defineMessage({
             id: 'channel_banner.label.subtext.board',
             defaultMessage: 'When enabled, a customized banner will display at the top of the board.',
-        }),
-    },
-    bannerTextPlaceholder: {
-        channel: defineMessage({
-            id: 'channel_banner.banner_text.placeholder',
-            defaultMessage: 'Channel banner text',
-        }),
-        board: defineMessage({
-            id: 'channel_banner.banner_text.placeholder.board',
-            defaultMessage: 'Board banner text',
         }),
     },
     bannerTextHelp: {

@@ -48,7 +48,7 @@ interface Props extends Menu.FirstMenuItemProps {
 }
 
 const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
@@ -176,7 +176,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
             )}
 
             {isArchived && (
-                <MenuItemCloseChannel kind={kind}/>
+                <MenuItemCloseChannel kind={channelKind}/>
             )}
 
             {!isArchived && !isDefault && (
@@ -199,6 +199,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 >
                     <MenuItemUnarchiveChannel
                         channel={channel}
+                        kind={channelKind}
                     />
                 </ChannelPermissionGate>
             )}

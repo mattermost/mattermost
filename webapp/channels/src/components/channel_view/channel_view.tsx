@@ -17,6 +17,7 @@ import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
 import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 
 import {ChannelComposerBanner} from './channel_composer_banner';
 import ChannelViewPluginComponent from './channel_view_plugin_component';
@@ -38,16 +39,6 @@ const messages = {
         board: defineMessage({
             id: 'channelView.archivedChannel.board',
             defaultMessage: 'You are viewing an <b>archived board</b>. New messages cannot be posted.',
-        }),
-    },
-    close: {
-        channel: defineMessage({
-            id: 'center_panel.archived.closeChannel',
-            defaultMessage: 'Close Channel',
-        }),
-        board: defineMessage({
-            id: 'center_panel.archived.closeChannel.board',
-            defaultMessage: 'Close Board',
         }),
     },
 } satisfies Record<string, KindMessages>;
@@ -200,7 +191,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                             className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
-                            <FormattedMessage {...messages.close[this.props.channelKind]}/>
+                            <FormattedMessage {...channelKindMessages.closeChannel[this.props.channelKind]}/>
                         </Button>
                     </div>
                 </div>

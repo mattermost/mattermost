@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {defineMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -11,7 +11,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
-import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 
 import type {ChannelKind} from 'types/store/plugins';
 
@@ -352,7 +352,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                     aria-multiline='false'
                     aria-label={formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'})}
                     data-testid='bannerTextEditor'
-                    data-placeholder={formatMessage(placeholderMessages[channelKind])}
+                    data-placeholder={formatMessage(channelKindMessages.bannerTextPlaceholder[channelKind])}
                     onInput={emit}
                     onBlur={rememberCaret}
                     onKeyUp={rememberCaret}
@@ -424,17 +424,6 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
             </div>
         </div>
     );
-};
-
-const placeholderMessages: KindMessages = {
-    channel: defineMessage({
-        id: 'channel_banner.banner_text.placeholder',
-        defaultMessage: 'Channel banner text',
-    }),
-    board: defineMessage({
-        id: 'channel_banner.banner_text.placeholder.board',
-        defaultMessage: 'Board banner text',
-    }),
 };
 
 export default BannerTextEditor;

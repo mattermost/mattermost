@@ -59,7 +59,7 @@ function ChannelSettingsAccessRulesTab({
     showTabSwitchError,
 }: ChannelSettingsAccessRulesTabProps) {
     const {formatMessage} = useIntl();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
     // Get access control settings and current user from Redux state
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
@@ -698,7 +698,7 @@ function ChannelSettingsAccessRulesTab({
     }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
 
     const subtitleMessages = channel.type === Constants.OPEN_CHANNEL ? messages.subtitlePublic : messages.subtitlePrivate;
-    const accessRulesSubtitle = formatMessage(subtitleMessages[kind]);
+    const accessRulesSubtitle = formatMessage(subtitleMessages[channelKind]);
 
     return (
         <div className='ChannelSettingsModal__accessRulesTab'>
@@ -796,7 +796,7 @@ function ChannelSettingsAccessRulesTab({
                         const isPublic = channel.type === Constants.OPEN_CHANNEL;
                         if (autoSyncMembers) {
                             if (isPublic) {
-                                return formatMessage(messages.autoSyncEnabledPublic[kind]);
+                                return formatMessage(messages.autoSyncEnabledPublic[channelKind]);
                             }
                             return formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync_enabled_description',
@@ -805,7 +805,7 @@ function ChannelSettingsAccessRulesTab({
                         }
 
                         if (isPublic) {
-                            return formatMessage(messages.autoSyncDisabledPublic[kind]);
+                            return formatMessage(messages.autoSyncDisabledPublic[channelKind]);
                         }
 
                         return formatMessage({
@@ -844,7 +844,7 @@ function ChannelSettingsAccessRulesTab({
                         defaultMessage='Cannot save access rules'
                     />
                 }
-                message={<FormattedMessage {...messages.selfExclusion[kind]}/>}
+                message={<FormattedMessage {...messages.selfExclusion[channelKind]}/>}
                 confirmButtonText={
                     <FormattedMessage
                         id='channel_settings.access_rules.error.back_to_editing'
@@ -878,7 +878,7 @@ function ChannelSettingsAccessRulesTab({
                 autoSyncEnabled={autoSyncMembers}
                 isStacked={true}
                 willShowActivityWarning={shouldShowActivityWarning}
-                channelKind={kind}
+                channelKind={channelKind}
             />
 
             {/* Activity warning modal */}
@@ -887,7 +887,7 @@ function ChannelSettingsAccessRulesTab({
                 isOpen={showActivityWarningModal}
                 onClose={handleActivityWarningClose}
                 onConfirm={handleActivityWarningContinue}
-                channelKind={kind}
+                channelKind={channelKind}
             />
         </div>
     );

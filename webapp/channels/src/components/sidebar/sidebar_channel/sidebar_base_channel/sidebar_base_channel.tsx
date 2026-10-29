@@ -28,7 +28,7 @@ const SidebarBaseChannel = ({
     actions,
 }: Props) => {
     const intl = useIntl();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
     const handleLeavePublicChannel = useCallback((callback: () => void) => {
         actions.leaveChannel(channel.id);
@@ -55,9 +55,9 @@ const SidebarBaseChannel = ({
 
     let ariaLabelPrefix;
     if (channel.type === Constants.OPEN_CHANNEL) {
-        ariaLabelPrefix = intl.formatMessage(messages.publicType[kind]);
+        ariaLabelPrefix = intl.formatMessage(messages.publicType[channelKind]);
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-        ariaLabelPrefix = intl.formatMessage(messages.privateType[kind]);
+        ariaLabelPrefix = intl.formatMessage(messages.privateType[channelKind]);
     }
 
     return (

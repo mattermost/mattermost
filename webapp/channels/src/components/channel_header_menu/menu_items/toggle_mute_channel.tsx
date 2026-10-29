@@ -28,7 +28,7 @@ export default function ToggleMuteChannel({
     userID,
 }: Props) {
     const dispatch = useDispatch();
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
 
     const handleClick = () => {
         dispatch(updateChannelNotifyProps(
@@ -58,7 +58,7 @@ export default function ToggleMuteChannel({
             );
         }
     } else {
-        text = <FormattedMessage {...(isMuted ? messages.unmute : messages.mute)[kind]}/>;
+        text = <FormattedMessage {...(isMuted ? messages.unmute : messages.mute)[channelKind]}/>;
     }
 
     return (

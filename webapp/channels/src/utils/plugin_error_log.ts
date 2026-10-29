@@ -32,3 +32,5 @@ export function createPluginErrorLog(label: string, {subject = 'matcher', outcom
 
     return {logOnce, clear};
 }
+
+export type PluginErrorLog = ReturnType<typeof createPluginErrorLog>;

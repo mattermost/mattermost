@@ -122,7 +122,7 @@ const ChannelInfoRhs = ({
     canManageProperties,
     actions,
 }: Props) => {
-    const kind = useChannelKind(channel);
+    const channelKind = useChannelKind(channel);
     const currentUserId = currentUser.id;
     const channelURL = getSiteURL() + '/' + currentTeam.name + '/channels/' + channel.name;
 
@@ -215,7 +215,7 @@ const ChannelInfoRhs = ({
                                 icon={<Icon glyph={<ArchiveOutlineIcon/>}/>}
                                 title={
                                     <>
-                                        <FormattedMessage {...archivedTitleMessages[kind]}/>
+                                        <FormattedMessage {...archivedTitleMessages[channelKind]}/>
                                         {channel.name !== Constants.DEFAULT_CHANNEL && (
                                             <ChannelPermissionGate
                                                 channelId={channel.id}
@@ -239,7 +239,7 @@ const ChannelInfoRhs = ({
                         </ArchivedNoticeContainer>
                     )}
                     <TopButtons
-                        channelKind={kind}
+                        channelKind={channelKind}
                         channelType={channel.type}
                         channelURL={channelURL}
                         isFavorite={isFavorite}

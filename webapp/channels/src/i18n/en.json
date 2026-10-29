@@ -19959,6 +19959,10 @@
     "defaultMessage": "Unarchive Channel",
     "description": "Menu item in the channel dropdown menu; restores an archived channel ('Unarchive' as a verb)."
   },
+  "channel_header.unarchive.board": {
+    "defaultMessage": "Unarchive Board",
+    "description": "Menu item in the channel dropdown menu; restores an archived board ('Unarchive' as a verb). This is the wording used when the channel is a board."
+  },
   "channel_header.unmute": {
     "defaultMessage": "Unmute Channel",
     "description": "Menu item in the channel dropdown menu; unmutes notifications for the channel ('Unmute' as a verb)."
@@ -20982,6 +20986,14 @@
   "channel_settings.archive.button": {
     "defaultMessage": "Archive this channel",
     "description": "Destructive button on the Archive tab of the Channel Settings modal that starts archiving the channel."
+  },
+  "channel_settings.archive.button.aria_label": {
+    "defaultMessage": "Archive channel {displayName}",
+    "description": "Screen reader label for the button in Channel Settings that archives the channel; {displayName} is the channel name."
+  },
+  "channel_settings.archive.button.aria_label.board": {
+    "defaultMessage": "Archive board {displayName}",
+    "description": "Screen reader label for the button in Board Settings that archives the board; {displayName} is the board name. This is the wording used when the channel is a board."
   },
   "channel_settings.archive.button.board": {
     "defaultMessage": "Archive this board",
