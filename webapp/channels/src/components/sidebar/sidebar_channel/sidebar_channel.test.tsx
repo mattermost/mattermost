@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannel from 'components/sidebar/sidebar_channel/sidebar_channel';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {StoragePrefixes} from 'utils/constants';
 
 jest.mock('components/tours/onboarding_tour', () => ({
     ChannelsAndDirectMessagesTour: () => null,
@@ -159,5 +162,208 @@ describe('components/sidebar/sidebar_channel', () => {
         );
 
         expect(screen.getByRole('listitem')).toHaveClass('expanded');
+    });
+
+    describe('plugin sub-items', () => {
+        const channel = {...baseProps.channel, name: 'town-square'};
+        const storageKey = `${StoragePrefixes.CHANNEL_SIDEBAR_SUB_ITEMS_EXPANDED}user_id_team_id_channel_id`;
+
+        const items = [
+            {id: 'a', label: 'Board view', subpath: 'views/a', iconName: 'view-grid-plus-outline'},
+            {id: 'b', label: 'Table view', subpath: 'views/b'},
+        ];
+
+        const makeState = (extra: Record<string, unknown> = {}, subItems: unknown[] = items) => ({
+            entities: {
+                users: {currentUserId: 'user_id'},
+                teams: {currentTeamId: 'team_id'},
+            },
+            plugins: {
+                components: {
+                    ChannelSidebarSubItems: [{id: 'reg', pluginId: 'plugin', getItems: () => subItems}],
+                },
+            },
+            ...extra,
+        });
+
+        const storedExpanded = (expanded: boolean) => ({
+            storage: {storage: {[storageKey]: {value: expanded, timestamp: new Date()}}},
+        });
+
+        const renderChannel = (
+            props: Record<string, unknown> = {},
+            state: Record<string, unknown> = makeState(),
+            path = '/team_name/channels/town-square',
+        ) => {
+            const history = createMemoryHistory({initialEntries: [path]});
+            const sidebarChannel = (
+                <SidebarChannel
+                    {...baseProps}
+                    channel={channel}
+                    {...props}
+                />
+            );
+            const result = renderWithContext(
+                props.isDraggable ? (
+                    <DragDropContext onDragEnd={jest.fn()}>
+                        <Droppable droppableId='category'>
+                            {(provided) => (
+                                <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                >
+                                    {sidebarChannel}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
+                ) : sidebarChannel,
+                state,
+                {history},
+            );
+            return {...result, history};
+        };
+
+        const getToggle = () => screen.getByRole('button', {name: /^(Expand|Collapse) channel_display_name$/});
+
+        test('should not render a toggle or list when there are no sub-items', () => {
+            renderChannel({}, makeState({}, []));
+
+            expect(screen.queryByRole('button', {name: /^(Expand|Collapse)/})).not.toBeInTheDocument();
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+            expect(screen.getByRole('listitem')).not.toHaveClass('hasSubItems');
+        });
+
+        test('should not render sub-items for DM channels', () => {
+            renderChannel({channel: {...channel, type: 'D' as ChannelType}});
+
+            expect(screen.queryByRole('button', {name: /^(Expand|Collapse)/})).not.toBeInTheDocument();
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        });
+
+        test('should be collapsed by default', () => {
+            renderChannel();
+
+            expect(screen.getAllByRole('listitem')[0]).toHaveClass('hasSubItems');
+            expect(getToggle()).toHaveAccessibleName('Expand channel_display_name');
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'false');
+            expect(getToggle()).toHaveAttribute('aria-controls', 'sidebarSubItems_channel_id');
+            expect(getToggle().querySelector('i')).toHaveClass('icon-chevron-right');
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        });
+
+        test('should show and hide the list with the toggle and persist the choice', async () => {
+            const {store, history} = renderChannel();
+
+            await userEvent.click(getToggle());
+
+            expect(getToggle()).toHaveAccessibleName('Collapse channel_display_name');
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'true');
+            expect(getToggle().querySelector('i')).toHaveClass('icon-chevron-down');
+            expect(screen.getByRole('list')).toHaveAttribute('id', 'sidebarSubItems_channel_id');
+            expect(screen.getByRole('link', {name: 'Board view'})).toHaveAttribute('href', '/team_name/channels/town-square/views/a');
+            expect(screen.getByRole('link', {name: 'Table view'})).toHaveAttribute('href', '/team_name/channels/town-square/views/b');
+            expect(store.getState().storage.storage[storageKey].value).toBe(true);
+            expect(history.location.pathname).toBe('/team_name/channels/town-square');
+
+            await userEvent.click(getToggle());
+
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'false');
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+            expect(store.getState().storage.storage[storageKey].value).toBe(false);
+        });
+
+        test('should start expanded from the persisted state', () => {
+            renderChannel({}, makeState(storedExpanded(true)));
+
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'true');
+            expect(screen.getByRole('list')).toBeInTheDocument();
+        });
+
+        test('should keep separate state per channel', () => {
+            renderChannel({}, makeState({storage: {storage: {[`${StoragePrefixes.CHANNEL_SIDEBAR_SUB_ITEMS_EXPANDED}user_id_team_id_other_channel`]: {value: true, timestamp: new Date()}}}}));
+
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'false');
+        });
+
+        test('should expand and mark the active item when the path matches a sub-item', () => {
+            renderChannel({isCurrentChannel: true}, makeState(), '/team_name/channels/town-square/views/b');
+
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'true');
+            expect(screen.getByRole('link', {name: 'Table view'})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: 'Board view'})).not.toHaveAttribute('aria-current');
+
+            const channelItem = screen.getAllByRole('listitem')[0];
+            expect(channelItem).toHaveClass('active', 'hasSubItems', 'hasActiveSubItem');
+        });
+
+        test('should not mark a sub-item active when on the channel root', () => {
+            renderChannel({isCurrentChannel: true}, makeState(storedExpanded(true)));
+
+            expect(screen.queryByRole('link', {current: 'page'})).not.toBeInTheDocument();
+            expect(screen.getAllByRole('listitem')[0]).not.toHaveClass('hasActiveSubItem');
+        });
+
+        test('should not mark a sub-item active when the path is in another channel', () => {
+            renderChannel({isCurrentChannel: true}, makeState(), '/team_name/channels/off-topic/views/b');
+
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'false');
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        });
+
+        test('should not hide the active item when collapsing', async () => {
+            renderChannel({isCurrentChannel: true}, makeState(), '/team_name/channels/town-square/views/b');
+
+            await userEvent.click(getToggle());
+
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'true');
+            expect(screen.getByRole('link', {name: 'Table view'})).toBeInTheDocument();
+        });
+
+        test('should hide the list when the category is collapsed', () => {
+            renderChannel({isCategoryCollapsed: true}, makeState(storedExpanded(true)));
+
+            expect(screen.getByRole('listitem')).toHaveClass('collapsed');
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        });
+
+        test('should hide the list when the category is being dragged', () => {
+            renderChannel({isCategoryDragged: true}, makeState(storedExpanded(true)));
+
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        });
+
+        test('should show the list in a collapsed category when the channel is current', () => {
+            renderChannel({isCategoryCollapsed: true, isCurrentChannel: true}, makeState(storedExpanded(true)));
+
+            expect(screen.getAllByRole('listitem')[0]).toHaveClass('expanded');
+            expect(screen.getByRole('list')).toBeInTheDocument();
+        });
+
+        test('should show the list in a collapsed category when the channel is unread', () => {
+            renderChannel({isCategoryCollapsed: true, isUnread: true}, makeState(storedExpanded(true)));
+
+            expect(screen.getByRole('list')).toBeInTheDocument();
+        });
+
+        test('should render the list inside the draggable channel item', () => {
+            renderChannel({isDraggable: true}, makeState(storedExpanded(true)));
+
+            const channelItem = screen.getAllByRole('listitem')[0];
+            expect(channelItem).toHaveClass('SidebarChannel', 'hasSubItems');
+            expect(channelItem).toContainElement(screen.getByRole('list'));
+            expect(channelItem).toContainElement(getToggle());
+        });
+
+        test('should hide the list while the channel is part of a multi-select drag', () => {
+            renderChannel({
+                isChannelSelected: true,
+                draggingState: {state: 'dragging', id: 'other_channel'},
+                multiSelectedChannelIds: ['channel_id', 'other_channel'],
+            }, makeState(storedExpanded(true)));
+
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        });
     });
 });

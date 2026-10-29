@@ -30651,6 +30651,14 @@
     "defaultMessage": "{count} selected",
     "description": "Badge shown on the dragged item when multiple sidebar channels are drag-selected at once; {count} is how many are selected."
   },
+  "sidebar_left.sidebar_channel.subItems.collapse": {
+    "defaultMessage": "Collapse {channelName}",
+    "description": "Label of the sidebar button that hides the plugin-provided sub-items under a channel; {channelName} is the channel display name."
+  },
+  "sidebar_left.sidebar_channel.subItems.expand": {
+    "defaultMessage": "Expand {channelName}",
+    "description": "Label of the sidebar button that shows the plugin-provided sub-items under a channel; {channelName} is the channel display name."
+  },
   "sidebar_right_menu.console": {
     "defaultMessage": "System Console",
     "description": "Browser tab title used for the System Console; also the name of the menu item that opens it."
