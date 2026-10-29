@@ -18,9 +18,9 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_sub_items', () => {
     const channel = {id: 'channel_id', name: 'town-square', type: 'O'} as Channel;
 
     const items: ResolvedChannelSidebarSubItem[] = [
-        {key: 'plugin:a', pluginId: 'plugin', id: 'a', label: 'Board view', subpath: 'views/a', iconName: 'view-grid-plus-outline'},
-        {key: 'plugin:b', pluginId: 'plugin', id: 'b', label: 'Table view', subpath: 'views/a/table'},
-        {key: 'plugin:c', pluginId: 'plugin', id: 'c', label: 'Calendar', subpath: 'calendar'},
+        {key: 'plugin:a', pluginId: 'plugin', registrationId: 'reg', id: 'a', label: 'Board view', subpath: 'views/a', iconName: 'view-grid-plus-outline', depth: 0, hasChildren: false, draggable: false},
+        {key: 'plugin:b', pluginId: 'plugin', registrationId: 'reg', id: 'b', label: 'Table view', subpath: 'views/a/table', depth: 0, hasChildren: false, draggable: false},
+        {key: 'plugin:c', pluginId: 'plugin', registrationId: 'reg', id: 'c', label: 'Calendar', subpath: 'calendar', depth: 0, hasChildren: false, draggable: false},
     ];
 
     const baseProps = {

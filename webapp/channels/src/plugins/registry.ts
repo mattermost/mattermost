@@ -1610,10 +1610,10 @@ export default class PluginRegistry {
      * Boards plugin listing each board's views under the board's channel).
      *
      * `getItems(state, channel)` receives the full GlobalState and a Channel and returns
-     * `{id, label, subpath, iconName?}[]`, or null/undefined for none. It is only called for public
-     * and private channels; DMs and GMs are not supported because sub-paths only exist under
-     * `/channels/`. `id` must be unique within the plugin's items for the channel, and `subpath`
-     * has no leading slash (e.g. `views/abc`).
+     * `{id, label, subpath, iconName?, parentId?, draggable?}[]`, or null/undefined for none. It is
+     * only called for public and private channels; DMs and GMs are not supported because sub-paths
+     * only exist under `/channels/`. `id` must be unique within the plugin's items for the channel,
+     * and `subpath` has no leading slash (e.g. `views/abc`).
      *
      * Clicking an item navigates to `/:team/channels/:channel/<subpath>`, so the channel must also
      * have a view registered with `registerChannelViewComponent` and `handlesSubpaths: true`;
@@ -1621,10 +1621,33 @@ export default class PluginRegistry {
      *
      * `getItems` runs on every store update, so plugins should memoize it (e.g. with
      * `createSelector`). Items from multiple registrations are concatenated in registration order
-     * (alphabetical pluginId, then insertion order). A throwing `getItems` is logged once per plugin
-     * and treated as returning no items. Items with an empty label or subpath, or a non-string
-     * id, label or subpath, are dropped. An unknown `iconName` is ignored and the item is rendered
-     * without an icon.
+     * (alphabetical pluginId, then insertion order). Items with an empty label or subpath, or a
+     * non-string id, label or subpath, are dropped. An unknown `iconName` is ignored and the item is
+     * rendered without an icon.
+     *
+     * Nesting: set `parentId` to the `id` of another item from the same registration to nest an
+     * item under it. Siblings are shown in array order, and items with children are collapsed by
+     * default. The ancestors of the active item auto-expand. An item whose `parentId` is missing,
+     * not a string, unknown, itself, or part of a cycle is shown at the root level.
+     *
+     * Three-dot menu: when `getItemActions(state, channel, itemId)` is registered, each item gets a
+     * menu button. It is called when the menu opens, with fresh state, and returns
+     * `{id, text, iconName?, isDestructive?, separatorBefore?, onClick}[]`, or null/undefined for
+     * none. Actions without a string id or text, or without an `onClick` function, are dropped, and
+     * the menu is not shown when no actions remain.
+     *
+     * Drag-and-drop: an item is draggable only when it sets `draggable: true` and the registration
+     * has `onItemDrop(channel, {itemId, targetId, position})`, where `position` is `'before'`,
+     * `'after'` or `'inside'` relative to the target. Both ids are the plugin's own item ids. Drops
+     * are limited to the same channel and the same registration, and core rejects dropping an item
+     * onto itself or one of its descendants. `canDrop(state, channel, drop)` can veto other drops
+     * while they are hovered; a throwing `canDrop` counts as a veto. Dragging is pointer-only, so
+     * keyboard users rely on menu actions (e.g. "Move up") to reorder.
+     *
+     * A throwing `getItems` is logged once per plugin and treated as returning no items; a throwing
+     * `getItemActions`, `canDrop` or `onItemDrop` (or an `onItemDrop` that returns a rejected
+     * promise) is likewise logged once per plugin and otherwise ignored. Non-function values for
+     * the optional callbacks are ignored.
      *
      * Collapse state is per channel and stored locally. Channels are collapsed by default and
      * auto-expand when one of their sub-items is active. Alt+Up/Down channel switching does not
@@ -1636,14 +1659,36 @@ export default class PluginRegistry {
      * registry.registerChannelSidebarSubItems({getItems: (state, channel) =>
      *     selectViewsForBoardChannel(state, channel.id)?.map((v) => ({id: v.id, label: v.title, subpath: `views/${v.id}`, iconName: iconForViewType(v.type)}))});
      *
+     * @example
+     * registry.registerChannelSidebarSubItems({
+     *     getItems: (state, channel) => selectPages(state, channel.id).map((p) => ({id: p.id, label: p.title, subpath: `pages/${p.id}`, parentId: p.parentId, draggable: true})),
+     *     getItemActions: (state, channel, itemId) => [{id: 'delete', text: 'Delete', isDestructive: true, onClick: () => deletePage(itemId)}],
+     *     onItemDrop: (channel, {itemId, targetId, position}) => movePage(channel.id, itemId, targetId, position),
+     * });
+     *
      * @returns Auto-generated unique id for this registration, usable with `unregisterComponent`.
      */
-    registerChannelSidebarSubItems = reArg(['getItems'], ({getItems}: {getItems: ChannelSidebarSubItemsRegistration['getItems']}) => {
+    registerChannelSidebarSubItems = reArg(['getItems', 'getItemActions', 'canDrop', 'onItemDrop'], ({getItems, getItemActions, canDrop, onItemDrop}: {
+        getItems: ChannelSidebarSubItemsRegistration['getItems'];
+        getItemActions?: ChannelSidebarSubItemsRegistration['getItemActions'];
+        canDrop?: ChannelSidebarSubItemsRegistration['canDrop'];
+        onItemDrop?: ChannelSidebarSubItemsRegistration['onItemDrop'];
+    }) => {
         if (this.isActive()) {
             clearLoggedChannelSidebarSubItemsErrors(this.id);
         }
         const id = generateId();
-        this.dispatchPluginComponentWithData('ChannelSidebarSubItems', {id, pluginId: this.id, getItems});
+        const registration: ChannelSidebarSubItemsRegistration = {id, pluginId: this.id, getItems};
+        if (typeof getItemActions === 'function') {
+            registration.getItemActions = getItemActions;
+        }
+        if (typeof canDrop === 'function') {
+            registration.canDrop = canDrop;
+        }
+        if (typeof onItemDrop === 'function') {
+            registration.onItemDrop = onItemDrop;
+        }
+        this.dispatchPluginComponentWithData('ChannelSidebarSubItems', registration);
         return id;
     });
 
