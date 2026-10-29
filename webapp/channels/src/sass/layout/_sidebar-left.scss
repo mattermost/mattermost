@@ -983,6 +983,15 @@ $sidebarOpacityAnimationDuration: 0.15s;
             transform: none !important;
         }
 
+        &.hasSubItems {
+            flex-direction: column;
+            align-items: stretch;
+
+            &.expanded {
+                height: auto;
+            }
+        }
+
         &.selectedDragging {
             opacity: 0.25;
             transition: all cubic-bezier(0.2, 1, 0.1, 1) 0.33s;
@@ -1147,6 +1156,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
             margin-right: 11px;
         }
 
+        .SidebarChannelLink__subItemsToggle {
+            margin-right: 11px;
+        }
+
         .SidebarMenu {
             display: block;
         }
@@ -1168,7 +1181,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarChannel > .active.SidebarLink,
-    .SidebarChannel.active .SidebarLink {
+    .SidebarChannel.active:not(.hasActiveSubItem) .SidebarLink {
         background: rgba(var(--sidebar-text-rgb), 0.08);
 
         .DirectChannel__profile-picture .DirectChannel__status-icon {
@@ -1198,7 +1211,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarLink.active::before,
-    .SidebarChannel.active .SidebarLink::before {
+    .SidebarChannel.active:not(.hasActiveSubItem) .SidebarLink::before,
+    .SidebarChannelSubItem.active .SidebarChannelSubItem__link::before {
         position: absolute;
         top: 0;
         left: -2px;
@@ -1223,6 +1237,99 @@ $sidebarOpacityAnimationDuration: 0.15s;
         display: flex;
         margin: 0 6px 0 -2px;
         font-size: 18px;
+    }
+
+    .SidebarChannel.hasSubItems .SidebarLink:hover .SidebarMenu_menuButton,
+    .SidebarChannel.hasSubItems .SidebarLink.menuOpen .SidebarMenu_menuButton {
+        margin-right: 0;
+    }
+
+    .SidebarChannelLink__subItemsToggle {
+        display: flex;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        margin-left: 4px;
+        background: transparent;
+        color: rgba(var(--sidebar-text-rgb), 0.64);
+        font-size: 16px;
+        line-height: 16px;
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+            cursor: pointer;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--sidebar-text-active-border);
+            outline-offset: -2px;
+        }
+    }
+
+    .SidebarChannelSubItems {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    .SidebarChannelSubItem {
+        height: 28px;
+        list-style: none;
+
+        &__link {
+            position: relative;
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            padding: 0 16px 0 44px;
+            color: rgba(var(--sidebar-text-rgb), 0.72);
+            font-size: 14px;
+            line-height: 20px;
+            text-decoration: none;
+
+            &:hover {
+                background: rgba(var(--sidebar-text-rgb), 0.08);
+                color: var(--sidebar-text);
+                text-decoration: none;
+            }
+
+            &:focus {
+                outline: none;
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--sidebar-text-active-border);
+                outline-offset: -2px;
+            }
+        }
+
+        &.active .SidebarChannelSubItem__link {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+        }
+
+        &__icon {
+            display: flex;
+            flex-shrink: 0;
+            margin-right: 4px;
+            font-size: 16px;
+        }
+
+        &__label {
+            overflow: hidden;
+            min-width: 0;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
 
     .SidebarChannelLinkLabel_wrapper,

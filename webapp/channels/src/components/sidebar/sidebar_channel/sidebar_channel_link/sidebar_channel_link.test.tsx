@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
+import type {SubItemsToggle} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
@@ -48,6 +50,8 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         showChannelsTutorialStep: false,
         remoteNames: [] as string[],
         isSharedChannel: false,
+        hasPendingJoinRequests: false,
+        subItemsToggle: undefined as SubItemsToggle | undefined,
         actions: {
             markMostRecentPostInChannelAsUnread: jest.fn(),
             multiSelectChannel: jest.fn(),
@@ -61,9 +65,9 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         },
     };
 
-    const renderLink = (props: Partial<typeof baseProps> = {}) => {
+    const renderLink = (props: Partial<typeof baseProps> = {}, history = createMemoryHistory()) => {
         const merged = mergeObjects(baseProps, props);
-        return renderWithContext(<SidebarChannelLink {...merged}/>);
+        return renderWithContext(<SidebarChannelLink {...merged}/>, {}, {history});
     };
 
     test('should match snapshot', () => {
@@ -229,5 +233,58 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         );
 
         expect(baseProps.actions.fetchChannelRemotes).toHaveBeenCalledWith('new_channel_id');
+    });
+
+    describe('sub-items toggle', () => {
+        const onToggle = jest.fn();
+        const subItemsToggle = {isExpanded: false, controlsId: 'sidebarSubItems_channel_id', onToggle};
+
+        beforeEach(() => {
+            onToggle.mockClear();
+        });
+
+        test('should not render a toggle without sub-items', () => {
+            renderLink();
+
+            expect(screen.queryByRole('button', {name: /^(Expand|Collapse)/})).not.toBeInTheDocument();
+        });
+
+        test('should render a collapsed toggle', () => {
+            renderLink({subItemsToggle});
+
+            const toggle = screen.getByRole('button', {name: 'Expand channel_display_name'});
+            expect(toggle).toHaveAttribute('aria-expanded', 'false');
+            expect(toggle).toHaveAttribute('aria-controls', 'sidebarSubItems_channel_id');
+            expect(toggle.querySelector('i')).toHaveClass('icon', 'icon-chevron-right');
+        });
+
+        test('should render an expanded toggle', () => {
+            renderLink({subItemsToggle: {...subItemsToggle, isExpanded: true}});
+
+            const toggle = screen.getByRole('button', {name: 'Collapse channel_display_name'});
+            expect(toggle).toHaveAttribute('aria-expanded', 'true');
+            expect(toggle.querySelector('i')).toHaveClass('icon', 'icon-chevron-down');
+        });
+
+        test('should toggle without navigating to the channel or counting as a channel click', async () => {
+            const history = createMemoryHistory({initialEntries: ['/team/channels/other']});
+            renderLink({subItemsToggle}, history);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Expand channel_display_name'}));
+
+            expect(onToggle).toHaveBeenCalledTimes(1);
+            expect(history.location.pathname).toBe('/team/channels/other');
+            expect(baseProps.actions.clearChannelSelection).not.toHaveBeenCalled();
+        });
+
+        test('should toggle with the keyboard', async () => {
+            renderLink({subItemsToggle});
+
+            screen.getByRole('button', {name: 'Expand channel_display_name'}).focus();
+            await userEvent.keyboard('{Enter}');
+            await userEvent.keyboard(' ');
+
+            expect(onToggle).toHaveBeenCalledTimes(2);
+        });
     });
 });
