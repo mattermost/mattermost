@@ -17,15 +17,12 @@ import {requireGlobalAttributesEnabled} from './global_attributes_helpers';
 import {ListingSeeder} from './listing_helpers';
 
 test.describe('System Console - Global Attributes listing resource type filter', {tag: '@system_console'}, () => {
-    test.beforeEach(async ({pw}) => {
-        await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true});
-    });
-
     /**
      * @objective Ensure each resource type option narrows the listing to the templates linked to that
      * type plus the unlinked fields of that type, and All shows every row again.
      */
     test('filters rows by users, channels and posts', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true});
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
         const suffix = pw.random.id();
         const seeder = new ListingSeeder(adminClient, suffix);
@@ -109,6 +106,7 @@ test.describe('System Console - Global Attributes listing resource type filter',
      * only rows that satisfy all three stay.
      */
     test('combines the resource type filter with the source filter and search', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true});
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
         const suffix = pw.random.id();
         const seeder = new ListingSeeder(adminClient, suffix);
@@ -175,6 +173,7 @@ test.describe('System Console - Global Attributes listing resource type filter',
      * filters resets the search, the source and the resource type.
      */
     test('clears the search, source and resource type from the no-match state', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true});
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
         const suffix = pw.random.id();
         const seeder = new ListingSeeder(adminClient, suffix);
