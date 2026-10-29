@@ -116,6 +116,11 @@ export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
 ];
 
+// Permission actions gated by the ChannelPermissionActions feature flag.
+export const ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS: string[] = [
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+];
+
 export const ACCESS_CONTROL_CHANNEL_ROLE_GUEST = 'channel_guest';
 export const ACCESS_CONTROL_CHANNEL_ROLE_USER = 'channel_user';
 export const ACCESS_CONTROL_CHANNEL_ROLE_ADMIN = 'channel_admin';

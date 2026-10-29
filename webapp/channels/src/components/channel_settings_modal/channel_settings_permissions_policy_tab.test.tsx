@@ -781,6 +781,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
+                    FeatureFlagChannelPermissionActions: 'true',
                 },
             },
             users: {
@@ -836,8 +837,8 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
         jest.restoreAllMocks();
     });
 
-    const openEditor = async () => {
-        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, baseState);
+    const openEditor = async (state: typeof baseState = baseState) => {
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, state);
         const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
         await waitFor(() => expect(addRuleButton).toBeEnabled());
         await userEvent.click(addRuleButton);
@@ -849,6 +850,16 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
         await openEditor();
 
         expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`)).toBeInTheDocument();
+        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+    });
+
+    test('does not offer Channel Read Access while the ChannelPermissionActions flag is off', async () => {
+        await openEditor({
+            ...baseState,
+            entities: {...baseState.entities, general: {config: {FeatureFlagPermissionPolicies: 'true', FeatureFlagChannelPermissionActions: 'false'}}},
+        });
+
+        expect(screen.queryByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`)).not.toBeInTheDocument();
         expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
     });
 
@@ -923,6 +934,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
                     config: {
                         FeatureFlagPermissionPolicies: 'true',
                         FeatureFlagPolicySimulation: simulation ? 'true' : 'false',
+                        FeatureFlagChannelPermissionActions: 'true',
                     },
                 },
                 users: {

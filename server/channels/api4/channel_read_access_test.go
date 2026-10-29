@@ -161,6 +161,7 @@ func setupChannelReadAccessAPI(t *testing.T, allow bool) (*channelReadAccessFixt
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -396,6 +397,7 @@ func setupContentReviewerChannelReadAccess(t *testing.T, allow bool) (*contentRe
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -545,6 +547,7 @@ func TestChannelReadAccessPolicyAdminEndpointsStayGeneric(t *testing.T) {
 func TestChannelReadAccessMembersForUserFilterFollowsTheSession(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -577,6 +580,7 @@ func TestChannelReadAccessMembersForUserFilterFollowsTheSession(t *testing.T) {
 func TestChannelReadAccessMembersForUserPagesSurviveDenials(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -629,6 +633,7 @@ func TestChannelReadAccessMembersForUserPagesSurviveDenials(t *testing.T) {
 func TestChannelReadAccessChannelsForUserFilterFollowsTheSession(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -668,6 +673,7 @@ func stubReadAccessNotGoverned(m *mocks.AccessControlServiceInterface) {
 func TestChannelReadAccessFiltersPluginChannelEvents(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -726,6 +732,7 @@ func TestChannelReadAccessFiltersPluginChannelEvents(t *testing.T) {
 func TestChannelReadAccessUnreadCountsExcludeDeniedChannels(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {

@@ -70,6 +70,11 @@
     "description": "API error when a render-time access control decision is requested for a resource type that has no decision support."
   },
   {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Channel permission actions feature is not enabled.",
+    "description": "API error for admins saving an access control policy that uses a channel permission action (such as channel read access) while that feature is not enabled on the server."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled.",
     "description": "API error for admins when channel-level permission policies (attribute-based access control) are not enabled on the server."

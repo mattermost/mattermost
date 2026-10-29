@@ -352,6 +352,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
+                    FeatureFlagChannelPermissionActions: 'true',
                 },
             },
         },
@@ -423,6 +424,16 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
         expect(document.getElementById('pp-add-permission-channel_read_access')).not.toBeNull();
         expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
+    });
+
+    test('does not offer Channel Read Access while the ChannelPermissionActions flag is off', async () => {
+        const flagOffState = {entities: {general: {config: {FeatureFlagPermissionPolicies: 'true'}}}};
+        renderWithContext(<PermissionPolicyDetails {...baseProps}/>, flagOffState);
+        await screen.findByText('Add permission');
+        await userEvent.click(document.getElementById('pp-add-permission-btn')!);
+
+        expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
+        expect(document.getElementById('pp-add-permission-channel_read_access')).toBeNull();
     });
 
     test('confirms before saving a policy that carries channel_read_access', async () => {

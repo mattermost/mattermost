@@ -136,6 +136,13 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Channel permission actions (channel_read_access) have a flag of their
+	// own, on permission and channel policies alike.
+	if policy.HasChannelPermissionAction() && !c.App.Config().FeatureFlags.ChannelPermissionActions {
+		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_permission_actions.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
