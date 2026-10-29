@@ -4,7 +4,7 @@
 import React from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {TopLevelProducts} from 'utils/constants';
+import {TopLevelProducts, WindowSizes} from 'utils/constants';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
@@ -223,5 +223,55 @@ describe('ProductBranding', () => {
 
         expect(screen.queryByText('ENTRY EDITION')).not.toBeInTheDocument();
         expect(screen.queryByText('TEAM EDITION')).not.toBeInTheDocument();
+    });
+
+    test('should name the site instead of the product while the product rail is on', () => {
+        const state = {
+            entities: {
+                general: {
+                    ...licensedState.entities.general,
+                    config: {FeatureFlagProductRail: 'true', SiteName: 'Acme Chat'},
+                },
+                teams: {currentTeamId: 'team1'},
+            },
+        };
+
+        renderWithContext(<ProductBranding/>, state);
+
+        expect(screen.getByText('Acme Chat')).toBeInTheDocument();
+        expect(screen.queryByText('Channels')).not.toBeInTheDocument();
+    });
+
+    test('should fall back to Mattermost when no site name is set', () => {
+        const state = {
+            entities: {
+                general: {
+                    ...licensedState.entities.general,
+                    config: {FeatureFlagProductRail: 'true', SiteName: ''},
+                },
+                teams: {currentTeamId: 'team1'},
+            },
+        };
+
+        renderWithContext(<ProductBranding/>, state);
+
+        expect(screen.getByText('Mattermost')).toBeInTheDocument();
+    });
+
+    test('should keep the product name while the rail is hidden, as on mobile', () => {
+        const state = {
+            entities: {
+                general: {
+                    ...licensedState.entities.general,
+                    config: {FeatureFlagProductRail: 'true', SiteName: 'Acme Chat'},
+                },
+                teams: {currentTeamId: 'team1'},
+            },
+            views: {browser: {windowSize: WindowSizes.MOBILE_VIEW}},
+        };
+
+        renderWithContext(<ProductBranding/>, state);
+
+        expect(screen.queryByText('Acme Chat')).not.toBeInTheDocument();
     });
 });

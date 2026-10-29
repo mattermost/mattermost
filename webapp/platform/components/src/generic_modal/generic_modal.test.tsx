@@ -38,6 +38,39 @@ describe('GenericModal', () => {
         expect(screen.getByText('Cancel')).toBeInTheDocument();
     });
 
+    test('treats deprecated confirmButtonVariant="destructive" as destructive', () => {
+        const props = {
+            ...baseProps,
+            handleConfirm: jest.fn(),
+            confirmButtonVariant: 'destructive',
+        };
+
+        render(
+            wrapIntl(<GenericModal {...props}/>),
+        );
+
+        const confirmButton = screen.getByRole('button', {name: 'Confirm'});
+        expect(confirmButton.className).toMatch(/button--destructive/);
+        expect(confirmButton).toHaveClass('delete');
+    });
+
+    test('prefers destructive prop over confirmButtonVariant', () => {
+        const props = {
+            ...baseProps,
+            handleConfirm: jest.fn(),
+            destructive: false,
+            confirmButtonVariant: 'destructive',
+        };
+
+        render(
+            wrapIntl(<GenericModal {...props}/>),
+        );
+
+        const confirmButton = screen.getByRole('button', {name: 'Confirm'});
+        expect(confirmButton.className).not.toMatch(/button--destructive/);
+        expect(confirmButton).toHaveClass('confirm');
+    });
+
     test('calls onExited when modal exits', async () => {
         const onExitedMock = jest.fn();
         const props = {

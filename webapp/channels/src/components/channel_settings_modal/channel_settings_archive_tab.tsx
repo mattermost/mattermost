@@ -5,7 +5,7 @@ import React, {useState, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import {deleteChannel} from 'actions/views/channel';
@@ -51,7 +51,7 @@ function ChannelSettingsArchiveTab({
             />
             <Button
                 type='button'
-                variant='destructive'
+                destructive={true}
                 onClick={handleArchiveChannel}
                 disabled={isReadOnly}
                 id='channelSettingsArchiveChannelButton'
@@ -91,7 +91,7 @@ function ChannelSettingsArchiveTab({
                     confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmArchive', defaultMessage: 'Confirm'})}
                     onConfirm={doArchiveChannel}
                     onCancel={() => setShowArchiveConfirmModal(false)}
-                    confirmButtonVariant='destructive'
+                    destructive={true}
                     modalClass='archiveChannelConfirmModal'
                     focusOriginElement='channelSettingsArchiveChannelButton'
                     isStacked={true}

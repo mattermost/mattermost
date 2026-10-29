@@ -61,9 +61,9 @@ describe('ChannelSettingsArchiveTab', () => {
         renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
 
         // Check that the archive button is rendered
-        const archiveButton = screen.getByText('Archive this channel');
+        const archiveButton = screen.getByRole('button', {name: 'Archive channel Test Channel'});
         expect(archiveButton).toBeInTheDocument();
-        expect(archiveButton).toHaveAttribute('aria-label', 'Archive channel Test Channel');
+        expect(archiveButton).toHaveTextContent('Archive this channel');
     });
 
     it('should show confirmation modal when archive button is clicked', async () => {

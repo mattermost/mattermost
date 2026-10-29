@@ -104,10 +104,21 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 	}
 
 	if hasNewFiles {
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetPermissionError(model.PermissionUploadFile)
-			return
-		}
+		checkUploadFileAttachmentPermission(c, "checkUploadFilePermissionForNewFiles", originalPost.ChannelId)
+	}
+}
+
+// checkUploadFileAttachmentPermission checks both the upload_file permission and
+// the upload_file_attachment permission policy for the channel. Every path that
+// uploads a file or attaches one to content in a channel must run it.
+func checkUploadFileAttachmentPermission(c *Context, where string, channelID string) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionUploadFile); !ok {
+		c.SetPermissionError(model.PermissionUploadFile)
+		return
+	}
+
+	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, channelID, model.AccessControlPolicyActionUploadFileAttachment) {
+		c.Err = model.NewAppError(where, "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 	}
 }
 

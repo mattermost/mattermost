@@ -36,7 +36,7 @@ var complianceNoDir = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ComplianceSettings.Directory",
-	Eval:       healthcheck.Licensed(func(f *model.Features) *bool { return f.Compliance }, healthcheck.Single(evalComplianceNoDir)),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureCompliance, healthcheck.Single(evalComplianceNoDir)),
 }
 
 var retentionTightBatches = healthcheck.Rule{
@@ -51,7 +51,7 @@ var retentionTightBatches = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "DataRetentionSettings.TimeBetweenBatchesMilliseconds",
-	Eval:       healthcheck.Licensed(func(f *model.Features) *bool { return f.DataRetention }, healthcheck.Single(evalRetentionTightBatches)),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureDataRetention, healthcheck.Single(evalRetentionTightBatches)),
 }
 
 var exportGRTimeoutLow = healthcheck.Rule{
@@ -67,7 +67,7 @@ var exportGRTimeoutLow = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout",
-	Eval:       healthcheck.Licensed(func(f *model.Features) *bool { return f.MessageExport }, healthcheck.Single(evalExportGRTimeoutLow)),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureMessageExport, healthcheck.Single(evalExportGRTimeoutLow)),
 }
 
 func evalComplianceNoDir(s *healthcheck.Snapshot) healthcheck.Result {
