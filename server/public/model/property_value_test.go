@@ -379,11 +379,28 @@ func TestSanitizePropertyValue(t *testing.T) {
 
 func TestBroadcastValue(t *testing.T) {
 	value := json.RawMessage(`"secret"`)
+	withheld := json.RawMessage(PropertyValueWithheldJSON)
 
-	publicField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModePublic}}
-	sourceOnlyField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSourceOnly}}
-	sharedOnlyField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly}}
-	noAttrsField := &PropertyField{}
+	readable := &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelEveryone},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}
+	publicField := &PropertyField{Permissions: &Permissions{Restrictions: readable}}
+	sourceOnlyField := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}}}
+	sysadminField := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelSysadmin},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}}}
+	memberField := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelMember},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}}}
+	sharedOnlyField := &PropertyField{Permissions: &Permissions{Restrictions: readable, Masking: &Masking{}}}
+	noPermissionsField := &PropertyField{}
+	templateID := NewId()
+	linkedField := &PropertyField{LinkedFieldID: &templateID, Permissions: &Permissions{Restrictions: readable}}
 
 	cases := []struct {
 		name  string
@@ -391,10 +408,14 @@ func TestBroadcastValue(t *testing.T) {
 		want  json.RawMessage
 	}{
 		{"public field returns value unchanged", publicField, value},
-		{"source_only field returns the marker", sourceOnlyField, json.RawMessage(PropertyValueWithheldJSON)},
-		{"shared_only field returns the marker", sharedOnlyField, json.RawMessage(PropertyValueWithheldJSON)},
-		{"nil field returns the marker", nil, json.RawMessage(PropertyValueWithheldJSON)},
-		{"field with no Attrs counts as public", noAttrsField, value},
+		{"source_only field returns the marker", sourceOnlyField, withheld},
+		{"sysadmin value.read returns the marker", sysadminField, withheld},
+		{"member value.read returns the marker", memberField, withheld},
+		{"shared_only field returns the marker", sharedOnlyField, withheld},
+		{"nil field returns the marker", nil, withheld},
+		{"field with no permissions returns the marker", noPermissionsField, withheld},
+		// No template to read the masking from, whatever the template says.
+		{"linked field returns the marker", linkedField, withheld},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -436,4 +457,45 @@ func TestValidatePropertyValueForFieldType(t *testing.T) {
 			assert.NoError(t, ValidatePropertyValueForFieldType(fieldType, json.RawMessage(`true`)), "type %q", fieldType)
 		}
 	})
+}
+
+func TestBroadcastValueWithTemplate(t *testing.T) {
+	value := json.RawMessage(`"secret"`)
+	withheld := json.RawMessage(PropertyValueWithheldJSON)
+
+	readable := &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelEveryone},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}
+	unmaskedTemplate := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: readable}}
+	maskedTemplate := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: readable, Masking: &Masking{}}}
+	linkedTo := func(template *PropertyField) *PropertyField {
+		return &PropertyField{LinkedFieldID: &template.ID, Permissions: &Permissions{Restrictions: readable}}
+	}
+	sysadminLinked := linkedTo(unmaskedTemplate)
+	sysadminLinked.Permissions.Restrictions = &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelSysadmin},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}
+
+	cases := []struct {
+		name     string
+		field    *PropertyField
+		template *PropertyField
+		want     json.RawMessage
+	}{
+		{"unlinked public field returns value unchanged", &PropertyField{Permissions: &Permissions{Restrictions: readable}}, nil, value},
+		{"linked field with an unmasked template returns value unchanged", linkedTo(unmaskedTemplate), unmaskedTemplate, value},
+		{"linked field with a masked template returns the marker", linkedTo(maskedTemplate), maskedTemplate, withheld},
+		{"linked field with a missing template returns the marker", linkedTo(unmaskedTemplate), nil, withheld},
+		{"linked field with a sysadmin value.read returns the marker", sysadminLinked, unmaskedTemplate, withheld},
+		{"field with no permissions returns the marker", &PropertyField{}, nil, withheld},
+		{"nil field returns the marker", nil, nil, withheld},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := BroadcastValueWithTemplate(tc.field, tc.template, value)
+			assert.Equal(t, string(tc.want), string(got))
+		})
+	}
 }

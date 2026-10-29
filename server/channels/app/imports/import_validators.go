@@ -480,6 +480,37 @@ func ValidateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 	return nil
 }
 
+func ValidatePostPriorityImportData(priority *model.PostPriority, acknowledgements *[]PostAcknowledgementImportData, postCreateAt int64) *model.AppError {
+	if priority != nil {
+		if priority.Priority == nil {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.priority_missing.error", nil, "", http.StatusBadRequest)
+		}
+		if model.SafeDereference(priority.PersistentNotifications) && *priority.Priority != model.PostPriorityUrgent {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	acks := model.SafeDereference(acknowledgements)
+	if len(acks) == 0 {
+		return nil
+	}
+
+	if priority == nil || !model.SafeDereference(priority.RequestedAck) {
+		return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error", nil, "", http.StatusBadRequest)
+	}
+
+	for _, ack := range acks {
+		if model.SafeDereference(ack.User) == "" {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error", nil, "", http.StatusBadRequest)
+		}
+		if ack.AcknowledgedAt == nil || *ack.AcknowledgedAt < postCreateAt {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPostSize int) *model.AppError {
 	if data.User == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.user_missing.error", nil, "", http.StatusBadRequest)
@@ -561,6 +592,10 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 				return err
 			}
 		}
+	}
+
+	if err := ValidatePostPriorityImportData(data.Priority, data.Acknowledgements, *data.CreateAt); err != nil {
+		return err
 	}
 
 	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
@@ -686,6 +721,10 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 				return err
 			}
 		}
+	}
+
+	if err := ValidatePostPriorityImportData(data.Priority, data.Acknowledgements, *data.CreateAt); err != nil {
+		return err
 	}
 
 	if data.Attachments != nil {
