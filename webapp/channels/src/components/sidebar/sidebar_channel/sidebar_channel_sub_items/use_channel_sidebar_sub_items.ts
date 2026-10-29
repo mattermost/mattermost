@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useMemo} from 'react';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation} from 'react-router-dom';
 
@@ -53,7 +53,6 @@ export type ChannelSidebarSubItemsState = {
     items: ResolvedChannelSidebarSubItem[];
     activeKey?: string;
 
-    /** Stored preference or an active item, so the active item is always visible. */
     isExpanded: boolean;
     controlsId: string;
     toggle: () => void;
@@ -78,11 +77,22 @@ export function useChannelSidebarSubItems(channel: Channel | undefined, teamName
         return getActiveChannelSidebarSubItemKey(items, pathname, teamName, channelName);
     }, [items, pathname, teamName, channelName]);
 
-    const isExpanded = items.length > 0 && (storedExpanded || Boolean(activeKey));
+    const isExpanded = items.length > 0 && storedExpanded;
+
+    // Read through a ref so the effect below only reacts to activeKey transitions: collapsing while an
+    // item stays active must not re-expand until the user navigates to a (different) sub-item.
+    const storedExpandedRef = useRef(storedExpanded);
+    storedExpandedRef.current = storedExpanded;
+
+    useEffect(() => {
+        if (activeKey && !storedExpandedRef.current) {
+            dispatch(setGlobalItem(storageKey, true));
+        }
+    }, [activeKey, storageKey, dispatch]);
 
     const toggle = useCallback(() => {
-        dispatch(setGlobalItem(storageKey, !isExpanded));
-    }, [dispatch, storageKey, isExpanded]);
+        dispatch(setGlobalItem(storageKey, !storedExpanded));
+    }, [dispatch, storageKey, storedExpanded]);
 
     return {
         items,
