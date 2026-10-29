@@ -121,7 +121,7 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 			Times(1)
 		s.client.
 			EXPECT().
-			SearchUsers(context.TODO(), &model.UserSearch{Term: "legacy@example.com", AllowInactive: true, Limit: 100}).
+			SearchUsers(context.TODO(), &model.UserSearch{Term: "legacy@example.com", AllowInactive: true, Limit: model.UserSearchMaxLimit}).
 			Return([]*model.User{{Id: "otherid", Email: "legacy@example.com"}, legacyUser}, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -147,7 +147,7 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 			Times(1)
 		s.client.
 			EXPECT().
-			SearchUsers(context.TODO(), &model.UserSearch{Term: "missing@example.com", AllowInactive: true, Limit: 100}).
+			SearchUsers(context.TODO(), &model.UserSearch{Term: "missing@example.com", AllowInactive: true, Limit: model.UserSearchMaxLimit}).
 			Return([]*model.User{{Id: "otherid", Email: "missing@example.com"}}, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 

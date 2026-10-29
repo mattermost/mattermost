@@ -62,7 +62,7 @@ func isLegacyEmailArg(arg string) bool {
 // returned for system admins or in local mode, so this only finds users there.
 func getUserByLegacyEmail(c client.Client, arg string) (*model.User, *model.Response, error) {
 	term := strings.Trim(strings.TrimSpace(arg), "<>")
-	users, response, err := c.SearchUsers(context.TODO(), &model.UserSearch{Term: term, AllowInactive: true, Limit: 100})
+	users, response, err := c.SearchUsers(context.TODO(), &model.UserSearch{Term: term, AllowInactive: true, Limit: model.UserSearchMaxLimit})
 	if err != nil {
 		return nil, response, err
 	}

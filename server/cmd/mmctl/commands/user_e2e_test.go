@@ -1696,8 +1696,6 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 	})
 
 	s.RunForSystemAdminAndLocal("Edit email of user whose email is enclosed in angle brackets", func(c client.Client) {
-		printer.Clean()
-
 		// Such users can only exist from before emails in angle brackets were rejected,
 		// so bypass validation by writing the email directly to the database.
 		legacyUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{

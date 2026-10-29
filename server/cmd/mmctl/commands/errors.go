@@ -41,6 +41,12 @@ func (e *BadRequestError) Error() string {
 // encapsulating it if matches the common cases, such as when it's
 // not found, and when we've made a bad request
 func ExtractErrorFromResponse(r *model.Response, err error) error {
+	// The client returns a nil response when the request failed before
+	// receiving one, such as on a connection error.
+	if r == nil {
+		return err
+	}
+
 	switch r.StatusCode {
 	case http.StatusNotFound:
 		return &NotFoundError{Msg: err.Error()}
