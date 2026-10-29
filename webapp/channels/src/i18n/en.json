@@ -2279,77 +2279,17 @@
     "defaultMessage": "There is currently no company information on file.",
     "description": "Empty-state message on the Company Information page when nothing has been entered yet."
   },
-  "admin.billing.company_info_display.provideDetails": {
-    "defaultMessage": "Provide your company name and address",
-    "description": "Subtitle under the 'Company Details' heading prompting the admin to enter company information."
-  },
-  "admin.billing.company_info_edit.cancel": {
-    "defaultMessage": "Cancel",
-    "description": "Cancel link at the bottom of the company information edit form; discards changes and returns to the display page."
-  },
-  "admin.billing.company_info_edit.company_address": {
-    "defaultMessage": "Company Address",
-    "description": "Section heading in the company information edit form above the address fields."
-  },
-  "admin.billing.company_info_edit.companyDetails": {
-    "defaultMessage": "Company Details",
-    "description": "Section heading in the company information edit form above the name and employee-count fields."
-  },
-  "admin.billing.company_info_edit.sameAsBillingAddress": {
-    "defaultMessage": "Same as Billing Address",
-    "description": "Checkbox label in the company information edit form; reuses the billing address as the company address."
-  },
-  "admin.billing.company_info_edit.save": {
-    "defaultMessage": "Save info",
-    "description": "Save button at the bottom of the company information edit form."
-  },
-  "admin.billing.company_info_edit.title": {
-    "defaultMessage": "Edit Company Information",
-    "description": "Page title of the form for editing billing company information. 'Edit' is a verb."
-  },
-  "admin.billing.company_info.add": {
-    "defaultMessage": "Add Company Information",
-    "description": "Button/link on the Company Information page that opens the form to enter company details for billing."
-  },
-  "admin.billing.company_info.address": {
-    "defaultMessage": "Address",
-    "description": "Form field label for the first address line on the billing Company Information edit page in the System Console."
-  },
-  "admin.billing.company_info.address_2": {
-    "defaultMessage": "Address 2",
-    "description": "Form field label for the optional second address line on the billing Company Information edit page."
-  },
-  "admin.billing.company_info.billingAddress": {
-    "defaultMessage": "Billing Address",
-    "description": "Heading above the read-only billing address block in the company information edit form."
-  },
-  "admin.billing.company_info.city": {
-    "defaultMessage": "City",
-    "description": "Placeholder of the city input in the company address form for billing."
-  },
   "admin.billing.company_info.companyAddress": {
     "defaultMessage": "Company Address",
     "description": "Section heading on the Company Information display page above the stored company address."
-  },
-  "admin.billing.company_info.companyName": {
-    "defaultMessage": "Company name",
-    "description": "Placeholder of the company name input in the billing company information form."
   },
   "admin.billing.company_info.employees": {
     "defaultMessage": "{employees} employees",
     "description": "Line under the company name on the Company Information page; {employees} is the number of employees."
   },
-  "admin.billing.company_info.numEmployees": {
-    "defaultMessage": "Number of employees (optional)",
-    "description": "Placeholder of an optional numeric input for company size in the billing company information form."
-  },
   "admin.billing.company_info.title": {
     "defaultMessage": "Company Information",
     "description": "Page title of the Company Information section under Billing in the System Console."
-  },
-  "admin.billing.company_info.zipcode": {
-    "defaultMessage": "Zip/Postal Code",
-    "description": "Placeholder of the postal code input in the company address form for billing."
   },
   "admin.billing.deleteWorkspace.failureModal.buttonText": {
     "defaultMessage": "Try Again",

@@ -34,10 +34,8 @@ import type {
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
 import {LogLevel} from '@mattermost/types/client4';
 import type {
-    Address,
     Product,
     CloudCustomer,
-    CloudCustomerPatch,
     Invoice,
     Limits,
     NotifyAdminRequest,
@@ -4711,20 +4709,6 @@ export default class Client4 {
     getCloudCustomer = () => {
         return this.doFetch<CloudCustomer>(
             `${this.getCloudRoute()}/customer`, {method: 'get'},
-        );
-    };
-
-    updateCloudCustomer = (customerPatch: CloudCustomerPatch) => {
-        return this.doFetch<CloudCustomer>(
-            `${this.getCloudRoute()}/customer`,
-            {method: 'put', body: JSON.stringify(customerPatch)},
-        );
-    };
-
-    updateCloudCustomerAddress = (address: Address) => {
-        return this.doFetch<CloudCustomer>(
-            `${this.getCloudRoute()}/customer/address`,
-            {method: 'put', body: JSON.stringify(address)},
         );
     };
 
