@@ -5,7 +5,6 @@ import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
-import {makeEmptyLimits, makeEmptyUsage} from 'utils/limits_test';
 
 import FeatureList from './feature_list';
 import type {FeatureListProps} from './feature_list';
@@ -15,10 +14,6 @@ const state = {
         general: {
             license: {},
         },
-        cloud: {
-            limits: makeEmptyLimits(),
-        },
-        usage: makeEmptyUsage(),
         users: {
             currentUserId: 'uid',
             profiles: {
@@ -36,12 +31,6 @@ function renderFeatureList(props: FeatureListProps) {
 }
 
 describe('components/admin_console/billing/plan_details/feature_list', () => {
-    test('should match snapshot when running FREE tier', () => {
-        const {container} = renderFeatureList({
-            subscriptionPlan: CloudProducts.STARTER,
-        });
-        expect(container).toMatchSnapshot();
-    });
     test('should match snapshot when running paid tier and professional', () => {
         const {container} = renderFeatureList({
             subscriptionPlan: CloudProducts.PROFESSIONAL,
@@ -60,7 +49,7 @@ describe('components/admin_console/billing/plan_details/feature_list', () => {
         const plans = [
             CloudProducts.PROFESSIONAL,
             CloudProducts.ENTERPRISE,
-            CloudProducts.STARTER,
+            CloudProducts.ADVANCED,
             CloudProducts.PROFESSIONAL,
         ];
 

@@ -144,7 +144,6 @@ export const Preferences = {
     SELECTED_AGENT: 'selected_agent',
     ONE_CLICK_REACTIONS_ENABLED: 'one_click_reactions_enabled',
     ONE_CLICK_REACTIONS_ENABLED_DEFAULT: 'true',
-    CLOUD_TRIAL_END_BANNER: 'cloud_trial_end_banner',
     CLOUD_USER_EPHEMERAL_INFO: 'cloud_user_ephemeral_info',
     CATEGORY_CLOUD_LIMITS: 'cloud_limits',
     THREE_DAYS_LEFT_TRIAL_MODAL: 'three_days_left_trial_modal',
@@ -725,7 +724,6 @@ export const Threads = {
 };
 
 export const CloudBanners = {
-    HIDE: 'hide',
     TRIAL: 'trial',
     UPGRADE_FROM_TRIAL: 'upgrade_from_trial',
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',

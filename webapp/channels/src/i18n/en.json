@@ -2563,17 +2563,9 @@
     "defaultMessage": "Unlimited file storage",
     "description": "Feature bullet in the plan details list on the billing Subscription page."
   },
-  "admin.billing.subscription.planDetails.features.groupAndOneToOneMessaging": {
-    "defaultMessage": "Group and one-to-one messaging, file sharing, and search",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
-  },
   "admin.billing.subscription.planDetails.features.guestAccounts": {
     "defaultMessage": "Guest Accounts",
     "description": "Feature bullet in the plan details list; refers to the Guest Accounts feature for external collaborators."
-  },
-  "admin.billing.subscription.planDetails.features.incidentCollaboration": {
-    "defaultMessage": "Incident collaboration",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
   },
   "admin.billing.subscription.planDetails.features.ldapSync": {
     "defaultMessage": "AD/LDAP group sync to teams & channels",
@@ -2583,25 +2575,9 @@
     "defaultMessage": "AD/LDAP user sync",
     "description": "Feature bullet in the plan details list; AD/LDAP are directory technologies, keep as-is."
   },
-  "admin.billing.subscription.planDetails.features.limitedFileStorage": {
-    "defaultMessage": "Limited to {limit} file storage",
-    "description": "Feature bullet in the plan details list for free plans; {limit} is a storage size like '10GB'."
-  },
-  "admin.billing.subscription.planDetails.features.limitedMessageHistory": {
-    "defaultMessage": "Limited to a message history of {limit} messages",
-    "description": "Feature bullet in the plan details list for free plans; {limit} is a message count."
-  },
-  "admin.billing.subscription.planDetails.features.mfa": {
-    "defaultMessage": "Multi-Factor Authentication (MFA)",
-    "description": "Feature bullet in the plan details list; MFA is an acronym for the security feature."
-  },
   "admin.billing.subscription.planDetails.features.mfaEnforcement": {
     "defaultMessage": "MFA enforcement",
     "description": "Feature name in the plan features list on the Cloud billing plan details card; refers to enforcing multi-factor authentication."
-  },
-  "admin.billing.subscription.planDetails.features.multilanguage": {
-    "defaultMessage": "Multi-language translations",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
   },
   "admin.billing.subscription.planDetails.features.multiplatformSso": {
     "defaultMessage": "SSO with Google, O365",
@@ -2627,24 +2603,12 @@
     "defaultMessage": "SSO w/ SAML (includes Okta and OneLogIn)",
     "description": "Feature bullet in the plan details list; SAML, Okta and OneLogin are technology/product names."
   },
-  "admin.billing.subscription.planDetails.features.unlimitedUsers": {
-    "defaultMessage": "Unlimited users",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
-  },
-  "admin.billing.subscription.planDetails.features.unlimittedUsersAndMessagingHistory": {
-    "defaultMessage": "Unlimited users & message history",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
-  },
   "admin.billing.subscription.planDetails.productName.cloudAdvanced": {
     "defaultMessage": "Cloud Enterprise Advanced",
     "description": "Product/plan name displayed on the plan details card; Mattermost plan tier name."
   },
   "admin.billing.subscription.planDetails.productName.cloudEnterprise": {
     "defaultMessage": "Cloud Enterprise",
-    "description": "Product/plan name displayed on the plan details card; Mattermost plan tier name."
-  },
-  "admin.billing.subscription.planDetails.productName.cloudFree": {
-    "defaultMessage": "Cloud Free",
     "description": "Product/plan name displayed on the plan details card; Mattermost plan tier name."
   },
   "admin.billing.subscription.planDetails.productName.cloudProfessional": {
@@ -2671,14 +2635,6 @@
     "defaultMessage": "Looking to rollout Mattermost for your entire organization? ",
     "description": "Heading of the contact-sales card shown to Cloud Enterprise customers; ends with a space before the card body."
   },
-  "admin.billing.subscription.privateCloudCard.cloudFree.description": {
-    "defaultMessage": "Optimize your processes with Guest Accounts, Office365 suite integrations, GitLab SSO and advanced permissions.",
-    "description": "Body of the upgrade card shown to Cloud Free customers, listing paid-plan features."
-  },
-  "admin.billing.subscription.privateCloudCard.cloudFree.title": {
-    "defaultMessage": "Upgrade to Cloud Professional",
-    "description": "Heading of the upgrade card shown to Cloud Free customers on the Subscription page."
-  },
   "admin.billing.subscription.privateCloudCard.cloudProfessional.description": {
     "defaultMessage": "Advanced security and compliance features with premium support. See {pricingLink} for more details.",
     "description": "Body of the upgrade card shown to Cloud Professional customers; {pricingLink} renders as a link to the pricing page."
@@ -2702,10 +2658,6 @@
   "admin.billing.subscription.privateCloudCard.freeTrial.title": {
     "defaultMessage": "Questions about your trial?",
     "description": "Heading of the contact-sales card shown to customers on a free trial."
-  },
-  "admin.billing.subscription.privateCloudCard.upgradeNow": {
-    "defaultMessage": "Upgrade Now",
-    "description": "Button on the subscription upgrade card that starts the purchase flow immediately."
   },
   "admin.billing.subscription.proratedPayment.title": {
     "defaultMessage": "You are now subscribed to {selectedProductName}",
@@ -23567,10 +23519,6 @@
     "defaultMessage": "Forward message",
     "description": "Title of the modal for forwarding a message to another channel."
   },
-  "free.banner.downgraded": {
-    "defaultMessage": "Your workspace now has restrictions and some data has been archived",
-    "description": "Announcement banner shown after a Cloud trial ends and the workspace is downgraded to the free plan."
-  },
   "free.professional_feature.back": {
     "defaultMessage": "Back",
     "description": "Secondary button in the upsell modal for guest invitations; returns to the Invite People modal."
@@ -26830,10 +26778,6 @@
   "more_direct_channels.title": {
     "defaultMessage": "Direct Messages",
     "description": "Title of the dialog for starting a direct or group message and selecting its participants."
-  },
-  "more.details": {
-    "defaultMessage": "More details",
-    "description": "Button in the trial-ended announcement banner that opens details about the downgrade and its restrictions."
   },
   "move_thread_modal.button.cancel": {
     "defaultMessage": "Cancel",
