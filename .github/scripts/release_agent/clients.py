@@ -119,7 +119,7 @@ class GitHub:
 
 
 class Jira:
-    FIELDS = ["summary", "status", "assignee", "labels", "fixVersions", "resolution"]
+    FIELDS = ["summary", "status", "assignee", "labels", "fixVersions", "resolution", "components"]
 
     def __init__(self, base_url: str, email: str, token: str, http: Http | None = None):
         self.base_url = base_url.rstrip("/")
@@ -138,6 +138,9 @@ class Jira:
             if not token or result.get("isLast", True):
                 break
         return issues[:limit]
+
+    def remote_links(self, key: str) -> list[dict]:
+        return self.http.get(f"/rest/api/3/issue/{urllib.parse.quote(key)}/remotelink") or []
 
     def browse_url(self, key: str) -> str:
         return f"{self.base_url}/browse/{key}"
@@ -173,6 +176,24 @@ class Mattermost:
         if self._me is None:
             self._me = self.http.get("/api/v4/users/me")
         return self._me
+
+    def user_by_username(self, username: str) -> dict | None:
+        return self._user_or_none(f"/api/v4/users/username/{urllib.parse.quote(username)}")
+
+    def user_by_email(self, email: str) -> dict | None:
+        return self._user_or_none(f"/api/v4/users/email/{urllib.parse.quote(email)}")
+
+    def search_users(self, term: str) -> list[dict]:
+        return self.http.request("POST", "/api/v4/users/search",
+                                 body={"term": term, "allow_inactive": False, "limit": 25})[1] or []
+
+    def _user_or_none(self, path: str) -> dict | None:
+        try:
+            return self.http.get(path)
+        except ServiceError as err:
+            if err.status == 404:
+                return None
+            raise
 
     def server_version(self) -> tuple[str, str]:
         """(version, build hash) of the server, e.g. ("12.2.0", "a1b2c3...")."""

@@ -37,10 +37,13 @@ def commit(message, sha="s"):
     return {"sha": sha, "commit": {"message": message}}
 
 
-def issue(key, summary="Bug", labels=(), fix_versions=(), assignee=None, resolution=None, description=""):
+def issue(key, summary="Bug", labels=(), fix_versions=(), assignee=None, resolution=None, description="",
+          components=(), status="Open", email=None):
+    person = {"displayName": assignee, **({"emailAddress": email} if email else {})} if assignee else None
     return {"key": key, "fields": {"summary": summary, "labels": list(labels),
                                    "fixVersions": [{"name": v} for v in fix_versions],
-                                   "assignee": {"displayName": assignee} if assignee else None,
+                                   "assignee": person, "status": {"name": status},
+                                   "components": [{"name": c} for c in components],
                                    "resolution": {"name": resolution} if resolution else None,
                                    "description": description}}
 
@@ -77,7 +80,7 @@ class OpenReleaseItemsTest(unittest.TestCase):
         self.assertEqual(result.status, checks.INFO)
         self.assertEqual(result.summary, "2 open Jira issues and 2 open PRs (1 in a private repo)")
         self.assertEqual([(i.label, i.owner) for i in result.items],
-                         [("MM-1", "Alice"), ("MM-2", "Unassigned"), ("mattermost#10", "alice"), ("enterprise#20", "dev")])
+                         [("MM-1", "Alice (no Hub user found)"), ("MM-2", ""), ("mattermost#10", "alice"), ("enterprise#20", "dev")])
         self.assertEqual([i.public_label for i in result.items], [None, None, "mattermost#10", "(private repo)"])
         self.assertEqual(jira.queries[0], 'project = MM AND fixVersion = "v12.2 (November 2026)" AND issuetype in '
                                           '(Bug, Story, Task, "Sub-task") AND status not in (Resolved, Closed) '
@@ -132,6 +135,65 @@ class NewRegressionsTest(unittest.TestCase):
     def test_passes_when_all_have_fix_versions(self):
         jira = FakeJira({"labels in": [issue("MM-1", labels=["rc1"], fix_versions=["v12.2"])]})
         self.assertEqual(checks.new_regressions(context(jira=jira), RULES["new-regressions"]).status, checks.PASS)
+
+
+    def routed(self, *issues, users=()):
+        jira = FakeJira({"fixVersion": list(issues)})
+        hub = FakeHub()
+        hub.users = [{"username": u, "first_name": f, "last_name": l, "email": f"{u}@example.com"} for u, f, l in users]
+        return checks.open_release_items(context(jira=jira, hub=hub), RULES["open-release-items"]), jira, hub
+
+    def test_routes_unassigned_and_bot_tickets_to_the_dev_lead_of_the_first_matching_component(self):
+        result, _, _ = self.routed(
+            issue("MM-1", components=["Calls"]),
+            issue("MM-2", assignee="Matty Code", components=["Webapp", "Agents", "Calls"]),
+            issue("MM-3", components=["Webapp"]),
+            issue("MM-4", assignee="Matty Code"),
+            users=[("jesse.hallam", "Jesse", "Hallam"), ("christopher.speller", "Christopher", "Speller")])
+        self.assertEqual([(i.label, i.owner, i.reason) for i in result.items], [
+            ("MM-1", "@jesse.hallam", "unassigned"),
+            ("MM-2", "@christopher.speller", "Matty Code"),
+            ("MM-3", "", "unassigned"),
+            ("MM-4", "", "Matty Code"),
+        ])
+
+    def test_a_dev_lead_missing_on_hub_is_named_and_marked(self):
+        result, _, _ = self.routed(issue("MM-1", components=["Information Control"]))
+        self.assertEqual(result.items[0].owner, "Maria Nunez (no Hub user found)")
+
+    def test_mentions_assignees_found_on_hub_by_email_or_unique_full_name(self):
+        result, _, hub = self.routed(
+            issue("MM-1", assignee="Ann Lee", email="ann@example.com"),
+            issue("MM-2", assignee="Bo  Chen"),
+            issue("MM-3", assignee="Sam Park"),
+            issue("MM-4", assignee="Bo Chen"),
+            users=[("ann", "Annie", "Lee"), ("bo.chen", "Bo", "Chen"), ("sam1", "Sam", "Park"), ("sam2", "Sam", "Park")])
+        self.assertEqual([i.owner for i in result.items],
+                         ["@ann", "@bo.chen", "Sam Park (no Hub user found)", "@bo.chen"])
+        self.assertEqual(hub.user_searches, ["Bo Chen", "Sam Park"])
+
+    def test_submitted_tickets_show_their_linked_prs(self):
+        jira = FakeJira({"fixVersion": [issue("MM-1", status="Submitted"), issue("MM-2", status="In Progress")]})
+        jira.links = {
+            "MM-1": ["https://github.com/mattermost/mattermost/pull/36558", "https://example.com/doc",
+                     "https://github.com/mattermost/enterprise/pull/912", "https://github.com/mattermost/mattermost/issues/5"],
+            "MM-2": ["https://github.com/mattermost/mattermost/pull/1"],
+        }
+        result = checks.open_release_items(context(jira=jira), RULES["open-release-items"])
+        self.assertEqual(result.items[0].links, [
+            ("pr-mattermost-36558", "https://github.com/mattermost/mattermost/pull/36558"),
+            ("pr-enterprise-912", "https://github.com/mattermost/enterprise/pull/912"),
+        ])
+        self.assertEqual(result.items[1].links, [])
+
+    def test_dev_lead_table(self):
+        leads = {c: lead["name"] for lead in RULES["open-release-items"]["query"]["dev_leads"] for c in lead["components"]}
+        self.assertEqual(leads, {
+            "Reliability": "Jesse Hallam", "Calls": "Jesse Hallam", "Sustained Engineering": "Jesse Hallam",
+            "Information Control": "Maria Nunez",
+            "Workflows": "JG Heithcock", "Bookmarks Bar": "JG Heithcock", "Integrations": "JG Heithcock",
+            "Agents": "Christopher Speller", "Platform Integration": "Doug Lauder",
+        })
 
 
 class HubReleaseBranchTest(unittest.TestCase):

@@ -59,6 +59,13 @@ class PlanTickTest(unittest.TestCase):
                                                  "playbook channel using /release-bugs vX.X in Claude Cowork."),
                          (playbook.TICKED, (0, 1)))
 
+    def test_falls_back_to_a_former_title_on_older_runs(self):
+        run = checklist_run("r", "v12.2", "c", [("Old title.", "", 0)])
+        self.assertEqual(playbook.plan_tick(run, "New title.", ["Old title."]), (playbook.TICKED, (0, 0)))
+        self.assertEqual(playbook.plan_tick(run, "New title.")[0], playbook.NOT_FOUND)
+        newer = checklist_run("r", "v12.2", "c", [("Old title.", "", 0), ("New title.", "", 0)])
+        self.assertEqual(playbook.plan_tick(newer, "New title.", ["Old title."]), (playbook.TICKED, (0, 1)))
+
     def test_never_changes_handled_items(self):
         self.assertEqual(playbook.plan_tick(self.playbook_run, "Merge the version.go PRs")[0], playbook.ALREADY_DONE)
         self.assertEqual(playbook.plan_tick(self.playbook_run, "Triage new regressions")[0], playbook.HANDLED_BY_PERSON)

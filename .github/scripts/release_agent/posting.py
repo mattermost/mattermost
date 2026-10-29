@@ -192,6 +192,9 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
     for outcome in by_state.get(REPORT, []):
         lines += ["", f"**{outcome.title}** — {outcome.result.summary}{_proof(outcome.result, 'Jira filter')}"
                       f"{_tick_note(ticks, outcome.rule['task'])}"]
+        if outcome.rule["type"] == "open_release_items":
+            lines += release_bugs_lines(outcome.result.items, release)
+            continue
         groups = {}
         for item in outcome.result.items:
             groups.setdefault(item.owner or "Unassigned", []).append(item)
@@ -207,6 +210,40 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
         lines += ["", f"_Not a real problem? React with :{emoji}: to mark everything under Needs attention "
                       "as a false alarm. For anything raised after your reaction, remove it and react again._"]
     return "\n".join(lines)
+
+
+def ordinal(day: int) -> str:
+    suffix = "th" if 11 <= day % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
+    return f"{day}{suffix}"
+
+
+def _ticket(item, owner: str) -> str:
+    text = f"[{item.label}]({item.url})" if item.url else item.label
+    if item.reason and (owner or item.reason != "unassigned"):
+        text += f" ({item.reason})"
+    return text + "".join(f" [{label}]({url})" for label, url in item.links)
+
+
+def release_bugs_lines(items: list, release) -> list[str]:
+    """The open bugs list: one line per person, most open tickets first, then Unassigned."""
+    tickets = [item for item in items if not item.repo]
+    prs = [item for item in items if item.repo]
+    version = release.short_version
+    if not tickets:
+        lines = [f"✅ All tickets for {version} are resolved or closed — nothing to action."]
+    else:
+        freeze = release.milestones.get("code_freeze")
+        lines = [f"Kind note that {version} Code Freeze deadline for bug fixes is **{freeze:%B} {ordinal(freeze.day)}** "
+                 "— please action your tickets:" if freeze else f"Please action your {version} tickets:"]
+        groups = {}
+        for item in tickets:
+            groups.setdefault(item.owner, []).append(item)
+        for owner in sorted(groups, key=lambda o: (o == "", -len(groups[o]), o.casefold())):
+            lines.append(f"{owner or '**Unassigned**'} -- " + ", ".join(_ticket(t, owner) for t in groups[owner]))
+    if prs:
+        lines.append(f"Open PRs with the {release.version} milestone:")
+        lines += [line[2:] for line in _items(prs)]
+    return lines
 
 
 def find_post(mattermost, channel_id: str, marker_value: str, since_ms: int) -> dict | None:

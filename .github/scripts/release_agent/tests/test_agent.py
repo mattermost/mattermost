@@ -87,7 +87,7 @@ class LiveRunTest(unittest.TestCase):
     def test_ticks_passing_due_items_only(self):
         ticked = {(run_id, title) for run_id, title in self.svc.hub.closed}
         self.assertEqual(ticked, {
-            ("run122", "Post a list of outstanding release bugs and PRs to the release playbook channel using /release-bugs vX.X in Claude Cowork."),
+            ("run122", "Post a list of outstanding release bugs and PRs to the release playbook channel (done by the release agent)."),
             ("run122", "Check that Hub was updated to the latest release branch."),
             ("run122", "Ensure that new NOTICE.txt for any new libraries are cherry-picked to the release branch as needed - example PR."),
         })

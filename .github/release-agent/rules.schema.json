@@ -68,6 +68,11 @@
           "type": ["string", "null"],
           "minLength": 1
         },
+        "former_playbook_items": {
+          "description": "Earlier titles of playbook_item, still on runs started before it was renamed.",
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
         "due": {
           "description": "T-N / T+N in working days from Release Day, or a calendar milestone key with an optional working-day offset.",
           "type": "string",

@@ -53,6 +53,10 @@ class FakeJira:
     def __init__(self, issues=None):
         self.issues = issues or {}  # regex on the JQL -> issues
         self.queries = []
+        self.links = {}  # issue key -> [remote link URL]
+
+    def remote_links(self, key):
+        return [{"id": n, "object": {"url": url, "title": url}} for n, url in enumerate(self.links.get(key, []))]
 
     def search(self, jql, limit=1000):
         self.queries.append(jql)
@@ -90,7 +94,20 @@ class FakeHub:
         self.closed = []
         self.channels = []   # channels the bot is in: {"id", "display_name"}
         self.post_reactions = {}  # post id -> [reaction]
+        self.users = []  # {"username", "first_name", "last_name", "email"}
+        self.user_searches = []
         self._next = 0
+
+    def user_by_username(self, username):
+        return next((u for u in self.users if u["username"] == username), None)
+
+    def user_by_email(self, email):
+        return next((u for u in self.users if u.get("email") == email), None)
+
+    def search_users(self, term):
+        self.user_searches.append(term)
+        words = term.casefold().split()
+        return [u for u in self.users if all(w in f"{u['first_name']} {u['last_name']} {u['username']}".casefold() for w in words)]
 
     def me(self):
         return {"id": self.bot_id}

@@ -51,10 +51,47 @@ class FormatPostTest(unittest.TestCase):
     def test_report_groups_by_owner(self):
         items = [Item("MM-1", "a", owner="Zed"), Item("MM-2", "b"), Item("mattermost#3", "c", owner="alice")]
         text = posting.format_post(report([
-            outcome("open", posting.REPORT, Result(INFO, "2 open", items), "open_release_items"),
+            outcome("open", posting.REPORT, Result(INFO, "2 open", items), "other_report"),
         ]), date(2026, 11, 4), NAMES)
         owners = [line for line in text.splitlines() if line.startswith("- **")]
         self.assertEqual(owners, ["- **alice** (1)", "- **Zed** (1)", "- **Unassigned** (1)"])
+
+    def bugs_post(self, items, freeze=date(2026, 12, 7)):
+        rel = Release(12, 2, {"code_freeze": freeze, "release_day": date(2027, 1, 16)} if freeze else
+                      {"release_day": date(2027, 1, 16)})
+        rep = posting.ReleaseReport(rel, -7, "live", [
+            outcome("open-release-items", posting.REPORT, Result(INFO, "n open", items, "https://jira"),
+                    "open_release_items", item="Open release bugs and PRs")])
+        return posting.format_post(rep, date(2026, 11, 4), NAMES).split("**Open release bugs and PRs** — n open · [Jira filter](https://jira)\n", 1)[1]
+
+    def test_open_bugs_mention_each_person_once_most_tickets_first(self):
+        def t(key, owner, reason="", links=()):
+            return Item(key, "secret summary", f"https://jira/{key}", owner, reason=reason, links=list(links))
+        text = self.bugs_post([
+            t("MM-1", "@zed"),
+            t("MM-2", "@jesse.hallam", "unassigned"), t("MM-3", "@jesse.hallam", "Matty Code"),
+            t("MM-4", "", "unassigned"), t("MM-5", "", "Matty Code"),
+            t("MM-6", "Ann Lee (no Hub user found)", links=[("pr-mattermost-36558", "https://github.com/m/pull/36558")]),
+            t("MM-7", "@zed"), t("MM-8", "@zed"),
+            Item("enterprise#20", "PR", "https://github.com/e/pull/20", "dev", "mattermost/enterprise"),
+        ])
+        self.assertEqual(text.splitlines(), [
+            "Kind note that v12.2 Code Freeze deadline for bug fixes is **December 7th** — please action your tickets:",
+            "@zed -- [MM-1](https://jira/MM-1), [MM-7](https://jira/MM-7), [MM-8](https://jira/MM-8)",
+            "@jesse.hallam -- [MM-2](https://jira/MM-2) (unassigned), [MM-3](https://jira/MM-3) (Matty Code)",
+            "Ann Lee (no Hub user found) -- [MM-6](https://jira/MM-6) [pr-mattermost-36558](https://github.com/m/pull/36558)",
+            "**Unassigned** -- [MM-4](https://jira/MM-4), [MM-5](https://jira/MM-5) (Matty Code)",
+            "Open PRs with the v12.2.0 milestone:",
+            "- [enterprise#20](https://github.com/e/pull/20) PR (dev)",
+        ])
+
+    def test_open_bugs_when_everything_is_closed(self):
+        self.assertEqual(self.bugs_post([]), "✅ All tickets for v12.2 are resolved or closed — nothing to action.")
+
+    def test_ordinal_dates(self):
+        self.assertEqual([posting.ordinal(d) for d in (1, 2, 3, 4, 11, 12, 13, 21, 22, 23, 30, 31)],
+                         ["1st", "2nd", "3rd", "4th", "11th", "12th", "13th", "21st", "22nd", "23rd", "30th", "31st"])
+        self.assertIn("is **November 1st** —", self.bugs_post([Item("MM-1", owner="@a")], date(2026, 11, 1)))
 
     def test_report_says_when_its_item_is_done(self):
         text = posting.format_post(report([

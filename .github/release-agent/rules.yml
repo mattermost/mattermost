@@ -63,15 +63,30 @@ false_alarm_emoji: no_entry_sign
 rules:
   # The status post is that list, so the item is ticked when the post first carries it in
   # the run's channel at Feature Complete; the post keeps it up to date every run after.
+  # Each person is @-mentioned once with their tickets. Unassigned tickets and the bot's are
+  # routed to the dev lead of the ticket's first component in dev_leads, else listed under
+  # Unassigned. Submitted tickets show their linked PRs.
   - task: open-release-items
     title: Open release bugs and PRs
-    playbook_item: Post a list of outstanding release bugs and PRs to the release playbook channel using /release-bugs vX.X in Claude Cowork.
+    playbook_item: Post a list of outstanding release bugs and PRs to the release playbook channel (done by the release agent).
+    # Runs started before the playbook text changed still have this title.
+    former_playbook_items:
+      - Post a list of outstanding release bugs and PRs to the release playbook channel using /release-bugs vX.X in Claude Cowork.
     due: feature_complete
     type: open_release_items
     source: [jira, github]
     query:
       jql: 'project = MM AND fixVersion = "{fix_version}" AND issuetype in (Bug, Story, Task, "Sub-task") AND status not in (Resolved, Closed) ORDER BY assignee ASC, priority ASC'
       repos: [mattermost/mattermost, mattermost/enterprise]
+      linked_prs_status: Submitted
+      bot_assignees: [Matty Code]
+      # Hub usernames. Changes to who leads what go through a PR.
+      dev_leads:
+        - {components: [Reliability, Calls, Sustained Engineering], username: jesse.hallam, name: Jesse Hallam}
+        - {components: [Information Control], username: maria.nunez, name: Maria Nunez}
+        - {components: [Workflows, Bookmarks Bar, Integrations], username: jg.heithcock, name: JG Heithcock}
+        - {components: [Agents], username: christopher.speller, name: Christopher Speller}
+        - {components: [Platform Integration], username: doug.lauder, name: Doug Lauder}
     pass_when: report_only
     on_fail: report
 

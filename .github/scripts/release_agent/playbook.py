@@ -68,9 +68,12 @@ def is_untouched(item: dict) -> bool:
     return (item.get("state") or "") == "" and not item.get("state_modified")
 
 
-def plan_tick(run: dict, title: str) -> tuple[str, tuple | None]:
-    """What ticking ``title`` in ``run`` would do, and the (checklist, item) indexes to close."""
+def plan_tick(run: dict, title: str, former_titles: list | None = None) -> tuple[str, tuple | None]:
+    """What ticking ``title`` (or, on older runs, a former title) in ``run`` would do, and the
+    (checklist, item) indexes to close."""
     matches = find_items(run, title)
+    for former in former_titles or []:
+        matches = matches or find_items(run, former)
     if not matches:
         return NOT_FOUND, None
     if len(matches) > 1:
@@ -88,7 +91,7 @@ def tick_items(playbooks, run: dict, passing: list[tuple[dict, object]], live: b
     ticks = []
     for rule, result in passing:
         title = rule["playbook_item"]
-        action, indexes = plan_tick(run, title)
+        action, indexes = plan_tick(run, title, rule.get("former_playbook_items"))
         if action == TICKED and not live:
             action = WOULD_TICK
         elif action == TICKED:

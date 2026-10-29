@@ -23,8 +23,8 @@ class RulesFileTest(unittest.TestCase):
 
     def test_template_matches_the_playbook(self):
         template = rules.load_yaml(rules.TEMPLATE_PATH)
-        self.assertEqual([len(c["items"]) for c in template["checklists"]], [2, 16, 6, 3, 4, 1, 3, 13])
-        self.assertEqual(len(self.titles), 48)
+        self.assertEqual([len(c["items"]) for c in template["checklists"]], [2, 17, 6, 3, 4, 1, 3, 13])
+        self.assertEqual(len(self.titles), 49)
 
     def test_due_days_and_playbook_sections(self):
         sections = {item["title"]: checklist["title"] for checklist in rules.load_yaml(rules.TEMPLATE_PATH)["checklists"]

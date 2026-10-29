@@ -27,6 +27,8 @@ class Item:
     owner: str = ""
     repo: str = ""
     note: str = ""
+    reason: str = ""  # why ``owner`` was chosen, such as "unassigned"
+    links: list = field(default_factory=list)  # [(label, url)] shown after the item
 
     @property
     def public_label(self) -> str | None:
@@ -116,10 +118,88 @@ def _parse_time(value: str) -> datetime:
 
 # ── Checks ──────────────────────────────────────────────────────────────────────────
 
+GITHUB_PR_URL = re.compile(r"https://github\.com/[\w.-]+/([\w.-]+)/pull/(\d+)")
+
+
+class HubPeople:
+    """Who to mention on Hub: "@username", or a plain name marked as not found there."""
+
+    def __init__(self, hub):
+        self.hub, self.cache = hub, {}
+
+    def by_username(self, username: str, name: str = "") -> str:
+        if ("username", username) not in self.cache:
+            self.cache[("username", username)] = self._lookup(lambda: self.hub.user_by_username(username))
+        found = self.cache[("username", username)]
+        return f"@{found['username']}" if found else self.not_found(name or username)
+
+    def by_assignee(self, assignee: dict) -> str:
+        name = " ".join((assignee.get("displayName") or "").split())
+        email = assignee.get("emailAddress") or ""
+        key = ("assignee", email or name.casefold())
+        if key not in self.cache:
+            self.cache[key] = self._lookup(lambda: (email and self.hub.user_by_email(email)) or self._by_name(name))
+        found = self.cache[key]
+        return f"@{found['username']}" if found else self.not_found(name)
+
+    def _by_name(self, name: str) -> dict | None:
+        wanted = name.casefold()
+        matches = [user for user in self.hub.search_users(name)
+                   if " ".join(f"{user.get('first_name', '')} {user.get('last_name', '')}".split()).casefold() == wanted]
+        return matches[0] if len(matches) == 1 else None
+
+    @staticmethod
+    def _lookup(find):
+        try:
+            return find() or None
+        except Exception:  # noqa: BLE001 - an unknown person is shown by name instead
+            return None
+
+    @staticmethod
+    def not_found(name: str) -> str:
+        return f"{name} (no Hub user found)"
+
+
+def linked_prs(jira, key: str) -> list[tuple[str, str]]:
+    """The ticket's GitHub PR remote links, as ("pr-mattermost-36558", url)."""
+    found = {}
+    for link in jira.remote_links(key):
+        url = (link.get("object") or {}).get("url") or ""
+        match = GITHUB_PR_URL.match(url)
+        if match:
+            found.setdefault(f"pr-{match.group(1)}-{match.group(2)}", url)
+    return list(found.items())
+
+
 def open_release_items(ctx: Context, rule: dict) -> Result:
-    """Jira issues with the release's fix version that aren't Closed, and open milestone PRs."""
+    """Jira issues with the release's fix version that aren't Closed, and open milestone PRs.
+
+    Each issue's ``owner`` is who the post mentions: its assignee, or for an unassigned or
+    bot ticket the dev lead of its first component in ``dev_leads``, else nobody.
+    """
     query = ctx.query(rule)
-    issues = [jira_item(ctx.jira, issue) for issue in ctx.jira.search(query["jql"])]
+    people = HubPeople(ctx.hub)
+    bots = {name.casefold() for name in query.get("bot_assignees", [])}
+    leads = {}
+    for lead in query.get("dev_leads", []):
+        for component in lead["components"]:
+            leads.setdefault(component.casefold(), lead)
+    with_links = query.get("linked_prs_status", "").casefold()
+    issues = []
+    for issue in ctx.jira.search(query["jql"]):
+        item, fields = jira_item(ctx.jira, issue), issue.get("fields") or {}
+        assignee = fields.get("assignee") or {}
+        name = assignee.get("displayName") or ""
+        if name and name.casefold() not in bots:
+            item.owner = people.by_assignee(assignee)
+        else:
+            item.reason = name or "unassigned"
+            components = [(c.get("name") or "").casefold() for c in fields.get("components") or []]
+            lead = next((leads[c] for c in components if c in leads), None)
+            item.owner = people.by_username(lead["username"], lead.get("name", "")) if lead else ""
+        if with_links and ((fields.get("status") or {}).get("name") or "").casefold() == with_links:
+            item.links = linked_prs(ctx.jira, issue["key"])
+        issues.append(item)
     prs = []
     for repo in query.get("repos", []):
         search = f'repo:{repo} is:pr is:open milestone:"{ctx.vars["milestone"]}"'
