@@ -42,21 +42,21 @@ describe('Channel sidebar', () => {
 
         // * Verify the order is correct to begin with
         cy.uiGetLhsSection('CHANNELS').within(() => {
-            cy.get('.SidebarChannel > .SidebarLink').should('be.visible').as('fromChannelSidebarLink');
+            cy.get('.SidebarChannel .SidebarLink').should('be.visible').as('fromChannelSidebarLink');
             cy.get('@fromChannelSidebarLink').eq(0).should('contain', channelName);
             cy.get('@fromChannelSidebarLink').eq(1).should('contain', 'Off-Topic');
             cy.get('@fromChannelSidebarLink').eq(2).should('contain', 'Town Square');
         });
 
         // # Perform drag using keyboard
-        cy.get('.SidebarChannel:contains(Off-Topic) > .SidebarLink').
+        cy.get('.SidebarChannel:contains(Off-Topic) .SidebarLink').
             trigger('keydown', {keyCode: SpaceKeyCode}).
             trigger('keydown', {keyCode: DownArrowKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC).
             trigger('keydown', {keyCode: SpaceKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC);
 
         // * Verify that the elements have been re-ordered
         cy.uiGetLhsSection('CHANNELS').within(() => {
-            cy.get('.SidebarChannel > .SidebarLink').as('toChannelSidebarLink');
+            cy.get('.SidebarChannel .SidebarLink').as('toChannelSidebarLink');
             cy.get('@toChannelSidebarLink').eq(0).should('contain', channelName);
             cy.get('@toChannelSidebarLink').eq(1).should('contain', 'Town Square');
             cy.get('@toChannelSidebarLink').eq(2).should('contain', 'Off-Topic');
@@ -94,7 +94,7 @@ describe('Channel sidebar', () => {
         cy.uiGetLHSHeader().findByText(teamName);
 
         // # Perform drag using keyboard
-        cy.get('.SidebarChannel:contains(Off-Topic) > .SidebarLink').
+        cy.get('.SidebarChannel:contains(Off-Topic) .SidebarLink').
             click().
             focus().
             trigger('keydown', {key: ' ', keyCode: SpaceKeyCode}).
