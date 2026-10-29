@@ -1633,8 +1633,8 @@ export default class PluginRegistry {
      * Three-dot menu: when `getItemActions(state, channel, itemId)` is registered, each item gets a
      * menu button. It is called when the menu opens, with fresh state, and returns
      * `{id, text, iconName?, isDestructive?, separatorBefore?, onClick}[]`, or null/undefined for
-     * none. Actions without a string id or text, or without an `onClick` function, are dropped, and
-     * the menu is not shown when no actions remain.
+     * none. Actions without a string id or text, or without an `onClick` function, are dropped. When
+     * no actions remain, the menu shows a single disabled "No actions available" entry.
      *
      * Drag-and-drop: an item is draggable only when it sets `draggable: true` and the registration
      * has `onItemDrop(channel, {itemId, targetId, position})`, where `position` is `'before'`,
@@ -1649,8 +1649,9 @@ export default class PluginRegistry {
      * promise) is likewise logged once per plugin and otherwise ignored. Non-function values for
      * the optional callbacks are ignored.
      *
-     * Collapse state is per channel and stored locally. Channels are collapsed by default and
-     * auto-expand when one of their sub-items is active. Alt+Up/Down channel switching does not
+     * Collapse state is per channel, and per item for items with children, and is stored locally.
+     * Channels and items are collapsed by default; a channel and the ancestors of its active
+     * sub-item auto-expand when that sub-item becomes active. Alt+Up/Down channel switching does not
      * visit sub-items.
      *
      * Registrations are cleaned up automatically when the plugin is removed.
