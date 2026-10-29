@@ -458,40 +458,78 @@ func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (
 		}
 	}
 
+	// Activation has no re-entry path, so the user goes first and a rejected
+	// activation (e.g. at the user limit) leaves the bot untouched.
+	if active {
+		if _, err := a.UpdateActive(rctx, user, true); err != nil {
+			return nil, err
+		}
+		return a.saveBotDeleteAt(bot, 0)
+	}
+
 	// Mark the bot deleted before deactivating its user. disableUserBots
 	// enumerates with IncludeDeleted:false, so on re-entry through
 	// UpdateActive -> userDeactivated -> disableUserBots this bot is
 	// filtered out and the recursion terminates for cycles of any length.
-	changed := true
-	if active && bot.DeleteAt != 0 {
-		bot.DeleteAt = 0
-	} else if !active && bot.DeleteAt == 0 {
-		bot.DeleteAt = model.GetMillis()
-	} else {
-		changed = false
+	deleteAt := bot.DeleteAt
+	if deleteAt == 0 {
+		deleteAt = model.GetMillis()
+	}
+	disabledBot, appErr := a.saveBotDeleteAt(bot, deleteAt)
+	if appErr != nil {
+		return nil, appErr
 	}
 
-	if changed {
-		bot, nErr = a.Srv().Store().Bot().Update(bot)
-		if nErr != nil {
-			var nfErr *store.ErrNotFound
-			var appErr *model.AppError
-			switch {
-			case errors.As(nErr, &nfErr):
-				return nil, model.MakeBotNotFoundError("SqlBotStore.Get", nfErr.ID).Wrap(nErr)
-			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
-				return nil, appErr
-			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("PatchBot", "app.bot.patchbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-			}
-		}
-	}
-
-	if _, err := a.UpdateActive(rctx, user, active); err != nil {
+	if _, err := a.UpdateActive(rctx, user, false); err != nil {
+		a.rollBackBotDisable(rctx, disabledBot, bot.DeleteAt)
 		return nil, err
 	}
 
-	return bot, nil
+	return disabledBot, nil
+}
+
+// saveBotDeleteAt persists deleteAt on a copy of bot, skipping the write when it is unchanged.
+func (a *App) saveBotDeleteAt(bot *model.Bot, deleteAt int64) (*model.Bot, *model.AppError) {
+	if bot.DeleteAt == deleteAt {
+		return bot, nil
+	}
+
+	updated := *bot
+	updated.DeleteAt = deleteAt
+
+	saved, nErr := a.Srv().Store().Bot().Update(&updated)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.MakeBotNotFoundError("SqlBotStore.Get", nfErr.ID).Wrap(nErr)
+		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+			return nil, appErr
+		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("PatchBot", "app.bot.patchbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
+
+	return saved, nil
+}
+
+// rollBackBotDisable restores the bot's previous DeleteAt when deactivating its
+// user did not commit. UpdateActive can also fail after the user write (e.g.
+// revoking sessions), so the stored user, not the error, decides.
+func (a *App) rollBackBotDisable(rctx request.CTX, disabledBot *model.Bot, previousDeleteAt int64) {
+	user, nErr := a.Srv().Store().User().Get(rctx, disabledBot.UserId)
+	if nErr != nil {
+		rctx.Logger().Warn("Unable to check bot user after failing to deactivate it.", mlog.String("bot_user_id", disabledBot.UserId), mlog.Err(nErr))
+		return
+	}
+	if user.DeleteAt != 0 {
+		return
+	}
+
+	if _, appErr := a.saveBotDeleteAt(disabledBot, previousDeleteAt); appErr != nil {
+		rctx.Logger().Warn("Unable to restore bot after failing to deactivate its user.", mlog.String("bot_user_id", disabledBot.UserId), mlog.Err(appErr))
+	}
 }
 
 // PermanentDeleteBot permanently deletes a bot and its corresponding user.
@@ -542,13 +580,12 @@ func (a *App) UpdateBotOwner(rctx request.CTX, botUserId, newOwnerId string) (*m
 		return nil, model.NewAppError("UpdateBotOwner", "app.bot.updatebotowner.self_owner.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if _, err := a.Srv().Store().Bot().Get(newOwnerId, true); err == nil {
+	_, err = a.Srv().Store().Bot().Get(newOwnerId, true)
+	if err == nil {
 		return nil, model.NewAppError("UpdateBotOwner", "app.bot.updatebotowner.bot_owner.app_error", nil, "", http.StatusBadRequest)
-	} else {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
-			return nil, model.NewAppError("UpdateBotOwner", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+	}
+	if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+		return nil, model.NewAppError("UpdateBotOwner", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	bot.OwnerId = newOwnerId
@@ -572,33 +609,32 @@ func (a *App) UpdateBotOwner(rctx request.CTX, botUserId, newOwnerId string) (*m
 
 // disableUserBots disables all bots owned by the given user.
 func (a *App) disableUserBots(rctx request.CTX, userID string) *model.AppError {
+	// Collect every bot before disabling any. Disabled bots drop out of the
+	// listing while bots that fail to disable stay in it, so paging during
+	// the loop would either skip bots or never finish.
 	perPage := 20
-	for {
-		options := &model.BotGetOptions{
+	var userBots model.BotList
+	for page := 0; ; page++ {
+		bots, err := a.GetBots(rctx, &model.BotGetOptions{
 			OwnerId:        userID,
 			IncludeDeleted: false,
 			OnlyOrphaned:   false,
-			Page:           0,
+			Page:           page,
 			PerPage:        perPage,
-		}
-		userBots, err := a.GetBots(rctx, options)
+		})
 		if err != nil {
 			return err
 		}
-
-		for _, bot := range userBots {
-			_, err := a.UpdateBotActive(rctx, bot.UserId, false)
-			if err != nil {
-				rctx.Logger().Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
-			}
+		userBots = append(userBots, bots...)
+		if len(bots) < perPage {
+			break
 		}
+	}
 
-		// Get next set of bots if we got the max number of bots
-		if len(userBots) == perPage {
-			options.Page += 1
-			continue
+	for _, bot := range userBots {
+		if _, err := a.UpdateBotActive(rctx, bot.UserId, false); err != nil {
+			rctx.Logger().Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
 		}
-		break
 	}
 
 	return nil
