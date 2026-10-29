@@ -2757,6 +2757,13 @@ func TestPropertyFieldChangeIsOptionsOnly(t *testing.T) {
 		assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), nil))
 	})
 
+	t.Run("null grants stored and [] sent back alongside an option change reports true", func(t *testing.T) {
+		updated := stored()
+		changeOptions(updated)
+		updated.Permissions.Grants = []Grant{}
+		assert.True(t, PropertyFieldChangeIsOptionsOnly(stored(), updated))
+	})
+
 	alongside := map[string]func(*PropertyField){
 		"Name":              func(f *PropertyField) { f.Name = "Renamed" },
 		"Type":              func(f *PropertyField) { f.Type = PropertyFieldTypeMultiselect },
@@ -2772,6 +2779,9 @@ func TestPropertyFieldChangeIsOptionsOnly(t *testing.T) {
 		"PermissionOptions": func(f *PropertyField) { f.PermissionOptions = new(PermissionLevelMember) },
 		"a sibling attr":    func(f *PropertyField) { f.Attrs["sort_order"] = 2 },
 		"an added attr":     func(f *PropertyField) { f.Attrs[PropertyAttrsProtected] = true },
+		"an added grant": func(f *PropertyField) {
+			f.Permissions.Grants = []Grant{{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "userid"}, Allow: []string{PropertyActionFieldWrite}}}
+		},
 	}
 	for name, change := range alongside {
 		t.Run("an option list change alongside "+name+" reports false", func(t *testing.T) {

@@ -4,8 +4,10 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -87,6 +89,36 @@ func TestCreatePropertyField(t *testing.T) {
 		assert.NotEmpty(t, created.ID)
 		assert.Equal(t, "Protected Field With Bypass", created.Name)
 		assert.True(t, created.Protected)
+	})
+
+	t.Run("legacy keys round trip via projection with no store columns behind them", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "Legacy Stored Untouched",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeChannel,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			Protected:         true,
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
+		require.Nil(t, appErr)
+		require.NotEmpty(t, created.ID)
+
+		fetched, appErr := th.App.GetPropertyField(th.Context, groupID, created.ID)
+		require.Nil(t, appErr)
+		shaped := th.App.ShapePropertyFieldsForCaller(th.Context, model.Session{}, []*model.PropertyField{fetched}, false)
+		require.Len(t, shaped, 1)
+		assert.True(t, shaped[0].Protected)
+		require.NotNil(t, shaped[0].PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *shaped[0].PermissionField)
+		require.NotNil(t, shaped[0].PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *shaped[0].PermissionValues)
+		require.NotNil(t, shaped[0].PermissionOptions)
+		assert.Equal(t, model.PermissionLevelSysadmin, *shaped[0].PermissionOptions)
 	})
 
 	t.Run("should reject creating an invalid protected field even with bypass", func(t *testing.T) {
@@ -743,6 +775,96 @@ func TestPropertyFieldBroadcastParams(t *testing.T) {
 		field := &model.PropertyField{TargetType: "organization", TargetID: "org123"}
 		_, _, ok := propertyFieldBroadcastParams(rctx, field)
 		assert.False(t, ok)
+	})
+}
+
+// TestPublishPropertyFieldEvent_OptionsWithheld covers the option list a field
+// broadcast carries. A broadcast has no single reader to filter options for, so
+// it carries the list only when everyone may read it, and withholds it when the
+// option.read tier is narrower than everyone or the linked field's template is
+// masked.
+func TestPublishPropertyFieldEvent_OptionsWithheld(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	groupID := registerTestPropertyGroup(t, th)
+
+	newSelectField := func(t *testing.T, objectType string, linkedFieldID *string) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "broadcast_" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    objectType,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: linkedFieldID,
+		}
+		if linkedFieldID == nil {
+			field.Attrs = model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Alpha"}},
+			}
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, created.Permissions)
+		return created
+	}
+	// Store writes rather than the API, which keeps each setup to the one
+	// permission it is about.
+	storeUpdate := func(t *testing.T, field *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		updated, err := th.Store.PropertyField().Update(groupID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+		return updated[0]
+	}
+
+	broadcastAttrs := func(t *testing.T, field *model.PropertyField) model.StringInterface {
+		t.Helper()
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPropertyFieldUpdated})
+		defer closeWS()
+
+		th.App.publishPropertyFieldEvent(th.Context, model.WebsocketEventPropertyFieldUpdated, field, "")
+
+		select {
+		case event := <-messages:
+			raw, ok := event.GetData()["property_field"].(string)
+			require.True(t, ok, "event carries no property_field payload")
+			var broadcast model.PropertyField
+			require.NoError(t, json.Unmarshal([]byte(raw), &broadcast))
+			require.Equal(t, field.ID, broadcast.ID)
+			return broadcast.Attrs
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "the property_field_updated event was not published")
+			return nil
+		}
+	}
+
+	t.Run("an option list everyone may read is broadcast", func(t *testing.T) {
+		field := newSelectField(t, model.PropertyFieldObjectTypeUser, nil)
+		attrs := broadcastAttrs(t, field)
+		assert.NotEmpty(t, attrs[model.PropertyFieldAttributeOptions])
+		assert.False(t, model.PropertyFieldOptionsOmitted(attrs))
+	})
+
+	t.Run("a sysadmin option.read withholds the option list", func(t *testing.T) {
+		field := newSelectField(t, model.PropertyFieldObjectTypeUser, nil)
+		field.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		field = storeUpdate(t, field)
+
+		attrs := broadcastAttrs(t, field)
+		assert.Empty(t, attrs[model.PropertyFieldAttributeOptions])
+		assert.True(t, model.PropertyFieldOptionsOmitted(attrs))
+	})
+
+	t.Run("a linked field whose template is masked withholds the option list", func(t *testing.T) {
+		template := newSelectField(t, model.PropertyFieldObjectTypeTemplate, nil)
+		linked := newSelectField(t, model.PropertyFieldObjectTypeUser, &template.ID)
+		require.Nil(t, linked.Permissions.Masking, "a linked field carries no masking of its own")
+		template.Permissions.Masking = &model.Masking{}
+		storeUpdate(t, template)
+
+		attrs := broadcastAttrs(t, linked)
+		assert.Empty(t, attrs[model.PropertyFieldAttributeOptions])
+		assert.True(t, model.PropertyFieldOptionsOmitted(attrs))
 	})
 }
 
@@ -1841,6 +1963,10 @@ func TestGetPropertyFieldUnconvertedRankOptions(t *testing.T) {
 	asAdmin, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
 	require.Nil(t, appErr)
 	require.ElementsMatch(t, []string{"Public", "Secret"}, rankOptionNames(t, asAdmin))
+
+	asUser, appErr := th.App.GetPropertyField(RequestContextWithCallerID(th.Context, th.BasicUser.Id), group.ID, created.ID)
+	require.Nil(t, appErr)
+	assert.Empty(t, rankOptionNames(t, asUser), "ordinary callers still fail closed on an unconverted field")
 }
 
 func rankOptionNames(t *testing.T, field *model.PropertyField) []string {

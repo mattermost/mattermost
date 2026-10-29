@@ -58,10 +58,31 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	}
 	defer finalizeTransactionX(transaction, &err)
 
+	projected := model.ProjectLegacyPermissions(field)
+
+	// The three legacy Attrs keys (owners, protected, access_mode) are stored as originally written
+	// and never refreshed from permissions, so they go stale after a v3 edit. This is tolerable
+	// because an old release reading them back on rollback wants the pre-upgrade values, and the
+	// only way they diverge is a v3 grant edit, which requires the PropertyFieldPermissionsV3
+	// feature flag to be on. They are not projected because legacyPermissionAttrsChanged compares
+	// a caller's submitted owners against the raw stored owners attr on purpose, because the
+	// projected list also carries grants the caller never sent (source plugin, sync lock,
+	// ambient wildcard), and comparing against those would report a change for a caller who
+	// touched nothing.
+
+	// The four columns are the opposite case: every write rewrites them from the
+	// projection. Once the one-time backfill has read a row's columns, converted them,
+	// and written the projection back, they no longer hold the values the row was upgraded
+	// with. A synced or owner-managed access_control field converts to value.write = none,
+	// so its PermissionValues moves from 'member' to 'none'. That is still what an old
+	// release should read on rollback: the conversion asserts the legacy code already refused
+	// every human's value write on such a field before it ever read PermissionValues, and the
+	// owners/protected/ldap attrs that decision came from are stored unchanged (as explained
+	// in the paragraph above about the Attrs keys).
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
 		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy", "Permissions").
-		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy, storedFieldPermissions(field))
+		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, projected.Protected, projected.PermissionField, projected.PermissionValues, projected.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy, storedFieldPermissions(field))
 
 	if _, err = transaction.ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
@@ -81,6 +102,12 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	if err = transaction.Commit(); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_commit_transaction")
 	}
+
+	// Returned with the columns as stored, not as submitted, so the caller holds
+	// what a read would give it. A caller that changed this copy and sent it back
+	// would otherwise send stale columns, which an update reads as a deliberate
+	// legacy edit and applies, widening a stricter permissions object.
+	applyProjectedPermissionColumns([]*model.PropertyField{field})
 
 	return field, nil
 }
@@ -138,14 +165,9 @@ func (s *SqlPropertyFieldStore) ValidateMaskByFieldID(rctx request.CTX, groupID,
 
 	// A member- or everyone-writable holdings field defeats masking: the people it
 	// filters could set their own holdings to whatever they want the read to return.
-	// The legacy column only decides value.write for a field with no Permissions.
-	valueWrite := target.PermissionValues
-	if target.Permissions != nil {
-		tier := target.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite)
-		valueWrite = &tier
-	}
-	if valueWrite != nil && (*valueWrite == model.PermissionLevelMember || *valueWrite == model.PermissionLevelEveryone) {
-		return fmt.Errorf("mask_by_field_id references a field whose value.write (%q) lets the people it filters write their own holdings", *valueWrite)
+	// target.PermissionValues is the effective value.write after the store's projection.
+	if target.PermissionValues != nil && (*target.PermissionValues == model.PermissionLevelMember || *target.PermissionValues == model.PermissionLevelEveryone) {
+		return fmt.Errorf("mask_by_field_id references a field whose value.write (%q) lets the people it filters write their own holdings", *target.PermissionValues)
 	}
 
 	return nil
@@ -436,6 +458,51 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts mode
 	return fields, nil
 }
 
+// GetFieldsMissingPermissions returns the fields the permissions backfill
+// converts, a page at a time: not deleted, PSAv2 (a non-empty ObjectType), in
+// a group at version 2 or 3, and with a NULL Permissions column -- the only
+// way a field with no permissions object is stored. Pages by (CreateAt, Id)
+// like SearchPropertyFields' directory mode, so a field the caller leaves
+// unconverted does not come back on a later page of the same walk.
+func (s *SqlPropertyFieldStore) GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error) {
+	if perPage < 1 {
+		return nil, errors.New("per page must be positive integer greater than zero")
+	}
+
+	groupIDs := sq.Select("ID").
+		From("PropertyGroups").
+		Where(sq.Eq{"Version": []int{model.PropertyGroupVersionV2, model.PropertyGroupVersionV3}})
+
+	builder := s.tableSelectQuery.
+		Where(sq.Eq{"Permissions": nil}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.NotEq{"ObjectType": ""}).
+		Where(sq.Expr("GroupID IN (?)", groupIDs)).
+		OrderBy("CreateAt ASC, Id ASC").
+		Limit(uint64(perPage))
+
+	if !cursor.IsEmpty() {
+		builder = builder.Where(sq.Or{
+			sq.Gt{"CreateAt": cursor.CreateAt},
+			sq.And{
+				sq.Eq{"CreateAt": cursor.CreateAt},
+				sq.Gt{"Id": cursor.PropertyFieldID},
+			},
+		})
+	}
+
+	fields := []*model.PropertyField{}
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&fields, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_missing_permissions_query")
+	}
+
+	if err := s.hydratePropertyFieldOptions(s.GetReplica(), fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_missing_permissions_hydrate_options")
+	}
+
+	return fields, nil
+}
+
 func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
 	if len(fields) == 0 {
 		return nil, nil
@@ -453,14 +520,14 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	attrsCase := sq.Case("id")
 	targetIDCase := sq.Case("id")
 	targetTypeCase := sq.Case("id")
-	protectedCase := sq.Case("id")
-	permissionFieldCase := sq.Case("id")
-	permissionValuesCase := sq.Case("id")
-	permissionOptionsCase := sq.Case("id")
 	linkedFieldIDCase := sq.Case("id")
 	deleteAtCase := sq.Case("id")
 	updatedByCase := sq.Case("id")
 	permissionsCase := sq.Case("id")
+	protectedCase := sq.Case("id")
+	permissionFieldCase := sq.Case("id")
+	permissionValuesCase := sq.Case("id")
+	permissionOptionsCase := sq.Case("id")
 	ids := make([]string, len(fields))
 
 	for i, field := range fields {
@@ -480,15 +547,16 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 		ids[i] = field.ID
 		whenID := sq.Expr("?", field.ID)
+		projected := model.ProjectLegacyPermissions(field)
+		protectedCase = protectedCase.When(whenID, sq.Expr("?::boolean", projected.Protected))
+		permissionFieldCase = permissionFieldCase.When(whenID, sq.Expr("?::permission_level", projected.PermissionField))
+		permissionValuesCase = permissionValuesCase.When(whenID, sq.Expr("?::permission_level", projected.PermissionValues))
+		permissionOptionsCase = permissionOptionsCase.When(whenID, sq.Expr("?::permission_level", projected.PermissionOptions))
 		nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
 		typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
 		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", storedFieldAttrs(field)))
 		targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
 		targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
-		protectedCase = protectedCase.When(whenID, sq.Expr("?::boolean", field.Protected))
-		permissionFieldCase = permissionFieldCase.When(whenID, sq.Expr("?::permission_level", field.PermissionField))
-		permissionValuesCase = permissionValuesCase.When(whenID, sq.Expr("?::permission_level", field.PermissionValues))
-		permissionOptionsCase = permissionOptionsCase.When(whenID, sq.Expr("?::permission_level", field.PermissionOptions))
 		linkedFieldIDCase = linkedFieldIDCase.When(whenID, sq.Expr("?", field.LinkedFieldID))
 		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
 		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
@@ -602,6 +670,10 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	if err = transaction.Commit(); err != nil {
 		return nil, errors.Wrap(err, "property_field_update_commit_transaction")
 	}
+
+	// Returned with the columns as stored, for the reason given in Create. The
+	// dependents were read back, so they already are.
+	applyProjectedPermissionColumns(fields)
 
 	return append(fields, dependents...), nil
 }
