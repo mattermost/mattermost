@@ -40,7 +40,39 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 		}
 	}
 
+	if user == nil && isLegacyEmailArg(userArg) {
+		user, _, _ = getUserByLegacyEmail(c, userArg)
+	}
+
 	return user
+}
+
+// isLegacyEmailArg returns true if the arg is an email address enclosed in
+// angle brackets, such as <user@example.com>. The server no longer accepts
+// these as valid, but users with such emails may still exist from before
+// #29661, and cannot be looked up through the email endpoint.
+func isLegacyEmailArg(arg string) bool {
+	arg = strings.TrimSpace(arg)
+	return strings.HasPrefix(arg, "<") && strings.HasSuffix(arg, ">") && strings.Contains(arg, "@")
+}
+
+// getUserByLegacyEmail finds a user whose stored email is exactly arg by
+// searching, since the email endpoint rejects invalid emails. It returns nil
+// without an error when there is no match.
+func getUserByLegacyEmail(c client.Client, arg string) (*model.User, *model.Response, error) {
+	term := strings.Trim(strings.TrimSpace(arg), "<>")
+	users, response, err := c.SearchUsers(context.TODO(), &model.UserSearch{Term: term, AllowInactive: true, Limit: 100})
+	if err != nil {
+		return nil, response, err
+	}
+
+	for _, u := range users {
+		if strings.EqualFold(u.Email, strings.TrimSpace(arg)) {
+			return u, response, nil
+		}
+	}
+
+	return nil, response, nil
 }
 
 // returns true if slash is found in the arg
@@ -110,6 +142,14 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 					return nil, nErr
 				}
 			}
+		}
+	}
+
+	if user == nil && isLegacyEmailArg(userArg) {
+		var err error
+		user, response, err = getUserByLegacyEmail(c, userArg)
+		if err != nil {
+			return nil, ExtractErrorFromResponse(response, err)
 		}
 	}
 

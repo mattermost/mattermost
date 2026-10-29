@@ -112,6 +112,7 @@ type Client interface {
 	SyncLdap(ctx context.Context) (*model.Response, error)
 	MigrateIdLdap(ctx context.Context, toAttribute string) (*model.Response, error)
 	GetUsers(ctx context.Context, page, perPage int, etag string) ([]*model.User, *model.Response, error)
+	SearchUsers(ctx context.Context, search *model.UserSearch) ([]*model.User, *model.Response, error)
 	UpdateUserActive(ctx context.Context, userID string, activate bool) (*model.Response, error)
 	UpdateTeam(ctx context.Context, team *model.Team) (*model.Team, *model.Response, error)
 	UpdateChannelPrivacy(ctx context.Context, channelID string, privacy model.ChannelType) (*model.Channel, *model.Response, error)

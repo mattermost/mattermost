@@ -103,4 +103,56 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		s.Require().Len(users, 1)
 		s.Require().Equal(successUser, users[0])
 	})
+
+	s.Run("user with email enclosed in angle brackets is found by search", func() {
+		legacyEmail := "<legacy@example.com>"
+		legacyUser := &model.User{Id: "legacyid", Email: legacyEmail}
+		notFoundErr := errors.New("user not found")
+		printer.Clean()
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), legacyEmail, "").
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), legacyEmail, "").
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+			Times(1)
+		s.client.
+			EXPECT().
+			SearchUsers(context.TODO(), &model.UserSearch{Term: "legacy@example.com", AllowInactive: true, Limit: 100}).
+			Return([]*model.User{{Id: "otherid", Email: "legacy@example.com"}, legacyUser}, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		users, err := getUsersFromArgs(s.client, []string{legacyEmail})
+		s.Require().NoError(err)
+		s.Require().Len(users, 1)
+		s.Require().Equal(legacyUser, users[0])
+	})
+
+	s.Run("email enclosed in angle brackets with no exact match is not found", func() {
+		legacyEmail := "<missing@example.com>"
+		notFoundErr := errors.New("user not found")
+		printer.Clean()
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), legacyEmail, "").
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), legacyEmail, "").
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+			Times(1)
+		s.client.
+			EXPECT().
+			SearchUsers(context.TODO(), &model.UserSearch{Term: "missing@example.com", AllowInactive: true, Limit: 100}).
+			Return([]*model.User{{Id: "otherid", Email: "missing@example.com"}}, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		users, err := getUsersFromArgs(s.client, []string{legacyEmail})
+		s.Require().Empty(users)
+		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", legacyEmail))
+	})
 }

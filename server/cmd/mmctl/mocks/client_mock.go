@@ -2352,6 +2352,22 @@ func (mr *MockClientMockRecorder) SearchTeams(ctx, search any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchTeams", reflect.TypeOf((*MockClient)(nil).SearchTeams), ctx, search)
 }
 
+// SearchUsers mocks base method.
+func (m *MockClient) SearchUsers(ctx context.Context, search *model.UserSearch) ([]*model.User, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchUsers", ctx, search)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// SearchUsers indicates an expected call of SearchUsers.
+func (mr *MockClientMockRecorder) SearchUsers(ctx, search any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUsers", reflect.TypeOf((*MockClient)(nil).SearchUsers), ctx, search)
+}
+
 // SendPasswordResetEmail mocks base method.
 func (m *MockClient) SendPasswordResetEmail(ctx context.Context, email string) (*model.Response, error) {
 	m.ctrl.T.Helper()
