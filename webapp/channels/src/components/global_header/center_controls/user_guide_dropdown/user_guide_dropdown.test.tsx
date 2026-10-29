@@ -4,8 +4,9 @@
 import React from 'react';
 
 import {renderWithContext, screen, userEvent, fireEvent} from 'tests/react_testing_utils';
+import {MATTERMOST_DOCS_URL} from 'utils/documentation';
 
-import UserGuideDropdown, {getMattermostDocumentationURL, MATTERMOST_DOCS_URL} from './user_guide_dropdown';
+import UserGuideDropdown from './user_guide_dropdown';
 
 describe('components/channel_header/components/UserGuideDropdown', () => {
     const baseProps = {
@@ -150,19 +151,5 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
         const link = screen.getByRole('link', {name: 'Mattermost documentation'});
         expect(link).toHaveAttribute('href', expect.stringContaining(MATTERMOST_DOCS_URL));
         expect(link).not.toHaveAttribute('href', expect.stringContaining('/_documentation/'));
-    });
-});
-
-describe('getMattermostDocumentationURL', () => {
-    test.each([
-        ['https://chat.example.com', 'https://chat.example.com/_documentation/'],
-        ['https://chat.example.com/', 'https://chat.example.com/_documentation/'],
-        ['http://localhost:8065', 'http://localhost:8065/_documentation/'],
-        ['https://example.com/mattermost', MATTERMOST_DOCS_URL],
-        ['https://example.com/mattermost/', MATTERMOST_DOCS_URL],
-        ['', MATTERMOST_DOCS_URL],
-        ['not a url', MATTERMOST_DOCS_URL],
-    ])('maps %s', (siteURL, expected) => {
-        expect(getMattermostDocumentationURL(siteURL)).toBe(expected);
     });
 });

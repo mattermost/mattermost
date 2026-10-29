@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {getDocumentationURL} from 'utils/documentation';
 import {getSiteURL} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -30,7 +31,8 @@ export type ExternalLinkQueryParams = {
 /**
  * useExternalLink is used when linking outside of the MM server to add extra tracking parameters when linking to any
  * page on mattermost.com (such as our docs or marketing websites). When passed any URL that isn't on mattermost.com,
- * or one on this server's own origin, it returns the original URL unmodified.
+ * or one on this server's own origin, it returns the original URL unmodified. Links to the public docs are pointed at
+ * the documentation bundled with the server when it is available.
  *
  * @param href The external URL being linked to
  * @param location The location of the link within the app
@@ -49,9 +51,12 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
     const isCloud = useSelector((state: GlobalState) => getLicense(state)?.Cloud === 'true');
 
     return useMemo(() => {
+        const siteURL = config?.SiteURL || getSiteURL();
+        const resolvedHref = getDocumentationURL(href, siteURL);
+
         let parsedUrl;
         try {
-            parsedUrl = new URL(href);
+            parsedUrl = new URL(resolvedHref);
         } catch {
             return [href, {}];
         }
@@ -64,8 +69,8 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
             return [href, {}];
         }
 
-        if (isSameOrigin(parsedUrl, config?.SiteURL || getSiteURL())) {
-            return [href, {}];
+        if (isSameOrigin(parsedUrl, siteURL)) {
+            return [resolvedHref, {}];
         }
 
         // Determine edition type (enterprise vs team)

@@ -4,6 +4,8 @@
 import React, {useCallback} from 'react';
 import {useHistory} from 'react-router-dom';
 
+import {useDocumentationURL} from 'components/common/hooks/use_documentation_url';
+
 import './trial_benefits_modal_step_more.scss';
 
 export type TrialBenefitsModalStepMoreProps = {
@@ -21,10 +23,11 @@ const TrialBenefitsModalStepMore = (
         styleLink = false,
     }: TrialBenefitsModalStepMoreProps) => {
     const history = useHistory();
+    const externalURL = useDocumentationURL(route);
 
     const redirect = useCallback(() => {
         if (route.indexOf('http://') === 0 || route.indexOf('https://') === 0) {
-            window.open(route);
+            window.open(externalURL);
         } else {
             history.push(route);
         }
@@ -32,7 +35,7 @@ const TrialBenefitsModalStepMore = (
         if (onClick) {
             onClick();
         }
-    }, [route, onClick]);
+    }, [route, externalURL, onClick]);
 
     return (
         <a

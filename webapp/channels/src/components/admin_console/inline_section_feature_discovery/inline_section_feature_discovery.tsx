@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 
+import {useDocumentationURL} from 'components/common/hooks/use_documentation_url';
 import {LicenseSkuBadge} from 'components/widgets/badges';
 
 import {LicenseSkus} from 'utils/constants';
@@ -29,6 +30,8 @@ const InlineSectionFeatureDiscovery: React.FC<Props> = ({
     learnMoreURL,
     svgImage: SvgImage,
 }) => {
+    const learnMoreHref = useDocumentationURL(learnMoreURL);
+
     const handleContactSales = (e: React.MouseEvent) => {
         e.preventDefault();
 
@@ -38,7 +41,7 @@ const InlineSectionFeatureDiscovery: React.FC<Props> = ({
 
     const handleLearnMore = (e: React.MouseEvent) => {
         e.preventDefault();
-        window.open(learnMoreURL, '_blank', 'noopener,noreferrer');
+        window.open(learnMoreHref, '_blank', 'noopener,noreferrer');
     };
 
     return (
