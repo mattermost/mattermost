@@ -66,9 +66,7 @@ const EMPTY_ADDED: ReadonlySet<string> = Object.freeze(new Set<string>());
  * the menu would tick an option the card does not show.
  */
 export function storedEntries(value?: PropertyValue<unknown>): string[] {
-    return toValueList(value?.value).
-        filter((entry) => entry !== null && entry !== undefined && entry !== '').
-        map(String);
+    return toValueList(value?.value).map(String);
 }
 
 /**
@@ -117,7 +115,9 @@ export function chipCount(field: PropertyField, value?: PropertyValue<unknown>):
      * not arrived yet" are the same state when the count is taken. Counting
      * resolvable users would make the chip count — and the row's width — change
      * as profiles land. So every stored id keeps its slot, and one that never
-     * resolves renders `UserProfileComponent`'s `Someone` fallback.
+     * resolves renders `UserProfileComponent`'s `Someone` fallback. An empty
+     * entry is not an id at all: `toValueList` drops it, so it earns no slot
+     * here and no chip in the renderer.
      */
     if (field.type === 'multiuser') {
         return toValueList(value.value).length;

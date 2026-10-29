@@ -366,6 +366,22 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getAllByTestId('mock-user-property').map((node) => node.textContent)).
                 toEqual(['user-id-1']);
         });
+
+        // An empty entry names no user. Dropped before the cap, so it neither
+        // renders a `Someone` chip nor pushes a real user out of the budget.
+        it('should skip empty entries before applying maxItems', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={multiuserField}
+                    value={{value: ['user_1', '', 'user_2']} as PropertyValue<string[]>}
+                    maxItems={2}
+                />,
+            );
+
+            expect(screen.getAllByTestId('mock-user-property').map((node) => node.textContent)).
+                toEqual(['user_1', 'user_2']);
+            expect(screen.queryByText('Someone')).not.toBeInTheDocument();
+        });
     });
 
     describe('unsupported field types', () => {

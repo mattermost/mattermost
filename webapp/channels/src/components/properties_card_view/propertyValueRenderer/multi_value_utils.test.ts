@@ -26,8 +26,22 @@ describe('toValueList', () => {
         expect(toValueList(false)).toEqual([false]);
     });
 
+    it('drops empty entries inside an array', () => {
+        expect(toValueList(['a', '', null, 'b', undefined])).toEqual(['a', 'b']);
+        expect(toValueList(['', null, undefined])).toEqual([]);
+    });
+
+    it('keeps falsy entries that are not empty', () => {
+        expect(toValueList([0, false, 'a'])).toEqual([0, false, 'a']);
+    });
+
     it('caps the list at maxItems', () => {
         expect(toValueList(['a', 'b', 'c'], 2)).toEqual(['a', 'b']);
+    });
+
+    // Filtered first, so an empty entry cannot spend one of the slots.
+    it('applies maxItems after dropping empty entries', () => {
+        expect(toValueList(['a', '', null, 'b', 'c'], 2)).toEqual(['a', 'b']);
     });
 
     it('returns everything when maxItems is undefined', () => {

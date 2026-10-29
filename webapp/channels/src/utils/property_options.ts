@@ -90,7 +90,5 @@ function resolveEach(field: PropertyField, entries: unknown[]): OptionChip[] {
 }
 
 function rawChips(entries: unknown[]): OptionChip[] {
-    return entries.
-        filter((entry) => entry !== null && entry !== undefined && entry !== '').
-        map((entry) => ({key: String(entry), label: String(entry)}));
+    return entries.map((entry) => ({key: String(entry), label: String(entry)}));
 }

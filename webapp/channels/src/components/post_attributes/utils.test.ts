@@ -12,6 +12,7 @@ import {
     hasPostAttributeContent,
     hasValueControl,
     isChipVisible,
+    isFieldValueVisible,
     useAddableAttributes,
     useModalAttributes,
 } from './utils';
@@ -154,6 +155,16 @@ describe('chipCount', () => {
         expect(chipCount(field, makeValue([]))).toBe(0);
     });
 
+    // An empty entry names no user, so it is not a stored id. The hover card and
+    // the value control already skip it; counting it here would spend a slot on
+    // a `Someone` chip that neither of them shows.
+    it('does not count empty entries of a multiuser', () => {
+        const field = makeField({type: 'multiuser' as FieldType});
+
+        expect(chipCount(field, makeValue(['u1', '', null]))).toBe(1);
+        expect(chipCount(field, makeValue(['', undefined]))).toBe(0);
+    });
+
     // A field with no options has no option to resolve against, so a set value is
     // a chip on its own terms.
     it('is one for a set field that carries no options', () => {
@@ -214,10 +225,23 @@ describe('isChipVisible', () => {
         expect(isChipVisible(makeField({type: 'multiuser' as FieldType, attrs: {visibility: 'hidden'}}), makeValue(['user_1']))).toBe(false);
     });
 
+    it('hides a multiuser whose only entry is empty', () => {
+        expect(isChipVisible(makeField({type: 'multiuser' as FieldType}), makeValue(['']))).toBe(false);
+    });
+
     it('treats an unrecognised visibility as when_set', () => {
         const field = makeField({attrs: {visibility: 'sometimes'}});
         expect(isChipVisible(field, makeValue('SECRET'))).toBe(true);
         expect(isChipVisible(field, makeValue(''))).toBe(false);
+    });
+});
+
+describe('isFieldValueVisible', () => {
+    it('does not show a when_set multiuser whose only entry is empty', () => {
+        const field = makeField({type: 'multiuser' as FieldType, attrs: {visibility: 'when_set'}});
+
+        expect(isFieldValueVisible(field, makeValue(['']))).toBe(false);
+        expect(isFieldValueVisible(field, makeValue(['user_1']))).toBe(true);
     });
 });
 
