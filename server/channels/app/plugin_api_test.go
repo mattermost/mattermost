@@ -1964,7 +1964,7 @@ func TestPluginUpdatePostWithOptions(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
 		require.Nil(t, appErr)
 		require.Len(t, infos, 1)
 		assert.Equal(t, file.Id, infos[0].Id)
@@ -2042,7 +2042,7 @@ func TestPluginUpdatePostWithOptions(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Empty(t, updated.FileIds)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
 		require.Nil(t, appErr)
 		assert.Empty(t, infos)
 	})

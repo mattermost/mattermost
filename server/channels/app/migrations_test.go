@@ -1176,3 +1176,29 @@ func TestDoAppMigrationsRunsLockedToMaster(t *testing.T) {
 	require.Equal(t, "unlock", events[len(events)-1], "migrations must release the lock once finished")
 	require.Contains(t, events[1:len(events)-1], "system", "migration store access must happen while locked to master")
 }
+
+func TestDoClearLastAccessibleFileTimeMigration(t *testing.T) {
+	th := Setup(t)
+
+	_, err := th.Store.System().PermanentDeleteByName(clearLastAccessibleFileTimeMigrationKey)
+	require.NoError(t, err)
+	require.NoError(t, th.Store.System().SaveOrUpdate(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}))
+
+	require.NoError(t, th.Server.doClearLastAccessibleFileTimeMigration())
+
+	_, err = th.Store.System().GetByName(model.SystemLastAccessibleFileTime)
+	require.Error(t, err)
+	assert.IsType(t, &store.ErrNotFound{}, err)
+
+	done, err := th.Store.System().GetByName(clearLastAccessibleFileTimeMigrationKey)
+	require.NoError(t, err)
+	assert.Equal(t, "true", done.Value)
+
+	// Once marked as done, the migration does not run again.
+	require.NoError(t, th.Store.System().SaveOrUpdate(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}))
+	require.NoError(t, th.Server.doClearLastAccessibleFileTimeMigration())
+
+	marker, err := th.Store.System().GetByName(model.SystemLastAccessibleFileTime)
+	require.NoError(t, err)
+	assert.Equal(t, "10", marker.Value)
+}
