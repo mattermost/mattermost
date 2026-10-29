@@ -29,6 +29,7 @@ from . import (
     release_docs_pr,
     version_archive,
 )
+from . import highlights as highlights_slide
 from .claude import Claude
 from .github import GitHub
 from .result import TODO_MARKER, Result
@@ -36,7 +37,7 @@ from .versions import Version
 
 MODES = ("dry_run", "live")
 PR_TASKS = ("version-archive", "docker-env", "upgrade-notice", "release-docs")
-TASKS = PR_TASKS + ("github-release", "posts", "breaking-changes", "drafts")
+TASKS = PR_TASKS + ("github-release", "posts", "breaking-changes", "drafts", highlights_slide.TASK)
 SERVER_REPO = "mattermost/mattermost"
 FINAL_TAG = re.compile(r"v\d+\.\d+\.\d+")
 RELEASE_BRANCH = re.compile(r"release-(\d+)\.(\d+)")
@@ -131,7 +132,7 @@ class Run:
     base_files: dict = field(default_factory=dict)  # changed paths as they were before this run
 
 
-def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=None, sleep=None) -> Run:
+def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=None, sleep=None, docs=None) -> Run:
     fetch = fetch or http.fetch
     live = env.get("MODE") == "live"
     esr = env.get("ESR_VERSIONS", "")
@@ -227,6 +228,21 @@ def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=
         built.todos, built.notes = result.todos + built.todos, result.notes + built.notes
         return Run(built, "Nothing posted: text for copy and paste.", highlights)
 
+    if task == highlights_slide.TASK:
+        if released_event and not is_latest(gh, version):
+            return Run(Result(task, version.tag, skipped=f"{version} is not the latest release"), "Skipped.")
+        if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
+            result = Result(task, version.tag)
+            result.todo("RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN are not set, so Jira was not read")
+            return Run(result, "Nothing written.")
+        client = jira.Jira(env.get("JIRA_URL") or jira.DEFAULT_URL, env["JIRA_EMAIL"], env["JIRA_TOKEN"])
+        day = date.fromisoformat(env["RELEASE_DATE"]) if env.get("RELEASE_DATE") else None
+        result = highlights_slide.build(version, client, claude, docs or highlights_slide.DocsIndex.from_checkout(),
+                                  highlights_slide.load_config(), day)
+        if result.skipped:
+            return Run(result, f"Skipped: {result.skipped}.")
+        return Run(result, "Nothing written to the deck: paste the slide from the release-highlights artifact.")
+
     if task == "drafts":
         problems = []
         entry, _ = changelog_entry(gh, version)
@@ -288,6 +304,9 @@ def write_outputs(out_dir: str, result: Result, text: str, base_files: dict) -> 
     if result.files:
         with open(os.path.join(out_dir, "changes.diff"), "w", encoding="utf-8") as f:
             f.write(diff(result, base_files))
+    for name, content in result.artifacts.items():
+        with open(os.path.join(out_dir, name), "w", encoding="utf-8") as f:
+            f.write(content)
     with open(os.path.join(out_dir, "result.json"), "w", encoding="utf-8") as f:
         json.dump({"task": result.task, "version": result.version, "repo": result.repo, "branch": result.branch,
                    "title": result.title, "body": result.body, "text": result.text, "files": sorted(result.files),

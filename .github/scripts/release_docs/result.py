@@ -20,6 +20,7 @@ class Result:
     body: str = ""
     files: dict = field(default_factory=dict)  # repo path -> new text, for PR tasks
     text: str = ""  # for tasks whose output is text: a release description, posts, drafts
+    artifacts: dict = field(default_factory=dict)  # extra artifact file name -> text
     todos: list = field(default_factory=list)
     notes: list = field(default_factory=list)
     skipped: str = ""  # why the task does not apply to this version

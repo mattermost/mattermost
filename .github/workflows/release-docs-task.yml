@@ -19,7 +19,8 @@ name: Release Docs Task
 #   CHANGELOG_ESR_VERSIONS          (variable) ESR lines, e.g. "v10.11,v11.7,v12.4"
 #   RELEASE_AGENT_CALENDAR_ICS_URL  (secret or variable) Release Dates calendar, shared with the release agent
 #   ANTHROPIC_API_KEY               (secret)   highlights, breaking-change notices, blog and email drafts
-#   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): Jira epics for drafts
+#   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): Jira versions and epics
+#                                              for drafts and release-highlights
 #   CHANGELOG_READ_CLIENT_ID        (variable) and CHANGELOG_READ_PRIVATE_KEY (secret): reads
 #                                              mattermost/enterprise PRs for the drafts
 

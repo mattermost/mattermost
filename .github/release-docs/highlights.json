@@ -1,0 +1,9 @@
+{
+  "_comment": "Release Highlights (release_docs/highlights.py). Epics matching any rule below are internal or process work: left off the slide and listed in the run summary with the rule. Labels and components match whole names, ignoring case; title keywords match whole words in the epic summary, ignoring case. Claude may leave out other epics too, each with a reason.",
+  "deck_url": "https://docs.google.com/presentation/d/1DnfgP-yyZ8-sfhQC7rS9McbQQcmSPCQYLs62LNoIJuQ/edit",
+  "exclude": {
+    "labels": ["loadtest", "load-test", "maintenance", "ci", "e2e", "e2e-tests", "infrastructure", "tech-debt", "internal"],
+    "components": ["Load Testing", "CI", "Build", "QA", "E2E Tests", "Infrastructure"],
+    "title_keywords": ["loadtest", "load test", "load testing", "maintenance", "CI", "E2E", "end-to-end test", "end-to-end tests", "test automation", "infrastructure", "flaky", "tech debt"]
+  }
+}
