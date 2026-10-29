@@ -1832,16 +1832,44 @@
     "description": "Comparison operator option in the access rule table editor dropdown; reads as 'attribute contains value'. Compact space."
   },
   "admin.access_control.table_editor.operator.covers_all": {
-    "defaultMessage": "covers all of",
-    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means every value the user holds is at or above each listed target value in the hierarchy; it is followed by the list of selected values, so keep it lowercase and sentence-continuing."
+    "defaultMessage": "has each of or a parent of",
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. 'Parent' means an ancestor at any level. Means the user holds each of the selected values, or something above it in the hierarchy; it is followed by the list of selected values, so keep it lowercase and sentence-continuing."
+  },
+  "admin.access_control.table_editor.operator.covers_all.description": {
+    "defaultMessage": "The user has each selected value, or a parent of it. {functionName}",
+    "description": "Help text under the 'has each of or a parent of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Parent' means an ancestor at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.covers_any": {
-    "defaultMessage": "covers any of",
-    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means the user's values are at or above at least one of the listed target values in the hierarchy; it is followed by the list of selected values."
+    "defaultMessage": "has any of or a parent of",
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. 'Parent' means an ancestor at any level. Means the user holds at least one of the selected values, or something above it in the hierarchy; it is followed by the list of selected values."
+  },
+  "admin.access_control.table_editor.operator.covers_any.description": {
+    "defaultMessage": "The user has at least one selected value, or a parent of it. {functionName}",
+    "description": "Help text under the 'has any of or a parent of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Parent' means an ancestor at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.ends_with": {
     "defaultMessage": "ends with",
     "description": "Comparison operator option in the access rule table editor dropdown; reads as 'attribute ends with value'. Compact space."
+  },
+  "admin.access_control.table_editor.operator.graph.group.children": {
+    "defaultMessage": "Children (any level)",
+    "description": "Group heading in the operator dropdown of the System Console access control policy editor, shown only for hierarchical attributes. Groups the operators that match values below the selected ones in the hierarchy. '(any level)' says a descendant at any depth counts, not just a direct child."
+  },
+  "admin.access_control.table_editor.operator.graph.group.exact": {
+    "defaultMessage": "Exact match",
+    "description": "Group heading in the operator dropdown of the System Console access control policy editor, shown only for hierarchical attributes. Groups the operators that ignore the hierarchy and compare values exactly."
+  },
+  "admin.access_control.table_editor.operator.graph.group.parents": {
+    "defaultMessage": "Parents (any level)",
+    "description": "Group heading in the operator dropdown of the System Console access control policy editor, shown only for hierarchical attributes. Groups the operators that match values above the selected ones in the hierarchy. '(any level)' says an ancestor at any depth counts, not just a direct parent."
+  },
+  "admin.access_control.table_editor.operator.graph.has_all_of.description": {
+    "defaultMessage": "The user has every selected value. A parent or a child is not enough. {functionName}",
+    "description": "Help text under the 'has all of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Parent' and 'child' mean an ancestor or descendant at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
+  },
+  "admin.access_control.table_editor.operator.graph.has_any_of.description": {
+    "defaultMessage": "The user has at least one selected value. A parent or a child is not enough. {functionName}",
+    "description": "Help text under the 'has any of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Parent' and 'child' mean an ancestor or descendant at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.has_all_of": {
     "defaultMessage": "has all of",
@@ -1912,12 +1940,20 @@
     "description": "Operator choice in the access rule table editor dropdown, strict less-than comparison on a version number. Reads as '<attribute> version is less than <value>'."
   },
   "admin.access_control.table_editor.operator.within_all": {
-    "defaultMessage": "is within all of",
-    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means the user's values sit at or below every listed value in the hierarchy (the opposite direction of 'covers'); it is followed by the list of selected values."
+    "defaultMessage": "is entirely within",
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means every value the user holds sits at or below one of the selected values in the hierarchy; it is followed by the list of selected values, so keep it lowercase and sentence-continuing."
+  },
+  "admin.access_control.table_editor.operator.within_all.description": {
+    "defaultMessage": "The user has at least one value, and each is a selected value or a child of one. {functionName}",
+    "description": "Help text under the 'is entirely within' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Child' means a descendant at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.within_any": {
-    "defaultMessage": "is within any of",
-    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means the user's values sit at or below at least one of the listed values in the hierarchy; it is followed by the list of selected values."
+    "defaultMessage": "has any of or a child of",
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. 'Child' means a descendant at any level. Means at least one value the user holds sits at or below one of the selected values in the hierarchy; it is followed by the list of selected values."
+  },
+  "admin.access_control.table_editor.operator.within_any.description": {
+    "defaultMessage": "At least one value the user has is a selected value, or a child of one. {functionName}",
+    "description": "Help text under the 'has any of or a child of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Child' means a descendant at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.younger_than": {
     "defaultMessage": "younger than (days)",
@@ -2319,21 +2355,9 @@
     "defaultMessage": "Try Again",
     "description": "Button on a failure dialog that retries the failed request (shared with the delete workspace flow)."
   },
-  "admin.billing.deleteWorkspace.progressModal.title": {
-    "defaultMessage": "Deleting your workspace",
-    "description": "Title of the full-screen progress modal shown while a cloud workspace deletion is running."
-  },
   "admin.billing.deleteWorkspace.resultModal.ContactSupport": {
     "defaultMessage": "Contact Support",
     "description": "Tertiary button on the workspace deletion result modal that opens a support form."
-  },
-  "admin.billing.deleteWorkspace.successModal.subtitle": {
-    "defaultMessage": "Your workspace has now been deleted. Thank you for being a customer.",
-    "description": "Body of the modal confirming the cloud workspace was deleted."
-  },
-  "admin.billing.deleteWorkspace.successModal.title": {
-    "defaultMessage": "Your workspace has been deleted",
-    "description": "Title of the modal confirming the cloud workspace was deleted."
   },
   "admin.billing.history.allPaymentsShowHere": {
     "defaultMessage": "All of your invoices will be shown here",
@@ -2403,22 +2427,6 @@
     "defaultMessage": "Transactions",
     "description": "Card heading above the invoice table on the Billing History page."
   },
-  "admin.billing.subscription.byClickingYouAgree": {
-    "defaultMessage": "By clicking {buttonContent}, you agree to the <linkAgreement>{legalText}</linkAgreement>",
-    "description": "Legal consent line under a purchase button; {buttonContent} is the lowercase button label (e.g. 'upgrade'), {legalText} is the license agreement name wrapped in a link."
-  },
-  "admin.billing.subscription.cancelSubscriptionSection.contactUs": {
-    "defaultMessage": "Contact Us",
-    "description": "Button in the cancel-subscription section that opens a support contact channel."
-  },
-  "admin.billing.subscription.cancelSubscriptionSection.description": {
-    "defaultMessage": "At this time, deleting a workspace can only be done with the help of a customer support representative.",
-    "description": "Body text of the cancel-subscription section explaining workspace deletion requires customer support."
-  },
-  "admin.billing.subscription.cancelSubscriptionSection.title": {
-    "defaultMessage": "Cancel your subscription",
-    "description": "Heading of the section on the cloud Subscription page about cancelling the subscription."
-  },
   "admin.billing.subscription.cloudMonthlyBadge": {
     "defaultMessage": "Monthly",
     "description": "Small badge next to the plan name on the Subscription page indicating monthly billing; very compact."
@@ -2451,14 +2459,6 @@
     "defaultMessage": "Annual",
     "description": "Small badge next to the plan name on the Subscription page indicating yearly billing; very compact."
   },
-  "admin.billing.subscription.complianceScreenShippingSameAsBilling": {
-    "defaultMessage": "My shipping address is the same as my billing address",
-    "description": "Checkbox-style toggle label on the cloud billing/purchase compliance screen letting the admin reuse the billing address as the shipping address."
-  },
-  "admin.billing.subscription.creditCardExpired": {
-    "defaultMessage": "Your credit card has expired. Update your payment information to avoid disruption.",
-    "description": "Announcement banner for Cloud admins when the subscription's credit card has expired."
-  },
   "admin.billing.subscription.creditCardHasExpired": {
     "defaultMessage": "Your credit card has expired",
     "description": "Title of a danger banner on the cloud Subscription page when the stored credit card has expired."
@@ -2466,10 +2466,6 @@
   "admin.billing.subscription.creditCardHasExpired.description": {
     "defaultMessage": "Please <link>update your payment information</link> to avoid any disruption.",
     "description": "Banner text on the Cloud billing subscription page when the credit card on file has expired; <link> wraps 'update your payment information'."
-  },
-  "admin.billing.subscription.downgrading": {
-    "defaultMessage": "Downgrading your workspace",
-    "description": "Title of the progress modal shown while a cloud workspace's plan downgrade is being processed; 'Downgrading' is a present participle."
   },
   "admin.billing.subscription.freeTrial.description": {
     "defaultMessage": "Your free trial will expire in {daysLeftOnTrial} days. Contact Sales to continue after the trial ends.",
@@ -2494,10 +2490,6 @@
   "admin.billing.subscription.invoice.next": {
     "defaultMessage": "Next Invoice",
     "description": "Card heading in the billing summary for the upcoming (not yet issued) invoice."
-  },
-  "admin.billing.subscription.mostRecentPaymentFailed": {
-    "defaultMessage": "Your most recent payment failed",
-    "description": "Announcement banner for Cloud admins when the latest subscription payment failed."
   },
   "admin.billing.subscription.planDetails.currentPlan": {
     "defaultMessage": "Current Plan",
@@ -2655,10 +2647,6 @@
     "defaultMessage": "Contact Sales",
     "description": "Button on subscription/billing cards that opens the sales contact flow."
   },
-  "admin.billing.subscription.privateCloudCard.contactSupport": {
-    "defaultMessage": "Contact Support",
-    "description": "Tertiary button in the failed-plan-change modal (and billing screens) that opens the Mattermost support contact page."
-  },
   "admin.billing.subscription.privateCloudCard.freeTrial.description": {
     "defaultMessage": "We love to work with our customers and their needs. Contact sales for subscription, billing or trial-specific questions.",
     "description": "Body of the contact-sales card shown to customers on a free trial."
@@ -2671,10 +2659,6 @@
     "defaultMessage": "Upgrade Now",
     "description": "Button on the subscription upgrade card that starts the purchase flow immediately."
   },
-  "admin.billing.subscription.proratedPayment.title": {
-    "defaultMessage": "You are now subscribed to {selectedProductName}",
-    "description": "Title of the success modal after a cloud plan change; {selectedProductName} is the purchased plan's name (e.g. 'Cloud Professional')."
-  },
   "admin.billing.subscription.stateprovince": {
     "defaultMessage": "State/Province",
     "description": "Label of the state/province dropdown in the billing address form of the payment/checkout screen."
@@ -2682,18 +2666,6 @@
   "admin.billing.subscription.title": {
     "defaultMessage": "Subscription",
     "description": "Page title of the Subscription section under Billing in the System Console; noun."
-  },
-  "admin.billing.subscription.updatePaymentInfo": {
-    "defaultMessage": "Update Payment Information",
-    "description": "Link/button in the billing announcement banner that opens the payment information page."
-  },
-  "admin.billing.subscription.userCount.tooltipText": {
-    "defaultMessage": "You must purchase at least the current number of active users.",
-    "description": "Tooltip body next to the seats input in the purchase seats calculator, explaining the minimum purchase requirement."
-  },
-  "admin.billing.subscription.userCount.tooltipTitle": {
-    "defaultMessage": "Current User Count",
-    "description": "Tooltip hint/title next to the seats input in the purchase seats calculator."
   },
   "admin.billing.subscriptions.billing_summary.lastInvoice.monthlyFlatFee": {
     "defaultMessage": "Monthly Flat Fee",
@@ -2951,6 +2923,14 @@
     "defaultMessage": "0",
     "description": "Placeholder example value ('0') for the Redis Database input on the System Console caching page."
   },
+  "admin.cacheSettings.redisEnableTLS": {
+    "defaultMessage": "Enable TLS",
+    "description": "Admin console setting label (toggle) on the System Console Cache Settings page that enables TLS for Redis connections."
+  },
+  "admin.cacheSettings.redisEnableTLSDesc": {
+    "defaultMessage": "When true, connections to the Redis server use TLS.",
+    "description": "Help text for the setting that enables TLS for Redis connections on the System Console Cache Settings page."
+  },
   "admin.cacheSettings.redisPassword": {
     "defaultMessage": "Redis Password",
     "description": "Admin console field label on the Cache Settings page for the Redis authentication password."
@@ -2958,6 +2938,38 @@
   "admin.cacheSettings.redisPasswordDesc": {
     "defaultMessage": "The password of the Redis server.",
     "description": "Help text for the Redis Password setting on the System Console caching page."
+  },
+  "admin.cacheSettings.redisTLSCA": {
+    "defaultMessage": "TLS CA Certificate Path",
+    "description": "Admin console setting label on the System Console Cache Settings page for the file path of the CA certificate used to verify the Redis server."
+  },
+  "admin.cacheSettings.redisTLSCADesc": {
+    "defaultMessage": "Path on each server to a PEM-encoded CA certificate used to verify the Redis server. Leave blank to use the system trust store.",
+    "description": "Help text for the Redis TLS CA certificate path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
+  },
+  "admin.cacheSettings.redisTLSClientCert": {
+    "defaultMessage": "TLS Client Certificate Path",
+    "description": "Admin console setting label on the System Console Cache Settings page for the file path of the client certificate used for mutual TLS with Redis."
+  },
+  "admin.cacheSettings.redisTLSClientCertDesc": {
+    "defaultMessage": "Path on each server to a PEM-encoded client certificate for mutual TLS.",
+    "description": "Help text for the Redis TLS client certificate path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
+  },
+  "admin.cacheSettings.redisTLSClientKey": {
+    "defaultMessage": "TLS Client Key Path",
+    "description": "Admin console setting label on the System Console Cache Settings page for the file path of the private key for the Redis client certificate."
+  },
+  "admin.cacheSettings.redisTLSClientKeyDesc": {
+    "defaultMessage": "Path on each server to the PEM-encoded private key for the client certificate.",
+    "description": "Help text for the Redis TLS client key path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
+  },
+  "admin.cacheSettings.redisTLSSkipVerify": {
+    "defaultMessage": "Skip TLS Verification",
+    "description": "Admin console setting label (toggle) on the System Console Cache Settings page that disables verification of the Redis server certificate."
+  },
+  "admin.cacheSettings.redisTLSSkipVerifyDesc": {
+    "defaultMessage": "When true, the Redis server certificate is not verified. Not recommended for production.",
+    "description": "Help text for the setting that disables Redis server certificate verification on the System Console Cache Settings page."
   },
   "admin.cacheSettings.title": {
     "defaultMessage": "Cache Settings",
@@ -17899,14 +17911,6 @@
     "defaultMessage": "Select a bot",
     "description": "Fallback text on the AI agent dropdown button when no bot is selected yet."
   },
-  "air_gapped_contact_sales_modal.body": {
-    "defaultMessage": "Please access the link below to contact sales.",
-    "description": "Body text of the modal shown to admins without internet access, above a static contact-sales URL."
-  },
-  "air_gapped_contact_sales_modal.title": {
-    "defaultMessage": "Looks like you do not have access to the internet",
-    "description": "Title of the modal shown when a contact-sales action is attempted on a server without internet access."
-  },
   "air_gapped_modal.close": {
     "defaultMessage": "Close",
     "description": "Button that closes the air-gapped trial modal."
@@ -21571,14 +21575,6 @@
     "defaultMessage": "Skip for now",
     "description": "Button on the first slide of the cloud preview walkthrough modal that dismisses the whole walkthrough."
   },
-  "cloud_signup.signup_consequences": {
-    "defaultMessage": "Your credit card will be charged today. <a>See how billing works.</a>",
-    "description": "Billing notice shown during Cloud purchase checkout; the <a> tags wrap a link to billing documentation."
-  },
-  "cloud_upgrade.error_min_seats": {
-    "defaultMessage": "Minimum of 10 seats required",
-    "description": "Validation error under the seats input when fewer than 10 seats are entered during purchase."
-  },
   "cloud.fetch_error": {
     "defaultMessage": "Error fetching billing data. Please try again later.",
     "description": "Error banner shown to admins in cloud billing screens when billing data fails to load; displayed with a Retry button."
@@ -21783,26 +21779,6 @@
     "defaultMessage": "Reset failed login attempts for {username} and unlock account",
     "description": "Title of the confirmation modal for resetting failed login attempts and unlocking a user's account; {username} is the affected user's username."
   },
-  "confirm_switch_to_yearly_modal.confirm": {
-    "defaultMessage": "Confirm",
-    "description": "Confirm button of the dialog for switching a Cloud subscription from monthly to annual billing."
-  },
-  "confirm_switch_to_yearly_modal.contact_sales": {
-    "defaultMessage": "Contact Sales",
-    "description": "Cancel-side button of the switch-to-annual-plan dialog that contacts the sales team instead."
-  },
-  "confirm_switch_to_yearly_modal.subtitle": {
-    "defaultMessage": "Changing to the annual plan is irreversible. Are you sure you want to switch from monthly to the annual plan?",
-    "description": "Body of the confirmation dialog warning that switching from monthly to annual billing cannot be reversed."
-  },
-  "confirm_switch_to_yearly_modal.subtitle2": {
-    "defaultMessage": "For more information, please contact sales.",
-    "description": "Second subtitle line in the confirmation modal for switching a Cloud subscription from monthly to yearly billing; audience is a workspace admin."
-  },
-  "confirm_switch_to_yearly_modal.title": {
-    "defaultMessage": "Confirm switch to annual plan",
-    "description": "Title of the confirmation dialog for switching from a monthly to an annual billing plan."
-  },
   "convert_channel.cancel": {
     "defaultMessage": "No, cancel",
     "description": "Cancel button in the convert-to-private-channel confirmation modal; phrased as answering the confirmation question."
@@ -21915,30 +21891,6 @@
     "defaultMessage": "Your message is too long. Character count: {length}/{limit}",
     "description": "Error under the message box when a draft exceeds the maximum length; {length} is the current character count, {limit} the maximum."
   },
-  "create_post.file_limit_sticky_banner.admin_message": {
-    "defaultMessage": "New uploads will automatically archive older files. To view them again, you can delete older files or <a>upgrade to a paid plan.</a>",
-    "description": "Body of a sticky banner above the message box for system admins when the Cloud free plan's file storage limit is reached; the <a> tag wraps a link that opens the upgrade flow."
-  },
-  "create_post.file_limit_sticky_banner.admin_message_airgapped": {
-    "defaultMessage": "New uploads will automatically archive older files. To view them again, you can delete older files.",
-    "description": "Sticky banner above the message input shown to system admins on air-gapped servers when the free-plan file storage limit is reached."
-  },
-  "create_post.file_limit_sticky_banner.messageTitle": {
-    "defaultMessage": "Your free plan is limited to {storageGB} of files.",
-    "description": "Leading sentence of the sticky banner shown when file storage is full; {storageGB} is a formatted storage amount like '10GB'."
-  },
-  "create_post.file_limit_sticky_banner.non_admin_message": {
-    "defaultMessage": "New uploads will automatically archive older files. To view them again, <a>notify your admin to upgrade to a paid plan.</a>",
-    "description": "Body of the file storage limit sticky banner for non-admin users; the <a> tag wraps a link that sends an upgrade request to the admin."
-  },
-  "create_post.file_limit_sticky_banner.non_admin_message_airgapped": {
-    "defaultMessage": "New uploads will automatically archive older files. To view them again, contact your admin.",
-    "description": "Sticky banner above the message input shown to regular users on air-gapped servers when the file storage limit is reached."
-  },
-  "create_post.file_limit_sticky_banner.snooze_tooltip": {
-    "defaultMessage": "Snooze for {snoozeDays} days",
-    "description": "Tooltip on the close button of the file storage limit banner; {snoozeDays} is the number of days the banner stays hidden."
-  },
   "create_post.fileProcessing": {
     "defaultMessage": "Processing...",
     "description": "Status text on a file upload preview thumbnail while the file is still being processed after upload."
@@ -22006,14 +21958,6 @@
   "create_post.write": {
     "defaultMessage": "Write to {channelDisplayName}",
     "description": "Placeholder in the message box for a channel; {channelDisplayName} is the channel's display name."
-  },
-  "create_team.createTeamRestricted.message": {
-    "defaultMessage": "Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.",
-    "description": "Body text on the team creation page when the workspace plan's team limit is reached, prompting a trial or admin contact."
-  },
-  "create_team.createTeamRestricted.title": {
-    "defaultMessage": "Professional feature",
-    "description": "Heading on the team creation page when team creation is blocked by the plan limit; names the required plan tier."
   },
   "create_team.display_name.create": {
     "defaultMessage": "Create",
@@ -22390,10 +22334,6 @@
   "delete_post.warning": {
     "defaultMessage": "This message has {count, number} {count, plural, one {comment} other {comments}} on it.",
     "description": "Warning in the delete-post modal that replies will also be removed; {count} is the number of replies and drives the plural branches comment/comments."
-  },
-  "delete_success_modal.button_text": {
-    "defaultMessage": "Go to mattermost.com",
-    "description": "Primary button on the workspace-deleted modal; navigates to the mattermost.com website; keep the domain as-is."
   },
   "deleteChannelModal.canViewArchivedChannelsWarning": {
     "defaultMessage": "This will archive the channel from the team. Channel contents will still be accessible by channel members.",
@@ -22950,18 +22890,6 @@
   "emoji_skin.medium_skin_tone": {
     "defaultMessage": "Medium skin tone",
     "description": "Name of the medium skin tone option in the emoji picker's skin tone selector."
-  },
-  "error_modal.subtitle": {
-    "defaultMessage": "An error occurred while changing your plan. Please go back and try again, or contact the support team.",
-    "description": "Body text of the modal shown to admins when a cloud subscription plan change fails."
-  },
-  "error_modal.title": {
-    "defaultMessage": "We were unable to change your plan",
-    "description": "Title of the modal shown to admins when a cloud subscription plan change fails."
-  },
-  "error_modal.try_again": {
-    "defaultMessage": "Try again",
-    "description": "Primary button in the failed-plan-change modal; retries the purchase flow."
   },
   "error.channel_not_found.message": {
     "defaultMessage": "The channel you're requesting is private or does not exist. Please contact an Administrator to be added to the channel.",
@@ -23986,10 +23914,6 @@
   "globalHeader.productSwitcherMenu.ariaLabel": {
     "defaultMessage": "Product menu",
     "description": "Screen-reader label for the product menu that opens from the grid icon and product name at the top left of the global header."
-  },
-  "globalHeader.productSwitcherMenu.cloudLimitsFooter.infoButtonAriaLabel": {
-    "defaultMessage": "View limits",
-    "description": "Screen-reader label for the info icon button in the usage-limits footer of the product menu, on Cloud workspaces. It opens a dialog with workspace usage limits. 'View' is a verb."
   },
   "globalHeader.productSwitcherMenu.downloadMenuItem.label": {
     "defaultMessage": "Download Apps",
@@ -27131,6 +27055,14 @@
     "defaultMessage": "No saved messages yet",
     "description": "Empty-state title of the Saved messages panel when the user has not saved any messages."
   },
+  "no_results.mentions_filtered.subtitle": {
+    "defaultMessage": "Try removing or changing a filter to see more of your mentions.",
+    "description": "Explanatory text in the empty Recent Mentions panel when the applied filters match no mentions."
+  },
+  "no_results.mentions_filtered.title": {
+    "defaultMessage": "No mentions match your filters",
+    "description": "Empty-state title of the Recent Mentions panel when the applied filters match no mentions, as opposed to the user having no mentions at all."
+  },
   "no_results.mentions.subtitle": {
     "defaultMessage": "Messages where someone mentions you or includes your trigger words are saved here.",
     "description": "Explanatory text in the empty Recent Mentions panel describing what appears there."
@@ -27599,25 +27531,9 @@
     "defaultMessage": "Password Requirements:",
     "description": "Label on the Password admin page preceding the list of password requirement checkboxes; ends with a colon."
   },
-  "payment_form.address": {
-    "defaultMessage": "Address",
-    "description": "Form field label for the street address in the billing address form of the payment/checkout screen."
-  },
-  "payment_form.address_2": {
-    "defaultMessage": "Address 2",
-    "description": "Label for the second address line (apartment/suite) field in the billing payment form."
-  },
-  "payment_form.city": {
-    "defaultMessage": "City",
-    "description": "Form field label for the city in the billing address form of the payment/checkout screen."
-  },
   "payment_form.country": {
     "defaultMessage": "Country/Region",
     "description": "Label of the country/region dropdown in the billing address form of the payment/checkout screen."
-  },
-  "payment_form.zipcode": {
-    "defaultMessage": "Zip/Postal Code",
-    "description": "Form field label for the postal/ZIP code in the billing address form of the payment/checkout screen."
   },
   "pending_post_actions.cancel": {
     "defaultMessage": "Cancel",
@@ -27694,14 +27610,6 @@
   "persist_notification.too_many.title": {
     "defaultMessage": "Too many recipients",
     "description": "Title of the dialog shown when a persistent-notification message mentions more recipients than allowed."
-  },
-  "plan.cloud": {
-    "defaultMessage": "Cloud",
-    "description": "Plan name 'Cloud'; concatenated directly before the 'license purchase only supports purchases up to {num} seats' error message."
-  },
-  "plan.self_serve": {
-    "defaultMessage": "Self-serve",
-    "description": "Plan name 'Self-serve'; concatenated directly before the 'license purchase only supports purchases up to {num} seats' error message."
   },
   "pluggable.errorOccurred": {
     "defaultMessage": "An error occurred in the {pluginId} plugin.",
@@ -28303,10 +28211,6 @@
     "defaultMessage": "View plans",
     "description": "Button in the global header that opens the pricing/plans modal; visible to system admins."
   },
-  "pricing_modal.plan_label_trialDays": {
-    "defaultMessage": "{days} DAYS LEFT ON TRIAL",
-    "description": "All-caps badge on a plan card in the pricing modal during a free trial; {days} is the number of days remaining."
-  },
   "pricing_modal.wantToTry": {
     "defaultMessage": "Want to try? ",
     "description": "Lead-in text before the 'notify your admin' button in upsell prompts, shown to non-admin users before a trial has been used; ends with a space because the button text follows inline."
@@ -28318,6 +28222,34 @@
   "product_menu_item.open_in_new_tab": {
     "defaultMessage": "Open in new tab",
     "description": "Tooltip/accessibility label on external product links in the product switcher menu indicating they open in a new browser tab."
+  },
+  "product_rail.ariaLabel": {
+    "defaultMessage": "Product navigation",
+    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards."
+  },
+  "product_rail.boards": {
+    "defaultMessage": "Boards",
+    "description": "Label under the Boards icon in the product navigation rail. Clicking it shows only boards in the left sidebar."
+  },
+  "product_rail.channels": {
+    "defaultMessage": "Channels",
+    "description": "Label under the Channels icon in the product navigation rail. Clicking it shows only channels and direct messages in the left sidebar, leaving out boards."
+  },
+  "product_rail.teamMenu.buttonLabel": {
+    "defaultMessage": "Switch teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."
+  },
+  "product_rail.teamMenu.menuLabel": {
+    "defaultMessage": "Teams",
+    "description": "Accessible name of the menu of the user's teams opened from the top of the product navigation rail."
+  },
+  "product_rail.teamMenu.showTeamSidebar": {
+    "defaultMessage": "Show team sidebar",
+    "description": "Last item in the team menu at the top of the product navigation rail. It brings back the team sidebar the user hid."
+  },
+  "product_rail.threads": {
+    "defaultMessage": "Threads",
+    "description": "Label under the Threads icon in the product navigation rail. Clicking it opens the list of followed threads."
   },
   "profile_popover.aria_label.with_username": {
     "defaultMessage": "{userName}'s profile popover",
@@ -29787,6 +29719,82 @@
     "defaultMessage": "Recent files",
     "description": "Heading above the list of a channel's recently shared files in the right-hand sidebar, next to a file-type filter menu."
   },
+  "search_results.mention_filters.all_teams": {
+    "defaultMessage": "All teams",
+    "description": "Option in the Team selector of the Recent Mentions filters popover, meaning mentions from every team the user belongs to."
+  },
+  "search_results.mention_filters.apply": {
+    "defaultMessage": "Apply",
+    "description": "Button that applies the filters and closes the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.button": {
+    "defaultMessage": "Filters",
+    "description": "Label of the button at the top of the Recent Mentions panel that opens the filters popover, shown when no filter is applied."
+  },
+  "search_results.mention_filters.button_with_count": {
+    "defaultMessage": "Filters ({count})",
+    "description": "Label of the button that opens the Recent Mentions filters popover, with the number of filters currently applied in brackets."
+  },
+  "search_results.mention_filters.channel_on_team": {
+    "defaultMessage": "{channel} ({team})",
+    "description": "Label of a channel filter chip under the Recent Mentions header when no team filter is set, where a channel name alone can be ambiguous. {channel} is the channel name, {team} its team."
+  },
+  "search_results.mention_filters.channels": {
+    "defaultMessage": "Channel or Direct Messages",
+    "description": "Label of the channel multi-select in the Recent Mentions filters popover. Also used as its placeholder when no channel is selected."
+  },
+  "search_results.mention_filters.date": {
+    "defaultMessage": "Date",
+    "description": "Heading of the date section of the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.date.any": {
+    "defaultMessage": "Any time",
+    "description": "Date option in the Recent Mentions filters popover: do not limit results by date. The default."
+  },
+  "search_results.mention_filters.date.last_7_days": {
+    "defaultMessage": "Last 7 days",
+    "description": "Date option in the Recent Mentions filters popover: only mentions from the last seven days, today included."
+  },
+  "search_results.mention_filters.date.today": {
+    "defaultMessage": "Today",
+    "description": "Date option in the Recent Mentions filters popover: only mentions from today, in the user's own timezone."
+  },
+  "search_results.mention_filters.mention_type": {
+    "defaultMessage": "Mention type",
+    "description": "Heading of the mention type section of the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.no_channels": {
+    "defaultMessage": "No channels found",
+    "description": "Shown in place of the channel list in the Recent Mentions filters popover when the search text matches no channel."
+  },
+  "search_results.mention_filters.remove_filter": {
+    "defaultMessage": "Remove {filter} filter",
+    "description": "Accessible label of the x on a filter chip under the Recent Mentions header. {filter} is the chip's own label, such as a channel or team name."
+  },
+  "search_results.mention_filters.reset": {
+    "defaultMessage": "Reset",
+    "description": "Button that clears every filter in the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.team": {
+    "defaultMessage": "Team",
+    "description": "Label of the team selector in the Recent Mentions filters popover."
+  },
+  "search_results.mention_filters.type.direct": {
+    "defaultMessage": "Directly mentioning you",
+    "description": "Mention type option in the Recent Mentions filters popover: posts that mention the user by their own username."
+  },
+  "search_results.mention_filters.type.group": {
+    "defaultMessage": "Group mentions",
+    "description": "Mention type option in the Recent Mentions filters popover: posts that mention a group the user belongs to."
+  },
+  "search_results.mention_filters.type.keyword": {
+    "defaultMessage": "Keywords triggering mentions",
+    "description": "Mention type option in the Recent Mentions filters popover: posts containing one of the keywords from the user's notification settings."
+  },
+  "search_results.mention_filters.unknown_channel": {
+    "defaultMessage": "Channel",
+    "description": "Fallback label on a channel filter chip under the Recent Mentions header, when the channel's name isn't loaded."
+  },
   "search_results.messages_or_files": {
     "defaultMessage": "Messages or Files",
     "description": "Screen-reader label for the tab list in the search results panel that switches between message results and file results."
@@ -29818,54 +29826,6 @@
   "select_team.recommended.aria": {
     "defaultMessage": "Recommended based on your attributes",
     "description": "Accessibility label for the 'Recommended' badge on a team in the team selection page; the recommendation is based on the user's attributes matching the team's access rules."
-  },
-  "self_hosted_signup.air_gapped_content": {
-    "defaultMessage": "It appears that your instance is air-gapped, or it may not be connected to the internet. To purchase a license, please visit",
-    "description": "Body text of the purchase modal on air-gapped servers; the customer portal URL is rendered immediately after this sentence, so it intentionally ends mid-sentence."
-  },
-  "self_hosted_signup.air_gapped_title": {
-    "defaultMessage": "Purchase through the customer portal",
-    "description": "Title of the modal telling admins on air-gapped servers to purchase a license through the customer portal."
-  },
-  "self_hosted_signup.close": {
-    "defaultMessage": "Close",
-    "description": "Button closing the dialog that says a self-hosted license purchase is under review."
-  },
-  "self_hosted_signup.error_invalid_number": {
-    "defaultMessage": "Enter a valid number of seats",
-    "description": "Validation error under the seats input when the entered value is not a valid number."
-  },
-  "self_hosted_signup.error_max_seats": {
-    "defaultMessage": " license purchase only supports purchases up to {num} seats",
-    "description": "Validation error for too many seats; a plan name ('Cloud' or 'Self-serve') is concatenated immediately before it, hence the leading space. {num} is the maximum seat count."
-  },
-  "self_hosted_signup.error_min_seats": {
-    "defaultMessage": "Your workspace currently has {num} users",
-    "description": "Validation error when fewer seats than existing users are entered; {num} is the workspace's current user count."
-  },
-  "self_hosted_signup.line_item_subtotal": {
-    "defaultMessage": "{num} seats × 12 mo.",
-    "description": "Line item label in the purchase seats calculator; {num} is the seat count, '12 mo.' abbreviates 12 months of an annual plan."
-  },
-  "self_hosted_signup.screening_description": {
-    "defaultMessage": "We will check things on our side and get back to you within 3 days once your license is approved. In the meantime, please feel free to continue using the free version of our product.",
-    "description": "Body of the dialog telling an admin their self-hosted license purchase is being manually screened before approval."
-  },
-  "self_hosted_signup.screening_title": {
-    "defaultMessage": "Your transaction is being reviewed",
-    "description": "Title of the dialog telling an admin their self-hosted license purchase transaction is being reviewed."
-  },
-  "self_hosted_signup.seats": {
-    "defaultMessage": "Seats",
-    "description": "Placeholder for the number-of-seats input in the purchase seats calculator; 'Seats' means purchased user licenses."
-  },
-  "self_hosted_signup.signup_consequences": {
-    "defaultMessage": "You will be billed today. Your license will be applied automatically. <a>See how billing works.</a>",
-    "description": "Billing notice shown during self-hosted license purchase; the <a> tags wrap a link to billing documentation."
-  },
-  "self_hosted_signup.total": {
-    "defaultMessage": "Total",
-    "description": "Label for the total price row in the purchase seats calculator."
   },
   "setting_item_max.cancel": {
     "defaultMessage": "Cancel",
@@ -30475,9 +30435,25 @@
     "defaultMessage": "unreads filter",
     "description": "Accessible label for the unread-channels filter toggle in the channel sidebar."
   },
+  "sidebar_left.channel_filter.menu": {
+    "defaultMessage": "Channel filters",
+    "description": "Accessible name of the menu of view options opened from the filter button above the channel list."
+  },
+  "sidebar_left.channel_filter.menuButton": {
+    "defaultMessage": "Filter channels",
+    "description": "Tooltip and accessible name of the filter button above the channel list while the product navigation rail splits boards from channels. It opens a menu of view options."
+  },
   "sidebar_left.channel_filter.showAllChannels": {
     "defaultMessage": "Show all channels",
     "description": "Tooltip on the sidebar filter toggle when it would disable the unread filter and show all channels again."
+  },
+  "sidebar_left.channel_filter.showBoards": {
+    "defaultMessage": "Show boards",
+    "description": "Checkbox item in the channel filter menu, shown in the Channels view of the product navigation rail. When checked, boards are listed alongside channels instead of only under Boards."
+  },
+  "sidebar_left.channel_filter.unreadsOnly": {
+    "defaultMessage": "Unreads only",
+    "description": "Checkbox item in the channel filter menu. When checked, the channel list shows only unread channels."
   },
   "sidebar_left.channel_navigator.channelSwitcherLabel": {
     "defaultMessage": "Find Channels",
@@ -30706,6 +30682,10 @@
   "sidebar.openDirectMessage": {
     "defaultMessage": "Open a direct message",
     "description": "Menu item in the Direct Messages category menu that opens the new direct message dialog."
+  },
+  "sidebar.productRail.noBoards": {
+    "defaultMessage": "No boards in this team yet.",
+    "description": "Shown in the left sidebar when the Boards item of the product navigation rail is selected but the team has no boards the user is a member of."
   },
   "sidebar.show": {
     "defaultMessage": "Show",
@@ -30995,14 +30975,6 @@
     "defaultMessage": "Slash Commands",
     "description": "Breadcrumb link on the slash command setup confirmation page; navigates back to the Slash Commands list."
   },
-  "start_cloud_trial.modal.enter_trial_email.input.label": {
-    "defaultMessage": "Enter business email",
-    "description": "Label of the email input in the modal where an admin enters a business email to start a cloud trial."
-  },
-  "start_cloud_trial.modal.enter_trial_email.input.placeholder": {
-    "defaultMessage": "name@companyname.com",
-    "description": "Placeholder showing an example email address format in the cloud trial business-email input; may be kept as-is."
-  },
   "start_trial_form_modal.failureModal.subtitle": {
     "defaultMessage": "There was an issue processing your trial request.",
     "description": "Body text of the error dialog shown when submitting the start-trial form fails."
@@ -31074,14 +31046,6 @@
   "start_trial.tutorialTip.title": {
     "defaultMessage": "Try our premium features for free",
     "description": "Title of the tour tip shown during the 'start trial' onboarding task."
-  },
-  "success_modal.return_to_workspace": {
-    "defaultMessage": "Return to workspace",
-    "description": "Primary button in the successful-plan-change modal that closes it and returns the admin to the app."
-  },
-  "success_modal.subtitle": {
-    "defaultMessage": "Your final bill will be prorated. Your workspace now has {plan} limits.",
-    "description": "Body text of the successful-plan-change modal; {plan} is the new plan's name and refers to its usage limits."
   },
   "suggestion.all": {
     "defaultMessage": "All channel types",
@@ -31755,6 +31719,10 @@
     "defaultMessage": "Syncing...",
     "description": "Status text with a spinner shown in the membership sync footer while a membership sync job is running."
   },
+  "team_sidebar.hide": {
+    "defaultMessage": "Hide team sidebar",
+    "description": "Tooltip and accessible name of the button at the bottom of the team sidebar that hides it. The teams then move into a menu at the top of the product navigation rail."
+  },
   "team_sidebar.join": {
     "defaultMessage": "Other teams you can join",
     "description": "Tooltip and accessible name of the + button in the team sidebar that opens the list of other joinable teams."
@@ -32051,17 +32019,9 @@
     "defaultMessage": "Synchronize your Active Directory/LDAP groups",
     "description": "Feature card title in the 'trial ends soon' modal shown to admins; refers to AD/LDAP group synchronization."
   },
-  "three_days_left_trial.modal.limitsTitle": {
-    "defaultMessage": "Limits",
-    "description": "Card title in the 'trial ends soon' modal shown to admins on Cloud; refers to plan usage limits."
-  },
   "three_days_left_trial.modal.subtitle": {
     "defaultMessage": "There is still time to explore what our paid plans can help you accomplish.",
     "description": "Subtitle of the modal shown to admins when their Enterprise trial has three days remaining."
-  },
-  "three_days_left_trial.modal.subtitleLimitsOverpassed": {
-    "defaultMessage": "There are 3 days left on your trial. Upgrade to our Professional or Enterprise plan to avoid exceeding your data limits on the Free plan.",
-    "description": "Subtitle of the modal shown to Cloud admins when 3 days remain in their trial and they have exceeded Free plan data limits; urges upgrading to a paid plan."
   },
   "three_days_left_trial.modal.systemConsoleDescription": {
     "defaultMessage": "Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.",
@@ -32074,10 +32034,6 @@
   "three_days_left_trial.modal.title": {
     "defaultMessage": "Your trial ends soon",
     "description": "Title of the modal shown to admins when their paid-plan trial is about to expire."
-  },
-  "three_days_left_trial.modal.titleLimitsOverpassed": {
-    "defaultMessage": "Upgrade before the trial ends",
-    "description": "Title of the modal shown to Cloud admins when 3 days remain in their trial and Free plan data limits are exceeded."
   },
   "three_days_left_trial.modal.useSsoDescription": {
     "defaultMessage": "Sign on quickly and easily with our SSO feature that works with OpenID, SAML, Google, and O365.",
@@ -34751,89 +34707,9 @@
     "defaultMessage": "Unarchive this file by upgrading",
     "description": "Tooltip title on an archived file attachment prompting an upgrade to a paid plan to restore access."
   },
-  "workspace_limits.file_storage": {
-    "defaultMessage": "File storage",
-    "description": "Name of the file storage usage meter in the cloud workspace limits panel; compact space."
-  },
-  "workspace_limits.file_storage.short": {
-    "defaultMessage": "Files",
-    "description": "Compact label for the file storage usage bar in the Cloud workspace usage panel; refers to uploaded file storage."
-  },
-  "workspace_limits.file_storage.short.usage": {
-    "defaultMessage": "{actual} / {limit}",
-    "description": "Compact usage readout next to the file storage bar in the Cloud usage panel; {actual} is current storage used and {limit} the plan's cap (both sizes like '5GB')."
-  },
-  "workspace_limits.file_storage.usage": {
-    "defaultMessage": "{actual} of {limit} ({percent}%)",
-    "description": "Usage readout for file storage on the admin billing/subscription page; {actual} is used storage, {limit} the plan cap, {percent} the numeric percentage used."
-  },
-  "workspace_limits.menu_limit.critical.files_storage": {
-    "defaultMessage": "You’re getting closer to the {limit} file storage limit. <a>{callToAction}</a>",
-    "description": "Cloud usage warning in the main menu when file storage nears its limit; {limit} is a storage amount (e.g. 10GB); <a> wraps {callToAction}, a link like 'View plans'."
-  },
-  "workspace_limits.menu_limit.critical.messages_history": {
-    "defaultMessage": "You’re close to hitting the free {limit} message history limit <a>{callToAction}</a>",
-    "description": "Cloud usage warning in the main menu when message history nears the free limit; {limit} is a message count; <a> wraps {callToAction}, a link like 'View plans'."
-  },
-  "workspace_limits.menu_limit.critical.messages_history_non_admin": {
-    "defaultMessage": "You’re almost at the message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>",
-    "description": "Warning shown to non-admin end users in the main menu usage widget when the workspace nears the Cloud Free message limit; <a> wraps the {callToAction} link text (e.g. 'Notify admin')."
-  },
-  "workspace_limits.menu_limit.file_storage": {
-    "defaultMessage": "File storage limit",
-    "description": "Label of the file storage usage meter shown in the main menu for cloud workspaces near their limits."
-  },
-  "workspace_limits.menu_limit.messages": {
-    "defaultMessage": "Total messages",
-    "description": "Label of the message count usage meter shown in the main menu for cloud workspaces near their limits."
-  },
-  "workspace_limits.menu_limit.notify_admin": {
-    "defaultMessage": "Notify admin",
-    "description": "Call-to-action link text for non-admin users to notify their admin about a reached cloud usage limit."
-  },
-  "workspace_limits.menu_limit.over.files_storage": {
-    "defaultMessage": "You’re over the {limit} file storage limit. You can only access the most recent {limit} worth of files. <a>{callToAction}</a>",
-    "description": "Cloud usage notice in the main menu when file storage is over its limit; {limit} is a storage amount; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.over.messages_history": {
-    "defaultMessage": "You’re over the free message history limit. You can only view up to the last {limit} messages in your history. <a>{callToAction}</a>",
-    "description": "Cloud usage notice in the main menu when message history is over the free limit; {limit} is a message count; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.over.messages_history_non_admin": {
-    "defaultMessage": "You’re over your message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>",
-    "description": "Warning shown to non-admin end users in the main menu usage widget when the workspace has exceeded the Cloud Free message limit; <a> wraps the {callToAction} link text."
-  },
-  "workspace_limits.menu_limit.reached.files_storage": {
-    "defaultMessage": "You’ve reached the {limit} file storage limit. You can only access the most recent {limit} worth of files. <a>{callToAction}</a>",
-    "description": "Cloud usage notice in the main menu when file storage has hit its limit; {limit} is a storage amount; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.reached.messages_history": {
-    "defaultMessage": "You’ve reached the free message history limit. You can only view up to the last {limit} messages in your history. <a>{callToAction}</a>",
-    "description": "Cloud usage notice in the main menu when message history has hit the free limit; {limit} is a message count; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.reached.messages_history_non_admin": {
-    "defaultMessage": "You’ve reached your message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>",
-    "description": "Warning shown to non-admin end users in the main menu usage widget when the workspace has just hit the Cloud Free message limit; <a> wraps the {callToAction} link text."
-  },
   "workspace_limits.menu_limit.view_plans": {
     "defaultMessage": "View plans",
     "description": "Short link/button that opens the plan comparison view; used on license panels and usage menus; compact space."
-  },
-  "workspace_limits.menu_limit.view_upgrade_options": {
-    "defaultMessage": "View upgrade options.",
-    "description": "Call-to-action link text for admins in the cloud usage limit notices; opens upgrade/pricing options."
-  },
-  "workspace_limits.menu_limit.warn.files_storage": {
-    "defaultMessage": "You’re getting closer to the {limit} file storage limit. <a>{callToAction}</a>",
-    "description": "Cloud usage warning in the main menu as file storage approaches its limit; {limit} is a storage amount; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.warn.messages_history": {
-    "defaultMessage": "You're getting closer to the free {limit} message limit. <a>{callToAction}</a>",
-    "description": "Cloud usage warning in the main menu as message history approaches the free limit; {limit} is a message count; <a> wraps {callToAction}."
-  },
-  "workspace_limits.message_history": {
-    "defaultMessage": "Message history",
-    "description": "Name of the message history usage meter in the cloud workspace limits panel; compact space."
   },
   "workspace_limits.message_history.locked.description.admin": {
     "defaultMessage": "Full access to message history is included in <a>paid plans</a>",
@@ -34843,50 +34719,6 @@
     "defaultMessage": "Limited history is displayed",
     "description": "Title of the banner shown to admins at the top of a channel when older messages are hidden due to the Cloud Free message-history limit."
   },
-  "workspace_limits.message_history.short": {
-    "defaultMessage": "Messages",
-    "description": "Compact label for the message history usage bar in the Cloud workspace usage panel; refers to stored messages."
-  },
-  "workspace_limits.message_history.short.usage": {
-    "defaultMessage": "{actual} / {limit}",
-    "description": "Compact usage readout next to the message history bar in the Cloud usage panel; {actual} is the current message count (e.g. '8K') and {limit} the plan's cap."
-  },
-  "workspace_limits.message_history.usage": {
-    "defaultMessage": "{actual} of {limit} messages ({percent}%)",
-    "description": "Usage readout for message history on the admin billing/subscription page; {actual} is the current message count, {limit} the plan cap, {percent} the numeric percentage used."
-  },
-  "workspace_limits.modals.close": {
-    "defaultMessage": "Close",
-    "description": "Secondary button that dismisses the cloud usage-limits modal."
-  },
-  "workspace_limits.modals.informational.description.freeLimits": {
-    "defaultMessage": "{planName} is restricted to {messages} message history and {storage} file storage.",
-    "description": "Body of the cloud usage-limits modal; {planName} is the plan name, {messages} a formatted message count, {storage} a size like '10GB'."
-  },
-  "workspace_limits.modals.informational.title": {
-    "defaultMessage": "{planName} limits",
-    "description": "Title of the cloud usage-limits modal; {planName} is the subscription plan name (e.g. 'Cloud Free')."
-  },
-  "workspace_limits.modals.limits_reached.description.message_history": {
-    "defaultMessage": "Your sent message history is no longer available but you can still send messages. Upgrade to a paid plan and get unlimited access to your message history.",
-    "description": "Body of the modal shown when a cloud workspace exceeds its message-history limit, prompting an upgrade."
-  },
-  "workspace_limits.modals.limits_reached.title": {
-    "defaultMessage": "{limitName} limit reached",
-    "description": "Title of the modal shown to cloud admins on login when a usage limit is exceeded; {limitName} is the limit's name (e.g. 'Message history')."
-  },
-  "workspace_limits.modals.limits_reached.title.message_history": {
-    "defaultMessage": "Message history",
-    "description": "Name of the limit inserted into the 'limits reached' modal title shown to Cloud admins; refers to the stored message history limit."
-  },
-  "workspace_limits.modals.view_plan_options": {
-    "defaultMessage": "View plan options",
-    "description": "Button in workspace-limit notices that opens the pricing/plan comparison modal."
-  },
-  "workspace_limits.modals.view_plans": {
-    "defaultMessage": "View plans",
-    "description": "Primary button in the cloud usage-limits modal that opens the pricing/plans modal."
-  },
   "workspace_limits.post_history_banner.cta_button": {
     "defaultMessage": "Restore Access",
     "description": "Button in the message-history limit banner on Cloud free plans; leads to upgrading to restore access to older messages."
@@ -34894,26 +34726,6 @@
   "workspace_limits.post_history_banner.text": {
     "defaultMessage": "{limit, number}-message limit reached. Messages sent before {date} are hidden",
     "description": "Announcement banner on Cloud free plans when the message history limit is reached; {limit} is the message count limit and {date} a formatted date."
-  },
-  "workspace_limits.teams_limit_reached.tool_tip": {
-    "defaultMessage": "You've reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams",
-    "description": "Tooltip hint on the disabled Unarchive Team button when the workspace's plan team limit is reached; shown to admins."
-  },
-  "workspace_limits.teams_limit_reached.upgrade_to_unarchive": {
-    "defaultMessage": "Upgrade to Unarchive",
-    "description": "Tooltip title on the disabled Unarchive Team button when the plan's team limit is reached."
-  },
-  "workspace_limits.teams_limit_reached.view_upgrade_options": {
-    "defaultMessage": "View upgrade options",
-    "description": "Button next to the disabled Unarchive Team button; opens plan upgrade options."
-  },
-  "workspace_limits.upgrade": {
-    "defaultMessage": "Upgrade to avoid {planName} data limits",
-    "description": "Heading of the workspace limits panel urging an upgrade; {planName} is the current free plan's name."
-  },
-  "workspace_limits.upgrade_reasons.free": {
-    "defaultMessage": "{planName} is restricted to {messagesLimit} message history and {storageLimit} file storage. You can delete items to free up space or upgrade to a paid plan.",
-    "description": "Description on the admin billing page explaining Free plan restrictions; {planName} is the plan name, {messagesLimit} a message count, {storageLimit} a storage size."
   },
   "wysiwyg.link.display_text": {
     "defaultMessage": "Display text",

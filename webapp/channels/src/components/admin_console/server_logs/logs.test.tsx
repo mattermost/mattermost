@@ -341,6 +341,20 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         })));
     });
 
+    test('should clear the time range from the empty state', async () => {
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+        expect(await screen.findByText(/No logs found/)).toBeInTheDocument();
+
+        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
+        expect(await screen.findByText(/No logs match your filters/)).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: ''})));
+        expect(await screen.findByText(/No logs found/)).toBeInTheDocument();
+    });
+
     test('should not start a fetch until the previous one has finished', async () => {
         const first = deferred();
         const getLogs = jest.fn().mockReturnValueOnce(first.promise).mockResolvedValue({});
