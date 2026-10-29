@@ -8,6 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
+import type {SubItemsToggle} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
 import {useChannelKind} from 'hooks/useChannelKind';
 import type {KindMessages} from 'utils/channel_kind';
@@ -20,11 +21,13 @@ import type {PropsFromRedux} from './index';
 export interface Props extends PropsFromRedux {
     channel: Channel;
     currentTeamName: string;
+    subItemsToggle?: SubItemsToggle;
 }
 
 const SidebarBaseChannel = ({
     channel,
     currentTeamName,
+    subItemsToggle,
     actions,
 }: Props) => {
     const intl = useIntl();
@@ -69,6 +72,7 @@ const SidebarBaseChannel = ({
             channelLeaveHandler={channelLeaveHandler!}
             icon={channelIcon}
             isSharedChannel={channel.shared}
+            subItemsToggle={subItemsToggle}
         />
     );
 };
