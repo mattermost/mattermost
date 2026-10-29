@@ -27,6 +27,7 @@ import (
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -2702,5 +2703,192 @@ func TestOAuthCustomRedirectScheme(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 		require.True(t, strings.HasPrefix(redirect, "https://example.com/cb?code="), redirect)
+	})
+}
+
+// TestOAuthStoreErrorClassification covers the store-error branches in the OAuth
+// helpers: a store *AppError is returned as-is, ErrInvalidInput and ErrNotFound map
+// to their specific app errors, and any other error falls through to the generic one.
+func TestOAuthStoreErrorClassification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfigWithStoreMock(t, func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
+	})
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+	var oauthBinding *mock.Call
+	bindOAuth := func(oauth *storemocks.OAuthStore) {
+		t.Helper()
+		if oauthBinding != nil {
+			oauthBinding.Unset()
+		}
+		oauthBinding = mockStore.On("OAuth").Return(oauth)
+	}
+
+	var tokenBinding *mock.Call
+	bindToken := func(tokenStore *storemocks.TokenStore) {
+		t.Helper()
+		if tokenBinding != nil {
+			tokenBinding.Unset()
+		}
+		tokenBinding = mockStore.On("Token").Return(tokenStore)
+	}
+
+	// Wrap ErrInvalidInput so a swapped branch would classify this as invalid input
+	// instead of returning the store's AppError.
+	storeAppErr := func() *model.AppError {
+		return model.NewAppError("store", "custom.oauth.app_error", nil, "", http.StatusTeapot).Wrap(store.NewErrInvalidInput("OAuthApp", "Id", "preset"))
+	}
+	invalidInput := func() error {
+		return store.NewErrInvalidInput("OAuthApp", "Id", "preset")
+	}
+	notFound := func() error {
+		return fmt.Errorf("query: %w", store.NewErrNotFound("OAuthApp", model.NewId()))
+	}
+	plain := func() error {
+		return errors.New("db down")
+	}
+
+	requireMapped := func(t *testing.T, got *model.AppError, id string, status int, cause error) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.Equal(t, id, got.Id)
+		assert.Equal(t, status, got.StatusCode)
+		assert.ErrorIs(t, got, cause)
+	}
+
+	newOAuthMock := func(method string, err error) *storemocks.OAuthStore {
+		oauth := &storemocks.OAuthStore{}
+		oauth.On(method, mock.Anything).Return((*model.OAuthApp)(nil), err).Once()
+		return oauth
+	}
+
+	t.Run("CreateOAuthApp", func(t *testing.T) {
+		sent := storeAppErr()
+		bindOAuth(newOAuthMock("SaveApp", sent))
+		_, got := th.App.CreateOAuthApp(&model.OAuthApp{Name: "name"})
+		require.Same(t, sent, got)
+
+		cause := invalidInput()
+		bindOAuth(newOAuthMock("SaveApp", cause))
+		_, got = th.App.CreateOAuthApp(&model.OAuthApp{Name: "name"})
+		requireMapped(t, got, "app.oauth.save_app.existing.app_error", http.StatusBadRequest, cause)
+
+		cause = plain()
+		bindOAuth(newOAuthMock("SaveApp", cause))
+		_, got = th.App.CreateOAuthApp(&model.OAuthApp{Name: "name"})
+		requireMapped(t, got, "app.oauth.save_app.save.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("GetOAuthApp", func(t *testing.T) {
+		cause := notFound()
+		bindOAuth(newOAuthMock("GetApp", cause))
+		_, got := th.App.GetOAuthApp(model.NewId())
+		requireMapped(t, got, "app.oauth.get_app.find.app_error", http.StatusNotFound, cause)
+
+		cause = plain()
+		bindOAuth(newOAuthMock("GetApp", cause))
+		_, got = th.App.GetOAuthApp(model.NewId())
+		requireMapped(t, got, "app.oauth.get_app.finding.app_error", http.StatusInternalServerError, cause)
+	})
+
+	oldApp := &model.OAuthApp{Id: model.NewId(), CreatorId: model.NewId(), CreateAt: 1, ClientSecret: "secret"}
+	updatedApp := &model.OAuthApp{
+		Name:         "name",
+		CallbackUrls: []string{"https://example.com/callback"},
+		Homepage:     "https://example.com",
+	}
+
+	t.Run("UpdateOAuthApp", func(t *testing.T) {
+		sent := storeAppErr()
+		bindOAuth(newOAuthMock("UpdateApp", sent))
+		_, got := th.App.UpdateOAuthApp(oldApp, updatedApp)
+		require.Same(t, sent, got)
+
+		cause := invalidInput()
+		bindOAuth(newOAuthMock("UpdateApp", cause))
+		_, got = th.App.UpdateOAuthApp(oldApp, updatedApp)
+		requireMapped(t, got, "app.oauth.update_app.find.app_error", http.StatusBadRequest, cause)
+
+		cause = plain()
+		bindOAuth(newOAuthMock("UpdateApp", cause))
+		_, got = th.App.UpdateOAuthApp(oldApp, updatedApp)
+		requireMapped(t, got, "app.oauth.update_app.updating.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("AllowOAuthAppAccessToUser", func(t *testing.T) {
+		authRequest := &model.AuthorizeRequest{
+			ClientId:    model.NewId(),
+			RedirectURI: "https://example.com/callback",
+			State:       "state",
+		}
+
+		cause := notFound()
+		bindOAuth(newOAuthMock("GetApp", cause))
+		_, got := th.App.AllowOAuthAppAccessToUser(th.Context, model.NewId(), authRequest)
+		requireMapped(t, got, "app.oauth.get_app.find.app_error", http.StatusNotFound, cause)
+
+		cause = plain()
+		bindOAuth(newOAuthMock("GetApp", cause))
+		_, got = th.App.AllowOAuthAppAccessToUser(th.Context, model.NewId(), authRequest)
+		requireMapped(t, got, "app.oauth.get_app.finding.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("RegenerateOAuthAppSecret", func(t *testing.T) {
+		app := &model.OAuthApp{Id: model.NewId(), Name: "name"}
+
+		sent := storeAppErr()
+		bindOAuth(newOAuthMock("UpdateApp", sent))
+		_, got := th.App.RegenerateOAuthAppSecret(app)
+		require.Same(t, sent, got)
+
+		cause := invalidInput()
+		bindOAuth(newOAuthMock("UpdateApp", cause))
+		_, got = th.App.RegenerateOAuthAppSecret(app)
+		requireMapped(t, got, "app.oauth.update_app.find.app_error", http.StatusBadRequest, cause)
+
+		cause = plain()
+		bindOAuth(newOAuthMock("UpdateApp", cause))
+		_, got = th.App.RegenerateOAuthAppSecret(app)
+		requireMapped(t, got, "app.oauth.update_app.updating.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("CreateOAuthStateToken", func(t *testing.T) {
+		sent := storeAppErr()
+		tokenStore := &storemocks.TokenStore{}
+		tokenStore.On("Save", mock.Anything).Return(sent).Once()
+		bindToken(tokenStore)
+		_, got := th.App.CreateOAuthStateToken("extra")
+		require.Same(t, sent, got)
+
+		cause := plain()
+		tokenStore = &storemocks.TokenStore{}
+		tokenStore.On("Save", mock.Anything).Return(cause).Once()
+		bindToken(tokenStore)
+		_, got = th.App.CreateOAuthStateToken("extra")
+		requireMapped(t, got, "app.recover.save.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("RegisterOAuthClient", func(t *testing.T) {
+		req := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   new("Test Client"),
+		}
+
+		sent := storeAppErr()
+		bindOAuth(newOAuthMock("SaveApp", sent))
+		_, got := th.App.RegisterOAuthClient(th.Context, req, model.NewId())
+		require.Same(t, sent, got)
+
+		cause := invalidInput()
+		bindOAuth(newOAuthMock("SaveApp", cause))
+		_, got = th.App.RegisterOAuthClient(th.Context, req, model.NewId())
+		requireMapped(t, got, "app.oauth.save_app.existing.app_error", http.StatusBadRequest, cause)
+
+		cause = plain()
+		bindOAuth(newOAuthMock("SaveApp", cause))
+		_, got = th.App.RegisterOAuthClient(th.Context, req, model.NewId())
+		requireMapped(t, got, "app.oauth.save_app.save.app_error", http.StatusInternalServerError, cause)
 	})
 }

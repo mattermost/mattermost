@@ -804,6 +804,20 @@ func (api *apiTimerLayer) GetPostThread(postId string) (*model.PostList, *model.
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetThreadFollowers(threadID)
+	api.recordTime(startTime, "GetThreadFollowers", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SetThreadFollowing(userID, threadID, following)
+	api.recordTime(startTime, "SetThreadFollowing", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetPost(postId string) (*model.Post, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetPost(postId)
@@ -850,6 +864,13 @@ func (api *apiTimerLayer) UpdatePost(post *model.Post) (*model.Post, *model.AppE
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.UpdatePost(post)
 	api.recordTime(startTime, "UpdatePost", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePostWithOptions(post, options)
+	api.recordTime(startTime, "UpdatePostWithOptions", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

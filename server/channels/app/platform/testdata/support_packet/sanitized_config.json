@@ -505,6 +505,11 @@
         "RedisPassword": null,
         "RedisDB": null,
         "RedisCachePrefix": null,
+        "RedisEnableTLS": null,
+        "RedisTLSSkipVerify": null,
+        "RedisTLSCA": null,
+        "RedisTLSClientCert": null,
+        "RedisTLSClientKey": null,
         "DisableClientCache": null
     },
     "ClusterSettings": {
@@ -741,6 +746,7 @@
         "EnableAIRecaps": false,
         "IntegratedBoards": false,
         "EnableDocs": false,
+        "ProductRail": false,
         "CJKSearch": false,
         "AggregatePluginMetrics": false,
         "ManagedChannelCategories": false,
@@ -750,6 +756,7 @@
         "MobileEphemeralMode": false,
         "PropertyFieldRank": false,
         "PropertyFieldGraph": false,
+        "PropertyFieldPermissionsV3": false,
         "TeamMembershipAccessControl": false,
         "ChannelAttributes": false,
         "ChannelAttributesRequired": false,

@@ -1135,6 +1135,11 @@ type CacheSettings struct {
 	RedisPassword      *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisDB            *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisCachePrefix   *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisEnableTLS     *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSSkipVerify *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSCA         *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSClientCert *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSClientKey  *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	DisableClientCache *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
@@ -1159,6 +1164,26 @@ func (s *CacheSettings) SetDefaults() {
 		s.RedisCachePrefix = new("")
 	}
 
+	if s.RedisEnableTLS == nil {
+		s.RedisEnableTLS = new(false)
+	}
+
+	if s.RedisTLSSkipVerify == nil {
+		s.RedisTLSSkipVerify = new(false)
+	}
+
+	if s.RedisTLSCA == nil {
+		s.RedisTLSCA = new("")
+	}
+
+	if s.RedisTLSClientCert == nil {
+		s.RedisTLSClientCert = new("")
+	}
+
+	if s.RedisTLSClientKey == nil {
+		s.RedisTLSClientKey = new("")
+	}
+
 	if s.DisableClientCache == nil {
 		s.DisableClientCache = new(false)
 	}
@@ -1181,6 +1206,10 @@ func (s *CacheSettings) isValid() *AppError {
 	// so a separator or glob character in the prefix would let one server match another's keys.
 	if *s.CacheType == CacheTypeRedis && strings.ContainsAny(*s.RedisCachePrefix, `:*?[]\`) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.invalid_redis_cache_prefix.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.CacheType == CacheTypeRedis && *s.RedisEnableTLS && (*s.RedisTLSClientCert == "") != (*s.RedisTLSClientKey == "") {
+		return NewAppError("Config.IsValid", "model.config.is_valid.redis_tls_client_cert_key.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

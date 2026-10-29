@@ -4,7 +4,7 @@
 import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {MfaSecret} from '@mattermost/types/mfa';
 import type {UserProfile} from '@mattermost/types/users';
 

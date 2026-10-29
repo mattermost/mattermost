@@ -63,9 +63,6 @@ func (c *captureClusterMock) NotifyMsg(buf []byte)                           {}
 func (c *captureClusterMock) GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError) {
 	return nil, nil
 }
-func (c *captureClusterMock) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
-	return nil, nil
-}
 func (c *captureClusterMock) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string]einterfaces.NodeLogs, *model.AppError) {
 	return nil, nil
 }

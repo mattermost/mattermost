@@ -748,6 +748,20 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostThread(postId string) (*model.PostList, *model.AppError)
 
+	// GetThreadFollowers gets the IDs of the active users who follow the thread of a root post.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	GetThreadFollowers(threadID string) ([]string, *model.AppError)
+
+	// SetThreadFollowing makes a user follow, or stop following, the thread of a root post, as
+	// the user's follow button on the thread does. It does not check that the user can read the
+	// post's channel: the plugin is responsible for that.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	SetThreadFollowing(userID, threadID string, following bool) *model.AppError
+
 	// GetPost gets a post.
 	//
 	// @tag Post
@@ -793,6 +807,21 @@ type API interface {
 	// @tag Post
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
+
+	// UpdatePostWithOptions updates a post using the supplied options.
+	// UpdatePost is the same edit with SafeUpdate false, no file creator, and
+	// AllowMmBlocksActionsUpdate set only when the post carries a valid
+	// mm_blocks_actions value. This method uses the options as given.
+	// FileCreatorID selects newly added files: a file attaches when its
+	// creator is that id, or when it was uploaded with UploadFile (creator
+	// "nouser"). A file that cannot be attached is omitted and the rest of
+	// the edit is saved. Nil options match the zero value. The plugin
+	// authorizes the edit. Permissions, hooks, and the returned post match
+	// UpdatePost: no session is created.
+	//
+	// @tag Post
+	// Minimum server version: 12.1
+	UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError)
 
 	// GetProfileImage gets user's profile image.
 	//
