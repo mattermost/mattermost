@@ -1179,11 +1179,12 @@ Leave the Elasticsearch or OpenSearch cluster running. Stopping the cluster whil
     - [Enable Elasticsearch for search queries](#enable-elasticsearch-for-search-queries). Search queries require indexing to stay enabled.
     - [Enable Elasticsearch for autocomplete queries](#enable-elasticsearch-for-autocomplete-queries). Autocomplete requires indexing to stay enabled.
     - **Enable Elasticsearch indexing** (`ElasticsearchSettings.EnableIndexing`).
-2. Save the configuration and restart the Mattermost server. Search uses the database while indexing is off.
+2. Save the configuration and restart the Mattermost server. With indexing off, search uses the database unless [Disable database search](#disable-database-search) is `true`. When that setting is `true`, search returns no results until Elasticsearch search is on again. Turn database search on for the duration, or plan for a search outage. Database search adds load on large deployments.
 3. Permanently delete the channels with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/&#123;channel_id&#125;?permanent=true`. [Enable API channel deletion](#enable-api-channel-deletion) must be `true`.
-4. Set **Enable Elasticsearch indexing** back to `true`, save, and restart.
-5. Purge and rebuild the index from **System Console > Environment > Elasticsearch**. Wait until the bulk index finishes. Keep search queries off during the rebuild so database search stays available.
-6. Restore search queries, autocomplete, and CJK analyzers to their previous values, then save and restart.
+4. Turn indexing back on before the rebuild. If CJK analyzers were on, also turn search queries and CJK analyzers back on in that same update, then save and restart. The index template is written when the search engine starts, and a rebuild with CJK analyzers off leaves content without CJK analysis. Search results can be incomplete during that rebuild. If CJK analyzers were off, leave search queries off so database search stays available during the rebuild.
+5. If file search should include files after the rebuild, set [Enable file indexing](#enable-file-indexing) to `true` before purging. A rebuild with that setting off skips files, and the purge removes file documents already in the index.
+6. Confirm [Index prefix](#index-prefix) limits the purge to this Mattermost deployment. An empty prefix makes purge delete every index (`*`). Use [Indexes to skip while purging](#indexes-to-skip-while-purging) to keep unrelated indexes on a shared cluster. Then purge and rebuild the index from **System Console > Environment > Elasticsearch**, and wait until the bulk index finishes.
+7. Restore search queries if they are still off, then restore autocomplete and any other settings you changed. Save and restart.
 
 </Warning>
 
@@ -3955,7 +3956,7 @@ This setting isn’t available in the System Console and can only be set in `con
 
 <Warning>
 
-Before a large bulk permanent channel delete, turn off [Elasticsearch indexing](#enable-elasticsearch-indexing). Search queries, autocomplete, and CJK analyzers have to be off as well: search and autocomplete require indexing, and CJK analyzers require search. Each delete reindexes every channel member, and a bulk delete of about 100,000 memberships can exhaust server memory. Leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, turn indexing back on and purge and rebuild the index before enabling search and autocomplete again.
+Before a large bulk permanent channel delete, turn off [Elasticsearch indexing](#enable-elasticsearch-indexing). Search queries, autocomplete, and CJK analyzers have to be off as well: search and autocomplete require indexing, and CJK analyzers require search. Each delete reindexes every channel member, and a bulk delete of about 100,000 memberships can exhaust server memory. Leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, restore indexing, and restore search and CJK analyzers before the rebuild when those were on. Purge and rebuild the index, then restore autocomplete.
 
 </Warning>
 

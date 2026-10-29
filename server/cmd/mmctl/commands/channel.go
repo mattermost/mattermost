@@ -62,7 +62,7 @@ var DeleteChannelsCmd = &cobra.Command{
 	Long: `Permanently delete some channels.
 Permanently deletes one or multiple channels along with all related information including posts from the database.
 
-Before deleting a large number of channels, turn off Elasticsearch indexing (ElasticsearchSettings.EnableIndexing). Search queries and autocomplete must be off as well, because they require indexing to stay enabled. If CJK analyzers are enabled, turn those off too, because they require search queries. Leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, turn indexing back on, purge and rebuild the index, then restore search, autocomplete, and CJK analyzers. See https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing`,
+Before deleting a large number of channels, turn off Elasticsearch indexing (ElasticsearchSettings.EnableIndexing). Search queries and autocomplete must be off as well, because they require indexing to stay enabled. If CJK analyzers are enabled, turn those off too, because they require search queries. Leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, turn indexing back on. If CJK analyzers were on, turn search queries and CJK analyzers back on before purging and rebuilding the index. Restore autocomplete after the rebuild. If SqlSettings.DisableDatabaseSearch is true, search returns no results while Elasticsearch search is off. See https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing`,
 	Example: "  channel delete myteam:mychannel",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteChannelsCmdF),

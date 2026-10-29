@@ -154,7 +154,7 @@ If you have an search indexing job that's paused, it's likely your Elasticsearch
 
 ### Should I turn off indexing before a large bulk channel delete?
 
-Yes. Permanently deleting a channel reindexes every member of that channel. Before a large bulk delete, turn off Elasticsearch indexing and leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, turn indexing back on and purge and rebuild the index. See [Enable Elasticsearch indexing](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing) for the configuration sequence, including the search and autocomplete settings that have to be off before indexing can be disabled.
+Yes. Permanently deleting a channel reindexes every member of that channel. Before a large bulk delete, turn off Elasticsearch indexing and leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, restore indexing, and restore search and CJK analyzers before the rebuild when those were on. Purge and rebuild the index, then restore autocomplete. See [Enable Elasticsearch indexing](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing) for the full sequence.
 
 ### Do I need to purge first then bulk index each time?
 
