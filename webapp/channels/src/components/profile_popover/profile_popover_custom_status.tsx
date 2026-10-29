@@ -5,7 +5,7 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
@@ -91,7 +91,7 @@ const ProfilePopoverCustomStatus = ({
         customStatusContent = (
             <Button
                 emphasis='quaternary'
-                size='sm'
+                size='small'
                 className='user-popover__set-status'
                 onClick={showCustomStatusModal}
             >
