@@ -7085,6 +7085,16 @@
     "description": "API error (403) shown to a system admin who tries to deactivate a bot account that Mattermost itself owns and manages (for example a built-in system bot), which is not permitted."
   },
   {
+    "id": "app.bot.updatebotowner.bot_owner.app_error",
+    "translation": "Cannot assign a bot as the owner of another bot.",
+    "description": "API error (400) shown when an admin tries to change a bot account's owner to another bot account; bot owners must be human users to avoid ownership cycles."
+  },
+  {
+    "id": "app.bot.updatebotowner.self_owner.app_error",
+    "translation": "Cannot assign a bot as its own owner.",
+    "description": "API error (400) shown when an admin tries to change a bot account's owner to the bot itself, which would create an ownership cycle."
+  },
+  {
     "id": "app.burn_post.not_burn_on_read.app_error",
     "translation": "This post is not a burn-on-read post and cannot be burned.",
     "description": "API error when a user tries to 'burn' (destroy early) a post that isn't a burn-on-read post; 'burn' is the feature's verb for destroying the message."

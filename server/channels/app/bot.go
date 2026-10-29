@@ -458,10 +458,10 @@ func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (
 		}
 	}
 
-	if _, err := a.UpdateActive(rctx, user, active); err != nil {
-		return nil, err
-	}
-
+	// Mark the bot deleted before deactivating its user. disableUserBots
+	// enumerates with IncludeDeleted:false, so on re-entry through
+	// UpdateActive -> userDeactivated -> disableUserBots this bot is
+	// filtered out and the recursion terminates for cycles of any length.
 	changed := true
 	if active && bot.DeleteAt != 0 {
 		bot.DeleteAt = 0
@@ -485,6 +485,10 @@ func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (
 				return nil, model.NewAppError("PatchBot", "app.bot.patchbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
+	}
+
+	if _, err := a.UpdateActive(rctx, user, active); err != nil {
+		return nil, err
 	}
 
 	return bot, nil
@@ -530,6 +534,19 @@ func (a *App) UpdateBotOwner(rctx request.CTX, botUserId, newOwnerId string) (*m
 		case errors.As(err, &nfErr):
 			return nil, model.MakeBotNotFoundError("SqlBotStore.Get", nfErr.ID).Wrap(err)
 		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("UpdateBotOwner", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	if newOwnerId == botUserId {
+		return nil, model.NewAppError("UpdateBotOwner", "app.bot.updatebotowner.self_owner.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if _, err := a.Srv().Store().Bot().Get(newOwnerId, true); err == nil {
+		return nil, model.NewAppError("UpdateBotOwner", "app.bot.updatebotowner.bot_owner.app_error", nil, "", http.StatusBadRequest)
+	} else {
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
 			return nil, model.NewAppError("UpdateBotOwner", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}

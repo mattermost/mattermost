@@ -699,6 +699,82 @@ func TestUpdateBotActive(t *testing.T) {
 		require.Equal(t, reenabledBot.DeleteAt, reenabledBotAgain.DeleteAt)
 	})
 
+	t.Run("disable self-owned bot terminates", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "self_owned_bot",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		// Simulate the legacy state left by `mmctl user convert`
+		// (OwnerId == UserId) directly in the store, bypassing
+		// UpdateBotOwner's validation.
+		stored, nErr := th.App.Srv().Store().Bot().Get(bot.UserId, true)
+		require.NoError(t, nErr)
+		stored.OwnerId = stored.UserId
+		_, nErr = th.App.Srv().Store().Bot().Update(stored)
+		require.NoError(t, nErr)
+
+		// Previously this recursed until fatal stack overflow.
+		disabled, err := th.App.UpdateBotActive(th.Context, bot.UserId, false)
+		require.Nil(t, err)
+		require.NotZero(t, disabled.DeleteAt)
+	})
+
+	t.Run("disable bot ownership cycle terminates", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		botA, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "cycle_bot_a",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, botA.UserId)
+			require.Nil(t, err)
+		}()
+
+		botB, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "cycle_bot_b",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, botB.UserId)
+			require.Nil(t, err)
+		}()
+
+		// A owns B and B owns A, bypassing UpdateBotOwner's validation.
+		storedA, nErr := th.App.Srv().Store().Bot().Get(botA.UserId, true)
+		require.NoError(t, nErr)
+		storedA.OwnerId = botB.UserId
+		_, nErr = th.App.Srv().Store().Bot().Update(storedA)
+		require.NoError(t, nErr)
+
+		storedB, nErr := th.App.Srv().Store().Bot().Get(botB.UserId, true)
+		require.NoError(t, nErr)
+		storedB.OwnerId = botA.UserId
+		_, nErr = th.App.Srv().Store().Bot().Update(storedB)
+		require.NoError(t, nErr)
+
+		disabledA, err := th.App.UpdateBotActive(th.Context, botA.UserId, false)
+		require.Nil(t, err)
+		require.NotZero(t, disabledA.DeleteAt)
+
+		refetchedB, err := th.App.GetBot(th.Context, botB.UserId, true)
+		require.Nil(t, err)
+		require.NotZero(t, refetchedB.DeleteAt)
+	})
+
 	for username := range model.ProtectedBotUsernames {
 		t.Run("cannot disable protected bot "+username, func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
@@ -722,6 +798,47 @@ func TestUpdateBotActive(t *testing.T) {
 			require.Zero(t, botUser.DeleteAt)
 		})
 	}
+}
+
+func TestUpdateBotOwnerRejectsBotOwners(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	botA, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    "owner_cycle_a",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, botA.UserId)
+		require.Nil(t, err)
+	}()
+
+	botB, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    "owner_cycle_b",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, botB.UserId)
+		require.Nil(t, err)
+	}()
+
+	_, err = th.App.UpdateBotOwner(th.Context, botA.UserId, botA.UserId)
+	require.NotNil(t, err)
+	require.Equal(t, "app.bot.updatebotowner.self_owner.app_error", err.Id)
+	require.Equal(t, http.StatusBadRequest, err.StatusCode)
+
+	_, err = th.App.UpdateBotOwner(th.Context, botA.UserId, botB.UserId)
+	require.NotNil(t, err)
+	require.Equal(t, "app.bot.updatebotowner.bot_owner.app_error", err.Id)
+	require.Equal(t, http.StatusBadRequest, err.StatusCode)
+
+	moved, err := th.App.UpdateBotOwner(th.Context, botA.UserId, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.Equal(t, th.BasicUser.Id, moved.OwnerId)
 }
 
 func TestPermanentDeleteBot(t *testing.T) {
