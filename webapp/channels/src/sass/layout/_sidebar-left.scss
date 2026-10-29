@@ -1352,6 +1352,36 @@ $sidebarOpacityAnimationDuration: 0.15s;
             background: rgba(var(--sidebar-text-rgb), 0.04);
         }
 
+        &__row.dragging {
+            opacity: 0.4;
+        }
+
+        &__row.dropBefore::before,
+        &__row.dropAfter::after {
+            position: absolute;
+            z-index: 2;
+            right: 8px;
+            left: calc(44px + var(--sub-item-depth, 0) * var(--sub-item-indent, 16px) - 4px);
+            height: 2px;
+            border-radius: 1px;
+            background: var(--sidebar-text-active-border);
+            content: '';
+            pointer-events: none;
+        }
+
+        &__row.dropBefore::before {
+            top: -1px;
+        }
+
+        &__row.dropAfter::after {
+            bottom: -1px;
+        }
+
+        &__row.dropInside {
+            background: rgba(var(--sidebar-text-active-border-rgb), 0.32);
+            box-shadow: inset 0 0 0 1px var(--sidebar-text-active-border);
+        }
+
         &__toggle {
             position: absolute;
             z-index: 1;

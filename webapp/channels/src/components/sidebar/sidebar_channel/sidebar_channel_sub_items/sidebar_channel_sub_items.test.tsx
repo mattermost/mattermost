@@ -8,10 +8,11 @@ import type {Channel} from '@mattermost/types/channels';
 
 import type {ResolvedChannelSidebarSubItem} from 'selectors/channel_sidebar_sub_items';
 
-import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {act, createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {RHSStates, StoragePrefixes} from 'utils/constants';
 
 import SidebarChannelSubItems from './sidebar_channel_sub_items';
+import {CHANNEL_SIDEBAR_SUB_ITEM_DRAG_TYPE, EXPAND_ON_DRAG_HOVER_DELAY} from './use_channel_sidebar_sub_item_drag_and_drop';
 import {getActiveChannelSidebarSubItemKey} from './use_channel_sidebar_sub_items';
 
 describe('components/sidebar/sidebar_channel/sidebar_channel_sub_items', () => {
@@ -402,6 +403,353 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_sub_items', () => {
             const entry = screen.getByRole('menuitem', {name: 'No actions available'});
             expect(entry).toHaveAttribute('aria-disabled', 'true');
             expect(screen.queryByRole('separator')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('drag and drop', () => {
+        const makeItem = (id: string, label: string, extra: Partial<ResolvedChannelSidebarSubItem> = {}): ResolvedChannelSidebarSubItem => ({
+            key: `plugin:${id}`,
+            pluginId: 'plugin',
+            registrationId: 'reg',
+            id,
+            label,
+            subpath: `pages/${id}`,
+            depth: 0,
+            hasChildren: false,
+            draggable: true,
+            ...extra,
+        });
+
+        // Parent > Nested; Page A; Page B; Fixed (not draggable)
+        const dndItems: ResolvedChannelSidebarSubItem[] = [
+            makeItem('parent', 'Parent', {hasChildren: true}),
+            makeItem('nested', 'Nested', {parentKey: 'plugin:parent', depth: 1}),
+            makeItem('a', 'Page A'),
+            makeItem('b', 'Page B'),
+            makeItem('fixed', 'Fixed', {draggable: false}),
+        ];
+
+        const onItemDrop = jest.fn();
+        const canDrop = jest.fn();
+
+        const expandedKey = (itemKey: string) => `${StoragePrefixes.CHANNEL_SIDEBAR_SUB_ITEM_EXPANDED}user_id_team_id_channel_id_${itemKey}`;
+        const dndState = (expandedKeys: string[] = [], withCanDrop = true) => ({
+            entities: {
+                users: {currentUserId: 'user_id'},
+                teams: {currentTeamId: 'team_id'},
+            },
+            storage: {storage: Object.fromEntries(expandedKeys.map((key) => [expandedKey(key), {value: true, timestamp: new Date()}]))},
+            plugins: {
+                components: {
+                    ChannelSidebarSubItems: [{id: 'reg', pluginId: 'plugin', getItems: () => [], onItemDrop, ...(withCanDrop ? {canDrop} : {})}],
+                },
+            },
+        });
+
+        beforeEach(() => {
+            onItemDrop.mockReset();
+            canDrop.mockReset();
+            canDrop.mockReturnValue(true);
+        });
+
+        const rowOf = (label: string) => screen.getByRole('link', {name: label}).closest<HTMLElement>('.SidebarChannelSubItem__row')!;
+
+        const mockRect = (row: HTMLElement) => {
+            jest.spyOn(row, 'getBoundingClientRect').mockReturnValue({top: 0, height: 100, bottom: 100, left: 0, right: 200, width: 200, x: 0, y: 0, toJSON: () => ''});
+            return row;
+        };
+
+        const makeDataTransfer = (types: string[] = [CHANNEL_SIDEBAR_SUB_ITEM_DRAG_TYPE]) => ({
+            setData: jest.fn(),
+            types,
+            effectAllowed: 'none',
+            dropEffect: 'none',
+        });
+
+        // jsdom has no DragEvent, so clientY is not copied from the event init
+        const fireDragEvent = (type: 'dragOver' | 'drop', element: HTMLElement, dataTransfer: ReturnType<typeof makeDataTransfer>, clientY: number) => {
+            const event = createEvent[type](element, {dataTransfer});
+            Object.defineProperty(event, 'clientY', {value: clientY});
+            return fireEvent(element, event);
+        };
+
+        const startDrag = async (label: string) => {
+            const dataTransfer = makeDataTransfer();
+            fireEvent.dragStart(rowOf(label), {dataTransfer});
+            await waitFor(() => expect(rowOf(label)).toHaveClass('dragging'));
+            return dataTransfer;
+        };
+
+        const dragOver = (label: string, clientY: number, dataTransfer = makeDataTransfer()) => {
+            // fireEvent returns false when the event was canceled, which is what allows a drop
+            const notCanceled = fireDragEvent('dragOver', mockRect(rowOf(label)), dataTransfer, clientY);
+            return {allowed: !notCanceled, dataTransfer};
+        };
+
+        test('only makes draggable items draggable', () => {
+            renderItems({items: dndItems}, dndState(['plugin:parent']));
+
+            expect(rowOf('Page A')).toHaveAttribute('draggable', 'true');
+            expect(rowOf('Parent')).toHaveAttribute('draggable', 'true');
+            expect(rowOf('Fixed')).not.toHaveAttribute('draggable');
+        });
+
+        test('sets the drag data with the channel and item and does not start drags of non-draggable items', async () => {
+            renderItems({items: dndItems});
+
+            const dataTransfer = await startDrag('Page A');
+
+            expect(dataTransfer.setData).toHaveBeenCalledWith(CHANNEL_SIDEBAR_SUB_ITEM_DRAG_TYPE, JSON.stringify({channelId: 'channel_id', itemKey: 'plugin:a'}));
+            expect(dataTransfer.effectAllowed).toBe('move');
+
+            const fixedTransfer = makeDataTransfer();
+            fireEvent.dragStart(rowOf('Fixed'), {dataTransfer: fixedTransfer});
+            expect(fixedTransfer.setData).not.toHaveBeenCalled();
+            expect(rowOf('Fixed')).not.toHaveClass('dragging');
+        });
+
+        test.each([
+            [10, 'before', 'dropBefore'],
+            [50, 'inside', 'dropInside'],
+            [90, 'after', 'dropAfter'],
+        ])('shows the drop indicator for the pointer at y=%i (%s)', async (clientY, position, className) => {
+            renderItems({items: dndItems}, dndState());
+            const dataTransfer = await startDrag('Page A');
+
+            const {allowed} = dragOver('Page B', clientY, dataTransfer);
+
+            expect(allowed).toBe(true);
+            expect(dataTransfer.dropEffect).toBe('move');
+            expect(rowOf('Page B')).toHaveClass(className);
+            expect(canDrop).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({id: 'channel_id'}), {itemId: 'a', targetId: 'b', position});
+        });
+
+        test('switches the indicator when the pointer moves and only shows it on one row', async () => {
+            renderItems({items: dndItems}, dndState());
+            const dataTransfer = await startDrag('Page A');
+
+            dragOver('Page B', 10, dataTransfer);
+            expect(rowOf('Page B')).toHaveClass('dropBefore');
+
+            dragOver('Page B', 90, dataTransfer);
+            expect(rowOf('Page B')).toHaveClass('dropAfter');
+            expect(rowOf('Page B')).not.toHaveClass('dropBefore');
+
+            dragOver('Fixed', 50, dataTransfer);
+            expect(rowOf('Fixed')).toHaveClass('dropInside');
+            expect(rowOf('Page B')).not.toHaveClass('dropAfter');
+        });
+
+        test('shows no indicator and does not allow the drop when canDrop vetoes it', async () => {
+            canDrop.mockReturnValue(false);
+            renderItems({items: dndItems}, dndState());
+            const dataTransfer = await startDrag('Page A');
+
+            const {allowed} = dragOver('Page B', 50, dataTransfer);
+
+            expect(allowed).toBe(false);
+            expect(dataTransfer.dropEffect).toBe('none');
+            expect(rowOf('Page B')).not.toHaveClass('dropInside');
+        });
+
+        test('does not allow dropping an item on itself or its descendants', async () => {
+            renderItems({items: dndItems}, dndState(['plugin:parent']));
+            const dataTransfer = await startDrag('Parent');
+
+            expect(dragOver('Parent', 50, dataTransfer).allowed).toBe(false);
+            expect(dragOver('Nested', 50, dataTransfer).allowed).toBe(false);
+            expect(dragOver('Nested', 10, dataTransfer).allowed).toBe(false);
+            expect(canDrop).not.toHaveBeenCalled();
+            expect(dragOver('Page A', 50, dataTransfer).allowed).toBe(true);
+
+            fireDragEvent('drop', mockRect(rowOf('Nested')), dataTransfer, 50);
+            expect(onItemDrop).not.toHaveBeenCalled();
+        });
+
+        test('allows dropping onto an item without a veto callback registered', async () => {
+            renderItems({items: dndItems}, dndState([], false));
+            const dataTransfer = await startDrag('Page A');
+
+            expect(dragOver('Page B', 50, dataTransfer).allowed).toBe(true);
+        });
+
+        test('calls onItemDrop with the plugin ids on drop and clears the indicators', async () => {
+            renderItems({items: dndItems}, dndState());
+            const dataTransfer = await startDrag('Page A');
+            dragOver('Page B', 90, dataTransfer);
+
+            fireDragEvent('drop', mockRect(rowOf('Page B')), dataTransfer, 90);
+
+            expect(onItemDrop).toHaveBeenCalledTimes(1);
+            expect(onItemDrop).toHaveBeenCalledWith(expect.objectContaining({id: 'channel_id'}), {itemId: 'a', targetId: 'b', position: 'after'});
+            expect(rowOf('Page B')).not.toHaveClass('dropAfter');
+            expect(rowOf('Page A')).not.toHaveClass('dragging');
+        });
+
+        test('uses the pointer position at the time of the drop', async () => {
+            renderItems({items: dndItems}, dndState());
+            const dataTransfer = await startDrag('Page A');
+            dragOver('Page B', 50, dataTransfer);
+
+            fireDragEvent('drop', mockRect(rowOf('Page B')), dataTransfer, 5);
+
+            expect(onItemDrop).toHaveBeenCalledWith(expect.anything(), {itemId: 'a', targetId: 'b', position: 'before'});
+        });
+
+        test('does not drop when canDrop vetoes it', async () => {
+            canDrop.mockReturnValue(false);
+            renderItems({items: dndItems}, dndState());
+            const dataTransfer = await startDrag('Page A');
+
+            fireDragEvent('drop', mockRect(rowOf('Page B')), dataTransfer, 50);
+
+            expect(onItemDrop).not.toHaveBeenCalled();
+        });
+
+        test('clears the indicator when the pointer leaves the row', async () => {
+            renderItems({items: dndItems}, dndState());
+            const dataTransfer = await startDrag('Page A');
+            dragOver('Page B', 50, dataTransfer);
+            expect(rowOf('Page B')).toHaveClass('dropInside');
+
+            fireEvent.dragLeave(rowOf('Page B'), {dataTransfer});
+
+            expect(rowOf('Page B')).not.toHaveClass('dropInside');
+        });
+
+        test('keeps the indicator when the pointer moves to a child of the row', async () => {
+            renderItems({items: dndItems}, dndState());
+            const dataTransfer = await startDrag('Page A');
+            dragOver('Page B', 50, dataTransfer);
+
+            const leave = createEvent.dragLeave(rowOf('Page B'), {dataTransfer});
+            Object.defineProperty(leave, 'relatedTarget', {value: screen.getByText('Page B')});
+            fireEvent(rowOf('Page B'), leave);
+
+            expect(rowOf('Page B')).toHaveClass('dropInside');
+        });
+
+        test('clears everything when the drag ends', async () => {
+            renderItems({items: dndItems}, dndState());
+            const dataTransfer = await startDrag('Page A');
+            dragOver('Page B', 50, dataTransfer);
+
+            fireEvent.dragEnd(rowOf('Page A'), {dataTransfer});
+
+            expect(rowOf('Page A')).not.toHaveClass('dragging');
+            expect(rowOf('Page B')).not.toHaveClass('dropInside');
+            expect(dragOver('Page B', 50, dataTransfer).allowed).toBe(false);
+        });
+
+        test('ignores drags that did not start from one of its draggable items', () => {
+            renderItems({items: dndItems}, dndState());
+
+            // e.g. another channel's list, another plugin or a file, none of which started a drag here
+            const foreign = makeDataTransfer(['Files']);
+            expect(dragOver('Page B', 50, foreign).allowed).toBe(false);
+            expect(rowOf('Page B')).not.toHaveClass('dropInside');
+
+            const fromElsewhere = makeDataTransfer();
+            expect(dragOver('Page B', 50, fromElsewhere).allowed).toBe(false);
+            fireDragEvent('drop', mockRect(rowOf('Page B')), fromElsewhere, 50);
+
+            expect(canDrop).not.toHaveBeenCalled();
+            expect(onItemDrop).not.toHaveBeenCalled();
+        });
+
+        test('ignores drags without the sub-item data type during its own drag', async () => {
+            renderItems({items: dndItems}, dndState());
+            await startDrag('Page A');
+
+            expect(dragOver('Page B', 50, makeDataTransfer(['text/plain'])).allowed).toBe(false);
+            expect(canDrop).not.toHaveBeenCalled();
+        });
+
+        test('still navigates when a draggable item is clicked', async () => {
+            const {history} = renderItems({items: dndItems}, dndState());
+
+            await userEvent.click(screen.getByRole('link', {name: 'Page A'}));
+
+            expect(history.location.pathname).toBe('/team/channels/town-square/pages/a');
+        });
+
+        describe('expanding collapsed parents while dragging', () => {
+            beforeEach(() => {
+                jest.useFakeTimers();
+            });
+
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            const startDragWithTimers = (label: string) => {
+                const dataTransfer = makeDataTransfer();
+                fireEvent.dragStart(rowOf(label), {dataTransfer});
+                act(() => {
+                    jest.advanceTimersByTime(1);
+                });
+                return dataTransfer;
+            };
+
+            test('expands a collapsed parent after hovering it for a moment', () => {
+                const {store} = renderItems({items: dndItems}, dndState());
+                const dataTransfer = startDragWithTimers('Page A');
+
+                dragOver('Parent', 50, dataTransfer);
+                act(() => {
+                    jest.advanceTimersByTime(EXPAND_ON_DRAG_HOVER_DELAY - 1);
+                });
+                expect(store.getState().storage.storage[expandedKey('plugin:parent')]).toBeUndefined();
+
+                act(() => {
+                    jest.advanceTimersByTime(1);
+                });
+
+                expect(store.getState().storage.storage[expandedKey('plugin:parent')].value).toBe(true);
+                expect(screen.getByRole('link', {name: 'Nested'})).toBeInTheDocument();
+            });
+
+            test('does not expand when the pointer leaves before the delay', () => {
+                const {store} = renderItems({items: dndItems}, dndState());
+                const dataTransfer = startDragWithTimers('Page A');
+
+                dragOver('Parent', 50, dataTransfer);
+                act(() => {
+                    jest.advanceTimersByTime(EXPAND_ON_DRAG_HOVER_DELAY / 2);
+                });
+                fireEvent.dragLeave(rowOf('Parent'), {dataTransfer});
+                dragOver('Page B', 50, dataTransfer);
+                act(() => {
+                    jest.advanceTimersByTime(EXPAND_ON_DRAG_HOVER_DELAY * 2);
+                });
+
+                expect(store.getState().storage.storage[expandedKey('plugin:parent')]).toBeUndefined();
+            });
+
+            test('does not expand when the drag ends', () => {
+                const {store} = renderItems({items: dndItems}, dndState());
+                const dataTransfer = startDragWithTimers('Page A');
+
+                dragOver('Parent', 50, dataTransfer);
+                fireEvent.dragEnd(rowOf('Page A'), {dataTransfer});
+                act(() => {
+                    jest.advanceTimersByTime(EXPAND_ON_DRAG_HOVER_DELAY * 2);
+                });
+
+                expect(store.getState().storage.storage[expandedKey('plugin:parent')]).toBeUndefined();
+            });
+
+            test('does not expand the item being dragged', () => {
+                const {store} = renderItems({items: dndItems}, dndState());
+                const dataTransfer = startDragWithTimers('Parent');
+
+                dragOver('Parent', 50, dataTransfer);
+                act(() => {
+                    jest.advanceTimersByTime(EXPAND_ON_DRAG_HOVER_DELAY * 2);
+                });
+
+                expect(store.getState().storage.storage[expandedKey('plugin:parent')]).toBeUndefined();
+            });
         });
     });
 
