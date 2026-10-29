@@ -473,6 +473,59 @@ describe('PluginRegistry — registerChannelSidebarSubItems', () => {
         expect(entries[0].getItems).toBe(getItems);
     });
 
+    it('stores getItemActions, canDrop and onItemDrop when they are functions', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const getItemActions = () => [];
+        const canDrop = () => true;
+        const onItemDrop = () => {};
+        registry.registerChannelSidebarSubItems({getItems: () => [], getItemActions, canDrop, onItemDrop});
+
+        const [entry] = getRegs();
+        expect(entry.getItemActions).toBe(getItemActions);
+        expect(entry.canDrop).toBe(canDrop);
+        expect(entry.onItemDrop).toBe(onItemDrop);
+    });
+
+    it('leaves the optional callbacks unset when omitted', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelSidebarSubItems({getItems: () => []});
+
+        const [entry] = getRegs();
+        expect(entry).not.toHaveProperty('getItemActions');
+        expect(entry).not.toHaveProperty('canDrop');
+        expect(entry).not.toHaveProperty('onItemDrop');
+    });
+
+    it('ignores non-function optional callbacks', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelSidebarSubItems({
+            getItems: () => [],
+            getItemActions: 'nope',
+            canDrop: true,
+            onItemDrop: {},
+        });
+
+        const [entry] = getRegs();
+        expect(entry).not.toHaveProperty('getItemActions');
+        expect(entry).not.toHaveProperty('canDrop');
+        expect(entry).not.toHaveProperty('onItemDrop');
+    });
+
+    it('accepts the optional callbacks as positional arguments', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const getItems = () => [];
+        const getItemActions = () => [];
+        const canDrop = () => true;
+        const onItemDrop = () => {};
+        registry.registerChannelSidebarSubItems(getItems, getItemActions, canDrop, onItemDrop);
+
+        const [entry] = getRegs();
+        expect(entry.getItems).toBe(getItems);
+        expect(entry.getItemActions).toBe(getItemActions);
+        expect(entry.canDrop).toBe(canDrop);
+        expect(entry.onItemDrop).toBe(onItemDrop);
+    });
+
     it('accepts a positional argument', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
         const getItems = () => null;

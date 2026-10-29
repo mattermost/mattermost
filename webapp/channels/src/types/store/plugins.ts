@@ -528,12 +528,50 @@ export type ChannelSidebarSubItem = {
 
     /** Compass glyph name. Unknown names are ignored. */
     iconName?: IconGlyphTypes;
+
+    /**
+     * Id of another item from the same registration to nest this item under. A missing, unknown,
+     * non-string, self or cyclic parent places the item at the root level.
+     */
+    parentId?: string;
+
+    /** Whether the item can be dragged. Has no effect unless the registration has `onItemDrop`. Defaults to false. */
+    draggable?: boolean;
+};
+
+export type ChannelSidebarSubItemAction = {
+    id: string;
+    text: string;
+
+    /** Compass glyph name. Unknown names are ignored. */
+    iconName?: IconGlyphTypes;
+    isDestructive?: boolean;
+    separatorBefore?: boolean;
+    onClick: () => void;
+};
+
+export type ChannelSidebarSubItemDropPosition = 'before' | 'after' | 'inside';
+
+/** `itemId` and `targetId` are the plugin's own item ids, not core keys. */
+export type ChannelSidebarSubItemDrop = {
+    itemId: string;
+    targetId: string;
+    position: ChannelSidebarSubItemDropPosition;
 };
 
 export type ChannelSidebarSubItemsRegistration = PluginComponent & {
 
     /** Items shown as collapsible sub-items under the channel in the sidebar. Only called for public and private channels. */
     getItems: (state: GlobalState, channel: Channel) => ChannelSidebarSubItem[] | null | undefined;
+
+    /** Actions for an item's three-dot menu, called when the menu opens. The menu is only shown when this is registered. */
+    getItemActions?: (state: GlobalState, channel: Channel, itemId: string) => ChannelSidebarSubItemAction[] | null | undefined;
+
+    /** Vetoes a drop while it is being hovered. Core has already rejected drops onto the item itself or its descendants. */
+    canDrop?: (state: GlobalState, channel: Channel, drop: ChannelSidebarSubItemDrop) => boolean;
+
+    /** Called when an item is dropped. Items are only draggable when this is registered. */
+    onItemDrop?: (channel: Channel, drop: ChannelSidebarSubItemDrop) => void | Promise<void>;
 };
 
 export type PostHeaderComponent = PluginComponent & {
