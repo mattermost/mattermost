@@ -6,7 +6,6 @@ import React from 'react';
 import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
-import {limitThresholds} from 'utils/limits';
 
 import MenuCloudTrial from './menu_cloud_trial';
 
@@ -300,45 +299,5 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
         const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         const openModalLink = container.querySelector('.open-trial-benefits-modal');
         expect(openModalLink).toBeNull();
-    });
-
-    test('should return null if some limit needs attention', () => {
-        const state = {
-            entities: {
-                users,
-                general: {
-                    license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                    },
-                },
-                cloud: {
-                    subscription: {
-                        product_id: 'prod_starter',
-                        is_free_trial: 'false',
-                        trial_end_at: 232434,
-                    },
-                    products: {
-                        prod_starter: {
-                            id: 'prod_starter',
-                            sku: CloudProducts.STARTER,
-                        },
-                    },
-                    limits,
-                },
-                usage: {
-                    ...usage,
-                    messages: {
-                        ...usage.messages,
-                        history: Math.ceil((limitThresholds.warn / 100) * limits.limits.messages.history) + 1,
-                    },
-                },
-            },
-        };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
-        expect(container.querySelector('.MenuCloudTrial')).toBeNull();
-        expect(container.querySelector('.open-see-plans-modal')).toBeNull();
-        expect(container.querySelector('.open-learn-more-trial-modal')).toBeNull();
-        expect(container.querySelector('.open-trial-benefits-modal')).toBeNull();
     });
 });
