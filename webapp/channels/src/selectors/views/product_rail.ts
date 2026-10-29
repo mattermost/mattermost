@@ -8,9 +8,11 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId, getMySortedTeamIds} from 'mattermost-redux/selectors/entities/teams';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
+import {getCurrentLocale} from 'selectors/i18n';
+import {getPreviousTeamId} from 'selectors/local_storage';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {Preferences} from 'utils/constants';
@@ -136,6 +138,23 @@ export function getProductRailFilter(state: GlobalState): ProductRailFilter {
 /** Whether the rail is on screen: it needs a team, and is hidden at mobile widths. */
 export function isProductRailShown(state: GlobalState): boolean {
     return isProductRailEnabled(state) && Boolean(getCurrentTeamId(state)) && !getIsMobileView(state);
+}
+
+/**
+ * The team to select when none is, as after loading a global product's page (Agents, say), whose
+ * URL names no team: the last one the user was in, or else their first. Empty while a team is
+ * selected.
+ */
+export function getProductRailTeamIdToRestore(state: GlobalState): string {
+    if (getCurrentTeamId(state)) {
+        return '';
+    }
+    const myTeamIds = getMySortedTeamIds(state, getCurrentLocale(state));
+    const previousTeamId = getPreviousTeamId(state);
+    if (previousTeamId && myTeamIds.includes(previousTeamId)) {
+        return previousTeamId;
+    }
+    return myTeamIds[0] ?? '';
 }
 
 /** Whether the user has hidden the team sidebar, so the product rail shows a team menu in its place. */

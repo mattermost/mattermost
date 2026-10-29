@@ -215,7 +215,10 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
         const sortedTeams = filterAndSortTeamsByDisplayName(this.props.myTeams, this.props.locale, this.props.userTeamsOrderPreference);
 
         const currentProduct = getCurrentProduct(this.props.products, this.props.location.pathname);
-        if (currentProduct && !currentProduct.showTeamSidebar) {
+
+        // The rail keeps a team selected in every product, global ones (like Agents) included, so with
+        // it on screen the team sidebar stays too.
+        if (currentProduct && !currentProduct.showTeamSidebar && !this.props.isProductRailShown) {
             return null;
         }
 
