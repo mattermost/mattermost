@@ -747,7 +747,7 @@ func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID s
 		} else {
 			// if we could successfully share the channel, we invite
 			// the remotes involved to it
-			if sc, _ := a.getSharedChannelsService(false); sc != nil {
+			if sc, _ := a.getSharedChannelsService(); sc != nil {
 				for remoteID := range remoteIDs {
 					rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 					if err != nil {
