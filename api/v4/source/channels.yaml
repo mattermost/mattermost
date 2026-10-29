@@ -580,6 +580,9 @@
         If you permanently delete a channel this action is not recoverable outside of a database backup.
 
 
+        Before permanently deleting a large number of channels (on the order of 100,000 channel memberships), set `ElasticsearchSettings.EnableIndexing` to `false`. Also set `ElasticsearchSettings.EnableSearching`, `ElasticsearchSettings.EnableAutocomplete`, and `ElasticsearchSettings.EnableCJKAnalyzers` to `false`: search queries and autocomplete require indexing to stay enabled, and CJK analyzers require search queries to stay enabled. Leave the Elasticsearch or OpenSearch cluster running. Stopping the cluster while Mattermost is still trying to index increases the load. After the deletes finish, set `ElasticsearchSettings.EnableIndexing` back to `true`, purge and rebuild the index, then restore the previous search, autocomplete, and CJK analyzer values. See the [Enable Elasticsearch indexing](https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing) documentation.
+
+
         ##### Permissions
 
         `delete_public_channel` permission if the channel is public,

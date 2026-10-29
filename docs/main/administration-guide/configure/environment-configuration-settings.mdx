@@ -1168,6 +1168,25 @@ If indexing is disabled and then re-enabled after an index is created, purge and
 
 </Note>
 
+<Warning>
+
+Turn off Elasticsearch indexing before permanently deleting a large number of channels. Each permanent delete reindexes every member of that channel. A bulk delete that removes on the order of 100,000 channel memberships can exhaust Mattermost memory and terminate the server process.
+
+Leave the Elasticsearch or OpenSearch cluster running. Stopping the cluster while Mattermost is still trying to index increases the load.
+
+1. In one configuration update, set these to `false`:
+    - [Enable CJK analyzers](#enable-cjk-analyzers), when that setting is on. CJK analyzers require search queries to stay enabled.
+    - [Enable Elasticsearch for search queries](#enable-elasticsearch-for-search-queries). Search queries require indexing to stay enabled.
+    - [Enable Elasticsearch for autocomplete queries](#enable-elasticsearch-for-autocomplete-queries). Autocomplete requires indexing to stay enabled.
+    - **Enable Elasticsearch indexing** (`ElasticsearchSettings.EnableIndexing`).
+2. Save the configuration and restart the Mattermost server. Search uses the database while indexing is off.
+3. Permanently delete the channels with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/&#123;channel_id&#125;?permanent=true`. [Enable API channel deletion](#enable-api-channel-deletion) must be `true`.
+4. Set **Enable Elasticsearch indexing** back to `true`, save, and restart.
+5. Purge and rebuild the index from **System Console > Environment > Elasticsearch**. Wait until the bulk index finishes. Keep search queries off during the rebuild so database search stays available.
+6. Restore search queries, autocomplete, and CJK analyzers to their previous values, then save and restart.
+
+</Warning>
+
 ### Backend type
 
 Both [Elasticsearch](/deployment-guide/scale/elasticsearch-setup) and [AWS OpenSearch](/deployment-guide/scale/opensearch-setup) provide enterprise-scale deployments with optimized search performance and prevents performance degradation and timeouts. Learn more about [enterprise search](/deployment-guide/scale/enterprise-search) in our product documentation.
@@ -3933,6 +3952,12 @@ This setting isn’t available in the System Console and can only be set in `con
 This setting isn’t available in the System Console and can only be set in `config.json`.
 
 </Note>
+
+<Warning>
+
+Before a large bulk permanent channel delete, turn off [Elasticsearch indexing](#enable-elasticsearch-indexing). Search queries, autocomplete, and CJK analyzers have to be off as well: search and autocomplete require indexing, and CJK analyzers require search. Each delete reindexes every channel member, and a bulk delete of about 100,000 memberships can exhaust server memory. Leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, turn indexing back on and purge and rebuild the index before enabling search and autocomplete again.
+
+</Warning>
 
 ### Enable desktop app developer mode
 
