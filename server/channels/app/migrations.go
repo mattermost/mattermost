@@ -38,7 +38,6 @@ const (
 	boardsPropertyMigrationVersion                 = "v2"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
 	cpaToGlobalAttributesMigrationKey              = "cpa_to_global_attributes_migration_done"
-	clearLastAccessibleFileTimeMigrationKey        = "ClearLastAccessibleFileTimeMigrationComplete"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -610,40 +609,6 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 
 	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark post priority config migration as completed: %w", err)
-	}
-
-	return nil
-}
-
-// doClearLastAccessibleFileTimeMigration removes the marker left by the former
-// Cloud file storage limit, which hid files created before it, and the jobs of
-// its removed worker, which would otherwise never be processed.
-func (s *Server) doClearLastAccessibleFileTimeMigration(rctx request.CTX) error {
-	if _, err := s.Store().System().GetByName(clearLastAccessibleFileTimeMigrationKey); err == nil {
-		return nil
-	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
-		return fmt.Errorf("could not query migration: %w", err)
-	}
-
-	if _, err := s.Store().System().PermanentDeleteByName(model.SystemLastAccessibleFileTime); err != nil {
-		return fmt.Errorf("failed to clear the last accessible file time: %w", err)
-	}
-
-	jobs, err := s.Store().Job().GetAllByType(rctx, model.JobTypeLastAccessibleFile)
-	if err != nil {
-		return fmt.Errorf("failed to get last accessible file jobs: %w", err)
-	}
-	for _, job := range jobs {
-		if _, err := s.Store().Job().Delete(job.Id); err != nil {
-			return fmt.Errorf("failed to delete last accessible file job %q: %w", job.Id, err)
-		}
-	}
-
-	if err := s.Store().System().SaveOrUpdate(&model.System{
-		Name:  clearLastAccessibleFileTimeMigrationKey,
-		Value: "true",
-	}); err != nil {
-		return fmt.Errorf("failed to mark the last accessible file time migration as completed: %w", err)
 	}
 
 	return nil
@@ -1536,7 +1501,6 @@ func (s *Server) doAppMigrations() {
 		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
-		{"Clear Last Accessible File Time Migration", func() error { return s.doClearLastAccessibleFileTimeMigration(rctx) }},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},

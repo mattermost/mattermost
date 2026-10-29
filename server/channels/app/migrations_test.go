@@ -5,7 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"maps"
 	"sync"
 	"sync/atomic"
@@ -13,9 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1530,70 +1527,4 @@ func TestDoAppMigrationsRunsLockedToMaster(t *testing.T) {
 	require.Equal(t, "lock", events[0], "migrations must lock to master before touching the store")
 	require.Equal(t, "unlock", events[len(events)-1], "migrations must release the lock once finished")
 	require.Contains(t, events[1:len(events)-1], "system", "migration store access must happen while locked to master")
-}
-
-func TestDoClearLastAccessibleFileTimeMigration(t *testing.T) {
-	th := Setup(t)
-
-	_, err := th.Store.System().PermanentDeleteByName(clearLastAccessibleFileTimeMigrationKey)
-	require.NoError(t, err)
-	require.NoError(t, th.Store.System().SaveOrUpdate(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}))
-
-	var jobIDs []string
-	for _, status := range []string{model.JobStatusPending, model.JobStatusInProgress, model.JobStatusSuccess} {
-		job, jobErr := th.Store.Job().Save(&model.Job{Id: model.NewId(), Type: model.JobTypeLastAccessibleFile, Status: status, CreateAt: model.GetMillis()})
-		require.NoError(t, jobErr)
-		jobIDs = append(jobIDs, job.Id)
-	}
-	otherJob, err := th.Store.Job().Save(&model.Job{Id: model.NewId(), Type: model.JobTypeLastAccessiblePost, Status: model.JobStatusPending, CreateAt: model.GetMillis()})
-	require.NoError(t, err)
-	defer func() {
-		_, delErr := th.Store.Job().Delete(otherJob.Id)
-		require.NoError(t, delErr)
-	}()
-
-	require.NoError(t, th.Server.doClearLastAccessibleFileTimeMigration(th.Context))
-
-	_, err = th.Store.System().GetByName(model.SystemLastAccessibleFileTime)
-	require.Error(t, err)
-	assert.IsType(t, &store.ErrNotFound{}, err)
-
-	for _, id := range jobIDs {
-		_, err = th.Store.Job().Get(th.Context, id)
-		assert.IsType(t, &store.ErrNotFound{}, err)
-	}
-	_, err = th.Store.Job().Get(th.Context, otherJob.Id)
-	require.NoError(t, err, "jobs of other types must be kept")
-
-	done, err := th.Store.System().GetByName(clearLastAccessibleFileTimeMigrationKey)
-	require.NoError(t, err)
-	assert.Equal(t, "true", done.Value)
-
-	// Once marked as done, the migration does not run again.
-	require.NoError(t, th.Store.System().SaveOrUpdate(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}))
-	require.NoError(t, th.Server.doClearLastAccessibleFileTimeMigration(th.Context))
-
-	marker, err := th.Store.System().GetByName(model.SystemLastAccessibleFileTime)
-	require.NoError(t, err)
-	assert.Equal(t, "10", marker.Value)
-}
-
-func TestDoClearLastAccessibleFileTimeMigrationJobDeleteFailure(t *testing.T) {
-	th := SetupWithStoreMock(t)
-
-	mockStore := th.App.Srv().Store().(*mocks.Store)
-	mockSystemStore := mocks.SystemStore{}
-	mockSystemStore.On("GetByName", clearLastAccessibleFileTimeMigrationKey).Return(nil, store.NewErrNotFound("System", clearLastAccessibleFileTimeMigrationKey))
-	mockSystemStore.On("PermanentDeleteByName", model.SystemLastAccessibleFileTime).Return(&model.System{}, nil)
-	mockJobStore := mocks.JobStore{}
-	mockJobStore.On("GetAllByType", mock.Anything, model.JobTypeLastAccessibleFile).Return([]*model.Job{{Id: "job1"}}, nil)
-	mockJobStore.On("Delete", "job1").Return("", errors.New("delete failed"))
-	mockStore.On("System").Return(&mockSystemStore)
-	mockStore.On("Job").Return(&mockJobStore)
-
-	err := th.Server.doClearLastAccessibleFileTimeMigration(th.Context)
-	require.Error(t, err)
-
-	// The done-key is not saved, so the migration retries on the next start.
-	mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
 }
