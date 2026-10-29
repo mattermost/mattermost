@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"time"
@@ -1692,6 +1693,34 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		user.Email = oldEmail
 		_, appErr = s.th.App.UpdateUser(s.th.Context, user, false)
 		s.Require().Nil(appErr)
+	})
+
+	s.RunForSystemAdminAndLocal("Edit email of user whose email is enclosed in angle brackets", func(c client.Client) {
+		printer.Clean()
+
+		// Such users can only exist from before emails in angle brackets were rejected,
+		// so bypass validation by writing the email directly to the database.
+		legacyUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+			Email:    s.th.GenerateTestEmail(),
+			Username: model.NewUsername(),
+			Password: model.NewId(),
+		})
+		s.Require().Nil(appErr)
+		legacyEmail := "<" + legacyUser.Email + ">"
+		sqlSettings := s.th.App.Config().SqlSettings
+		db, err := sql.Open(*sqlSettings.DriverName, *sqlSettings.DataSource)
+		s.Require().NoError(err)
+		defer db.Close()
+		_, err = db.Exec("UPDATE Users SET Email = $1 WHERE Id = $2", legacyEmail, legacyUser.Id)
+		s.Require().NoError(err)
+
+		newEmail := "fixed" + model.NewRandomString(5) + "@example.com"
+		cmdErr := userEditEmailCmdF(c, &cobra.Command{}, []string{legacyEmail, newEmail})
+		s.Require().Nil(cmdErr)
+
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, legacyUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(newEmail, updatedUser.Email)
 	})
 
 	s.Run("Edit email without permission", func() {

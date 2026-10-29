@@ -23,6 +23,7 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.Users.Handle("", api.APILocal(createUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.APILocal(sendPasswordReset)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/ids", api.APILocal(localGetUsersByIds)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/search", api.APILocal(localSearchUsers)).Methods(http.MethodPost)
 
 	api.BaseRoutes.User.Handle("", api.APILocal(localGetUser)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("", api.APILocal(updateUser)).Methods(http.MethodPut)
@@ -270,6 +271,55 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	js, err := json.Marshal(users)
 	if err != nil {
 		c.Err = model.NewAppError("localGetUsersByIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// localSearchUsers searches users by term, including their emails and full
+// names. Unlike searchUsers it applies no view restrictions, since local mode
+// has no session user to restrict by, and supports only the term, limit and
+// allow_inactive search properties.
+func localSearchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	var props model.UserSearch
+	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
+		c.SetInvalidParamWithErr("props", err)
+		return
+	}
+
+	if props.Term == "" {
+		c.SetInvalidParam("term")
+		return
+	}
+
+	if props.Limit == 0 {
+		props.Limit = model.UserSearchDefaultLimit
+	}
+	if props.Limit < 0 || props.Limit > model.UserSearchMaxLimit {
+		c.SetInvalidParam("limit")
+		return
+	}
+
+	options := &model.UserSearchOptions{
+		IsAdmin:        true,
+		AllowInactive:  props.AllowInactive,
+		AllowEmails:    true,
+		AllowFullNames: true,
+		Limit:          props.Limit,
+	}
+
+	profiles, appErr := c.App.SearchUsers(c.AppContext, &model.UserSearch{Term: props.Term, AllowInactive: props.AllowInactive, Limit: props.Limit}, options)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(profiles)
+	if err != nil {
+		c.Err = model.NewAppError("localSearchUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

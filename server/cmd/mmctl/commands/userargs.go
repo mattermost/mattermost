@@ -58,7 +58,8 @@ func isLegacyEmailArg(arg string) bool {
 
 // getUserByLegacyEmail finds a user whose stored email is exactly arg by
 // searching, since the email endpoint rejects invalid emails. It returns nil
-// without an error when there is no match.
+// without an error when there is no match. Emails are only searchable and
+// returned for system admins or in local mode, so this only finds users there.
 func getUserByLegacyEmail(c client.Client, arg string) (*model.User, *model.Response, error) {
 	term := strings.Trim(strings.TrimSpace(arg), "<>")
 	users, response, err := c.SearchUsers(context.TODO(), &model.UserSearch{Term: term, AllowInactive: true, Limit: 100})
