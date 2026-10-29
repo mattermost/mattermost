@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useCallback, useEffect, useMemo, useRef} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector, useStore} from 'react-redux';
 import {useLocation} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -11,7 +11,11 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {setGlobalItem} from 'actions/storage';
-import {areChannelSidebarSubItemsEqual, getChannelSidebarSubItems} from 'selectors/channel_sidebar_sub_items';
+import {
+    areChannelSidebarSubItemsEqual,
+    getChannelSidebarSubItemAncestorKeys,
+    getChannelSidebarSubItems,
+} from 'selectors/channel_sidebar_sub_items';
 import type {ResolvedChannelSidebarSubItem} from 'selectors/channel_sidebar_sub_items';
 import {getGlobalItem} from 'selectors/storage';
 
@@ -25,6 +29,14 @@ export function getChannelSidebarSubItemLink(teamName: string, channelName: stri
 
 export function getChannelSidebarSubItemsId(channelId: string) {
     return `sidebarSubItems_${channelId}`;
+}
+
+export function getChannelSidebarSubItemChildrenId(channelId: string, itemKey: string) {
+    return `${getChannelSidebarSubItemsId(channelId)}_${itemKey.replace(/\s+/g, '_')}`;
+}
+
+export function getChannelSidebarSubItemExpandedKey(userId: string, teamId: string, channelId: string, itemKey: string) {
+    return `${StoragePrefixes.CHANNEL_SIDEBAR_SUB_ITEM_EXPANDED}${userId}_${teamId}_${channelId}_${itemKey}`;
 }
 
 /**
@@ -60,6 +72,7 @@ export type ChannelSidebarSubItemsState = {
 
 export function useChannelSidebarSubItems(channel: Channel | undefined, teamName: string | undefined): ChannelSidebarSubItemsState {
     const dispatch = useDispatch();
+    const store = useStore<GlobalState>();
     const {pathname} = useLocation();
     const items = useSelector((state: GlobalState) => getChannelSidebarSubItems(state, channel), areChannelSidebarSubItemsEqual);
     const userId = useSelector(getCurrentUserId);
@@ -84,11 +97,27 @@ export function useChannelSidebarSubItems(channel: Channel | undefined, teamName
     const storedExpandedRef = useRef(storedExpanded);
     storedExpandedRef.current = storedExpanded;
 
+    const itemsRef = useRef(items);
+    itemsRef.current = items;
+
     useEffect(() => {
         if (activeKey && !storedExpandedRef.current) {
             dispatch(setGlobalItem(storageKey, true));
         }
     }, [activeKey, storageKey, dispatch]);
+
+    useEffect(() => {
+        if (!activeKey) {
+            return;
+        }
+        const state = store.getState();
+        for (const ancestorKey of getChannelSidebarSubItemAncestorKeys(itemsRef.current, activeKey)) {
+            const ancestorStorageKey = getChannelSidebarSubItemExpandedKey(userId, teamId, channelId, ancestorKey);
+            if (!getGlobalItem<boolean>(state, ancestorStorageKey, false)) {
+                dispatch(setGlobalItem(ancestorStorageKey, true));
+            }
+        }
+    }, [activeKey, userId, teamId, channelId, dispatch, store]);
 
     const toggle = useCallback(() => {
         dispatch(setGlobalItem(storageKey, !storedExpanded));
