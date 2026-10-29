@@ -28507,6 +28507,14 @@
     "defaultMessage": "{numOthers} others",
     "description": "Link text summarizing additional mentioned users in the out-of-channel mention notice; {numOthers} is the count of extra users; clicking expands the full list."
   },
+  "post_body.check_for_out_of_channel_mentions.policy_enforced": {
+    "defaultMessage": "did not get notified by this mention because they are not in the channel.",
+    "description": "Ending of the notice shown after mentioning users who aren't in a channel with an access policy, where they can't be invited; preceded by the mentioned usernames."
+  },
+  "post_body.check_for_out_of_channel_mentions.policy_enforced.board": {
+    "defaultMessage": "did not get notified by this mention because they are not in the board.",
+    "description": "Board version of the notice shown after mentioning users who aren't in a board with an access policy, where they can't be invited; preceded by the mentioned usernames."
+  },
   "post_body.commentedOn": {
     "defaultMessage": "Commented on {name}'s message: ",
     "description": "Label above a reply post in the message list indicating which root message it replies to; {name} is the root post author's username; followed by an excerpt of that message, so keep the trailing space."

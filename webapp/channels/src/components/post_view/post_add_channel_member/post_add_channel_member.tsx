@@ -168,13 +168,11 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                 return null;
             }
 
-            const messageText = policyEnforcedMessageText[channelKind];
-
             return (
                 <p>
                     {allUsersAtMentions}
                     {' '}
-                    {messageText}
+                    <FormattedMessage {...kindMessages.policyEnforced[channelKind]}/>
                 </p>
             );
         }
@@ -241,13 +239,17 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
     }
 }
 
-// Shown for policy-enforced channels; not translated.
-const policyEnforcedMessageText: Record<ChannelKind, string> = {
-    channel: 'did not get notified by this mention because they are not in the channel.',
-    board: 'did not get notified by this mention because they are not in the board.',
-};
-
 const kindMessages = {
+    policyEnforced: {
+        channel: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.policy_enforced',
+            defaultMessage: 'did not get notified by this mention because they are not in the channel.',
+        }),
+        board: defineMessage({
+            id: 'post_body.check_for_out_of_channel_mentions.policy_enforced.board',
+            defaultMessage: 'did not get notified by this mention because they are not in the board.',
+        }),
+    },
     linkPrivate: {
         channel: defineMessage({
             id: 'post_body.check_for_out_of_channel_mentions.link.private',
