@@ -56,7 +56,10 @@ export default class MarketplaceModal {
         }
 
         await installButton.click();
-        await expect(this.pluginRow(pluginId).getByRole('button', {name: 'Configure'})).toBeVisible({
+        // "Configure" renders as a <button> nested inside a router <Link>; that
+        // nesting is invalid HTML, so the browser's accessibility tree exposes
+        // only the outer element's role (link), not the inner button's.
+        await expect(this.pluginRow(pluginId).getByRole('link', {name: 'Configure'})).toBeVisible({
             timeout: duration.one_min,
         });
 
@@ -67,6 +70,6 @@ export default class MarketplaceModal {
      * Clicks "Configure" for the given plugin, which navigates to its System Console settings page.
      */
     async clickConfigure(pluginId: string) {
-        await this.pluginRow(pluginId).getByRole('button', {name: 'Configure'}).click();
+        await this.pluginRow(pluginId).getByRole('link', {name: 'Configure'}).click();
     }
 }
