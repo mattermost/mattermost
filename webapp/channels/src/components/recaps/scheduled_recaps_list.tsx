@@ -5,8 +5,8 @@ import React from 'react';
 
 import type {ScheduledRecap} from '@mattermost/types/recaps';
 
+import RecapsEmptyState from './recaps_empty_state';
 import ScheduledRecapItem from './scheduled_recap_item';
-import ScheduledRecapsEmptyState from './scheduled_recaps_empty_state';
 
 type Props = {
     scheduledRecaps: ScheduledRecap[];
@@ -18,7 +18,7 @@ type Props = {
 const ScheduledRecapsList = ({scheduledRecaps, onEdit, onCreateClick, createDisabled}: Props) => {
     if (scheduledRecaps.length === 0) {
         return (
-            <ScheduledRecapsEmptyState
+            <RecapsEmptyState
                 onCreateClick={onCreateClick}
                 disabled={createDisabled}
             />

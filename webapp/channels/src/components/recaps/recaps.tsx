@@ -26,8 +26,8 @@ import {useQuery} from 'utils/http_utils';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
-import AICopilotIntroSvg from './ai_copilot_intro_svg';
 import RecapUsageBadge from './recap_usage_badge';
+import RecapsEmptyState from './recaps_empty_state';
 import RecapsList from './recaps_list';
 import ScheduledRecapsList from './scheduled_recaps_list';
 
@@ -148,24 +148,10 @@ const Recaps = () => {
         );
     } else if (hasNoRecaps) {
         recapsContent = (
-            <div className='recaps-placeholder'>
-                <AICopilotIntroSvg/>
-                <h2 className='recaps-placeholder-title'>
-                    {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
-                </h2>
-                <p className='recaps-placeholder-description'>
-                    {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}
-                </p>
-                <Button
-                    emphasis='primary'
-                    className='recaps-placeholder-button'
-                    onClick={handleAddRecap}
-                    disabled={!agentsBridgeEnabled.available}
-                    title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
-                >
-                    {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
-                </Button>
-            </div>
+            <RecapsEmptyState
+                onCreateClick={handleAddRecap}
+                disabled={!agentsBridgeEnabled.available}
+            />
         );
     } else {
         recapsContent = <RecapsList recaps={displayedRecaps}/>;
