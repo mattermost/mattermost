@@ -120,6 +120,10 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         expect(header.queryByTestId('global-attributes-search')).not.toBeInTheDocument();
 
         const search = screen.getByTestId('global-attributes-search');
+
+        // The server rejects a term longer than a field name can be.
+        expect(search).toHaveAttribute('maxLength', '255');
+
         await userEvent.type(search, 'clear');
 
         await waitFor(() => {
