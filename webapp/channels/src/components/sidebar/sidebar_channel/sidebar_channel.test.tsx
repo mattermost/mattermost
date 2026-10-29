@@ -9,7 +9,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannel from 'components/sidebar/sidebar_channel/sidebar_channel';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
 
 jest.mock('components/tours/onboarding_tour', () => ({
@@ -312,13 +312,69 @@ describe('components/sidebar/sidebar_channel', () => {
             expect(screen.queryByRole('list')).not.toBeInTheDocument();
         });
 
-        test('should not hide the active item when collapsing', async () => {
-            renderChannel({isCurrentChannel: true}, makeState(), '/team_name/channels/town-square/views/b');
+        test('should persist the expanded state when the path matches a sub-item', () => {
+            const {store} = renderChannel({isCurrentChannel: true}, makeState(), '/team_name/channels/town-square/views/b');
+
+            expect(store.getState().storage.storage[storageKey].value).toBe(true);
+        });
+
+        test('should not persist anything when the path matches no sub-item', () => {
+            const {store} = renderChannel({isCurrentChannel: true});
+
+            expect(store.getState().storage.storage[storageKey]).toBeUndefined();
+        });
+
+        test('should allow collapsing while a sub-item is active and restore the channel active styling', async () => {
+            const {store} = renderChannel({isCurrentChannel: true}, makeState(), '/team_name/channels/town-square/views/b');
+
+            const channelItem = screen.getAllByRole('listitem')[0];
+            expect(channelItem).toHaveClass('active', 'hasActiveSubItem');
 
             await userEvent.click(getToggle());
 
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'false');
+            expect(getToggle()).toHaveAccessibleName('Expand channel_display_name');
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+            expect(channelItem).toHaveClass('active', 'hasSubItems');
+            expect(channelItem).not.toHaveClass('hasActiveSubItem');
+            expect(store.getState().storage.storage[storageKey].value).toBe(false);
+        });
+
+        test('should expand again when navigating to a different sub-item after collapsing', async () => {
+            const {store, history} = renderChannel({isCurrentChannel: true}, makeState(), '/team_name/channels/town-square/views/b');
+
+            await userEvent.click(getToggle());
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+
+            act(() => {
+                history.push('/team_name/channels/town-square/views/a');
+            });
+
             expect(getToggle()).toHaveAttribute('aria-expanded', 'true');
-            expect(screen.getByRole('link', {name: 'Table view'})).toBeInTheDocument();
+            expect(screen.getByRole('link', {name: 'Board view'})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getAllByRole('listitem')[0]).toHaveClass('hasActiveSubItem');
+            expect(store.getState().storage.storage[storageKey].value).toBe(true);
+        });
+
+        test('should stay collapsed when navigating within the same active sub-item', async () => {
+            const {history} = renderChannel({isCurrentChannel: true}, makeState(), '/team_name/channels/town-square/views/b');
+
+            await userEvent.click(getToggle());
+
+            act(() => {
+                history.push('/team_name/channels/town-square/views/b/details');
+            });
+
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'false');
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        });
+
+        test('should not suppress the channel active styling when the list is hidden because the category is dragged', () => {
+            renderChannel({isCurrentChannel: true, isCategoryDragged: true}, makeState(), '/team_name/channels/town-square/views/b');
+
+            const channelItem = screen.getByRole('listitem');
+            expect(channelItem).toHaveClass('active', 'collapsed');
+            expect(channelItem).not.toHaveClass('hasActiveSubItem');
         });
 
         test('should hide the list when the category is collapsed', () => {

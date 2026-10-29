@@ -76,8 +76,16 @@ function SidebarChannel({
 
     const isSelectedDragging = Boolean(isChannelSelected && draggingState.state && draggingState.id !== channel.id);
 
+    function areSubItemsVisible(isDragging: boolean) {
+        return show && hasSubItems && subItemsExpanded && !isCollapsed() && !isDragging && !isSelectedDragging;
+    }
+
+    function hasVisibleActiveSubItem(isDragging: boolean) {
+        return Boolean(subItems.activeKey) && areSubItemsVisible(isDragging);
+    }
+
     function renderSubItems(isDragging: boolean) {
-        if (!show || !hasSubItems || !subItemsExpanded || isCollapsed() || isDragging || isSelectedDragging || !currentTeamName || !channel) {
+        if (!areSubItemsVisible(isDragging) || !currentTeamName || !channel) {
             return null;
         }
 
@@ -149,7 +157,7 @@ function SidebarChannel({
                                 unread: isUnread,
                                 active: isCurrentChannel,
                                 hasSubItems,
-                                hasActiveSubItem: Boolean(subItems.activeKey),
+                                hasActiveSubItem: hasVisibleActiveSubItem(snapshot.isDragging),
                                 dragging: snapshot.isDragging,
                                 selectedDragging: isSelectedDragging,
                                 fadeOnDrop: snapshot.isDropAnimating && snapshot.draggingOver && autoSortedCategoryIds.has(snapshot.draggingOver),
@@ -181,7 +189,7 @@ function SidebarChannel({
                 unread: isUnread,
                 active: isCurrentChannel,
                 hasSubItems,
-                hasActiveSubItem: Boolean(subItems.activeKey),
+                hasActiveSubItem: hasVisibleActiveSubItem(false),
             })}
             onAnimationStart={handleAnimationStart}
             onAnimationEnd={handleAnimationEnd}
