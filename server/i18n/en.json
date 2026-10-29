@@ -9111,6 +9111,11 @@
     "description": "Bulk import error shown to admins when saving preferences (e.g. flagged-post state) tied to an imported post fails."
   },
   {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Error importing post. Failed to save priority.",
+    "description": "Bulk import error shown to admins when saving the priority (important, urgent, acknowledgement request) of an imported post fails."
+  },
+  {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Error importing post. User with username \"{{.Username}}\" could not be found.",
     "description": "Bulk import error shown to admins; {{.Username}} is the username referenced by the post being imported."
@@ -9404,6 +9409,31 @@
     "id": "app.import.validate_post_import_data.user_missing.error",
     "translation": "Missing required Post property: User.",
     "description": "Bulk-import validation error when a post entry lacks the author field; 'Post' and 'User' are literal field names and should stay untranslated."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Acknowledgement AcknowledgedAt property must be set and not before the post CreateAt.",
+    "description": "Bulk-import validation error when a post acknowledgement has no timestamp or one earlier than the post; 'AcknowledgedAt' and 'CreateAt' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Missing required Acknowledgement property: User.",
+    "description": "Bulk-import validation error when a post acknowledgement lacks the acknowledging username; 'Acknowledgement' and 'User' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Post acknowledgements require a Priority with RequestedAck set to true.",
+    "description": "Bulk-import validation error when a post has acknowledgements but its priority does not request them; 'Priority' and 'RequestedAck' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "Post PersistentNotifications require the urgent Priority.",
+    "description": "Bulk-import validation error when persistent notifications are set on a post whose priority is not urgent; 'PersistentNotifications' and 'Priority' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Missing required Priority property: Priority.",
+    "description": "Bulk-import validation error when a post priority object has no priority value (use an empty string for standard priority); 'Priority' is a literal field name."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
