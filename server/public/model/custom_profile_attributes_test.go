@@ -153,6 +153,46 @@ func TestNewCPAFieldFromPropertyField_DropsPermissions(t *testing.T) {
 	require.NotNil(t, source.Permissions, "converting to a CPAField must not mutate the source field")
 }
 
+func TestNewCPAFieldFromPropertyField_ProjectsPermissions(t *testing.T) {
+	ownerID := NewId()
+	source := &PropertyField{
+		ID:      NewId(),
+		GroupID: AccessControlPropertyGroupName,
+		Name:    "Test Field",
+		Type:    PropertyFieldTypeText,
+		Attrs: StringInterface{
+			CustomProfileAttributesPropertyAttrsVisibility: CustomProfileAttributesVisibilityAlways,
+		},
+		// PermissionField/Values/Options and Protected are left unset: the
+		// field's access is decided from Permissions alone, and the CPA
+		// payload must report the equivalent legacy keys anyway.
+		Permissions: &Permissions{
+			Restrictions: &Restrictions{
+				Field:  WriteOnly{Write: PermissionLevelNone},
+				Value:  ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelMember},
+				Option: ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelAdmin},
+			},
+			Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: ownerID}, Allow: []string{PropertyActionValueWrite}},
+			},
+		},
+	}
+
+	cpaField, err := NewCPAFieldFromPropertyField(source)
+	require.NoError(t, err)
+	require.NotNil(t, cpaField)
+
+	assert.True(t, cpaField.Attrs.Protected)
+	require.Len(t, cpaField.Attrs.Owners, 1)
+	assert.Equal(t, ownerID, cpaField.Attrs.Owners[0].ID)
+	assert.Nil(t, cpaField.Permissions)
+
+	// The source field, including its Attrs map, must be untouched.
+	assert.NotContains(t, source.Attrs, PropertyAttrsProtected)
+	assert.NotContains(t, source.Attrs, PropertyAttrsOwners)
+	require.NotNil(t, source.Permissions)
+}
+
 func TestCPAFieldToPropertyField(t *testing.T) {
 	tests := []struct {
 		name     string
