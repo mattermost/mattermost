@@ -992,6 +992,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
         }
 
+        .SidebarChannel__dragHandle {
+            display: flex;
+            width: 100%;
+            min-width: 0;
+            flex: 0 0 auto;
+            align-items: center;
+        }
+
         &.selectedDragging {
             opacity: 0.25;
             transition: all cubic-bezier(0.2, 1, 0.1, 1) 0.33s;
@@ -1181,6 +1189,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarChannel > .active.SidebarLink,
+    .SidebarChannel__dragHandle > .active.SidebarLink,
     .SidebarChannel.active:not(.hasActiveSubItem) .SidebarLink {
         background: rgba(var(--sidebar-text-rgb), 0.08);
 
