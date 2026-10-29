@@ -560,6 +560,8 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventPluginEvent,
 		model.ClusterEventInvalidateCacheForTermsOfService,
 		model.ClusterEventBusyStateChanged,
+		model.ClusterEventHealthCollect,
+		model.ClusterEventHealthCollectReply,
 	} {
 		m.ClusterEventMap[event] = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(event)})
 	}

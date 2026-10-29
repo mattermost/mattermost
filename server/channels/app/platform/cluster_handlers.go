@@ -21,6 +21,8 @@ func (ps *PlatformService) RegisterClusterHandlers() {
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventUpdateSessionAttributes, ps.ClusterUpdateSessionAttributesHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForUser, ps.clusterClearSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForAllUsers, ps.clusterClearSessionCacheForAllUsersHandler)
+	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventHealthCollect, ps.handleHealthCollect)
+	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventHealthCollectReply, ps.handleHealthCollectReply)
 	for e, h := range ps.additionalClusterHandlers {
 		ps.clusterIFace.RegisterClusterMessageHandler(e, h)
 	}
