@@ -6,8 +6,8 @@
  * the Configuration tab toggle in Channel Settings.
  *
  * The toggle controls `DisableJoinLeaveMessages` on the channel:
- *   - Toggle ON  (active class)    → messages shown (DisableJoinLeaveMessages = false)
- *   - Toggle OFF (no active class) → messages hidden (DisableJoinLeaveMessages = true)
+ *   - Toggle ON  (checked)   → messages shown (DisableJoinLeaveMessages = false)
+ *   - Toggle OFF (unchecked) → messages hidden (DisableJoinLeaveMessages = true)
  *
  * Join system posts are generated server-side when a user is added to a
  * channel, so tests use `adminClient.addToChannel()` to produce them.
@@ -45,9 +45,8 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
         // * Toggle is visible
         await expect(configSettings.joinLeaveMessagesToggle).toBeVisible();
 
-        // * Toggle defaults to ON (active class present = messages shown)
-        const classes = await configSettings.joinLeaveMessagesToggle.getAttribute('class');
-        expect(classes).toContain('active');
+        // * Toggle defaults to ON (checked = messages shown)
+        expect(await configSettings.joinLeaveMessagesToggle.isChecked()).toBe(true);
 
         await channelSettings.close();
     });

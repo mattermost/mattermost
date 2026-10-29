@@ -165,7 +165,7 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             const configuration = await settings.openConfigurationTab();
 
             await expect(configuration.container.getByTestId('channelBannerToggle-button')).toHaveAttribute(
-                'aria-pressed',
+                'aria-checked',
                 'true',
             );
             await expect(configuration.bannerTextEditor).toBeVisible();

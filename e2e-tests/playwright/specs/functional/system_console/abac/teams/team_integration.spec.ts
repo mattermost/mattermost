@@ -102,9 +102,8 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     async function setToggle(page: Page, on: boolean): Promise<void> {
         const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
         await toggle.waitFor({state: 'visible', timeout: 10000});
-        const pressed = (await toggle.getAttribute('aria-pressed')) === 'true';
-        if (pressed !== on) {
-            await toggle.click();
+        if ((await toggle.isChecked()) !== on) {
+            await toggle.click({force: true});
         }
     }
 
@@ -286,7 +285,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         // * Custom rule still governs, so enforcement stays on
         await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveAttribute(
-            'aria-pressed',
+            'aria-checked',
             'true',
         );
 

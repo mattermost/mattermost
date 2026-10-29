@@ -199,7 +199,7 @@ test.describe('Shared channel configuration', () => {
 
         await expect(configurationTab.shareWithWorkspacesToggle).toBeVisible();
         // When sharing is disabled and no workspaces are configured, the toggle is simply off.
-        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'false');
+        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-checked', 'false');
         await channelSettingsModal.close();
     });
 
@@ -282,7 +282,7 @@ test.describe('Shared channel configuration', () => {
 
         // Re-apply guard: a concurrent initSetup() may have reset ConnectedWorkspacesSettings
         // between the initial patchConfig call and now.  enableShareWithWorkspaces() calls
-        // toggle.getAttribute() which times out (30 s) when EnableSharedChannels=false because
+        // toggle.isChecked() which times out (30 s) when EnableSharedChannels=false because
         // the toggle is not rendered at all.
         await adminClient.patchConfig({
             ConnectedWorkspacesSettings: {
@@ -311,7 +311,7 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.toBeVisible();
         channelSettingsModal = await channelsPage.openChannelSettings();
         configurationTab = await channelSettingsModal.openConfigurationTab();
-        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'true');
+        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-checked', 'true');
         await channelSettingsModal.close();
 
         // Disable sharing via API (uninvite workspaces) to avoid async UI race conditions.
@@ -331,7 +331,7 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.toBeVisible();
         channelSettingsModal = await channelsPage.openChannelSettings();
         configurationTab = await channelSettingsModal.openConfigurationTab();
-        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'false');
+        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-checked', 'false');
         await channelSettingsModal.close();
     });
 

@@ -81,7 +81,7 @@ test.describe('Channel Classification - New channel creation', () => {
 
         // Enable classification toggle
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
 
         // Create button should be disabled (no classification level selected, no banner text)
         await expect(newChannelModal.createButton).toBeDisabled();
@@ -98,7 +98,7 @@ test.describe('Channel Classification - New channel creation', () => {
 
         // Enable classification toggle
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
 
         // Open the classification dropdown
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
@@ -126,7 +126,7 @@ test.describe('Channel Classification - New channel creation', () => {
 
         // Enable classification toggle
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
 
         // Select a classification level
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
@@ -164,7 +164,7 @@ test.describe('Channel Classification - New channel creation', () => {
 
         // Enable classification toggle
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
 
         // Select the classification level
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
@@ -220,13 +220,12 @@ test.describe('Channel Classification - Existing channel settings', () => {
         await expect(classificationToggle).toBeVisible();
 
         // Toggle it on
-        const classes = await classificationToggle.getAttribute('class');
-        if (!classes?.includes('active')) {
-            await classificationToggle.click();
+        if (!(await classificationToggle.isChecked())) {
+            await classificationToggle.click({force: true});
         }
 
         // Toggle should now be active
-        await expect(classificationToggle).toHaveClass(/active/);
+        await expect(classificationToggle).toBeChecked();
     });
 
     test('Classification level can be set once toggle is enabled', async ({pw}) => {
@@ -246,7 +245,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
 
         // Enable classification toggle
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
 
         // Classification level dropdown should be visible
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
@@ -282,7 +281,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
 
         // Enable classification and select a level
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
 
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();
@@ -295,7 +294,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         // The channel banner toggle should now be forced active and disabled
         const bannerToggle = channelsPage.page.getByTestId('channelBannerToggle-button');
         await expect(bannerToggle).toBeVisible();
-        await expect(bannerToggle).toHaveClass(/active/);
+        await expect(bannerToggle).toBeChecked();
         await expect(bannerToggle).toBeDisabled();
 
         // Banner color input should be locked to the classification color
@@ -324,7 +323,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         const configurationTab = await channelSettingsModal.openConfigurationTab();
 
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
 
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();
@@ -337,7 +336,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         // longer auto-enables banner_info.enabled when classification is on, so the banner
         // section body (and its color input) is hidden after toggling classification off
         // until a manual banner is enabled.
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
         await configurationTab.enableChannelBanner();
         const customColor = 'aa00aa';
         await configurationTab.setChannelBannerBackgroundColor(customColor);
@@ -350,7 +349,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         expect(persisted.banner_info?.background_color?.toLowerCase().replace('#', '')).toBe(customColor);
 
         // Symptom 2 guard: re-enable classification → Save button reappears (panel transitions out of 'saved')
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
         const saveButton = channelsPage.page.getByTestId('SaveChangesPanel__save-btn');
         await expect(saveButton).toBeVisible();
         await expect(saveButton).toBeEnabled();
@@ -375,7 +374,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
 
         // Enable classification and select a level
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await classificationToggle.click({force: true});
 
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();

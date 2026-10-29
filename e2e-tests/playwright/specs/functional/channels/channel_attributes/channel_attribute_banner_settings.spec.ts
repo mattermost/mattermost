@@ -256,7 +256,7 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
             let settings = await channelsPage.openChannelSettings();
             let configuration = await settings.openConfigurationTab();
             await expect(configuration.container.getByTestId('channelBannerToggle-button')).toHaveAttribute(
-                'aria-pressed',
+                'aria-checked',
                 'true',
             );
             await configuration.disableChannelBanner();
@@ -271,7 +271,7 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
             settings = await channelsPage.openChannelSettings();
             configuration = await settings.openConfigurationTab();
             await expect(configuration.container.getByTestId('channelBannerToggle-button')).toHaveAttribute(
-                'aria-pressed',
+                'aria-checked',
                 'false',
             );
             await configuration.enableChannelBanner();
