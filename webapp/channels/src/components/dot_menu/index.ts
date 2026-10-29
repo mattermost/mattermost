@@ -138,6 +138,12 @@ function makeMapStateToProps() {
             ),
             canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
             canCopyText: !systemMessage && !isBoRPost,
+            canQuoteReply: !systemMessage && !isBoRPost && !isArchivedChannel(channel) && (
+                !ownProps.location ||
+                ownProps.location === Locations.CENTER ||
+                ownProps.location === Locations.RHS_ROOT ||
+                ownProps.location === Locations.RHS_COMMENT
+            ),
             canCopyLink: !systemMessage && (!isBoRPost || isPostSender),
             canFlagContent,
             isBurnOnReadPost: isBoRPost,

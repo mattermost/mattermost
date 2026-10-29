@@ -7,6 +7,7 @@ import type {PostType} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import {onSubmit} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
@@ -16,7 +17,7 @@ import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, userEvent, screen, act, createEvent, fireEvent} from 'tests/react_testing_utils';
-import Constants, {Locations, PostTypes, StoragePrefixes} from 'utils/constants';
+import Constants, {EventTypes, Locations, PostTypes, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
@@ -298,6 +299,78 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         );
 
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
+    });
+
+    it('should append text inserted from elsewhere, such as a quote reply, to the matching draft', async () => {
+        renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            mergeObjects(initialState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                channelId,
+                                message: 'existing text ',
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        const textbox = screen.getByPlaceholderText('Write to Test Channel');
+
+        // Text meant for another channel or for a thread is ignored
+        act(() => {
+            EventEmitter.emit(EventTypes.INSERT_INTO_POST_TEXTBOX, otherChannelId, '', '> other\n\n');
+            EventEmitter.emit(EventTypes.INSERT_INTO_POST_TEXTBOX, channelId, 'root_id', '> thread\n\n');
+        });
+        expect(textbox).toHaveValue('existing text ');
+
+        act(() => {
+            EventEmitter.emit(EventTypes.INSERT_INTO_POST_TEXTBOX, channelId, '', '> quoted\n\n');
+        });
+        expect(textbox).toHaveValue('existing text\n\n> quoted\n\n');
+    });
+
+    it('should append inserted text to the WYSIWYG editor as a block quote', () => {
+        const {container} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    general: {
+                        config: {FeatureFlagWysiwygEditor: 'true'},
+                    },
+                    preferences: {
+                        myPreferences: {
+                            'display_settings--wysiwyg_editor': {category: 'display_settings', name: 'wysiwyg_editor', value: 'true'},
+                        },
+                    },
+                },
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                channelId,
+                                message: 'existing text',
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        act(() => {
+            EventEmitter.emit(EventTypes.INSERT_INTO_POST_TEXTBOX, channelId, '', '> quoted\n\n');
+        });
+
+        const editor = container.querySelector('.ProseMirror');
+        expect(editor?.querySelector('p')).toHaveTextContent('existing text');
+        expect(editor?.querySelector('blockquote')).toHaveTextContent('quoted');
     });
 
     it('should mount and send when rootId is omitted, as plugins may do via window.Components', async () => {

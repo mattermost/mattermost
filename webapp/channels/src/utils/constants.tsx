@@ -540,6 +540,7 @@ export const EventTypes = Object.assign(
     },
     keyMirror({
         POST_LIST_SCROLL_TO_BOTTOM: null,
+        INSERT_INTO_POST_TEXTBOX: null,
     }),
 );
 

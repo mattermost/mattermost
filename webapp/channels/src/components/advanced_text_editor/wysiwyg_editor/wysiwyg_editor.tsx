@@ -13,7 +13,7 @@ import {TableRow} from '@tiptap/extension-table-row';
 import {Markdown} from '@tiptap/markdown';
 import type {Node as PMNode} from '@tiptap/pm/model';
 import {splitListItem} from '@tiptap/pm/schema-list';
-import {Plugin, PluginKey} from '@tiptap/pm/state';
+import {Plugin, PluginKey, TextSelection} from '@tiptap/pm/state';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
@@ -33,7 +33,7 @@ import {useLatest} from 'hooks/useLatest';
 import {canHighlight} from 'utils/syntax_highlighting';
 
 import WysiwygImage from './wysiwyg_image';
-import {insertMarkdown, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
+import {insertMarkdown, parseMarkdownContent, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
 import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
@@ -152,6 +152,10 @@ const SERIALIZE_DEBOUNCE_MS = 100;
 export type WysiwygEditorHandle = {
     getEditor: () => Editor | null;
     insertText: (text: string) => void;
+
+    // Appends markdown as blocks at the end of the document and puts the
+    // caret in an empty paragraph below them.
+    appendMarkdown: (markdown: string) => void;
 
     // Parity with the legacy `Textbox` ref so focus/upload hooks can drive
     // either composer.
@@ -607,6 +611,33 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 const content = needsSpace ? ` ${text} ` : `${text} `;
                 ed.chain().focus().insertContent({type: 'text', text: content}).run();
             }
+        },
+        appendMarkdown: (markdown: string) => {
+            const ed = editorRef.current;
+            if (!ed || ed.isDestroyed || readOnlyRef.current) {
+                return;
+            }
+
+            // A trailing empty paragraph is hidden by CSS and can't hold the caret, so
+            // add one for the caret plus the trailing one, as leaving a block by typing does.
+            const blocks = [...(parseMarkdownContent(ed, markdown)?.content ?? plainTextContent(markdown)), {type: 'paragraph'}, {type: 'paragraph'}];
+            const wasEmpty = ed.isEmpty;
+            ed.chain().insertContentAt(ed.state.doc.content.size, blocks).command(({tr}) => {
+                // Inside the second-to-last paragraph: before the last one (2) and its own closing token (1)
+                tr.setSelection(TextSelection.create(tr.doc, tr.doc.content.size - 3));
+                return true;
+            }).focus().run();
+
+            // Drop the empty paragraph that was there before. This must be a separate
+            // transaction: replacing the node that held the caret in the same one that
+            // moves it leaves Chrome typing at the start of the document.
+            if (wasEmpty) {
+                ed.commands.deleteRange({from: 0, to: ed.state.doc.child(0).nodeSize});
+            }
+
+            // Update the draft now rather than after the debounce, so sending right away includes the quote
+            debouncedFlushPendingChange.cancel();
+            flushPendingChange();
         },
         focus: () => {
             const ed = editorRef.current;

@@ -266,4 +266,50 @@ describe('WysiwygEditor interactions', () => {
             expect(editor.getHTML()).toBe('<p>typed text</p>');
         });
     });
+
+    describe('appendMarkdown', () => {
+        test('fills an empty editor with the quote and leaves the caret below it', () => {
+            const {editor, ref} = renderEditor('');
+
+            act(() => {
+                ref.current!.appendMarkdown('> line one\n>\n> line two\n\n');
+            });
+            typeText(editor, 'my reply');
+
+            expect(editor.getHTML()).toBe('<blockquote><p>line one</p><p>line two</p></blockquote><p>my reply</p><p></p>');
+            expect(serializeToMarkdown(editor)).toBe('> line one\n>\n> line two\n\nmy reply');
+        });
+
+        test('appends after existing content', () => {
+            const {editor, ref} = renderEditor('existing text');
+
+            act(() => {
+                ref.current!.appendMarkdown('> quoted\n\n');
+            });
+            typeText(editor, 'my reply');
+
+            expect(editor.getHTML()).toBe('<p>existing text</p><blockquote><p>quoted</p></blockquote><p>my reply</p><p></p>');
+        });
+
+        test('reports the change right away instead of after the debounce', () => {
+            const onChange = jest.fn();
+            const ref = React.createRef<WysiwygEditorHandle>();
+            renderWithContext(
+                <WysiwygEditor
+                    ref={ref}
+                    {...baseProps}
+                    onChange={onChange}
+                    value=''
+                    channelId='c1'
+                />,
+            );
+
+            act(() => {
+                ref.current!.appendMarkdown('> quoted\n\n');
+            });
+
+            expect(onChange).toHaveBeenCalledTimes(1);
+            expect(onChange).toHaveBeenCalledWith('> quoted\n\n');
+        });
+    });
 });

@@ -16,6 +16,7 @@ import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entitie
 import {get, getBool, getInt, getWysiwygEditorPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
+import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
@@ -50,6 +51,7 @@ import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName}
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
 import Constants, {
+    EventTypes,
     Locations,
     StoragePrefixes,
     Preferences,
@@ -639,6 +641,44 @@ const AdvancedTextEditor = ({
         inputBox?.click();
         focusTextbox(true);
     }, [handleDraftChange, focusTextbox, draft, textboxRef]);
+
+    // Append text sent from elsewhere (e.g. "Quote Reply" in the post menu) to this composer's draft
+    useEffect(() => {
+        if (isInEditMode || readOnlyChannel) {
+            return undefined;
+        }
+
+        const handleInsert = (targetChannelId: string, targetRootId: string, text: string) => {
+            if (targetChannelId !== channelId || targetRootId !== rootId) {
+                return;
+            }
+
+            // The WYSIWYG editor doesn't reload a changed draft, so insert through it
+            // and let its onChange update the draft
+            if (wysiwygEnabled) {
+                wysiwygRef.current?.appendMarkdown(text);
+                return;
+            }
+
+            const currentMessage = draftRef.current.message;
+            const message = currentMessage.trim() ? `${currentMessage.trimEnd()}\n\n${text}` : text;
+            handleDraftChange({
+                ...draftRef.current,
+                message,
+            });
+            focusTextbox(true);
+
+            requestAnimationFrame(() => {
+                const input = textboxRef.current?.getInputBox();
+                input?.setSelectionRange?.(message.length, message.length);
+            });
+        };
+
+        EventEmitter.addListener(EventTypes.INSERT_INTO_POST_TEXTBOX, handleInsert);
+        return () => {
+            EventEmitter.removeListener(EventTypes.INSERT_INTO_POST_TEXTBOX, handleInsert);
+        };
+    }, [channelId, rootId, isInEditMode, readOnlyChannel, wysiwygEnabled, handleDraftChange, focusTextbox]);
 
     // Handle width change when there is no message.
     useEffect(() => {
