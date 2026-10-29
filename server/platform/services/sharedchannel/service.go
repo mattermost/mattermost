@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/url"
 	"sync"
 	"time"
@@ -34,6 +35,7 @@ const (
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
 	SyncRetryDelay               = time.Second * 15
+	HandoffTaskTimeout           = time.Minute
 	// Default value for MaxMembersPerBatch is defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 )
 
@@ -109,6 +111,7 @@ type Service struct {
 	connectionStateListenerId string
 	done                      chan struct{}
 	tasks                     map[string]syncTask
+	handoffTasks              map[string]syncTask
 	syncTopicListenerId       string
 	inviteTopicListenerId     string
 	uploadTopicListenerId     string
@@ -197,11 +200,41 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
+	handoffTasks := scs.takeHandoffTasks()
 	if scs.server.IsLeader() {
+		for _, task := range handoffTasks {
+			if time.Since(task.AddedAt) <= HandoffTaskTimeout {
+				scs.addTask(task)
+			}
+		}
 		scs.resume()
 	} else {
 		scs.pause()
 	}
+}
+
+// holdHandoffTask keeps a task handed off by a node that stopped running the sync loop
+// until the next leader change, in case this node becomes the next leader.
+func (scs *Service) holdHandoffTask(task syncTask) {
+	task.AddedAt = time.Now()
+
+	scs.mux.Lock()
+	defer scs.mux.Unlock()
+	if scs.handoffTasks == nil {
+		scs.handoffTasks = make(map[string]syncTask)
+	}
+	maps.DeleteFunc(scs.handoffTasks, func(_ string, held syncTask) bool {
+		return time.Since(held.AddedAt) > HandoffTaskTimeout
+	})
+	scs.handoffTasks[task.id] = task
+}
+
+func (scs *Service) takeHandoffTasks() map[string]syncTask {
+	scs.mux.Lock()
+	defer scs.mux.Unlock()
+	tasks := scs.handoffTasks
+	scs.handoffTasks = nil
+	return tasks
 }
 
 func (scs *Service) resume() {
@@ -220,17 +253,30 @@ func (scs *Service) resume() {
 	scs.server.Log().Debug("Shared Channel Service active")
 }
 
+// pause stops the sync loop and hands any queued tasks to the current or next leader.
 func (scs *Service) pause() {
-	scs.mux.Lock()
-	defer scs.mux.Unlock()
+	cluster := scs.server.GetCluster()
 
+	scs.mux.Lock()
 	if !scs.active {
+		scs.mux.Unlock()
 		return // already inactive
 	}
 
 	scs.active = false
 	close(scs.done)
 	scs.done = nil
+
+	var pending map[string]syncTask
+	if cluster != nil {
+		pending = scs.tasks
+		scs.tasks = make(map[string]syncTask)
+	}
+	scs.mux.Unlock()
+
+	for _, task := range pending {
+		scs.sendTaskToCluster(cluster, task, true)
+	}
 
 	scs.server.Log().Debug("Shared Channel Service inactive")
 }

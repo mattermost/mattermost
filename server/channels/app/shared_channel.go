@@ -222,7 +222,7 @@ func (a *App) UpdateSharedChannelCursor(channelID, remoteID string, cursor model
 // SyncSharedChannel forces a shared channel to send any changed content to all remote clusters.
 func (a *App) SyncSharedChannel(channelID string) error {
 	syncService := a.Srv().GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
+	if syncService == nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
 			nil, "", http.StatusBadRequest)
 	}

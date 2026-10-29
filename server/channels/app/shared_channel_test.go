@@ -633,6 +633,17 @@ func TestSharedChannelSyncFromFollowerNode(t *testing.T) {
 	assert.Equal(t, remoteID, forwarded.RemoteID)
 	assert.False(t, service.HasPendingTasksForTesting(), "a follower must not queue tasks it never processes")
 
+	require.NoError(t, th.App.SyncSharedChannel(th.BasicChannel.Id), "plugins run on every node, so a follower must accept a forced sync")
+	syncMsgs := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+		return msg.Event == model.ClusterEventSharedChannelSyncTask
+	})
+	require.Len(t, syncMsgs, 2)
+	forwarded.RemoteID = ""
+	require.NoError(t, json.Unmarshal(syncMsgs[1].Data, &forwarded))
+	assert.Equal(t, th.BasicChannel.Id, forwarded.ChannelID)
+	assert.Empty(t, forwarded.RemoteID, "a forced sync goes to every remote")
+	assert.False(t, service.HasPendingTasksForTesting())
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = false })
 	th.Server.InvokeClusterLeaderChangedListeners()
 	require.Eventually(t, service.Active, 5*time.Second, 10*time.Millisecond)

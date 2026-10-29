@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -248,44 +249,58 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 	}
 }
 
-// clusterSyncTask is a sync task forwarded from a follower node to the cluster leader.
+// clusterSyncTask is a sync task sent to the cluster leader by another node.
 type clusterSyncTask struct {
+	ID             string         `json:"id,omitempty"`
 	ChannelID      string         `json:"channel_id,omitempty"`
 	UserID         string         `json:"user_id,omitempty"`
 	RemoteID       string         `json:"remote_id,omitempty"`
 	OriginRemoteID string         `json:"origin_remote_id,omitempty"`
 	ExistingMsg    *model.SyncMsg `json:"existing_msg,omitempty"`
+	RetryMsg       *model.SyncMsg `json:"retry_msg,omitempty"`
+	RetryCount     int            `json:"retry_count,omitempty"`
+	// Handoff marks tasks queued by a node that stopped running the sync loop. The
+	// next leader may not be elected yet, so other nodes hold them until it is.
+	Handoff bool `json:"handoff,omitempty"`
 }
 
-// enqueueTask queues a task on the node running the sync loop. Follower nodes never
-// process their queue, so they forward the task to the cluster leader instead.
+// enqueueTask queues a task on the cluster leader. Other nodes never process their
+// queue, so they forward the task to the leader instead.
 func (scs *Service) enqueueTask(task syncTask) {
-	if scs.Active() || !scs.forwardTaskToLeader(task) {
+	if !scs.forwardTaskToLeader(task) {
 		scs.addTask(task)
 	}
 }
 
-// forwardTaskToLeader sends the task to the other cluster nodes, where only the active
-// leader queues it. Returns false if this node is not a follower in a cluster.
+// forwardTaskToLeader sends the task to the other cluster nodes, where only the leader
+// queues it. Returns false if this node is not a follower in a cluster.
 func (scs *Service) forwardTaskToLeader(task syncTask) bool {
 	cluster := scs.server.GetCluster()
 	if cluster == nil || scs.server.IsLeader() {
 		return false
 	}
+	scs.sendTaskToCluster(cluster, task, false)
+	return true
+}
 
+func (scs *Service) sendTaskToCluster(cluster einterfaces.ClusterInterface, task syncTask, handoff bool) {
 	data, err := json.Marshal(clusterSyncTask{
+		ID:             task.id,
 		ChannelID:      task.channelID,
 		UserID:         task.userID,
 		RemoteID:       task.remoteID,
 		OriginRemoteID: task.originRemoteID,
 		ExistingMsg:    task.existingMsg,
+		RetryMsg:       task.retryMsg,
+		RetryCount:     task.retryCount,
+		Handoff:        handoff,
 	})
 	if err != nil {
 		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to marshal sync task for cluster leader",
 			mlog.String("channel_id", task.channelID),
 			mlog.Err(err),
 		)
-		return true
+		return
 	}
 
 	cluster.SendClusterMessage(&model.ClusterMessage{
@@ -293,15 +308,10 @@ func (scs *Service) forwardTaskToLeader(task syncTask) bool {
 		SendType: model.ClusterSendReliable,
 		Data:     data,
 	})
-	return true
 }
 
-// HandleClusterSyncTask queues a sync task forwarded by a follower node.
+// HandleClusterSyncTask queues a sync task sent by another node.
 func (scs *Service) HandleClusterSyncTask(msg *model.ClusterMessage) {
-	if !scs.Active() && !scs.server.IsLeader() {
-		return
-	}
-
 	var data clusterSyncTask
 	if err := json.Unmarshal(msg.Data, &data); err != nil {
 		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to unmarshal sync task from cluster",
@@ -310,10 +320,20 @@ func (scs *Service) HandleClusterSyncTask(msg *model.ClusterMessage) {
 		return
 	}
 
-	task := newSyncTask(data.ChannelID, data.UserID, data.RemoteID, data.ExistingMsg, nil)
+	task := newSyncTask(data.ChannelID, data.UserID, data.RemoteID, data.ExistingMsg, data.RetryMsg)
+	if data.ID != "" {
+		task.id = data.ID
+	}
 	task.originRemoteID = data.OriginRemoteID
+	task.retryCount = data.RetryCount
 	task.schedule = time.Now().Add(NotifyMinimumDelay)
-	scs.addTask(task)
+
+	switch {
+	case scs.server.IsLeader():
+		scs.addTask(task)
+	case data.Handoff:
+		scs.holdHandoffTask(task)
+	}
 }
 
 // addTask adds or re-adds a task to the queue.

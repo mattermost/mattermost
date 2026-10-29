@@ -6,11 +6,13 @@ package sharedchannel
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -513,7 +515,7 @@ func TestStripSharedChannelStatePostsForSync(t *testing.T) {
 func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 	const channelID = "channel-1"
 
-	newNode := func(t *testing.T, active, isLeader bool, cluster einterfaces.ClusterInterface) *Service {
+	newNodeWithLeader := func(t *testing.T, active bool, cluster einterfaces.ClusterInterface) (*Service, *atomic.Bool) {
 		t.Helper()
 		cfg := &model.Config{}
 		cfg.SetDefaults()
@@ -534,12 +536,24 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 		mockServer.On("GetStore").Return(mockStore)
 		mockServer.On("GetRemoteClusterService").Return(&mockRCSForSync{})
 		mockServer.On("GetCluster").Return(cluster)
-		mockServer.On("IsLeader").Return(isLeader)
+		mockServer.On("GetMetrics").Return(nil)
+		isLeader := &atomic.Bool{}
+		mockServer.On("IsLeader").Return(isLeader.Load)
 		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
 
 		scs := newTestService()
 		scs.server = mockServer
 		scs.active = active
+		if active {
+			scs.done = make(chan struct{})
+		}
+		return scs, isLeader
+	}
+
+	newNode := func(t *testing.T, active, isLeader bool, cluster einterfaces.ClusterInterface) *Service {
+		t.Helper()
+		scs, leader := newNodeWithLeader(t, active, cluster)
+		leader.Store(isLeader)
 		return scs
 	}
 
@@ -672,6 +686,150 @@ func TestEnqueueTask_ClusterForwarding(t *testing.T) {
 		otherFollower.HandleClusterSyncTask(msgs[0])
 
 		assert.Empty(t, otherFollower.tasks)
+		assert.Empty(t, otherFollower.handoffTasks, "only handed off tasks wait for the next leader")
+	})
+
+	t.Run("node that has lost leadership ignores forwarded tasks before its sync loop stops", func(t *testing.T) {
+		msgs := forwardFromFollower(t, 1, func(follower *Service) {
+			follower.NotifyChannelChanged(channelID)
+		})
+
+		demoted := newNode(t, true, false, nil)
+		demoted.HandleClusterSyncTask(msgs[0])
+
+		assert.Empty(t, demoted.tasks)
+	})
+
+	t.Run("node that has lost leadership forwards before its sync loop stops", func(t *testing.T) {
+		cluster, sent := newCluster()
+		demoted := newNode(t, true, false, cluster)
+
+		demoted.NotifyChannelChanged(channelID)
+
+		assert.Empty(t, demoted.tasks)
+		assert.Len(t, sent(), 1)
+	})
+
+	retryMsg := model.NewSyncMsg(channelID)
+	retryMsg.Posts = []*model.Post{{Id: "post-1", ChannelId: channelID, Message: "retry me"}}
+	retryTask := newSyncTask(channelID, "", "remote-1", nil, retryMsg)
+	retryTask.retryCount = 2
+
+	pauseWithQueuedTasks := func(t *testing.T, isLeader bool) []*model.ClusterMessage {
+		t.Helper()
+		cluster, sent := newCluster()
+		node := newNode(t, true, isLeader, cluster)
+		node.addTask(newSyncTask(channelID, "", "", nil, nil))
+		node.addTask(retryTask)
+
+		node.pause()
+
+		assert.False(t, node.Active())
+		assert.Empty(t, node.tasks, "a node that stops running the sync loop must hand off its queue")
+		msgs := sent()
+		require.Len(t, msgs, 2)
+		for _, msg := range msgs {
+			var data clusterSyncTask
+			require.NoError(t, json.Unmarshal(msg.Data, &data))
+			assert.True(t, data.Handoff)
+		}
+		return msgs
+	}
+
+	for name, isLeader := range map[string]bool{"losing leadership": false, "shutting down as leader": true} {
+		t.Run("pause hands queued tasks to the leader when "+name, func(t *testing.T) {
+			msgs := pauseWithQueuedTasks(t, isLeader)
+
+			leader := newNode(t, true, true, nil)
+			for _, msg := range msgs {
+				leader.HandleClusterSyncTask(msg)
+			}
+
+			require.Len(t, leader.tasks, 2)
+			_, ok := leader.tasks[newSyncTask(channelID, "", "", nil, nil).id]
+			assert.True(t, ok)
+			task, ok := leader.tasks[retryTask.id]
+			require.True(t, ok, "the retry task must keep its id")
+			assert.Equal(t, "remote-1", task.remoteID)
+			assert.Equal(t, 2, task.retryCount)
+			require.NotNil(t, task.retryMsg)
+			require.Len(t, task.retryMsg.Posts, 1)
+			assert.Equal(t, "post-1", task.retryMsg.Posts[0].Id)
+		})
+	}
+
+	t.Run("node that is not leader yet queues handed off tasks once it becomes leader", func(t *testing.T) {
+		msgs := pauseWithQueuedTasks(t, true)
+
+		next, isLeader := newNodeWithLeader(t, false, nil)
+		for _, msg := range msgs {
+			next.HandleClusterSyncTask(msg)
+		}
+		assert.Empty(t, next.tasks)
+
+		isLeader.Store(true)
+		next.onClusterLeaderChange()
+		t.Cleanup(func() {
+			isLeader.Store(false)
+			next.onClusterLeaderChange()
+		})
+
+		require.True(t, next.Active())
+		next.mux.RLock()
+		defer next.mux.RUnlock()
+		assert.Len(t, next.tasks, 2)
+		assert.Empty(t, next.handoffTasks)
+	})
+
+	t.Run("follower drops handed off tasks when another node becomes leader", func(t *testing.T) {
+		msgs := pauseWithQueuedTasks(t, true)
+
+		follower := newNode(t, false, false, nil)
+		for _, msg := range msgs {
+			follower.HandleClusterSyncTask(msg)
+		}
+		assert.Len(t, follower.handoffTasks, 2)
+
+		follower.onClusterLeaderChange()
+
+		assert.Empty(t, follower.handoffTasks)
+		assert.Empty(t, follower.tasks)
+	})
+
+	t.Run("follower prunes expired handed off tasks when it holds new ones", func(t *testing.T) {
+		msgs := pauseWithQueuedTasks(t, true)
+
+		follower := newNode(t, false, false, nil)
+		follower.HandleClusterSyncTask(msgs[0])
+		for id, task := range follower.handoffTasks {
+			task.AddedAt = time.Now().Add(-HandoffTaskTimeout - time.Second)
+			follower.handoffTasks[id] = task
+		}
+		follower.HandleClusterSyncTask(msgs[1])
+
+		assert.Len(t, follower.handoffTasks, 1)
+	})
+
+	t.Run("expired handed off tasks are not queued by a new leader", func(t *testing.T) {
+		msgs := pauseWithQueuedTasks(t, true)
+
+		next, isLeader := newNodeWithLeader(t, false, nil)
+		next.HandleClusterSyncTask(msgs[0])
+		for id, task := range next.handoffTasks {
+			task.AddedAt = time.Now().Add(-HandoffTaskTimeout - time.Second)
+			next.handoffTasks[id] = task
+		}
+
+		isLeader.Store(true)
+		next.onClusterLeaderChange()
+		t.Cleanup(func() {
+			isLeader.Store(false)
+			next.onClusterLeaderChange()
+		})
+
+		next.mux.RLock()
+		defer next.mux.RUnlock()
+		assert.Empty(t, next.tasks)
 	})
 
 	t.Run("newly elected leader queues forwarded tasks before its sync loop resumes", func(t *testing.T) {
