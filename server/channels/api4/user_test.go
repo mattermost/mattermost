@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/dgryski/dgoogauth"
+	sq "github.com/mattermost/squirrel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -1403,7 +1404,13 @@ func TestGetUserByEmail(t *testing.T) {
 	t.Run("should find a user stored with a legacy angle-bracket email", func(t *testing.T) {
 		legacyUser := th.CreateUser(t)
 		legacyEmail := "<" + legacyUser.Email + ">"
-		_, err := th.Server.Store().GetInternalMasterDB().Exec("UPDATE Users SET Email = $1 WHERE Id = $2", legacyEmail, legacyUser.Id)
+		query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+			Update("Users").
+			Set("Email", legacyEmail).
+			Where(sq.Eq{"Id": legacyUser.Id}).
+			ToSql()
+		require.NoError(t, err)
+		_, err = th.Server.Store().GetInternalMasterDB().Exec(query, args...)
 		require.NoError(t, err)
 		th.App.InvalidateCacheForUser(legacyUser.Id)
 
