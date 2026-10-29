@@ -39,9 +39,8 @@ describe('getDocumentationURL', () => {
             'https://docs.mattermost.com/administration-guide/upgrade/upgrade-mattermost?tab=linux#overview',
             'https://chat.example.com/_documentation/administration-guide/upgrade/upgrade-mattermost?tab=linux#overview',
         ],
-        ['https://developers.mattermost.com', 'https://chat.example.com/_documentation/developers'],
         [
-            'https://developers.mattermost.com/integrate/slash-commands/custom/',
+            'https://docs.mattermost.com/developers/integrate/slash-commands/custom/',
             'https://chat.example.com/_documentation/developers/integrate/slash-commands/custom',
         ],
     ])('rewrites %s', (url, expected) => {
@@ -52,6 +51,7 @@ describe('getDocumentationURL', () => {
         'https://mattermost.com/pl/default-ask-mattermost-community/',
         'https://academy.mattermost.com/',
         'https://api.mattermost.com/',
+        'https://developers.mattermost.com/integrate/slash-commands/custom/',
         'https://docs.mattermost.com.example.com/administration-guide',
         'https://example.com/docs.mattermost.com/administration-guide',
         'mailto:docs@mattermost.com',
@@ -66,7 +66,7 @@ describe('getDocumentationURL', () => {
         '',
         'not a url',
     ])('keeps public docs when bundled docs are unavailable for SiteURL %s', (unavailableSiteURL) => {
-        const url = 'https://developers.mattermost.com/integrate/slash-commands/custom/';
+        const url = 'https://docs.mattermost.com/developers/integrate/slash-commands/custom';
         expect(getDocumentationURL(url, unavailableSiteURL)).toBe(url);
     });
 });

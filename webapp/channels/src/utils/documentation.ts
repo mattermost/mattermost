@@ -3,13 +3,8 @@
 
 export const MATTERMOST_DOCS_URL = 'https://docs.mattermost.com';
 
+const DOCS_HOSTNAME = 'docs.mattermost.com';
 const BUNDLED_DOCS_PATH = '/_documentation';
-
-// Developer docs moved from developers.mattermost.com to docs.mattermost.com/developers.
-const DOCS_HOSTS: Record<string, string> = {
-    'docs.mattermost.com': '',
-    'developers.mattermost.com': '/developers',
-};
 
 // Bundled docs live at /_documentation/ and only resolve when Mattermost is
 // installed at the root of the host. A SiteURL subpath falls back to the public site.
@@ -32,8 +27,8 @@ export function getMattermostDocumentationURL(siteURL: string): string {
 }
 
 /**
- * Rewrites a docs.mattermost.com or developers.mattermost.com link to the same page in the
- * documentation bundled with the server, when it is available. Any other URL is returned unchanged.
+ * Rewrites a docs.mattermost.com link to the same page in the documentation bundled with the
+ * server, when it is available. Any other URL is returned unchanged.
  */
 export function getDocumentationURL(url: string, siteURL: string): string {
     let parsedURL;
@@ -43,8 +38,7 @@ export function getDocumentationURL(url: string, siteURL: string): string {
         return url;
     }
 
-    const prefix = DOCS_HOSTS[parsedURL.hostname];
-    if (prefix === undefined || (parsedURL.protocol !== 'https:' && parsedURL.protocol !== 'http:')) {
+    if (parsedURL.hostname !== DOCS_HOSTNAME || (parsedURL.protocol !== 'https:' && parsedURL.protocol !== 'http:')) {
         return url;
     }
 
@@ -55,7 +49,7 @@ export function getDocumentationURL(url: string, siteURL: string): string {
 
     // The bundle is built with trailingSlash: false, and its client-side router only matches
     // clean URLs, so legacy ".html" suffixes and trailing slashes must be dropped.
-    const pagePath = (prefix + parsedURL.pathname).replace(/\.html$/, '').replace(/\/+$/, '');
+    const pagePath = parsedURL.pathname.replace(/\.html$/, '').replace(/\/+$/, '');
 
     return `${origin}${BUNDLED_DOCS_PATH}${pagePath || '/'}${parsedURL.search}${parsedURL.hash}`;
 }

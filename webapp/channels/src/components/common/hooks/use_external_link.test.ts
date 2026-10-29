@@ -189,7 +189,7 @@ describe('useExternalLink', () => {
         expect(docsHref).toBe('https://chat.example.com/_documentation/end-user-guide/collaborate/format-messages#bold');
         expect(docsQueryParams).toEqual({});
 
-        const {result: {current: [devHref, devQueryParams]}} = renderHookWithContext(() => useExternalLink('https://developers.mattermost.com/integrate/slash-commands/custom/'), state);
+        const {result: {current: [devHref, devQueryParams]}} = renderHookWithContext(() => useExternalLink('https://docs.mattermost.com/developers/integrate/slash-commands/custom'), state);
         expect(devHref).toBe('https://chat.example.com/_documentation/developers/integrate/slash-commands/custom');
         expect(devQueryParams).toEqual({});
     });
