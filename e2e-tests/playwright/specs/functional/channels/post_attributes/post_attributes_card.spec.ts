@@ -18,7 +18,7 @@ const CARD = 'post-attributes-card';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('reads every attribute from the hover card, overflow included', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision four ordered fields and set all four on one post, so two of them
     // land in the row and two only exist behind the badge

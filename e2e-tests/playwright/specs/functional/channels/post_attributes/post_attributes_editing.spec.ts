@@ -86,7 +86,7 @@ async function openModalFromPostMenu(channelsPage: ChannelsPage, post: ChannelsP
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('changes a value by keyboard alone, and never tabs into the chip row', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
     /*
      * # Provision one text field and set it on a post
@@ -222,7 +222,7 @@ test('changes a value by keyboard alone, and never tabs into the chip row', {tag
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('rewrites the chip behind the modal when an option is picked', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one select field and set it on a post
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -291,7 +291,7 @@ test('rewrites the chip behind the modal when an option is picked', {tag: '@post
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('clears a value with the trash button, dropping chip and card row', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision two set fields. The one being cleared is declared `always`, so its
     // row survives losing its value and the trash button's disappearance is separable
@@ -384,7 +384,7 @@ test('clears a value with the trash button, dropping chip and card row', {tag: '
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('locks a field the user may not write, with a padlock and no way in', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision three fields across the permission levels that matter here: one the
     // member may write, one only a system admin may, and one nobody may
@@ -470,7 +470,7 @@ test('locks a field the user may not write, with a padlock and no way in', {tag:
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('updates an open modal when another session changes the value', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one select field and set it on a post
     const {adminClient, user, userClient, team} = await pw.initSetup();
@@ -530,7 +530,7 @@ test('updates an open modal when another session changes the value', {tag: '@pos
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('opens the modal on a post with no values, listing always fields', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one `always` field and one that only appears once set. Neither is
     // set on the post.
@@ -612,7 +612,7 @@ test('opens the modal on a post with no values, listing always fields', {tag: '@
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('adds an attribute from the picker and gives it a first value', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
     /*
      * # Provision two `when_set` fields, neither of them set on the post
@@ -768,7 +768,7 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
  * the picker back. CI pins `PW_WORKERS: 1`, which holds it.
  */
 test('omits the field picker when every field already has a row', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+    await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one `always` field, and nothing else. It is a `select` writable by
     // any member, so it is a field the picker *would* offer; the only thing keeping it
