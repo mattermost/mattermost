@@ -1,0 +1,157 @@
+name: Release Schedule
+
+# .github/release/schedule.yml is the source of truth for release dates.
+#
+#   pull_request    validate.py and the unit tests
+#   push to master  when schedule.yml changes, update the Release Dates Google Calendar
+#   06:00 UTC daily the milestone dispatcher: a release-milestone repository_dispatch
+#                   ({version, milestone, date}) for each milestone dated today
+#
+# Setup:
+#   secrets.RELEASE_SCHEDULE_GOOGLE_CREDENTIALS    service account key JSON (one line). The
+#                                                  service account needs "Make changes to
+#                                                  events" on the Release Dates calendar
+#                                                  only, and roles/iam.serviceAccountTokenCreator
+#                                                  on itself so it can mint access tokens.
+#   vars.RELEASE_SCHEDULE_GOOGLE_SERVICE_ACCOUNT   that service account's email
+#   vars.RELEASE_SCHEDULE_CALENDAR_ID              the Release Dates calendar's ID
+#   vars.RELEASE_SCHEDULE_CALENDAR_MODE            "live" to write to the calendar; anything
+#                                                  else (the default) is a dry run
+#   vars.RELEASE_SCHEDULE_DISPATCH_MODE            "dry_run" to log milestones without
+#                                                  dispatching; anything else dispatches
+
+on:
+  pull_request:
+    paths:
+      - ".github/release/**"
+      - ".github/scripts/release_schedule/**"
+      - ".github/workflows/release-schedule.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/release/schedule.yml"
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "calendar: sync the Google Calendar; dispatch: send release-milestone events for a date"
+        required: true
+        default: calendar
+        type: choice
+        options:
+          - calendar
+          - dispatch
+      date:
+        description: "dispatch: the date to dispatch milestones for, YYYY-MM-DD (default: today, UTC)"
+        required: false
+        type: string
+      dry_run:
+        description: "Only log what would change"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: .github/scripts
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: '3.11'
+      - name: Unit tests
+        run: python3 -m unittest discover -s release_schedule/tests -t . -v
+      - name: Validate schedule.yml
+        run: python3 -m release_schedule.validate
+
+  calendar:
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'workflow_dispatch' && inputs.task == 'calendar')
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: release-schedule-calendar
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: .github/scripts
+    env:
+      HAS_CREDENTIALS: ${{ secrets.RELEASE_SCHEDULE_GOOGLE_CREDENTIALS != '' }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: '3.11'
+      - name: Validate schedule.yml
+        run: python3 -m release_schedule.validate
+      - name: Authenticate to Google
+        id: google
+        if: env.HAS_CREDENTIALS == 'true'
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093  # v3.0.0
+        with:
+          credentials_json: ${{ secrets.RELEASE_SCHEDULE_GOOGLE_CREDENTIALS }}
+          service_account: ${{ vars.RELEASE_SCHEDULE_GOOGLE_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/calendar.events
+          access_token_lifetime: 1800s
+          create_credentials_file: false
+      - name: Sync the Release Dates calendar
+        env:
+          GOOGLE_ACCESS_TOKEN: ${{ steps.google.outputs.access_token }}
+          RELEASE_SCHEDULE_CALENDAR_ID: ${{ vars.RELEASE_SCHEDULE_CALENDAR_ID }}
+          DRY_RUN: >-
+            ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) ||
+            (github.event_name == 'push' && vars.RELEASE_SCHEDULE_CALENDAR_MODE != 'live') }}
+        run: |
+          args=()
+          if [ "$DRY_RUN" = "true" ]; then
+            args+=(--dry-run)
+          fi
+          python3 -m release_schedule.calendar_sync "${args[@]}"
+
+  dispatch:
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && inputs.task == 'dispatch')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write  # POST /repos/{repo}/dispatches
+    defaults:
+      run:
+        working-directory: .github/scripts
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: '3.11'
+      - name: Dispatch today's milestones
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          INPUT_DATE: ${{ inputs.date }}
+          DRY_RUN: >-
+            ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) ||
+            (github.event_name == 'schedule' && vars.RELEASE_SCHEDULE_DISPATCH_MODE == 'dry_run') }}
+        run: |
+          args=()
+          if [ -n "$INPUT_DATE" ]; then
+            args+=(--date "$INPUT_DATE")
+          fi
+          if [ "$DRY_RUN" = "true" ]; then
+            args+=(--dry-run)
+          fi
+          python3 -m release_schedule.dispatch "${args[@]}"

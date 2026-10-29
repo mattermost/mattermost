@@ -1,0 +1,1167 @@
+# The release schedule: the source of truth for release dates. The Release Dates Google
+# Calendar and the release-milestone events are generated from it
+# (.github/workflows/release-schedule.yml).
+#
+# Edit the inputs (start, through, automate_from, known_esrs, holidays, overrides), then
+# regenerate everything under releases:
+#
+#   cd .github/scripts && python3 -m release_schedule.generate
+#
+# validate.py fails a PR whose releases don't match what generate.py writes. To move a
+# date, add an override with a reason; nothing else moves with it.
+version: 1
+
+# The first release generated, and the Mobile and Desktop versions that ship with it.
+start:
+  version: v11.7
+  month: 2026-05
+  mobile: v2.40
+  desktop: v6.2
+# The last month generated. Extend with: python3 -m release_schedule.generate --years 5
+through: 2031-10
+# Release automation (changelog, release agent, docs tasks) runs from this release on.
+automate_from: v12.2
+# Announced ESRs. After the last one, the generator picks one every 9 months.
+known_esrs: [v11.7, v12.4]
+
+# Non-working days, from the US and Canada list on the Release Processes Overview page.
+holidays:
+  - {date: 2026-01-01, name: "New Year's Day"}
+  - {date: 2026-02-16, name: "Presidents' Day (US), Family Day (Canada)"}
+  - {date: 2026-04-03, name: "Good Friday (Canada)"}
+  - {date: 2026-05-18, name: "Victoria Day (Canada)"}
+  - {date: 2026-05-25, name: "Memorial Day (US)"}
+  - {date: 2026-07-01, name: "Canada Day"}
+  - {date: 2026-07-03, name: "Independence Day (US)"}
+  - {date: 2026-08-03, name: "Civic Holiday (Canada)"}
+  - {date: 2026-09-07, name: "Labour Day"}
+  - {date: 2026-10-12, name: "Thanksgiving (Canada)"}
+  - {date: 2026-11-26, name: "Thanksgiving (US)"}
+  - {date: 2026-12-25, name: "Christmas Day"}
+  - {date: 2026-12-28, name: "Boxing Day (Canada)"}
+  - {date: 2027-01-01, name: "New Year's Day"}
+  - {date: 2027-02-15, name: "Presidents' Day (US), Family Day (Canada)"}
+  - {date: 2027-03-26, name: "Good Friday (Canada)"}
+  - {date: 2027-05-24, name: "Victoria Day (Canada)"}
+  - {date: 2027-05-31, name: "Memorial Day (US)"}
+  - {date: 2027-07-01, name: "Canada Day"}
+  - {date: 2027-07-05, name: "Independence Day (US)"}
+  - {date: 2027-08-02, name: "Civic Holiday (Canada)"}
+  - {date: 2027-09-06, name: "Labour Day"}
+  - {date: 2027-10-11, name: "Thanksgiving (Canada)"}
+  - {date: 2027-11-25, name: "Thanksgiving (US)"}
+  - {date: 2027-12-27, name: "Christmas Day"}
+  - {date: 2027-12-28, name: "Boxing Day (Canada)"}
+  - {date: 2028-01-03, name: "New Year's Day"}
+  - {date: 2028-02-21, name: "Presidents' Day (US), Family Day (Canada)"}
+  - {date: 2028-04-14, name: "Good Friday (Canada)"}
+  - {date: 2028-05-22, name: "Victoria Day (Canada)"}
+  - {date: 2028-05-29, name: "Memorial Day (US)"}
+  - {date: 2028-07-03, name: "Canada Day"}
+  - {date: 2028-07-04, name: "Independence Day (US)"}
+  - {date: 2028-08-07, name: "Civic Holiday (Canada)"}
+  - {date: 2028-09-04, name: "Labour Day"}
+  - {date: 2028-10-09, name: "Thanksgiving (Canada)"}
+  - {date: 2028-11-23, name: "Thanksgiving (US)"}
+  - {date: 2028-12-25, name: "Christmas Day"}
+  - {date: 2028-12-26, name: "Boxing Day (Canada)"}
+  - {date: 2029-01-01, name: "New Year's Day"}
+  - {date: 2029-02-19, name: "Presidents' Day (US), Family Day (Canada)"}
+  - {date: 2029-03-30, name: "Good Friday (Canada)"}
+  - {date: 2029-05-21, name: "Victoria Day (Canada)"}
+  - {date: 2029-05-28, name: "Memorial Day (US)"}
+  - {date: 2029-07-02, name: "Canada Day"}
+  - {date: 2029-07-04, name: "Independence Day (US)"}
+  - {date: 2029-08-06, name: "Civic Holiday (Canada)"}
+  - {date: 2029-09-03, name: "Labour Day"}
+  - {date: 2029-10-08, name: "Thanksgiving (Canada)"}
+  - {date: 2029-11-22, name: "Thanksgiving (US)"}
+  - {date: 2029-12-25, name: "Christmas Day"}
+  - {date: 2029-12-26, name: "Boxing Day (Canada)"}
+  - {date: 2030-01-01, name: "New Year's Day"}
+  - {date: 2030-02-18, name: "Presidents' Day (US), Family Day (Canada)"}
+  - {date: 2030-04-19, name: "Good Friday (Canada)"}
+  - {date: 2030-05-20, name: "Victoria Day (Canada)"}
+  - {date: 2030-05-27, name: "Memorial Day (US)"}
+  - {date: 2030-07-01, name: "Canada Day"}
+  - {date: 2030-07-04, name: "Independence Day (US)"}
+  - {date: 2030-08-05, name: "Civic Holiday (Canada)"}
+  - {date: 2030-09-02, name: "Labour Day"}
+  - {date: 2030-10-14, name: "Thanksgiving (Canada)"}
+  - {date: 2030-11-28, name: "Thanksgiving (US)"}
+  - {date: 2030-12-25, name: "Christmas Day"}
+  - {date: 2030-12-26, name: "Boxing Day (Canada)"}
+  - {date: 2031-01-01, name: "New Year's Day"}
+  - {date: 2031-02-17, name: "Presidents' Day (US), Family Day (Canada)"}
+  - {date: 2031-04-11, name: "Good Friday (Canada)"}
+  - {date: 2031-05-19, name: "Victoria Day (Canada)"}
+  - {date: 2031-05-26, name: "Memorial Day (US)"}
+  - {date: 2031-07-01, name: "Canada Day"}
+  - {date: 2031-07-04, name: "Independence Day (US)"}
+  - {date: 2031-08-04, name: "Civic Holiday (Canada)"}
+  - {date: 2031-09-01, name: "Labour Day"}
+  - {date: 2031-10-13, name: "Thanksgiving (Canada)"}
+  - {date: 2031-11-27, name: "Thanksgiving (US)"}
+  - {date: 2031-12-25, name: "Christmas Day"}
+  - {date: 2031-12-26, name: "Boxing Day (Canada)"}
+
+# Dated exceptions to the rules, each with a reason. Applied last.
+overrides: []
+
+# Generated. Don't edit by hand.
+releases:
+  - version: v11.7
+    esr: true
+    jira_fix_version: "v11.7 (May 2026)"
+    milestones:
+      branch_cut: 2026-04-10                   # working day after v11.6 final_build
+      feature_complete: 2026-04-23             # T-16
+      rc1: 2026-04-24                          # T-15
+      code_freeze: 2026-05-07                  # T-6
+      final_build: 2026-05-08                  # T-5
+      cloud_freemium_professional: 2026-05-11  # T-4
+      cloud_enterprise: 2026-05-12             # T-3
+      release_day: 2026-05-15                  # first working day on or before the 16th
+    support_end: 2027-05-15
+    mobile: v2.40
+    desktop: v6.2
+
+  - version: v11.8
+    esr: false
+    jira_fix_version: "v11.8 (June 2026)"
+    milestones:
+      branch_cut: 2026-05-11                   # working day after v11.7 final_build
+      feature_complete: 2026-05-22             # T-16
+      rc1: 2026-05-26                          # T-15
+      code_freeze: 2026-06-08                  # T-6
+      final_build: 2026-06-09                  # T-5
+      cloud_freemium_professional: 2026-06-10  # T-4
+      cloud_enterprise: 2026-06-11             # T-3
+      release_day: 2026-06-16                  # first working day on or before the 16th
+    support_end: 2026-09-15
+    mobile: v2.41
+    desktop: null
+
+  - version: v11.9
+    esr: false
+    jira_fix_version: "v11.9 (July 2026)"
+    milestones:
+      branch_cut: 2026-06-10                   # working day after v11.8 final_build
+      feature_complete: 2026-06-22             # T-16
+      rc1: 2026-06-23                          # T-15
+      code_freeze: 2026-07-08                  # T-6
+      final_build: 2026-07-09                  # T-5
+      cloud_freemium_professional: 2026-07-10  # T-4
+      cloud_enterprise: 2026-07-13             # T-3
+      release_day: 2026-07-16                  # first working day on or before the 16th
+    support_end: 2026-10-15
+    mobile: v2.42
+    desktop: null
+
+  - version: v11.10
+    esr: false
+    jira_fix_version: "v11.10 (August 2026)"
+    milestones:
+      branch_cut: 2026-07-10                   # working day after v11.9 final_build
+      feature_complete: 2026-07-22             # T-16
+      rc1: 2026-07-23                          # T-15
+      code_freeze: 2026-08-06                  # T-6
+      final_build: 2026-08-07                  # T-5
+      cloud_freemium_professional: 2026-08-10  # T-4
+      cloud_enterprise: 2026-08-11             # T-3
+      release_day: 2026-08-14                  # first working day on or before the 16th
+    support_end: 2026-11-15
+    mobile: v2.43
+    desktop: v6.3
+
+  - version: v11.11
+    esr: false
+    jira_fix_version: "v11.11 (September 2026)"
+    milestones:
+      branch_cut: 2026-08-10                   # working day after v11.10 final_build
+      feature_complete: 2026-08-24             # T-16
+      rc1: 2026-08-25                          # T-15
+      code_freeze: 2026-09-08                  # T-6
+      final_build: 2026-09-09                  # T-5
+      cloud_freemium_professional: 2026-09-10  # T-4
+      cloud_enterprise: 2026-09-10             # T-3, moved off a Friday
+      release_day: 2026-09-16                  # first working day on or before the 16th
+    support_end: 2026-12-15
+    mobile: v2.44
+    desktop: null
+
+  - version: v12.0
+    esr: false
+    jira_fix_version: "v12.0 (October 2026)"
+    milestones:
+      branch_cut: 2026-09-10                   # working day after v11.11 final_build
+      feature_complete: 2026-09-23             # T-16
+      rc1: 2026-09-24                          # T-15
+      code_freeze: 2026-10-07                  # T-6
+      final_build: 2026-10-08                  # T-5
+      cloud_freemium_professional: 2026-10-09  # T-4
+      cloud_enterprise: 2026-10-13             # T-3
+      release_day: 2026-10-16                  # first working day on or before the 16th
+    support_end: 2027-01-15
+    mobile: v2.45
+    desktop: null
+
+  - version: v12.1
+    esr: false
+    jira_fix_version: "v12.1 (November 2026)"
+    milestones:
+      branch_cut: 2026-10-09                   # working day after v12.0 final_build
+      feature_complete: 2026-10-23             # T-16
+      rc1: 2026-10-26                          # T-15
+      code_freeze: 2026-11-06                  # T-6
+      final_build: 2026-11-09                  # T-5
+      cloud_freemium_professional: 2026-11-10  # T-4
+      cloud_enterprise: 2026-11-11             # T-3
+      release_day: 2026-11-16                  # first working day on or before the 16th
+    support_end: 2027-02-15
+    mobile: v2.46
+    desktop: v6.4
+
+  - version: v12.2
+    esr: false
+    jira_fix_version: "v12.2 (December 2026)"
+    milestones:
+      branch_cut: 2026-11-10                   # working day after v12.1 final_build
+      feature_complete: 2026-11-23             # T-16
+      rc1: 2026-11-24                          # T-15
+      code_freeze: 2026-12-08                  # T-6
+      final_build: 2026-12-09                  # T-5
+      cloud_freemium_professional: 2026-12-10  # T-4
+      cloud_enterprise: 2026-12-10             # T-3, moved off a Friday
+      release_day: 2026-12-16                  # first working day on or before the 16th
+    support_end: 2027-03-15
+    mobile: v2.47
+    desktop: null
+
+  - version: v12.3
+    esr: false
+    jira_fix_version: "v12.3 (January 2027)"
+    milestones:
+      branch_cut: 2026-12-10                   # working day after v12.2 final_build
+      feature_complete: 2026-12-21             # T-16
+      rc1: 2026-12-22                          # T-15
+      code_freeze: 2027-01-07                  # T-6
+      final_build: 2027-01-08                  # T-5
+      cloud_freemium_professional: 2027-01-11  # T-4
+      cloud_enterprise: 2027-01-12             # T-3
+      release_day: 2027-01-15                  # first working day on or before the 16th
+    support_end: 2027-04-15
+    mobile: v2.48
+    desktop: null
+
+  - version: v12.4
+    esr: true
+    jira_fix_version: "v12.4 (February 2027)"
+    milestones:
+      branch_cut: 2027-01-11                   # working day after v12.3 final_build
+      feature_complete: 2027-01-22             # T-16
+      rc1: 2027-01-25                          # T-15
+      code_freeze: 2027-02-05                  # T-6
+      final_build: 2027-02-08                  # T-5
+      cloud_freemium_professional: 2027-02-09  # T-4
+      cloud_enterprise: 2027-02-10             # T-3
+      release_day: 2027-02-16                  # first working day on or before the 16th
+    support_end: 2028-02-15
+    mobile: v2.49
+    desktop: v6.5
+
+  - version: v12.5
+    esr: false
+    jira_fix_version: "v12.5 (March 2027)"
+    milestones:
+      branch_cut: 2027-02-09                   # working day after v12.4 final_build
+      feature_complete: 2027-02-22             # T-16
+      rc1: 2027-02-23                          # T-15
+      code_freeze: 2027-03-08                  # T-6
+      final_build: 2027-03-09                  # T-5
+      cloud_freemium_professional: 2027-03-10  # T-4
+      cloud_enterprise: 2027-03-11             # T-3
+      release_day: 2027-03-16                  # first working day on or before the 16th
+    support_end: 2027-06-15
+    mobile: v2.50
+    desktop: null
+
+  - version: v12.6
+    esr: false
+    jira_fix_version: "v12.6 (April 2027)"
+    milestones:
+      branch_cut: 2027-03-10                   # working day after v12.5 final_build
+      feature_complete: 2027-03-24             # T-16
+      rc1: 2027-03-25                          # T-15
+      code_freeze: 2027-04-08                  # T-6
+      final_build: 2027-04-09                  # T-5
+      cloud_freemium_professional: 2027-04-12  # T-4
+      cloud_enterprise: 2027-04-13             # T-3
+      release_day: 2027-04-16                  # first working day on or before the 16th
+    support_end: 2027-07-15
+    mobile: v2.51
+    desktop: null
+
+  - version: v12.7
+    esr: false
+    jira_fix_version: "v12.7 (May 2027)"
+    milestones:
+      branch_cut: 2027-04-12                   # working day after v12.6 final_build
+      feature_complete: 2027-04-22             # T-16
+      rc1: 2027-04-23                          # T-15
+      code_freeze: 2027-05-06                  # T-6
+      final_build: 2027-05-07                  # T-5
+      cloud_freemium_professional: 2027-05-10  # T-4
+      cloud_enterprise: 2027-05-11             # T-3
+      release_day: 2027-05-14                  # first working day on or before the 16th
+    support_end: 2027-08-15
+    mobile: v2.52
+    desktop: v6.6
+
+  - version: v12.8
+    esr: false
+    jira_fix_version: "v12.8 (June 2027)"
+    milestones:
+      branch_cut: 2027-05-10                   # working day after v12.7 final_build
+      feature_complete: 2027-05-21             # T-16
+      rc1: 2027-05-25                          # T-15
+      code_freeze: 2027-06-08                  # T-6
+      final_build: 2027-06-09                  # T-5
+      cloud_freemium_professional: 2027-06-10  # T-4
+      cloud_enterprise: 2027-06-10             # T-3, moved off a Friday
+      release_day: 2027-06-16                  # first working day on or before the 16th
+    support_end: 2027-09-15
+    mobile: v2.53
+    desktop: null
+
+  - version: v12.9
+    esr: false
+    jira_fix_version: "v12.9 (July 2027)"
+    milestones:
+      branch_cut: 2027-06-10                   # working day after v12.8 final_build
+      feature_complete: 2027-06-22             # T-16
+      rc1: 2027-06-23                          # T-15
+      code_freeze: 2027-07-08                  # T-6
+      final_build: 2027-07-09                  # T-5
+      cloud_freemium_professional: 2027-07-12  # T-4
+      cloud_enterprise: 2027-07-13             # T-3
+      release_day: 2027-07-16                  # first working day on or before the 16th
+    support_end: 2027-10-15
+    mobile: v2.54
+    desktop: null
+
+  - version: v12.10
+    esr: false
+    jira_fix_version: "v12.10 (August 2027)"
+    milestones:
+      branch_cut: 2027-07-12                   # working day after v12.9 final_build
+      feature_complete: 2027-07-22             # T-16
+      rc1: 2027-07-23                          # T-15
+      code_freeze: 2027-08-06                  # T-6
+      final_build: 2027-08-09                  # T-5
+      cloud_freemium_professional: 2027-08-10  # T-4
+      cloud_enterprise: 2027-08-11             # T-3
+      release_day: 2027-08-16                  # first working day on or before the 16th
+    support_end: 2027-11-15
+    mobile: v2.55
+    desktop: v6.7
+
+  - version: v12.11
+    esr: false
+    jira_fix_version: "v12.11 (September 2027)"
+    milestones:
+      branch_cut: 2027-08-10                   # working day after v12.10 final_build
+      feature_complete: 2027-08-24             # T-16
+      rc1: 2027-08-25                          # T-15
+      code_freeze: 2027-09-08                  # T-6
+      final_build: 2027-09-09                  # T-5
+      cloud_freemium_professional: 2027-09-10  # T-4
+      cloud_enterprise: 2027-09-13             # T-3
+      release_day: 2027-09-16                  # first working day on or before the 16th
+    support_end: 2027-12-15
+    mobile: v2.56
+    desktop: null
+
+  - version: v13.0
+    esr: false
+    jira_fix_version: "v13.0 (October 2027)"
+    milestones:
+      branch_cut: 2027-09-10                   # working day after v12.11 final_build
+      feature_complete: 2027-09-22             # T-16
+      rc1: 2027-09-23                          # T-15
+      code_freeze: 2027-10-06                  # T-6
+      final_build: 2027-10-07                  # T-5
+      cloud_freemium_professional: 2027-10-08  # T-4
+      cloud_enterprise: 2027-10-12             # T-3
+      release_day: 2027-10-15                  # first working day on or before the 16th
+    support_end: 2028-01-15
+    mobile: v2.57
+    desktop: null
+
+  - version: v13.1
+    esr: true
+    jira_fix_version: "v13.1 (November 2027)"
+    milestones:
+      branch_cut: 2027-10-08                   # working day after v13.0 final_build
+      feature_complete: 2027-10-25             # T-16
+      rc1: 2027-10-26                          # T-15
+      code_freeze: 2027-11-08                  # T-6
+      final_build: 2027-11-09                  # T-5
+      cloud_freemium_professional: 2027-11-10  # T-4
+      cloud_enterprise: 2027-11-11             # T-3
+      release_day: 2027-11-16                  # first working day on or before the 16th
+    support_end: 2028-11-15
+    mobile: v2.58
+    desktop: v6.8
+
+  - version: v13.2
+    esr: false
+    jira_fix_version: "v13.2 (December 2027)"
+    milestones:
+      branch_cut: 2027-11-10                   # working day after v13.1 final_build
+      feature_complete: 2027-11-23             # T-16
+      rc1: 2027-11-24                          # T-15
+      code_freeze: 2027-12-08                  # T-6
+      final_build: 2027-12-09                  # T-5
+      cloud_freemium_professional: 2027-12-10  # T-4
+      cloud_enterprise: 2027-12-13             # T-3
+      release_day: 2027-12-16                  # first working day on or before the 16th
+    support_end: 2028-03-15
+    mobile: v2.59
+    desktop: null
+
+  - version: v13.3
+    esr: false
+    jira_fix_version: "v13.3 (January 2028)"
+    milestones:
+      branch_cut: 2027-12-10                   # working day after v13.2 final_build
+      feature_complete: 2027-12-20             # T-16
+      rc1: 2027-12-21                          # T-15
+      code_freeze: 2028-01-06                  # T-6
+      final_build: 2028-01-07                  # T-5
+      cloud_freemium_professional: 2028-01-10  # T-4
+      cloud_enterprise: 2028-01-11             # T-3
+      release_day: 2028-01-14                  # first working day on or before the 16th
+    support_end: 2028-04-15
+    mobile: v2.60
+    desktop: null
+
+  - version: v13.4
+    esr: false
+    jira_fix_version: "v13.4 (February 2028)"
+    milestones:
+      branch_cut: 2028-01-10                   # working day after v13.3 final_build
+      feature_complete: 2028-01-25             # T-16
+      rc1: 2028-01-26                          # T-15
+      code_freeze: 2028-02-08                  # T-6
+      final_build: 2028-02-09                  # T-5
+      cloud_freemium_professional: 2028-02-10  # T-4
+      cloud_enterprise: 2028-02-10             # T-3, moved off a Friday
+      release_day: 2028-02-16                  # first working day on or before the 16th
+    support_end: 2028-05-15
+    mobile: v2.61
+    desktop: v6.9
+
+  - version: v13.5
+    esr: false
+    jira_fix_version: "v13.5 (March 2028)"
+    milestones:
+      branch_cut: 2028-02-10                   # working day after v13.4 final_build
+      feature_complete: 2028-02-23             # T-16
+      rc1: 2028-02-24                          # T-15
+      code_freeze: 2028-03-08                  # T-6
+      final_build: 2028-03-09                  # T-5
+      cloud_freemium_professional: 2028-03-10  # T-4
+      cloud_enterprise: 2028-03-13             # T-3
+      release_day: 2028-03-16                  # first working day on or before the 16th
+    support_end: 2028-06-15
+    mobile: v2.62
+    desktop: null
+
+  - version: v13.6
+    esr: false
+    jira_fix_version: "v13.6 (April 2028)"
+    milestones:
+      branch_cut: 2028-03-10                   # working day after v13.5 final_build
+      feature_complete: 2028-03-22             # T-16
+      rc1: 2028-03-23                          # T-15
+      code_freeze: 2028-04-05                  # T-6
+      final_build: 2028-04-06                  # T-5
+      cloud_freemium_professional: 2028-04-07  # T-4
+      cloud_enterprise: 2028-04-10             # T-3
+      release_day: 2028-04-13                  # first working day on or before the 16th
+    support_end: 2028-07-15
+    mobile: v2.63
+    desktop: null
+
+  - version: v13.7
+    esr: false
+    jira_fix_version: "v13.7 (May 2028)"
+    milestones:
+      branch_cut: 2028-04-07                   # working day after v13.6 final_build
+      feature_complete: 2028-04-24             # T-16
+      rc1: 2028-04-25                          # T-15
+      code_freeze: 2028-05-08                  # T-6
+      final_build: 2028-05-09                  # T-5
+      cloud_freemium_professional: 2028-05-10  # T-4
+      cloud_enterprise: 2028-05-11             # T-3
+      release_day: 2028-05-16                  # first working day on or before the 16th
+    support_end: 2028-08-15
+    mobile: v2.64
+    desktop: v6.10
+
+  - version: v13.8
+    esr: false
+    jira_fix_version: "v13.8 (June 2028)"
+    milestones:
+      branch_cut: 2028-05-10                   # working day after v13.7 final_build
+      feature_complete: 2028-05-24             # T-16
+      rc1: 2028-05-25                          # T-15
+      code_freeze: 2028-06-08                  # T-6
+      final_build: 2028-06-09                  # T-5
+      cloud_freemium_professional: 2028-06-12  # T-4
+      cloud_enterprise: 2028-06-13             # T-3
+      release_day: 2028-06-16                  # first working day on or before the 16th
+    support_end: 2028-09-15
+    mobile: v2.65
+    desktop: null
+
+  - version: v13.9
+    esr: false
+    jira_fix_version: "v13.9 (July 2028)"
+    milestones:
+      branch_cut: 2028-06-12                   # working day after v13.8 final_build
+      feature_complete: 2028-06-20             # T-16
+      rc1: 2028-06-21                          # T-15
+      code_freeze: 2028-07-06                  # T-6
+      final_build: 2028-07-07                  # T-5
+      cloud_freemium_professional: 2028-07-10  # T-4
+      cloud_enterprise: 2028-07-11             # T-3
+      release_day: 2028-07-14                  # first working day on or before the 16th
+    support_end: 2028-10-15
+    mobile: v2.66
+    desktop: null
+
+  - version: v13.10
+    esr: true
+    jira_fix_version: "v13.10 (August 2028)"
+    milestones:
+      branch_cut: 2028-07-10                   # working day after v13.9 final_build
+      feature_complete: 2028-07-24             # T-16
+      rc1: 2028-07-25                          # T-15
+      code_freeze: 2028-08-08                  # T-6
+      final_build: 2028-08-09                  # T-5
+      cloud_freemium_professional: 2028-08-10  # T-4
+      cloud_enterprise: 2028-08-10             # T-3, moved off a Friday
+      release_day: 2028-08-16                  # first working day on or before the 16th
+    support_end: 2029-08-15
+    mobile: v2.67
+    desktop: v6.11
+
+  - version: v13.11
+    esr: false
+    jira_fix_version: "v13.11 (September 2028)"
+    milestones:
+      branch_cut: 2028-08-10                   # working day after v13.10 final_build
+      feature_complete: 2028-08-23             # T-16
+      rc1: 2028-08-24                          # T-15
+      code_freeze: 2028-09-07                  # T-6
+      final_build: 2028-09-08                  # T-5
+      cloud_freemium_professional: 2028-09-11  # T-4
+      cloud_enterprise: 2028-09-12             # T-3
+      release_day: 2028-09-15                  # first working day on or before the 16th
+    support_end: 2028-12-15
+    mobile: v2.68
+    desktop: null
+
+  - version: v14.0
+    esr: false
+    jira_fix_version: "v14.0 (October 2028)"
+    milestones:
+      branch_cut: 2028-09-11                   # working day after v13.11 final_build
+      feature_complete: 2028-09-21             # T-16
+      rc1: 2028-09-22                          # T-15
+      code_freeze: 2028-10-05                  # T-6
+      final_build: 2028-10-06                  # T-5
+      cloud_freemium_professional: 2028-10-10  # T-4
+      cloud_enterprise: 2028-10-11             # T-3
+      release_day: 2028-10-16                  # first working day on or before the 16th
+    support_end: 2029-01-15
+    mobile: v2.69
+    desktop: null
+
+  - version: v14.1
+    esr: false
+    jira_fix_version: "v14.1 (November 2028)"
+    milestones:
+      branch_cut: 2028-10-10                   # working day after v14.0 final_build
+      feature_complete: 2028-10-25             # T-16
+      rc1: 2028-10-26                          # T-15
+      code_freeze: 2028-11-08                  # T-6
+      final_build: 2028-11-09                  # T-5
+      cloud_freemium_professional: 2028-11-10  # T-4
+      cloud_enterprise: 2028-11-13             # T-3
+      release_day: 2028-11-16                  # first working day on or before the 16th
+    support_end: 2029-02-15
+    mobile: v2.70
+    desktop: v6.12
+
+  - version: v14.2
+    esr: false
+    jira_fix_version: "v14.2 (December 2028)"
+    milestones:
+      branch_cut: 2028-11-10                   # working day after v14.1 final_build
+      feature_complete: 2028-11-22             # T-16
+      rc1: 2028-11-24                          # T-15
+      code_freeze: 2028-12-07                  # T-6
+      final_build: 2028-12-08                  # T-5
+      cloud_freemium_professional: 2028-12-11  # T-4
+      cloud_enterprise: 2028-12-12             # T-3
+      release_day: 2028-12-15                  # first working day on or before the 16th
+    support_end: 2029-03-15
+    mobile: v2.71
+    desktop: null
+
+  - version: v14.3
+    esr: false
+    jira_fix_version: "v14.3 (January 2029)"
+    milestones:
+      branch_cut: 2028-12-11                   # working day after v14.2 final_build
+      feature_complete: 2028-12-20             # T-16
+      rc1: 2028-12-21                          # T-15
+      code_freeze: 2029-01-08                  # T-6
+      final_build: 2029-01-09                  # T-5
+      cloud_freemium_professional: 2029-01-10  # T-4
+      cloud_enterprise: 2029-01-11             # T-3
+      release_day: 2029-01-16                  # first working day on or before the 16th
+    support_end: 2029-04-15
+    mobile: v2.72
+    desktop: null
+
+  - version: v14.4
+    esr: false
+    jira_fix_version: "v14.4 (February 2029)"
+    milestones:
+      branch_cut: 2029-01-10                   # working day after v14.3 final_build
+      feature_complete: 2029-01-25             # T-16
+      rc1: 2029-01-26                          # T-15
+      code_freeze: 2029-02-08                  # T-6
+      final_build: 2029-02-09                  # T-5
+      cloud_freemium_professional: 2029-02-12  # T-4
+      cloud_enterprise: 2029-02-13             # T-3
+      release_day: 2029-02-16                  # first working day on or before the 16th
+    support_end: 2029-05-15
+    mobile: v2.73
+    desktop: v6.13
+
+  - version: v14.5
+    esr: false
+    jira_fix_version: "v14.5 (March 2029)"
+    milestones:
+      branch_cut: 2029-02-12                   # working day after v14.4 final_build
+      feature_complete: 2029-02-22             # T-16
+      rc1: 2029-02-23                          # T-15
+      code_freeze: 2029-03-08                  # T-6
+      final_build: 2029-03-09                  # T-5
+      cloud_freemium_professional: 2029-03-12  # T-4
+      cloud_enterprise: 2029-03-13             # T-3
+      release_day: 2029-03-16                  # first working day on or before the 16th
+    support_end: 2029-06-15
+    mobile: v2.74
+    desktop: null
+
+  - version: v14.6
+    esr: false
+    jira_fix_version: "v14.6 (April 2029)"
+    milestones:
+      branch_cut: 2029-03-12                   # working day after v14.5 final_build
+      feature_complete: 2029-03-22             # T-16
+      rc1: 2029-03-23                          # T-15
+      code_freeze: 2029-04-06                  # T-6
+      final_build: 2029-04-09                  # T-5
+      cloud_freemium_professional: 2029-04-10  # T-4
+      cloud_enterprise: 2029-04-11             # T-3
+      release_day: 2029-04-16                  # first working day on or before the 16th
+    support_end: 2029-07-15
+    mobile: v2.75
+    desktop: null
+
+  - version: v14.7
+    esr: true
+    jira_fix_version: "v14.7 (May 2029)"
+    milestones:
+      branch_cut: 2029-04-10                   # working day after v14.6 final_build
+      feature_complete: 2029-04-24             # T-16
+      rc1: 2029-04-25                          # T-15
+      code_freeze: 2029-05-08                  # T-6
+      final_build: 2029-05-09                  # T-5
+      cloud_freemium_professional: 2029-05-10  # T-4
+      cloud_enterprise: 2029-05-10             # T-3, moved off a Friday
+      release_day: 2029-05-16                  # first working day on or before the 16th
+    support_end: 2030-05-15
+    mobile: v2.76
+    desktop: v6.14
+
+  - version: v14.8
+    esr: false
+    jira_fix_version: "v14.8 (June 2029)"
+    milestones:
+      branch_cut: 2029-05-10                   # working day after v14.7 final_build
+      feature_complete: 2029-05-23             # T-16
+      rc1: 2029-05-24                          # T-15
+      code_freeze: 2029-06-07                  # T-6
+      final_build: 2029-06-08                  # T-5
+      cloud_freemium_professional: 2029-06-11  # T-4
+      cloud_enterprise: 2029-06-12             # T-3
+      release_day: 2029-06-15                  # first working day on or before the 16th
+    support_end: 2029-09-15
+    mobile: v2.77
+    desktop: null
+
+  - version: v14.9
+    esr: false
+    jira_fix_version: "v14.9 (July 2029)"
+    milestones:
+      branch_cut: 2029-06-11                   # working day after v14.8 final_build
+      feature_complete: 2029-06-20             # T-16
+      rc1: 2029-06-21                          # T-15
+      code_freeze: 2029-07-06                  # T-6
+      final_build: 2029-07-09                  # T-5
+      cloud_freemium_professional: 2029-07-10  # T-4
+      cloud_enterprise: 2029-07-11             # T-3
+      release_day: 2029-07-16                  # first working day on or before the 16th
+    support_end: 2029-10-15
+    mobile: v2.78
+    desktop: null
+
+  - version: v14.10
+    esr: false
+    jira_fix_version: "v14.10 (August 2029)"
+    milestones:
+      branch_cut: 2029-07-10                   # working day after v14.9 final_build
+      feature_complete: 2029-07-24             # T-16
+      rc1: 2029-07-25                          # T-15
+      code_freeze: 2029-08-08                  # T-6
+      final_build: 2029-08-09                  # T-5
+      cloud_freemium_professional: 2029-08-10  # T-4
+      cloud_enterprise: 2029-08-13             # T-3
+      release_day: 2029-08-16                  # first working day on or before the 16th
+    support_end: 2029-11-15
+    mobile: v2.79
+    desktop: v6.15
+
+  - version: v14.11
+    esr: false
+    jira_fix_version: "v14.11 (September 2029)"
+    milestones:
+      branch_cut: 2029-08-10                   # working day after v14.10 final_build
+      feature_complete: 2029-08-22             # T-16
+      rc1: 2029-08-23                          # T-15
+      code_freeze: 2029-09-06                  # T-6
+      final_build: 2029-09-07                  # T-5
+      cloud_freemium_professional: 2029-09-10  # T-4
+      cloud_enterprise: 2029-09-11             # T-3
+      release_day: 2029-09-14                  # first working day on or before the 16th
+    support_end: 2029-12-15
+    mobile: v2.80
+    desktop: null
+
+  - version: v15.0
+    esr: false
+    jira_fix_version: "v15.0 (October 2029)"
+    milestones:
+      branch_cut: 2029-09-10                   # working day after v14.11 final_build
+      feature_complete: 2029-09-21             # T-16
+      rc1: 2029-09-24                          # T-15
+      code_freeze: 2029-10-05                  # T-6
+      final_build: 2029-10-09                  # T-5
+      cloud_freemium_professional: 2029-10-10  # T-4
+      cloud_enterprise: 2029-10-11             # T-3
+      release_day: 2029-10-16                  # first working day on or before the 16th
+    support_end: 2030-01-15
+    mobile: v2.81
+    desktop: null
+
+  - version: v15.1
+    esr: false
+    jira_fix_version: "v15.1 (November 2029)"
+    milestones:
+      branch_cut: 2029-10-10                   # working day after v15.0 final_build
+      feature_complete: 2029-10-25             # T-16
+      rc1: 2029-10-26                          # T-15
+      code_freeze: 2029-11-08                  # T-6
+      final_build: 2029-11-09                  # T-5
+      cloud_freemium_professional: 2029-11-12  # T-4
+      cloud_enterprise: 2029-11-13             # T-3
+      release_day: 2029-11-16                  # first working day on or before the 16th
+    support_end: 2030-02-15
+    mobile: v2.82
+    desktop: v6.16
+
+  - version: v15.2
+    esr: false
+    jira_fix_version: "v15.2 (December 2029)"
+    milestones:
+      branch_cut: 2029-11-12                   # working day after v15.1 final_build
+      feature_complete: 2029-11-21             # T-16
+      rc1: 2029-11-23                          # T-15
+      code_freeze: 2029-12-06                  # T-6
+      final_build: 2029-12-07                  # T-5
+      cloud_freemium_professional: 2029-12-10  # T-4
+      cloud_enterprise: 2029-12-11             # T-3
+      release_day: 2029-12-14                  # first working day on or before the 16th
+    support_end: 2030-03-15
+    mobile: v2.83
+    desktop: null
+
+  - version: v15.3
+    esr: false
+    jira_fix_version: "v15.3 (January 2030)"
+    milestones:
+      branch_cut: 2029-12-10                   # working day after v15.2 final_build
+      feature_complete: 2029-12-20             # T-16
+      rc1: 2029-12-21                          # T-15
+      code_freeze: 2030-01-08                  # T-6
+      final_build: 2030-01-09                  # T-5
+      cloud_freemium_professional: 2030-01-10  # T-4
+      cloud_enterprise: 2030-01-10             # T-3, moved off a Friday
+      release_day: 2030-01-16                  # first working day on or before the 16th
+    support_end: 2030-04-15
+    mobile: v2.84
+    desktop: null
+
+  - version: v15.4
+    esr: true
+    jira_fix_version: "v15.4 (February 2030)"
+    milestones:
+      branch_cut: 2030-01-10                   # working day after v15.3 final_build
+      feature_complete: 2030-01-24             # T-16
+      rc1: 2030-01-25                          # T-15
+      code_freeze: 2030-02-07                  # T-6
+      final_build: 2030-02-08                  # T-5
+      cloud_freemium_professional: 2030-02-11  # T-4
+      cloud_enterprise: 2030-02-12             # T-3
+      release_day: 2030-02-15                  # first working day on or before the 16th
+    support_end: 2031-02-15
+    mobile: v2.85
+    desktop: v6.17
+
+  - version: v15.5
+    esr: false
+    jira_fix_version: "v15.5 (March 2030)"
+    milestones:
+      branch_cut: 2030-02-11                   # working day after v15.4 final_build
+      feature_complete: 2030-02-21             # T-16
+      rc1: 2030-02-22                          # T-15
+      code_freeze: 2030-03-07                  # T-6
+      final_build: 2030-03-08                  # T-5
+      cloud_freemium_professional: 2030-03-11  # T-4
+      cloud_enterprise: 2030-03-12             # T-3
+      release_day: 2030-03-15                  # first working day on or before the 16th
+    support_end: 2030-06-15
+    mobile: v2.86
+    desktop: null
+
+  - version: v15.6
+    esr: false
+    jira_fix_version: "v15.6 (April 2030)"
+    milestones:
+      branch_cut: 2030-03-11                   # working day after v15.5 final_build
+      feature_complete: 2030-03-25             # T-16
+      rc1: 2030-03-26                          # T-15
+      code_freeze: 2030-04-08                  # T-6
+      final_build: 2030-04-09                  # T-5
+      cloud_freemium_professional: 2030-04-10  # T-4
+      cloud_enterprise: 2030-04-11             # T-3
+      release_day: 2030-04-16                  # first working day on or before the 16th
+    support_end: 2030-07-15
+    mobile: v2.87
+    desktop: null
+
+  - version: v15.7
+    esr: false
+    jira_fix_version: "v15.7 (May 2030)"
+    milestones:
+      branch_cut: 2030-04-10                   # working day after v15.6 final_build
+      feature_complete: 2030-04-24             # T-16
+      rc1: 2030-04-25                          # T-15
+      code_freeze: 2030-05-08                  # T-6
+      final_build: 2030-05-09                  # T-5
+      cloud_freemium_professional: 2030-05-10  # T-4
+      cloud_enterprise: 2030-05-13             # T-3
+      release_day: 2030-05-16                  # first working day on or before the 16th
+    support_end: 2030-08-15
+    mobile: v2.88
+    desktop: v6.18
+
+  - version: v15.8
+    esr: false
+    jira_fix_version: "v15.8 (June 2030)"
+    milestones:
+      branch_cut: 2030-05-10                   # working day after v15.7 final_build
+      feature_complete: 2030-05-22             # T-16
+      rc1: 2030-05-23                          # T-15
+      code_freeze: 2030-06-06                  # T-6
+      final_build: 2030-06-07                  # T-5
+      cloud_freemium_professional: 2030-06-10  # T-4
+      cloud_enterprise: 2030-06-11             # T-3
+      release_day: 2030-06-14                  # first working day on or before the 16th
+    support_end: 2030-09-15
+    mobile: v2.89
+    desktop: null
+
+  - version: v15.9
+    esr: false
+    jira_fix_version: "v15.9 (July 2030)"
+    milestones:
+      branch_cut: 2030-06-10                   # working day after v15.8 final_build
+      feature_complete: 2030-06-20             # T-16
+      rc1: 2030-06-21                          # T-15
+      code_freeze: 2030-07-08                  # T-6
+      final_build: 2030-07-09                  # T-5
+      cloud_freemium_professional: 2030-07-10  # T-4
+      cloud_enterprise: 2030-07-11             # T-3
+      release_day: 2030-07-16                  # first working day on or before the 16th
+    support_end: 2030-10-15
+    mobile: v2.90
+    desktop: null
+
+  - version: v15.10
+    esr: false
+    jira_fix_version: "v15.10 (August 2030)"
+    milestones:
+      branch_cut: 2030-07-10                   # working day after v15.9 final_build
+      feature_complete: 2030-07-24             # T-16
+      rc1: 2030-07-25                          # T-15
+      code_freeze: 2030-08-08                  # T-6
+      final_build: 2030-08-09                  # T-5
+      cloud_freemium_professional: 2030-08-12  # T-4
+      cloud_enterprise: 2030-08-13             # T-3
+      release_day: 2030-08-16                  # first working day on or before the 16th
+    support_end: 2030-11-15
+    mobile: v2.91
+    desktop: v6.19
+
+  - version: v15.11
+    esr: false
+    jira_fix_version: "v15.11 (September 2030)"
+    milestones:
+      branch_cut: 2030-08-12                   # working day after v15.10 final_build
+      feature_complete: 2030-08-22             # T-16
+      rc1: 2030-08-23                          # T-15
+      code_freeze: 2030-09-06                  # T-6
+      final_build: 2030-09-09                  # T-5
+      cloud_freemium_professional: 2030-09-10  # T-4
+      cloud_enterprise: 2030-09-11             # T-3
+      release_day: 2030-09-16                  # first working day on or before the 16th
+    support_end: 2030-12-15
+    mobile: v2.92
+    desktop: null
+
+  - version: v16.0
+    esr: false
+    jira_fix_version: "v16.0 (October 2030)"
+    milestones:
+      branch_cut: 2030-09-10                   # working day after v15.11 final_build
+      feature_complete: 2030-09-23             # T-16
+      rc1: 2030-09-24                          # T-15
+      code_freeze: 2030-10-07                  # T-6
+      final_build: 2030-10-08                  # T-5
+      cloud_freemium_professional: 2030-10-09  # T-4
+      cloud_enterprise: 2030-10-10             # T-3
+      release_day: 2030-10-16                  # first working day on or before the 16th
+    support_end: 2031-01-15
+    mobile: v2.93
+    desktop: null
+
+  - version: v16.1
+    esr: true
+    jira_fix_version: "v16.1 (November 2030)"
+    milestones:
+      branch_cut: 2030-10-09                   # working day after v16.0 final_build
+      feature_complete: 2030-10-24             # T-16
+      rc1: 2030-10-25                          # T-15
+      code_freeze: 2030-11-07                  # T-6
+      final_build: 2030-11-08                  # T-5
+      cloud_freemium_professional: 2030-11-11  # T-4
+      cloud_enterprise: 2030-11-12             # T-3
+      release_day: 2030-11-15                  # first working day on or before the 16th
+    support_end: 2031-11-15
+    mobile: v2.94
+    desktop: v6.20
+
+  - version: v16.2
+    esr: false
+    jira_fix_version: "v16.2 (December 2030)"
+    milestones:
+      branch_cut: 2030-11-11                   # working day after v16.1 final_build
+      feature_complete: 2030-11-21             # T-16
+      rc1: 2030-11-22                          # T-15
+      code_freeze: 2030-12-06                  # T-6
+      final_build: 2030-12-09                  # T-5
+      cloud_freemium_professional: 2030-12-10  # T-4
+      cloud_enterprise: 2030-12-11             # T-3
+      release_day: 2030-12-16                  # first working day on or before the 16th
+    support_end: 2031-03-15
+    mobile: v2.95
+    desktop: null
+
+  - version: v16.3
+    esr: false
+    jira_fix_version: "v16.3 (January 2031)"
+    milestones:
+      branch_cut: 2030-12-10                   # working day after v16.2 final_build
+      feature_complete: 2030-12-20             # T-16
+      rc1: 2030-12-23                          # T-15
+      code_freeze: 2031-01-08                  # T-6
+      final_build: 2031-01-09                  # T-5
+      cloud_freemium_professional: 2031-01-10  # T-4
+      cloud_enterprise: 2031-01-13             # T-3
+      release_day: 2031-01-16                  # first working day on or before the 16th
+    support_end: 2031-04-15
+    mobile: v2.96
+    desktop: null
+
+  - version: v16.4
+    esr: false
+    jira_fix_version: "v16.4 (February 2031)"
+    milestones:
+      branch_cut: 2031-01-10                   # working day after v16.3 final_build
+      feature_complete: 2031-01-23             # T-16
+      rc1: 2031-01-24                          # T-15
+      code_freeze: 2031-02-06                  # T-6
+      final_build: 2031-02-07                  # T-5
+      cloud_freemium_professional: 2031-02-10  # T-4
+      cloud_enterprise: 2031-02-11             # T-3
+      release_day: 2031-02-14                  # first working day on or before the 16th
+    support_end: 2031-05-15
+    mobile: v2.97
+    desktop: v6.21
+
+  - version: v16.5
+    esr: false
+    jira_fix_version: "v16.5 (March 2031)"
+    milestones:
+      branch_cut: 2031-02-10                   # working day after v16.4 final_build
+      feature_complete: 2031-02-20             # T-16
+      rc1: 2031-02-21                          # T-15
+      code_freeze: 2031-03-06                  # T-6
+      final_build: 2031-03-07                  # T-5
+      cloud_freemium_professional: 2031-03-10  # T-4
+      cloud_enterprise: 2031-03-11             # T-3
+      release_day: 2031-03-14                  # first working day on or before the 16th
+    support_end: 2031-06-15
+    mobile: v2.98
+    desktop: null
+
+  - version: v16.6
+    esr: false
+    jira_fix_version: "v16.6 (April 2031)"
+    milestones:
+      branch_cut: 2031-03-10                   # working day after v16.5 final_build
+      feature_complete: 2031-03-24             # T-16
+      rc1: 2031-03-25                          # T-15
+      code_freeze: 2031-04-07                  # T-6
+      final_build: 2031-04-08                  # T-5
+      cloud_freemium_professional: 2031-04-09  # T-4
+      cloud_enterprise: 2031-04-10             # T-3
+      release_day: 2031-04-16                  # first working day on or before the 16th
+    support_end: 2031-07-15
+    mobile: v2.99
+    desktop: null
+
+  - version: v16.7
+    esr: false
+    jira_fix_version: "v16.7 (May 2031)"
+    milestones:
+      branch_cut: 2031-04-09                   # working day after v16.6 final_build
+      feature_complete: 2031-04-24             # T-16
+      rc1: 2031-04-25                          # T-15
+      code_freeze: 2031-05-08                  # T-6
+      final_build: 2031-05-09                  # T-5
+      cloud_freemium_professional: 2031-05-12  # T-4
+      cloud_enterprise: 2031-05-13             # T-3
+      release_day: 2031-05-16                  # first working day on or before the 16th
+    support_end: 2031-08-15
+    mobile: v2.100
+    desktop: v6.22
+
+  - version: v16.8
+    esr: false
+    jira_fix_version: "v16.8 (June 2031)"
+    milestones:
+      branch_cut: 2031-05-12                   # working day after v16.7 final_build
+      feature_complete: 2031-05-22             # T-16
+      rc1: 2031-05-23                          # T-15
+      code_freeze: 2031-06-06                  # T-6
+      final_build: 2031-06-09                  # T-5
+      cloud_freemium_professional: 2031-06-10  # T-4
+      cloud_enterprise: 2031-06-11             # T-3
+      release_day: 2031-06-16                  # first working day on or before the 16th
+    support_end: 2031-09-15
+    mobile: v2.101
+    desktop: null
+
+  - version: v16.9
+    esr: false
+    jira_fix_version: "v16.9 (July 2031)"
+    milestones:
+      branch_cut: 2031-06-10                   # working day after v16.8 final_build
+      feature_complete: 2031-06-20             # T-16
+      rc1: 2031-06-23                          # T-15
+      code_freeze: 2031-07-08                  # T-6
+      final_build: 2031-07-09                  # T-5
+      cloud_freemium_professional: 2031-07-10  # T-4
+      cloud_enterprise: 2031-07-10             # T-3, moved off a Friday
+      release_day: 2031-07-16                  # first working day on or before the 16th
+    support_end: 2031-10-15
+    mobile: v2.102
+    desktop: null
+
+  - version: v16.10
+    esr: true
+    jira_fix_version: "v16.10 (August 2031)"
+    milestones:
+      branch_cut: 2031-07-10                   # working day after v16.9 final_build
+      feature_complete: 2031-07-23             # T-16
+      rc1: 2031-07-24                          # T-15
+      code_freeze: 2031-08-07                  # T-6
+      final_build: 2031-08-08                  # T-5
+      cloud_freemium_professional: 2031-08-11  # T-4
+      cloud_enterprise: 2031-08-12             # T-3
+      release_day: 2031-08-15                  # first working day on or before the 16th
+    support_end: 2032-08-15
+    mobile: v2.103
+    desktop: v6.23
+
+  - version: v16.11
+    esr: false
+    jira_fix_version: "v16.11 (September 2031)"
+    milestones:
+      branch_cut: 2031-08-11                   # working day after v16.10 final_build
+      feature_complete: 2031-08-22             # T-16
+      rc1: 2031-08-25                          # T-15
+      code_freeze: 2031-09-08                  # T-6
+      final_build: 2031-09-09                  # T-5
+      cloud_freemium_professional: 2031-09-10  # T-4
+      cloud_enterprise: 2031-09-11             # T-3
+      release_day: 2031-09-16                  # first working day on or before the 16th
+    support_end: 2031-12-15
+    mobile: v2.104
+    desktop: null
+
+  - version: v17.0
+    esr: false
+    jira_fix_version: "v17.0 (October 2031)"
+    milestones:
+      branch_cut: 2031-09-10                   # working day after v16.11 final_build
+      feature_complete: 2031-09-23             # T-16
+      rc1: 2031-09-24                          # T-15
+      code_freeze: 2031-10-07                  # T-6
+      final_build: 2031-10-08                  # T-5
+      cloud_freemium_professional: 2031-10-09  # T-4
+      cloud_enterprise: 2031-10-09             # T-3, moved off a Friday
+      release_day: 2031-10-16                  # first working day on or before the 16th
+    support_end: 2032-01-15
+    mobile: v2.105
+    desktop: null
