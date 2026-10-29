@@ -17,6 +17,7 @@ import {RHSStates} from 'utils/constants';
 import {Mark} from 'utils/performance_telemetry';
 
 import SidebarChannelSubItem from './sidebar_channel_sub_item';
+import {useChannelSidebarSubItemDragAndDrop} from './use_channel_sidebar_sub_item_drag_and_drop';
 import {useChannelSidebarSubItemExpansion} from './use_channel_sidebar_sub_item_expansion';
 import {getChannelSidebarSubItemChildrenId} from './use_channel_sidebar_sub_items';
 
@@ -33,6 +34,7 @@ export default function SidebarChannelSubItems({id, channel, currentTeamName, it
     const rhsState = useSelector(getRhsState);
     const rhsOpen = useSelector(getIsRhsOpen);
     const expansion = useChannelSidebarSubItemExpansion(channel, items);
+    const {draggingKey, dropTarget, handlers: dragHandlers} = useChannelSidebarSubItemDragAndDrop(channel, items, expansion);
 
     const childrenByParent = useMemo(() => {
         const byParent = new Map<string | undefined, ResolvedChannelSidebarSubItem[]>();
@@ -89,6 +91,9 @@ export default function SidebarChannelSubItems({id, channel, currentTeamName, it
                             containsActive={item.hasChildren && !isExpanded && activeAncestorKeys.has(item.key)}
                             onToggle={expansion.toggle}
                             onLinkClick={handleClick}
+                            dragHandlers={dragHandlers}
+                            isDragging={item.key === draggingKey}
+                            dropPosition={dropTarget?.key === item.key ? dropTarget.position : undefined}
                         >
                             {isExpanded && renderList(item.key, getChannelSidebarSubItemChildrenId(channel.id, item.key))}
                         </SidebarChannelSubItem>
