@@ -128,6 +128,12 @@ export const Preferences = {
     CATEGORY_SYSTEM_NOTICE: 'system_notice',
     RECOMMENDED_NEXT_STEPS: 'recommended_next_steps',
     TEAMS_ORDER: 'teams_order',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail has folded the team sidebar into its team menu.
+    HIDE_TEAM_SIDEBAR: 'hide_team_sidebar',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail's Channels view also lists boards.
+    SHOW_BOARDS_IN_CHANNELS: 'show_boards_in_channels',
     CLOUD_UPGRADE_BANNER: 'cloud_upgrade_banner',
     CLOUD_TRIAL_BANNER: 'cloud_trial_banner',
     START_TRIAL_MODAL: 'start_trial_modal',
@@ -311,6 +317,9 @@ export const ActionTypes = keyMirror({
     POST_UNREAD_SUCCESS: null,
 
     SET_UNREAD_FILTER_ENABLED: null,
+    SET_PRODUCT_RAIL_SECTION: null,
+    PRODUCT_RAIL_PATH_VIEWED: null,
+    PRODUCT_RAIL_PATHS_LOADED: null,
     UPDATE_TOAST_STATUS: null,
     UPDATE_THREAD_TOAST_STATUS: null,
 

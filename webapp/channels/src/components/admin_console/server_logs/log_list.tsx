@@ -89,9 +89,6 @@ const messages = defineMessages({
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
 
-// Logged by the server in place of a node it could not reach
-const FAILED_NODE_MSG = 'Failed to fetch logs from node';
-
 type StoredPrefs = {
     pageSize: number;
     wrapText: boolean;
@@ -238,7 +235,9 @@ export default function LogList({
             if (selectedNode && log[LogNodeKey] !== selectedNode) {
                 return false;
             }
-            if (cutoff === null || log.msg === FAILED_NODE_MSG) {
+
+            // The server sets failed_node on the entry it returns in place of a node it could not reach
+            if (cutoff === null || log.failed_node === true) {
                 return true;
             }
             const time = parseTimestamp(log.timestamp);
@@ -317,7 +316,7 @@ export default function LogList({
         setPage(0);
         setExpandedKey(null);
         setFocusedKey(null);
-    }, [search, enabledLevels, sortAsc, selectedNode]);
+    }, [search, enabledLevels, sortAsc, selectedNode, activeTimePreset]);
 
     // Clamp the page when a reload or poll shrinks the dataset
     useEffect(() => {
@@ -766,7 +765,7 @@ export default function LogList({
             {/* Empty state — kept outside the list so it only owns rows */}
             {visibleLogs.length === 0 && !loading && (
                 <div className='LogViewer__placeholder'>
-                    {search || !allLevelsEnabled || selectedNode ? (
+                    {search || !allLevelsEnabled || selectedNode || activeTimePreset !== null ? (
                         <FormattedMessage
                             id='admin.logs.noMatchingLogs'
                             defaultMessage='No logs match your filters. {clearLink}'
@@ -778,6 +777,7 @@ export default function LogList({
                                             clearSearch();
                                             enableAllLevels();
                                             onSelectedNodeChange('');
+                                            onClearTimePreset();
                                         }}
                                         type='button'
                                     >

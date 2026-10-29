@@ -2987,6 +2987,14 @@
     "defaultMessage": "0",
     "description": "Placeholder example value ('0') for the Redis Database input on the System Console caching page."
   },
+  "admin.cacheSettings.redisEnableTLS": {
+    "defaultMessage": "Enable TLS",
+    "description": "Admin console setting label (toggle) on the System Console Cache Settings page that enables TLS for Redis connections."
+  },
+  "admin.cacheSettings.redisEnableTLSDesc": {
+    "defaultMessage": "When true, connections to the Redis server use TLS.",
+    "description": "Help text for the setting that enables TLS for Redis connections on the System Console Cache Settings page."
+  },
   "admin.cacheSettings.redisPassword": {
     "defaultMessage": "Redis Password",
     "description": "Admin console field label on the Cache Settings page for the Redis authentication password."
@@ -2994,6 +3002,38 @@
   "admin.cacheSettings.redisPasswordDesc": {
     "defaultMessage": "The password of the Redis server.",
     "description": "Help text for the Redis Password setting on the System Console caching page."
+  },
+  "admin.cacheSettings.redisTLSCA": {
+    "defaultMessage": "TLS CA Certificate Path",
+    "description": "Admin console setting label on the System Console Cache Settings page for the file path of the CA certificate used to verify the Redis server."
+  },
+  "admin.cacheSettings.redisTLSCADesc": {
+    "defaultMessage": "Path on each server to a PEM-encoded CA certificate used to verify the Redis server. Leave blank to use the system trust store.",
+    "description": "Help text for the Redis TLS CA certificate path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
+  },
+  "admin.cacheSettings.redisTLSClientCert": {
+    "defaultMessage": "TLS Client Certificate Path",
+    "description": "Admin console setting label on the System Console Cache Settings page for the file path of the client certificate used for mutual TLS with Redis."
+  },
+  "admin.cacheSettings.redisTLSClientCertDesc": {
+    "defaultMessage": "Path on each server to a PEM-encoded client certificate for mutual TLS.",
+    "description": "Help text for the Redis TLS client certificate path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
+  },
+  "admin.cacheSettings.redisTLSClientKey": {
+    "defaultMessage": "TLS Client Key Path",
+    "description": "Admin console setting label on the System Console Cache Settings page for the file path of the private key for the Redis client certificate."
+  },
+  "admin.cacheSettings.redisTLSClientKeyDesc": {
+    "defaultMessage": "Path on each server to the PEM-encoded private key for the client certificate.",
+    "description": "Help text for the Redis TLS client key path setting on the System Console Cache Settings page; 'PEM' is a file format name and should not be translated."
+  },
+  "admin.cacheSettings.redisTLSSkipVerify": {
+    "defaultMessage": "Skip TLS Verification",
+    "description": "Admin console setting label (toggle) on the System Console Cache Settings page that disables verification of the Redis server certificate."
+  },
+  "admin.cacheSettings.redisTLSSkipVerifyDesc": {
+    "defaultMessage": "When true, the Redis server certificate is not verified. Not recommended for production.",
+    "description": "Help text for the setting that disables Redis server certificate verification on the System Console Cache Settings page."
   },
   "admin.cacheSettings.title": {
     "defaultMessage": "Cache Settings",
@@ -28375,6 +28415,34 @@
     "defaultMessage": "Open in new tab",
     "description": "Tooltip/accessibility label on external product links in the product switcher menu indicating they open in a new browser tab."
   },
+  "product_rail.ariaLabel": {
+    "defaultMessage": "Product navigation",
+    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards."
+  },
+  "product_rail.boards": {
+    "defaultMessage": "Boards",
+    "description": "Label under the Boards icon in the product navigation rail. Clicking it shows only boards in the left sidebar."
+  },
+  "product_rail.channels": {
+    "defaultMessage": "Channels",
+    "description": "Label under the Channels icon in the product navigation rail. Clicking it shows only channels and direct messages in the left sidebar, leaving out boards."
+  },
+  "product_rail.teamMenu.buttonLabel": {
+    "defaultMessage": "Switch teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."
+  },
+  "product_rail.teamMenu.menuLabel": {
+    "defaultMessage": "Teams",
+    "description": "Accessible name of the menu of the user's teams opened from the top of the product navigation rail."
+  },
+  "product_rail.teamMenu.showTeamSidebar": {
+    "defaultMessage": "Show team sidebar",
+    "description": "Last item in the team menu at the top of the product navigation rail. It brings back the team sidebar the user hid."
+  },
+  "product_rail.threads": {
+    "defaultMessage": "Threads",
+    "description": "Label under the Threads icon in the product navigation rail. Clicking it opens the list of followed threads."
+  },
   "profile_popover.aria_label.with_username": {
     "defaultMessage": "{userName}'s profile popover",
     "description": "Accessible label of the profile popover dialog; {userName} is the viewed user's username."
@@ -30615,9 +30683,25 @@
     "defaultMessage": "unreads filter",
     "description": "Accessible label for the unread-channels filter toggle in the channel sidebar."
   },
+  "sidebar_left.channel_filter.menu": {
+    "defaultMessage": "Channel filters",
+    "description": "Accessible name of the menu of view options opened from the filter button above the channel list."
+  },
+  "sidebar_left.channel_filter.menuButton": {
+    "defaultMessage": "Filter channels",
+    "description": "Tooltip and accessible name of the filter button above the channel list while the product navigation rail splits boards from channels. It opens a menu of view options."
+  },
   "sidebar_left.channel_filter.showAllChannels": {
     "defaultMessage": "Show all channels",
     "description": "Tooltip on the sidebar filter toggle when it would disable the unread filter and show all channels again."
+  },
+  "sidebar_left.channel_filter.showBoards": {
+    "defaultMessage": "Show boards",
+    "description": "Checkbox item in the channel filter menu, shown in the Channels view of the product navigation rail. When checked, boards are listed alongside channels instead of only under Boards."
+  },
+  "sidebar_left.channel_filter.unreadsOnly": {
+    "defaultMessage": "Unreads only",
+    "description": "Checkbox item in the channel filter menu. When checked, the channel list shows only unread channels."
   },
   "sidebar_left.channel_navigator.channelSwitcherLabel": {
     "defaultMessage": "Find Channels",
@@ -30846,6 +30930,10 @@
   "sidebar.openDirectMessage": {
     "defaultMessage": "Open a direct message",
     "description": "Menu item in the Direct Messages category menu that opens the new direct message dialog."
+  },
+  "sidebar.productRail.noBoards": {
+    "defaultMessage": "No boards in this team yet.",
+    "description": "Shown in the left sidebar when the Boards item of the product navigation rail is selected but the team has no boards the user is a member of."
   },
   "sidebar.show": {
     "defaultMessage": "Show",
@@ -31894,6 +31982,10 @@
   "team_settings.sync_status.syncing": {
     "defaultMessage": "Syncing...",
     "description": "Status text with a spinner shown in the membership sync footer while a membership sync job is running."
+  },
+  "team_sidebar.hide": {
+    "defaultMessage": "Hide team sidebar",
+    "description": "Tooltip and accessible name of the button at the bottom of the team sidebar that hides it. The teams then move into a menu at the top of the product navigation rail."
   },
   "team_sidebar.join": {
     "defaultMessage": "Other teams you can join",
