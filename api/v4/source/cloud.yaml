@@ -362,22 +362,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  /api/v4/hosted_customer/signup_available:
-    get:
-      tags:
-        - cloud
-      summary: Check hosted signup availability
-      description: >
-        Checks whether hosted signup is available for self-hosted workspaces.
-
-        ##### Permissions
-        Must be authenticated.
-      operationId: HostedCustomerSignupAvailable
-      responses:
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/cloud/check-cws-connection:
     get:
       tags:
