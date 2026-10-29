@@ -60,6 +60,7 @@
     }
 
     &__rows,
+    &__empty,
     &__add {
         margin-inline-start: 44px;
     }
@@ -105,6 +106,12 @@
     &__rows {
         display: flex;
         flex-direction: column;
+    }
+
+    &__empty {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 14px;
+        line-height: 20px;
     }
 
     &__error {

@@ -27759,6 +27759,10 @@
     "defaultMessage": "Clear {attribute}",
     "description": "Accessible label (screen readers only) of the button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
   },
+  "post_attributes.modal.empty": {
+    "defaultMessage": "There are no attributes on this post that you can view or add.",
+    "description": "Shown in the post attributes modal when the post has no attributes this user can see and there is none they are allowed to add."
+  },
   "post_attributes.modal.error.forbidden": {
     "defaultMessage": "You do not have permission to change this attribute",
     "description": "Error shown in the post attributes modal when the server refuses to save a change to an attribute because the user lacks permission."

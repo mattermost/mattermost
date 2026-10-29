@@ -337,6 +337,70 @@ describe('PostAttributesModal', () => {
         // Nothing to clear yet, and no "no attributes" placeholder.
         expect(screen.queryByTestId('post-attribute-clear-always_field')).not.toBeInTheDocument();
         expect(screen.getByTestId('post-attributes-add')).toBeInTheDocument();
+        expect(screen.queryByTestId('post-attributes-empty')).not.toBeInTheDocument();
+    });
+
+    describe('the empty state', () => {
+        test('shows when every field is admin-only and unset for a member', () => {
+            const fields = [
+                makeField({id: 'f_a', name: 'admin_a', permission_values: 'admin'}),
+                makeField({id: 'f_b', name: 'admin_b', permission_values: 'sysadmin'}),
+            ];
+
+            renderModal(fields, []);
+
+            expect(screen.getByTestId('post-attributes-empty')).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attribute-row-admin_a')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attribute-row-admin_b')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+        });
+
+        test('does not show when a value is set, even on a field the user cannot edit', () => {
+            const fields = [makeField({permission_values: 'admin'})];
+
+            renderModal(fields, [makeValue()]);
+
+            expect(screen.getByTestId('post-attribute-row-classification')).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-empty')).not.toBeInTheDocument();
+        });
+
+        test('counts a set value that names a deleted option as nothing to show', () => {
+            const fields = [makeField({permission_values: 'admin'})];
+
+            renderModal(fields, [makeValue({value: 'opt_withdrawn'})]);
+
+            expect(screen.getByTestId('post-attributes-empty')).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attribute-row-classification')).not.toBeInTheDocument();
+        });
+
+        test('appears when the last value is deleted while the modal is open', async () => {
+            const fields = [makeField({permission_values: 'admin'})];
+
+            const {store} = renderModal(fields, [makeValue()]);
+
+            expect(screen.getByTestId('post-attribute-row-classification')).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-empty')).not.toBeInTheDocument();
+
+            act(() => {
+                store.dispatch({
+                    type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                    data: {targetId: POST_ID, fieldId: 'field_1'},
+                });
+            });
+
+            await waitFor(() => expect(screen.getByTestId('post-attributes-empty')).toBeInTheDocument());
+            expect(screen.queryByTestId('post-attribute-row-classification')).not.toBeInTheDocument();
+        });
+
+        test('does not appear when the user adds the only field they can set', async () => {
+            const fields = [spareField()];
+
+            renderModal(fields, []);
+
+            await addAttribute('spare');
+
+            expect(screen.queryByTestId('post-attributes-empty')).not.toBeInTheDocument();
+        });
     });
 
     test('a locked field renders the padlock, no trigger and no trash button', () => {

@@ -245,6 +245,24 @@ export function useAddableAttributes(
 }
 
 /**
+ * Whether the edit modal has anything for this user when it opens: a row to
+ * show, or a field the picker could offer.
+ *
+ * The dot menu gates its Attributes item on this and the modal draws its empty
+ * state from the same answer, so the menu never opens onto a blank modal. It is
+ * built from the predicates the row list and the picker use, for that reason.
+ */
+export function hasPostAttributeContent(
+    fields: PropertyField[],
+    valueFor: (fieldId: string) => PropertyValue<unknown> | undefined,
+    canEdit: (field: PropertyField) => boolean,
+): boolean {
+    return fields.some((field) =>
+        isFieldValueVisible(field, valueFor(field.id)) ||
+        (hasValueControl(field) && canEdit(field)));
+}
+
+/**
  * Spends a budget of `max` *rendered chips* across the visible attributes in order.
  *
  * The cap is on chips rather than on fields because a multi-valued field renders one

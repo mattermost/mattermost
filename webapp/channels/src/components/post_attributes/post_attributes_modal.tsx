@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {Fragment, useCallback, useState} from 'react';
+import React, {Fragment, useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -33,7 +33,7 @@ import type {GlobalState} from 'types/store';
 import {canEditPostAttributeValue, isChannelPropertyAdmin} from './permissions';
 import PostAttributesFieldPicker from './post_attributes_field_picker';
 import PostAttributesModalRow from './post_attributes_modal_row';
-import {useAddableAttributes, useModalAttributes} from './utils';
+import {hasPostAttributeContent, useAddableAttributes, useModalAttributes} from './utils';
 
 import './post_attributes_modal.scss';
 
@@ -104,6 +104,14 @@ export default function PostAttributesModal({post, onExited}: Props) {
     );
 
     const addable = useAddableAttributes(fields, values, added, canEdit);
+
+    // The dot menu's gate, asked again while the modal is open: values cleared
+    // by someone else can leave nothing to show. A field the user added stays
+    // addable under this check, so a row they just asked for never trips it.
+    const isEmpty = useMemo(() => {
+        const valuesByFieldId = new Map(values.map((value) => [value.field_id, value]));
+        return !hasPostAttributeContent(fields, (fieldId) => valuesByFieldId.get(fieldId), canEdit);
+    }, [fields, values, canEdit]);
 
     /*
      * Field ids and error strings, never values. No copy of any value lives
@@ -201,6 +209,19 @@ export default function PostAttributesModal({post, onExited}: Props) {
                         </Fragment>
                     ))}
                 </div>
+
+                {isEmpty && (
+                    <div
+                        className='PostAttributesModal__empty'
+                        data-testid='post-attributes-empty'
+                    >
+                        <FormattedMessage
+                            id='post_attributes.modal.empty'
+                            defaultMessage='There are no attributes on this post that you can view or add.'
+                            description='Shown in the post attributes modal when the post has no attributes this user can see and there is none they are allowed to add.'
+                        />
+                    </div>
+                )}
 
                 {/*
                   * Omitted rather than disabled when there is nothing left to

@@ -9,6 +9,7 @@ import type {PostAttribute} from './utils';
 import {
     allocateChipBudget,
     chipCount,
+    hasPostAttributeContent,
     hasValueControl,
     isChipVisible,
     useAddableAttributes,
@@ -540,9 +541,10 @@ describe('useModalAttributes', () => {
 
 describe('useAddableAttributes', () => {
     /*
-     * The single test that carries D20. One fixture holding every exclusion —
-     * already set, locked, no control, already added — and two fields that
-     * survive all of them, one of them `hidden`. If only one of this suite's
+     * One fixture holding every exclusion — already set, locked, no control,
+     * already added — and two fields that survive all of them, one of them
+     * `hidden`. A field the user cannot set is never offered, because it would
+     * arrive as a locked row with nothing to do. If only one of this suite's
      * tests survives review, keep this one.
      */
     it('offers the fields that are unset, writable and not already added, hidden ones included', () => {
@@ -575,11 +577,11 @@ describe('useAddableAttributes', () => {
     });
 
     /*
-     * D17 and D20 disagree here by design, and the disagreement is the point: the
-     * modal row says "this channel declares this attribute on every post", which
-     * is true whether or not this user may write it; the picker offers what the
-     * user can act on. Without this, one rule gets refactored into the other and
-     * nothing fails.
+     * The row list and the picker disagree here by design, and the disagreement
+     * is the point: an `always` row says "this channel declares this attribute on
+     * every post", which is true whether or not this user may write it; the
+     * picker offers what the user can act on. Without this, one rule gets
+     * refactored into the other and nothing fails.
      */
     it('keeps a locked always field as a modal row while refusing it as a candidate', () => {
         const fields = [makeField({id: 'classification', name: 'classification', attrs: {visibility: 'always'}})];
@@ -651,5 +653,63 @@ describe('useAddableAttributes', () => {
         rerender();
 
         expect(result.current).toBe(first);
+    });
+});
+
+describe('hasPostAttributeContent', () => {
+    const noValue = () => undefined;
+    const never = () => false;
+
+    it('is false for a channel without fields', () => {
+        expect(hasPostAttributeContent([], noValue, ALWAYS_EDITABLE)).toBe(false);
+    });
+
+    it('is true when a field has a value to show, even if the user cannot edit it', () => {
+        const fields = [makeField({id: 'set'})];
+
+        expect(hasPostAttributeContent(fields, () => makeValue('SECRET', 'set'), never)).toBe(true);
+    });
+
+    it('is true for a hidden field that has a value', () => {
+        const fields = [makeField({id: 'secret', attrs: {visibility: 'hidden'}})];
+
+        expect(hasPostAttributeContent(fields, () => makeValue('SECRET', 'secret'), never)).toBe(true);
+    });
+
+    it('is true for an unset `always` field the user cannot edit', () => {
+        const fields = [makeField({id: 'always', attrs: {visibility: 'always'}})];
+
+        expect(hasPostAttributeContent(fields, noValue, never)).toBe(true);
+    });
+
+    it('is true for an unset field the user can edit', () => {
+        expect(hasPostAttributeContent([makeField()], noValue, ALWAYS_EDITABLE)).toBe(true);
+    });
+
+    it('is false when every field is unset and locked for the user', () => {
+        expect(hasPostAttributeContent([makeField({id: 'a'}), makeField({id: 'b'})], noValue, never)).toBe(false);
+    });
+
+    it('is false for an unset field the user can edit but has no control', () => {
+        const fields = [makeField({type: 'date' as FieldType})];
+
+        expect(hasPostAttributeContent(fields, noValue, ALWAYS_EDITABLE)).toBe(false);
+    });
+
+    // A value naming an option the channel no longer defines draws nothing, the
+    // same as an unset field.
+    it('is false when the only value names a deleted option and the user cannot edit', () => {
+        const fields = [makeField({id: 'open'})];
+
+        expect(hasPostAttributeContent(fields, () => makeValue('WITHDRAWN', 'open'), never)).toBe(false);
+    });
+
+    it('asks for the value of each field by its id', () => {
+        const valueFor = jest.fn(noValue);
+
+        hasPostAttributeContent([makeField({id: 'a'}), makeField({id: 'b'})], valueFor, never);
+
+        expect(valueFor).toHaveBeenCalledWith('a');
+        expect(valueFor).toHaveBeenCalledWith('b');
     });
 });

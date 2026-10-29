@@ -23,7 +23,7 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getCurrentUserMentionKeys, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 
 import {burnPostNow} from 'actions/burn_on_read_deletion';
@@ -39,6 +39,9 @@ import {openModal, closeModal} from 'actions/views/modals';
 import {isBurnOnReadPost, isThisPostBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
+
+import {canEditPostAttributeValue, isChannelPropertyAdmin} from 'components/post_attributes/permissions';
+import {hasPostAttributeContent} from 'components/post_attributes/utils';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences} from 'utils/constants';
@@ -115,8 +118,22 @@ function makeMapStateToProps() {
         // Reduced to a boolean here on purpose. `dot_menu` renders once per post,
         // and handing it the field array would subscribe every one of them to a
         // reference that changes whenever any channel's fields are refetched.
-        const hasPostAttributes = isPostAttributesEnabled(state) &&
-            getPostAttributeFields(state, post.channel_id).length > 0;
+        //
+        // The item shows only when the modal would have something in it: a value
+        // this user can see, or a field they are allowed to set. The permission
+        // work is skipped for channels without fields.
+        const postAttributeFields = isPostAttributesEnabled(state) ? getPostAttributeFields(state, post.channel_id) : [];
+        let hasPostAttributes = false;
+        if (postAttributeFields.length > 0) {
+            const postValues = state.entities.properties.values.byTargetId[post.id];
+            const isSysAdmin = isCurrentUserSystemAdmin(state);
+            const isChanAdmin = channel ? isChannelPropertyAdmin(state, channel) : false;
+            hasPostAttributes = hasPostAttributeContent(
+                postAttributeFields,
+                (fieldId) => postValues?.[fieldId],
+                (field) => canEditPostAttributeValue(field, post, userId, isSysAdmin, isChanAdmin),
+            );
+        }
 
         return {
             channelIsArchived: isArchivedChannel(channel),

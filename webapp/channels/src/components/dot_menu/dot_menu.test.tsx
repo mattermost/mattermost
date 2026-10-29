@@ -648,6 +648,7 @@ describe('components/dot_menu/DotMenu', () => {
             target_type: 'channel',
             target_id: 'channel_id_1',
             attrs: {options: [{id: 'opt_secret', name: 'SECRET'}]},
+            permission_values: 'member',
             create_at: 1,
             update_at: 1,
             delete_at: 0,
@@ -655,8 +656,23 @@ describe('components/dot_menu/DotMenu', () => {
             updated_by: 'user_1',
         };
 
-        function stateWith({flag, fields}: {flag: boolean; fields: boolean}): DeepPartial<GlobalState> {
-            const byId = fields ? {[field.id]: field} : {};
+        function stateWith({flag, fields, permission, hasValue, channelAdmin}: {
+            flag: boolean;
+            fields: boolean;
+            permission?: string;
+            hasValue?: boolean;
+            channelAdmin?: boolean;
+        }): DeepPartial<GlobalState> {
+            const fieldWithPermission = {...field, permission_values: permission ?? field.permission_values};
+            const byId = fields ? {[field.id]: fieldWithPermission} : {};
+            const value = {
+                id: 'value_1',
+                target_id: post1.id,
+                target_type: 'post',
+                group_id: POST_ATTRIBUTES_GROUP_ID,
+                field_id: field.id,
+                value: 'opt_secret',
+            };
 
             return {
                 ...initialState,
@@ -669,13 +685,23 @@ describe('components/dot_menu/DotMenu', () => {
                             FeatureFlagPostAttributes: flag ? 'true' : 'false',
                         },
                     },
+                    channels: {
+                        ...initialState.entities!.channels,
+                        roles: {
+                            channel_id_1: new Set(channelAdmin ? ['channel_admin'] : []),
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            channel_admin: {id: 'channel_admin', name: 'channel_admin', permissions: ['manage_channel_roles']},
+                        },
+                    },
                     properties: {
                         fields: {byId, byObjectType: {post: {[POST_ATTRIBUTES_GROUP_ID]: byId}}},
 
-                        // Deliberately empty: the menu item is gated on the channel
-                        // having fields, never on the post having values. A post with
-                        // no values renders no chip row, so this is the only way in.
-                        values: {byTargetId: {}, byFieldId: {}},
+                        // Empty unless asked for: a post with no values renders no
+                        // chip row, so a field the user can set is the way in.
+                        values: {byTargetId: hasValue ? {[post1.id]: {[field.id]: value}} : {}, byFieldId: {}},
                         groups: {
                             byId: {[POST_ATTRIBUTES_GROUP_ID]: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
                             byName: {post_attributes: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
@@ -697,7 +723,7 @@ describe('components/dot_menu/DotMenu', () => {
             await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post1.id}`));
         }
 
-        test('is shown when the flag is on and the channel has fields, on a post with no values', async () => {
+        test('is shown when the flag is on and the user can set a field, on a post with no values', async () => {
             await openDotMenu(stateWith({flag: true, fields: true}));
 
             expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
@@ -713,6 +739,24 @@ describe('components/dot_menu/DotMenu', () => {
             await openDotMenu(stateWith({flag: true, fields: false}));
 
             expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+        });
+
+        test('is hidden for a member when the fields are admin-only and unset', async () => {
+            await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin'}));
+
+            expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+        });
+
+        test('is shown for a member when an admin-only field has a value', async () => {
+            await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin', hasValue: true}));
+
+            expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
+        });
+
+        test('is shown for a channel admin when the fields are admin-only and unset', async () => {
+            await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin', channelAdmin: true}));
+
+            expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
         });
     });
 });
