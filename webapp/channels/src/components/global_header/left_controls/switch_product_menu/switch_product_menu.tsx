@@ -13,15 +13,13 @@ import {getConfig, isCloudLicense} from 'mattermost-redux/selectors/entities/gen
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {isProductRailShown} from 'selectors/views/product_rail';
-
 import * as Menu from 'components/menu';
+import useProductRailShown from 'components/product_rail/use_product_rail_shown';
 
 import {isChannels} from 'utils/products';
 
 import ProductSwitcherAboutMenuItem from './switch_product_about_menuitem';
 import ProductSwitcherChannelsMenuItem from './switch_product_channels_menuitem';
-import ProductSwitcherCloudLimitsFooter from './switch_product_cloud_limits_footer';
 import ProductSwitcherCloudTrialMenuItem from './switch_product_cloud_trial_menuitem';
 import ProductSwitcherDownloadMenuItem from './switch_product_download_menuitem';
 import ProductSwitcherEditionMenuItem from './switch_product_edition_menuitem';
@@ -72,8 +70,8 @@ export function SwitchProductMenu(props: Props) {
     const isChannelsProductActive = isChannels(props.productId);
 
     // The product rail lists Channels and every product, so the menu keeps only the rest. The rail
-    // needs a current team and isn't shown on mobile, so then the menu keeps them too.
-    const productRailShown = useSelector(isProductRailShown);
+    // needs a current team and isn't shown on mobile or backstage pages, so there the menu keeps them too.
+    const productRailShown = useProductRailShown();
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -106,13 +104,6 @@ export function SwitchProductMenu(props: Props) {
                 className: 'globalHeader-leftControls-productSwitcherMenu',
                 'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.ariaLabel', defaultMessage: 'Product menu'}),
             }}
-            menuFooter={
-                <ProductSwitcherCloudLimitsFooter
-                    isUserAdmin={isUserAdmin}
-                    isCloudLicensed={isCloudLicensed}
-                    isFreeTrialSubscription={isFreeTrialSubscription}
-                />
-            }
         >
             {!productRailShown && (
                 <ProductSwitcherChannelsMenuItem
