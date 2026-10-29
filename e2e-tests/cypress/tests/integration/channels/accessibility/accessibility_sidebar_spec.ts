@@ -198,8 +198,9 @@ describe('Accessibility tests for RHS getting focus after buttons actions', () =
         // * Verify RHS is open
         cy.get('#sidebar-right').should('be.visible');
 
-        // * Check that the RHS container is focused
-        cy.findByLabelText('Expand Sidebar Icon').should('be.focused');
+        // * Check that the RHS container is focused. Opening the RHS focuses its first control, and
+        // the mentions panel leads with Filters where the other panels lead with Expand.
+        cy.findByRole('button', {name: 'Filters'}).should('be.focused');
     });
 
     it('Focus should be on RHS when opening Saved Messages', () => {

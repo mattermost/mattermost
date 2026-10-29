@@ -1825,9 +1825,9 @@ func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
 // ComputeLastAccessibleFileTime updates cache with CreateAt time of the last accessible file as per the cloud plan's limit.
 // Use GetLastAccessibleFileTime() to access the result.
 func (a *App) ComputeLastAccessibleFileTime() error {
-	limit, appErr := a.getCloudFilesSizeLimit()
-	if appErr != nil {
-		return appErr
+	limit, limitErr := a.getCloudFilesSizeLimit()
+	if limitErr != nil {
+		return limitErr
 	}
 
 	if limit == 0 {
@@ -1873,7 +1873,7 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 }
 
 // getCloudFilesSizeLimit returns size in bytes
-func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
+func (a *App) getCloudFilesSizeLimit() (int64, error) {
 	license := a.Srv().License()
 	if license == nil || !license.IsCloud() {
 		return 0, nil

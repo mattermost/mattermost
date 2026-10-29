@@ -39,8 +39,10 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
 
         const link = screen.getByTestId('test-id-link');
         expect(link).toBeInTheDocument();
-        expect(link).toHaveClass('btn', 'btn-primary');
-        expect(link).not.toHaveClass('disabled');
+        expect(link.className).toMatch(/_button_/);
+        expect(link.className).toMatch(/_button--emphasis-primary_/);
+        expect(link.className).not.toMatch(/_button--disabled_/);
+        expect(link).not.toHaveAttribute('aria-disabled', 'true');
         expect(link).toHaveAttribute('href', '/path');
         expect(screen.getByText('test-button-text-default')).toBeInTheDocument();
     });
@@ -57,7 +59,10 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
 
         const link = screen.getByTestId('test-id-link');
         expect(link).toBeInTheDocument();
-        expect(link).toHaveClass('btn', 'btn-primary', 'disabled');
+        expect(link.className).toMatch(/_button_/);
+        expect(link.className).toMatch(/_button--emphasis-primary_/);
+        expect(link.className).toMatch(/_button--disabled_/);
+        expect(link).toHaveAttribute('aria-disabled', 'true');
         expect(link).toHaveAttribute('href', '/path');
     });
 
@@ -78,7 +83,8 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
 
         // Link should still be in document (navigation prevented)
         expect(link).toBeInTheDocument();
-        expect(link).toHaveClass('disabled');
+        expect(link.className).toMatch(/_button--disabled_/);
+        expect(link).toHaveAttribute('aria-disabled', 'true');
     });
 
     test('should allow navigation when clicking enabled link', async () => {
@@ -94,7 +100,8 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
         const link = screen.getByTestId('test-id-link');
 
         // Link should be enabled
-        expect(link).not.toHaveClass('disabled');
+        expect(link.className).not.toMatch(/_button--disabled_/);
+        expect(link).not.toHaveAttribute('aria-disabled', 'true');
 
         // Click should work (no preventDefault)
         await userEvent.click(link);

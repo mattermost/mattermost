@@ -316,6 +316,50 @@ func TestStartWithoutPluginInventoryUsesTemplateValidation(t *testing.T) {
 	require.ElementsMatch(t, []string{common.IndexBasePosts, common.IndexBaseChannels, common.IndexBaseUsers, common.IndexBaseFiles}, requestedTemplates)
 }
 
+func TestSearchPostsReturnsHitsWithUnparseableHighlights(t *testing.T) {
+	goodPostID, badPostID := model.NewId(), model.NewId()
+	searchResponse := fmt.Sprintf(`{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"skipped":0,"failed":0},"hits":{"total":{"value":2,"relation":"eq"},"max_score":1,"hits":[
+		{"_index":"posts","_id":%[1]q,"_score":1,"_source":{"id":%[1]q},"highlight":{"message":["<em>deployment</em> done"]}},
+		{"_index":"posts","_id":%[2]q,"_score":1,"_source":{"id":%[2]q},"highlight":{"message":["<em>deployment</b> broken"]}}
+	]}}`, goodPostID, badPostID)
+
+	cluster := pluginsHandler(t, &common.ClusterRecorder{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/_search") {
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("X-Elastic-Product", "Elasticsearch")
+			_, _ = fmt.Fprint(w, searchResponse)
+			return
+		}
+		cluster(w, r)
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsESBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.EnableSearching = true
+	})
+
+	es := &ElasticsearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, es.Stop()) }()
+	require.Nil(t, es.Start(context.Background()))
+
+	channels := model.ChannelList{{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}}
+	ids, matches, appErr := es.SearchPosts(channels, model.ParseSearchParams("deployment", 0), 0, 20)
+	require.Nil(t, appErr)
+	require.Equal(t, []string{goodPostID, badPostID}, ids)
+	require.Equal(t, []string{"deployment"}, matches[goodPostID])
+	require.Empty(t, matches[badPostID])
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to parse search result highlights, returning post without highlights")
+}
+
 // missingCJKPluginsWarning mirrors the warning Start logs when no CJK analyzer plugin is detected.
 const missingCJKPluginsWarning = "EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review elasticsearch settings."
 
