@@ -61,14 +61,23 @@ func requireStoredOptionsWithheld(t *testing.T, th *TestHelper, groupID, fieldID
 }
 
 // requireOptionsHidden asserts a masked field discloses no option names and no
-// count. The withheld marker survives masking, though: it is what the store
-// keys its option reconciliation on, so a masked field that lost it could
-// never be written back at all.
+// count of them.
 func requireOptionsHidden(t *testing.T, field *model.PropertyField) {
 	t.Helper()
 	assert.Empty(t, field.Attrs[model.PropertyFieldAttributeOptions], "no option may be visible")
 	assert.NotContains(t, field.Attrs, model.PropertyFieldAttributeOptionsCount, "the option count is controlled information too")
-	require.True(t, model.PropertyFieldOptionsOmitted(field.Attrs))
+}
+
+// requireWithheldOptionsHidden is requireOptionsHidden for a field whose option
+// list the read left out for size. That field's withheld marker survives
+// masking, unlike its count: the store keys its option reconciliation on the
+// marker, so a masked field that lost it could never be written back at all --
+// a read-modify-write would look identical to a caller asserting the field has
+// no options.
+func requireWithheldOptionsHidden(t *testing.T, field *model.PropertyField) {
+	t.Helper()
+	requireOptionsHidden(t, field)
+	require.True(t, model.PropertyFieldOptionsOmitted(field.Attrs), "the withheld marker must survive masking")
 }
 
 // TestOptionsOmitted_ReadMasking covers the read-masking consumers of the
@@ -136,7 +145,7 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		requireOptionsHidden(t, retrieved)
+		requireWithheldOptionsHidden(t, retrieved)
 	})
 
 	t.Run("a shared_only rank field hides every option from a holder", func(t *testing.T) {
@@ -150,7 +159,7 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		requireOptionsHidden(t, retrieved)
+		requireWithheldOptionsHidden(t, retrieved)
 	})
 
 	t.Run("a shared_only rank field hides another user's value", func(t *testing.T) {
@@ -183,7 +192,7 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		requireOptionsHidden(t, retrieved)
+		requireWithheldOptionsHidden(t, retrieved)
 	})
 
 	t.Run("a masked read keeps the marker, so a write it still refuses is refused for the real reason", func(t *testing.T) {
@@ -220,7 +229,7 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 		rctxUser := RequestContextWithCallerID(th.Context, userID)
 		retrieved, err := th.service.GetPropertyField(rctxUser, th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		requireOptionsHidden(t, retrieved)
+		requireWithheldOptionsHidden(t, retrieved)
 
 		// This field can never be written by anyone but its source plugin --
 		// shared_only implies protected, and a protected field belongs to its

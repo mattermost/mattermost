@@ -3065,6 +3065,111 @@ func TestSearchPostsForUser(t *testing.T) {
 		assert.True(t, allPostHaveMembership)
 	})
 
+	// The recent mentions filter sends channel ids in the in: modifier rather than channel names: a
+	// name only identifies a channel within one team, so it can't express a filter that spans teams.
+	// convertChannelNamesToChannelIds passes a value that is already an id straight through.
+	t.Run("in: a channel id", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, posts := setup(t, false)
+
+		otherTeam := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, otherTeam)
+		otherTeamChannel := th.CreateChannel(t, otherTeam)
+		otherTeamPost := th.CreateMessagePost(t, otherTeamChannel, searchTerm)
+
+		notAMemberChannel := th.CreateChannel(t, th.BasicTeam)
+		th.CreateMessagePost(t, notAMemberChannel, searchTerm)
+		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, notAMemberChannel)
+		require.Nil(t, appErr)
+
+		notAMemberPrivateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		th.CreateMessagePost(t, notAMemberPrivateChannel, searchTerm)
+		appErr = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, notAMemberPrivateChannel)
+		require.Nil(t, appErr)
+
+		// A channel on a team the user has left, which an unscoped search must not reach either.
+		leftTeam := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, leftTeam)
+		leftTeamChannel := th.CreateChannel(t, leftTeam)
+		th.CreateMessagePost(t, leftTeamChannel, searchTerm)
+		appErr = th.App.RemoveUserFromTeam(th.Context, leftTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// The only other channel on the basic team the user can see, so an exclusion of the basic
+		// channel has something left to return rather than nothing.
+		siblingChannel := th.CreateChannel(t, th.BasicTeam)
+		siblingPost := th.CreateMessagePost(t, siblingChannel, searchTerm)
+
+		archivedChannel := th.CreateChannel(t, th.BasicTeam)
+		archivedPost := th.CreateMessagePost(t, archivedChannel, searchTerm)
+		appErr = th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		searchWith := func(terms, teamID string, includeDeletedChannels bool) []string {
+			results, _, err := th.App.SearchPostsForUser(th.Context, terms, th.BasicUser.Id, teamID, false, includeDeletedChannels, 0, 0, 20)
+			require.Nil(t, err)
+			return results.Order
+		}
+
+		search := func(terms, teamID string) []string {
+			return searchWith(terms, teamID, false)
+		}
+
+		t.Run("returns the posts of a channel the user belongs to", func(t *testing.T) {
+			assert.Equal(t, []string{
+				posts[6].Id,
+				posts[5].Id,
+				posts[4].Id,
+				posts[3].Id,
+				posts[2].Id,
+				posts[1].Id,
+				posts[0].Id,
+			}, search(searchTerm+" in:"+th.BasicChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("returns nothing for a channel the user does not belong to", func(t *testing.T) {
+			assert.Empty(t, search(searchTerm+" in:"+notAMemberChannel.Id, th.BasicTeam.Id))
+			assert.Empty(t, search(searchTerm+" in:"+notAMemberChannel.Id, ""))
+		})
+
+		t.Run("returns nothing for a private channel the user does not belong to", func(t *testing.T) {
+			assert.Empty(t, search(searchTerm+" in:"+notAMemberPrivateChannel.Id, th.BasicTeam.Id))
+			assert.Empty(t, search(searchTerm+" in:"+notAMemberPrivateChannel.Id, ""))
+		})
+
+		t.Run("returns nothing for a channel on a team the user is not on", func(t *testing.T) {
+			assert.Empty(t, search(searchTerm+" in:"+leftTeamChannel.Id, ""))
+			assert.Empty(t, search(searchTerm+" in:"+leftTeamChannel.Id, leftTeam.Id))
+		})
+
+		t.Run("reaches a channel on another team when the search is not scoped to one", func(t *testing.T) {
+			// This is the case names can't express, and the reason the filter sends ids at all.
+			assert.Equal(t, []string{otherTeamPost.Id}, search(searchTerm+" in:"+otherTeamChannel.Id, ""))
+		})
+
+		t.Run("still resolves a channel name, which wins over being read as an id", func(t *testing.T) {
+			assert.Len(t, search(searchTerm+" in:"+th.BasicChannel.Name, th.BasicTeam.Id), len(posts))
+		})
+
+		t.Run("returns nothing for a channel on another team when the search is scoped to one", func(t *testing.T) {
+			// The team filter still applies: an id reaches across teams only because an unscoped
+			// search has no team filter to begin with.
+			assert.Empty(t, search(searchTerm+" in:"+otherTeamChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("excludes a channel given by id", func(t *testing.T) {
+			// -in: takes the same passthrough as in:, on its own line of the conversion.
+			assert.Equal(t, []string{siblingPost.Id}, search(searchTerm+" -in:"+th.BasicChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("an archived channel id still answers to include_deleted_channels", func(t *testing.T) {
+			// An id skips the name lookup the flag gates, so the flag reaches it only through the
+			// store's own filter on archived channels. Both halves have to hold for that to be true.
+			assert.Empty(t, searchWith(searchTerm+" in:"+archivedChannel.Id, th.BasicTeam.Id, false))
+			assert.Equal(t, []string{archivedPost.Id}, searchWith(searchTerm+" in:"+archivedChannel.Id, th.BasicTeam.Id, true))
+		})
+	})
+
 	t.Run("should not return later pages of posts from database", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, false)
@@ -5572,6 +5677,89 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}, {ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, th.BasicChannel, th.BasicUser)
 		require.Error(t, e)
 		require.Equal(t, "the thread is 2 posts long, but this command is configured to only move threads of up to 1 posts", e.Error())
+	})
+}
+
+func TestMoveThreadUploadFileAttachmentABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		cfg.WranglerSettings.MoveThreadToAnotherTeamEnable = new(true)
+		cfg.WranglerSettings.MoveThreadMaxCount = new(int64(100))
+	})
+
+	// CreateChannel makes th.BasicUser a member, as moving requires.
+	targetChannel := th.CreateChannel(t, th.BasicTeam)
+
+	// mockUploadPolicy denies the upload_file_attachment action in deniedChannelID
+	// and allows every other evaluation.
+	mockUploadPolicy := func(t *testing.T, deniedChannelID string) {
+		t.Helper()
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = original })
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment && req.Resource.ID == deniedChannelID
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
+	}
+
+	createPost := func(t *testing.T, withFile bool) *model.Post {
+		t.Helper()
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "thread to move",
+		}
+		if withFile {
+			info, appErr := th.App.UploadFile(th.Context, []byte("file contents"), th.BasicChannel.Id, "test.txt")
+			require.Nil(t, appErr)
+			post.FileIds = model.StringArray{info.Id}
+		}
+
+		created, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		return created
+	}
+
+	t.Run("a thread with files is not moved into a channel that denies the upload action", func(t *testing.T) {
+		post := createPost(t, true)
+		mockUploadPolicy(t, targetChannel.Id)
+
+		appErr := th.App.MoveThread(th.Context, post.Id, th.BasicChannel.Id, targetChannel.Id, th.BasicUser)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "api.file.upload_file.abac_denied.app_error", appErr.Id)
+
+		_, appErr = th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr, "the original thread must be left in place")
+	})
+
+	t.Run("a thread without files is moved into a channel that denies the upload action", func(t *testing.T) {
+		post := createPost(t, false)
+		mockUploadPolicy(t, targetChannel.Id)
+
+		appErr := th.App.MoveThread(th.Context, post.Id, th.BasicChannel.Id, targetChannel.Id, th.BasicUser)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("a thread with files is moved into a channel that allows the upload action", func(t *testing.T) {
+		post := createPost(t, true)
+		mockUploadPolicy(t, th.BasicChannel.Id)
+
+		appErr := th.App.MoveThread(th.Context, post.Id, th.BasicChannel.Id, targetChannel.Id, th.BasicUser)
+		require.Nil(t, appErr)
 	})
 }
 

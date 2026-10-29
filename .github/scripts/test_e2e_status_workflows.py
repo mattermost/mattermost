@@ -263,6 +263,13 @@ class StatusPublicationContract(unittest.TestCase):
     def test_lane_result_holds_the_lock_for_a_bounded_time(self):
         self.assertEqual(lane_result_workflow()['jobs']['lane-result']['timeout-minutes'], 45)
 
+    def test_a_slow_worker_fails_before_its_job_is_cancelled(self):
+        # A cancelled worker skips lane-result, so triage never runs and its check stays waiting.
+        for name in ('cypress-template', 'playwright-template'):
+            with self.subTest(workflow=name):
+                workers = workflow(name)['jobs']['workers']
+                self.assertLess(step(workers, 'ci/dispatch-run')['timeout-minutes'], workers['timeout-minutes'] - 5)
+
 
 def build_context(suite, edition, deploy, report_type):
     # Runs the lane's own build step, so the context is the one the workflow would publish.
