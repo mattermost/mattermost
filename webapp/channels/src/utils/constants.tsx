@@ -812,6 +812,7 @@ export const StoragePrefixes = {
     LANDING_PREFERENCE: '__landing-preference__',
     CHANNEL_CATEGORY_COLLAPSED: 'channelCategoryCollapsed_',
     CHANNEL_SIDEBAR_SUB_ITEMS_EXPANDED: 'channelSidebarSubItemsExpanded_',
+    CHANNEL_SIDEBAR_SUB_ITEM_EXPANDED: 'channelSidebarSubItemExpanded_',
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
     HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
