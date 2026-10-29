@@ -482,7 +482,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                                 ))}
                                             </ul>
                                             <div className='ClassificationAttribute__markingsFooter'>
-                                                <p className='ClassificationAttribute__markingsCopy'>
+                                                <div className='ClassificationAttribute__markingsCopy'>
                                                     <FormattedMessage {...messages.markingsFooter}/>
                                                     <Button
                                                         asChild={true}
@@ -496,7 +496,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                                             <FormattedMessage {...messages.openMarkings}/>
                                                         </Link>
                                                     </Button>
-                                                </p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
