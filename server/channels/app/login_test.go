@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -54,6 +55,56 @@ func TestCWSLogin(t *testing.T) {
 		user, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", token.Token, false)
 		require.NotNil(t, err)
 		require.Nil(t, user)
+	})
+
+	t.Run("Should not authenticate the user with the CWS token", func(t *testing.T) {
+		testCases := []struct {
+			name  string
+			setup func(t *testing.T, token *model.Token) *model.User
+		}{
+			{
+				name: "when the token was used before the token cleanup window",
+				setup: func(t *testing.T, token *model.Token) *model.User {
+					token.CreateAt = model.GetMillis() - model.MaxTokenExipryTime - time.Hour.Milliseconds()
+					require.NoError(t, th.App.Srv().Store().Token().Save(token))
+					doTokenCleanup(th.App.Srv())
+					return th.CreateUser(t)
+				},
+			},
+			{
+				name: "when the user is deactivated",
+				setup: func(t *testing.T, token *model.Token) *model.User {
+					user, appErr := th.App.UpdateActive(th.Context, th.CreateUser(t), false)
+					require.Nil(t, appErr)
+					return user
+				},
+			},
+			{
+				name: "when the user has logged in before",
+				setup: func(t *testing.T, token *model.Token) *model.User {
+					user := th.CreateUser(t)
+					require.NoError(t, th.App.Srv().Store().User().UpdateLastLogin(user.Id, model.GetMillis()))
+					return user
+				},
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				token := model.NewToken(model.TokenTypeCWSAccess, "")
+				th.App.Srv().SetCWSTokenOverride(token.Token)
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					_ = th.App.Srv().Store().Token().Delete(token.Token)
+				})
+
+				user := tc.setup(t, token)
+
+				authenticatedUser, appErr := th.App.AuthenticateUserForLogin(th.Context, "", user.Username, "", "", token.Token, false)
+				require.NotNil(t, appErr, "expected the CWS login to be rejected")
+				require.Nil(t, authenticatedUser)
+			})
+		}
 	})
 }
 
