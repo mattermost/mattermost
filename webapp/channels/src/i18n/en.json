@@ -28975,14 +28975,6 @@
     "defaultMessage": "Delete scheduled recap?",
     "description": "Title of the confirmation dialog asked before deleting a recurring scheduled recap."
   },
-  "recaps.scheduled.emptyState.cta": {
-    "defaultMessage": "Create a recap",
-    "description": "Call-to-action button on the empty scheduled-recaps tab that starts creating a recap; 'recap' is a noun."
-  },
-  "recaps.scheduled.emptyState.description": {
-    "defaultMessage": "Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.",
-    "description": "Empty-state description on the scheduled-recaps tab; 'Copilot' is the AI assistant product name."
-  },
   "recaps.scheduled.emptyState.title": {
     "defaultMessage": "Set up your first recap",
     "description": "Empty-state title on the scheduled-recaps tab prompting the user to create their first recap."
