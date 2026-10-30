@@ -51,12 +51,13 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// A soft-deleted row would keep the (remoteid, name) key and block retrying the same invite.
 	confirmed := false
 	defer func() {
 		if confirmed {
 			return
 		}
-		if _, delErr := rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId); delErr != nil {
+		if delErr := rcs.server.GetStore().RemoteCluster().PermanentDelete(rcSaved.RemoteId, rcSaved.Name); delErr != nil {
 			rcs.server.Log().Warn("Failed to delete unconfirmed remote cluster", mlog.String("remote_id", rcSaved.RemoteId), mlog.Err(delErr))
 		}
 	}()
