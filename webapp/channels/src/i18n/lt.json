@@ -2755,7 +2755,7 @@
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.description": "Leisti gaunamiesiems žiniatinklio kabliams skelbti bet kuriame kanale, nereikalaujant užrakinto numatytojo kanalo.",
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.name": "Apeiti kanalo užraktą",
   "admin.permissions.permission.convert_private_channel_to_public.description": "Konvertuokite privačius kanalus į viešuosius",
-  "admin.permissions.permission.convert_private_channel_to_public.name": "Konvertuoti kanalus",
+  "admin.permissions.permission.convert_private_channel_to_public.name": "Konvertuoti į viešąjį",
   "admin.permissions.permission.convert_public_channel_to_private.description": "Konvertuoti viešuosius kanalus į privačius",
   "admin.permissions.permission.convert_public_channel_to_private.name": "Konvertuoti kanalus",
   "admin.permissions.permission.create_custom_group.description": "Sukurkite pasirinktines grupes.",
