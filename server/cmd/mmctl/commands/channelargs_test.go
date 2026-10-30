@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -110,5 +111,240 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 		s.Require().Nil(summary)
 		s.Require().Len(channels, 1)
 		s.Require().Equal(successChannel, channels[0])
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooksLikeId() {
+	resolvers := []struct {
+		name string
+		call func(arg string) (*model.Channel, error)
+	}{
+		{
+			name: "getChannelFromChannelArg",
+			call: func(arg string) (*model.Channel, error) {
+				return getChannelFromChannelArg(s.client, arg), nil
+			},
+		},
+		{
+			name: "getChannelFromArg",
+			call: func(arg string) (*model.Channel, error) {
+				return getChannelFromArg(s.client, arg)
+			},
+		},
+	}
+
+	for _, resolver := range resolvers {
+		s.Run(resolver.name+" returns the channel with the matching id", func() {
+			teamID := model.NewId()
+			channelID := model.NewId()
+			team := &model.Team{Id: teamID}
+			idChannel := &model.Channel{Id: channelID, Name: "town-square"}
+			nameChannel := &model.Channel{Id: model.NewId(), Name: channelID}
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+				Return(nameChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelID).
+				Return(idChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				AnyTimes()
+
+			channel, err := resolver.call(fmt.Sprintf("%s:%s", teamID, channelID))
+			s.Require().NoError(err)
+			s.Require().NotNil(channel)
+			s.Require().Equal(idChannel.Id, channel.Id)
+		})
+
+		s.Run(resolver.name+" returns the channel when looking up by id", func() {
+			teamID := model.NewId()
+			channelID := model.NewId()
+			team := &model.Team{Id: teamID}
+			idChannel := &model.Channel{Id: channelID, Name: "town-square"}
+			notFoundErr := errors.New("channel not found")
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelID).
+				Return(idChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				AnyTimes()
+
+			channel, err := resolver.call(fmt.Sprintf("%s:%s", teamID, channelID))
+			s.Require().NoError(err)
+			s.Require().NotNil(channel)
+			s.Require().Equal(idChannel.Id, channel.Id)
+		})
+
+		s.Run(resolver.name+" returns the channel when looking up by name", func() {
+			teamID := model.NewId()
+			channelName := "town-square"
+			team := &model.Team{Id: teamID}
+			namedChannel := &model.Channel{Id: model.NewId(), Name: channelName}
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+				Return(namedChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+
+			channel, err := resolver.call(fmt.Sprintf("%s:%s", teamID, channelName))
+			s.Require().NoError(err)
+			s.Require().NotNil(channel)
+			s.Require().Equal(namedChannel.Id, channel.Id)
+		})
+
+		s.Run(resolver.name+" returns the named channel when the channel part looks like an id and no channel has that id", func() {
+			teamID := model.NewId()
+			channelPart := model.NewId()
+			team := &model.Team{Id: teamID}
+			namedChannel := &model.Channel{Id: model.NewId(), Name: channelPart}
+			notFoundErr := errors.New("channel not found")
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelPart).
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamID, "").
+				Return(namedChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+
+			channel, err := resolver.call(fmt.Sprintf("%s:%s", teamID, channelPart))
+			s.Require().NoError(err)
+			s.Require().NotNil(channel)
+			s.Require().Equal(namedChannel.Id, channel.Id)
+		})
+
+		s.Run(resolver.name+" returns the channel with the matching id when the channel part differs only by letter case", func() {
+			teamID := model.NewId()
+			channelID := "a" + model.NewId()[1:]
+			arg := strings.ToUpper(channelID)
+			team := &model.Team{Id: teamID}
+			idChannel := &model.Channel{Id: channelID, Name: "town-square"}
+			nameChannel := &model.Channel{Id: model.NewId(), Name: channelID}
+			notFoundErr := errors.New("channel not found")
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), arg).
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelID).
+				Return(idChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), arg, teamID, "").
+				Return(nameChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+				Return(nameChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				AnyTimes()
+
+			channel, err := resolver.call(fmt.Sprintf("%s:%s", teamID, arg))
+			s.Require().NoError(err)
+			s.Require().NotNil(channel)
+			s.Require().Equal(idChannel.Id, channel.Id)
+		})
+
+		s.Run(resolver.name+" returns the named channel when the channel part looks like an id except for letter case and no channel has that id", func() {
+			teamID := model.NewId()
+			channelID := "a" + model.NewId()[1:]
+			arg := strings.ToUpper(channelID)
+			team := &model.Team{Id: teamID}
+			namedChannel := &model.Channel{Id: model.NewId(), Name: arg}
+			notFoundErr := errors.New("channel not found")
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), arg).
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelID).
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), arg, teamID, "").
+				Return(namedChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+				AnyTimes()
+
+			channel, err := resolver.call(fmt.Sprintf("%s:%s", teamID, arg))
+			s.Require().NoError(err)
+			s.Require().NotNil(channel)
+			s.Require().Equal(namedChannel.Id, channel.Id)
+		})
+	}
+
+	s.Run("getChannelFromArg returns an error when the id lookup is forbidden", func() {
+		teamID := model.NewId()
+		channelID := model.NewId()
+		team := &model.Team{Id: teamID}
+		forbiddenErr := errors.New("channel forbidden")
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelID).
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
+			Times(1)
+
+		channel, err := getChannelFromArg(s.client, fmt.Sprintf("%s:%s", teamID, channelID))
+		s.Require().Nil(channel)
+		s.Require().EqualError(err, "channel forbidden")
 	})
 }
