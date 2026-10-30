@@ -125,6 +125,16 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 
 	referenceDefinitions = closeBlocks(openBlocks, referenceDefinitions)
 
+	// The definitions are complete once every block is closed, so the index is built here, once
+	// for the document. Building it per paragraph instead would make the work a document costs
+	// grow with its paragraphs times its definitions.
+	if len(referenceDefinitions) > 0 {
+		index := newReferenceIndex(referenceDefinitions)
+		for _, definition := range referenceDefinitions {
+			definition.index = index
+		}
+	}
+
 	return document, referenceDefinitions
 }
 
