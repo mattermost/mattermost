@@ -215,69 +215,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  /api/v4/cloud/subscription/invoices:
-    get:
-      tags:
-        - cloud
-      summary: Get cloud subscription invoices
-      description: >
-        Retrieves the invoices for the subscription bound to this installation.
-
-        ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.30
-        __Note:__ This is intended for internal use and is subject to change.
-      operationId: GetInvoicesForSubscription
-      responses:
-        "200":
-          description: Subscription invoices returned successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Invoice"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  /api/v4/cloud/subscription/invoices/{invoice_id}/pdf:
-    get:
-      tags:
-        - cloud
-      summary: Get cloud invoice PDF
-      description: >
-        Retrieves the PDF for the invoice passed as parameter
-
-        ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.30
-        __Note:__ This is intended for internal use and is subject to change.
-      operationId: GetInvoiceForSubscriptionAsPdf
-      parameters:
-        - name: invoice_id
-          in: path
-          description: Invoice ID
-          required: true
-          schema:
-            type: string
-      responses:
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/hosted_customer/signup_available:
     get:
       tags:
