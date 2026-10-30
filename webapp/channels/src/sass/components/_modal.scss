@@ -475,13 +475,32 @@
                 background: transparent;
 
                 .post-code__line-numbers {
-                    padding: 5px 0;
+                    padding: 5px 8px 5px 0;
                 }
 
                 code {
                     width: 100%;
                     padding: 5px 0;
                     margin: 0;
+                }
+
+                // Keeps the divider beside the numbers as tall as it is beside the numbers column of other files
+                .post-code__wrapped-lines {
+                    padding: 0;
+                }
+
+                .post-code__line:first-child {
+                    &::before,
+                    .post-code__line-text {
+                        padding-top: 5px;
+                    }
+                }
+
+                .post-code__line:last-child {
+                    &::before,
+                    .post-code__line-text {
+                        padding-bottom: 5px;
+                    }
                 }
             }
 

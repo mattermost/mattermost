@@ -25935,6 +25935,18 @@
     "defaultMessage": "Click to call {phoneNumber}",
     "description": "Tooltip shown when hovering a phone number link in a message."
   },
+  "markdown_view_toggle.group": {
+    "defaultMessage": "Markdown view",
+    "description": "Accessible name of the segmented control that switches Markdown content between rendered output and raw source."
+  },
+  "markdown_view_toggle.raw": {
+    "defaultMessage": "Code",
+    "description": "Label and tooltip of the segment that shows Markdown content as raw source text."
+  },
+  "markdown_view_toggle.rendered": {
+    "defaultMessage": "Preview",
+    "description": "Label and tooltip of the segment that shows Markdown content as rendered output."
+  },
   "marketplace_command.disabled": {
     "defaultMessage": "The marketplace is disabled. Please contact your System Administrator for details.",
     "description": "Error returned when a user runs the /marketplace slash command but the marketplace feature is turned off."

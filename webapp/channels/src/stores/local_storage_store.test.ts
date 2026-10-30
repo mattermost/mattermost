@@ -117,4 +117,36 @@ describe('stores/LocalStorageStore', () => {
             expect(LocalStorageStore.getItem(getPenultimateChannelNameKey(userId1, teamId1))).toEqual(null);
         });
     });
+
+    describe('markdown views', () => {
+        beforeEach(() => {
+            localStorage.clear();
+        });
+
+        test('falls back to the given view and persists per user', () => {
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId1', 'rendered')).toEqual('rendered');
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId1', 'raw')).toEqual('raw');
+
+            LocalStorageStore.setMarkdownView('file_preview', 'userId1', 'raw');
+
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId1', 'rendered')).toEqual('raw');
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId2', 'rendered')).toEqual('rendered');
+        });
+
+        test('ignores a stored value that is not a view', () => {
+            LocalStorageStore.setItem('markdown_code_block_view:userId1', 'bogus');
+
+            expect(LocalStorageStore.getMarkdownView('code_block', 'userId1', 'raw')).toEqual('raw');
+        });
+
+        test('surfaces are stored independently', () => {
+            LocalStorageStore.setMarkdownView('file_preview', 'userId1', 'raw');
+
+            expect(LocalStorageStore.getMarkdownView('code_block', 'userId1', 'rendered')).toEqual('rendered');
+
+            LocalStorageStore.setMarkdownView('code_block', 'userId1', 'rendered');
+
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId1', 'rendered')).toEqual('raw');
+        });
+    });
 });

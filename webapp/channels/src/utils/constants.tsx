@@ -76,6 +76,16 @@ export const PreviousViewedTypes = {
     THREADS: 'threads',
 };
 
+export const MarkdownViews = {
+    RENDERED: 'rendered',
+    RAW: 'raw',
+} as const;
+
+// Holds a code block's raw Markdown while it is shown rendered, since the source isn't in the DOM then
+export const MARKDOWN_SOURCE_ATTRIBUTE = 'data-markdown-source';
+
+export type MarkdownView = typeof MarkdownViews[keyof typeof MarkdownViews];
+
 export const Preferences = {
     CATEGORY_CHANNEL_OPEN_TIME: 'channel_open_time',
     CATEGORY_DIRECT_CHANNEL_SHOW: ReduxPreferences.CATEGORY_DIRECT_CHANNEL_SHOW,

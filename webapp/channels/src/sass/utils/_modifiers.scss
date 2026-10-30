@@ -107,6 +107,13 @@ $positions: 't'top,
     overflow: visible;
 }
 
+// For surfaces that stay dark in every theme, like the file preview header and footer: gives Compass's inverted
+// IconButton style fixed light colors instead of the sidebar theme colors. Drop it once Compass has a style for these.
+.icon-buttons-on-dark {
+    --sidebar-text: white;
+    --sidebar-text-rgb: 255, 255, 255;
+}
+
 .bg--white {
     background: var(--center-channel-bg);
 }

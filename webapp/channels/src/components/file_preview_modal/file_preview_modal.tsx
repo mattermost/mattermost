@@ -12,7 +12,7 @@ import type {Post} from '@mattermost/types/posts';
 import {getFileDownloadUrl, getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import AudioVideoPreview from 'components/audio_video_preview';
-import CodePreview, {hasSupportedLanguage} from 'components/code_preview';
+import CodePreview, {canToggleMarkdownPreview, hasSupportedLanguage} from 'components/code_preview';
 import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
 import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
@@ -76,7 +76,9 @@ type State = {
     scale: Record<number, number>;
     translate: Record<number, Translate>;
     isDragging: boolean;
-    content: string;
+
+    // Reported by CodePreview for one file, so it is only read while that file is the one shown
+    content: {fileId: string; text: string} | null;
 };
 
 // Pure helper for cursor-aware zoom math. Given current scale + translate,
@@ -128,7 +130,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 return acc;
             }, {}),
             isDragging: false,
-            content: '',
+            content: null,
         };
     }
 
@@ -516,8 +518,11 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         this.setState({show: false});
     };
 
-    getContent = (content: string) => {
-        this.setState({content});
+    getContent = (text: string) => {
+        const fileInfo = this.props.fileInfos[this.state.imageIndex];
+        if (fileInfo) {
+            this.setState({content: {fileId: FilePreviewModal.getFileIdentity(fileInfo), text}});
+        }
     };
 
     handleBgClose = (e: React.MouseEvent) => {
@@ -532,6 +537,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
 
         const fileInfo = this.props.fileInfos[this.state.imageIndex];
+        const fileText = this.state.content?.fileId === FilePreviewModal.getFileIdentity(fileInfo) ? this.state.content.text : '';
 
         // Determine file type using helper method
         const fileType = this.getFileTypeFromFileInfo(fileInfo);
@@ -542,6 +548,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         let fileDownloadUrl;
         let isExternalFile;
         let canCopyContent = false;
+        let canToggleMarkdown = false;
         if (isFileInfo(fileInfo)) {
             showPublicLink = true;
             fileName = fileInfo.name;
@@ -624,11 +631,13 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             } else if (hasSupportedLanguage(fileInfo)) {
                 dialogClassName += ' modal-code';
                 canCopyContent = true;
+                canToggleMarkdown = canToggleMarkdownPreview(fileInfo.extension, this.props.isMobileView);
                 content = (
                     <CodePreview
                         fileInfo={fileInfo as FileInfo}
                         fileUrl={fileUrl}
                         getContent={this.getContent}
+                        isMobileView={this.props.isMobileView}
                     />
                 );
             } else {
@@ -717,7 +726,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     handlePrev={this.handlePrev}
                                     handleNext={this.handleNext}
                                     handleModalClose={this.handleModalClose}
-                                    content={this.state.content}
+                                    content={fileText}
+                                    showMarkdownToggle={canToggleMarkdown && fileText !== ''}
                                 />
                                 {zoomBar}
                             </Modal.Title>
@@ -744,7 +754,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     canCopyContent={canCopyContent}
                                     isExternalFile={isExternalFile}
                                     handleModalClose={this.handleModalClose}
-                                    content={this.state.content}
+                                    content={fileText}
                                 />
                             }
                         </div>
