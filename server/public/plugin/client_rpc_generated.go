@@ -5612,6 +5612,65 @@ func (s *apiRPCServer) GetPostThread(args *Z_GetPostThreadArgs, returns *Z_GetPo
 	return nil
 }
 
+type Z_GetThreadFollowersArgs struct {
+	A string
+}
+
+type Z_GetThreadFollowersReturns struct {
+	A []string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	_args := &Z_GetThreadFollowersArgs{threadID}
+	_returns := &Z_GetThreadFollowersReturns{}
+	if err := g.client.Call("Plugin.GetThreadFollowers", _args, _returns); err != nil {
+		log.Printf("RPC call to GetThreadFollowers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetThreadFollowers(args *Z_GetThreadFollowersArgs, returns *Z_GetThreadFollowersReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetThreadFollowers(threadID string) ([]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetThreadFollowers(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetThreadFollowers called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SetThreadFollowingArgs struct {
+	A string
+	B string
+	C bool
+}
+
+type Z_SetThreadFollowingReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	_args := &Z_SetThreadFollowingArgs{userID, threadID, following}
+	_returns := &Z_SetThreadFollowingReturns{}
+	if err := g.client.Call("Plugin.SetThreadFollowing", _args, _returns); err != nil {
+		log.Printf("RPC call to SetThreadFollowing API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetThreadFollowing(args *Z_SetThreadFollowingArgs, returns *Z_SetThreadFollowingReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetThreadFollowing(userID, threadID string, following bool) *model.AppError
+	}); ok {
+		returns.A = hook.SetThreadFollowing(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API SetThreadFollowing called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPostArgs struct {
 	A string
 }

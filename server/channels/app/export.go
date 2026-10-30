@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
@@ -1061,6 +1062,15 @@ func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer,
 			cnt += len(posts)
 			updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "posts_exported", cnt)
 
+			postIDs := make([]string, len(posts))
+			for i, post := range posts {
+				postIDs[i] = post.Id
+			}
+			priorities, acknowledgements, appErr := a.buildPostPriorities(rctx, postIDs)
+			if appErr != nil {
+				return appErr
+			}
+
 			for _, post := range posts {
 				afterId = post.Id
 				postProcessCount++
@@ -1071,6 +1081,8 @@ func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer,
 				}
 
 				postLine := importLineForPost(post)
+				postLine.Post.Priority = priorities[post.Id]
+				postLine.Post.Acknowledgements = acknowledgements[post.Id]
 
 				replies, replyAttachments, err := a.buildPostReplies(rctx, post.Id, withAttachments)
 				if err != nil {
@@ -1216,6 +1228,60 @@ func (a *App) BuildPostReactions(rctx request.CTX, postID string) (*[]ReactionIm
 	}
 
 	return &reactionsOfPost, nil
+}
+
+// buildPostPriorities returns the priority and acknowledgements of the given posts, keyed by post ID.
+func (a *App) buildPostPriorities(rctx request.CTX, postIDs []string) (map[string]*model.PostPriority, map[string]*[]imports.PostAcknowledgementImportData, *model.AppError) {
+	priorities, appErr := a.GetPriorityForPostList(&model.PostList{Order: postIDs})
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+
+	var ackPostIDs []string
+	for postID, priority := range priorities {
+		priority.PostId, priority.ChannelId = "", ""
+		if model.SafeDereference(priority.RequestedAck) {
+			ackPostIDs = append(ackPostIDs, postID)
+		}
+	}
+	if len(ackPostIDs) == 0 {
+		return priorities, nil, nil
+	}
+
+	acks, appErr := a.GetAcknowledgementsForPostList(&model.PostList{Order: ackPostIDs})
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+
+	var userIDs []string
+	for _, postAcks := range acks {
+		for _, ack := range postAcks {
+			userIDs = append(userIDs, ack.UserId)
+		}
+	}
+	users, appErr := a.GetUsersByIds(rctx, utils.RemoveDuplicatesFromStringArray(userIDs), &store.UserGetByIdsOpts{IsAdmin: true})
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+	usernames := make(map[string]string, len(users))
+	for _, user := range users {
+		usernames[user.Id] = user.Username
+	}
+
+	acknowledgements := make(map[string]*[]imports.PostAcknowledgementImportData, len(acks))
+	for postID, postAcks := range acks {
+		exported := make([]imports.PostAcknowledgementImportData, 0, len(postAcks))
+		for _, ack := range postAcks {
+			username, ok := usernames[ack.UserId]
+			if !ok {
+				continue
+			}
+			exported = append(exported, imports.PostAcknowledgementImportData{User: &username, AcknowledgedAt: &ack.AcknowledgedAt})
+		}
+		acknowledgements[postID] = &exported
+	}
+
+	return priorities, acknowledgements, nil
 }
 
 func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportData, *model.AppError) {
@@ -1492,6 +1558,15 @@ func (a *App) exportAllDirectPosts(rctx request.CTX, job *model.Job, writer io.W
 		cnt += len(posts)
 		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "direct_posts_exported", cnt)
 
+		postIDs := make([]string, len(posts))
+		for i, post := range posts {
+			postIDs[i] = post.Id
+		}
+		priorities, acknowledgements, appErr := a.buildPostPriorities(rctx, postIDs)
+		if appErr != nil {
+			return nil, appErr
+		}
+
 		channelsToSkip := model.SliceToMapKey(strings.Split(job.Data["skipped_direct_channels"], ",")...)
 		for _, post := range posts {
 			afterId = post.Id
@@ -1532,6 +1607,8 @@ func (a *App) exportAllDirectPosts(rctx request.CTX, job *model.Job, writer io.W
 
 			postLine := importLineForDirectPost(post)
 			postLine.DirectPost.Replies = &replies
+			postLine.DirectPost.Priority = priorities[post.Id]
+			postLine.DirectPost.Acknowledgements = acknowledgements[post.Id]
 			if len(postAttachments) > 0 {
 				postLine.DirectPost.Attachments = &postAttachments
 			}
