@@ -226,6 +226,14 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Remotes send the whole file from offset 0 in one request, so data already in the session
+	// means this is a transport replay after a partial write. Appending it would corrupt the file.
+	if us.FileOffset != 0 {
+		c.Err = model.NewAppError("uploadRemoteData", "api.remote_cluster.upload_resume_not_allowed.app_error",
+			nil, "", http.StatusBadRequest)
+		return
+	}
+
 	info, err := doUploadData(c, us, r)
 	if err != nil {
 		c.Err = err
