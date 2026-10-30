@@ -1608,10 +1608,10 @@ func (g *apiRPCClient) KVListWithOptions(page, perPage int, options model.Plugin
 	_returns := &Z_KVListWithOptionsReturns{}
 	if err := g.client.Call("Plugin.KVListWithOptions", _args, _returns); err != nil {
 		if err.Error() == "rpc: can't find method Plugin.KVListWithOptions" {
-			return nil, model.NewAppError("plugin", "plugin.kvlistwithoptions.not_implemented",
+			return nil, model.NewAppError("KVListWithOptions", "plugin.api.kv_list_with_options.not_implemented",
 				nil, err.Error(), http.StatusNotImplemented)
 		}
-		return nil, model.NewAppError("plugin", "plugin.kvlistwithoptions.rpc_error",
+		return nil, model.NewAppError("KVListWithOptions", "plugin.api.kv_list_with_options.rpc_error",
 			nil, err.Error(), http.StatusInternalServerError)
 	}
 	return _returns.A, _returns.B
