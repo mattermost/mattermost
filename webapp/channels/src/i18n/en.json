@@ -28079,6 +28079,26 @@
     "defaultMessage": "Team",
     "description": "Field label in the flagged-message review card for the team the message belongs to."
   },
+  "property_fields.attribute_combobox.clear": {
+    "defaultMessage": "Clear {label}",
+    "description": "Accessible name of the button that clears a single-value attribute. {label} is the attribute name."
+  },
+  "property_fields.attribute_combobox.empty": {
+    "defaultMessage": "No results",
+    "description": "Shown in an attribute dropdown when no option matches the typed text."
+  },
+  "property_fields.attribute_combobox.listbox": {
+    "defaultMessage": "Options",
+    "description": "Accessible name of an attribute dropdown's option list when no field name is available."
+  },
+  "property_fields.attribute_combobox.loading": {
+    "defaultMessage": "Loading…",
+    "description": "Shown in an attribute dropdown while options load."
+  },
+  "property_fields.attribute_combobox.selections": {
+    "defaultMessage": "{label} selections",
+    "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."
+  },
   "property_fields.hierarchical_value_menu.also_under": {
     "defaultMessage": "Also under {names}",
     "description": "Hint under a value in the hierarchical value picker when the value also appears under other parents in the hierarchy. {names} is a localized list of the other parent values' names. Used in profile settings, System Console user details, and channel attributes."
