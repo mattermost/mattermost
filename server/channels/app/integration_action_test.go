@@ -1922,25 +1922,6 @@ func TestDoActionRequest(t *testing.T) {
 
 		cases := []redirectCase{
 			{
-				name:          "different origin is not followed",
-				expectReached: false,
-				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
-					var destReached atomic.Bool
-					dest := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-						destReached.Store(true)
-						w.WriteHeader(http.StatusOK)
-						_, _ = w.Write([]byte(`{"ok":true}`))
-					}))
-					origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-						http.Redirect(w, r, dest.URL+"/plugins/myplugin/action", http.StatusFound)
-					}))
-					return origin.URL, origin.URL + "/plugins/myplugin/action", &destReached, func() {
-						dest.Close()
-						origin.Close()
-					}
-				},
-			},
-			{
 				name:          "same host outside the plugin path is not followed",
 				expectReached: false,
 				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
@@ -2012,14 +1993,45 @@ func TestDoActionRequest(t *testing.T) {
 				_ = th.App.getPostActionClient(rctx, inURL, probeReq)
 				require.NotEmpty(t, probeReq.Header.Get(model.HeaderAuth), "same-origin plugin path should attach the session token")
 
-				resp, _ := th.App.DoActionRequest(rctx, actionURL, []byte(`{}`))
+				resp, doErr := th.App.DoActionRequest(rctx, actionURL, []byte(`{}`))
 				if resp != nil {
 					resp.Body.Close()
 				}
 
+				if tc.expectReached {
+					assert.Nil(t, doErr)
+				} else {
+					require.NotNil(t, doErr)
+					assert.Contains(t, doErr.Error(), "outside the site plugin path")
+				}
 				assert.Equal(t, tc.expectReached, destReached.Load())
 			})
 		}
+
+		t.Run("different hostname on the same scheme, port, and plugin path is not followed", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			})
+
+			actionURL := "http://localhost:8065/plugins/myplugin/action"
+			inURL, err := url.Parse(actionURL)
+			require.NoError(t, err)
+			req, err := http.NewRequest("POST", actionURL, nil)
+			require.NoError(t, err)
+			rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Token: model.NewId()})
+			client := th.App.getPostActionClient(rctx, inURL, req)
+			require.NotNil(t, client.CheckRedirect)
+
+			sameHost, err := http.NewRequest("POST", "http://localhost:8065/plugins/myplugin/other", nil)
+			require.NoError(t, err)
+			assert.NoError(t, client.CheckRedirect(sameHost, []*http.Request{req}))
+
+			otherHost, err := http.NewRequest("POST", "http://example.com:8065/plugins/myplugin/other", nil)
+			require.NoError(t, err)
+			err = client.CheckRedirect(otherHost, []*http.Request{req})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "outside the site plugin path")
+		})
 	})
 }
 
