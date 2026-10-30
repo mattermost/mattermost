@@ -1413,9 +1413,9 @@ func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, error) {
 	return r0, r1
 }
 
-// GetUnreadCount provides a mock function with given fields: userID, isCRTEnabled, excludeChannelIDs
-func (_m *UserStore) GetUnreadCount(userID string, isCRTEnabled bool, excludeChannelIDs []string) (int64, error) {
-	ret := _m.Called(userID, isCRTEnabled, excludeChannelIDs)
+// GetUnreadCount provides a mock function with given fields: userID, isCRTEnabled
+func (_m *UserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
+	ret := _m.Called(userID, isCRTEnabled)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUnreadCount")
@@ -1423,17 +1423,17 @@ func (_m *UserStore) GetUnreadCount(userID string, isCRTEnabled bool, excludeCha
 
 	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, bool, []string) (int64, error)); ok {
-		return rf(userID, isCRTEnabled, excludeChannelIDs)
+	if rf, ok := ret.Get(0).(func(string, bool) (int64, error)); ok {
+		return rf(userID, isCRTEnabled)
 	}
-	if rf, ok := ret.Get(0).(func(string, bool, []string) int64); ok {
-		r0 = rf(userID, isCRTEnabled, excludeChannelIDs)
+	if rf, ok := ret.Get(0).(func(string, bool) int64); ok {
+		r0 = rf(userID, isCRTEnabled)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, bool, []string) error); ok {
-		r1 = rf(userID, isCRTEnabled, excludeChannelIDs)
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(userID, isCRTEnabled)
 	} else {
 		r1 = ret.Error(1)
 	}
