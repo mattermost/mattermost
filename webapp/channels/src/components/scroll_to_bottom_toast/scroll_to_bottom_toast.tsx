@@ -4,7 +4,7 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import CloseIcon from 'components/widgets/icons/close_icon';
 import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
@@ -45,8 +45,10 @@ export const ScrollToBottomToast = ({onDismiss, onClick}: ScrollToBottomToastPro
             className='scroll-to-bottom-toast'
             onClick={handleScrollToBottom}
         >
-            <UnreadBelowIcon/>
-            {jumpToRecentsMessage}
+            <span className='scroll-to-bottom-toast__message'>
+                <UnreadBelowIcon/>
+                {jumpToRecentsMessage}
+            </span>
             <div
                 className='scroll-to-bottom-toast__dismiss'
                 onClick={handleDismiss}

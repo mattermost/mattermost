@@ -88,6 +88,12 @@ turndownService.addRule('mattermostCodeBlock', {
     },
 });
 
+// User mentions render the user's display name, but their markdown is written with the username.
+turndownService.addRule('mattermostUserMention', {
+    filter: (node) => node.nodeType === Node.ELEMENT_NODE && node.hasAttribute('data-mention'),
+    replacement: (content, node) => `@${(node as HTMLElement).getAttribute('data-mention')}`,
+});
+
 // Channel links and hashtags render as links, but their markdown is written with the mention itself.
 turndownService.addRule('mattermostMentionLink', {
     filter: (node) => node.nodeName === 'A' && node.classList.contains('mention-link'),

@@ -4,9 +4,11 @@
 import classNames from 'classnames';
 import React, {lazy, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import {useRouteMatch} from 'react-router-dom';
 
 import {cleanUpStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
+import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -16,12 +18,14 @@ import CenterChannel from 'components/channel_layout/center_channel';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
 import QueryParamActionController from 'components/query_param_actions/query_param_action_controller';
+import QuoteSelectionButton from 'components/quote_selection_button/quote_selection_button';
 import Sidebar from 'components/sidebar';
 import CRTPostsChannelResetWatcher from 'components/threading/channel_threads/posts_channel_reset_watcher';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 
 const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() => import('components/product_notices_modal')));
 const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
@@ -39,6 +43,12 @@ export default function ChannelController(props: Props) {
     const enabledUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
     const enableMarkAllReadShortcut = useGetFeatureFlagValue('EnableShiftEscapeToMarkAllRead') === 'true';
     const dispatch = useDispatch();
+
+    // The product rail gives Threads a place of its own, so the channel sidebar steps aside for it.
+    // Not on mobile, where the rail is hidden and the sidebar is the way back to channels.
+    const productRailEnabled = useSelector(isProductRailEnabled);
+    const inThreads = useRouteMatch(`/:team(${TEAM_NAME_PATH_PATTERN})/threads`) !== null;
+    const hideSidebar = productRailEnabled && inThreads && !isMobileView;
 
     useEffect(() => {
         const {navigator} = window;
@@ -75,7 +85,7 @@ export default function ChannelController(props: Props) {
         <>
             <CRTPostsChannelResetWatcher/>
             <QueryParamActionController/>
-            <Sidebar/>
+            {!hideSidebar && <Sidebar/>}
             <div
                 id='channel_view'
                 className='channel-view'
@@ -83,6 +93,7 @@ export default function ChannelController(props: Props) {
             >
                 <UnreadsStatusHandler/>
                 <ProductNoticesModal/>
+                <QuoteSelectionButton/>
                 {enableMarkAllReadShortcut && <MarkAllAsReadToast/>}
                 <div className={classNames('container-fluid channel-view-inner')}>
                     {props.shouldRenderCenterChannel ? <CenterChannel/> : <LoadingScreen centered={true}/>}
