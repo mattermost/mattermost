@@ -3,12 +3,14 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import type {RefObject} from 'react';
+import type {JSX, RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {UploadOutlineIcon} from '@mattermost/compass-icons/components';
 import AlertOutlineIcon from '@mattermost/compass-icons/components/alert-outline';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ClientLicense} from '@mattermost/types/config';
 
@@ -41,7 +43,7 @@ export interface EnterpriseEditionProps {
     handleRemove: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
     isDisabled: boolean;
     removing: boolean;
-    fileInputRef: RefObject<HTMLInputElement>;
+    fileInputRef: RefObject<HTMLInputElement | null>;
     handleChange: () => void;
     statsActiveUsers: number;
     isLicenseSetByEnvVar: boolean;
@@ -98,7 +100,7 @@ const EnterpriseEditionLeftPanel = ({
             id='enterprise_edition_view_plans'
             onClick={openPricingModal}
             emphasis='tertiary'
-            size='sm'
+            size='small'
             className='PlanDetails__viewPlansButton'
         >
             {formatMessage({
@@ -167,8 +169,8 @@ const EnterpriseEditionLeftPanel = ({
                                 emphasis='primary'
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isLicenseSetByEnvVar}
+                                leadingIcon={<Icon glyph={<UploadOutlineIcon/>}/>}
                             >
-                                <i className='icon icon-upload-outline'/>
                                 <FormattedMessage
                                     id='admin.license.uploadLicense'
                                     defaultMessage='Upload license'
@@ -223,7 +225,7 @@ const EnterpriseEditionLeftPanel = ({
                     <span className='licenseInformation__Title'>{'License details'}</span>
                     <Button
                         emphasis='primary'
-                        size='sm'
+                        size='small'
                         onClick={openContactSales}
                     >
                         <FormattedMessage
@@ -375,7 +377,7 @@ const renderLicenseContent = (
     isDisabled: boolean,
     removing: boolean,
     skuName: string,
-    fileInputRef: RefObject<HTMLInputElement>,
+    fileInputRef: RefObject<HTMLInputElement | null>,
     handleChange: () => void,
     statsActiveUsers: number,
     expirationDays: number,
@@ -454,7 +456,7 @@ const renderLicenseContent = (
 };
 
 const renderAddNewLicenseButton = (
-    fileInputRef: RefObject<HTMLInputElement>,
+    fileInputRef: RefObject<HTMLInputElement | null>,
     handleChange: () => void,
     isLicenseSetByEnvVar: boolean,
 ) => {
@@ -518,7 +520,8 @@ const renderRemoveButton = (
             <div className='remove-button'>
                 <Button
                     type='button'
-                    variant='destructive'
+                    emphasis='link'
+                    destructive={true}
                     onClick={handleRemove}
                     disabled={isDisabled}
                     id='remove-button'

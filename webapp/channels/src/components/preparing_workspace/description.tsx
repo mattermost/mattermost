@@ -6,7 +6,7 @@ import React from 'react';
 import './description.scss';
 
 type Props = {
-    children: React.ReactNode | React.ReactNodeArray;
+    children: React.ReactNode | readonly React.ReactNode[];
 };
 
 const Description = (props: Props) => {

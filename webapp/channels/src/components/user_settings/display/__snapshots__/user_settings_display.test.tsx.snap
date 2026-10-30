@@ -25,14 +25,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -391,7 +391,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -416,30 +416,56 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     Channel Display
                   </legend>
                   <div
-                    class="radio"
+                    class="settings-radio-group"
                   >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="channel_display_modeFormatA"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="channel_display_modeFormatA"
                         name="channel_display_modeFormat"
                         type="radio"
                       />
-                      Full width
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        Full width
+                      </span>
                     </label>
-                    <br />
-                  </div>
-                  <div
-                    class="radio"
-                  >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="channel_display_modeFormatB"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="channel_display_modeFormatB"
                         name="channel_display_modeFormat"
                         type="radio"
                       />
-                      Fixed width, centered
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        Fixed width, centered
+                      </span>
                     </label>
-                    <br />
                   </div>
                   <div>
                     <br />
@@ -454,23 +480,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -624,14 +661,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -953,7 +990,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -978,30 +1015,56 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     Click to open threads
                   </legend>
                   <div
-                    class="radio"
+                    class="settings-radio-group"
                   >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="click_to_replyFormatA"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="click_to_replyFormatA"
                         name="click_to_replyFormat"
                         type="radio"
                       />
-                      On
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        On
+                      </span>
                     </label>
-                    <br />
-                  </div>
-                  <div
-                    class="radio"
-                  >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="click_to_replyFormatB"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="click_to_replyFormatB"
                         name="click_to_replyFormat"
                         type="radio"
                       />
-                      Off
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        Off
+                      </span>
                     </label>
-                    <br />
                   </div>
                   <div>
                     <br />
@@ -1016,23 +1079,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1223,14 +1297,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -1289,7 +1363,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -1314,30 +1388,56 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     Clock Display
                   </legend>
                   <div
-                    class="radio"
+                    class="settings-radio-group"
                   >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="clockFormatA"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="clockFormatA"
                         name="clockFormat"
                         type="radio"
                       />
-                      12-hour clock (example: 4:00 PM)
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        12-hour clock (example: 4:00 PM)
+                      </span>
                     </label>
-                    <br />
-                  </div>
-                  <div
-                    class="radio"
-                  >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="clockFormatB"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="clockFormatB"
                         name="clockFormat"
                         type="radio"
                       />
-                      24-hour clock (example: 16:00)
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        24-hour clock (example: 16:00)
+                      </span>
                     </label>
-                    <br />
                   </div>
                   <div>
                     <br />
@@ -1352,23 +1452,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1822,14 +1933,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -2077,7 +2188,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -2102,30 +2213,56 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     Default Appearance of Image Previews
                   </legend>
                   <div
-                    class="radio"
+                    class="settings-radio-group"
                   >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="collapseFormatA"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="collapseFormatA"
                         name="collapseFormat"
                         type="radio"
                       />
-                      Expanded
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        Expanded
+                      </span>
                     </label>
-                    <br />
-                  </div>
-                  <div
-                    class="radio"
-                  >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="collapseFormatB"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="collapseFormatB"
                         name="collapseFormat"
                         type="radio"
                       />
-                      Collapsed
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        Collapsed
+                      </span>
                     </label>
-                    <br />
                   </div>
                   <div>
                     <br />
@@ -2140,23 +2277,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2421,14 +2569,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -2936,14 +3084,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -3445,14 +3593,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -3663,7 +3811,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -3688,30 +3836,56 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     Website Link Previews
                   </legend>
                   <div
-                    class="radio"
+                    class="settings-radio-group"
                   >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="linkpreviewFormatA"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="linkpreviewFormatA"
                         name="linkpreviewFormat"
                         type="radio"
                       />
-                      On
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        On
+                      </span>
                     </label>
-                    <br />
-                  </div>
-                  <div
-                    class="radio"
-                  >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="linkpreviewFormatB"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="linkpreviewFormatB"
                         name="linkpreviewFormat"
                         type="radio"
                       />
-                      Off
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        Off
+                      </span>
                     </label>
-                    <br />
                   </div>
                   <div>
                     <br />
@@ -3726,23 +3900,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -4044,14 +4229,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -4336,7 +4521,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -4361,42 +4546,68 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     Message Display
                   </legend>
                   <div
-                    class="radio"
+                    class="settings-radio-group"
                   >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="message_displayFormatA"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="message_displayFormatA"
                         name="message_displayFormat"
                         type="radio"
                       />
-                      Standard
-                      : 
                       <span
-                        class="font-weight--normal"
+                        class="_radio__circle_h0rbb_36"
                       >
-                        Easy to scan and read.
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        Standard
+                        : 
+                        <span
+                          class="font-weight--normal"
+                        >
+                          Easy to scan and read.
+                        </span>
                       </span>
                     </label>
-                    <br />
-                  </div>
-                  <div
-                    class="radio"
-                  >
-                    <label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="message_displayFormatB"
+                    >
                       <input
+                        class="_radio__input_h0rbb_17"
                         id="message_displayFormatB"
                         name="message_displayFormat"
                         type="radio"
                       />
-                      Compact
-                      : 
                       <span
-                        class="font-weight--normal"
+                        class="_radio__circle_h0rbb_36"
                       >
-                        Fit as many messages on the screen as we can.
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        Compact
+                        : 
+                        <span
+                          class="font-weight--normal"
+                        >
+                          Fit as many messages on the screen as we can.
+                        </span>
                       </span>
                     </label>
-                    <br />
                   </div>
                   <div>
                     <br />
@@ -4411,23 +4622,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -4655,14 +4877,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -5201,14 +5423,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -5747,14 +5969,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -6293,14 +6515,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -6847,14 +7069,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -7393,14 +7615,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <h4
         class="modal-title"
       >
-        <div
-          class="modal-back"
+        <button
+          class="style--none modal-back"
         >
           <i
             aria-label="Collapse Icon"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>

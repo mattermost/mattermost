@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ChangeEvent, ChangeEventHandler} from 'react';
+import type {ChangeEvent, ChangeEventHandler, JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {ChevronLeftIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
 import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
@@ -17,7 +19,6 @@ import LoadingScreen from 'components/loading_screen';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import SaveButton from 'components/save_button';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 const EMOJI_PER_PAGE = 50;
@@ -252,8 +253,8 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                     <Button
                         emphasis='tertiary'
                         onClick={this.previousPage}
+                        leadingIcon={<Icon glyph={<ChevronLeftIcon/>}/>}
                     >
-                        <PreviousIcon additionalClassName='mr-2'/>
                         <FormattedMessage
                             id='filtered_user_list.prev'
                             defaultMessage='Previous'

@@ -20,6 +20,12 @@ type Props = {
     form?: AppForm;
     appContext?: AppContext;
     timezone?: string;
+    refreshNonce?: number;
+    hidden?: boolean;
+
+    // Called with each form that replaces the current one (from a submit or refresh).
+    // A refresh response superseded by a newer form is never applied or reported.
+    onFormChange?: (form: AppForm) => void;
     onExited: () => void;
     onHide?: () => void;
     actions: {
@@ -35,10 +41,24 @@ type State = {
 };
 
 class AppsFormContainer extends React.PureComponent<Props, State> {
+    private refreshSeq = 0;
+    private unmounted = false;
+
     constructor(props: Props) {
         super(props);
         this.state = {form: props.form};
     }
+
+    componentWillUnmount() {
+        this.unmounted = true;
+    }
+
+    applyForm = (form?: AppForm) => {
+        this.setState({form});
+        if (form) {
+            this.props.onFormChange?.(form);
+        }
+    };
 
     submitForm = async (submission: {values: AppFormValues}): Promise<DoAppCallResult<FormResponseData>> => {
         const makeErrorMsg = (msg: string) => {
@@ -81,7 +101,9 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
             }
             break;
         case AppCallResponseTypes.FORM:
-            this.setState({form: callResp.form});
+            // A newer form replaces the current one; drop any refresh still in flight.
+            this.refreshSeq++;
+            this.applyForm(callResp.form);
             break;
         case AppCallResponseTypes.NAVIGATE:
             break;
@@ -142,7 +164,9 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         const callResp = res.data!;
         switch (callResp.type) {
         case AppCallResponseTypes.FORM:
-            this.setState({form: callResp.form});
+            // A newer form replaces the current one; drop any refresh still in flight.
+            this.refreshSeq++;
+            this.applyForm(callResp.form);
             break;
         case AppCallResponseTypes.OK:
         case AppCallResponseTypes.NAVIGATE:
@@ -161,6 +185,28 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
                 type: callResp.type,
             },
             )))};
+        }
+        return res;
+    };
+
+    // Re-fetches the whole form from its source without a selected field, e.g. when a
+    // child dialog stacked on top of this one closes.
+    refreshForm = async (values: AppFormValues): Promise<DoAppCallResult<FormResponseData>> => {
+        const {form} = this.state;
+        if (!form?.source || !this.props.appContext) {
+            return {data: {type: AppCallResponseTypes.OK}};
+        }
+
+        const seq = ++this.refreshSeq;
+        const creq = createCallRequest(form.source, this.props.appContext, {}, values);
+        const res = await this.props.actions.doAppFetchForm(creq, this.props.intl);
+
+        // Ignore a response superseded by a newer refresh, or that arrives after unmount.
+        if (this.unmounted || seq !== this.refreshSeq) {
+            return {data: {type: AppCallResponseTypes.OK}};
+        }
+        if (!res.error && res.data?.type === AppCallResponseTypes.FORM && res.data.form) {
+            this.applyForm(res.data.form);
         }
         return res;
     };
@@ -201,13 +247,17 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         return (
             <AppsForm
                 form={form}
+                channelId={this.props.appContext.channel_id}
                 timezone={this.props.timezone}
+                refreshNonce={this.props.refreshNonce}
+                hidden={this.props.hidden}
                 onExited={this.props.onExited}
                 onHide={this.props.onHide}
                 actions={{
                     submit: this.submitForm,
                     performLookupCall: this.performLookupCall,
                     refreshOnSelect: this.refreshOnSelect,
+                    refreshForm: this.refreshForm,
                 }}
             />
         );

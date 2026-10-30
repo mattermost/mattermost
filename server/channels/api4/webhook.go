@@ -65,7 +65,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		var hookUser *model.User
-		if hookUser, err = c.App.GetUser(hook.UserId); err != nil {
+		if hookUser, err = c.App.GetUser(c.AppContext, hook.UserId); err != nil {
 			c.Err = err
 			return
 		}
@@ -500,7 +500,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		var hookUser *model.User
 		var err *model.AppError
-		if hookUser, err = c.App.GetUser(hook.CreatorId); err != nil {
+		if hookUser, err = c.App.GetUser(c.AppContext, hook.CreatorId); err != nil {
 			c.Err = err
 			return
 		}

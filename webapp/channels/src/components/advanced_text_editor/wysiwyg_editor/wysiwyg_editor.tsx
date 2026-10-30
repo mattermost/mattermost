@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Extensions} from '@tiptap/core';
+import type {Extensions, JSONContent} from '@tiptap/core';
 import {Extension} from '@tiptap/core';
 import {CodeBlockLowlight} from '@tiptap/extension-code-block-lowlight';
 import Link from '@tiptap/extension-link';
@@ -22,21 +22,48 @@ import emojiRegex from 'emoji-regex';
 import isPlainObject from 'lodash/isPlainObject';
 import {common, createLowlight} from 'lowlight';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {editLatestPost} from 'actions/views/create_comment';
 
 import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
+import {formatQuote} from 'utils/quote';
+import {canHighlight} from 'utils/syntax_highlighting';
 
-import {serializeToMarkdown} from './wysiwyg_markdown';
+import WysiwygImage from './wysiwyg_image';
+import {insertMarkdown, parseMarkdownContent, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
+import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
 import './wysiwyg_editor.scss';
 
-const lowlight = createLowlight(common);
+const commonLowlight = createLowlight(common);
 
-const MARKDOWN_PASTE_PATTERNS = /(?:^#{1,6}\s|^[*-]\s|^\d+\.\s|^>\s|\*\*\S.*?\S\*\*|\b__\S.*?\S__\b|~~\S.*?\S~~|`[^`\n]+`|^\|.*\|$|\[[^\]]+\]\([^)]+\))/m;
+// Posts only colour code blocks that name a language.
+const lowlight = {...commonLowlight, highlightAuto: (code: string) => commonLowlight.highlight('plaintext', code)};
+
+const VSCODE_LANGUAGES: Record<string, string> = {
+    javascriptreact: 'javascript',
+    typescriptreact: 'typescript',
+    shellscript: 'bash',
+    jsonc: 'json',
+};
+
+const getVSCodeLanguage = (data?: string): string | undefined => {
+    let mode: string | undefined;
+    try {
+        mode = JSON.parse(data || '{}').mode;
+    } catch {
+        return undefined;
+    }
+    const language = mode && mode !== 'markdown' ? VSCODE_LANGUAGES[mode] ?? mode : undefined;
+    return language && canHighlight(language) ? language : undefined;
+};
+
+const MARKDOWN_PASTE_PATTERNS = /(?:^```|^~~~|^#{1,6}\s|^[*-]\s|^\d+\.\s|^>\s|\*\*\S.*?\S\*\*|\b__\S.*?\S__\b|~~\S.*?\S~~|`[^`\n]+`|^\|.*\|$|\[[^\]]+\]\([^)]+\))/m;
 
 function buildEmojiDecorations(doc: PMNode): DecorationSet {
     const decorations: Decoration[] = [];
@@ -61,6 +88,44 @@ function buildEmojiDecorations(doc: PMNode): DecorationSet {
     });
     return DecorationSet.create(doc, decorations);
 }
+
+function buildOrderedListDecorations(doc: PMNode): DecorationSet {
+    const decorations: Decoration[] = [];
+
+    doc.descendants((node, pos) => {
+        if (node.type.name !== 'orderedList') {
+            return;
+        }
+        const start = node.attrs.start ?? 1;
+        const digits = ((start + node.childCount) - 1).toString().length;
+        decorations.push(Decoration.node(pos, pos + node.nodeSize, {
+            style: `counter-reset: list ${start - 1}; padding-left: ${digits + 1.5}ch`,
+        }));
+    });
+
+    return DecorationSet.create(doc, decorations);
+}
+
+const OrderedListMarkerWidth = Extension.create({
+    name: 'orderedListMarkerWidth',
+    addProseMirrorPlugins() {
+        const key = new PluginKey('orderedListMarkerWidth');
+        return [
+            new Plugin({
+                key,
+                state: {
+                    init: (_, {doc}) => buildOrderedListDecorations(doc),
+                    apply: (tr, old) => (tr.docChanged ? buildOrderedListDecorations(tr.doc) : old),
+                },
+                props: {
+                    decorations(state) {
+                        return key.getState(state);
+                    },
+                },
+            }),
+        ];
+    },
+});
 
 const EmojiDecorations = Extension.create({
     name: 'emojiDecorations',
@@ -89,6 +154,10 @@ export type WysiwygEditorHandle = {
     getEditor: () => Editor | null;
     insertText: (text: string) => void;
 
+    // Appends the Markdown as a blockquote at the end of the document, followed by an
+    // empty paragraph that receives the caret.
+    appendQuote: (markdown: string) => void;
+
     // Parity with the legacy `Textbox` ref so focus/upload hooks can drive
     // either composer.
     focus: () => void;
@@ -110,6 +179,7 @@ type Props = {
     channelId: string;
     rootId?: string;
     disabled?: boolean;
+    readOnly?: boolean;
     id?: string;
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;
@@ -146,6 +216,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     channelId,
     rootId,
     disabled = false,
+    readOnly = false,
     id,
     useCtrlSend = false,
     sendCodeBlockOnCtrlEnter = false,
@@ -158,6 +229,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     // swap would desync the paste and update handlers from the actual editor.
     const jsonMode = useRef(contentType === 'json').current;
     const dispatch = useDispatch();
+    const hasImageProxy = useSelector(getConfig).HasImageProxy === 'true';
     const channelIdRef = useLatest(channelId);
     const rootIdRef = useLatest(rootId);
 
@@ -165,6 +237,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const onChangeRef = useLatest(onChange);
     const onFocusRef = useLatest(onFocus);
     const onBlurRef = useLatest(onBlur);
+    const disabledRef = useLatest(disabled);
+    const readOnlyRef = useLatest(readOnly);
     const useCtrlSendRef = useLatest(useCtrlSend);
     const sendCodeBlockOnCtrlEnterRef = useLatest(sendCodeBlockOnCtrlEnter);
     const placeholderRef = useLatest(placeholderText ?? '');
@@ -172,33 +246,38 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     const editorRef = useRef<Editor | null>(null);
 
-    const debouncedOnChange = useDebounce((md: string) => {
-        onChangeRef.current(md);
-    }, SERIALIZE_DEBOUNCE_MS);
+    const pendingChangeRef = useRef<(() => void) | null>(null);
+    const flushPendingChange = useCallback(() => {
+        const pendingChange = pendingChangeRef.current;
+        pendingChangeRef.current = null;
+        pendingChange?.();
+    }, []);
+    const debouncedFlushPendingChange = useDebounce(flushPendingChange, SERIALIZE_DEBOUNCE_MS);
 
     const handleSuggestionSubmit = useCallback(() => {
         onSubmitRef.current();
     }, [onSubmitRef]);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
-        if (jsonMode) {
-            debouncedOnChange(JSON.stringify(editor.getJSON()));
-            return;
-        }
-
-        debouncedOnChange(serializeToMarkdown(editor));
-    }, [debouncedOnChange, jsonMode]);
+        const content = jsonMode ? JSON.stringify(editor.getJSON()) : serializeToMarkdown(editor);
+        const onChangeForLocation = onChangeRef.current;
+        pendingChangeRef.current = () => onChangeForLocation(content);
+        debouncedFlushPendingChange();
+    }, [debouncedFlushPendingChange, jsonMode, onChangeRef]);
 
     const baseExtensions: Extensions = [
         StarterKit.configure({
-            heading: {levels: [1, 2, 3, 4, 5, 6]},
+            heading: {levels: [1, 2, 3, 4, 5, 6], HTMLAttributes: {class: 'markdown__heading'}},
             codeBlock: false,
             link: false,
+            bulletList: {HTMLAttributes: {class: 'markdown__list'}},
+            orderedList: {HTMLAttributes: {class: 'markdown__list'}},
         }),
         CodeBlockLowlight.configure({
             lowlight,
+            HTMLAttributes: {class: 'hljs'},
         }),
-        Link.configure({
+        Link.extend({inclusive: () => false}).configure({
             openOnClick: false,
             autolink: true,
             linkOnPaste: true,
@@ -207,10 +286,17 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             placeholder: () => placeholderRef.current,
             showOnlyCurrent: true,
         }),
-        Table.configure({resizable: false, cellMinWidth: 80}),
+        Table.configure({
+            resizable: false,
+            cellMinWidth: 80,
+            HTMLAttributes: {class: 'markdown__table'},
+        }),
         TableRow,
         TableCell,
         TableHeader,
+        WysiwygImage.configure({hasImageProxy}),
+        WysiwygMention,
+        OrderedListMarkerWidth,
         EmojiDecorations,
     ];
     if (!jsonMode) {
@@ -270,29 +356,31 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         // Tiptap emits this from the Editor constructor, which useEditor runs
         // during render — hence the buffering in captureContentError.
         onContentError: ({error}) => captureContentError(error),
-        editable: !disabled,
+        editable: !disabled && !readOnly,
         editorProps: {
-            attributes: {
+
+            // A function, not an object: the editor is built once, so a static map
+            // would freeze these at their value on mount.
+            attributes: () => ({
                 ...(id ? {id, 'data-testid': id} : {}),
-                role: 'textbox',
-                ...(disabled ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
-            },
+                ...(readOnlyRef.current ? {} : {
+                    role: 'textbox',
+                    ...(disabledRef.current ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
+                }),
+            }),
             handlePaste: (_view, event) => {
                 if (jsonMode) {
                     return false;
                 }
 
-                const text = event.clipboardData?.getData('text/plain');
-                if (!text) {
-                    return false;
+                const clipboard = event.clipboardData;
+                const text = clipboard?.getData('text/plain');
+                if (!text?.trim()) {
+                    return Boolean(clipboard?.files.length);
                 }
 
-                const html = event.clipboardData?.getData('text/html');
-                if (html) {
-                    return false;
-                }
-
-                if (!MARKDOWN_PASTE_PATTERNS.test(text)) {
+                const html = clipboard?.getData('text/html');
+                if (html?.includes('data-pm-slice')) {
                     return false;
                 }
 
@@ -301,8 +389,28 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return false;
                 }
 
+                const language = getVSCodeLanguage(clipboard?.getData('vscode-editor-data'));
+                if (ed.isActive('codeBlock')) {
+                    if (language && !ed.getAttributes('codeBlock').language) {
+                        ed.commands.updateAttributes('codeBlock', {language});
+                    }
+                    return false;
+                }
+
+                if (language) {
+                    event.preventDefault();
+                    ed.commands.insertContent({type: 'codeBlock', attrs: {language}, content: [{type: 'text', text}]});
+                    return true;
+                }
+
+                if (!MARKDOWN_PASTE_PATTERNS.test(text)) {
+                    return false;
+                }
+
                 event.preventDefault();
-                ed.commands.insertContent(text, {contentType: 'markdown'});
+                if (!insertMarkdown(ed, text)) {
+                    ed.commands.insertContent(plainTextContent(text));
+                }
                 return true;
             },
             handleKeyDown: (view, event) => {
@@ -372,6 +480,23 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     event.preventDefault();
                     splitListItem(state.schema.nodes.listItem)(state, view.dispatch);
                     return true;
+                }
+
+                if (
+                    event.key === 'Enter' &&
+                    event.shiftKey &&
+                    insideBlockquote &&
+                    !insideCodeBlock &&
+                    !event.metaKey &&
+                    !event.ctrlKey &&
+                    !event.altKey
+                ) {
+                    const ed = editorRef.current;
+                    if (ed && !ed.isDestroyed) {
+                        event.preventDefault();
+                        ed.commands.first(({commands}) => [() => commands.liftEmptyBlock(), () => commands.splitBlock()]);
+                        return true;
+                    }
                 }
 
                 // Enter or Shift+Enter inside a heading should exit to a new
@@ -479,7 +604,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         getEditor: () => editorRef.current,
         insertText: (text: string) => {
             const ed = editorRef.current;
-            if (ed && !ed.isDestroyed) {
+            if (ed && !ed.isDestroyed && !readOnlyRef.current) {
                 const {state} = ed;
                 const {from} = state.selection;
                 const charBefore = from > 0 ? state.doc.textBetween(from - 1, from) : '';
@@ -487,6 +612,36 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 const content = needsSpace ? ` ${text} ` : `${text} `;
                 ed.chain().focus().insertContent({type: 'text', text: content}).run();
             }
+        },
+        appendQuote: (markdown: string) => {
+            const ed = editorRef.current;
+            if (!ed || ed.isDestroyed || readOnlyRef.current) {
+                return;
+            }
+
+            const quote = formatQuote(markdown);
+            const parsed = quote ? parseMarkdownContent(ed, quote)?.content : undefined;
+            if (!parsed?.length) {
+                return;
+            }
+
+            const content: JSONContent[] = [
+                ...parsed,
+                {type: 'paragraph'},
+
+                // The editor hides an empty last paragraph, so the reply goes in the one before it,
+                // matching what pressing Enter twice at the end of a quote produces.
+                {type: 'paragraph'},
+            ];
+
+            if (ed.isEmpty) {
+                ed.commands.setContent(content);
+            } else {
+                ed.commands.insertContentAt(ed.state.doc.content.size, content);
+            }
+
+            // Inside the second to last paragraph, which is followed by the hidden last one
+            ed.chain().focus().setTextSelection(ed.state.doc.content.size - 3).run();
         },
         focus: () => {
             const ed = editorRef.current;
@@ -510,6 +665,27 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         hasContentError: () => hasContentErrorRef.current,
     }), []);
 
+    const locationRef = useRef({channelId, rootId});
+    useEffect(() => {
+        if (!editor || editor.isDestroyed) {
+            return;
+        }
+        const location = locationRef.current;
+        if (location.channelId === channelId && location.rootId === rootId) {
+            return;
+        }
+        locationRef.current = {channelId, rootId};
+
+        debouncedFlushPendingChange.cancel();
+        flushPendingChange();
+
+        if (jsonMode) {
+            editor.commands.setContent(parseJsonModeContent(value).content, {emitUpdate: false});
+        } else {
+            editor.commands.setContent(value, {contentType: 'markdown', emitUpdate: false});
+        }
+    }, [channelId, rootId, editor, debouncedFlushPendingChange, flushPendingChange]);
+
     const lastValueRef = useRef(value);
     useEffect(() => {
         if (!editor || editor.isDestroyed) {
@@ -525,19 +701,21 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     useEffect(() => {
         if (editor && !editor.isDestroyed) {
-            editor.setEditable(!disabled);
+            editor.setEditable(!disabled && !readOnly, false);
         }
-    }, [disabled, editor]);
+    }, [disabled, readOnly, editor]);
 
     return (
-        <div className={`WysiwygEditor${disabled ? ' WysiwygEditor--disabled' : ''}`}>
+        <div className={`WysiwygEditor${disabled && !readOnly ? ' WysiwygEditor--disabled' : ''}`}>
             <EditorContent editor={editor}/>
-            <WysiwygSuggestionList
-                editor={editor}
-                channelId={channelId}
-                rootId={rootId}
-                onSubmit={handleSuggestionSubmit}
-            />
+            {!readOnly && (
+                <WysiwygSuggestionList
+                    editor={editor}
+                    channelId={channelId}
+                    rootId={rootId}
+                    onSubmit={handleSuggestionSubmit}
+                />
+            )}
         </div>
     );
 });

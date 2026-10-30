@@ -5,16 +5,18 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -284,6 +286,41 @@ func TestPlugin(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+}
+
+func TestUploadPluginConflictDetails(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.ServiceSettings.EnableDeveloper = false
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.NoError(t, err)
+	defer os.RemoveAll("plugins/testplugin")
+	require.Equal(t, "testplugin", manifest.Id)
+
+	_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "app.plugin.install_id.app_error")
+
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Empty(t, appErr.DetailedError, "detailed error must still be wiped with EnableDeveloper disabled")
+	require.NotEmpty(t, appErr.Props, "conflict props must survive with EnableDeveloper disabled")
+
+	assert.Equal(t, "testplugin", appErr.Props[model.PluginInstallConflictPropPluginID])
+	assert.Equal(t, manifest.Version, appErr.Props[model.PluginInstallConflictPropExistingVersion])
+	assert.Equal(t, manifest.Version, appErr.Props[model.PluginInstallConflictPropUploadedVersion])
+	assert.Equal(t, model.PluginInstallConflictVersionDirectionSame, appErr.Props[model.PluginInstallConflictPropVersionDirection])
 }
 
 func TestPluginInstallDirectoryConflict(t *testing.T) {
@@ -880,8 +917,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			},
 			InstalledVersion: manifest.Version,
 		})
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
@@ -918,8 +955,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 		expectedPlugins := append(samplePlugins, newPlugin)
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -1040,8 +1077,8 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 		expectedPlugins = append(expectedPlugins, plugin2)
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})

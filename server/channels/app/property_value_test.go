@@ -4,11 +4,15 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -134,6 +138,25 @@ func TestUpsertPropertyValues_Invariants(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
+	t.Run("rejects a deleted field as not found", func(t *testing.T) {
+		deletedField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "upsert-deleted-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		require.Nil(t, th.App.DeletePropertyField(th.Context, groupID, deletedField.ID, false, ""))
+
+		v := []*model.PropertyValue{makeValue(deletedField.ID)}
+		result, err := th.App.UpsertPropertyValues(th.Context, v, model.PropertyFieldObjectTypeUser, th.BasicUser.Id, "")
+		require.NotNil(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, "app.property_value.upsert.field_not_found.app_error", err.Id)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+	})
+
 	t.Run("rejects ObjectType mismatch when objectType is non-empty", func(t *testing.T) {
 		// Field is ObjectType=user; request specifies channel.
 		v := []*model.PropertyValue{makeValue(createdField.ID)}
@@ -157,5 +180,191 @@ func TestUpsertPropertyValues_Invariants(t *testing.T) {
 		if err != nil {
 			assert.NotEqual(t, "app.property_value.upsert.object_type_mismatch.app_error", err.Id)
 		}
+	})
+}
+
+// TestUpsertPropertyValues_BroadcastWithholdsValuesNotEveryoneCanRead covers
+// the property_values_updated broadcast, which has no single reader to decide
+// for: it carries a value only when everyone may read it, and withholds one
+// whose value.read tier is narrower than everyone, or whose linked field's
+// template masks it.
+func TestUpsertPropertyValues_BroadcastWithholdsValuesNotEveryoneCanRead(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	groupID := registerTestPropertyGroup(t, th)
+
+	newField := func(t *testing.T, objectType string, linkedFieldID *string) *model.PropertyField {
+		t.Helper()
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "broadcast_" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    objectType,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: linkedFieldID,
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, field.Permissions)
+		return field
+	}
+	// Store writes rather than the API: neither permissions object below is
+	// one a caller could author while leaving the value writable.
+	storeUpdate := func(t *testing.T, field *model.PropertyField) {
+		t.Helper()
+		_, err := th.Store.PropertyField().Update(groupID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+	}
+
+	public := newField(t, model.PropertyFieldObjectTypeUser, nil)
+
+	sysadminOnly := newField(t, model.PropertyFieldObjectTypeUser, nil)
+	sysadminOnly.Permissions.Restrictions.Value.Read = model.PermissionLevelSysadmin
+	storeUpdate(t, sysadminOnly)
+
+	template := newField(t, model.PropertyFieldObjectTypeTemplate, nil)
+	linked := newField(t, model.PropertyFieldObjectTypeUser, &template.ID)
+	require.Nil(t, linked.Permissions.Masking, "a linked field carries no masking of its own")
+	template.Permissions.Masking = &model.Masking{}
+	storeUpdate(t, template)
+
+	// A linked field everyone may read, through a template that masks nothing.
+	openTemplate := newField(t, model.PropertyFieldObjectTypeTemplate, nil)
+	openLinked := newField(t, model.PropertyFieldObjectTypeUser, &openTemplate.ID)
+
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPropertyValuesUpdated})
+	defer closeWS()
+
+	values := make([]*model.PropertyValue, 0, 4)
+	for _, field := range []*model.PropertyField{public, sysadminOnly, linked, openLinked} {
+		values = append(values, &model.PropertyValue{
+			TargetID:   th.BasicUser.Id,
+			TargetType: model.PropertyFieldObjectTypeUser,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"secret"`),
+		})
+	}
+	upserted, appErr := th.App.UpsertPropertyValues(th.Context, values, model.PropertyFieldObjectTypeUser, th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+	require.Len(t, upserted, 4)
+
+	select {
+	case event := <-messages:
+		raw, ok := event.GetData()["values"].(string)
+		require.True(t, ok, "event carries no values payload")
+		var broadcast []model.PropertyValue
+		require.NoError(t, json.Unmarshal([]byte(raw), &broadcast))
+		byField := make(map[string]json.RawMessage, len(broadcast))
+		for _, v := range broadcast {
+			byField[v.FieldID] = v.Value
+		}
+		assert.JSONEq(t, `"secret"`, string(byField[public.ID]), "a value everyone may read is broadcast as is")
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(byField[sysadminOnly.ID]), "a sysadmin value.read is withheld")
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(byField[linked.ID]), "a linked field's template masking is withheld")
+		assert.JSONEq(t, `"secret"`, string(byField[openLinked.ID]), "a linked field everyone may read is broadcast as is")
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the property_values_updated event was not published")
+	}
+
+	t.Run("a linked field whose template can't be read is withheld", func(t *testing.T) {
+		missingTemplateID := model.NewId()
+		orphan := *linked
+		orphan.LinkedFieldID = &missingTemplateID
+
+		broadcastValue := th.App.PropertyValueBroadcaster(th.Context)
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(broadcastValue(&orphan, json.RawMessage(`"secret"`))))
+		assert.JSONEq(t, `"secret"`, string(broadcastValue(public, json.RawMessage(`"secret"`))))
+	})
+}
+
+func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
+	userID := model.NewId()
+
+	// Returns the attributes store mock so assertions can name the method rather than the
+	// Store.Attributes() accessor, which the config listener also calls.
+	setup := func(t *testing.T, flag bool, abac bool) (*TestHelper, *storemocks.AttributesStore) {
+		thMock := SetupConfigWithStoreMock(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = flag
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(abac)
+		})
+
+		mockAttributes := &storemocks.AttributesStore{}
+		thMock.App.Srv().Store().(*storemocks.Store).On("Attributes").Return(mockAttributes).Maybe()
+
+		return thMock, mockAttributes
+	}
+
+	values := []*model.PropertyValue{
+		{TargetType: model.PropertyFieldObjectTypeUser, TargetID: userID},
+		{TargetType: model.PropertyFieldObjectTypeUser, TargetID: userID}, // duplicate, one invalidation
+		{TargetType: model.PropertyFieldObjectTypePost, TargetID: model.NewId()},
+	}
+
+	t.Run("no invalidation when the feature flag is off", func(t *testing.T) {
+		thMock, mockAttributes := setup(t, false, true)
+
+		thMock.App.invalidateUserPropertyValuesEpochs(values)
+		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID)
+
+		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
+	})
+
+	t.Run("no invalidation when ABAC is off", func(t *testing.T) {
+		thMock, mockAttributes := setup(t, true, false)
+
+		thMock.App.invalidateUserPropertyValuesEpochs(values)
+
+		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
+	})
+
+	t.Run("one invalidation per distinct user target when active", func(t *testing.T) {
+		thMock, mockAttributes := setup(t, true, true)
+		mockAttributes.On("InvalidateUserPropertyValuesEpoch", userID).Once()
+		mockAttributes.On("InvalidateUserAttributes", userID).Once()
+
+		thMock.App.invalidateUserPropertyValuesEpochs(values)
+
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("single-target form skips non-user targets", func(t *testing.T) {
+		thMock, mockAttributes := setup(t, true, true)
+
+		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypePost, model.NewId())
+
+		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
+	})
+
+	// A write made while ABAC was off must not leave the view stale for a switch back on to read,
+	// and the marker is free, so only the epoch half is gated.
+	t.Run("the view is marked stale even when ABAC is off", func(t *testing.T) {
+		thMock, _ := setup(t, true, false)
+		ch := thMock.App.Srv().Channels()
+
+		ch.attributeViewRefreshLast = time.Now()
+		thMock.App.invalidateUserPropertyValuesEpochs(values)
+		require.True(t, ch.attributeViewRefreshLast.IsZero(), "a user-targeted write should mark the view stale")
+
+		ch.attributeViewRefreshLast = time.Now()
+		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID)
+		require.True(t, ch.attributeViewRefreshLast.IsZero(), "the single-target form should too")
+	})
+
+	t.Run("no user target means no invalidation of either kind", func(t *testing.T) {
+		thMock, mockAttributes := setup(t, true, true)
+		ch := thMock.App.Srv().Channels()
+		now := time.Now()
+		ch.attributeViewRefreshLast = now
+
+		thMock.App.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{
+			{TargetType: model.PropertyFieldObjectTypePost, TargetID: model.NewId()},
+			nil,
+		})
+
+		require.Equal(t, now, ch.attributeViewRefreshLast)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
 	})
 }

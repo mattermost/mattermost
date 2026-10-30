@@ -68,6 +68,34 @@ func (_m *SessionAttributeStore) Get(sessionID string) (map[string]interface{}, 
 	return r0, r1, r2
 }
 
+// GetEpoch provides a mock function with given fields: sessionID
+func (_m *SessionAttributeStore) GetEpoch(sessionID string) (string, error) {
+	ret := _m.Called(sessionID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEpoch")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(sessionID)
+	}
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(sessionID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(sessionID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Invalidate provides a mock function with given fields: sessionID
 func (_m *SessionAttributeStore) Invalidate(sessionID string) error {
 	ret := _m.Called(sessionID)

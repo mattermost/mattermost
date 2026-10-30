@@ -4,8 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonEmphasis, ButtonSize} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {GenericModal} from '@mattermost/components';
-import {Button, type ButtonEmphasis, type ButtonSize} from '@mattermost/shared/components/button';
 import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount, GetChannelJoinRequestsOptions} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -87,6 +90,7 @@ export type Props = {
     channelsRequestStarted?: boolean;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     shouldHideJoinedChannels: boolean;
+    shouldHideArchivedChannels: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
     channelsMemberCount?: Record<string, number>;
@@ -363,7 +367,10 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.canSeePrivateChannel(c));
         }
         if (this.state.filter === Filter.Public) {
-            searchedChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL && c.delete_at === 0);
+            // Archived public channels are pruned below when the Hide Archived
+            // toggle is on, so don't force delete_at === 0 here — that would
+            // hide them even when the toggle is off.
+            searchedChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL);
         }
         if (this.state.filter === Filter.Archived) {
             searchedChannels = channels.filter((c) => c.delete_at !== 0);
@@ -384,6 +391,9 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         }
         if (this.state.filter === Filter.MyPendingRequests) {
             searchedChannels = channels.filter((c) => this.props.myPendingJoinRequests[c.id]);
+        }
+        if (this.state.filter !== Filter.Archived && this.props.shouldHideArchivedChannels) {
+            searchedChannels = this.getChannelsWithoutArchived(searchedChannels);
         }
         if (this.props.shouldHideJoinedChannels) {
             searchedChannels = this.getChannelsWithoutJoined(searchedChannels);
@@ -428,10 +438,18 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         this.props.actions.setGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, shouldHideJoinedChannels.toString());
     };
 
+    handleShowArchivedChannelsPreference = (shouldHideArchivedChannels: boolean) => {
+        // search again when toggling to update search results
+        this.search(this.state.searchTerm);
+        this.props.actions.setGlobalItem(StoragePrefixes.HIDE_ARCHIVED_CHANNELS, shouldHideArchivedChannels.toString());
+    };
+
     getChannelsWithoutJoined = (channelList: Channel[]) => channelList.filter((channel) => !this.isMemberOfChannel(channel.id));
 
+    getChannelsWithoutArchived = (channelList: Channel[]) => channelList.filter((channel) => channel.delete_at === 0);
+
     getActiveChannels = () => {
-        const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels, myPendingJoinRequests} = this.props;
+        const {channels, archivedChannels, shouldHideJoinedChannels, shouldHideArchivedChannels, privateChannels, myPendingJoinRequests} = this.props;
         const {search, searchedChannels, filter, recommendedChannels, discoverableChannels} = this.state;
 
         // Discoverable private channels the user is not yet a member of. These
@@ -456,11 +474,23 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         // appear in the default browse view, not only under the Discoverable
         // filter. privateChannels-sourced rows are already in allChannels.
         const extraDiscoverable = discoverableChannels.filter((c) => !privateChannels.some((p) => p.id === c.id));
-        const allChannels = channels.concat(privateChannels, extraDiscoverable).sort((a, b) => a.display_name.localeCompare(b.display_name));
+
+        // `archivedChannels` holds both archived public and private channels.
+        // When the toggle is on they are dropped everywhere except the explicit
+        // Archived filter; when it is off they are folded back into the matching
+        // type-specific list so Public/Private show their archived rows too.
+        const visibleArchivedChannels = shouldHideArchivedChannels ? [] : archivedChannels;
+        const publicChannels = channels.concat(visibleArchivedChannels.filter((c) => c.type === Constants.OPEN_CHANNEL));
+        const visiblePrivateChannels = privateChannels.concat(visibleArchivedChannels.filter((c) => c.type === Constants.PRIVATE_CHANNEL));
+
+        const allChannels = channels.
+            concat(privateChannels, extraDiscoverable).
+            concat(visibleArchivedChannels).
+            sort((a, b) => a.display_name.localeCompare(b.display_name));
         const allChannelsWithoutJoined = this.getChannelsWithoutJoined(allChannels);
-        const publicChannelsWithoutJoined = this.getChannelsWithoutJoined(channels);
+        const publicChannelsWithoutJoined = this.getChannelsWithoutJoined(publicChannels);
         const archivedChannelsWithoutJoined = this.getChannelsWithoutJoined(archivedChannels);
-        const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(privateChannels);
+        const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(visiblePrivateChannels);
         const recommendedChannelsWithoutJoined = this.getChannelsWithoutJoined(recommendedChannels);
 
         // Channels the current user has pending requests against. The
@@ -479,8 +509,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const filterOptions: Record<FilterType, Channel[]> = {
             [Filter.All]: shouldHideJoinedChannels ? allChannelsWithoutJoined : allChannels,
             [Filter.Archived]: shouldHideJoinedChannels ? archivedChannelsWithoutJoined : archivedChannels,
-            [Filter.Private]: shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels,
-            [Filter.Public]: shouldHideJoinedChannels ? publicChannelsWithoutJoined : channels,
+            [Filter.Private]: shouldHideJoinedChannels ? privateChannelsWithoutJoined : visiblePrivateChannels,
+            [Filter.Public]: shouldHideJoinedChannels ? publicChannelsWithoutJoined : publicChannels,
             [Filter.Recommended]: shouldHideJoinedChannels ? recommendedChannelsWithoutJoined : recommendedChannels,
             [Filter.Discoverable]: discoverableNonMember,
             [Filter.MyPendingRequests]: myPending,
@@ -498,7 +528,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {teamId, channelsRequestStarted, shouldHideJoinedChannels} = this.props;
+        const {teamId, channelsRequestStarted, shouldHideJoinedChannels, shouldHideArchivedChannels} = this.props;
         const {search, serverError: serverErrorState, searching} = this.state;
 
         this.activeChannels = this.getActiveChannels();
@@ -509,7 +539,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 <div className='form-group has-error'><label className='control-label'>{serverErrorState}</label></div>;
         }
 
-        const createNewChannelButton = (emphasis: ButtonEmphasis, size: ButtonSize, icon?: JSX.Element) => {
+        const createNewChannelButton = (emphasis: ButtonEmphasis, size: ButtonSize, withLeadingIcon = false) => {
             return (
                 <TeamPermissionGate
                     teamId={teamId}
@@ -519,10 +549,11 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         type='button'
                         id='createNewChannelButton'
                         emphasis={emphasis}
+                        size={size}
                         onClick={this.handleNewChannel}
                         aria-label={localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
+                        leadingIcon={withLeadingIcon ? <Icon glyph={<PlusIcon/>}/> : undefined}
                     >
-                        {icon}
                         <FormattedMessage
                             id='more_channels.create'
                             defaultMessage='Create New Channel'
@@ -540,7 +571,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primary', 'md', <i className='icon-plus'/>)}
+                {createNewChannelButton('primary', 'medium', true)}
             </>
         );
 
@@ -566,6 +597,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     closeModal={this.props.actions.closeModal}
                     hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}
                     rememberHideJoinedChannelsChecked={shouldHideJoinedChannels}
+                    hideArchivedChannelsPreference={this.handleShowArchivedChannelsPreference}
+                    rememberHideArchivedChannelsChecked={shouldHideArchivedChannels}
                     channelsMemberCount={this.props.channelsMemberCount}
                 />
                 {serverError}
@@ -585,7 +618,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}
-                headerButton={createNewChannelButton('secondary', 'sm')}
+                headerButton={createNewChannelButton('tertiary', 'small')}
                 autoCloseOnConfirmButton={false}
                 aria-modal={true}
                 enforceFocus={false}

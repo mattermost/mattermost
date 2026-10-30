@@ -101,8 +101,7 @@ func (ts *TeamService) UpdateTeam(team *model.Team, opts UpdateOptions) (*model.
 			if nErr == nil {
 				return oldTeam, &NameOccupiedError{Name: team.Name}
 			}
-			var nfErr *store.ErrNotFound
-			if !errors.As(nErr, &nfErr) {
+			if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 				return oldTeam, nErr
 			}
 			oldTeam.Name = team.Name
@@ -189,7 +188,7 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 		tm.SchemeAdmin = userShouldBeAdmin
 	}
 
-	if team.Email == user.Email {
+	if team.Email == user.Email && !user.IsGuest() {
 		tm.SchemeAdmin = true
 	}
 

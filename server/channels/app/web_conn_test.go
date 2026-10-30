@@ -44,7 +44,13 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUserWc.SetSessionToken(session.Token)
 	basicUserWc.SetSessionExpiresAt(session.ExpiresAt)
 
-	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles(), TeamMembers: []*model.TeamMember{
+	role, appErr := th.App.GetRoleByName(RequestContextWithMaster(th.Context), model.SystemManagerRoleId)
+	require.Nil(t, appErr)
+	role.Permissions = append(role.Permissions, model.PermissionReadDataRetentionJob.Id)
+	_, appErr = th.App.UpdateRole(role)
+	require.Nil(t, appErr)
+
+	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId + " " + model.SystemManagerRoleId, TeamMembers: []*model.TeamMember{
 		{
 			UserId: th.BasicUser2.Id,
 			TeamId: th.BasicTeam.Id,
@@ -125,6 +131,10 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		{"should only send to basic user conn 2", &model.WebsocketBroadcast{ConnectionId: user1Conn2ID}, false, false, false, true},
 		{"should omit basic user 2", &model.WebsocketBroadcast{OmitUsers: map[string]bool{th.BasicUser2.Id: true}}, true, false, true, true},
 		{"should only send to admin", &model.WebsocketBroadcast{ContainsSensitiveData: true}, false, false, true, false},
+		{"should only send to users with required permission", &model.WebsocketBroadcast{RequiredPermissions: []string{model.PermissionReadDataRetentionJob.Id}}, false, true, true, false},
+		{"should require all permissions", &model.WebsocketBroadcast{RequiredPermissions: []string{model.PermissionReadDataRetentionJob.Id, model.PermissionReadComplianceExportJob.Id}}, false, false, true, false},
+		{"should treat manage_system as a required permission", &model.WebsocketBroadcast{RequiredPermissions: []string{model.PermissionManageSystem.Id}}, false, false, true, false},
+		{"required permissions take precedence over sensitive data fallback", &model.WebsocketBroadcast{ContainsSensitiveData: true, RequiredPermissions: []string{model.PermissionReadDataRetentionJob.Id}}, false, true, true, false},
 		{"should only send to non-admins", &model.WebsocketBroadcast{ContainsSanitizedData: true}, true, true, false, true},
 		{"should send to nobody", &model.WebsocketBroadcast{ContainsSensitiveData: true, ContainsSanitizedData: true}, false, false, false, false},
 		{"should omit basic user 2 by connection id", &model.WebsocketBroadcast{OmitConnectionId: user2ConnID}, true, false, true, true},
@@ -137,24 +147,24 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		t.Run(c.Description, func(t *testing.T) {
 			event = event.SetBroadcast(c.Broadcast)
 			if c.User1Expected {
-				assert.True(t, basicUserWc.ShouldSendEvent(event), "expected user 1")
+				assert.True(t, shouldSendEvent(basicUserWc, event), "expected user 1")
 			} else {
-				assert.False(t, basicUserWc.ShouldSendEvent(event), "did not expect user 1")
+				assert.False(t, shouldSendEvent(basicUserWc, event), "did not expect user 1")
 			}
 			if c.User2Expected {
-				assert.True(t, basicUser2Wc.ShouldSendEvent(event), "expected user 2")
+				assert.True(t, shouldSendEvent(basicUser2Wc, event), "expected user 2")
 			} else {
-				assert.False(t, basicUser2Wc.ShouldSendEvent(event), "did not expect user 2")
+				assert.False(t, shouldSendEvent(basicUser2Wc, event), "did not expect user 2")
 			}
 			if c.AdminExpected {
-				assert.True(t, adminUserWc.ShouldSendEvent(event), "expected admin")
+				assert.True(t, shouldSendEvent(adminUserWc, event), "expected admin")
 			} else {
-				assert.False(t, adminUserWc.ShouldSendEvent(event), "did not expect admin")
+				assert.False(t, shouldSendEvent(adminUserWc, event), "did not expect admin")
 			}
 			if c.User1Conn2Expected {
-				assert.True(t, basicUserWc2.ShouldSendEvent(event), "expected user 1 conn 2")
+				assert.True(t, shouldSendEvent(basicUserWc2, event), "expected user 1 conn 2")
 			} else {
-				assert.False(t, basicUserWc2.ShouldSendEvent(event), "did not expect user 1 conn 2")
+				assert.False(t, shouldSendEvent(basicUserWc2, event), "did not expect user 1 conn 2")
 			}
 		})
 	}
@@ -165,71 +175,81 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		basicUserWc.SetActiveChannelID(platform.UnsetPresenceIndicator)
 		basicUserWc.SetActiveRHSThreadChannelID(platform.UnsetPresenceIndicator)
 		basicUserWc.SetActiveThreadViewThreadChannelID(platform.UnsetPresenceIndicator)
-		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+		assert.True(t, shouldSendEvent(basicUserWc, event2))
 
 		// Active channel is set to something else, thread unset
 		basicUserWc.SetActiveChannelID("ch1")
 		basicUserWc.SetActiveRHSThreadChannelID(platform.UnsetPresenceIndicator)
 		basicUserWc.SetActiveThreadViewThreadChannelID(platform.UnsetPresenceIndicator)
-		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+		assert.True(t, shouldSendEvent(basicUserWc, event2))
 
 		// Active channel is unset, thread set
 		basicUserWc.SetActiveChannelID(platform.UnsetPresenceIndicator)
 		basicUserWc.SetActiveRHSThreadChannelID("ch1")
 		basicUserWc.SetActiveThreadViewThreadChannelID("ch2")
-		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+		assert.True(t, shouldSendEvent(basicUserWc, event2))
 
 		// both are set to correct channel
 		basicUserWc.SetActiveChannelID(th.BasicChannel.Id)
 		basicUserWc.SetActiveRHSThreadChannelID(th.BasicChannel.Id)
 		basicUserWc.SetActiveThreadViewThreadChannelID(th.BasicChannel.Id)
-		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+		assert.True(t, shouldSendEvent(basicUserWc, event2))
 
 		// channel is correct, thread is something else.
 		basicUserWc.SetActiveChannelID(th.BasicChannel.Id)
 		basicUserWc.SetActiveRHSThreadChannelID("ch1")
 		basicUserWc.SetActiveThreadViewThreadChannelID("ch2")
-		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+		assert.True(t, shouldSendEvent(basicUserWc, event2))
 
 		// channel is wrong, thread is correct.
 		basicUserWc.SetActiveChannelID("ch1")
 		basicUserWc.SetActiveRHSThreadChannelID(th.BasicChannel.Id)
 		basicUserWc.SetActiveThreadViewThreadChannelID(th.BasicChannel.Id)
-		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+		assert.True(t, shouldSendEvent(basicUserWc, event2))
 
 		// FINALLY, both are set to something else.
 		basicUserWc.SetActiveChannelID("ch1")
 		basicUserWc.SetActiveRHSThreadChannelID("ch1")
 		basicUserWc.SetActiveThreadViewThreadChannelID("ch2")
-		assert.False(t, basicUserWc.ShouldSendEvent(event2))
+		assert.False(t, shouldSendEvent(basicUserWc, event2))
 
 		// Different threads and channel
 		basicUserWc.SetActiveChannelID("ch1")
 		basicUserWc.SetActiveRHSThreadChannelID("ch2")
 		basicUserWc.SetActiveThreadViewThreadChannelID("ch3")
-		assert.False(t, basicUserWc.ShouldSendEvent(event2))
+		assert.False(t, shouldSendEvent(basicUserWc, event2))
 
 		// Other channel. Thread unset explicitly.
 		basicUserWc.SetActiveChannelID("ch1")
 		basicUserWc.SetActiveRHSThreadChannelID("")
 		basicUserWc.SetActiveThreadViewThreadChannelID("")
-		assert.False(t, basicUserWc.ShouldSendEvent(event2))
+		assert.False(t, shouldSendEvent(basicUserWc, event2))
 	})
 
 	t.Run("channel member cache invalidated after user added to channel", func(t *testing.T) {
+		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
+		assert.True(t, shouldSendEvent(basicUserWc, event), "expected user 1")
+		assert.False(t, shouldSendEvent(basicUser2Wc, event), "did not expect user 2, who is not a member of the channel")
+		assert.True(t, shouldSendEvent(adminUserWc, event), "expected admin")
+
 		th.AddUserToChannel(t, th.BasicUser2, channel2)
 		basicUser2Wc.InvalidateCache()
 
-		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
-		assert.True(t, basicUserWc.ShouldSendEvent(event), "expected user 1")
-		assert.True(t, basicUser2Wc.ShouldSendEvent(event), "expected user 2")
-		assert.True(t, adminUserWc.ShouldSendEvent(event), "expected admin")
+		assert.True(t, shouldSendEvent(basicUserWc, event), "expected user 1")
+		assert.True(t, shouldSendEvent(basicUser2Wc, event), "expected user 2")
+		assert.True(t, shouldSendEvent(adminUserWc, event), "expected admin")
 	})
 
 	event2 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, th.BasicTeam.Id, "", "", nil, "")
-	assert.True(t, basicUserWc.ShouldSendEvent(event2))
-	assert.True(t, basicUser2Wc.ShouldSendEvent(event2))
+	assert.True(t, shouldSendEvent(basicUserWc, event2))
+	assert.True(t, shouldSendEvent(basicUser2Wc, event2))
 
 	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil, "")
-	assert.False(t, basicUserWc.ShouldSendEvent(event3))
+	assert.False(t, shouldSendEvent(basicUserWc, event3))
+}
+
+// shouldSendEvent calls ShouldSendEvent with the event's channel decoded, as the hub does.
+func shouldSendEvent(wc *platform.WebConn, event *model.WebSocketEvent) bool {
+	channelKey, _ := model.DecodeId(event.GetBroadcast().ChannelId)
+	return wc.ShouldSendEvent(event, channelKey)
 }

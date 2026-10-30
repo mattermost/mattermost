@@ -506,6 +506,36 @@ func (_m *API) CreatePropertyField(field *model.PropertyField) (*model.PropertyF
 	return r0, r1
 }
 
+// CreatePropertyFieldOptions provides a mock function with given fields: groupID, fieldID, options
+func (_m *API) CreatePropertyFieldOptions(groupID string, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	ret := _m.Called(groupID, fieldID, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreatePropertyFieldOptions")
+	}
+
+	var r0 []*model.PropertyFieldOption
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)); ok {
+		return rf(groupID, fieldID, options)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, []*model.PropertyFieldOption) []*model.PropertyFieldOption); ok {
+		r0 = rf(groupID, fieldID, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyFieldOption)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, []*model.PropertyFieldOption) error); ok {
+		r1 = rf(groupID, fieldID, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreatePropertyValue provides a mock function with given fields: value
 func (_m *API) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
 	ret := _m.Called(value)
@@ -1060,6 +1090,24 @@ func (_m *API) DeletePropertyField(groupID string, fieldID string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(groupID, fieldID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeletePropertyFieldOptions provides a mock function with given fields: groupID, fieldID, optionIDs
+func (_m *API) DeletePropertyFieldOptions(groupID string, fieldID string, optionIDs []string) error {
+	ret := _m.Called(groupID, fieldID, optionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePropertyFieldOptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, []string) error); ok {
+		r0 = rf(groupID, fieldID, optionIDs)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1943,6 +1991,54 @@ func (_m *API) GetCloudLimits() (*model.ProductLimits, error) {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ProductLimits)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetClusterNodeID provides a mock function with no fields
+func (_m *API) GetClusterNodeID() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetClusterNodeID")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// GetClusterNodes provides a mock function with no fields
+func (_m *API) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetClusterNodes")
+	}
+
+	var r0 []*model.ClusterInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]*model.ClusterInfo, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []*model.ClusterInfo); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ClusterInfo)
 		}
 	}
 
@@ -3168,6 +3264,36 @@ func (_m *API) GetPropertyFieldByName(groupID string, targetID string, name stri
 	return r0, r1
 }
 
+// GetPropertyFieldOptions provides a mock function with given fields: groupID, fieldID, cursorCreateAt, cursorID, perPage
+func (_m *API) GetPropertyFieldOptions(groupID string, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
+	ret := _m.Called(groupID, fieldID, cursorCreateAt, cursorID, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPropertyFieldOptions")
+	}
+
+	var r0 *model.PropertyFieldOptionPage
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int64, string, int) (*model.PropertyFieldOptionPage, error)); ok {
+		return rf(groupID, fieldID, cursorCreateAt, cursorID, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int64, string, int) *model.PropertyFieldOptionPage); ok {
+		r0 = rf(groupID, fieldID, cursorCreateAt, cursorID, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PropertyFieldOptionPage)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int64, string, int) error); ok {
+		r1 = rf(groupID, fieldID, cursorCreateAt, cursorID, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPropertyFields provides a mock function with given fields: groupID, ids
 func (_m *API) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
 	ret := _m.Called(groupID, ids)
@@ -3770,6 +3896,38 @@ func (_m *API) GetTelemetryId() string {
 	return r0
 }
 
+// GetThreadFollowers provides a mock function with given fields: threadID
+func (_m *API) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	ret := _m.Called(threadID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetThreadFollowers")
+	}
+
+	var r0 []string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) ([]string, *model.AppError)); ok {
+		return rf(threadID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []string); ok {
+		r0 = rf(threadID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(threadID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetUnsanitizedConfig provides a mock function with no fields
 func (_m *API) GetUnsanitizedConfig() *model.Config {
 	ret := _m.Called()
@@ -4169,6 +4327,24 @@ func (_m *API) HasPermissionToChannel(userID string, channelId string, permissio
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(string, string, *model.Permission) bool); ok {
 		r0 = rf(userID, channelId, permission)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// HasPermissionToFileAction provides a mock function with given fields: sessionID, fileID, action
+func (_m *API) HasPermissionToFileAction(sessionID string, fileID string, action string) bool {
+	ret := _m.Called(sessionID, fileID, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasPermissionToFileAction")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, string) bool); ok {
+		r0 = rf(sessionID, fileID, action)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
@@ -5727,6 +5903,26 @@ func (_m *API) SetTeamIcon(teamID string, data []byte) *model.AppError {
 	return r0
 }
 
+// SetThreadFollowing provides a mock function with given fields: userID, threadID, following
+func (_m *API) SetThreadFollowing(userID string, threadID string, following bool) *model.AppError {
+	ret := _m.Called(userID, threadID, following)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetThreadFollowing")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.AppError); ok {
+		r0 = rf(userID, threadID, following)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SetUserStatusTimedDND provides a mock function with given fields: userId, endtime
 func (_m *API) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
 	ret := _m.Called(userId, endtime)
@@ -6265,6 +6461,38 @@ func (_m *API) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return r0, r1
 }
 
+// UpdatePostWithOptions provides a mock function with given fields: post, options
+func (_m *API) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	ret := _m.Called(post, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePostWithOptions")
+	}
+
+	var r0 *model.Post
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Post, *model.UpdatePostOptions) (*model.Post, *model.AppError)); ok {
+		return rf(post, options)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Post, *model.UpdatePostOptions) *model.Post); ok {
+		r0 = rf(post, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Post, *model.UpdatePostOptions) *model.AppError); ok {
+		r1 = rf(post, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // UpdatePreferencesForUser provides a mock function with given fields: userID, preferences
 func (_m *API) UpdatePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
 	ret := _m.Called(userID, preferences)
@@ -6308,6 +6536,36 @@ func (_m *API) UpdatePropertyField(groupID string, field *model.PropertyField) (
 
 	if rf, ok := ret.Get(1).(func(string, *model.PropertyField) error); ok {
 		r1 = rf(groupID, field)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdatePropertyFieldOptions provides a mock function with given fields: groupID, fieldID, options
+func (_m *API) UpdatePropertyFieldOptions(groupID string, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	ret := _m.Called(groupID, fieldID, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePropertyFieldOptions")
+	}
+
+	var r0 []*model.PropertyFieldOption
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)); ok {
+		return rf(groupID, fieldID, options)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, []*model.PropertyFieldOption) []*model.PropertyFieldOption); ok {
+		r0 = rf(groupID, fieldID, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyFieldOption)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, []*model.PropertyFieldOption) error); ok {
+		r1 = rf(groupID, fieldID, options)
 	} else {
 		r1 = ret.Error(1)
 	}

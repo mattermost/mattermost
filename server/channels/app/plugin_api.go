@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type PluginAPI struct {
@@ -89,7 +91,7 @@ func (api *PluginAPI) UnregisterCommand(teamID, trigger string) error {
 }
 
 func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
-	user, appErr := api.app.GetUser(commandArgs.UserId)
+	user, appErr := api.app.GetUser(api.ctx, commandArgs.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -266,7 +268,7 @@ func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError
 }
 
 func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(api.ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -283,7 +285,7 @@ func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.App
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
-	return api.app.GetUser(userID)
+	return api.app.GetUser(api.ctx, userID)
 }
 
 func (api *PluginAPI) GetUserByEmail(email string) (*model.User, *model.AppError) {
@@ -420,7 +422,7 @@ func (api *PluginAPI) RemoveUserCustomStatus(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
-	return api.app.GetCustomStatus(userID)
+	return api.app.GetCustomStatus(api.ctx, userID)
 }
 
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
@@ -447,7 +449,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(api.ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +474,10 @@ func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *mo
 		channel.Name = model.NewId()
 	}
 
-	return api.app.CreateChannel(api.ctx, channel, false)
+	// Tagged with the plugin's ID so the managed category and attribute value
+	// writes CreateChannel makes are attributed to the plugin; api.ctx carries
+	// no caller, which the property access control hook refuses.
+	return api.app.CreateChannel(api.psaPluginContext(), channel, false)
 }
 
 func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
@@ -641,7 +646,9 @@ func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.Searc
 	if err != nil {
 		return nil, err
 	}
-	return postList.ForPlugin().ToSlice(), nil
+	pluginList := postList.ForPlugin()
+	api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, pluginList)
+	return pluginList.ToSlice(), nil
 }
 
 func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
@@ -678,6 +685,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 	results, _, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 	if results != nil {
 		results = results.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, results.PostList)
 	}
 	return results, appErr
 }
@@ -900,6 +908,14 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	}
 
 	silent := post.HasSilentNotification()
+	// Display-identity props (override_username/override_icon_url/
+	// override_icon_emoji/webhook_display_name) are not captured here: plugins
+	// don't get them re-injected by CreatePost (scoped to FromIncomingWebhook
+	// only — see the re-injection block in app/post.go), since no render path
+	// honors from_plugin the way it honors from_webhook. SanitizeProps below
+	// strips whatever the plugin set on post.Props like any other
+	// non-federated caller. Plugins are a trusted server surface (arbitrary
+	// UserId, system types, etc.); we do not clear RemoteId here.
 	post.SanitizeProps()
 
 	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, model.CreatePostFlags{
@@ -949,14 +965,67 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 	list, appErr := api.app.GetPostThread(api.ctx, postID, model.GetPostsOptions{}, "")
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
+}
+
+func (api *PluginAPI) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	if !model.IsValidId(threadID) {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	followers, err := api.app.Srv().Store().Thread().GetThreadFollowers(threadID, true)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.get_thread_followers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(followers) == 0 {
+		return followers, nil
+	}
+
+	// A deactivated user keeps their memberships, so they are dropped here.
+	users, appErr := api.app.GetUsersByIds(api.ctx, followers, &store.UserGetByIdsOpts{IsAdmin: true})
+	if appErr != nil {
+		return nil, appErr
+	}
+	active := make([]string, 0, len(users))
+	for _, user := range users {
+		if user.DeleteAt == 0 {
+			active = append(active, user.Id)
+		}
+	}
+	return active, nil
+}
+
+func (api *PluginAPI) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	if !model.IsValidId(userID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !model.IsValidId(threadID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	// The membership table doesn't reference Users, so an unknown id would be stored as a follower.
+	if _, appErr := api.app.GetUser(api.ctx, userID); appErr != nil {
+		return appErr
+	}
+	post, appErr := api.app.GetSinglePost(api.ctx, threadID, false)
+	if appErr != nil {
+		return appErr
+	}
+	if post.RootId != "" {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.not_root_post.app_error", nil, "", http.StatusBadRequest)
+	}
+	channel, appErr := api.app.GetChannel(api.ctx, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+	return api.app.UpdateThreadFollowForUser(userID, channel.TeamId, threadID, following)
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
 		post = post.ForPlugin()
+		api.app.RecordPostDeliveryToPlugin(api.ctx, api.id, post)
 	}
 	return post, appErr
 }
@@ -965,6 +1034,7 @@ func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostLi
 	list, appErr := api.app.GetPostsSince(api.ctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -973,6 +1043,7 @@ func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int)
 	list, appErr := api.app.GetPostsAfterPost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -981,6 +1052,7 @@ func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int
 	list, appErr := api.app.GetPostsBeforePost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -989,24 +1061,71 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 	list, appErr := api.app.GetPostsPage(api.ctx, model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	// Grant mm_blocks_actions write access only when the plugin's update
-	// actually includes the prop, AND the value passes validation.
-	// Otherwise the freeze in UpdatePost preserves whatever the original
-	// post had — plugins that update unrelated fields don't accidentally
-	// drop or corrupt mm_blocks_actions.
-	allowMmBlocksActionsUpdate := false
-	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
-		if err := model.ValidateMmBlocksActions(post); err != nil {
-			return nil, model.NewAppError("UpdatePost", "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		}
-		allowMmBlocksActionsUpdate = true
+	// Display-identity props are not granted AllowIdentityPropsUpdate: no
+	// render path honors a plugin-authored override (see CreatePost above), so
+	// SanitizeProps' default strip-and-preserve-from-old behavior applies to
+	// plugin edits like any other non-federated caller.
+	options := &model.UpdatePostOptions{}
+	if appErr := api.grantPluginMmBlocksActionsUpdate("UpdatePost", post, options); appErr != nil {
+		return nil, appErr
 	}
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate})
+	return api.updatePostForPlugin(post, options)
+}
+
+// UpdatePostWithOptions updates a post using the supplied options.
+func (api *PluginAPI) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	options = options.Copy()
+	if options == nil {
+		options = &model.UpdatePostOptions{}
+	}
+
+	if options.FileCreatorID != "" {
+		if !model.IsValidId(options.FileCreatorID) {
+			return nil, model.NewAppError("UpdatePostWithOptions", "plugin.api.update_post_with_options.invalid_file_creator.app_error", nil, "", http.StatusBadRequest)
+		}
+		if _, appErr := api.app.GetUser(api.ctx, options.FileCreatorID); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	if options.AllowMmBlocksActionsUpdate {
+		if appErr := api.rejectInvalidMmBlocksActions("UpdatePostWithOptions", post); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	return api.updatePostForPlugin(post, options)
+}
+
+// grantPluginMmBlocksActionsUpdate sets the grant when the post carries a
+// valid mm_blocks_actions value. An invalid value is an error, so UpdatePost
+// does not save a post that tried to write a bad registry.
+func (api *PluginAPI) grantPluginMmBlocksActionsUpdate(where string, post *model.Post, options *model.UpdatePostOptions) *model.AppError {
+	if post.GetProp(model.PostPropsMmBlocksActions) == nil {
+		return nil
+	}
+	if appErr := api.rejectInvalidMmBlocksActions(where, post); appErr != nil {
+		return appErr
+	}
+	options.AllowMmBlocksActionsUpdate = true
+	return nil
+}
+
+func (api *PluginAPI) rejectInvalidMmBlocksActions(where string, post *model.Post) *model.AppError {
+	if err := model.ValidateMmBlocksActions(post); err != nil {
+		return model.NewAppError(where, "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	return nil
+}
+
+func (api *PluginAPI) updatePostForPlugin(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, options)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1014,7 +1133,7 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 }
 
 func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(api.ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1024,7 +1143,7 @@ func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppError {
-	if _, err := api.app.GetUser(userID); err != nil {
+	if _, err := api.app.GetUser(api.ctx, userID); err != nil {
 		return err
 	}
 
@@ -1082,6 +1201,30 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 
 func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
 	return api.app.GetFile(api.ctx, fileID)
+}
+
+func (api *PluginAPI) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	if sessionID == "" || fileID == "" || !model.IsPermissionAction(action) {
+		return false
+	}
+
+	session, appErr := api.app.GetSessionById(api.ctx, sessionID)
+	if appErr != nil || session == nil || session.IsValid() != nil {
+		return false
+	}
+
+	session, appErr = api.app.GetSession(session.Token)
+	if appErr != nil || session == nil || session.Id != sessionID {
+		return false
+	}
+
+	fileInfo, appErr := api.app.Srv().getFileInfo(fileID)
+	if appErr != nil || fileInfo.ChannelId == "" {
+		return false
+	}
+
+	rctx := api.ctx.WithSession(session)
+	return api.app.HasPermissionToChannelAction(rctx, session.UserId, session.Roles, fileInfo.ChannelId, action)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
@@ -1248,7 +1391,7 @@ func (api *PluginAPI) SendToastMessage(userID, connectionID, message string, opt
 }
 
 func (api *PluginAPI) HasPermissionTo(userID string, permission *model.Permission) bool {
-	return api.app.HasPermissionTo(userID, permission)
+	return api.app.HasPermissionTo(api.ctx, userID, permission)
 }
 
 func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool {
@@ -1291,7 +1434,7 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		bot.OwnerId = api.id
 	}
 	// Bots cannot be owners of other bots
-	if user, err := api.app.GetUser(bot.OwnerId); err == nil {
+	if user, err := api.app.GetUser(api.ctx, bot.OwnerId); err == nil {
 		if user.IsBot {
 			return nil, model.NewAppError("CreateBot", "plugin_api.bot_cant_create_bot", nil, "", http.StatusBadRequest)
 		}
@@ -1334,6 +1477,13 @@ func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *mod
 }
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
+	if err := request.Context().Err(); err != nil {
+		if request.Body != nil {
+			_ = request.Body.Close()
+		}
+		return nil
+	}
+
 	split := strings.SplitN(request.URL.Path, "/", 3)
 	if len(split) != 3 {
 		return &http.Response{
@@ -1355,6 +1505,8 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
+	requestCtx, cancelRequest := context.WithCancel(request.Context())
+	request = request.WithContext(requestCtx)
 
 	// Create pipe for streaming response
 	pr, pw := io.Pipe()
@@ -1377,11 +1529,27 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 		}()
 		api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
 	}()
+	abort := func(err error) {
+		cancelRequest()
+		if request.Body != nil {
+			_ = request.Body.Close()
+		}
+		_ = responseTransfer.CloseWithError(err)
+		_ = pr.CloseWithError(err)
+	}
 
-	// Wait for headers to be ready before returning response
-	<-responseTransfer.ResponseReady
-
-	return responseTransfer.GenerateResponse(pr)
+	select {
+	case <-responseTransfer.ResponseReady:
+		if err := request.Context().Err(); err != nil {
+			abort(err)
+			return nil
+		}
+		return responseTransfer.GenerateResponse(request.Context(), pr, cancelRequest)
+	case <-request.Context().Done():
+		err := request.Context().Err()
+		abort(err)
+		return nil
+	}
 }
 
 func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {
@@ -1521,7 +1689,8 @@ func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
 func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	opts model.PluginClusterEventSendOptions,
 ) error {
-	if api.app.Cluster() == nil {
+	cluster := api.app.Cluster()
+	if cluster == nil {
 		return nil
 	}
 
@@ -1532,20 +1701,47 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 		Props: map[string]string{
 			"PluginID": api.id,
 			"EventID":  ev.Id,
+			"SourceID": cluster.GetClusterId(),
 		},
 		Data: ev.Data,
 	}
 
 	// If TargetId is empty we broadcast to all other cluster nodes.
 	if opts.TargetId == "" {
-		api.app.Cluster().SendClusterMessage(msg)
+		cluster.SendClusterMessage(msg)
 	} else {
-		if err := api.app.Cluster().SendClusterMessageToNode(opts.TargetId, msg); err != nil {
+		if err := cluster.SendClusterMessageToNode(opts.TargetId, msg); err != nil {
 			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.TargetId, err)
 		}
 	}
 
 	return nil
+}
+
+// GetClusterNodeID returns the cluster ID of this node, or an empty string when
+// it hasn't joined a cluster.
+func (api *PluginAPI) GetClusterNodeID() string {
+	return api.app.ClusterNodeID()
+}
+
+// GetClusterNodes returns the nodes connected to the cluster, or an empty list
+// when this node hasn't joined one. Nodes that are only registered are left
+// out: their Id is a registration ID, which can't be used as a TargetId.
+func (api *PluginAPI) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	nodes := []*model.ClusterInfo{}
+	if api.app.ClusterNodeID() == "" {
+		return nodes, nil
+	}
+	infos, err := api.app.GetClusterStatus(api.ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, info := range infos {
+		if info.IPAddress != "" {
+			nodes = append(nodes, info)
+		}
+	}
+	return nodes, nil
 }
 
 // RequestTrialLicense requests a trial license and installs it in the server
@@ -1710,6 +1906,20 @@ func (api *PluginAPI) psaPluginContextWithOptions(options model.PropertyRequestO
 	return requestContextWithCallerIDAndOptions(api.ctx, api.manifest.Id, options)
 }
 
+// projectLegacyPermissionsForEach returns fields with each one's legacy
+// permission keys projected from its permissions object, so a plugin reading
+// a batch keeps seeing Protected/PermissionField/PermissionValues/
+// PermissionOptions/access_mode/owners computed from the same source a v2
+// caller's single-field read uses. Each linked template is read once.
+func (api *PluginAPI) projectLegacyPermissionsForEach(rctx request.CTX, fields []*model.PropertyField) []*model.PropertyField {
+	templates := make(map[string]*model.PropertyField)
+	projected := make([]*model.PropertyField, len(fields))
+	for i, field := range fields {
+		projected[i] = api.app.projectLegacyPermissions(rctx, field, templates)
+	}
+	return projected
+}
+
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
 	createdField, appErr := api.app.CreatePropertyField(api.psaPluginContext(), field, false, "")
 	if appErr != nil {
@@ -1719,19 +1929,21 @@ func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.Pr
 }
 
 func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
-	field, appErr := api.app.GetPropertyField(api.psaPluginContext(), groupID, fieldID)
+	rctx := api.psaPluginContext()
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return field, nil
+	return api.app.projectLegacyPermissions(rctx, field, make(map[string]*model.PropertyField)), nil
 }
 
 func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	fields, appErr := api.app.GetPropertyFields(api.psaPluginContext(), groupID, ids)
+	rctx := api.psaPluginContext()
+	fields, appErr := api.app.GetPropertyFields(rctx, groupID, ids)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return fields, nil
+	return api.projectLegacyPermissionsForEach(rctx, fields), nil
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
@@ -1750,11 +1962,12 @@ func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
 }
 
 func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	fields, appErr := api.app.SearchPropertyFields(api.psaPluginContext(), groupID, opts)
+	rctx := api.psaPluginContext()
+	fields, appErr := api.app.SearchPropertyFields(rctx, groupID, opts)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return fields, nil
+	return api.projectLegacyPermissionsForEach(rctx, fields), nil
 }
 
 func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
@@ -1771,6 +1984,45 @@ func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID
 		return 0, appErr
 	}
 	return count, nil
+}
+
+func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
+	rctx := api.psaPluginContext()
+	page, appErr := api.app.GetPropertyFieldOptions(rctx, groupID, fieldID, cursorCreateAt, cursorID, perPage)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return page, nil
+}
+
+func (api *PluginAPI) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	rctx := api.psaPluginContext()
+	// No connection to exclude from the event a change publishes: a plugin is not
+	// one of the clients being told to read the field again.
+	created, appErr := api.app.CreatePropertyFieldOptions(rctx, groupID, fieldID, options, "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return created, nil
+}
+
+func (api *PluginAPI) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	rctx := api.psaPluginContext()
+	// The options as they stood are dropped: they exist for the audit record the
+	// HTTP layer writes, and a plugin already knows what it sent.
+	updated, _, appErr := api.app.UpdatePropertyFieldOptions(rctx, groupID, fieldID, options, "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updated, nil
+}
+
+func (api *PluginAPI) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
+	rctx := api.psaPluginContext()
+	if _, appErr := api.app.DeletePropertyFieldOptions(rctx, groupID, fieldID, optionIDs, ""); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -1862,11 +2114,12 @@ func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	field, appErr := api.app.GetPropertyFieldByName(api.psaPluginContext(), groupID, targetID, name)
+	rctx := api.psaPluginContext()
+	field, appErr := api.app.GetPropertyFieldByName(rctx, groupID, targetID, name)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return field, nil
+	return api.app.projectLegacyPermissions(rctx, field, make(map[string]*model.PropertyField)), nil
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
@@ -1908,15 +2161,23 @@ func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) erro
 }
 
 func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
-	return api.app.EvaluatePluginAccessRequest(api.ctx, api.id, userID, resourceType, resourceID, action)
+	// Tagged with the plugin's ID so the property reads the evaluation makes
+	// are attributed to the plugin; api.ctx carries no caller, which the
+	// property access control hook refuses.
+	return api.app.EvaluatePluginAccessRequest(api.psaPluginContext(), api.id, userID, resourceType, resourceID, action)
 }
 
 func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
-	return api.app.SavePluginAccessControlPolicy(api.ctx, api.id, actingUserID, policy)
+	// Tagged with the plugin's ID so the existence probe's policy read is
+	// attributed to the plugin; api.ctx carries no caller. The save itself runs
+	// as the acting user.
+	return api.app.SavePluginAccessControlPolicy(api.psaPluginContext(), api.id, actingUserID, policy)
 }
 
 func (api *PluginAPI) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
-	return api.app.GetPluginAccessControlPolicy(api.ctx, api.id, id)
+	// Tagged with the plugin's ID so the policy normalization's field lookups
+	// are attributed to the plugin; api.ctx carries no caller.
+	return api.app.GetPluginAccessControlPolicy(api.psaPluginContext(), api.id, id)
 }
 
 func (api *PluginAPI) DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError {

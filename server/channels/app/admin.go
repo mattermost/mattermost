@@ -9,10 +9,14 @@ import (
 	"io"
 	"maps"
 	"net/http"
+	"slices"
 	"time"
+
+	"github.com/mattermost/logr/v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -22,20 +26,24 @@ var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
 	Size: 1,
 })
 
+// LatestVersionURL is the GitHub endpoint for the latest server release.
+const LatestVersionURL = "https://api.github.com/repos/mattermost/mattermost-server/releases/latest"
+
 func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
+	cluster := s.platform.Cluster()
 	license := s.License()
-	if license != nil && *license.Features.Cluster && s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
-		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-			lines = append(lines, info.Hostname)
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+	clustered := license != nil && *license.Features.Cluster && cluster != nil && *s.platform.Config().ClusterSettings.Enable
+
+	if clustered {
+		localName := "default"
+		if info := cluster.GetMyClusterInfo(); info != nil {
+			localName = info.Hostname
 		} else {
 			rctx.Logger().Error("Could not get cluster info")
 		}
+		lines = appendNodeSeparator(lines, localName)
 	}
 
 	melines, err := s.GetLogsSkipSend(rctx, page, perPage, &model.LogFilter{})
@@ -45,73 +53,106 @@ func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.
 
 	lines = append(lines, melines...)
 
-	if s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
-		clines, err := s.platform.Cluster().GetLogs(rctx, page, perPage)
-		if err != nil {
-			return nil, err
-		}
+	if !clustered {
+		return lines, nil
+	}
 
-		lines = append(lines, clines...)
+	clusterLogs, appErr := cluster.QueryLogs(rctx, page, perPage, &model.LogFilter{})
+	if appErr != nil {
+		return nil, appErr
+	}
+	for _, name := range slices.Sorted(maps.Keys(clusterLogs)) {
+		lines = append(lines, "", "")
+		lines = appendNodeSeparator(lines, name)
+		if nodeLogs := clusterLogs[name]; nodeLogs.Err != nil {
+			lines = append(lines, failedNodeLogLine(nodeLogs.Err))
+		} else {
+			lines = append(lines, nodeLogs.Lines...)
+		}
 	}
 
 	return lines, nil
 }
 
+// appendNodeSeparator appends the banner that precedes a node's lines in the plain-text logs.
+func appendNodeSeparator(lines []string, name string) []string {
+	const rule = "-----------------------------------------------------------------------------------------------------------"
+	return append(lines, rule, rule, name, rule, rule)
+}
+
 func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
-	logData := make(map[string][]string)
-
-	serverName := "default"
-
+	cluster := s.platform.Cluster()
 	license := s.License()
-	if license != nil && *license.Features.Cluster && s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
-		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
-			serverName = info.Hostname
+	clustered := license != nil && *license.Features.Cluster && cluster != nil && *s.platform.Config().ClusterSettings.Enable
+
+	localName := "default"
+	if clustered {
+		if info := cluster.GetMyClusterInfo(); info != nil {
+			localName = info.Hostname
 		} else {
 			rctx.Logger().Error("Could not get cluster info")
 		}
 	}
 
-	var appErr *model.AppError
-	serverNames := logFilter.ServerNames
-	if len(serverNames) > 0 {
-		for _, nodeName := range serverNames {
-			if nodeName == "default" {
-				appErr = addLocalLogs(rctx, logData, s, page, perPage, nodeName, logFilter)
-			}
+	// "default" stays an alias for the local node so pre-cluster-aware clients keep working.
+	wantLocal := len(logFilter.ServerNames) == 0
+	var remoteNames []string
+	for _, name := range logFilter.ServerNames {
+		if name == localName || name == "default" {
+			wantLocal = true
+		} else {
+			remoteNames = append(remoteNames, name)
 		}
-	} else {
-		appErr = addLocalLogs(rctx, logData, s, page, perPage, serverName, logFilter)
 	}
+
+	logData := make(map[string][]string)
+	if wantLocal {
+		localLogs, appErr := s.GetLogsSkipSend(rctx, page, perPage, logFilter)
+		if appErr != nil {
+			return nil, appErr
+		}
+		logData[localName] = localLogs
+	}
+
+	wantRemote := len(logFilter.ServerNames) == 0 || len(remoteNames) > 0
+	if !clustered || !wantRemote {
+		return logData, nil
+	}
+
+	clusterLogs, appErr := cluster.QueryLogs(rctx, page, perPage, logFilter)
 	if appErr != nil {
 		return nil, appErr
 	}
-
-	if s.platform.Cluster() != nil && *s.Config().ClusterSettings.Enable {
-		clusterLogs, err := s.platform.Cluster().QueryLogs(rctx, page, perPage)
-		if err != nil {
-			return nil, err
+	for name, nodeLogs := range clusterLogs {
+		if len(logFilter.ServerNames) > 0 && !slices.Contains(remoteNames, name) {
+			continue
 		}
-
-		if clusterLogs != nil && len(serverNames) > 0 {
-			for _, filteredNodeName := range serverNames {
-				logData[filteredNodeName] = clusterLogs[filteredNodeName]
-			}
+		if nodeLogs.Err != nil {
+			logData[name] = []string{failedNodeLogLine(nodeLogs.Err)}
 		} else {
-			maps.Copy(logData, clusterLogs)
+			logData[name] = nodeLogs.Lines
 		}
 	}
 
 	return logData, nil
 }
 
-func addLocalLogs(rctx request.CTX, logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
-	currentServerLogs, err := s.GetLogsSkipSend(rctx, page, perPage, logFilter)
-	if err != nil {
-		return err
-	}
-
-	logData[serverName] = currentServerLogs
-	return nil
+// failedNodeLogLine returns an mlog-style JSON log line reporting that a node's logs could not be fetched.
+// failed_node marks it so clients can tell it apart from lines the node logged itself.
+func failedNodeLogLine(appErr *model.AppError) string {
+	return string(model.ToJSON(struct {
+		Timestamp  string `json:"timestamp"`
+		Level      string `json:"level"`
+		Msg        string `json:"msg"`
+		Error      string `json:"error"`
+		FailedNode bool   `json:"failed_node"`
+	}{
+		Timestamp:  time.Now().Format(logr.DefTimestampFormat),
+		Level:      mlog.LvlError.Name,
+		Msg:        "Failed to fetch logs from node",
+		Error:      appErr.Error(),
+		FailedNode: true,
+	}))
 }
 
 func (a *App) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
@@ -186,7 +227,7 @@ func (a *App) TestEmail(rctx request.CTX, userID string, cfg *model.Config) *mod
 			return model.NewAppError("testEmail", "api.admin.test_email.reenter_password", nil, "", http.StatusBadRequest)
 		}
 	}
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -207,7 +248,13 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 		return cachedLatestVersion, nil
 	}
 
-	res, err := http.Get(latestVersionUrl)
+	req, err := http.NewRequestWithContext(rctx.Context(), http.MethodGet, latestVersionUrl, nil)
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}

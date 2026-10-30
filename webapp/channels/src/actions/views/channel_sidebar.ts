@@ -8,7 +8,8 @@ import {getCategory, makeGetChannelIdsForCategory} from 'mattermost-redux/select
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {insertMultipleWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
-import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels} from 'selectors/views/channel_sidebar';
+import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
+import {getProductRailFilter, toFullListIndex} from 'selectors/views/product_rail';
 
 import {ActionTypes} from 'utils/constants';
 
@@ -92,7 +93,21 @@ export function moveChannelsInSidebar(categoryId: string, targetIndex: number, d
             channelIds = [draggableChannelId];
         }
 
-        const newIndex = adjustTargetIndexForMove(state, categoryId, channelIds, targetIndex, draggableChannelId);
+        // In the product rail's Channels or Boards section the category shows only some of its
+        // channels, so a drop index counts those; translate it to the full list first. Only drops
+        // set manual sorting: addChannelsInSidebar's 0 already means the top of the full category.
+        let fullTargetIndex = targetIndex;
+        if (setManualSorting && getProductRailFilter(state)) {
+            const category = getCategory(state, categoryId);
+            fullTargetIndex = toFullListIndex(
+                makeGetFilteredChannelIdsForCategory()(state, category),
+                makeGetChannelIdsForCategory()(state, category),
+                draggableChannelId,
+                targetIndex,
+            );
+        }
+
+        const newIndex = adjustTargetIndexForMove(state, categoryId, channelIds, fullTargetIndex, draggableChannelId);
         return dispatch(moveChannelsToCategory(categoryId, channelIds, newIndex, setManualSorting));
     };
 }
@@ -106,8 +121,8 @@ export function adjustTargetIndexForMove(state: GlobalState, categoryId: string,
     const category = getCategory(state, categoryId);
     const filteredChannelIds = makeGetChannelIdsForCategory()(state, category);
 
-    // When dragging multiple channels, we don't actually remove all of them from the list as react-beautiful-dnd doesn't support that
-    // Account for channels removed above the insert point, except the one currently being dragged which is already accounted for by react-beautiful-dnd
+    // When dragging multiple channels, we don't actually remove all of them from the list as @hello-pangea/dnd doesn't support that
+    // Account for channels removed above the insert point, except the one currently being dragged which is already accounted for by @hello-pangea/dnd
     const removedChannelsAboveInsert = filteredChannelIds.filter((channel, index) => channel !== draggableChannelId && channelIds.indexOf(channel) !== -1 && index <= targetIndex);
     const shiftedIndex = targetIndex - removedChannelsAboveInsert.length;
 

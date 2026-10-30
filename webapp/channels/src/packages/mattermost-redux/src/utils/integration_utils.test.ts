@@ -67,6 +67,105 @@ describe('integration utils', () => {
 
             expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'radio', options: [{text: '', value: null}]}), 'Sale')!.id).toBe('interactive_dialog.error.invalid_option');
         });
+
+        it('should not flag an unselected optional radio as an invalid option', () => {
+            // Regression: fieldsAsElements now populates options for radio fields,
+            // so an unselected (null) optional radio must skip the option check
+            // instead of failing "valid option" and blocking the whole form.
+            const optionalRadio = TestHelper.getDialogElementMock({type: 'radio', optional: true, options: [{text: 'Sales', value: 'Sales'}]});
+            expect(checkDialogElementForError(optionalRadio, null)).toBe(null);
+            expect(checkDialogElementForError(optionalRadio, undefined)).toBe(null);
+        });
+    });
+
+    describe('checkDialogElementForError checkbox_group', () => {
+        const element = TestHelper.getDialogElementMock({
+            type: 'checkbox_group',
+            optional: true,
+            options: [
+                {text: 'Reason 1', value: 'r1'},
+                {text: 'Reason 2', value: 'r2'},
+            ],
+        });
+
+        it('should return null for a valid array of option values', () => {
+            expect(checkDialogElementForError(element, ['r1', 'r2'])).toBe(null);
+        });
+
+        it('should return null for an empty optional selection', () => {
+            expect(checkDialogElementForError(element, [])).toBe(null);
+        });
+
+        it('should return invalid_list when the value is not an array', () => {
+            expect(checkDialogElementForError(element, 'r1')!.id).toBe('interactive_dialog.error.invalid_list');
+        });
+
+        it('should return invalid_option when a selected value is not in the options', () => {
+            expect(checkDialogElementForError(element, ['r1', 'nope'])!.id).toBe('interactive_dialog.error.invalid_option');
+        });
+    });
+
+    describe('checkDialogElementForError checkbox_matrix', () => {
+        const element = TestHelper.getDialogElementMock({
+            type: 'checkbox_matrix',
+            optional: true,
+            matrix_config: {
+                rows: [
+                    {text: 'Row 1', value: 'row1'},
+                    {text: 'Row 2', value: 'row2'},
+                ],
+                columns: [
+                    {text: 'Col A', value: 'a'},
+                    {text: 'Col B', value: 'b'},
+                ],
+                row_selection: 'multiple',
+            },
+        });
+
+        it('should return null for valid entries', () => {
+            expect(checkDialogElementForError(element, ['row1:a,b', 'row2:a'])).toBe(null);
+        });
+
+        it('should return null for an empty optional selection', () => {
+            expect(checkDialogElementForError(element, [])).toBe(null);
+        });
+
+        it('should return invalid_format when the value is not an array', () => {
+            expect(checkDialogElementForError(element, 'row1:a')!.id).toBe('interactive_dialog.error.invalid_format');
+        });
+
+        it('should return invalid_format for a malformed entry missing the colon', () => {
+            expect(checkDialogElementForError(element, ['row1a'])!.id).toBe('interactive_dialog.error.invalid_format');
+        });
+
+        it('should return invalid_format for an unknown row', () => {
+            expect(checkDialogElementForError(element, ['nope:a'])!.id).toBe('interactive_dialog.error.invalid_format');
+        });
+
+        it('should return invalid_format for an unknown column', () => {
+            expect(checkDialogElementForError(element, ['row1:z'])!.id).toBe('interactive_dialog.error.invalid_format');
+        });
+
+        it('should return invalid_format for a duplicate row', () => {
+            expect(checkDialogElementForError(element, ['row1:a', 'row1:b'])!.id).toBe('interactive_dialog.error.invalid_format');
+        });
+
+        it('should return invalid_format when single-selection mode has more than one column per row', () => {
+            const singleElement = TestHelper.getDialogElementMock({
+                type: 'checkbox_matrix',
+                optional: true,
+                matrix_config: {
+                    rows: [{text: 'Row 1', value: 'row1'}],
+                    columns: [
+                        {text: 'Col A', value: 'a'},
+                        {text: 'Col B', value: 'b'},
+                    ],
+                    row_selection: 'single',
+                },
+            });
+            expect(checkDialogElementForError(singleElement, ['row1:a,b'])!.id).toBe('interactive_dialog.error.invalid_format');
+            expect(checkDialogElementForError(singleElement, ['row1:a'])).toBe(null);
+        });
     });
 
     describe('checkIfErrorsMatchElements', () => {
@@ -149,7 +248,9 @@ describe('integration utils', () => {
         it('should return error when datetime is before min_date', () => {
             const element = TestHelper.getDialogElementMock({
                 type: 'datetime',
-                min_date: '2025-06-01T00:00:00Z',
+                datetime_config: {
+                    min_date: '2025-06-01T00:00:00Z',
+                },
             });
 
             const error = checkDialogElementForError(element, '2025-05-15T12:00:00Z');
@@ -159,7 +260,9 @@ describe('integration utils', () => {
         it('should return error when datetime is after max_date', () => {
             const element = TestHelper.getDialogElementMock({
                 type: 'datetime',
-                max_date: '2025-06-01T00:00:00Z',
+                datetime_config: {
+                    max_date: '2025-06-01T00:00:00Z',
+                },
             });
 
             const error = checkDialogElementForError(element, '2025-06-15T12:00:00Z');
@@ -169,8 +272,10 @@ describe('integration utils', () => {
         it('should return null when datetime is within min_date and max_date bounds', () => {
             const element = TestHelper.getDialogElementMock({
                 type: 'datetime',
-                min_date: '2025-01-01T00:00:00Z',
-                max_date: '2025-12-31T23:59:59Z',
+                datetime_config: {
+                    min_date: '2025-01-01T00:00:00Z',
+                    max_date: '2025-12-31T23:59:59Z',
+                },
             });
 
             expect(checkDialogElementForError(element, '2025-06-15T12:00:00Z')).toBeNull();
@@ -184,51 +289,14 @@ describe('integration utils', () => {
         it('should handle unresolvable min_date/max_date gracefully', () => {
             const element = TestHelper.getDialogElementMock({
                 type: 'datetime',
-                min_date: 'not-a-valid-format',
-                max_date: 'also-invalid',
+                datetime_config: {
+                    min_date: 'not-a-valid-format',
+                    max_date: 'also-invalid',
+                },
             });
 
             // Should skip range check (resolveBoundToDate returns null) and pass
             expect(checkDialogElementForError(element, '2025-06-15T12:00:00Z')).toBeNull();
-        });
-
-        it('should use datetime_config.min_date over legacy min_date', () => {
-            const element = TestHelper.getDialogElementMock({
-                type: 'datetime',
-                min_date: '2020-01-01T00:00:00Z',
-                datetime_config: {
-                    min_date: '2025-06-01T00:00:00Z',
-                },
-            });
-
-            // datetime_config.min_date (2025-06-01) takes precedence over legacy (2020-01-01)
-            const error = checkDialogElementForError(element, '2025-05-15T12:00:00Z');
-            expect(error?.id).toBe('interactive_dialog.error.before_min_date');
-        });
-
-        it('should use datetime_config.max_date over legacy max_date', () => {
-            const element = TestHelper.getDialogElementMock({
-                type: 'datetime',
-                max_date: '2030-12-31T23:59:59Z',
-                datetime_config: {
-                    max_date: '2025-06-01T00:00:00Z',
-                },
-            });
-
-            // datetime_config.max_date (2025-06-01) takes precedence over legacy (2030-12-31)
-            const error = checkDialogElementForError(element, '2025-06-15T12:00:00Z');
-            expect(error?.id).toBe('interactive_dialog.error.after_max_date');
-        });
-
-        it('should fall back to legacy fields when datetime_config not set', () => {
-            const element = TestHelper.getDialogElementMock({
-                type: 'datetime',
-                min_date: '2025-06-01T00:00:00Z',
-                max_date: '2025-12-31T23:59:59Z',
-            });
-
-            expect(checkDialogElementForError(element, '2025-06-15T12:00:00Z')).toBeNull();
-            expect(checkDialogElementForError(element, '2025-05-01T12:00:00Z')?.id).toBe('interactive_dialog.error.before_min_date');
         });
     });
 });

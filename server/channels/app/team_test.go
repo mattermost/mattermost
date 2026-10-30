@@ -5,12 +5,15 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
-	"sort"
+	"io"
+	"math/rand/v2"
+	"slices"
+
 	"strings"
 	"testing"
 
@@ -28,6 +31,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -716,160 +720,6 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 	})
 }
 
-func TestAdjustTeamsFromProductLimits(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	teams := []*model.Team{
-		{
-			DisplayName: "team-1",
-			Name:        "team-1",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-		{
-			DisplayName: "team-2",
-			Name:        "team-2",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-		{
-			DisplayName: "team-3",
-			Name:        "team-3",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-	}
-	teamIds := []string{}
-	for _, create := range teams {
-		team, err := th.App.CreateTeam(th.Context, create)
-		require.Nil(t, err)
-		teamIds = append(teamIds, team.Id)
-	}
-	t.Run("Should soft delete teams if there are more teams than the limit", func(t *testing.T) {
-		activeLimit := 1
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		teamsList, err := th.App.GetTeams(teamIds)
-
-		require.Nil(t, err)
-
-		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
-		})
-
-		for i := range teamsList {
-			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
-			require.NotEqual(t, 0, teamsList[i].DeleteAt)
-			require.Equal(t, true, teamsList[i].CloudLimitsArchived)
-		}
-	})
-
-	t.Run("Should not do anything if the amount of teams is equal to the limit", func(t *testing.T) {
-		expectedTeamsList, err := th.App.GetAllTeams()
-
-		var expectedActiveTeams []*model.Team
-		var expectedCloudArchivedTeams []*model.Team
-		for _, team := range expectedTeamsList {
-			if team.DeleteAt == 0 {
-				expectedActiveTeams = append(expectedActiveTeams, team)
-			}
-			if team.DeleteAt > 0 && team.CloudLimitsArchived {
-				expectedCloudArchivedTeams = append(expectedCloudArchivedTeams, team)
-			}
-		}
-
-		require.Nil(t, err)
-
-		activeLimit := len(expectedActiveTeams)
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		actualTeamsList, err := th.App.GetAllTeams()
-
-		require.Nil(t, err)
-		var actualActiveTeams []*model.Team
-		var actualCloudArchivedTeams []*model.Team
-		for _, team := range actualTeamsList {
-			if team.DeleteAt == 0 {
-				actualActiveTeams = append(actualActiveTeams, team)
-			}
-			if team.DeleteAt > 0 && team.CloudLimitsArchived {
-				actualCloudArchivedTeams = append(actualCloudArchivedTeams, team)
-			}
-		}
-
-		require.Equal(t, len(expectedActiveTeams), len(actualActiveTeams))
-		require.Equal(t, len(expectedCloudArchivedTeams), len(actualCloudArchivedTeams))
-	})
-
-	t.Run("Should restore archived teams if limit increases", func(t *testing.T) {
-		activeLimit := 1
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-		activeLimit = 10000 // make the limit extremely high so all teams are enabled
-		teamLimits = &model.TeamsLimits{Active: &activeLimit}
-
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		teamsList, err := th.App.GetTeams(teamIds)
-
-		require.Nil(t, err)
-
-		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
-		})
-
-		for i := range teamsList {
-			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
-			require.Equal(t, int64(0), teamsList[i].DeleteAt)
-			require.Equal(t, false, teamsList[i].CloudLimitsArchived)
-		}
-	})
-
-	t.Run("Should only restore teams that were archived by cloud limits", func(t *testing.T) {
-		activeLimit := 1
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		cloudLimitsArchived := false
-		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-		team, err := th.App.PatchTeam(teamIds[0], patch)
-		require.Nil(t, err)
-		require.Equal(t, false, team.CloudLimitsArchived)
-
-		activeLimit = 10000 // make the limit extremely high so all teams are enabled
-		teamLimits = &model.TeamsLimits{Active: &activeLimit}
-
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		teamsList, err := th.App.GetTeams(teamIds)
-
-		require.Nil(t, err)
-
-		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
-		})
-
-		require.NotEqual(t, int64(0), teamsList[0].DeleteAt)
-		require.Equal(t, int64(0), teamsList[1].DeleteAt)
-		require.Equal(t, int64(0), teamsList[2].DeleteAt)
-	})
-}
-
 func TestPermanentDeleteTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1352,7 +1202,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockPreferenceStore.On("Get", "userID", model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: "on"}, nil)
 
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
@@ -1611,6 +1461,67 @@ func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 	require.Zero(t, totalUnread, "GetTotalUnreadThreads must not count orphan ThreadMembership rows")
 }
 
+func TestGetThreadsForUserPreservesWebhookIdentity(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		*cfg.ServiceSettings.EnablePostUsernameOverride = true
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+		ChannelId:   th.BasicChannel.Id,
+		DisplayName: "ThreadHook",
+	})
+	require.Nil(t, appErr)
+	defer func() {
+		appErr = th.App.DeleteIncomingWebhook(hook.Id)
+		require.Nil(t, appErr)
+	}()
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	rootPost, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "root message",
+		"ThreadBot", "", "",
+		model.StringInterface{model.PostPropsWebhookDisplayName: hook.DisplayName},
+		model.PostTypeDefault, "", nil, false)
+	require.Nil(t, appErr)
+
+	// BasicUser2 replies, which auto-follows the thread under ThreadAutoFollow.
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    rootPost.Id,
+		Message:   "a reply",
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.Nil(t, appErr)
+
+	var found *model.ThreadResponse
+	for _, thr := range threads.Threads {
+		if thr.PostId == rootPost.Id {
+			found = thr
+			break
+		}
+	}
+	require.NotNil(t, found, "sanity: root thread must be present in GetThreadsForUser results")
+
+	// Regression: SanitizeNonIdentityProps (not the stronger SanitizeProps) must
+	// be used on this read path, or a webhook post's display identity is wiped
+	// from the Threads response even though it's intact in the DB and the
+	// ordinary channel view.
+	assert.Equal(t, "true", found.Post.GetProp(model.PostPropsFromWebhook))
+	assert.Equal(t, "ThreadBot", found.Post.GetProp(model.PostPropsOverrideUsername))
+	assert.Equal(t, "ThreadHook", found.Post.GetProp(model.PostPropsWebhookDisplayName))
+}
+
 func TestPermanentDeleteChannelRemovesThreadMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1723,7 +1634,7 @@ func TestGetTeamMembers(t *testing.T) {
 			Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 			Username: fmt.Sprintf("user%v", i),
 			Password: model.NewTestPassword(),
-			DeleteAt: int64(rand.Intn(2)),
+			DeleteAt: int64(rand.IntN(2)),
 		}
 		ruser, err := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err)
@@ -1745,8 +1656,8 @@ func TestGetTeamMembers(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the users array by username
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].Username < users[j].Username
+		slices.SortFunc(users, func(a, b model.User) int {
+			return cmp.Compare(a.Username, b.Username)
 		})
 
 		// We should have the same number of users in both users and members array as we have not excluded any deleted members
@@ -1789,8 +1700,8 @@ func TestGetTeamMembers(t *testing.T) {
 		}
 
 		// Sort our non deleted members by username
-		sort.Slice(usersNotDeleted, func(i, j int) bool {
-			return usersNotDeleted[i].Username < usersNotDeleted[j].Username
+		slices.SortFunc(usersNotDeleted, func(a, b model.User) int {
+			return cmp.Compare(a.Username, b.Username)
 		})
 
 		require.Equal(t, len(usersNotDeleted), len(members))
@@ -1801,8 +1712,8 @@ func TestGetTeamMembers(t *testing.T) {
 
 	t.Run("Ensure Sorted By User ID when no TeamMemberGetOptions is passed", func(t *testing.T) {
 		// Sort them by UserID because the result of GetTeamMembers() is also sorted
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].Id < users[j].Id
+		slices.SortFunc(users, func(a, b model.User) int {
+			return cmp.Compare(a.Id, b.Id)
 		})
 
 		// Fetch team members multiple times
@@ -2219,7 +2130,9 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	license := model.NewTestLicenseWithFalseDefaults("mhpns")
+	license.SkuShortName = model.LicenseShortSkuEnterprise
+	th.App.Srv().SetLicense(license)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
@@ -2368,6 +2281,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	t.Run("it returns error for deactivated user without sending email", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		emailServiceMock.On("Stop").Once().Return()
+		// The teardown license reset saves a config change, whose listener re-inits email batching.
+		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
@@ -2656,4 +2571,59 @@ func TestTeamSendEvents(t *testing.T) {
 		require.Equal(t, "", teamFromEvent.Email)
 		require.Equal(t, "", teamFromEvent.InviteId)
 	}
+}
+
+func TestSetTeamIconFromFileEXIFOrientation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// quadrants-orientation-8.png: 128×128 color quadrants with EXIF orientation 8.
+	// quadrants-orientation-1.png: same visual content already rotated, EXIF orientation 1.
+	rotated, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-8.png")
+	require.NoError(t, err)
+	normal, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-1.png")
+	require.NoError(t, err)
+
+	rotatedTeam := th.CreateTeam(t)
+	normalTeam := th.CreateTeam(t)
+
+	appErr := th.App.SetTeamIconFromFile(th.Context, rotatedTeam, bytes.NewReader(rotated))
+	require.Nil(t, appErr)
+	appErr = th.App.SetTeamIconFromFile(th.Context, normalTeam, bytes.NewReader(normal))
+	require.Nil(t, appErr)
+
+	rotatedIcon, appErr := th.App.GetTeamIcon(rotatedTeam)
+	require.Nil(t, appErr)
+	normalIcon, appErr := th.App.GetTeamIcon(normalTeam)
+	require.Nil(t, appErr)
+
+	assert.Equal(t, normalIcon, rotatedIcon,
+		"EXIF-rotated image should produce the same team icon as the normally-oriented one")
+
+	t.Run("seek failure returns an error", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		// The decoder rewinds once after reading the image config.
+		reader := &limitedRewindReader{Reader: bytes.NewReader(rotated), rewindsLeft: 1}
+		appErr := th.App.SetTeamIconFromFile(th.Context, team, reader)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.team.set_team_icon.seek.app_error", appErr.Id)
+
+		_, appErr = th.App.GetTeamIcon(team)
+		require.NotNil(t, appErr)
+	})
+}
+
+type limitedRewindReader struct {
+	*bytes.Reader
+	rewindsLeft int
+}
+
+func (r *limitedRewindReader) Seek(offset int64, whence int) (int64, error) {
+	if whence == io.SeekStart {
+		if r.rewindsLeft == 0 {
+			return 0, errors.New("seek not supported")
+		}
+		r.rewindsLeft--
+	}
+	return r.Reader.Seek(offset, whence)
 }

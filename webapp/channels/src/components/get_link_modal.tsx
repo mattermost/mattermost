@@ -2,11 +2,15 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {CheckIcon, LinkVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+
+import './get_link_modal.scss';
 
 type Props = {
     show: boolean;
@@ -92,26 +96,21 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     type='button'
                     emphasis='primary'
                     className={classNames({
-                        'btn-success': this.state.copiedLink,
-                    }, 'pull-left')}
+                        GetLinkModal__copied: this.state.copiedLink,
+                    })}
                     onClick={this.copyLink}
+                    leadingIcon={<Icon glyph={this.state.copiedLink ? <CheckIcon/> : <LinkVariantIcon/>}/>}
                 >
                     {this.state.copiedLink ? (
-                        <>
-                            <i className='icon icon-check'/>
-                            <FormattedMessage
-                                id='get_link.clipboard'
-                                defaultMessage='Copied'
-                            />
-                        </>
+                        <FormattedMessage
+                            id='get_link.clipboard'
+                            defaultMessage='Copied'
+                        />
                     ) : (
-                        <>
-                            <i className='icon icon-link-variant'/>
-                            <FormattedMessage
-                                id='get_link.copy'
-                                defaultMessage='Copy Link'
-                            />
-                        </>
+                        <FormattedMessage
+                            id='get_link.copy'
+                            defaultMessage='Copy Link'
+                        />
                     )}
                 </Button>
             );

@@ -216,12 +216,6 @@ const state: GlobalState = {
             },
             errors: {},
         },
-        hostedCustomer: {
-            products: {
-                products: {},
-                productsLoaded: false,
-            },
-        },
         usage: {
             files: {
                 totalStorage: 0,
@@ -248,6 +242,15 @@ const state: GlobalState = {
             fields: {byObjectType: {}, byId: {}},
             values: {byTargetId: {}, byFieldId: {}},
             groups: {byId: {}, byName: {}},
+        },
+        renderPermissions: {
+            byResource: {},
+            invalidatedAt: 0,
+            invalidatedAtByResource: {},
+        },
+        health: {
+            findings: {},
+            evaluatedAt: 0,
         },
     },
     errors: [],

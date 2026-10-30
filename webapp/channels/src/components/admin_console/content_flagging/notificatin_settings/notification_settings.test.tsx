@@ -10,7 +10,7 @@ import {fireEvent, render, screen, userEvent} from 'tests/react_testing_utils';
 
 import ContentFlaggingNotificationSettingsSection from './notification_settings';
 
-const renderWithContext = (component: React.ReactElement) => {
+const renderWithContext = (component: React.ReactElement<any>) => {
     return render(
         <IntlProvider locale='en'>
             {component}

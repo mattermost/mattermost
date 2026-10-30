@@ -48,6 +48,7 @@ export type WebSocketMessage = (
     Messages.ChannelBookmarkSorted |
 
     Messages.ChannelAccessControlUpdated |
+    Messages.PermissionPolicyUpdated |
     Messages.TeamAccessControlUpdated |
 
     Messages.ChannelJoinRequestCreated |
@@ -92,7 +93,6 @@ export type WebSocketMessage = (
     Messages.LicenseChanged |
     Messages.CloudSubscriptionChanged |
     Messages.FirstAdminVisitMarketplaceStatusReceived |
-    Messages.HostedCustomerSignupProgressUpdated |
 
     Messages.CPAFieldCreated |
     Messages.CPAFieldUpdated |

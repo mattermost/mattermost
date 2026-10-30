@@ -1,10 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {execFileSync} from 'node:child_process';
+import fs from 'node:fs';
+
 import {test} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {MATTERMOST_DATA_DIR} from '../containers/constants';
+import {POSTGRES_IMAGE} from '../containers/default_images';
 import {bootEnvMatches, restartMattermostContainer} from '../containers/stack';
 
 import {getAdminClient} from './init';
@@ -46,5 +51,51 @@ export async function ensureLocalFile(): Promise<void> {
         await uploadProbeImage(adminClient, adminUser);
     } catch (error) {
         test.skip(true, `Skipping test - local file storage check failed: ${String(error)}`);
+    }
+}
+
+/**
+ * Mattermost runs as UID 2000 and creates dated storage dirs mode 0750 (localstore.go). The host
+ * runner cannot scandir those on Linux CI. Distroless server images have no chmod, so open the
+ * bind mount via a one-shot helper container (postgres is always pulled with the stack).
+ */
+function makeMattermostDataHostReadable(): void {
+    execFileSync(
+        'docker',
+        [
+            'run',
+            '--rm',
+            '--user',
+            '0',
+            '-v',
+            `${MATTERMOST_DATA_DIR}:/data`,
+            POSTGRES_IMAGE,
+            'chmod',
+            '-R',
+            'a+rX',
+            '/data',
+        ],
+        {stdio: 'pipe'},
+    );
+}
+
+/**
+ * Lists every file the server wrote to its bind-mounted data directory (see MATTERMOST_DATA_DIR),
+ * confirming the server actually wrote to disk — the same "check the backend itself, not just
+ * that the API says so" signal listMinioObjectKeys()/listAzuriteBlobNames() already provide for
+ * their own backends.
+ */
+export function listMattermostDataFiles(): string[] {
+    if (!fs.existsSync(MATTERMOST_DATA_DIR)) {
+        return [];
+    }
+    try {
+        return fs.readdirSync(MATTERMOST_DATA_DIR, {recursive: true}) as string[];
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EACCES') {
+            throw error;
+        }
+        makeMattermostDataHostReadable();
+        return fs.readdirSync(MATTERMOST_DATA_DIR, {recursive: true}) as string[];
     }
 }

@@ -141,7 +141,7 @@ The `make package` command will package the application and place it under the `
         ```
 1. Copy the file `server/config.mk` as `server/config.override.mk` and set `MM_NO_DOCKER` to `true` in the copy.
 1. Install [PostgreSQL](https://www.postgresql.org/download/)
-1. Run `psql postgres`. Then create `mmuser` by running `CREATE ROLE mmuser WITH LOGIN PASSWORD 'mostest';`
+1. Run `psql postgres`. Then create `mmuser` by running `CREATE ROLE mmuser WITH LOGIN PASSWORD 'mostest_password';`
 1. Modify the role to give rights to create a database by running `ALTER ROLE mmuser CREATEDB;`
 1. Confirm the role rights by running `\du`
 1. Before creating the database, exit by running `\q`

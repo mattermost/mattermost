@@ -1,0 +1,77 @@
+---
+title: "Deploy the Mattermost server"
+---
+All three deployment methods below install the same Mattermost Server. They differ in how you provision and operate the host, whether high availability is available, and which Mattermost plan you need. Choose one, then follow its install path.
+
+Before you get here, work through [Plan](/deployment-guide/server/server-deployment-planning) to size the deployment, and [Prepare](/deployment-guide/server/preparations) to stand up the database, file storage, reverse proxy, and TLS.
+
+<CardGrid columns={3} cards={[
+  {
+    title: 'Kubernetes',
+    description: 'Deploy with the Mattermost Operator. Recommended for production: high availability, rolling upgrades, and infrastructure as code.',
+    to: '/deployment-guide/server/deploy-kubernetes',
+  },
+  {
+    title: 'Linux',
+    description: 'Install directly on a 64-bit Linux host from the APT repository or the release tarball. The most common choice for self-hosted and private-cloud deployments.',
+    to: '/deployment-guide/server/deploy-linux',
+  },
+  {
+    title: 'Containers',
+    description: 'Run Mattermost with Docker Compose. For evaluation, testing, and development only. Not supported for production.',
+    to: '/deployment-guide/server/deploy-containers',
+  },
+]} />
+
+## Deployment options
+
+### Kubernetes
+
+<PlanAvailability slug="entry-ent" />
+
+Deploying with the [Mattermost Kubernetes Operator](/deployment-guide/server/deploy-kubernetes) is our recommended approach for production, because it offers:
+
+- High availability and horizontal scaling across multiple app nodes
+- Automated updates and rollbacks
+- Infrastructure as code
+- Built-in monitoring and logging
+- Integration with existing DevOps workflows
+
+The Operator works on any conformant cluster. Mattermost publishes a dedicated guide for [Oracle Kubernetes Engine (OKE)](/deployment-guide/server/kubernetes/deploy-k8s-oke); guidance for Azure Kubernetes Service has been withdrawn, so deploy on AKS with the Operator as you would on any other cluster.
+
+### Linux
+
+[Installing directly on Linux](/deployment-guide/server/deploy-linux) gives you full control over the host and doesn't require a container platform. Choose it when:
+
+- Containers or Kubernetes aren't available or aren't preferred in your environment
+- You want a straightforward setup on a host you already manage
+- You're deploying into an air-gapped enclave from the release tarball
+
+High availability is available on this path too, but you configure and operate the cluster yourself. See [High availability cluster-based deployment](/deployment-guide/server/high-availability-cluster-based-deployment).
+
+Install methods: [Ubuntu/Debian](/deployment-guide/server/linux/deploy-ubuntu), [RHEL and derivatives](/deployment-guide/server/linux/deploy-rhel), [manual tarball](/deployment-guide/server/linux/deploy-tar), and [Azure Native VM](/deployment-guide/server/linux/deploy-azure-native-vm) from the Azure Marketplace.
+
+### Containers
+
+[Docker Compose deployments](/deployment-guide/server/deploy-containers) get a Mattermost instance running quickly without provisioning the infrastructure yourself. Use this path for exploring functionality, testing, and development.
+
+<Warning>
+
+Container deployments aren't supported for production. Docker lacks automatic failover, shared storage, and load balancing, so it can't provide clustered or High Availability deployments out of the box. Deploy on [Kubernetes](/deployment-guide/server/deploy-kubernetes) for production HA. Docker deployments are officially supported on Linux only; macOS and Windows are for testing and development.
+
+</Warning>
+
+A FIPS-compliant, STIG-hardened variant of every container image is published for regulated environments. See [FIPS and STIG container builds](/deployment-guide/server/containers/fips-stig).
+
+## Don't want to deploy it yourself?
+
+Third-party and community-maintained solutions can deploy and upgrade Mattermost for you. See [Deployment Solution Programs](/get-help/deployment-solution-programs) for the recognition tiers and what each commits to.
+
+## What's next
+
+After the server is running:
+
+- [Secure your deployment](/deployment-guide/encryption-options) with encryption at rest and [in transit](/deployment-guide/transport-encryption).
+- [Scale](/deployment-guide/scale/scaling-for-enterprise) with clustering, search infrastructure, and Redis caching.
+- [Back up and recover](/deployment-guide/backup-disaster-recovery) to set the backup strategy before you have users.
+- If the install fails, see [Deployment troubleshooting](/deployment-guide/server/troubleshooting).

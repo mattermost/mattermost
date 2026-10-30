@@ -110,7 +110,7 @@ export function removeScheme(url: string) {
     return url.replace(/^([a-z0-9+.-]+):\/\//i, '');
 }
 
-function formattedError(message: MessageDescriptor, intl?: IntlShape): React.ReactElement | string {
+function formattedError(message: MessageDescriptor, intl?: IntlShape): React.ReactElement<any> | string {
     if (intl) {
         return intl.formatMessage(message);
     }
@@ -125,8 +125,8 @@ function formattedError(message: MessageDescriptor, intl?: IntlShape): React.Rea
     );
 }
 
-export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.ReactElement | string> {
-    const errors: Array<React.ReactElement | string> = [];
+export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.ReactElement<any> | string> {
+    const errors: Array<React.ReactElement<any> | string> = [];
 
     const USER_ID_LENGTH = 26;
     const directMessageRegex = new RegExp(`^.{${USER_ID_LENGTH}}__.{${USER_ID_LENGTH}}$`);
@@ -258,6 +258,9 @@ export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourc
 
         // Internal help pages should always open in a new tab
         'help',
+
+        // Bundled documentation is served by the server, not the web app's router
+        '_documentation',
     ];
 
     // Paths managed by another service shouldn't be handled by the web app either

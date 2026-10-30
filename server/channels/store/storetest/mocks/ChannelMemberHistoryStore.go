@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -210,17 +211,17 @@ func (_m *ChannelMemberHistoryStore) LogJoinEvent(userID string, channelID strin
 	return r0
 }
 
-// LogLeaveEvent provides a mock function with given fields: userID, channelID, leaveTime
-func (_m *ChannelMemberHistoryStore) LogLeaveEvent(userID string, channelID string, leaveTime int64) error {
-	ret := _m.Called(userID, channelID, leaveTime)
+// LogLeaveEvent provides a mock function with given fields: rctx, userID, channelID, leaveTime
+func (_m *ChannelMemberHistoryStore) LogLeaveEvent(rctx request.CTX, userID string, channelID string, leaveTime int64) error {
+	ret := _m.Called(rctx, userID, channelID, leaveTime)
 
 	if len(ret) == 0 {
 		panic("no return value specified for LogLeaveEvent")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
-		r0 = rf(userID, channelID, leaveTime)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, int64) error); ok {
+		r0 = rf(rctx, userID, channelID, leaveTime)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -289,6 +290,24 @@ func (_m *ChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(re
 	}
 
 	return r0, r1, r2
+}
+
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *ChannelMemberHistoryStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewChannelMemberHistoryStore creates a new instance of ChannelMemberHistoryStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

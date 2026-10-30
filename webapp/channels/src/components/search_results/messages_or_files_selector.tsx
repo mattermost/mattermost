@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {useRef, type JSX} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
@@ -30,7 +30,7 @@ type Props = {
     selectedFilter: SearchFilterType;
     messagesCounter: string;
     filesCounter: string;
-    isFileAttachmentsEnabled: boolean;
+    isFilesTabEnabled: boolean;
     crossTeamSearchEnabled: boolean;
     onChange: (value: SearchType) => void;
     onFilter: (filter: SearchFilterType) => void;
@@ -40,6 +40,7 @@ type Props = {
 type DataSearchLiteral = typeof DataSearchTypes[keyof typeof DataSearchTypes];
 
 export default function MessagesOrFilesSelector(props: Props): JSX.Element {
+    const {formatMessage} = useIntl();
     const searchTeam = useSelector((state: GlobalState) => getSearchTeam(state));
     const myTeams = useSelector(getMyTeams);
     const hasMoreThanOneTeam = myTeams.length > 1;
@@ -57,9 +58,9 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             e.preventDefault();
             e.stopPropagation();
             let nextTab: SearchType;
-            let nextTabRef: React.RefObject<HTMLButtonElement>;
+            let nextTabRef: React.RefObject<HTMLButtonElement | null>;
 
-            if (currentTab === DataSearchTypes.MESSAGES_SEARCH_TYPE && props.isFileAttachmentsEnabled) {
+            if (currentTab === DataSearchTypes.MESSAGES_SEARCH_TYPE && props.isFilesTabEnabled) {
                 nextTab = DataSearchTypes.FILES_SEARCH_TYPE;
                 nextTabRef = filesTabRef;
             } else {
@@ -95,7 +96,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             <div
                 className='buttons-container'
                 role='tablist'
-                aria-label='Messages or Files'
+                aria-label={formatMessage({id: 'search_results.messages_or_files', defaultMessage: 'Messages or Files'})}
             >
                 <button
                     ref={messagesTabRef}
@@ -114,7 +115,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                     />
                     <span className='counter'>{props.messagesCounter}</span>
                 </button>
-                {props.isFileAttachmentsEnabled && (
+                {props.isFilesTabEnabled && (
                     <button
                         ref={filesTabRef}
                         role='tab'

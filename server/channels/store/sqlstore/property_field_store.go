@@ -4,15 +4,15 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 
+	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -26,7 +26,7 @@ func newPropertyFieldStore(sqlStore *SqlStore) store.PropertyFieldStore {
 	s := SqlPropertyFieldStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy").
+		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy", "Permissions").
 		From("PropertyFields")
 
 	return &s
@@ -46,34 +46,131 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 		return nil, errors.Wrap(err, "property_field_create_isvalid")
 	}
 
+	if field.Permissions != nil && field.Permissions.Masking != nil && field.Permissions.Masking.MaskByFieldID != "" {
+		if err := s.ValidateMaskByFieldID(request.EmptyContext(s.logger), field.GroupID, field.ID, field.Permissions.Masking.MaskByFieldID); err != nil {
+			return nil, errors.Wrap(err, "property_field_create_validate_mask_by_field_id")
+		}
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_create_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	projected := model.ProjectLegacyPermissions(field)
+
+	// The three legacy Attrs keys (owners, protected, access_mode) are stored as originally written
+	// and never refreshed from permissions, so they go stale after a v3 edit. This is tolerable
+	// because an old release reading them back on rollback wants the pre-upgrade values, and the
+	// only way they diverge is a v3 grant edit, which requires the PropertyFieldPermissionsV3
+	// feature flag to be on. They are not projected because legacyPermissionAttrsChanged compares
+	// a caller's submitted owners against the raw stored owners attr on purpose, because the
+	// projected list also carries grants the caller never sent (source plugin, sync lock,
+	// ambient wildcard), and comparing against those would report a change for a caller who
+	// touched nothing.
+
+	// The four columns are the opposite case: every write rewrites them from the
+	// projection. Once the one-time backfill has read a row's columns, converted them,
+	// and written the projection back, they no longer hold the values the row was upgraded
+	// with. A synced or owner-managed access_control field converts to value.write = none,
+	// so its PermissionValues moves from 'member' to 'none'. That is still what an old
+	// release should read on rollback: the conversion asserts the legacy code already refused
+	// every human's value write on such a field before it ever read PermissionValues, and the
+	// owners/protected/ldap attrs that decision came from are stored unchanged (as explained
+	// in the paragraph above about the Attrs keys).
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
-		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy", "Permissions").
+		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, projected.Protected, projected.PermissionField, projected.PermissionValues, projected.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy, storedFieldPermissions(field))
 
-	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+	if _, err = transaction.ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
 	}
+
+	// The field's options become rows of their own. A field linking to a
+	// template is created holding a copy of that template's option list, and
+	// those options stay owned by the template.
+	if _, err = s.syncPropertyFieldOptions(transaction, []*model.PropertyField{field}, field.CreateAt); err != nil {
+		return nil, errors.Wrap(err, "property_field_create_options")
+	}
+
+	if err = s.syncPropertyFieldGrants(transaction, field.ID, field.Permissions, field.CreateAt); err != nil {
+		return nil, errors.Wrap(err, "property_field_create_grants")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "property_field_create_commit_transaction")
+	}
+
+	// Returned with the columns as stored, not as submitted, so the caller holds
+	// what a read would give it. A caller that changed this copy and sent it back
+	// would otherwise send stale columns, which an update reads as a deliberate
+	// legacy edit and applies, widening a stricter permissions object.
+	applyProjectedPermissionColumns([]*model.PropertyField{field})
 
 	return field, nil
 }
 
-func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
+	db := s.DBXFromContext(rctx.Context())
+
 	var field model.PropertyField
-	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
+	if err := db.GetBuilder(&field, builder); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyField", id)
 		}
 		return nil, errors.Wrap(err, "property_field_get_select")
 	}
 
+	if err := s.hydratePropertyFieldOptions(db, []*model.PropertyField{&field}); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_hydrate_options")
+	}
+
 	return &field, nil
+}
+
+// ValidateMaskByFieldID enforces the store-dependent half of a masking
+// field's mask_by_field_id: the named field must exist, be live, be
+// object_type:user (the only holder type resolved today), and be linked back
+// to fieldID. The shape-only half (template-only, must resolve holdings
+// somewhere) is checked without a store by Masking.isValid.
+func (s *SqlPropertyFieldStore) ValidateMaskByFieldID(rctx request.CTX, groupID, fieldID, maskByFieldID string) error {
+	target, err := s.Get(RequestContextWithMaster(rctx), groupID, maskByFieldID)
+	if err != nil {
+		var notFound *store.ErrNotFound
+		if errors.As(err, &notFound) {
+			return fmt.Errorf("mask_by_field_id references non-existent field %s", maskByFieldID)
+		}
+		return errors.Wrap(err, "property_field_validate_mask_by_field_id_get")
+	}
+
+	if target.DeleteAt != 0 {
+		return fmt.Errorf("mask_by_field_id references a deleted field")
+	}
+
+	if target.ObjectType != model.PropertyFieldObjectTypeUser {
+		return fmt.Errorf("mask_by_field_id must reference an object_type:user field")
+	}
+
+	if target.LinkedFieldID == nil || *target.LinkedFieldID != fieldID {
+		return fmt.Errorf("mask_by_field_id references a field not linked to this template")
+	}
+
+	// A member- or everyone-writable holdings field defeats masking: the people it
+	// filters could set their own holdings to whatever they want the read to return.
+	// target.PermissionValues is the effective value.write after the store's projection.
+	if target.PermissionValues != nil && (*target.PermissionValues == model.PermissionLevelMember || *target.PermissionValues == model.PermissionLevelEveryone) {
+		return fmt.Errorf("mask_by_field_id references a field whose value.write (%q) lets the people it filters write their own holdings", *target.PermissionValues)
+	}
+
+	return nil
 }
 
 // GetFieldByName retrieves a single property field by group, target, and name,
@@ -84,17 +181,17 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 // returns an arbitrary match (the query has no ORDER BY/LIMIT). Use
 // GetFieldByNameForObjectType for a deterministic result. Retained because it
 // is exposed on the (stable) plugin API.
-func (s *SqlPropertyFieldStore) GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error) {
-	return s.getFieldByName(ctx, s.fieldByNameQuery(groupID, targetID, name), name)
+func (s *SqlPropertyFieldStore) GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
+	return s.getFieldByName(rctx, s.fieldByNameQuery(groupID, targetID, name), name)
 }
 
 // GetFieldByNameForObjectType retrieves a single property field by group,
 // target, object type, and name. objectType is matched exactly — including the
 // empty string, which is itself a valid object type, not a match-any wildcard —
 // so together with the typed unique index the result is deterministic.
-func (s *SqlPropertyFieldStore) GetFieldByNameForObjectType(ctx context.Context, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
 	builder := s.fieldByNameQuery(groupID, targetID, name).Where(sq.Eq{"ObjectType": objectType})
-	return s.getFieldByName(ctx, builder, name)
+	return s.getFieldByName(rctx, builder, name)
 }
 
 func (s *SqlPropertyFieldStore) fieldByNameQuery(groupID, targetID, name string) sq.SelectBuilder {
@@ -105,32 +202,44 @@ func (s *SqlPropertyFieldStore) fieldByNameQuery(groupID, targetID, name string)
 		Where(sq.Eq{"DeleteAt": 0})
 }
 
-func (s *SqlPropertyFieldStore) getFieldByName(ctx context.Context, builder sq.SelectBuilder, name string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) getFieldByName(rctx request.CTX, builder sq.SelectBuilder, name string) (*model.PropertyField, error) {
+	db := s.DBXFromContext(rctx.Context())
+
 	var field model.PropertyField
-	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
+	if err := db.GetBuilder(&field, builder); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyField", name)
 		}
 		return nil, errors.Wrap(err, "property_field_get_by_name_select")
 	}
 
+	if err := s.hydratePropertyFieldOptions(db, []*model.PropertyField{&field}); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_by_name_hydrate_options")
+	}
+
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
+	db := s.DBXFromContext(rctx.Context())
+
 	fields := []*model.PropertyField{}
-	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
+	if err := db.SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_many_query")
 	}
 
 	if len(fields) < len(ids) {
 		return nil, store.NewErrResultsMismatch(len(fields), len(ids))
+	}
+
+	if err := s.hydratePropertyFieldOptions(db, fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_many_hydrate_options")
 	}
 
 	return fields, nil
@@ -190,14 +299,20 @@ func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID str
 	return count, nil
 }
 
-func (s *SqlPropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.
 		Where(sq.Eq{"GroupID": groupID}).
 		Where(sq.Eq{"DeleteAt": 0})
 
+	db := s.DBXFromContext(rctx.Context())
+
 	fields := []*model.PropertyField{}
-	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
+	if err := db.SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_for_group_query")
+	}
+
+	if err := s.hydratePropertyFieldOptions(db, fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_for_group_hydrate_options")
 	}
 
 	return fields, nil
@@ -217,7 +332,7 @@ func (s *SqlPropertyFieldStore) GetForGroup(ctx context.Context, groupID string)
 // opts.IsValid(): either we search through the hierarchy (channel or team and up,
 // if ChannelID or TeamID are set) or we filter on a single target using
 // TargetType/TargetIDs.
-func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	if err := opts.IsValid(); err != nil {
 		return nil, fmt.Errorf("opts is invalid: %w", err)
 	}
@@ -332,8 +447,57 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 	}
 
 	fields := []*model.PropertyField{}
-	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_search_query")
+	}
+
+	if err := s.hydratePropertyFieldOptions(s.GetReplica(), fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_search_hydrate_options")
+	}
+
+	return fields, nil
+}
+
+// GetFieldsMissingPermissions returns the fields the permissions backfill
+// converts, a page at a time: not deleted, PSAv2 (a non-empty ObjectType), in
+// a group at version 2 or 3, and with a NULL Permissions column -- the only
+// way a field with no permissions object is stored. Pages by (CreateAt, Id)
+// like SearchPropertyFields' directory mode, so a field the caller leaves
+// unconverted does not come back on a later page of the same walk.
+func (s *SqlPropertyFieldStore) GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error) {
+	if perPage < 1 {
+		return nil, errors.New("per page must be positive integer greater than zero")
+	}
+
+	groupIDs := sq.Select("ID").
+		From("PropertyGroups").
+		Where(sq.Eq{"Version": []int{model.PropertyGroupVersionV2, model.PropertyGroupVersionV3}})
+
+	builder := s.tableSelectQuery.
+		Where(sq.Eq{"Permissions": nil}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.NotEq{"ObjectType": ""}).
+		Where(sq.Expr("GroupID IN (?)", groupIDs)).
+		OrderBy("CreateAt ASC, Id ASC").
+		Limit(uint64(perPage))
+
+	if !cursor.IsEmpty() {
+		builder = builder.Where(sq.Or{
+			sq.Gt{"CreateAt": cursor.CreateAt},
+			sq.And{
+				sq.Eq{"CreateAt": cursor.CreateAt},
+				sq.Gt{"Id": cursor.PropertyFieldID},
+			},
+		})
+	}
+
+	fields := []*model.PropertyField{}
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&fields, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_missing_permissions_query")
+	}
+
+	if err := s.hydratePropertyFieldOptions(s.GetReplica(), fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_missing_permissions_hydrate_options")
 	}
 
 	return fields, nil
@@ -356,13 +520,14 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	attrsCase := sq.Case("id")
 	targetIDCase := sq.Case("id")
 	targetTypeCase := sq.Case("id")
+	linkedFieldIDCase := sq.Case("id")
+	deleteAtCase := sq.Case("id")
+	updatedByCase := sq.Case("id")
+	permissionsCase := sq.Case("id")
 	protectedCase := sq.Case("id")
 	permissionFieldCase := sq.Case("id")
 	permissionValuesCase := sq.Case("id")
 	permissionOptionsCase := sq.Case("id")
-	linkedFieldIDCase := sq.Case("id")
-	deleteAtCase := sq.Case("id")
-	updatedByCase := sq.Case("id")
 	ids := make([]string, len(fields))
 
 	for i, field := range fields {
@@ -374,20 +539,36 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 			return nil, errors.Wrap(vErr, "property_field_update_isvalid")
 		}
 
+		if field.Permissions != nil && field.Permissions.Masking != nil && field.Permissions.Masking.MaskByFieldID != "" {
+			if maskErr := s.ValidateMaskByFieldID(request.EmptyContext(s.logger), field.GroupID, field.ID, field.Permissions.Masking.MaskByFieldID); maskErr != nil {
+				return nil, errors.Wrap(maskErr, "property_field_update_validate_mask_by_field_id")
+			}
+		}
+
 		ids[i] = field.ID
 		whenID := sq.Expr("?", field.ID)
+		projected := model.ProjectLegacyPermissions(field)
+		protectedCase = protectedCase.When(whenID, sq.Expr("?::boolean", projected.Protected))
+		permissionFieldCase = permissionFieldCase.When(whenID, sq.Expr("?::permission_level", projected.PermissionField))
+		permissionValuesCase = permissionValuesCase.When(whenID, sq.Expr("?::permission_level", projected.PermissionValues))
+		permissionOptionsCase = permissionOptionsCase.When(whenID, sq.Expr("?::permission_level", projected.PermissionOptions))
 		nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
 		typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
-		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
+		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", storedFieldAttrs(field)))
 		targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
 		targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
-		protectedCase = protectedCase.When(whenID, sq.Expr("?::boolean", field.Protected))
-		permissionFieldCase = permissionFieldCase.When(whenID, sq.Expr("?::permission_level", field.PermissionField))
-		permissionValuesCase = permissionValuesCase.When(whenID, sq.Expr("?::permission_level", field.PermissionValues))
-		permissionOptionsCase = permissionOptionsCase.When(whenID, sq.Expr("?::permission_level", field.PermissionOptions))
 		linkedFieldIDCase = linkedFieldIDCase.When(whenID, sq.Expr("?", field.LinkedFieldID))
 		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
 		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
+		permissionsCase = permissionsCase.When(whenID, sq.Expr("?::jsonb", storedFieldPermissions(field)))
+	}
+
+	// Read before the UPDATE overwrites it: a field that stops linking has to take
+	// over the options it was deriving, and the row is the only place the template
+	// it was deriving them from is still recorded.
+	clearedSources, err := s.linkSourcesBeingCleared(transaction, fields)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_update_link_sources")
 	}
 
 	builder := s.getQueryBuilder().
@@ -405,6 +586,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		Set("UpdateAt", updateTime).
 		Set("DeleteAt", deleteAtCase).
 		Set("UpdatedBy", updatedByCase).
+		Set("Permissions", permissionsCase).
 		Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
@@ -444,74 +626,97 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
 	}
 
-	// Propagate type and options from updated source fields to all their
-	// linked dependents. This self-joins PropertyFields: "source" is the
-	// row we just updated, "linked" is any row whose LinkedFieldID points
-	// to it. Only rows where type or options actually differ are touched,
-	// so this is a no-op when none of the updated fields have dependents.
-	//
-	// We build the query manually because squirrel doesn't support
-	// PostgreSQL's UPDATE ... FROM syntax, and use ExecRaw because the
-	// placeholders are already in $N format (Exec would try to rebind them).
-	//
-	// For ids = ["aaa", "bbb"] the args and SQL expand to:
-	//   propagateArgs = [updateTime, "aaa", "bbb"]  →  $1, $2, $3
-	//   SQL: ... WHERE source.ID IN ($2, $3) ... UpdateAt = $1
-	inPlaceholders := make([]string, len(ids))
-	propagateArgs := make([]any, 0, len(ids)+1)
-	propagateArgs = append(propagateArgs, updateTime)
-	for i, id := range ids {
-		inPlaceholders[i] = fmt.Sprintf("$%d", i+2)
-		propagateArgs = append(propagateArgs, id)
+	for _, field := range fields {
+		if err = s.syncPropertyFieldGrants(transaction, field.ID, field.Permissions, updateTime); err != nil {
+			return nil, errors.Wrap(err, "property_field_update_grants")
+		}
 	}
 
-	propagateSQL := fmt.Sprintf(`
-UPDATE PropertyFields AS linked
-   SET Type = source.Type,
-       Attrs = jsonb_set(COALESCE(linked.Attrs, '{}'::jsonb), '{options}',
-                         COALESCE(source.Attrs->'options', '[]'::jsonb)),
-       UpdateAt = $1
-  FROM PropertyFields AS source
- WHERE source.ID IN (%s)
-   AND linked.LinkedFieldID = source.ID
-   AND linked.DeleteAt = 0
-   AND (linked.Type != source.Type
-        OR linked.Attrs->'options' IS DISTINCT FROM source.Attrs->'options')
-`, strings.Join(inPlaceholders, ", "))
-
-	if _, execErr := transaction.ExecRaw(propagateSQL, propagateArgs...); execErr != nil {
-		return nil, errors.Wrap(execErr, "property_field_update_propagate")
+	// Before the option lists are reconciled: a field that has just stopped
+	// linking owns the options it was deriving from now on -- and, on a graph
+	// field, the hierarchy between them -- and its property values already point
+	// at them.
+	for _, field := range fields {
+		sourceID, ok := clearedSources[field.ID]
+		if !ok {
+			continue
+		}
+		if err = s.takeOverLinkSourceOptions(transaction, field, sourceID, updateTime); err != nil {
+			return nil, errors.Wrap(err, "property_field_update_take_over_options")
+		}
+		if err = s.takeOverLinkSourceOptionEdges(transaction, field, sourceID); err != nil {
+			return nil, errors.Wrap(err, "property_field_update_take_over_option_edges")
+		}
 	}
 
-	// Retrieve propagated linked fields to include in the return value
-	selectBuilder := s.tableSelectQuery.
-		Where(sq.Eq{"LinkedFieldID": ids}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.Eq{"UpdateAt": updateTime})
-
-	var propagatedFields []*model.PropertyField
-	if selectErr := transaction.SelectBuilder(&propagatedFields, selectBuilder); selectErr != nil {
-		return nil, errors.Wrap(selectErr, "property_field_update_select_propagated")
+	changedFieldIDs, err := s.syncPropertyFieldOptions(transaction, fields, updateTime)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_update_options")
 	}
 
-	if err := transaction.Commit(); err != nil {
+	// A field that links to a template derives that template's options rather
+	// than holding a copy of them, so changing a template's options changes what
+	// every dependent serves without touching a single dependent row. Return the
+	// dependents anyway: a caller broadcasting these fields has to tell the
+	// dependents' clients that their option list moved.
+	var dependents []*model.PropertyField
+	if len(changedFieldIDs) > 0 {
+		dependents, err = s.getLinkedFields(transaction, changedFieldIDs, ids)
+		if err != nil {
+			return nil, errors.Wrap(err, "property_field_update_select_dependents")
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
 		return nil, errors.Wrap(err, "property_field_update_commit_transaction")
 	}
 
-	return append(fields, propagatedFields...), nil
+	// Returned with the columns as stored, for the reason given in Create. The
+	// dependents were read back, so they already are.
+	applyProjectedPermissionColumns(fields)
+
+	return append(fields, dependents...), nil
 }
 
-func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
+// Delete soft-deletes a field and takes the options it owns with it, in one
+// transaction: the options are soft-deleted alongside it and the hierarchy
+// between them is deleted outright.
+//
+// The options have to go with the field rather than being left behind: every
+// query about an option filters on the option's own DeleteAt and none of them
+// joins to the field's, so an option row left live under a deleted field goes on
+// answering as a live option -- to a value being validated against it, and to a
+// hierarchy walk seeded from it.
+//
+// Nothing checks the field's type first: a field with no options runs two
+// statements that match nothing, which is cheaper than the read it would take to
+// find out, and both are served by a primary key leading with FieldID.
+//
+// UpdateAt is advanced with the same GREATEST(now, UpdateAt+1) expression as
+// an option change: a same-millisecond delete would otherwise leave the
+// timestamp a racing option write is holding, and that write would still win
+// the swap. The bump also puts the tombstone in front of delta-sync clients
+// already past the pre-delete UpdateAt.
+func (s *SqlPropertyFieldStore) Delete(groupID string, id string) (err error) {
+	now := model.GetMillis()
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "property_field_delete_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
 	builder := s.getQueryBuilder().
 		Update("PropertyFields").
-		Set("DeleteAt", model.GetMillis()).
+		Set("DeleteAt", now).
+		Set("UpdateAt", sq.Expr("GREATEST(?, UpdateAt + 1)", now)).
 		Where(sq.Eq{"id": id})
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
-	result, err := s.GetMaster().ExecBuilder(builder)
+	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete property field with id: %s", id)
 	}
@@ -521,7 +726,24 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
 		return errors.Wrap(err, "property_field_delete_rowsaffected")
 	}
 	if count == 0 {
+		// Either no such field or one in another group. Nothing has been written yet
+		// beyond this statement, which the rollback undoes with it.
 		return store.NewErrNotFound("PropertyField", id)
+	}
+
+	if err = s.deleteOwnedOptions(transaction, id, now); err != nil {
+		return err
+	}
+
+	// Soft-delete cascades only on hard deletes, so explicit cleanup is needed.
+	if _, err = transaction.ExecBuilder(s.getQueryBuilder().
+		Delete("PropertyFieldGrants").
+		Where(sq.Eq{"FieldID": id})); err != nil {
+		return errors.Wrap(err, "property_field_delete_grants")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "property_field_delete_commit_transaction")
 	}
 
 	return nil
@@ -731,6 +953,59 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 	return conflictLevel, nil
 }
 
+// GetExistingOptionIDs returns which of the given option IDs exist, and are not
+// deleted, in the field's effective option set: the options it owns plus those
+// owned by the template it links to.
+//
+// This is how a caller holding option identifiers checks them. The option list
+// inlined into a field on read is absent above
+// model.PropertyFieldMaxHydratedOptions options, so checking against that list
+// rejects every identifier once a field grows past the cap. Reads from the master
+// because it gates writes, matching CountLinkedFields.
+func (s *SqlPropertyFieldStore) GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error) {
+	return s.getExistingOptionIDs(s.GetMaster(), optionOwnerIDs(field), optionIDs)
+}
+
+// GetLinkedFields returns the live fields linking to any of the given fields,
+// each with its own effective option set inlined. Fields named in excludeIDs are
+// left out, so a caller already holding some of them is not handed the same field
+// twice.
+//
+// A field linking to a template serves that template's options as its own without
+// holding a copy, so a change to the template changes what the dependent serves
+// while leaving the dependent's row untouched. This is how the fields that change
+// with it are found.
+//
+// Reads the master. Every caller is a write path asking what else its write
+// affected, and a replica could answer with the option list from before it.
+func (s *SqlPropertyFieldStore) GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error) {
+	return s.getLinkedFields(s.GetMaster(), fieldIDs, excludeIDs)
+}
+
+func (s *SqlPropertyFieldStore) getLinkedFields(db sqlxExecutor, fieldIDs, excludeIDs []string) ([]*model.PropertyField, error) {
+	if len(fieldIDs) == 0 {
+		return nil, nil
+	}
+
+	builder := s.tableSelectQuery.
+		Where(sq.Eq{"LinkedFieldID": fieldIDs}).
+		Where(sq.Eq{"DeleteAt": 0})
+	if len(excludeIDs) > 0 {
+		builder = builder.Where(sq.NotEq{"ID": excludeIDs})
+	}
+
+	var fields []*model.PropertyField
+	if err := db.SelectBuilder(&fields, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_linked_fields")
+	}
+
+	if err := s.hydratePropertyFieldOptions(db, fields); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_linked_fields_hydrate_options")
+	}
+
+	return fields, nil
+}
+
 func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
 	var count int64
 	builder := s.getQueryBuilder().
@@ -743,4 +1018,122 @@ func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error)
 		return 0, errors.Wrap(err, "property_field_count_linked_fields")
 	}
 	return count, nil
+}
+
+// syncPropertyFieldGrants deletes all existing grants for a field and inserts new
+// ones based on field.Permissions.Grants. Each grant's allow list is expanded into
+// individual rows, one per action. If Permissions is nil or has no grants, only the
+// delete is run (which is a no-op if the field had no prior grants).
+//
+// The table is an index over the grants stored in the permissions column, and
+// its key leaves out scopes, so two grants can map to the same row: one identity
+// listed under two scopes with an action in common, or an action repeated in one
+// allow list. Each row is written once. Nothing is lost, because the column
+// keeps every grant as submitted.
+func (s *SqlPropertyFieldStore) syncPropertyFieldGrants(transaction *sqlxTxWrapper, fieldID string, permissions *model.Permissions, now int64) error {
+	builder := s.getQueryBuilder().
+		Delete("PropertyFieldGrants").
+		Where(sq.Eq{"FieldID": fieldID})
+
+	if _, err := transaction.ExecBuilder(builder); err != nil {
+		return errors.Wrap(err, "property_field_sync_grants_delete")
+	}
+
+	if permissions == nil || len(permissions.Grants) == 0 {
+		return nil
+	}
+
+	insertBuilder := s.getQueryBuilder().Insert("PropertyFieldGrants").
+		Columns("FieldID", "Type", "ID", "Action")
+
+	type grantRow struct{ identityType, id, action string }
+	written := make(map[grantRow]bool)
+	for _, grant := range permissions.Grants {
+		for _, action := range grant.Allow {
+			row := grantRow{grant.Type, grant.ID, action}
+			if written[row] {
+				continue
+			}
+			written[row] = true
+			insertBuilder = insertBuilder.Values(fieldID, grant.Type, grant.ID, action)
+		}
+	}
+
+	if _, err := transaction.ExecBuilder(insertBuilder); err != nil {
+		return errors.Wrap(err, "property_field_sync_grants_insert")
+	}
+
+	return nil
+}
+
+// GetFieldsByGrant returns the IDs of fields where (ownerType, ownerID) holds a
+// grant for action, used by delegated-admin and system-console tooling to
+// answer "which fields can this caller act on".
+func (s *SqlPropertyFieldStore) GetFieldsByGrant(rctx request.CTX, ownerType, ownerID, action string) ([]string, error) {
+	builder := s.getQueryBuilder().
+		Select("DISTINCT FieldID").
+		From("PropertyFieldGrants").
+		Where(sq.Eq{"Type": ownerType, "ID": ownerID, "Action": action}).
+		OrderBy("FieldID")
+
+	fieldIDs := []string{}
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&fieldIDs, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_fields_by_grant")
+	}
+
+	return fieldIDs, nil
+}
+
+// GetGrantsForField reconstructs a field's grants from the normalized
+// PropertyFieldGrants table, one model.Grant per (type, id) pair with Allow
+// populated from its aggregated actions.
+func (s *SqlPropertyFieldStore) GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("Type", "ID", "Array_Agg(Action ORDER BY Action) as Actions").
+		From("PropertyFieldGrants").
+		Where(sq.Eq{"FieldID": fieldID}).
+		GroupBy("Type", "ID").
+		OrderBy("Type", "ID").
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_get_grants_for_field_tosql")
+	}
+
+	rows, err := s.DBXFromContext(rctx.Context()).Query(query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_get_grants_for_field_query")
+	}
+	defer rows.Close()
+
+	grants := []model.Grant{}
+	for rows.Next() {
+		var grant model.Grant
+		if err := rows.Scan(&grant.Type, &grant.ID, pq.Array(&grant.Allow)); err != nil {
+			return nil, errors.Wrap(err, "property_field_get_grants_for_field_scan")
+		}
+		grants = append(grants, grant)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_grants_for_field_rows")
+	}
+
+	return grants, nil
+}
+
+// HasGrantForIdentity returns whether (ownerType, ownerID) holds a grant on any
+// field, used by delegated-admin's quick "does this user hold any grant" check.
+func (s *SqlPropertyFieldStore) HasGrantForIdentity(rctx request.CTX, ownerType, ownerID string) (bool, error) {
+	builder := s.getQueryBuilder().
+		Select("1").
+		Prefix("SELECT EXISTS (").
+		From("PropertyFieldGrants").
+		Where(sq.Eq{"Type": ownerType, "ID": ownerID}).
+		Suffix(")")
+
+	var exists bool
+	if err := s.DBXFromContext(rctx.Context()).GetBuilder(&exists, builder); err != nil {
+		return false, errors.Wrap(err, "property_field_has_grant_for_identity")
+	}
+
+	return exists, nil
 }

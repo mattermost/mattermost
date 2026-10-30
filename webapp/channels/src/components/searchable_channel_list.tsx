@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -18,7 +18,6 @@ import * as Menu from 'components/menu';
 import QuickInput from 'components/quick_input';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -42,6 +41,8 @@ interface Props extends WrappedComponentProps {
     closeModal: (modalId: string) => void;
     hideJoinedChannelsPreference: (shouldHideJoinedChannels: boolean) => void;
     rememberHideJoinedChannelsChecked: boolean;
+    hideArchivedChannelsPreference: (shouldHideArchivedChannels: boolean) => void;
+    rememberHideArchivedChannelsChecked: boolean;
     loading?: boolean;
     channelsMemberCount?: Record<string, number>;
     showRecommendedFilter?: boolean;
@@ -68,8 +69,8 @@ type State = {
 
 export class SearchableChannelList extends React.PureComponent<Props, State> {
     private nextTimeoutId: number | NodeJS.Timeout;
-    private filter: React.RefObject<HTMLInputElement>;
-    private channelListScroll: React.RefObject<HTMLDivElement>;
+    private filter: React.RefObject<HTMLInputElement | null>;
+    private channelListScroll: React.RefObject<HTMLDivElement | null>;
 
     static getDerivedStateFromProps(props: Props, state: State) {
         return {isSearch: props.isSearch, page: props.isSearch && !state.isSearch ? 0 : state.page};
@@ -267,21 +268,21 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     id='joinViewChannelButton'
                     onClick={(e) => this.handleJoin(channel, e)}
                     emphasis={joinViewChannelButtonEmphasis}
-                    size='sm'
+                    size='small'
                     className={joinViewChannelButtonClass}
                     disabled={Boolean(this.state.joiningChannel)}
+                    loading={this.state.joiningChannel === channel.id}
                     tabIndex={-1}
                     aria-label={isMember ? this.props.intl.formatMessage({id: 'more_channels.view', defaultMessage: 'View'}) : this.props.intl.formatMessage({id: 'joinChannel.JoinButton', defaultMessage: 'Join'})}
                 >
-                    <LoadingWrapper
-                        loading={this.state.joiningChannel === channel.id}
-                        text={messages.joiningButton}
-                    >
+                    {this.state.joiningChannel === channel.id ? (
+                        this.props.intl.formatMessage(messages.joiningButton)
+                    ) : (
                         <FormattedMessage
                             id={isMember ? 'more_channels.view' : 'joinChannel.JoinButton'}
                             defaultMessage={isMember ? 'View' : 'Join'}
                         />
-                    </LoadingWrapper>
+                    )}
                 </Button>
             );
         };
@@ -291,42 +292,43 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 id='requestToJoinChannelButton'
                 onClick={(e) => this.handleRequestToJoin(channel, e)}
                 emphasis='primary'
-                size='sm'
+                size='small'
                 className='primaryButton'
                 disabled={Boolean(this.state.requestingChannel)}
+                loading={this.state.requestingChannel === channel.id}
                 tabIndex={-1}
                 aria-label={this.props.intl.formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
             >
-                <LoadingWrapper
-                    loading={this.state.requestingChannel === channel.id}
-                    text={messages.requesting}
-                >
+                {this.state.requestingChannel === channel.id ? (
+                    this.props.intl.formatMessage(messages.requesting)
+                ) : (
                     <FormattedMessage
                         id='more_channels.requestToJoin'
                         defaultMessage='Request to join'
                     />
-                </LoadingWrapper>
+                )}
             </Button>
         );
 
         const renderWithdrawButton = () => (
             <Button
                 id='withdrawRequestButton'
+                className='withdrawButton'
                 onClick={(e) => this.handleWithdrawRequest(channel, e)}
                 emphasis='tertiary'
-                size='sm'
+                size='small'
                 disabled={Boolean(this.state.withdrawingChannel)}
+                loading={this.state.withdrawingChannel === channel.id}
                 aria-label={this.props.intl.formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'})}
             >
-                <LoadingWrapper
-                    loading={this.state.withdrawingChannel === channel.id}
-                    text={messages.withdrawing}
-                >
+                {this.state.withdrawingChannel === channel.id ? (
+                    this.props.intl.formatMessage(messages.withdrawing)
+                ) : (
                     <FormattedMessage
                         id='more_channels.withdraw'
                         defaultMessage='Withdraw'
                     />
-                </LoadingWrapper>
+                )}
             </Button>
         );
 
@@ -450,6 +452,9 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         } else {
             this.props.hideJoinedChannelsPreference(true);
         }
+    };
+    handleArchivedChecked = () => {
+        this.props.hideArchivedChannelsPreference(!this.props.rememberHideArchivedChannelsChecked);
     };
     getEmptyStateMessage = () => {
         if (this.state.channelSearchValue.length > 0) {
@@ -607,7 +612,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 nextButton = (
                     <Button
                         emphasis='tertiary'
-                        size='sm'
+                        size='small'
                         className='filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
@@ -625,7 +630,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 previousButton = (
                     <Button
                         emphasis='tertiary'
-                        size='sm'
+                        size='small'
                         className='filter-control filter-control__prev'
                         onClick={this.previousPage}
                         aria-label={this.props.intl.formatMessage({id: 'more_channels.prev', defaultMessage: 'Previous'})}
@@ -851,6 +856,34 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </div>
         );
 
+        // The archived filter explicitly asks for archived channels, so hiding
+        // them there would leave an empty list — only offer the toggle elsewhere.
+        const hideArchivedButtonClass = classNames('get-app__checkbox', {checked: this.props.rememberHideArchivedChannelsChecked});
+        const hideArchivedPreferenceCheckbox = this.props.filter === Filter.Archived ? null : (
+            <div
+                id={'hideArchivedPreferenceCheckbox'}
+                onClick={this.handleArchivedChecked}
+                onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        this.handleArchivedChecked();
+                    }
+                }}
+                role='checkbox'
+                aria-checked={this.props.rememberHideArchivedChannelsChecked}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.hide_archived_channels', defaultMessage: 'Hide archived channels'})}
+                tabIndex={0}
+            >
+                <div className={hideArchivedButtonClass}>
+                    {this.props.rememberHideArchivedChannelsChecked ? <CheckboxCheckedIcon/> : null}
+                </div>
+                <FormattedMessage
+                    id='more_channels.hide_archived'
+                    defaultMessage='Hide Archived'
+                />
+            </div>
+        );
+
         let channelCountLabel;
         if (channels.length === 0) {
             channelCountLabel = this.props.intl.formatMessage({id: 'more_channels.count_zero', defaultMessage: '0 Results'});
@@ -874,6 +907,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 </span>
                 <div id='modalPreferenceContainer'>
                     {channelDropdown}
+                    {hideArchivedPreferenceCheckbox}
                     {hideJoinedPreferenceCheckbox}
                 </div>
             </div>
@@ -912,7 +946,7 @@ const messages = defineMessages({
     },
     channelPurpose: {
         id: 'more_channels.channel_purpose',
-        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}',
+        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
     },
     joiningButton: {
         id: 'joinChannel.joiningButton',

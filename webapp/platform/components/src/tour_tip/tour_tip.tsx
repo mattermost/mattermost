@@ -1,23 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Tippy from '@tippyjs/react';
+import {
+    useFloating,
+    autoUpdate,
+    offset as floatingOffset,
+    flip,
+    shift,
+    arrow,
+    FloatingArrow,
+    FloatingPortal,
+    useTransitionStyles,
+    type Placement,
+} from '@floating-ui/react';
 import classNames from 'classnames';
-import React, {useRef} from 'react';
+import React, {useId, useRef, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
-import type {Placement} from 'tippy.js';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {TourTipBackdrop} from './tour_tip_backdrop';
 
 import type {Props as PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
 import {PulsatingDot} from '../pulsating_dot';
-
-import 'tippy.js/dist/tippy.css';
-import 'tippy.js/themes/light-border.css';
-import 'tippy.js/animations/scale-subtle.css';
-import 'tippy.js/animations/perspective-subtle.css';
 
 import './tour_tip.scss';
 
@@ -25,6 +31,21 @@ export type TourTipEventSource = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped
 
 // If this needs to alter, change in _variables $z-index-tour-tips-popover as well
 const DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER = 1300;
+const ROOT_PORTAL_ID = 'root-portal';
+const OverlayArrow = {
+    WIDTH: 12,
+    HEIGHT: 8,
+};
+const TRANSITION_STYLE_PROPS = {
+    duration: {
+        open: 250,
+        close: 150,
+    },
+    initial: {
+        opacity: 0,
+        transform: 'scale(0.96)',
+    },
+};
 
 type Props = {
     show: boolean;
@@ -35,6 +56,11 @@ type Props = {
     tourSteps?: Record<string, number>;
     nextBtn?: JSX.Element;
     prevBtn?: JSX.Element;
+
+    // Compass icon glyphs (e.g. <ChevronRightIcon/>) for the Button icon slots. TourTip wraps
+    // them in Icon itself so Button sizes them, and they stay off the label.
+    nextTrailingGlyph?: React.ReactNode;
+    prevLeadingGlyph?: React.ReactNode;
     imageURL?: string;
     singleTip?: boolean;
     showOptOut?: boolean;
@@ -84,8 +110,10 @@ export const TourTip = ({
     pulsatingDotPlacement,
     nextBtn,
     prevBtn,
+    nextTrailingGlyph,
+    prevLeadingGlyph,
     className,
-    offset = [-18, 4],
+    offset: tipOffset = [-18, 4],
     placement = 'right-start',
     showOptOut = true,
     width = 352,
@@ -94,13 +122,46 @@ export const TourTip = ({
     tippyBlueStyle = false,
 }: Props) => {
     const FIRST_STEP_INDEX = 0;
-    const triggerRef = useRef(null);
+    const titleId = useId();
+    const arrowRef = useRef<SVGSVGElement>(null);
     const onJump = (event: React.MouseEvent, jumpToStep: number) => {
         handleJump?.(event, jumpToStep);
     };
 
-    // This needs to be changed if root-portal node isn't available to maybe body
-    const rootPortal = document.getElementById('root-portal');
+    const rootPortal = document.getElementById(ROOT_PORTAL_ID);
+    const backdropPortal = rootPortal ?? document.body;
+
+    const {
+        refs: {setReference, setFloating},
+        floatingStyles,
+        context: floatingContext,
+        placement: resolvedPlacement,
+    } = useFloating({
+        open: show,
+        whileElementsMounted: autoUpdate,
+        placement,
+        middleware: [
+            floatingOffset({
+                crossAxis: tipOffset[0],
+                mainAxis: tipOffset[1],
+            }),
+            flip(),
+            shift({padding: 8}),
+            arrow({
+                element: arrowRef,
+                padding: 8,
+            }),
+        ],
+    });
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(
+        floatingContext,
+        TRANSITION_STYLE_PROPS,
+    );
+
+    const combinedTransform = [
+        floatingStyles.transform,
+        transitionStyles.transform,
+    ].filter(Boolean).join(' ');
 
     const dots = [];
     if (!singleTip && tourSteps) {
@@ -132,7 +193,10 @@ export const TourTip = ({
                 className='tour-tip__header'
                 data-testid={'current_tutorial_tip'}
             >
-                <h4 className='tour-tip__header__title'>
+                <h4
+                    id={titleId}
+                    className='tour-tip__header__title'
+                >
                     {title}
                 </h4>
                 <button
@@ -162,7 +226,8 @@ export const TourTip = ({
                             <Button
                                 id='tipPreviousButton'
                                 emphasis='tertiary'
-                                size='sm'
+                                size='small'
+                                leadingIcon={prevLeadingGlyph ? <Icon glyph={prevLeadingGlyph}/> : undefined}
                                 onClick={handlePrevious}
                             >
                                 {prevBtn}
@@ -172,7 +237,8 @@ export const TourTip = ({
                             <Button
                                 id='tipNextButton'
                                 emphasis='primary'
-                                size='sm'
+                                size='small'
+                                trailingIcon={nextTrailingGlyph ? <Icon glyph={nextTrailingGlyph}/> : undefined}
                                 onClick={handleNext}
                             >
                                 {nextBtn}
@@ -186,15 +252,17 @@ export const TourTip = ({
                             id='tutorial_tip.seen'
                             defaultMessage='Seen this before? '
                         />
-                        <a
-                            href='#'
+                        <Button
+                            className='tour-tip__opt-out'
+                            emphasis='link'
+                            size='x-small'
                             onClick={handleSkip}
                         >
                             <FormattedMessage
                                 id='tutorial_tip.out'
                                 defaultMessage='Opt out of these tips.'
                             />
-                        </a>
+                        </Button>
                     </div>
                 )}
             </div>
@@ -206,47 +274,60 @@ export const TourTip = ({
         <>
             <div
                 id='tipButton'
-                ref={triggerRef}
+                ref={setReference}
                 onClick={handleOpen}
                 className='tour-tip__pulsating-dot-ctr'
                 data-pulsating-dot-placement={pulsatingDotPlacement || 'right'}
                 style={{
-                    transform: `translate(${pulsatingDotTranslate?.x}px, ${pulsatingDotTranslate?.y}px)`,
+                    transform: pulsatingDotTranslate ?
+                        `translate(${pulsatingDotTranslate.x}px, ${pulsatingDotTranslate.y}px)` :
+                        undefined,
                 }}
             >
                 <PulsatingDot/>
             </div>
             <TourTipBackdrop
-                show={show}
+                show={isMounted}
                 onDismiss={handleDismiss}
                 onPunchOut={handlePunchOut}
                 interactivePunchOut={interactivePunchOut}
                 overlayPunchOut={overlayPunchOut}
-                appendTo={rootPortal!}
+                appendTo={backdropPortal}
                 transparent={hideBackdrop}
             />
-            {show && (
-                <Tippy
-                    showOnCreate={show}
-                    content={content}
-                    animation='scale-subtle'
-                    trigger='click'
-                    duration={[250, 150]}
-                    maxWidth={width}
-                    aria={{content: 'labelledby'}}
-                    allowHTML={true}
-                    zIndex={zIndex}
-                    reference={triggerRef}
-                    interactive={true}
-                    appendTo={rootPortal!}
-                    offset={offset}
-                    className={classNames(
-                        'tour-tip__box',
-                        className,
-                        {'tippy-blue-style': tippyBlueStyle},
-                    )}
-                    placement={placement}
-                />
+            {isMounted && (
+                <FloatingPortal id={ROOT_PORTAL_ID}>
+                    <div
+                        ref={setFloating}
+                        className={classNames(
+                            'tour-tip__box',
+                            className,
+                            {'tippy-blue-style': tippyBlueStyle},
+                        )}
+                        style={{
+                            ...floatingStyles,
+                            ...transitionStyles,
+                            transform: combinedTransform || undefined,
+                            maxWidth: width,
+                            zIndex,
+                        }}
+                        data-placement={resolvedPlacement}
+                        role='dialog'
+                        aria-labelledby={titleId}
+                    >
+                        {content}
+                        <FloatingArrow
+                            ref={arrowRef}
+                            context={floatingContext}
+                            className='tour-tip__arrow'
+                            width={OverlayArrow.WIDTH}
+                            height={OverlayArrow.HEIGHT}
+                            fill='var(--button-bg)'
+                            stroke='rgba(var(--center-channel-color-rgb), 0.16)'
+                            strokeWidth={1}
+                        />
+                    </div>
+                </FloatingPortal>
             )}
         </>
     );

@@ -15,6 +15,8 @@ const mockConstructorError: {current: Error | null} = {current: null};
 const mockChainCalls: {current: string[]} = {current: []};
 const mockSetNodeThrows: {current: boolean} = {current: false};
 const mockRunReturnsFalse: {current: boolean} = {current: false};
+const mockMarkdownFailure: {current: 'parse' | 'insert' | null} = {current: null};
+const mockInsertedContent: {current: unknown[]} = {current: []};
 
 jest.mock('@tiptap/react', () => {
     const ReactMock = require('react') as typeof import('react');
@@ -25,13 +27,27 @@ jest.mock('@tiptap/react', () => {
             const base: any = {
                 isDestroyed: false,
                 isEmpty: true,
+                isActive: () => false,
                 commands: {
                     clearContent: () => undefined,
                     focus: () => undefined,
                     blur: () => undefined,
-                    insertContent: () => undefined,
+                    insertContent: (content: unknown) => {
+                        if (mockMarkdownFailure.current === 'insert' && mockInsertedContent.current.length === 0) {
+                            mockInsertedContent.current.push('rejected');
+                            throw new RangeError('Invalid content for node listItem');
+                        }
+                        mockInsertedContent.current.push(content);
+                        return true;
+                    },
                 },
-                setEditable: () => undefined,
+
+                // Mirrors the real library: an update is emitted unless the caller opts out.
+                setEditable: (_editable: boolean, emitUpdate = true) => {
+                    if (emitUpdate) {
+                        config?.onUpdate?.({editor: base});
+                    }
+                },
                 getJSON: () => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: 'hi'}]}]}),
                 view: {dom: globalThis.document.createElement('div')},
 
@@ -61,6 +77,16 @@ jest.mock('@tiptap/react', () => {
             const hasMarkdownExt = (config?.extensions ?? []).some((e: any) => (e.name || e.config?.name) === 'markdown');
             if (hasMarkdownExt) {
                 base.getMarkdown = () => 'hi';
+                base.schema = {nodes: {}};
+                base.markdown = {
+                    parse: (md: string) => {
+                        if (mockMarkdownFailure.current === 'parse') {
+                            throw new Error('Unsupported markdown');
+                        }
+                        return {type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: md}]}]};
+                    },
+                    serialize: () => 'hi',
+                };
             }
 
             // Tiptap emits contentError synchronously inside the Editor
@@ -77,10 +103,13 @@ jest.mock('@tiptap/react', () => {
     };
 });
 
-jest.mock('./wysiwyg_suggestion_list', () => ({
-    __esModule: true,
-    default: () => null,
-}));
+jest.mock('./wysiwyg_suggestion_list', () => {
+    const ReactMock = require('react') as typeof import('react');
+    return {
+        __esModule: true,
+        default: () => ReactMock.createElement('div', {'data-testid': 'suggestion-list'}),
+    };
+});
 
 import WysiwygEditor from './wysiwyg_editor';
 
@@ -402,6 +431,68 @@ describe('WysiwygEditor', () => {
         expect(result).toBe(true);
     });
 
+    describe('handlePaste and the text/html flavour', () => {
+        const paste = (text: string, html: string) => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+            return mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, {
+                preventDefault: jest.fn(),
+                clipboardData: {getData: (type: string) => (type === 'text/plain' ? text : html)},
+            } as any);
+        };
+
+        test('parses markdown even when the clipboard also carries HTML', () => {
+            expect(paste('# heading', '<meta charset="utf-8"><span># heading</span>')).toBe(true);
+        });
+
+        test('defers to ProseMirror when the HTML came from another editor', () => {
+            expect(paste('# heading', '<div data-pm-slice="1 1 []"><h1>heading</h1></div>')).toBe(false);
+        });
+
+        test('defers to ProseMirror when the text is not markdown', () => {
+            expect(paste('just words', '<b>just words</b>')).toBe(false);
+        });
+
+        test.each(['parse', 'insert'] as const)('pastes the markdown as plain text when the %s step fails', (failure) => {
+            mockMarkdownFailure.current = failure;
+            mockInsertedContent.current = [];
+            try {
+                expect(paste('# title\n\n- [ ] todo', '<b>ignored</b>')).toBe(true);
+                expect(mockInsertedContent.current[mockInsertedContent.current.length - 1]).toEqual([
+                    {type: 'paragraph', content: [{type: 'text', text: '# title'}]},
+                    {type: 'paragraph', content: []},
+                    {type: 'paragraph', content: [{type: 'text', text: '- [ ] todo'}]},
+                ]);
+            } finally {
+                mockMarkdownFailure.current = null;
+            }
+        });
+    });
+
+    describe('handlePaste with clipboard files', () => {
+        const paste = (text: string, files: File[]) => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+            return mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, {
+                preventDefault: jest.fn(),
+                clipboardData: {
+                    getData: (type: string) => (type === 'text/plain' ? text : '<img src="blob:image">'),
+                    files,
+                },
+            } as any);
+        };
+
+        test('swallows image-only pastes so the image is attached, not embedded', () => {
+            expect(paste('', [new File([''], 'image.png', {type: 'image/png'})])).toBe(true);
+        });
+
+        test('lets ProseMirror handle pastes with neither text nor files', () => {
+            expect(paste('', [])).toBe(false);
+        });
+
+        test('lets text win when the clipboard also carries files', () => {
+            expect(paste('just words', [new File([''], 'image.png', {type: 'image/png'})])).toBe(false);
+        });
+    });
+
     test('getEditor() on the handle returns the underlying Tiptap Editor instance', () => {
         const ref = React.createRef<React.ComponentRef<typeof WysiwygEditor>>();
 
@@ -477,6 +568,141 @@ describe('WysiwygEditor', () => {
         );
 
         expect(ref.current!.hasContentError()).toBe(false);
+    });
+
+    describe('readOnly', () => {
+        const domAttributes = () => mockCapturedConfig.current?.editorProps?.attributes?.();
+
+        test('an editable editor is a textbox that is not disabled', () => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+
+            expect(mockCapturedConfig.current?.editable).toBe(true);
+            expect(domAttributes()).toMatchObject({role: 'textbox', 'aria-disabled': 'false'});
+        });
+
+        test('disabled is a textbox the user is locked out of', () => {
+            const {container} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    disabled={true}
+                />,
+            );
+
+            expect(mockCapturedConfig.current?.editable).toBe(false);
+            expect(domAttributes()).toMatchObject({role: 'textbox', 'aria-disabled': 'true', 'data-disabled': 'true'});
+            expect(container.querySelector('.WysiwygEditor--disabled')).not.toBeNull();
+        });
+
+        test('readOnly is content: not editable, and not announced as a control', () => {
+            const {container} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    readOnly={true}
+                />,
+            );
+
+            expect(mockCapturedConfig.current?.editable).toBe(false);
+
+            const attributes = domAttributes();
+            expect(attributes).not.toHaveProperty('role');
+            expect(attributes).not.toHaveProperty('aria-disabled');
+            expect(attributes).not.toHaveProperty('data-disabled');
+            expect(container.querySelector('.WysiwygEditor--disabled')).toBeNull();
+        });
+
+        test('readOnly keeps an id addressable for callers that pass one', () => {
+            renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    readOnly={true}
+                    id='page-body'
+                />,
+            );
+
+            expect(domAttributes()).toMatchObject({id: 'page-body', 'data-testid': 'page-body'});
+        });
+
+        test('readOnly wins over disabled, so a caller passing both gets content', () => {
+            const {container} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    disabled={true}
+                    readOnly={true}
+                />,
+            );
+
+            expect(domAttributes()).not.toHaveProperty('aria-disabled');
+            expect(container.querySelector('.WysiwygEditor--disabled')).toBeNull();
+        });
+
+        test('readOnly leaves out the suggestion list, which has nothing to complete', () => {
+            const {queryByTestId, rerender} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    readOnly={true}
+                />,
+            );
+
+            expect(queryByTestId('suggestion-list')).toBeNull();
+
+            rerender(<WysiwygEditor {...baseProps}/>);
+            expect(queryByTestId('suggestion-list')).not.toBeNull();
+        });
+
+        test('readOnly holds against insertText, which a handle holder can still reach for', () => {
+            jest.useFakeTimers();
+            const onChange = jest.fn();
+            const ref = React.createRef<React.ComponentRef<typeof WysiwygEditor>>();
+
+            renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    ref={ref}
+                    onChange={onChange}
+                    readOnly={true}
+                />,
+            );
+
+            mockChainCalls.current = [];
+            ref.current!.insertText(':smile:');
+            jest.runAllTimers();
+
+            expect(mockChainCalls.current).toHaveLength(0);
+            expect(onChange).not.toHaveBeenCalled();
+
+            jest.useRealTimers();
+        });
+
+        test('switching in and out of readOnly is not an edit', () => {
+            jest.useFakeTimers();
+            const onChange = jest.fn();
+
+            const {rerender} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    onChange={onChange}
+                />,
+            );
+
+            rerender(
+                <WysiwygEditor
+                    {...baseProps}
+                    onChange={onChange}
+                    readOnly={true}
+                />,
+            );
+            rerender(
+                <WysiwygEditor
+                    {...baseProps}
+                    onChange={onChange}
+                />,
+            );
+            jest.runAllTimers();
+
+            expect(onChange).not.toHaveBeenCalled();
+
+            jest.useRealTimers();
+        });
     });
 
     describe('Enter inside a heading', () => {

@@ -63,15 +63,14 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 		storeErr   error
 	)
 	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
-		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(userID)
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(rctx, userID)
 		if dayErr != nil {
 			return nil, dayErr
 		}
 
 		savedRecap, storeErr = a.Srv().Store().Recap().SaveRecapIfUnderDailyLimit(recap, startOfDayMillis, limits.MaxRecapsPerDay)
 		if storeErr != nil {
-			var limitErr *store.ErrLimitExceeded
-			if errors.As(storeErr, &limitErr) {
+			if _, ok := errors.AsType[*store.ErrLimitExceeded](storeErr); ok {
 				return nil, recapMaxRecapsReachedError("CreateRecap", limits.MaxRecapsPerDay)
 			}
 			return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
@@ -215,7 +214,7 @@ func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Reca
 	}
 
 	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
-		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(userID)
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(rctx, userID)
 		if dayErr != nil {
 			return nil, dayErr
 		}
@@ -314,7 +313,7 @@ func (a *App) ProcessRecapChannelWithOptions(rctx request.CTX, recapID, channelI
 	}
 	fetchSince, allowRecentFallback := recapFetchStartAt(options.TimePeriod, lastViewedAt, time.Now())
 
-	remainingPosts, limitErr := a.getRemainingPostsForRecap(userID, recapID)
+	remainingPosts, limitErr := a.getRemainingPostsForRecap(rctx, userID, recapID)
 	if limitErr != nil {
 		return result, limitErr
 	}
@@ -435,7 +434,7 @@ func (a *App) fetchPostsForRecapWithFallback(rctx request.CTX, channelID string,
 
 	// Enrich with usernames
 	for _, post := range posts {
-		user, _ := a.GetUser(post.UserId)
+		user, _ := a.GetUser(rctx, post.UserId)
 		if user != nil {
 			if post.Props == nil {
 				post.Props = make(model.StringInterface)
@@ -518,7 +517,7 @@ func (a *App) checkManualRecapCooldown(userID string, limits *model.EffectiveRec
 		"", http.StatusTooManyRequests)
 }
 
-func (a *App) getRemainingPostsForRecap(userID string, recapID string) (int, *model.AppError) {
+func (a *App) getRemainingPostsForRecap(rctx request.CTX, userID string, recapID string) (int, *model.AppError) {
 	const defaultFetchLimit = 100
 
 	limits, limitsErr := a.GetEffectiveLimits()
@@ -537,7 +536,7 @@ func (a *App) getRemainingPostsForRecap(userID string, recapID string) (int, *mo
 	}
 
 	if model.IsLimitEnabled(limits.MaxPostsPerDay) {
-		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(userID)
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(rctx, userID)
 		if dayErr != nil {
 			return 0, dayErr
 		}

@@ -14,15 +14,15 @@ import (
 )
 
 func TestPostAcknowledgementsStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	t.Run("Save", func(t *testing.T) { testPostAcknowledgementsStoreSave(t, rctx, ss) })
+	t.Run("Save", func(t *testing.T) { testPostAcknowledgementsStoreSave(t, rctx, ss, s) })
 	t.Run("GetForPost", func(t *testing.T) { testPostAcknowledgementsStoreGetForPost(t, rctx, ss) })
 	t.Run("GetForPosts", func(t *testing.T) { testPostAcknowledgementsStoreGetForPosts(t, rctx, ss) })
-	t.Run("BatchSave", func(t *testing.T) { testPostAcknowledgementsStoreBatchSave(t, rctx, ss) })
-	t.Run("BatchDelete", func(t *testing.T) { testPostAcknowledgementsStoreBatchDelete(t, rctx, ss) })
+	t.Run("BatchSave", func(t *testing.T) { testPostAcknowledgementsStoreBatchSave(t, rctx, ss, s) })
+	t.Run("BatchDelete", func(t *testing.T) { testPostAcknowledgementsStoreBatchDelete(t, rctx, ss, s) })
 	t.Run("DeleteAllForPost", func(t *testing.T) { testPostAcknowledgementsStoreDeleteAllForPost(t, rctx, ss) })
 }
 
-func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	userID1 := model.NewId()
 
 	p1 := model.Post{}
@@ -58,12 +58,16 @@ func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.
 	})
 
 	t.Run("saving should update the update at of the post", func(t *testing.T) {
-		oldUpdateAt := post.UpdateAt
-		ack := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
-		_, err := ss.PostAcknowledgement().SaveWithModel(ack)
+		// Rewind UpdateAt so SaveWithModel cannot write the same millisecond as the earlier saves.
+		oldUpdateAt := model.GetMillis() - 10000
+		_, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", oldUpdateAt, post.Id)
 		require.NoError(t, err)
 
-		post, err = ss.Post().GetSingle(rctx, post.Id, false)
+		ack := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
+		_, err = ss.PostAcknowledgement().SaveWithModel(ack)
+		require.NoError(t, err)
+
+		post, err = ss.Post().GetSingle(store.RequestContextWithMaster(rctx), post.Id, false)
 		require.NoError(t, err)
 		require.Greater(t, post.UpdateAt, oldUpdateAt)
 	})
@@ -206,7 +210,7 @@ func testPostAcknowledgementsStoreGetForPosts(t *testing.T, rctx request.CTX, ss
 	})
 }
 
-func testPostAcknowledgementsStoreBatchSave(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPostAcknowledgementsStoreBatchSave(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	userID1 := model.NewId()
 	userID2 := model.NewId()
 	userID3 := model.NewId()
@@ -313,10 +317,10 @@ func testPostAcknowledgementsStoreBatchSave(t *testing.T, rctx request.CTX, ss s
 	})
 
 	t.Run("batch save should update post's update_at", func(t *testing.T) {
-		// First, check the current post update timestamp
-		currentPost, err := ss.Post().GetSingle(rctx, post.Id, false)
+		// Rewind UpdateAt so BatchSave cannot write the same millisecond as the earlier saves.
+		oldUpdateAt := model.GetMillis() - 10000
+		_, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", oldUpdateAt, post.Id)
 		require.NoError(t, err)
-		oldUpdateAt := currentPost.UpdateAt
 
 		// Create a batch of new acknowledgements
 		acks := []*model.PostAcknowledgement{
@@ -332,13 +336,13 @@ func testPostAcknowledgementsStoreBatchSave(t *testing.T, rctx request.CTX, ss s
 		require.NoError(t, err)
 
 		// Verify post's update_at was updated
-		updatedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
+		updatedPost, err := ss.Post().GetSingle(store.RequestContextWithMaster(rctx), post.Id, false)
 		require.NoError(t, err)
 		require.Greater(t, updatedPost.UpdateAt, oldUpdateAt)
 	})
 }
 
-func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	userID1 := model.NewId()
 	userID2 := model.NewId()
 	userID3 := model.NewId()
@@ -386,17 +390,17 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 		ack2, err = ss.PostAcknowledgement().SaveWithModel(ack2)
 		require.NoError(t, err)
 
-		// Get current post update timestamp
-		currentPost, err := ss.Post().GetSingle(rctx, post.Id, false)
+		// Rewind UpdateAt so BatchDelete cannot write the same millisecond as SaveWithModel.
+		oldUpdateAt := model.GetMillis() - 10000
+		_, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", oldUpdateAt, post.Id)
 		require.NoError(t, err)
-		oldUpdateAt := currentPost.UpdateAt
 
 		// Delete acknowledgements in batch
 		err = ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{ack1, ack2})
 		require.NoError(t, err)
 
 		// Verify post's update_at was updated
-		updatedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
+		updatedPost, err := ss.Post().GetSingle(store.RequestContextWithMaster(rctx), post.Id, false)
 		require.NoError(t, err)
 		require.Greater(t, updatedPost.UpdateAt, oldUpdateAt)
 	})

@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -86,6 +87,32 @@ func TestPluginAccessControlGobSafety(t *testing.T) {
 
 	t.Run("query users response with a real user", func(t *testing.T) {
 		requirePluginRPCGobSafe(t, &model.AccessControlPolicyTestResponse{Users: []*model.User{th.BasicUser}, Total: 1})
+	})
+
+	t.Run("query users empty result is non-nil at producer and gob-safe", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return(([]*model.User)(nil), int64(0), nil).Once()
+
+		resp, appErr := th.App.QueryUsersForPluginAccessControlExpression(
+			th.Context, testAgentsPluginID, th.BasicUser.Id, testAgentResourceType,
+			`user.attributes.dept == "eng"`, "", "", 10)
+		require.Nil(t, appErr)
+		// Producer normalizes nil → empty slice so JSON/in-process callers never
+		// see null users. encoding/gob still decodes empty slices as nil; host
+		// and plugin UIs keep `users ?? []` as belt-and-braces for that quirk.
+		require.NotNil(t, resp.Users)
+		require.Empty(t, resp.Users)
+		requirePluginRPCGobSafe(t, resp)
+
+		var decoded model.AccessControlPolicyTestResponse
+		var buf bytes.Buffer
+		require.NoError(t, gob.NewEncoder(&buf).Encode(resp))
+		require.NoError(t, gob.NewDecoder(&buf).Decode(&decoded))
+		require.Equal(t, int64(0), decoded.Total)
+		require.Empty(t, decoded.Users)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("evaluation decision carrying a context reason", func(t *testing.T) {

@@ -140,6 +140,7 @@ describe('components/BrowseChannels', () => {
         teamName: 'team_name',
         channelsRequestStarted: false,
         shouldHideJoinedChannels: false,
+        shouldHideArchivedChannels: true,
         accessControlEnabled: false,
         myChannelMemberships: {
             'channel-id-3': TestHelper.getChannelMembershipMock({
@@ -712,6 +713,230 @@ describe('components/BrowseChannels', () => {
         // `accessControlEnabled`. Lock that in so a future refactor doesn't
         // start fetching unconditionally and silently waste a round-trip.
         expect(baseProps.actions.getRecommendedChannelsForUser).not.toHaveBeenCalled();
+    });
+
+    test('hides archived channels from All search results when shouldHideArchivedChannels is true', async () => {
+        const searchAllChannels = jest.fn(channelActions.searchAllChannels);
+        const props = {...baseProps, shouldHideArchivedChannels: true, actions: {...baseProps.actions, searchAllChannels}};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        const searchInput = screen.getByPlaceholderText('Search channels');
+        await user.type(searchInput, 'channel');
+
+        await act(async () => {
+            jest.runOnlyPendingTimers();
+            await Promise.resolve();
+        });
+
+        // The active public and private channels are shown, but the archived
+        // channel returned by the search is filtered out under the default
+        // "All" filter — proving only archived rows are removed.
+        await waitFor(() => {
+            expect(screen.getByText('Channel 1')).toBeInTheDocument();
+            expect(screen.getByText('Private')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Archived')).not.toBeInTheDocument();
+    });
+
+    test('hides archived channels from the browse list by default (no search)', async () => {
+        renderWithContext(<BrowseChannels {...baseProps}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        // baseProps.shouldHideArchivedChannels is true, so the archived channel
+        // ('channel-2') is absent from the default All browse list.
+        expect(screen.getByText('Default Channel')).toBeInTheDocument();
+        expect(screen.queryByText('channel-2')).not.toBeInTheDocument();
+    });
+
+    test('shows archived channels in the browse list when shouldHideArchivedChannels is false (no search)', async () => {
+        const props = {...baseProps, shouldHideArchivedChannels: false};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        // With the toggle off, the archived channel is mixed into the All list.
+        expect(screen.getByText('Default Channel')).toBeInTheDocument();
+        expect(screen.getByText('channel-2')).toBeInTheDocument();
+    });
+
+    test('shows archived channels in All search results when shouldHideArchivedChannels is false', async () => {
+        const searchAllChannels = jest.fn(channelActions.searchAllChannels);
+        const props = {...baseProps, shouldHideArchivedChannels: false, actions: {...baseProps.actions, searchAllChannels}};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        const searchInput = screen.getByPlaceholderText('Search channels');
+        await user.type(searchInput, 'channel');
+
+        await act(async () => {
+            jest.runOnlyPendingTimers();
+            await Promise.resolve();
+        });
+
+        // With the toggle off, archived channels are mixed back into the results.
+        await waitFor(() => {
+            expect(screen.getByText('Channel 1')).toBeInTheDocument();
+            expect(screen.getByText('Archived')).toBeInTheDocument();
+        });
+    });
+
+    // Regression: archived private channels used to leak in via the
+    // privateChannels list (which is not filtered by the Hide Archived toggle)
+    // and, with the toggle off, appear twice — once from privateChannels and
+    // once from archivedChannels. The container selector now returns only
+    // active private channels, so archived channels of both types come solely
+    // from `archivedChannels`.
+    const archivedPublicChannel = TestHelper.getChannelMock({
+        id: 'archived-public-id',
+        team_id: 'team_1',
+        display_name: 'Archived Public',
+        name: 'archived-public',
+        type: 'O',
+        delete_at: 123,
+    });
+
+    const archivedPrivateChannel = TestHelper.getChannelMock({
+        id: 'archived-private-id',
+        team_id: 'team_1',
+        display_name: 'Archived Private',
+        name: 'archived-private',
+        type: 'P',
+        delete_at: 456,
+    });
+
+    const bothTypesArchivedProps: Props = {
+        ...baseProps,
+        channels: [defaultChannel],
+        privateChannels: [privateChannel],
+        archivedChannels: [archivedPublicChannel, archivedPrivateChannel],
+    };
+
+    test('hides both archived public and private channels from the All list when the toggle is on', async () => {
+        const props = {...bothTypesArchivedProps, shouldHideArchivedChannels: true};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(screen.getByText('Default Channel')).toBeInTheDocument();
+        expect(screen.queryByText('Archived Public')).not.toBeInTheDocument();
+        expect(screen.queryByText('Archived Private')).not.toBeInTheDocument();
+    });
+
+    test('shows each archived channel exactly once in the All list when the toggle is off', async () => {
+        const props = {...bothTypesArchivedProps, shouldHideArchivedChannels: false};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(screen.getByText('Archived Public')).toBeInTheDocument();
+
+        // Exactly one row — previously the archived private channel rendered
+        // twice because it came from both privateChannels and archivedChannels.
+        expect(screen.getAllByText('Archived Private')).toHaveLength(1);
+    });
+
+    test('includes archived channels of the matching type under the Public and Private filters when the toggle is off', async () => {
+        const props = {...bothTypesArchivedProps, shouldHideArchivedChannels: false};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Public channels'));
+
+        // Wait on the private row being pruned — "Archived Public" is present in
+        // both the All and Public views, so it isn't a reliable settle signal.
+        await waitFor(() => {
+            expect(screen.queryByText('Archived Private')).not.toBeInTheDocument();
+        });
+        expect(screen.getByText('Archived Public')).toBeInTheDocument();
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Private channels'));
+
+        await waitFor(() => {
+            expect(screen.queryByText('Archived Public')).not.toBeInTheDocument();
+        });
+        expect(screen.getByText('Archived Private')).toBeInTheDocument();
+    });
+
+    test('still shows archived channels when the Archived filter is selected even if shouldHideArchivedChannels is true', async () => {
+        const searchAllChannels = jest.fn(channelActions.searchAllChannels);
+        const props = {...baseProps, shouldHideArchivedChannels: true, actions: {...baseProps.actions, searchAllChannels}};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Archived channels'));
+
+        const searchInput = screen.getByPlaceholderText('Search channels');
+        await user.type(searchInput, 'channel');
+
+        await act(async () => {
+            jest.runOnlyPendingTimers();
+            await Promise.resolve();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('Archived')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Channel 1')).not.toBeInTheDocument();
+    });
+
+    test('toggling Hide Archived persists the preference', async () => {
+        const setGlobalItem = jest.fn();
+        const props = {...baseProps, shouldHideArchivedChannels: true, actions: {...baseProps.actions, setGlobalItem}};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        // Starts checked (hidden by default); unchecking persists 'false'.
+        const hideArchived = screen.getByLabelText('Hide archived channels');
+        expect(hideArchived).toHaveAttribute('aria-checked', 'true');
+
+        await user.click(hideArchived);
+
+        expect(setGlobalItem).toHaveBeenCalledWith('hideArchivedChannels', 'false');
+    });
+
+    test('Hide Archived checkbox is not shown when the Archived filter is selected', async () => {
+        renderWithContext(<BrowseChannels {...baseProps}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(screen.getByLabelText('Hide archived channels')).toBeInTheDocument();
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Archived channels'));
+
+        await waitFor(() => {
+            expect(screen.queryByLabelText('Hide archived channels')).not.toBeInTheDocument();
+        });
     });
 
     // ---------------------------------------------------------------

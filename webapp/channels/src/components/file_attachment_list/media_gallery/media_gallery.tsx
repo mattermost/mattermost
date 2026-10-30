@@ -2,21 +2,25 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {FileTypes} from 'utils/constants';
 import {getFileType} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+import {ArchiveFileError, ArchiveTooLargeError, archiveFilename, buildFileArchive} from './file_archive';
 import {packRows} from './pack_rows';
 import ImageTile from './tiles/image_tile';
 import VideoTile from './tiles/video_tile';
@@ -40,7 +44,13 @@ const MIN_TILE_WIDTH = 50;
 const MAX_TILE_WIDTH = 500;
 const GAP = 8;
 const FALLBACK_WIDTH = 700;
-const NARROW_CONTAINER_WIDTH = 480;
+
+const NARROW_ENTER_WIDTH = 480;
+const NARROW_EXIT_WIDTH = 512;
+
+export function nextNarrowState(isNarrow: boolean, width: number): boolean {
+    return isNarrow ? width < NARROW_EXIT_WIDTH : width < NARROW_ENTER_WIDTH;
+}
 
 function tileKindFor(fileInfo: FileInfo): TileKind | null {
     const type = getFileType(fileInfo.extension);
@@ -56,9 +66,24 @@ function tileKindFor(fileInfo: FileInfo): TileKind | null {
 const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true, onItemClick, onToggleCollapse}: Props) => {
     const {formatMessage} = useIntl();
     const enablePublicLink = useSelector((state: GlobalState) => getConfig(state).EnablePublicLink === 'true');
+    const channelDisplayName = useSelector((state: GlobalState) => getChannel(state, fileInfos[0]?.channel_id)?.display_name);
+    const postCreateAt = useSelector((state: GlobalState) => getPost(state, postId)?.create_at);
+    const downloadAbortRef = useRef<AbortController | null>(null);
+    const [filesDownloaded, setFilesDownloaded] = useState<number | null>(null);
+    const [downloadError, setDownloadError] = useState<string | null>(null);
+    const downloading = filesDownloaded !== null;
+
+    useEffect(() => () => downloadAbortRef.current?.abort(), []);
 
     const containerRef = useRef<HTMLDivElement | null>(null);
     const {width: containerWidth} = useContainerDimensions(containerRef);
+
+    const effectiveWidth = containerWidth > 0 ? containerWidth : FALLBACK_WIDTH;
+    const [isNarrow, setIsNarrow] = useState(false);
+
+    useEffect(() => {
+        setIsNarrow((prev) => nextNarrowState(prev, effectiveWidth));
+    }, [effectiveWidth]);
 
     const tiles: ClassifiedFile[] = useMemo(() => {
         const out: ClassifiedFile[] = [];
@@ -72,8 +97,6 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
     }, [fileInfos]);
 
     const rows = useMemo(() => {
-        const effectiveWidth = containerWidth > 0 ? containerWidth : FALLBACK_WIDTH;
-        const isNarrow = effectiveWidth < NARROW_CONTAINER_WIDTH;
         return packRows(tiles, {
             containerWidth: effectiveWidth,
             rowHeight: (compactDisplay || isNarrow) ? COMPACT_ROW_HEIGHT : ROW_HEIGHT,
@@ -81,7 +104,7 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
             maxTileWidth: MAX_TILE_WIDTH,
             gap: GAP,
         });
-    }, [tiles, containerWidth, compactDisplay]);
+    }, [tiles, effectiveWidth, isNarrow, compactDisplay]);
 
     const handleClick = useCallback((index: number) => {
         const file = tiles[index]?.file;
@@ -98,20 +121,55 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
         }
     }, [onToggleCollapse, postId]);
 
-    const handleDownloadAll = useCallback((e: React.MouseEvent) => {
+    const handleDownloadAll = useCallback(async (e: React.MouseEvent) => {
         e.stopPropagation();
-        tiles.forEach((tile, idx) => {
-            window.setTimeout(() => {
+        if (downloadAbortRef.current || tiles.length === 0) {
+            return;
+        }
+
+        const controller = new AbortController();
+        downloadAbortRef.current = controller;
+        setFilesDownloaded(0);
+        setDownloadError(null);
+        try {
+            const files = tiles.map((tile) => tile.file);
+            const blob = await buildFileArchive(files, {signal: controller.signal, onProgress: setFilesDownloaded});
+            const url = URL.createObjectURL(blob);
+            try {
                 const link = document.createElement('a');
-                link.href = getFileDownloadUrl(tile.file.id);
-                link.download = tile.file.name || '';
+                link.href = url;
+                link.download = archiveFilename(channelDisplayName, postCreateAt ?? files[0].create_at);
                 link.rel = 'noopener noreferrer';
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
-            }, idx * 100);
-        });
-    }, [tiles]);
+            } finally {
+                URL.revokeObjectURL(url);
+            }
+        } catch (err) {
+            if (controller.signal.aborted) {
+                return;
+            }
+            if (err instanceof ArchiveTooLargeError) {
+                setDownloadError(formatMessage({
+                    id: 'media_gallery.download_all_too_large',
+                    defaultMessage: 'These files are too large to download together. Download them one at a time.',
+                }));
+            } else if (err instanceof ArchiveFileError && err.message) {
+                setDownloadError(err.message);
+            } else {
+                setDownloadError(formatMessage({
+                    id: 'media_gallery.download_all_error',
+                    defaultMessage: 'Unable to download these files.',
+                }));
+            }
+        } finally {
+            if (downloadAbortRef.current === controller) {
+                downloadAbortRef.current = null;
+            }
+            setFilesDownloaded(null);
+        }
+    }, [tiles, channelDisplayName, postCreateAt, formatMessage]);
 
     if (tiles.length === 0) {
         return null;
@@ -121,9 +179,19 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
         {id: 'media_gallery.list_label', defaultMessage: 'Media gallery with {count} items'},
         {count: tiles.length},
     );
+    const downloadAllLabel = formatMessage(
+        {id: 'media_gallery.download_all_label', defaultMessage: 'Download all {count, plural, one {# item} other {# items}}'},
+        {count: tiles.length},
+    );
+    const preparingLabel = formatMessage(
+        {id: 'media_gallery.download_all_preparing', defaultMessage: 'Preparing {done} of {total}...'},
+        {done: filesDownloaded ?? 0, total: tiles.length},
+    );
 
     const isSingle = tiles.length === 1;
-    const showHeader = !isSingle && Boolean(onToggleCollapse);
+
+    // Collapsed single videos need a header, otherwise the tile disappears with no toggle.
+    const showHeader = Boolean(onToggleCollapse) && (!isSingle || !isEmbedVisible);
 
     let tileIdx = 0;
 
@@ -165,19 +233,31 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                     </button>
                     <button
                         type='button'
-                        className='style--none MediaGallery__download_all'
-                        aria-label={formatMessage(
-                            {id: 'media_gallery.download_all_label', defaultMessage: 'Download all {count, plural, one {# item} other {# items}}'},
-                            {count: tiles.length},
-                        )}
+                        className={classNames('style--none MediaGallery__download_all', {
+                            'MediaGallery__download_all--busy': downloading,
+                        })}
+                        aria-busy={downloading}
+                        disabled={downloading}
+                        aria-label={downloading ? preparingLabel : downloadAllLabel}
                         onClick={handleDownloadAll}
                     >
-                        <DownloadOutlineIcon size={14}/>
-                        <FormattedMessage
-                            id='media_gallery.download_all'
-                            defaultMessage='Download all'
-                        />
+                        {downloading ? <LoadingSpinner legacy={true}/> : <DownloadOutlineIcon size={14}/>}
+                        {downloading ? preparingLabel : (
+                            <FormattedMessage
+                                id='media_gallery.download_all'
+                                defaultMessage='Download all'
+                            />
+                        )}
                     </button>
+                    {downloadError && (
+                        <span
+                            className='MediaGallery__download_error'
+                            role='alert'
+                            title={downloadError}
+                        >
+                            {downloadError}
+                        </span>
+                    )}
                 </div>
             )}
             <div

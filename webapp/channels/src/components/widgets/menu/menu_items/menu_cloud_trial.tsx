@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -12,9 +12,6 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 
 import {openModal} from 'actions/views/modals';
 
-import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
@@ -44,15 +41,13 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
         }));
     };
 
-    const someLimitNeedsAttention = Boolean(useGetHighestThresholdCloudLimit(useGetUsage(), useGetLimits()[0]));
-
     if (!isCloud) {
         return null;
     }
 
     const isStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
 
-    if (someLimitNeedsAttention || (!isStarter && !isFreeTrial)) {
+    if (!isStarter && !isFreeTrial) {
         return null;
     }
 

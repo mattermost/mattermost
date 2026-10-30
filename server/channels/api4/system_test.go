@@ -10,10 +10,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -486,6 +488,121 @@ func TestGetLogs(t *testing.T) {
 	_, resp, err = th.Client.GetLogs(context.Background(), 0, 10)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestQueryLogs(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 5)
+	for i := range 5 {
+		message := fmt.Sprintf("querylogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
+	}
+	require.NoError(t, th.TestLogger.Flush(), "failed to flush log")
+
+	containsAllMessages := func(combined string) bool {
+		for _, expected := range expectedMessages {
+			if !strings.Contains(combined, expected) {
+				return false
+			}
+		}
+		return true
+	}
+
+	// waitForFilteredLogs queries with the filter, asserting a successful response, and
+	// polls until the expected messages appear (log availability after Flush is
+	// asynchronous). It returns the per-node lines from the last response.
+	waitForFilteredLogs := func(t *testing.T, filter *model.LogFilter) map[string][]json.RawMessage {
+		t.Helper()
+		var nodes map[string][]json.RawMessage
+		require.Eventually(t, func() bool {
+			decoded, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, filter)
+			if err != nil {
+				return false
+			}
+
+			var combined strings.Builder
+			for _, lines := range decoded {
+				for _, line := range lines {
+					combined.Write(line)
+				}
+			}
+			if !containsAllMessages(combined.String()) {
+				return false
+			}
+			nodes = decoded
+			return true
+		}, 5*time.Second, 25*time.Millisecond, "expected logged messages to be returned")
+		return nodes
+	}
+
+	t.Run("empty bounds return unfiltered logs", func(t *testing.T) {
+		nodes := waitForFilteredLogs(t, &model.LogFilter{DateFrom: "", DateTo: ""})
+		require.Contains(t, nodes, "default")
+	})
+
+	t.Run("valid bounds are accepted and still return matching logs", func(t *testing.T) {
+		filter := &model.LogFilter{
+			DateFrom: "2000-01-01 00:00:00.000 +00:00",
+			DateTo:   "2100-01-01 00:00:00.000 +00:00",
+		}
+		nodes := waitForFilteredLogs(t, filter)
+		require.Contains(t, nodes, "default")
+	})
+
+	t.Run("a filter matching nothing keeps the node key with an empty array", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "2100-01-01 00:00:00.000 +00:00"})
+		require.NoError(t, err)
+		require.Contains(t, nodes, "default")
+		assert.NotNil(t, nodes["default"], "expected [] rather than null")
+		assert.Empty(t, nodes["default"])
+	})
+
+	t.Run("server_names without the local node returns no entries", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{ServerNames: []string{"unknown"}})
+		require.NoError(t, err)
+		assert.Empty(t, nodes)
+	})
+
+	t.Run("server_names default returns only the local node", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{ServerNames: []string{"default", "unknown"}})
+		require.NoError(t, err)
+		assert.Equal(t, []string{"default"}, slices.Collect(maps.Keys(nodes)))
+	})
+
+	t.Run("malformed date_from is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "not-a-date", DateTo: ""})
+		CheckErrorID(t, err, "model.log_filter.is_valid.date_from.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("malformed date_to is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "", DateTo: "also-not-a-date"})
+		CheckErrorID(t, err, "model.log_filter.is_valid.date_to.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("null filter is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, nil)
+		CheckErrorID(t, err, "api.system.logs.invalidFilter")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("undecodable filter is rejected with 400", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/logs/query", "{")
+		CheckErrorID(t, err, "api.system.logs.invalidFilter")
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("non-admin is forbidden", func(t *testing.T) {
+		_, resp, err := th.Client.QueryLogs(context.Background(), 0, 200, &model.LogFilter{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestDownloadLogs(t *testing.T) {

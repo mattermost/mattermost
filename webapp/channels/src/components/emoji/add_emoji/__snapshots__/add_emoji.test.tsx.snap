@@ -74,9 +74,14 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
                 class="add-emoji__upload"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  type="button"
                 >
-                  Select
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Select
+                  </span>
                 </button>
                 <input
                   accept=".jpeg,.jpg,.png,.gif"
@@ -96,17 +101,25 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/undefined/emoji"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             data-testid="save-button"
             type="submit"
           >
-            Save
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Save
+            </span>
           </button>
         </div>
       </form>
@@ -189,9 +202,14 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
                 class="add-emoji__upload"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  type="button"
                 >
-                  Select
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Select
+                  </span>
                 </button>
                 <input
                   accept=".jpeg,.jpg,.png,.gif"
@@ -236,17 +254,25 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/undefined/emoji"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             data-testid="save-button"
             type="submit"
           >
-            Save
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Save
+            </span>
           </button>
         </div>
       </form>
@@ -329,9 +355,14 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
                 class="add-emoji__upload"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  type="button"
                 >
-                  Select
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Select
+                  </span>
                 </button>
                 <input
                   accept=".jpeg,.jpg,.png,.gif"
@@ -351,17 +382,25 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/undefined/emoji"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             data-testid="save-button"
             type="submit"
           >
-            Save
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Save
+            </span>
           </button>
         </div>
       </form>

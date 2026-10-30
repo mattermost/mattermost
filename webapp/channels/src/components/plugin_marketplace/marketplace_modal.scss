@@ -1,8 +1,13 @@
 @use 'utils/variables';
-@use 'utils/mixins';
 
 .marketplace-modal {
     width: 832px;
+
+    // The centered GenericModal layout makes `.modal-content` a flex item, so without an
+    // explicit minimum it cannot shrink below the widest nowrap plugin description.
+    .modal-content {
+        min-width: 0;
+    }
 
     &.streamlined-marketplace {
         .modal-header {
@@ -143,18 +148,6 @@
                 padding-left: 16px;
                 margin: 0;
 
-                .plugin-configure,
-                .app-installed {
-                    @include mixins.secondary-button;
-                    @include mixins.button-medium;
-                }
-
-                .plugin-install,
-                .app-install {
-                    @include mixins.primary-button;
-                    @include mixins.button-medium;
-                }
-
                 a {
                     &:hover,
                     &:focus {
@@ -273,9 +266,6 @@
         }
 
         &__action {
-            @include mixins.primary-button;
-            @include mixins.button-medium;
-
             margin-top: 30px;
         }
 

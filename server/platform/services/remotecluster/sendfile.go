@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -61,7 +60,7 @@ func (rcs *Service) sendFile(task sendFileTask) {
 	if err != nil {
 		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Remote Cluster send file failed",
 			mlog.String("remote", task.rc.DisplayName),
-			mlog.String("uploadId", task.us.Id),
+			mlog.String("upload_id", task.us.Id),
 			mlog.Err(err),
 		)
 		response.Status = ResponseStatusFail
@@ -69,7 +68,7 @@ func (rcs *Service) sendFile(task sendFileTask) {
 	} else {
 		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster file sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
-			mlog.String("uploadId", task.us.Id),
+			mlog.String("upload_id", task.us.Id),
 		)
 		response.Status = ResponseStatusOK
 		response.SetPayload(fi)
@@ -91,7 +90,7 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 
 	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "sending file to remote...",
 		mlog.String("remote", task.rc.DisplayName),
-		mlog.String("uploadId", task.us.Id),
+		mlog.String("upload_id", task.us.Id),
 		mlog.String("file_path", task.us.Path),
 	)
 
@@ -118,19 +117,9 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
+	body, err := rcs.sendRemoteRequest(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
 	}
 
 	// body should be a FileInfo

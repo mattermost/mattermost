@@ -9,7 +9,7 @@ It is important that all plugins consider HA environments when being built.
 
 Plugins are started as subprocesses of the main Mattermost process on each app server. This means a Mattermost deployment that has three app servers will have three separate copies of the same plugin running. Each running copy of the plugin will be isolated from one another on different servers. Therefore, to run properly in HA the plugin's server-side code must be stateless.
 
-To be stateless, the plugin must not retain any information or status in memory that may be needed across multiple events (e.g. HTTP requests or in other hooks). This data should instead be stored in a place that all running copies of the plugin have access to. For example, the [key-value store](/developers/integrate/reference/server/server-reference#API.KVSet) the plugin API provides.
+To be stateless, the plugin must not retain any information or status in memory that may be needed across multiple events (e.g. HTTP requests or in other hooks). This data should instead be stored in a place that all running copies of the plugin have access to. For example, the [key-value store](/developers/integrate/reference/server#API.KVSet) the plugin API provides.
 
 To better explain the problem with having a plugin store data in-memory, consider this case:
 
@@ -40,3 +40,67 @@ if cronErr != nil {
 
 p.backgroundJob = job
 ```
+
+## Discover cluster node identity
+
+From Mattermost v12.2, plugins can discover the cluster topology and identify which node sent a cluster event.
+
+**Get the local node ID**
+
+`API.GetClusterNodeID()` returns the cluster ID of the node the plugin is running on. Use this value to tell other nodes where to send targeted cluster events. It returns an empty string until the node has joined the cluster — for example, when clustering is disabled or the node has not yet started.
+
+```go
+nodeID := p.API.GetClusterNodeID()
+if nodeID == "" {
+    // not running in a cluster
+}
+```
+
+**List connected nodes**
+
+`API.GetClusterNodes()` returns the nodes currently connected to the cluster, including the local node. Every `Id` in the returned list can be passed directly as `PluginClusterEventSendOptions.TargetId`. Nodes that are registered but not yet connected are excluded, because their registration ID cannot be used as a target. The method returns an empty list until this node has joined the cluster, consistent with `GetClusterNodeID()`.
+
+<Note>
+
+`GetClusterNodes()` may query the database on each call. Avoid calling it on hot paths such as per-message hooks.
+
+</Note>
+
+```go
+nodes, err := p.API.GetClusterNodes()
+if err != nil {
+    return err
+}
+for _, node := range nodes {
+    p.API.PublishPluginClusterEvent(
+        model.PluginClusterEvent{Id: "sync", Data: payload},
+        model.PluginClusterEventSendOptions{
+            SendType: model.PluginClusterEventSendTypeReliable,
+            TargetId: node.Id,
+        },
+    )
+}
+```
+
+**Identify the sender of a cluster event**
+
+`PluginClusterEvent.SourceId` is set by the server to the cluster node ID of the sender before the event is delivered to `OnPluginClusterEvent`. Use it to reply to a specific node or to filter events by origin. Events received from nodes running a server version earlier than 12.2 have an empty `SourceId`.
+
+```go
+func (p *Plugin) OnPluginClusterEvent(_ *plugin.Context, ev model.PluginClusterEvent) {
+    if ev.SourceId == "" {
+        // sender is on an older server version or clustering is not active
+        return
+    }
+    // reply to the sender
+    p.API.PublishPluginClusterEvent(
+        model.PluginClusterEvent{Id: "ack", Data: []byte("ok")},
+        model.PluginClusterEventSendOptions{
+            SendType: model.PluginClusterEventSendTypeReliable,
+            TargetId: ev.SourceId,
+        },
+    )
+}
+```
+
+The `pluginapi` wrappers for these methods are `Cluster.GetNodeID()` and `Cluster.GetNodes()`.

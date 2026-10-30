@@ -17,25 +17,26 @@ import {
     AutoFixIcon,
     SpellcheckIcon,
 } from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Agent} from '@mattermost/types/agents';
 
 import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
 
 import AgentDropdown from 'components/common/agents/agent_dropdown';
 import * as Menu from 'components/menu';
-import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {IconContainer} from './formatting_bar/formatting_icon';
 import {RewriteAction} from './rewrite_action';
+import RewritePromptInput from './rewrite_prompt_input';
 
 import './use_rewrite.scss';
 
 export interface MenuItemConfig {
     action: RewriteAction;
     label: MessageDescriptor;
-    icon: React.ReactElement;
+    icon: React.ReactElement<any>;
 }
 
 export const menuItems: MenuItemConfig[] = [
@@ -88,7 +89,7 @@ export interface RewriteMenuProps {
     onCancelProcessing: () => void;
     onUndoMessage: () => void;
     onRegenerateMessage: () => void;
-    customPromptRef: React.RefObject<HTMLInputElement>;
+    customPromptRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export default function RewriteMenu({
@@ -164,11 +165,11 @@ export default function RewriteMenu({
                             />
                             <Button
                                 emphasis='tertiary'
-                                size='xs'
+                                size='x-small'
                                 type='button'
                                 onClick={onCancelProcessing}
+                                leadingIcon={<Icon glyph={<CloseIcon/>}/>}
                             >
-                                <i className='icon icon-close'/>
                                 <FormattedMessage
                                     id='texteditor.rewrite.stopGenerating'
                                     defaultMessage='Stop generating'
@@ -177,12 +178,9 @@ export default function RewriteMenu({
                         </div>
                     }
                     {!isProcessing &&
-                        <Input
+                        <RewritePromptInput
                             ref={customPromptRef}
-                            inputPrefix={<CreationOutlineIcon size={18}/>}
-                            label={placeholderText}
                             placeholder={placeholderText}
-                            disabled={isProcessing}
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             onKeyDown={onCustomPromptKeyDown}
@@ -230,11 +228,11 @@ export default function RewriteMenu({
                 <div className='rewrite-menu-footer'>
                     <Button
                         emphasis='tertiary'
-                        size='xs'
+                        size='x-small'
                         type='button'
                         onClick={onUndoMessage}
+                        leadingIcon={<Icon glyph={<CloseIcon/>}/>}
                     >
-                        <i className='icon icon-close'/>
                         <FormattedMessage
                             id='texteditor.rewrite.discard'
                             defaultMessage='Discard'
@@ -242,11 +240,12 @@ export default function RewriteMenu({
                     </Button>
                     <Button
                         emphasis='quaternary'
-                        size='xs'
+                        size='x-small'
                         type='button'
+                        className='rewrite-menu-footer__regenerate'
                         onClick={onRegenerateMessage}
+                        leadingIcon={<Icon glyph={<ContentCopyIcon/>}/>}
                     >
-                        <i className='icon icon-content-copy'/>
                         <FormattedMessage
                             id='texteditor.rewrite.regenerate'
                             defaultMessage='Regenerate'
@@ -318,7 +317,7 @@ export interface RewriteSubMenuHeaderProps {
     agents: Agent[];
     onCustomPromptKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     onCancelProcessing: () => void;
-    customPromptRef: React.RefObject<HTMLInputElement>;
+    customPromptRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export function RewriteSubMenuHeader({
@@ -384,11 +383,11 @@ export function RewriteSubMenuHeader({
                     />
                     <Button
                         emphasis='tertiary'
-                        size='xs'
+                        size='x-small'
                         type='button'
                         onClick={onCancelProcessing}
+                        leadingIcon={<Icon glyph={<CloseIcon/>}/>}
                     >
-                        <CloseIcon size={14}/>
                         <FormattedMessage
                             id='texteditor.rewrite.stopGenerating'
                             defaultMessage='Stop generating'
@@ -397,12 +396,9 @@ export function RewriteSubMenuHeader({
                 </div>
             }
             {!isProcessing &&
-                <Input
+                <RewritePromptInput
                     ref={customPromptRef}
-                    inputPrefix={<CreationOutlineIcon size={18}/>}
-                    label={placeholderText}
                     placeholder={placeholderText}
-                    disabled={isProcessing}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={onCustomPromptKeyDown}
@@ -435,11 +431,11 @@ export function RewriteSubMenuFooter({
         <div className='rewrite-menu-footer'>
             <Button
                 emphasis='tertiary'
-                size='xs'
+                size='x-small'
                 type='button'
                 onClick={onUndoMessage}
+                leadingIcon={<Icon glyph={<CloseIcon/>}/>}
             >
-                <CloseIcon size={14}/>
                 <FormattedMessage
                     id='texteditor.rewrite.discard'
                     defaultMessage='Discard'
@@ -447,11 +443,12 @@ export function RewriteSubMenuFooter({
             </Button>
             <Button
                 emphasis='quaternary'
-                size='xs'
+                size='x-small'
                 type='button'
+                className='rewrite-menu-footer__regenerate'
                 onClick={onRegenerateMessage}
+                leadingIcon={<Icon glyph={<ContentCopyIcon/>}/>}
             >
-                <ContentCopyIcon size={14}/>
                 <FormattedMessage
                     id='texteditor.rewrite.regenerate'
                     defaultMessage='Regenerate'

@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -51,6 +53,13 @@ type TestHelper struct {
 	ConfigStore       *config.Store
 
 	tempWorkspace string
+
+	// untaggedPropertyCalls records the calls the property access control
+	// hook refused for want of a caller ID (observeUntaggedPropertyCalls);
+	// allowUntaggedPropertyCaller opts a test out of failing on them.
+	untaggedPropertyCallsMut    sync.Mutex
+	untaggedPropertyCalls       []string
+	allowUntaggedPropertyCaller atomic.Bool
 }
 
 type PostOptions func(*model.Post)
@@ -126,14 +135,21 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
-	options = append(options, SetLogger(testLogger))
+	options = append(options, SetLogger(testLogger), DisableGlobalLogger())
 
 	s, err := NewServer(options...)
 	require.NoError(tb, err)
 
 	th := &TestHelper{
-		App:               New(ServerConnector(s.Channels())),
-		Context:           request.EmptyContext(testLogger),
+		App: New(ServerConnector(s.Channels())),
+		// Tagged as a local-mode admin, the caller an `mmctl --local` request
+		// carries. The access control hook gates every PSAv2/v3 property group
+		// and refuses a caller that names nobody, so an untagged context would
+		// fail every property write in this package for want of an identity
+		// rather than for the reason the test is about. Tests that need a
+		// specific caller -- including an anonymous one -- build their own
+		// context with emptyContextWithCallerID or contextAsCaller.
+		Context:           localAdminTestContext(testLogger),
 		Server:            s,
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
@@ -169,6 +185,8 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
+	th.observeUntaggedPropertyCalls()
+
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
 			// Clean all the caches
@@ -177,6 +195,8 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 		}
 
 		th.ShutdownApp()
+
+		th.checkNoUntaggedPropertyCaller(tb)
 
 		if th.tempWorkspace != "" {
 			err := os.RemoveAll(th.tempWorkspace)
@@ -261,9 +281,26 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	return setupTestHelper(dbStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, true, nil, nil, tb)
 }
 
+func useCustomPushNotificationServer(cfg *model.Config) {
+	*cfg.EmailSettings.PushNotificationServer = "https://push.example.com"
+}
+
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	return SetupConfigWithStoreMock(tb, nil)
+}
+
+// SetupConfigWithStoreMock applies updateConfig before Server.Start() wires the config listeners
+// that read from the store. Set the starting config here rather than via a later
+// th.App.UpdateConfig, which fires those listeners against the store mock.
+func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(*model.Config)) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, nil, nil, tb)
+	setupConfig := func(cfg *model.Config) {
+		useCustomPushNotificationServer(cfg)
+		if updateConfig != nil {
+			updateConfig(cfg)
+		}
+	}
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, setupConfig, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -284,7 +321,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), true, false, nil, nil, tb)
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), true, false, useCustomPushNotificationServer, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -311,15 +348,15 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	th.SystemAdminUser = th.CreateUser(tb)
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(tb, appErr)
-	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser = th.CreateUser(tb)
-	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	th.BasicUser, appErr = th.App.GetUser(th.Context, th.BasicUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser2 = th.CreateUser(tb)
-	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, appErr = th.App.GetUser(th.Context, th.BasicUser2.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicTeam = th.CreateTeam(tb)
@@ -626,6 +663,52 @@ func (th *TestHelper) ShutdownApp() {
 	}
 }
 
+// observeUntaggedPropertyCalls has the property access control hook report
+// every call it refuses, or hides options or values from, for want of a
+// caller ID, whatever logger the call's context carries. Each TestHelper has
+// its own server and so its own hook, so one test never sees another's calls.
+func (th *TestHelper) observeUntaggedPropertyCalls() {
+	th.Server.SetPropertyNoCallerObserverForTests(func(operation, groupID string, fieldIDs []string) {
+		th.untaggedPropertyCallsMut.Lock()
+		defer th.untaggedPropertyCallsMut.Unlock()
+		th.untaggedPropertyCalls = append(th.untaggedPropertyCalls, fmt.Sprintf("%s group_id=%s field_ids=%v", operation, groupID, fieldIDs))
+	})
+}
+
+// observedUntaggedPropertyCalls returns the calls observeUntaggedPropertyCalls
+// has recorded so far.
+func (th *TestHelper) observedUntaggedPropertyCalls() []string {
+	th.untaggedPropertyCallsMut.Lock()
+	defer th.untaggedPropertyCallsMut.Unlock()
+	return slices.Clone(th.untaggedPropertyCalls)
+}
+
+// checkNoUntaggedPropertyCaller fails the test if the property access control
+// hook refused a call, or hid options or values from it, for want of a caller
+// ID, unless the test opted out with AllowUntaggedPropertyCaller. th.Context
+// is tagged as the local admin, so a test passing it never sees the refusal a
+// real untagged caller gets; this catches an internal call that builds or is
+// handed an untagged context instead.
+func (th *TestHelper) checkNoUntaggedPropertyCaller(tb testing.TB) {
+	th.Server.SetPropertyNoCallerObserverForTests(nil)
+	if th.allowUntaggedPropertyCaller.Load() {
+		return
+	}
+	th.untaggedPropertyCallsMut.Lock()
+	defer th.untaggedPropertyCallsMut.Unlock()
+	if len(th.untaggedPropertyCalls) > 0 {
+		tb.Errorf("the property access control hook refused calls with no caller ID; tag the caller (RequestContextWithCallerID), or call th.AllowUntaggedPropertyCaller() if the test means it:\n%s", strings.Join(th.untaggedPropertyCalls, "\n"))
+	}
+}
+
+// AllowUntaggedPropertyCaller stops the test failing when the property access
+// control hook refuses a call for want of a caller ID. Only for a test that
+// calls the property service with no caller ID on purpose: anywhere else it
+// means an internal call forgot to tag its caller.
+func (th *TestHelper) AllowUntaggedPropertyCaller() {
+	th.allowUntaggedPropertyCaller.Store(true)
+}
+
 func (th *TestHelper) GetSqlStore() *sqlstore.SqlStore {
 	return th.SQLStore
 }
@@ -711,6 +794,22 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 	}
 
 	return NewPluginAPI(th.App, th.Context, manifest)
+}
+
+// SetupPluginAPIWithPluginContext is SetupPluginAPI as a real plugin gets it:
+// on the untagged request.EmptyContext that Channels.Start hands to
+// initPlugins rather than th.Context's local-admin tag, and with the plugin
+// registered as installed, which the property access control hook checks
+// before it treats the caller as a plugin. Use it to test that a plugin API
+// method tags the plugin as the caller itself before reaching the property
+// service.
+func (th *TestHelper) SetupPluginAPIWithPluginContext(tb testing.TB) *PluginAPI {
+	manifest := &model.Manifest{
+		Id: "pluginid",
+	}
+	registerTestPlugin(tb, th, manifest.Id)
+
+	return NewPluginAPI(th.App, request.EmptyContext(th.App.Log()), manifest)
 }
 
 func (th *TestHelper) RemovePermissionFromRole(tb testing.TB, permission string, roleName string) {
@@ -829,7 +928,7 @@ func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *m
 	require.NoError(tb, err)
 
 	th.App.InvalidateCacheForUser(userID)
-	user, appErr := th.App.GetUser(userID)
+	user, appErr := th.App.GetUser(th.Context, userID)
 	require.Nil(tb, appErr)
 	return user
 }
@@ -847,4 +946,12 @@ const anonymousCallerId = ""
 func (th *TestHelper) emptyContextWithCallerID(callerID string) request.CTX {
 	ctx := model.WithCallerID(request.EmptyContext(th.App.Log()).Context(), callerID)
 	return request.EmptyContext(th.App.Log()).WithContext(ctx)
+}
+
+// localAdminTestContext is th.Context: an empty request context tagged as a
+// local-mode (unrestricted) admin, which the property ladder admits without a
+// user lookup.
+func localAdminTestContext(logger mlog.LoggerIFace) *request.Context {
+	rctx := request.EmptyContext(logger)
+	return rctx.WithContext(model.WithCallerID(rctx.Context(), model.CallerIDLocalAdmin)).(*request.Context)
 }

@@ -12,7 +12,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -27,79 +26,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
-
-func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
-	maxActiveTeams := *teamLimits.Active
-	teams, appErr := a.GetAllTeams()
-	if appErr != nil {
-		return appErr
-	}
-
-	if teams == nil {
-		return nil
-	}
-	// Sort the list of teams based on their creation date
-	sort.Slice(teams, func(i, j int) bool {
-		return teams[i].CreateAt < teams[j].CreateAt
-	})
-
-	var activeTeams []*model.Team
-	var cloudArchivedTeams []*model.Team
-	for _, team := range teams {
-		if team.DeleteAt == 0 {
-			activeTeams = append(activeTeams, team)
-		}
-		if team.DeleteAt > 0 && team.CloudLimitsArchived {
-			cloudArchivedTeams = append(cloudArchivedTeams, team)
-		}
-	}
-
-	if len(activeTeams) > maxActiveTeams {
-		// If there are more active teams than allowed, we must archive them
-		// Remove the first n elements (where n is the allowed number of teams) so they aren't archived
-
-		teamsToArchive := activeTeams[maxActiveTeams:]
-
-		for _, team := range teamsToArchive {
-			cloudLimitsArchived := true
-			// Archive the remainder
-			patch := model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-			_, err := a.PatchTeam(team.Id, &patch)
-			if err != nil {
-				return err
-			}
-			err = a.SoftDeleteTeam(team.Id)
-			if err != nil {
-				return err
-			}
-		}
-	} else if len(activeTeams) < maxActiveTeams && len(cloudArchivedTeams) > 0 {
-		// If the number of activeTeams is less than the allowed limit, and there are some cloudArchivedTeams, we can restore these cloudArchivedTeams
-		activeTeamsBeforeLimit := maxActiveTeams - len(activeTeams)
-		teamsToRestore := cloudArchivedTeams
-		// If the number of active teams remaining before the limit is hit is fewer than the number of cloudArchivedTeams, trim the list (still according to CreateAt)
-		// Otherwise, we can restore all of the cloudArchivedTeams without hitting the limit, so don't filter the list
-		if activeTeamsBeforeLimit < len(cloudArchivedTeams) {
-			teamsToRestore = cloudArchivedTeams[:(activeTeamsBeforeLimit)]
-		}
-
-		cloudLimitsArchived := false
-		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-		for _, team := range teamsToRestore {
-			err := a.RestoreTeam(team.Id)
-			if err != nil {
-				return err
-			}
-
-			_, err = a.PatchTeam(team.Id, patch)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func (a *App) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(rctx, team)
@@ -138,7 +64,7 @@ func (a *App) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, *mode
 }
 
 func (a *App) CreateTeamWithUser(rctx request.CTX, team *model.Team, userID string) (*model.Team, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -875,7 +801,7 @@ func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.Use
 
 	var actor *model.User
 	if userRequestorId != "" {
-		actor, _ = a.GetUser(userRequestorId)
+		actor, _ = a.GetUser(rctx, userRequestorId)
 	}
 
 	a.Srv().Go(func() {
@@ -1238,6 +1164,14 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 }
 
 func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string) *model.AppError {
+	return a.removeUserFromTeam(rctx, teamID, userID, requestorId, nil)
+}
+
+// removeUserFromTeam is RemoveUserFromTeam with the ABAC membership sync's audit
+// context attached, so a policy-driven removal can stamp the job id and the
+// revision the sync evaluated against onto the audit records it emits. Callers
+// outside the membership sync pass a nil syncCtx.
+func (a *App) removeUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string, syncCtx *accessControlSyncContext) *model.AppError {
 	tchan := make(chan store.StoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(teamID)
@@ -1276,7 +1210,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 	}
 	user := userChanResult.Data
 
-	if err := a.LeaveTeam(rctx, team, user, requestorId); err != nil {
+	if err := a.leaveTeam(rctx, team, user, requestorId, syncCtx); err != nil {
 		return err
 	}
 
@@ -1286,7 +1220,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.TeamMember, requestorId string) *model.AppError {
 	var actor *model.User
 	if requestorId != "" {
-		actor, _ = a.GetUser(requestorId)
+		actor, _ = a.GetUser(rctx, requestorId)
 	}
 
 	a.Srv().Go(func() {
@@ -1329,6 +1263,12 @@ func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.Tea
 }
 
 func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError {
+	return a.leaveTeam(rctx, team, user, requestorId, nil)
+}
+
+// leaveTeam is LeaveTeam with the ABAC membership sync's audit context attached;
+// see removeUserFromTeam.
+func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string, syncCtx *accessControlSyncContext) *model.AppError {
 	teamMember, err := a.GetTeamMember(rctx, team.Id, user.Id)
 	if err != nil {
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -1340,8 +1280,7 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	}); nErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			channelList = model.ChannelList{}
 		} else {
 			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1355,9 +1294,32 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	// a per-channel cascade record referencing it; an ordinary or non-policy
 	// leave records nothing here.
 	policyDriven := team.PolicyEnforced && requestorId == ""
-	var cascadeParentEventID string
+	var removalAudit accessControlTeamRemovalAudit
+	removalStatus := model.AuditStatusFail
 	if policyDriven {
-		cascadeParentEventID = model.NewId()
+		removalAudit = accessControlTeamRemovalAudit{
+			teamID:  team.Id,
+			userID:  user.Id,
+			eventID: model.NewId(),
+		}
+		switch {
+		case syncCtx != nil:
+			// The sync resolved the revision once for the whole team, so every
+			// user it removes in this run records the same one.
+			removalAudit.jobID = syncCtx.jobID
+			removalAudit.policyRevision = syncCtx.policyRevision
+		case a.accessControlAuditLoggingEnabled():
+			removalAudit.policyRevision = a.accessControlPolicyRevision(rctx, team.Id)
+		}
+
+		// Every cascade record below points at this one through parent_event_id,
+		// and the removal can still be abandoned at any of the failure exits in
+		// between. Defer the parent so it is written on all of them, leaving no
+		// cascade referencing a record that was never emitted. It stays a failure
+		// until the team membership is actually gone.
+		defer func() {
+			a.logAccessControlTeamRemoval(rctx, removalAudit, removalStatus)
+		}()
 	}
 
 	for _, channel := range channelList {
@@ -1367,12 +1329,7 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 				return appErr
 			}
 			if policyDriven {
-				rec := a.MakeAuditRecord(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess)
-				model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-				model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-				model.AddEventParameterToAuditRec(rec, "channel_id", channel.Id)
-				model.AddEventParameterToAuditRec(rec, "parent_event_id", cascadeParentEventID)
-				a.LogAuditRec(rctx, rec, nil)
+				a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
 			}
 		}
 	}
@@ -1388,6 +1345,9 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		a.invalidateCacheForChannelMembers(channel.Id)
 		if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
 			return appErr
+		}
+		if policyDriven {
+			a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
 		}
 	}
 
@@ -1415,20 +1375,10 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	}
 
 	removeErr := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember)
-	if policyDriven {
-		auditStatus := model.AuditStatusSuccess
-		if removeErr != nil {
-			auditStatus = model.AuditStatusFail
-		}
-		rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipRemoved, auditStatus)
-		model.AddEventParameterToAuditRec(rec, "event_id", cascadeParentEventID)
-		model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-		model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-		a.LogAuditRec(rctx, rec, nil)
-	}
 	if removeErr != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(removeErr)
 	}
+	removalStatus = model.AuditStatusSuccess
 
 	if err := a.postProcessTeamMemberLeave(rctx, teamMember, requestorId); err != nil {
 		return err
@@ -2065,8 +2015,7 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 	}
 
 	if channels, err := a.Srv().Store().Channel().GetTeamChannels(team.Id); err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
@@ -2270,18 +2219,18 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 	if tokenID != "" {
 		token, err := a.Srv().Store().Token().GetByToken(tokenID)
 		if err != nil {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if !token.IsInvitationToken() {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if token.IsExpired() {
 			if err := a.DeleteToken(token); err != nil {
 				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
 			}
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
@@ -2377,6 +2326,12 @@ func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.Re
 	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Decode() reads the file to EOF; seek back to beginning so GetImageOrientation
+	// can read the EXIF data to determine the correct orientation.
+	if _, err = file.Seek(0, io.SeekStart); err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	orientation, err := imaging.GetImageOrientation(file, format)

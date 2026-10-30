@@ -4,11 +4,16 @@
 // Stub the browser notification API with the given name and permission
 export function spyNotificationAs(name: string, permission: NotificationPermission) {
     cy.window().then((win) => {
-        win.Notification = Notification;
-        win.Notification.requestPermission = () => Promise.resolve(permission);
-
-        cy.stub(win, 'Notification').as(name);
+        const stub = cy.stub().as(name);
+        Object.assign(stub, {
+            permission,
+            requestPermission: () => Promise.resolve(permission),
+        });
+        win.Notification = stub as unknown as typeof Notification;
     });
 
-    cy.window().should('have.property', 'Notification');
+    cy.window().should((win) => {
+        expect(win.Notification).to.exist;
+        expect(win.Notification.permission).to.equal(permission);
+    });
 }

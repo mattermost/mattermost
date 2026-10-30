@@ -7,8 +7,9 @@ import React, {useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckAllIcon, CheckIcon, ClockOutlineIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
+import {ArrowDownBoldCircleOutlineIcon, ArrowDownIcon, ArrowUpBoldCircleOutlineIcon, ArrowUpIcon, CheckAllIcon, CheckIcon, ClockOutlineIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
@@ -70,6 +71,10 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
         return getOperatorDescriptor(currentOperator);
     }, [currentOperator]);
 
+    const currentOperatorLabel = useMemo(() => {
+        return formatMessage(currentOperatorDescriptor.label);
+    }, [currentOperatorDescriptor, formatMessage]);
+
     const CurrentOperatorIcon = currentOperatorDescriptor.icon;
 
     const onFilterChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +84,8 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
     // The operator set depends on the attribute type. Ranked attributes expose
     // the ordinal comparison operators (and reuse "is not"); multiselect exposes
     // only the set membership operators; everything else gets the default set.
-    // Each list is ordered the way it should appear in the menu.
+    // Each list is ordered the way it should appear in the menu. Graph is absent
+    // because its operators come grouped — see GRAPH_OPERATOR_GROUPS.
     const operatorIds = useMemo(() => {
         if (attributeType === 'multiselect') {
             return MULTISELECT_OPERATOR_ORDER;
@@ -90,10 +96,12 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
         return DEFAULT_OPERATOR_ORDER;
     }, [attributeType]);
 
-    const filteredOperators = useMemo(() => {
-        const matchesFilter = (desc: OperatorDescriptor) =>
-            formatMessage(desc.label).toLowerCase().includes(filter.toLowerCase());
+    const matchesFilter = React.useCallback(
+        (desc: OperatorDescriptor) => formatMessage(desc.label).toLowerCase().includes(filter.toLowerCase()),
+        [filter, formatMessage],
+    );
 
+    const filteredOperators = useMemo(() => {
         // Native attributes advertise an explicit, ordered operator set; unknown
         // labels are filtered out defensively.
         if (allowedOperators) {
@@ -108,7 +116,85 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
         return operatorIds.
             map((id) => OPERATOR_DESCRIPTORS[id]).
             filter(matchesFilter);
-    }, [operatorIds, allowedOperators, filter, formatMessage]);
+    }, [operatorIds, allowedOperators, matchesFilter]);
+
+    // The graph menu is the only one split into titled groups and the only one
+    // carrying help text, because the hierarchy is what makes its operators hard
+    // to tell apart.
+    const isGraphMenu = !allowedOperators && attributeType === 'graph';
+
+    const sections = useMemo((): MenuSection[] => {
+        if (!isGraphMenu) {
+            return [{key: 'operators', entries: filteredOperators.map((descriptor) => ({descriptor}))}];
+        }
+
+        return GRAPH_OPERATOR_GROUPS.
+            map((group) => ({
+                key: group.key,
+                title: group.title,
+                entries: group.operators.
+                    map((operator) => ({...operator, descriptor: OPERATOR_DESCRIPTORS[operator.id]})).
+                    filter(({descriptor}) => matchesFilter(descriptor)),
+            })).
+
+            // A group whose every operator was filtered out loses its title too,
+            // so a narrowed menu never shows a heading over nothing.
+            filter((section) => section.entries.length > 0);
+    }, [isGraphMenu, filteredOperators, matchesFilter]);
+
+    // One flat array rather than a fragment per section: MUI's MenuList walks
+    // React.Children to prepare its items, which flattens arrays but does not
+    // descend into fragments. The sibling attribute menu interleaves its titles
+    // the same way.
+    const menuItems: React.ReactNode[] = [];
+    for (const section of sections) {
+        if (section.title) {
+            menuItems.push(
+                <Menu.Title
+                    key={`${section.key}-title`}
+                    role='presentation'
+                >
+                    {formatMessage(section.title)}
+                </Menu.Title>,
+            );
+        }
+
+        for (const {descriptor, description, functionName} of section.entries) {
+            const {id, icon: Icon, label} = descriptor;
+
+            menuItems.push(
+                <Menu.Item
+                    id={id}
+                    key={id}
+                    role='menuitemradio'
+                    forceCloseOnSelect={true}
+                    aria-checked={id === currentOperatorDescriptor.id}
+                    onClick={() => handleOperatorChange(descriptor)}
+                    labels={description ? (
+                        <>
+                            <span><FormattedMessage {...label}/></span>
+                            <span>
+                                <FormattedMessage
+                                    {...description}
+                                    values={{
+                                        functionName: (
+                                            <span className='operator-selector-menu__function-name'>
+                                                {`(${functionName})`}
+                                            </span>
+                                        ),
+                                    }}
+                                />
+                            </span>
+                        </>
+                    ) : <FormattedMessage {...label}/>}
+                    leadingElement={<Icon size={18}/>}
+                    trailingElements={id === currentOperatorDescriptor.id && (
+                        <CheckIcon/>
+                    )}
+                />,
+            );
+        }
+    }
 
     return (
         <Menu.Container
@@ -123,7 +209,9 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                             size={18}
                             color='rgba(var(--center-channel-color-rgb), 0.64)'
                         />
-                        <FormattedMessage {...currentOperatorDescriptor.label}/>
+                        <WithTooltip title={currentOperatorLabel}>
+                            <span className='field-selector-menu-button__label'>{currentOperatorLabel}</span>
+                        </WithTooltip>
                     </>
                 ),
                 dataTestId: 'operatorSelectorMenuButton',
@@ -132,7 +220,9 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
             menu={{
                 id: 'operator-selector-menu',
                 'aria-label': 'Select operator',
-                className: 'select-operator-mui-menu',
+                className: classNames('select-operator-mui-menu', {
+                    'select-operator-mui-menu--described': isGraphMenu,
+                }),
             }}
         >
             <Menu.InputItem
@@ -144,25 +234,7 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                 value={filter}
                 onChange={onFilterChange}
             />
-            {filteredOperators.map((descriptor) => {
-                const {id, icon: Icon, label} = descriptor;
-
-                return (
-                    <Menu.Item
-                        id={id}
-                        key={id}
-                        role='menuitemradio'
-                        forceCloseOnSelect={true}
-                        aria-checked={id === currentOperatorDescriptor.id}
-                        onClick={() => handleOperatorChange(descriptor)}
-                        labels={<FormattedMessage {...label}/>}
-                        leadingElement={<Icon size={18}/>}
-                        trailingElements={id === currentOperatorDescriptor.id && (
-                            <CheckIcon/>
-                        )}
-                    />
-                );
-            })}
+            {menuItems}
         </Menu.Container>
     );
 };
@@ -298,7 +370,207 @@ const OPERATOR_DESCRIPTORS: IDMappedObjects<OperatorDescriptor> = {
             defaultMessage: 'younger than (days)',
         }),
     },
+    [OperatorLabel.IN_CIDR]: {
+        id: OperatorLabel.IN_CIDR,
+        icon: FunctionIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.in_cidr',
+            defaultMessage: 'in IP range',
+        }),
+    },
+    [OperatorLabel.VERSION_IS]: {
+        id: OperatorLabel.VERSION_IS,
+        icon: EqualIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_is',
+            defaultMessage: 'version is',
+        }),
+    },
+    [OperatorLabel.VERSION_GREATER_THAN]: {
+        id: OperatorLabel.VERSION_GREATER_THAN,
+        icon: GreaterThanIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_greater_than',
+            defaultMessage: 'version is greater than',
+        }),
+    },
+    [OperatorLabel.VERSION_AT_LEAST]: {
+        id: OperatorLabel.VERSION_AT_LEAST,
+        icon: GreaterThanOrEqualIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_at_least',
+            defaultMessage: 'version is at least',
+        }),
+    },
+    [OperatorLabel.VERSION_LESS_THAN]: {
+        id: OperatorLabel.VERSION_LESS_THAN,
+        icon: LessThanIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_less_than',
+            defaultMessage: 'version is less than',
+        }),
+    },
+    [OperatorLabel.VERSION_AT_MOST]: {
+        id: OperatorLabel.VERSION_AT_MOST,
+        icon: LessThanOrEqualIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_at_most',
+            defaultMessage: 'version is at most',
+        }),
+    },
+
+    // The hierarchy predicates. The arrow points the way the holder's options
+    // sit relative to the options the rule names — up for "covers" (at or
+    // above), down for "within" (at or below) — and the circled variant marks
+    // the all-of form, the stricter sibling of the plain any-of one.
+    //
+    // Their string ids read as the function rather than as the wording, and are
+    // kept that way deliberately: a renamed id orphans its entry in all 21
+    // translated catalogues, which the i18n check rejects and only Weblate may
+    // clean up.
+    [OperatorLabel.COVERS_ALL]: {
+        id: OperatorLabel.COVERS_ALL,
+        icon: ArrowUpBoldCircleOutlineIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.covers_all',
+            defaultMessage: 'has each of or a parent of',
+        }),
+    },
+    [OperatorLabel.COVERS_ANY]: {
+        id: OperatorLabel.COVERS_ANY,
+        icon: ArrowUpIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.covers_any',
+            defaultMessage: 'has any of or a parent of',
+        }),
+    },
+    [OperatorLabel.WITHIN_ALL]: {
+        id: OperatorLabel.WITHIN_ALL,
+        icon: ArrowDownBoldCircleOutlineIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.within_all',
+            defaultMessage: 'is entirely within',
+        }),
+    },
+    [OperatorLabel.WITHIN_ANY]: {
+        id: OperatorLabel.WITHIN_ANY,
+        icon: ArrowDownIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.within_any',
+            defaultMessage: 'has any of or a child of',
+        }),
+    },
 };
+
+type MenuEntry = {
+    descriptor: OperatorDescriptor;
+    description?: MessageDescriptor;
+    functionName?: string;
+};
+
+type MenuSection = {
+    key: string;
+    title?: MessageDescriptor;
+    entries: MenuEntry[];
+};
+
+// The graph menu's groups, which also fix the order the graph operators appear
+// in: the hierarchy predicates lead, paired by direction, with the
+// exact-membership operators last because they ignore the hierarchy, which is
+// the reason a graph attribute exists.
+//
+// The help text lives here rather than on the descriptors because "has any of"
+// and "has all of" are shared with the multiselect menu, which stays a bare
+// list of labels. Each description closes with the CEL function the operator
+// maps to, so an admin who writes policy expressions by hand can connect the
+// menu to what gets saved without the labels themselves naming a function.
+const GRAPH_OPERATOR_GROUPS: Array<{
+    key: string;
+    title: MessageDescriptor;
+    operators: Array<Required<Omit<MenuEntry, 'descriptor'>> & {id: OperatorLabel}>;
+}> = [
+    {
+        key: 'graph-parents',
+        title: defineMessage({
+            id: 'admin.access_control.table_editor.operator.graph.group.parents',
+            defaultMessage: 'Parents (any level)',
+        }),
+        operators: [
+            {
+                id: OperatorLabel.COVERS_ALL,
+                functionName: 'Covers All',
+                description: defineMessage({
+                    id: 'admin.access_control.table_editor.operator.covers_all.description',
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- functionName provided by the menu item that renders it
+                    defaultMessage: 'The user has each selected value, or a parent of it. {functionName}',
+                }),
+            },
+            {
+                id: OperatorLabel.COVERS_ANY,
+                functionName: 'Covers Any',
+                description: defineMessage({
+                    id: 'admin.access_control.table_editor.operator.covers_any.description',
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- functionName provided by the menu item that renders it
+                    defaultMessage: 'The user has at least one selected value, or a parent of it. {functionName}',
+                }),
+            },
+        ],
+    },
+    {
+        key: 'graph-children',
+        title: defineMessage({
+            id: 'admin.access_control.table_editor.operator.graph.group.children',
+            defaultMessage: 'Children (any level)',
+        }),
+        operators: [
+            {
+                id: OperatorLabel.WITHIN_ALL,
+                functionName: 'Within All',
+                description: defineMessage({
+                    id: 'admin.access_control.table_editor.operator.within_all.description',
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- functionName provided by the menu item that renders it
+                    defaultMessage: 'The user has at least one value, and each is a selected value or a child of one. {functionName}',
+                }),
+            },
+            {
+                id: OperatorLabel.WITHIN_ANY,
+                functionName: 'Within Any',
+                description: defineMessage({
+                    id: 'admin.access_control.table_editor.operator.within_any.description',
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- functionName provided by the menu item that renders it
+                    defaultMessage: 'At least one value the user has is a selected value, or a child of one. {functionName}',
+                }),
+            },
+        ],
+    },
+    {
+        key: 'graph-exact',
+        title: defineMessage({
+            id: 'admin.access_control.table_editor.operator.graph.group.exact',
+            defaultMessage: 'Exact match',
+        }),
+        operators: [
+            {
+                id: OperatorLabel.HAS_ANY_OF,
+                functionName: 'Has Any Of',
+                description: defineMessage({
+                    id: 'admin.access_control.table_editor.operator.graph.has_any_of.description',
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- functionName provided by the menu item that renders it
+                    defaultMessage: 'The user has at least one selected value. A parent or a child is not enough. {functionName}',
+                }),
+            },
+            {
+                id: OperatorLabel.HAS_ALL_OF,
+                functionName: 'Has All Of',
+                description: defineMessage({
+                    id: 'admin.access_control.table_editor.operator.graph.has_all_of.description',
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- functionName provided by the menu item that renders it
+                    defaultMessage: 'The user has every selected value. A parent or a child is not enough. {functionName}',
+                }),
+            },
+        ],
+    },
+];
 
 // Operator ordering per attribute type. Ranked attributes lead with "is exactly"
 // and "is not", then group the inclusive/strict inequality pairs (≥/> and ≤/<)

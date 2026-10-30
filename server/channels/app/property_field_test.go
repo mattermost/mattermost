@@ -4,8 +4,10 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -87,6 +89,36 @@ func TestCreatePropertyField(t *testing.T) {
 		assert.NotEmpty(t, created.ID)
 		assert.Equal(t, "Protected Field With Bypass", created.Name)
 		assert.True(t, created.Protected)
+	})
+
+	t.Run("legacy keys round trip via projection with no store columns behind them", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "Legacy Stored Untouched",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeChannel,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			Protected:         true,
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
+		require.Nil(t, appErr)
+		require.NotEmpty(t, created.ID)
+
+		fetched, appErr := th.App.GetPropertyField(th.Context, groupID, created.ID)
+		require.Nil(t, appErr)
+		shaped := th.App.ShapePropertyFieldsForCaller(th.Context, model.Session{}, []*model.PropertyField{fetched}, false)
+		require.Len(t, shaped, 1)
+		assert.True(t, shaped[0].Protected)
+		require.NotNil(t, shaped[0].PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *shaped[0].PermissionField)
+		require.NotNil(t, shaped[0].PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *shaped[0].PermissionValues)
+		require.NotNil(t, shaped[0].PermissionOptions)
+		assert.Equal(t, model.PermissionLevelSysadmin, *shaped[0].PermissionOptions)
 	})
 
 	t.Run("should reject creating an invalid protected field even with bypass", func(t *testing.T) {
@@ -746,6 +778,96 @@ func TestPropertyFieldBroadcastParams(t *testing.T) {
 	})
 }
 
+// TestPublishPropertyFieldEvent_OptionsWithheld covers the option list a field
+// broadcast carries. A broadcast has no single reader to filter options for, so
+// it carries the list only when everyone may read it, and withholds it when the
+// option.read tier is narrower than everyone or the linked field's template is
+// masked.
+func TestPublishPropertyFieldEvent_OptionsWithheld(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	groupID := registerTestPropertyGroup(t, th)
+
+	newSelectField := func(t *testing.T, objectType string, linkedFieldID *string) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "broadcast_" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    objectType,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: linkedFieldID,
+		}
+		if linkedFieldID == nil {
+			field.Attrs = model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Alpha"}},
+			}
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, created.Permissions)
+		return created
+	}
+	// Store writes rather than the API, which keeps each setup to the one
+	// permission it is about.
+	storeUpdate := func(t *testing.T, field *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		updated, err := th.Store.PropertyField().Update(groupID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+		return updated[0]
+	}
+
+	broadcastAttrs := func(t *testing.T, field *model.PropertyField) model.StringInterface {
+		t.Helper()
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPropertyFieldUpdated})
+		defer closeWS()
+
+		th.App.publishPropertyFieldEvent(th.Context, model.WebsocketEventPropertyFieldUpdated, field, "")
+
+		select {
+		case event := <-messages:
+			raw, ok := event.GetData()["property_field"].(string)
+			require.True(t, ok, "event carries no property_field payload")
+			var broadcast model.PropertyField
+			require.NoError(t, json.Unmarshal([]byte(raw), &broadcast))
+			require.Equal(t, field.ID, broadcast.ID)
+			return broadcast.Attrs
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "the property_field_updated event was not published")
+			return nil
+		}
+	}
+
+	t.Run("an option list everyone may read is broadcast", func(t *testing.T) {
+		field := newSelectField(t, model.PropertyFieldObjectTypeUser, nil)
+		attrs := broadcastAttrs(t, field)
+		assert.NotEmpty(t, attrs[model.PropertyFieldAttributeOptions])
+		assert.False(t, model.PropertyFieldOptionsOmitted(attrs))
+	})
+
+	t.Run("a sysadmin option.read withholds the option list", func(t *testing.T) {
+		field := newSelectField(t, model.PropertyFieldObjectTypeUser, nil)
+		field.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		field = storeUpdate(t, field)
+
+		attrs := broadcastAttrs(t, field)
+		assert.Empty(t, attrs[model.PropertyFieldAttributeOptions])
+		assert.True(t, model.PropertyFieldOptionsOmitted(attrs))
+	})
+
+	t.Run("a linked field whose template is masked withholds the option list", func(t *testing.T) {
+		template := newSelectField(t, model.PropertyFieldObjectTypeTemplate, nil)
+		linked := newSelectField(t, model.PropertyFieldObjectTypeUser, &template.ID)
+		require.Nil(t, linked.Permissions.Masking, "a linked field carries no masking of its own")
+		template.Permissions.Masking = &model.Masking{}
+		storeUpdate(t, template)
+
+		attrs := broadcastAttrs(t, linked)
+		assert.Empty(t, attrs[model.PropertyFieldAttributeOptions])
+		assert.True(t, model.PropertyFieldOptionsOmitted(attrs))
+	})
+}
+
 func TestGetPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1182,6 +1304,134 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
+	t.Run("an option change signals for the changed field and for every field linking to it", func(t *testing.T) {
+		// A field linking to a template serves the template's options without
+		// holding a copy of them, so an option change on the template leaves the
+		// dependent's row untouched -- nothing else drops the policies compiled
+		// against the dependent, which are cached under its own ID.
+		memberLevel := model.PermissionLevelMember
+		tmpl, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "template_" + model.NewId(),
+			Type:              model.PropertyFieldTypeMultiselect,
+			TargetType:        "system",
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			PermissionOptions: &memberLevel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Air"}},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		linked, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "linked_" + model.NewId(),
+			TargetType:    "system",
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			LinkedFieldID: &tmpl.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		options, ok := tmpl.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok)
+		optionID := options[0].(map[string]any)["id"].(string)
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, tmpl.ID).Return().Once()
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, linked.ID).Return().Once()
+
+		_, _, appErr = th.App.UpdatePropertyFieldOptions(th.Context, tmpl.GroupID, tmpl.ID, []*model.PropertyFieldOption{
+			{ID: optionID, Name: "Aerial"},
+		}, "")
+		require.Nil(t, appErr)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("every verb that changes options signals, including a change to nothing but the parent links", func(t *testing.T) {
+		// A graph field is the only shape where the hierarchy can change without
+		// any option changing, and it has no mutation path of its own: a parent
+		// link is added and dropped by writing the option that sits under it. So
+		// the three option verbs are the whole of what has to announce a change,
+		// and this pins each of them to it -- an option change and an edge change
+		// alike, and for the field linking to the template as well as the
+		// template itself.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldGraph = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.PropertyFieldGraph = false
+			})
+		})
+
+		memberLevel := model.PermissionLevelMember
+		tmpl, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "graph_template_" + model.NewId(),
+			Type:              model.PropertyFieldTypeGraph,
+			TargetType:        "system",
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			PermissionOptions: &memberLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		linked, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "graph_linked_" + model.NewId(),
+			TargetType:    "system",
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			LinkedFieldID: &tmpl.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, tmpl.ID).Return()
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, linked.ID).Return()
+
+		created, appErr := th.App.CreatePropertyFieldOptions(th.Context, tmpl.GroupID, tmpl.ID, []*model.PropertyFieldOption{
+			{Name: "Air"}, {Name: "Fighter"},
+		}, "")
+		require.Nil(t, appErr)
+		require.Len(t, created, 2)
+		mockACS.AssertNumberOfCalls(t, "OnPropertyFieldOptionsChanged", 2)
+
+		// Nothing about either option changes here except where Fighter sits, and
+		// its parent is named rather than identified because that is what the
+		// option payload carries.
+		fighter := created[1]
+		_, _, appErr = th.App.UpdatePropertyFieldOptions(th.Context, tmpl.GroupID, tmpl.ID, []*model.PropertyFieldOption{
+			{ID: fighter.ID, Name: fighter.Name, Parents: &[]string{"Air"}},
+		}, "")
+		require.Nil(t, appErr)
+		mockACS.AssertNumberOfCalls(t, "OnPropertyFieldOptionsChanged", 4)
+
+		_, appErr = th.App.DeletePropertyFieldOptions(th.Context, tmpl.GroupID, tmpl.ID, []string{fighter.ID}, "")
+		require.Nil(t, appErr)
+		mockACS.AssertNumberOfCalls(t, "OnPropertyFieldOptionsChanged", 6)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("a failure to read the changed field's dependents purges every policy cache instead", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		mockACS.On("InvalidateAllPolicyCaches", mock.Anything).Return().Once()
+
+		th.App.propertyFieldOptionsChanged(th.Context, groupID, model.NewId(), "")
+
+		mockACS.AssertExpectations(t)
+		mockACS.AssertNotCalled(t, "OnPropertyFieldOptionsChanged", mock.Anything, mock.Anything)
+	})
+
 	t.Run("mutations succeed (no panic) when access control is unavailable", func(t *testing.T) {
 		// The signalling is guarded by `if acs != nil`; with no enterprise
 		// service installed the field CRUD must still succeed.
@@ -1358,4 +1608,403 @@ func TestPropertyFieldRankGate(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, model.PropertyFieldTypeRank, updated.Type)
 	})
+}
+
+// TestPropertyFieldGraphGate covers the PropertyFieldGraph feature flag gate in
+// CreatePropertyField / UpdatePropertyFields. The flag blocks creating a graph
+// field and converting a field to graph; it must not restrict a graph field that
+// already exists, which is what the "options stay editable with the flag off"
+// case pins down.
+func TestPropertyFieldGraphGate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	// Feature flags are read-only at runtime by default; allow this test to
+	// toggle PropertyFieldGraph on and off.
+	th.ConfigStore.SetReadOnlyFF(false)
+
+	setGraphFlag := func(t *testing.T, enabled bool) {
+		t.Helper()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldGraph = enabled
+		})
+	}
+
+	// The hierarchy lives on a template field in the intended shape, so that is
+	// what the gate is exercised against; a user-object graph field is covered
+	// too, since the gate is not scoped by object type.
+	graphField := func(objectType string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "programs_" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: objectType,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program"},
+				},
+			},
+		}
+	}
+
+	textField := func() *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+	}
+
+	t.Run("rejects creating a graph field when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		for _, objectType := range []string{
+			model.PropertyFieldObjectTypeTemplate,
+			model.PropertyFieldObjectTypeUser,
+			model.PropertyFieldObjectTypeChannel,
+		} {
+			created, appErr := th.App.CreatePropertyField(th.Context, graphField(objectType), false, "")
+			require.NotNil(t, appErr, "object type %q", objectType)
+			assert.Nil(t, created)
+			assert.Equal(t, "app.property_field.graph_disabled.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		}
+	})
+
+	t.Run("rejects converting an existing field to graph when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, textField(), false, "")
+		require.Nil(t, appErr)
+
+		created.Type = model.PropertyFieldTypeGraph
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.update.graph_type_change.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("allows non-graph field create and update when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, textField(), false, "")
+		require.Nil(t, appErr)
+
+		created.Name = "renamed_" + model.NewId()
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeText, updated.Type)
+	})
+
+	t.Run("allows creating a graph field when the flag is on", func(t *testing.T) {
+		setGraphFlag(t, true)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, graphField(model.PropertyFieldObjectTypeTemplate), false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeGraph, created.Type)
+	})
+
+	// linkedTo builds a user field that inherits its type from a template, which
+	// is how the intended shape reaches a user or channel: one template holds the
+	// hierarchy and the object-scoped fields link to it.
+	linkedTo := func(templateID string) *model.PropertyField {
+		field := textField()
+		field.LinkedFieldID = &templateID
+		return field
+	}
+
+	t.Run("rejects linking a new field to a graph template when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, true)
+
+		template, appErr := th.App.CreatePropertyField(th.Context, graphField(model.PropertyFieldObjectTypeTemplate), false, "")
+		require.Nil(t, appErr)
+
+		// The request says "text"; the service would copy the template's type
+		// over it, so the gate has to look at the template.
+		setGraphFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, linkedTo(template.ID), false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, "app.property_field.graph_disabled.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("allows linking a new field to a graph template when the flag is on", func(t *testing.T) {
+		setGraphFlag(t, true)
+
+		template, appErr := th.App.CreatePropertyField(th.Context, graphField(model.PropertyFieldObjectTypeTemplate), false, "")
+		require.Nil(t, appErr)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, linkedTo(template.ID), false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeGraph, created.Type, "the linked field inherits the template's type")
+	})
+
+	t.Run("leaves a link to a non-graph template alone when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		templateField := textField()
+		templateField.ObjectType = model.PropertyFieldObjectTypeTemplate
+		template, appErr := th.App.CreatePropertyField(th.Context, templateField, false, "")
+		require.Nil(t, appErr)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, linkedTo(template.ID), false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeText, created.Type)
+	})
+
+	t.Run("a link to a missing template still reports the link error", func(t *testing.T) {
+		setGraphFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, linkedTo(model.NewId()), false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, "app.property_field.create.linked_source_not_found.app_error", appErr.Id)
+	})
+
+	t.Run("an existing graph field stays editable when the flag is off", func(t *testing.T) {
+		setGraphFlag(t, true)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, graphField(model.PropertyFieldObjectTypeTemplate), false, "")
+		require.Nil(t, appErr)
+
+		// The flag goes off underneath a field that already exists, as it would
+		// on a rollback. Its definition and its options must both still be
+		// editable — a flag flip that stranded a half-built hierarchy would be
+		// worse than the type having no flag at all.
+		setGraphFlag(t, false)
+
+		created.Name = "renamed_" + model.NewId()
+		created.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "Air Program"},
+				map[string]any{"name": "Fighter Jet Program"},
+				map[string]any{"name": "F-18 Program"},
+			},
+		}
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeGraph, updated.Type)
+
+		options, ok := updated.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok, "expected an inline option list, got %#v", updated.Attrs[model.PropertyFieldAttributeOptions])
+		assert.Len(t, options, 3, "a third option must be addable with the flag off")
+	})
+}
+
+// TestPropertyFieldGraphConversion covers the rule that the graph type is not
+// interchangeable with any other: no field converts into it and no graph field
+// converts out of it, whatever the feature flag says. Other types keep their
+// existing freedom to convert between each other.
+func TestPropertyFieldGraphConversion(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	// Creating the graph fields below needs the gate open. The conversion rule
+	// itself is independent of the flag.
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.PropertyFieldGraph = true
+	})
+
+	newField := func(t *testing.T, fieldType model.PropertyFieldType) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       string(fieldType) + "_" + model.NewId(),
+			Type:       fieldType,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		if fieldType.SupportsOptions() {
+			options := []any{map[string]any{"name": "Air Program"}}
+			if fieldType == model.PropertyFieldTypeRank {
+				options = []any{map[string]any{"name": "Air Program", "rank": 1}}
+			}
+			field.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: options}
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		return created
+	}
+
+	otherTypes := []model.PropertyFieldType{
+		model.PropertyFieldTypeText,
+		model.PropertyFieldTypeSelect,
+		model.PropertyFieldTypeMultiselect,
+		model.PropertyFieldTypeDate,
+		model.PropertyFieldTypeUser,
+		model.PropertyFieldTypeMultiuser,
+		model.PropertyFieldTypeRank,
+	}
+
+	for _, other := range otherTypes {
+		t.Run("rejects "+string(other)+" converted to graph", func(t *testing.T) {
+			field := newField(t, other)
+			field.Type = model.PropertyFieldTypeGraph
+			field.Attrs = model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Air Program"}},
+			}
+
+			updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
+			require.NotNil(t, appErr)
+			assert.Nil(t, updated)
+			assert.Equal(t, "app.property_field.update.graph_type_change.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+
+		t.Run("rejects graph converted to "+string(other), func(t *testing.T) {
+			field := newField(t, model.PropertyFieldTypeGraph)
+			field.Type = other
+
+			updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
+			require.NotNil(t, appErr)
+			assert.Nil(t, updated)
+			assert.Equal(t, "app.property_field.update.graph_type_change.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+	}
+
+	t.Run("allows a graph field to be updated without a type change", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldTypeGraph)
+		field.Name = "renamed_" + model.NewId()
+
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeGraph, updated.Type)
+	})
+
+	t.Run("leaves conversions between other types alone", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldTypeSelect)
+		field.Type = model.PropertyFieldTypeMultiselect
+
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, field, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeMultiselect, updated.Type)
+	})
+}
+
+// The per-target cap for post attributes is configured in server.go, and nothing in the
+// properties package covers that wiring: a limit registered against the wrong group, or
+// added to the hook after AddHook, would leave every test there passing. This exercises the
+// real group and the real constant through the app layer.
+func TestCreatePropertyField_PostAttributesPerTargetLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.PostAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+
+	makeField := func(targetID string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "attr-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   targetID,
+		}
+	}
+
+	channelID := model.NewId()
+	for i := range model.PostAttributesMaxFieldsPerTarget {
+		_, appErr = th.App.CreatePropertyField(th.Context, makeField(channelID), false, "")
+		require.Nil(t, appErr, "field %d of %d should be allowed", i+1, model.PostAttributesMaxFieldsPerTarget)
+	}
+
+	t.Run("rejects the field past the cap", func(t *testing.T) {
+		_, appErr := th.App.CreatePropertyField(th.Context, makeField(channelID), false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.property_field.create.target_limit_reached.app_error", appErr.Id)
+		// Not 500: the caller asked for something the server can explain, so the sentinel
+		// must be mapped in mapPropertyServiceError.
+		assert.Equal(t, http.StatusUnprocessableEntity, appErr.StatusCode)
+	})
+
+	t.Run("a full channel does not consume another channel's allowance", func(t *testing.T) {
+		_, appErr := th.App.CreatePropertyField(th.Context, makeField(model.NewId()), false, "")
+		require.Nil(t, appErr)
+	})
+}
+
+func TestGetPropertyFieldUnconvertedRankOptions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	created, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "clearance_" + model.NewId()[:8],
+		Type:       model.PropertyFieldTypeRank,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "Public", "rank": 1},
+				map[string]any{"id": model.NewId(), "name": "Secret", "rank": 2},
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Nil(t, created.Permissions)
+
+	asAdmin, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
+	require.Nil(t, appErr)
+	require.ElementsMatch(t, []string{"Public", "Secret"}, rankOptionNames(t, asAdmin))
+
+	asUser, appErr := th.App.GetPropertyField(RequestContextWithCallerID(th.Context, th.BasicUser.Id), group.ID, created.ID)
+	require.Nil(t, appErr)
+	assert.Empty(t, rankOptionNames(t, asUser), "ordinary callers still fail closed on an unconverted field")
+}
+
+func rankOptionNames(t *testing.T, field *model.PropertyField) []string {
+	t.Helper()
+	raw, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+	if !ok {
+		return nil
+	}
+	names := make([]string, 0, len(raw))
+	for _, item := range raw {
+		opt, ok := item.(map[string]any)
+		require.True(t, ok)
+		name, _ := opt["name"].(string)
+		names = append(names, name)
+	}
+	return names
+}
+
+func TestDeletePropertyFieldSAMLMapped(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	cpa := &model.CPAField{
+		PropertyField: model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "dept_" + model.NewId()[:8],
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		},
+		Attrs: model.CPAAttrs{SAML: "department"},
+	}
+	created, appErr := th.App.CreatePropertyField(th.Context, cpa.ToPropertyField(), false, "")
+	require.Nil(t, appErr)
+
+	syncCtx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+	require.Nil(t, th.App.DeletePropertyField(syncCtx, group.ID, created.ID, false, ""))
 }

@@ -192,7 +192,7 @@ describe('Channel RHS', () => {
 
 function openSystemConsoleAndLeave() {
     // # visit the system console...
-    cy.uiOpenProductMenu('System Console');
+    cy.uiOpenSwitchProductMenu('System Console');
 
     cy.wait(TIMEOUTS.THREE_SEC);
 

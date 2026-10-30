@@ -1,8 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
+import {FormattedMessage} from 'react-intl';
+
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Radio} from '@mattermost/compass-ui/components/radio';
 
 import Setting from './setting';
 
@@ -11,11 +16,13 @@ type Props = {
     options?: Array<{text: string; value: string}>;
     label: React.ReactNode;
     onChange(name: string, value: any): void;
-    value?: string;
+    value?: string | null;
     labelClassName?: string;
     inputClassName?: string;
     helpText?: React.ReactNode;
-
+    labelPosition?: 'before' | 'after';
+    isOptional?: boolean;
+    disabled?: boolean;
 };
 
 const RadioSetting = ({
@@ -27,40 +34,66 @@ const RadioSetting = ({
     label,
     helpText,
     value,
+    labelPosition = 'after',
+    isOptional = false,
+    disabled,
 }: Props) => {
     const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
         onChange(id, e.target.value);
     }, [onChange, id]);
 
+    const handleClear = useCallback(() => {
+        onChange(id, null);
+    }, [onChange, id]);
+
+    const selectedValue = value ?? '';
+    const showClear = isOptional && selectedValue !== '';
+
     return (
         <Setting
             label={label}
             labelClassName={labelClassName}
-            inputClassName={inputClassName}
+            inputClassName={`inline-choice-setting ${inputClassName}`.trim()}
             helpText={helpText}
             inputId={id}
         >
-            {
-                options.map(({value: option, text}) => {
-                    return (
-                        <div
-                            className='radio'
-                            key={option}
-                        >
-                            <label>
-                                <input
-                                    type='radio'
-                                    value={option}
-                                    name={id}
-                                    checked={option === value}
-                                    onChange={handleChange}
-                                />
-                                {text}
-                            </label>
-                        </div>
-                    );
-                })
-            }
+            <div className='inline-choice-setting__options'>
+                {
+                    options.map(({value: option, text}) => {
+                        const radioClassName = classNames({
+                            'inline-choice-setting__radio--label-before': labelPosition === 'before',
+                        });
+
+                        return (
+                            <Radio
+                                key={option}
+                                className={radioClassName}
+                                value={option}
+                                name={id}
+                                checked={option === selectedValue}
+                                onChange={handleChange}
+                                disabled={disabled}
+                            >
+                                <span className='inline-choice-setting__text'>{text}</span>
+                            </Radio>
+                        );
+                    })
+                }
+            </div>
+            {showClear && (
+                <Button
+                    type='button'
+                    emphasis='quaternary'
+                    size='small'
+                    className='radio-setting__clear'
+                    onClick={handleClear}
+                >
+                    <FormattedMessage
+                        id='interactive_dialog.radio.clear'
+                        defaultMessage='Clear selection'
+                    />
+                </Button>
+            )}
         </Setting>
     );
 };
