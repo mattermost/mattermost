@@ -205,6 +205,12 @@ const PreparingWorkspace = ({
 
     const sendForm = async () => {
         const sendFormStart = Date.now();
+
+        if (!team) {
+            redirectWithError(firstShowablePage, genericSubmitError);
+            return;
+        }
+
         setSubmissionState(SubmissionStates.Submitting);
 
         if (!form.teamMembers.skipped && !isConfigSiteUrlDefault && !isSelfHosted) {

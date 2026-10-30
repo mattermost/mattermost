@@ -45,7 +45,8 @@ const Organization = (props: Props) => {
     const nodeRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(undefined);
     const validation = teamNameToUrl(props.organization || '');
-    const teamApiError = useRef<typeof TeamApiError | null>(null);
+    const [teamApiError, setTeamApiError] = useState<typeof TeamApiError | null>(null);
+    const isSubmitting = useRef(false);
 
     const teams = useSelector(getActiveTeamsList);
     useEffect(() => {
@@ -54,49 +55,39 @@ const Organization = (props: Props) => {
         }
     }, [teams]);
 
-    const setApiCallError = () => {
-        teamApiError.current = TeamApiError;
-    };
-
-    const updateTeamNameFromOrgName = async () => {
-        if (!inputRef.current?.value) {
-            return;
-        }
+    const updateTeamNameFromOrgName = async (): Promise<boolean> => {
         const name = inputRef.current?.value.trim();
-
         const currentTeam = teams[0];
 
-        if (currentTeam && name && name !== currentTeam.display_name) {
-            const {error} = await props.updateTeam({...currentTeam, display_name: name});
-            if (error !== null) {
-                setApiCallError();
-            }
+        if (!currentTeam || !name || name === currentTeam.display_name) {
+            return true;
         }
+
+        const {error} = await props.updateTeam({...currentTeam, display_name: name});
+        return error === null;
     };
 
-    const createTeamFromOrgName = async () => {
-        if (!inputRef.current?.value) {
-            return;
-        }
+    const createTeamFromOrgName = async (): Promise<boolean> => {
         const name = inputRef.current?.value.trim();
-
-        if (name) {
-            const {error, newTeam} = await props.createTeam(name);
-            if (error !== null || newTeam == null) {
-                props.setInviteId('');
-                setApiCallError();
-                return;
-            }
-            props.setInviteId(newTeam.invite_id);
+        if (!name) {
+            return true;
         }
+
+        const {error, newTeam} = await props.createTeam(name);
+        if (error !== null || newTeam == null) {
+            props.setInviteId('');
+            return false;
+        }
+        props.setInviteId(newTeam.invite_id);
+        return true;
     };
 
     const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
         props.setOrganization(e.target.value);
-        teamApiError.current = null;
+        setTeamApiError(null);
     };
 
-    const onNext = (e?: React.KeyboardEvent | React.MouseEvent) => {
+    const onNext = async (e?: React.KeyboardEvent | React.MouseEvent) => {
         if (e && (e as React.KeyboardEvent).key) {
             if ((e as React.KeyboardEvent).key !== Constants.KeyCodes.ENTER[0]) {
                 return;
@@ -106,14 +97,23 @@ const Organization = (props: Props) => {
             setTriedNext(true);
         }
 
+        if (validation.error || isSubmitting.current) {
+            return;
+        }
+
         // if there is already a team, maybe because a page reload, then just update the teamname
         const thereIsAlreadyATeam = teams.length > 0;
-        teamApiError.current = null;
+        setTeamApiError(null);
 
-        if (!validation.error && !thereIsAlreadyATeam) {
-            createTeamFromOrgName();
-        } else if (!validation.error && thereIsAlreadyATeam) {
-            updateTeamNameFromOrgName();
+        isSubmitting.current = true;
+        try {
+            const succeeded = thereIsAlreadyATeam ? await updateTeamNameFromOrgName() : await createTeamFromOrgName();
+            if (!succeeded) {
+                setTeamApiError(TeamApiError);
+                return;
+            }
+        } finally {
+            isSubmitting.current = false;
         }
         props.next?.();
     };
@@ -180,7 +180,7 @@ const Organization = (props: Props) => {
                                     autoFocus={true}
                                     ref={inputRef as unknown as any}
                                 />
-                                {triedNext ? <OrganizationStatus error={validation.error || teamApiError.current}/> : null}
+                                {triedNext ? <OrganizationStatus error={validation.error || teamApiError}/> : null}
                             </PageBody>
                             <button
                                 className='primary-button'
