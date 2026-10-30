@@ -169,11 +169,16 @@ Disable the policy for the channel by selecting **Remove Policy**. You can then 
 
 From Mattermost v11.7, System Admins can define attribute-based **permission policies** that restrict specific user actions in addition to channel membership. Permission policies use the same attribute-based rules as access policies, but they apply to user actions rather than channel access.
 
-Permission policies can be used to restrict the following actions based on user attributes:
+Permission policies are managed in **System Console \> System Attributes \> Permission Policies**, and can be used to restrict the following actions based on user attributes:
 
 - **File upload**: Prevent users who don't match the defined attribute rules from uploading file attachments.
 - **File download**: Prevent users who don't match the defined attribute rules from downloading file attachments.
 - **Create burn-on-read message**: Prevent users who don't match the defined attribute rules from sending burn-on-read messages.
+- **Channel Read Access**: From Mattermost v12.2, prevent users who don't match the defined attribute rules from seeing a channel and reading its content.
+- **Channel Write Access**: From Mattermost v12.2, prevent users who don't match the defined attribute rules from posting, reacting, or otherwise changing a channel's content.
+- **Manage Channel**: From Mattermost v12.2, prevent users who don't match the defined attribute rules from changing a channel's settings, bookmarks, members, or access rules.
+
+The three channel actions apply across every channel except direct and group messages, and are covered in detail in [Channel permission actions](/administration-guide/manage/admin/abac-channel-permission-actions).
 
 When a permission policy applies, users who don't match the configured attribute values can't perform the restricted action. For example, users may see file attachments as unavailable or redacted in messages they would otherwise have access to, and the **Burn-on-read** icon many not be available in the message toolbar. See [Restricted file attachments](/end-user-guide/collaborate/share-files-in-messages#restricted-file-attachments) and [Send burn-on-read messages](/end-user-guide/collaborate/send-messages#send-burn-on-read-messages) for the end-user-facing behavior.
 
