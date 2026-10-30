@@ -144,3 +144,97 @@ func TestCreateBoard(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateBoardSchemeAssignment(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupBoardTest(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	channelScheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeChannel,
+	})
+	require.NoError(t, err)
+
+	teamScheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeTeam,
+	})
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name         string
+		client       *model.Client4
+		boardType    model.ChannelType
+		schemeID     string
+		mustSucceed  bool
+		wantAssigned bool
+	}{
+		{
+			name:      "team member, open board, channel-scope scheme id",
+			client:    th.Client,
+			boardType: model.ChannelTypeOpenBoard,
+			schemeID:  channelScheme.Id,
+		},
+		{
+			name:      "team member, private board, channel-scope scheme id",
+			client:    th.Client,
+			boardType: model.ChannelTypePrivateBoard,
+			schemeID:  channelScheme.Id,
+		},
+		{
+			name:        "team member, open board, no scheme id",
+			client:      th.Client,
+			boardType:   model.ChannelTypeOpenBoard,
+			mustSucceed: true,
+		},
+		{
+			name:      "system admin, open board, team-scope scheme id",
+			client:    th.SystemAdminClient,
+			boardType: model.ChannelTypeOpenBoard,
+			schemeID:  teamScheme.Id,
+		},
+		{
+			name:      "system admin, open board, scheme id that does not exist",
+			client:    th.SystemAdminClient,
+			boardType: model.ChannelTypeOpenBoard,
+			schemeID:  model.NewId(),
+		},
+		{
+			name:         "system admin, open board, channel-scope scheme id",
+			client:       th.SystemAdminClient,
+			boardType:    model.ChannelTypeOpenBoard,
+			schemeID:     channelScheme.Id,
+			mustSucceed:  true,
+			wantAssigned: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			board := &model.Channel{
+				DisplayName: "My Board",
+				Name:        GenerateTestChannelName(),
+				Type:        tc.boardType,
+				TeamId:      th.BasicTeam.Id,
+			}
+			if tc.schemeID != "" {
+				board.SchemeId = model.NewPointer(tc.schemeID)
+			}
+
+			created, resp, cErr := tc.client.CreateBoard(context.Background(), board)
+			if tc.mustSucceed {
+				require.NoError(t, cErr)
+				CheckCreatedStatus(t, resp)
+			}
+
+			assertCreatedChannelSchemeID(t, th, created, cErr, board.Name, tc.schemeID, tc.wantAssigned)
+		})
+	}
+}
