@@ -1020,16 +1020,6 @@
     "description": "Error when a request to CWS (the Mattermost customer web server / customer portal) fails; admin audience."
   },
   {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Unable to create team because teams limit has been reached",
-    "description": "API error on Mattermost Cloud when creating a team would exceed the Cloud plan's team limit."
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Unable to restore team because teams limit has been reached",
-    "description": "API error on Mattermost Cloud when restoring an archived team would exceed the Cloud plan's team limit."
-  },
-  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integrations have been limited to admins only.",
     "description": "Error when a non-admin tries to manage integrations (slash commands, webhooks) while the server restricts integration management to admins."
@@ -2369,11 +2359,6 @@
     "id": "api.command_share.service_disabled",
     "translation": "Shared Channels Service is disabled.",
     "description": "Error shown (also as /share-channel slash command output) when Shared Channels is turned off in the server config; 'Shared Channels' is the cross-server channel feature name."
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "Shared Channels Service is enabled but not active.",
-    "description": "Error shown when the Shared Channels service is enabled in config but has not started/activated; audience is admins."
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -4218,6 +4203,11 @@
     "id": "api.property_field.create.permissions_require_scope_admin.app_error",
     "translation": "Only an administrator of the field's channel, team or system can set its permissions when creating it.",
     "description": "API error when a user who does not administer the channel, team or system a new custom property field belongs to (e.g. a channel attribute) submits a permissions configuration with it. Such users can still create the field, but it gets the default permissions."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Only a system administrator can set permissions when creating an attribute field.",
+    "description": "API error when a non-system-administrator submits a permissions configuration while creating a field in the attribute-based access control group (user and channel attributes used by access policies). Such users can still create the field, but it gets the default permissions."
   },
   {
     "id": "api.property_field.create.protected_via_api.app_error",
@@ -9116,6 +9106,11 @@
     "description": "Bulk import error shown to admins when saving preferences (e.g. flagged-post state) tied to an imported post fails."
   },
   {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Error importing post. Failed to save priority.",
+    "description": "Bulk import error shown to admins when saving the priority (important, urgent, acknowledgement request) of an imported post fails."
+  },
+  {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Error importing post. User with username \"{{.Username}}\" could not be found.",
     "description": "Bulk import error shown to admins; {{.Username}} is the username referenced by the post being imported."
@@ -9411,6 +9406,31 @@
     "description": "Bulk-import validation error when a post entry lacks the author field; 'Post' and 'User' are literal field names and should stay untranslated."
   },
   {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Acknowledgement AcknowledgedAt property must be set and not before the post CreateAt.",
+    "description": "Bulk-import validation error when a post acknowledgement has no timestamp or one earlier than the post; 'AcknowledgedAt' and 'CreateAt' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Missing required Acknowledgement property: User.",
+    "description": "Bulk-import validation error when a post acknowledgement lacks the acknowledging username; 'Acknowledgement' and 'User' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Post acknowledgements require a Priority with RequestedAck set to true.",
+    "description": "Bulk-import validation error when a post has acknowledgements but its priority does not request them; 'Priority' and 'RequestedAck' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "Post PersistentNotifications require the urgent Priority.",
+    "description": "Bulk-import validation error when persistent notifications are set on a post whose priority is not urgent; 'PersistentNotifications' and 'Priority' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Missing required Priority property: Priority.",
+    "description": "Bulk-import validation error when a post priority object has no priority value (use an empty string for standard priority); 'Priority' is a literal field name."
+  },
+  {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
     "translation": "Reaction CreateAt property must be greater than the parent post CreateAt.",
     "description": "Bulk-import validation error when an emoji reaction's timestamp is earlier than the post it reacts to; 'CreateAt' is a literal field name."
@@ -9426,9 +9446,9 @@
     "description": "Bulk-import validation error when an emoji reaction entry's timestamp is zero; 'CreateAt' is a literal field name."
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Reaction EmojiName property is longer than the maximum permitted length.",
-    "description": "Bulk-import validation error when an emoji reaction's emoji name exceeds the maximum length; 'EmojiName' is a literal field name."
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Reaction EmojiName property is invalid. It must be 1 to 64 ASCII letters and numbers, +, -, or _.",
+    "description": ""
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
@@ -11336,6 +11356,11 @@
     "description": "API error when an admin tries to change an existing property field's type to or from 'graph' (hierarchical options). 'graph' is the internal field type name."
   },
   {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Cannot change this field's owners, access mode, protected or sync settings this way because its permissions cannot be expressed in that form. Update its permissions directly instead.",
+    "description": "API error (400) when a client using the older property field format changes a field's owners, access mode, protected or sync attributes, but the field's permissions hold settings that older format cannot represent, so applying the change would lose them."
+  },
+  {
     "id": "app.property_field.update.linked_options_change.app_error",
     "translation": "Cannot modify options of a linked field. Options are inherited from the source.",
     "description": "API error when an update tries to change the selectable options of a linked property field; options come from the source field."
@@ -11344,6 +11369,11 @@
     "id": "app.property_field.update.linked_type_change.app_error",
     "translation": "Cannot modify type of a linked field. Type is inherited from the source.",
     "description": "API error when an update tries to change the data type of a linked property field; the type comes from the source field."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Cannot change this field's access mode because it contains data the caller may not read.",
+    "description": "API error (400) when a client using the older property field format changes a field's access mode, but the field's masking settings (which field each person's own values are read from, and who is exempt) are not visible in that format and would be lost by the change."
   },
   {
     "id": "app.property_field.update.name_conflict.app_error",
@@ -11359,6 +11389,11 @@
     "id": "app.property_field.update.options_withheld.app_error",
     "translation": "This property has more than {{.Max}} options, so its option list was not loaded and cannot be replaced. Edit its options individually instead.",
     "description": "API error when a request tries to replace the whole option list of a property field that has too many options to be loaded at once. {{.Max}} is that option count limit."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Cannot change this field's permissions and its permission levels, owners, access mode, protected or sync settings in the same update. Send the change in one form or the other.",
+    "description": "API error when one update to a property field both changes its permissions object and changes one of the older permission settings (permission levels, owners, access mode, protected, or AD/LDAP, SAML or OpenID Connect sync attributes). The caller must send the change using only one of the two forms."
   },
   {
     "id": "app.property_field.update.protected.app_error",
@@ -11847,8 +11882,8 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "The logging configuration contains a log or audit file path outside the logging root directory. Check the server logs for details.",
-    "description": "Admin-facing error when saving a configuration whose log or audit file path resolves outside the allowed logging root directory; the server logs name the offending path."
+    "translation": "The logging configuration contains a log or audit file path outside the logging root directory or inside a directory the server manages. Check the server logs for details.",
+    "description": "Admin-facing error when saving a configuration whose log or audit file path resolves outside the allowed logging root directory, or inside a directory the server manages such as the plugin, data, config or templates directory; the server logs name the offending path."
   },
   {
     "id": "app.save_config.plugin_hook_error",
@@ -12502,11 +12537,6 @@
     "description": "API error when checking whether a user is a member of any of a given list of teams fails."
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Unable to get team count",
-    "description": "Internal API error when the statistics query counting teams fails; used by the admin usage endpoint."
-  },
-  {
     "id": "app.terms_of_service.create.app_error",
     "translation": "Unable to save terms of service.",
     "description": "API error shown to an admin when saving new custom terms of service text fails; 'terms of service' is the legal-agreement feature."
@@ -12665,11 +12695,6 @@
     "id": "app.upload.upload_data.update.app_error",
     "translation": "Failed to update the upload session.",
     "description": "API error when updating the upload session's progress in the database fails."
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Failed to get storage usage.",
-    "description": "Internal API error when computing total file storage usage fails; used by the admin usage endpoint."
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
@@ -13795,11 +13820,6 @@
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "{{.Backend}} searching is disabled on this server",
     "description": "Error returned when message search is attempted while search is disabled; {{.Backend}} is 'Elasticsearch' or 'OpenSearch'."
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Failed to parse search result matches",
-    "description": "Error when the highlighted match data in message search results from the search backend cannot be parsed."
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -17535,6 +17555,11 @@
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout.",
     "description": "Config validation error shown to system admins for the web server read timeout setting."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert and RedisTLSClientKey must be set together.",
+    "description": "Config validation error shown to system admins; 'RedisTLSClientCert' and 'RedisTLSClientKey' are config setting names and should not be translated."
   },
   {
     "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
