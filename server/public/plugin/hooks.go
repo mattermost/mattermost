@@ -75,6 +75,7 @@ const (
 	DraftWillBeUpsertedID                     = 55
 	MessagesWillBeConsumedWithContextID       = 56
 	OnLicenseChangedID                        = 57
+	PropertyValuesHaveBeenUpdatedID           = 58
 	TotalHooksID                              = iota
 )
 
@@ -537,4 +538,31 @@ type Hooks interface {
 	//
 	// Minimum server version: 11.9
 	DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string)
+
+	// PropertyValuesHaveBeenUpdated is invoked after property values of one target have been
+	// created, updated, upserted, or deleted and the change has been committed. It is a
+	// notification only: it runs asynchronously, cannot change or reject the write, and is invoked
+	// for writes made by plugins too, including the plugin that made them.
+	//
+	// userID is the user whose request made the change. For writes without a user session, such as
+	// plugin API calls, it is the UpdatedBy of the written values, or empty when they have none.
+	// groupID, targetType, and targetID identify the property group and the object the values
+	// belong to, for example "post" and a post id.
+	//
+	// values are the values as written, and are empty for a deletion. previousValues are the stored
+	// values of the same fields as they were just before the write, and only for fields that had a
+	// value then. Match the two by FieldID: a field in values but not in previousValues got its
+	// first value, and a field in previousValues but not in values was deleted. A write whose value
+	// equals the stored one is still reported. previousValues are read just before the write but
+	// outside its transaction, so two concurrent writes to the same field may both report the same
+	// previous value. A batch spanning several targets invokes the hook
+	// once per target, and at most 100 values per invocation. Deleting all values of a field is not
+	// reported.
+	//
+	// A plugin receives only the values it may read, as its own read of them through the API would
+	// return them, so a source_only or shared_only value reaches only the plugins allowed to see it.
+	// A plugin that may read none of a change's values isn't invoked for it.
+	//
+	// Minimum server version: 12.2
+	PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue)
 }
