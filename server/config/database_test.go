@@ -1245,3 +1245,138 @@ func TestCleanUp(t *testing.T) {
 		require.Equal(t, 1, count, "should have only 1 configuration left")
 	})
 }
+
+func TestDatabaseStoreHistory(t *testing.T) {
+	_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+	defer tearDown()
+
+	ds, err := newTestDatabaseStore(nil)
+	require.NoError(t, err)
+	defer ds.Close()
+
+	oldCfg := ds.Get().Clone()
+	*oldCfg.ServiceSettings.SiteURL = "http://old.example.com"
+	_, _, err = ds.Set(oldCfg)
+	require.NoError(t, err)
+
+	newCfg := oldCfg.Clone()
+	*newCfg.ServiceSettings.SiteURL = "http://new.example.com"
+	_, _, err = ds.Set(newCfg)
+	require.NoError(t, err)
+
+	history, err := ds.GetHistory(0, 2)
+	require.NoError(t, err)
+	require.Len(t, history, 2)
+
+	t.Run("lists saved configurations newest first", func(t *testing.T) {
+		assert.True(t, history[0].Active)
+		assert.False(t, history[1].Active)
+		assert.GreaterOrEqual(t, history[0].CreateAt, history[1].CreateAt)
+		assert.Equal(t, "http://new.example.com", *history[0].Config.ServiceSettings.SiteURL)
+		assert.Equal(t, "http://old.example.com", *history[1].Config.ServiceSettings.SiteURL)
+	})
+
+	t.Run("gets a saved configuration", func(t *testing.T) {
+		cfg, err := ds.GetHistoricalConfig(history[0].Id)
+		require.NoError(t, err)
+		assert.Equal(t, "http://new.example.com", *cfg.ServiceSettings.SiteURL)
+
+		cfg, err = ds.GetHistoricalConfig(history[1].Id)
+		require.NoError(t, err)
+		assert.Equal(t, "http://old.example.com", *cfg.ServiceSettings.SiteURL)
+	})
+
+	t.Run("pages through the history", func(t *testing.T) {
+		page, err := ds.GetHistory(1, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, history[1].Id, page[0].Id)
+		assert.Equal(t, "http://old.example.com", *page[0].Config.ServiceSettings.SiteURL)
+
+		page, err = ds.GetHistory(1000, 1)
+		require.NoError(t, err)
+		assert.Empty(t, page)
+	})
+
+	t.Run("applies defaults and fixes to a configuration saved by an older server", func(t *testing.T) {
+		dbs, ok := ds.backingStore.(*DatabaseStore)
+		require.True(t, ok, "should be a DatabaseStore instance")
+
+		id := model.NewId()
+		_, err := dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", map[string]any{
+			"id":        id,
+			"value":     `{"ServiceSettings": {"SiteURL": "http://older.example.com", "IdleTimeout": 0}}`,
+			"create_at": model.GetMillis(),
+		})
+		require.NoError(t, err)
+
+		cfg, err := ds.GetHistoricalConfig(id)
+		require.NoError(t, err)
+		assert.Equal(t, "http://older.example.com", *cfg.ServiceSettings.SiteURL)
+		require.NotNil(t, cfg.TeamSettings.SiteName)
+		assert.Equal(t, model.TeamSettingsDefaultSiteName, *cfg.TeamSettings.SiteName)
+		assert.Equal(t, model.ServiceSettingsDefaultIdleTimeout, *cfg.ServiceSettings.IdleTimeout)
+	})
+
+	t.Run("applies environment overrides", func(t *testing.T) {
+		t.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override.example.com")
+
+		cfg, err := ds.GetHistoricalConfig(history[1].Id)
+		require.NoError(t, err)
+		assert.Equal(t, "http://override.example.com", *cfg.ServiceSettings.SiteURL)
+
+		page, err := ds.GetHistory(0, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, "http://override.example.com", *page[0].Config.ServiceSettings.SiteURL)
+	})
+
+	t.Run("unknown configuration", func(t *testing.T) {
+		_, err := ds.GetHistoricalConfig(model.NewId())
+		require.ErrorIs(t, err, ErrHistoricalConfigNotFound)
+	})
+
+	t.Run("lists a configuration that can't be loaded", func(t *testing.T) {
+		dbs, ok := ds.backingStore.(*DatabaseStore)
+		require.True(t, ok, "should be a DatabaseStore instance")
+
+		id := model.NewId()
+		_, err := dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", map[string]any{
+			"id":        id,
+			"value":     `{"ServiceSettings": {"SiteURL": 5}}`,
+			"create_at": model.GetMillis(),
+		})
+		require.NoError(t, err)
+
+		page, err := ds.GetHistory(0, 10)
+		require.NoError(t, err)
+		var unreadable *HistoryEntry
+		for _, saved := range page {
+			if saved.Id == id {
+				unreadable = saved
+				continue
+			}
+			assert.False(t, saved.Unreadable)
+			assert.NotNil(t, saved.Config)
+			assert.NoError(t, saved.LoadErr)
+		}
+		require.NotNil(t, unreadable)
+		assert.True(t, unreadable.Unreadable)
+		assert.Nil(t, unreadable.Config)
+		assert.Error(t, unreadable.LoadErr)
+
+		_, err = ds.GetHistoricalConfig(id)
+		require.Error(t, err)
+	})
+}
+
+func TestStoreHistoryNotSupported(t *testing.T) {
+	ms := NewTestMemoryStore()
+	defer ms.Close()
+
+	_, err := ms.GetHistory(0, 10)
+	require.ErrorIs(t, err, ErrHistoryNotSupported)
+
+	_, err = ms.GetHistoricalConfig(model.NewId())
+	require.ErrorIs(t, err, ErrHistoryNotSupported)
+}

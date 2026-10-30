@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -363,6 +364,39 @@ func TestUpdateConfig(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
 	})
+
+	t.Run("Should keep the settings of plugins that aren't shown unless they are sent", func(t *testing.T) {
+		pluginDir := filepath.Join(*th.App.Config().PluginSettings.Directory, "com.example.installed")
+		require.NoError(t, os.MkdirAll(pluginDir, 0700))
+		defer os.RemoveAll(pluginDir)
+		require.NoError(t, os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(`{"id": "com.example.installed"}`), 0600))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Plugins["com.example.installed"] = map[string]any{"key": "installed"}
+			cfg.PluginSettings.Plugins["com.example.uninstalled"] = map[string]any{"key": "uninstalled"}
+			cfg.PluginSettings.Plugins["com.example.replaced"] = map[string]any{"key": "old"}
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			delete(cfg.PluginSettings.Plugins, "com.example.installed")
+			delete(cfg.PluginSettings.Plugins, "com.example.uninstalled")
+			delete(cfg.PluginSettings.Plugins, "com.example.replaced")
+		})
+
+		cfg, _, err = th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.Contains(t, cfg.PluginSettings.Plugins, "com.example.installed")
+		require.NotContains(t, cfg.PluginSettings.Plugins, "com.example.uninstalled")
+		require.NotContains(t, cfg.PluginSettings.Plugins, "com.example.replaced")
+
+		delete(cfg.PluginSettings.Plugins, "com.example.installed")
+		cfg.PluginSettings.Plugins["com.example.replaced"] = map[string]any{"key": "new"}
+		_, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
+		require.NoError(t, err)
+
+		plugins := th.App.Config().PluginSettings.Plugins
+		require.NotContains(t, plugins, "com.example.installed")
+		require.Equal(t, map[string]any{"key": "uninstalled"}, plugins["com.example.uninstalled"])
+		require.Equal(t, map[string]any{"key": "new"}, plugins["com.example.replaced"])
+	})
 }
 
 func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
@@ -446,6 +480,26 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		cfg, _, err = th.Client.GetConfig(context.Background())
 		require.NoError(t, err)
 		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, mockVal)
+	})
+
+	t.Run("the site URL is kept for a user who can't read it", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.Nil(t, cfg.ServiceSettings.SiteURL)
+
+		mockVal := model.NewId()
+		cfg.ServiceSettings.AllowCorsFrom = &mockVal
+		_, _, err = th.Client.UpdateConfig(context.Background(), cfg)
+		require.NoError(t, err)
+		assert.Equal(t, mockVal, *th.App.Config().ServiceSettings.AllowCorsFrom)
+		assert.Equal(t, "http://localhost:8065", *th.App.Config().ServiceSettings.SiteURL)
 	})
 }
 
@@ -1116,4 +1170,212 @@ func TestMigrateConfig(t *testing.T) {
 		_, err = th.LocalClient.MigrateConfig(context.Background(), "from.json", "to.json")
 		require.NoError(t, err)
 	})
+}
+
+// setupConfigHistory saves two configurations that change a plain setting, a sensitive
+// setting, a setting basic users can be allowed to read, and a cloud restricted setting.
+func setupConfigHistory(t *testing.T) *TestHelper {
+	th := SetupWithDatabaseConfigStore(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.SiteName = "Old Site"
+		*cfg.EmailSettings.SMTPPassword = "old-password"
+		cfg.RateLimitSettings.VaryByHeader = "X-Old"
+		*cfg.ServiceSettings.TLSStrictTransport = false
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.SiteName = "New Site"
+		*cfg.EmailSettings.SMTPPassword = "new-password"
+		cfg.RateLimitSettings.VaryByHeader = "X-New"
+		*cfg.ServiceSettings.TLSStrictTransport = true
+	})
+
+	return th
+}
+
+func findConfigChange(changes []*model.ConfigChange, path string) *model.ConfigChange {
+	for _, change := range changes {
+		if change.Path == path {
+			return change
+		}
+	}
+	return nil
+}
+
+func TestGetConfigHistory(t *testing.T) {
+	th := setupConfigHistory(t)
+
+	t.Run("requires a system console read permission", func(t *testing.T) {
+		_, resp, err := th.Client.GetConfigHistory(context.Background(), 0, 2)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		entries, _, err := client.GetConfigHistory(context.Background(), 0, 2)
+		require.NoError(t, err)
+		require.Len(t, entries, 2)
+		assert.True(t, entries[0].Active)
+		assert.False(t, entries[1].Active)
+
+		siteName := findConfigChange(entries[0].Changes, "TeamSettings.SiteName")
+		require.NotNil(t, siteName)
+		assert.Equal(t, "Old Site", siteName.OldValue)
+		assert.Equal(t, "New Site", siteName.NewValue)
+
+		smtpPassword := findConfigChange(entries[0].Changes, "EmailSettings.SMTPPassword")
+		require.NotNil(t, smtpPassword, "a changed sensitive setting should be listed")
+		assert.Equal(t, model.FakeSetting, smtpPassword.OldValue)
+		assert.Equal(t, model.FakeSetting, smtpPassword.NewValue)
+	}, "lists the changes with sensitive values masked")
+
+	t.Run("pages through the history", func(t *testing.T) {
+		entries, _, err := th.SystemAdminClient.GetConfigHistory(context.Background(), 0, 2)
+		require.NoError(t, err)
+		require.Len(t, entries, 2)
+
+		page, _, err := th.SystemAdminClient.GetConfigHistory(context.Background(), 1, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, entries[1], page[0], "the oldest entry on a page should still list its changes")
+	})
+
+	t.Run("lists a configuration that can't be loaded", func(t *testing.T) {
+		entries, _, err := th.SystemAdminClient.GetConfigHistory(context.Background(), 0, 2)
+		require.NoError(t, err)
+		require.Len(t, entries, 2)
+
+		// Saved between the two newest configurations.
+		id := model.NewId()
+		db := th.Server.Store().GetInternalMasterDB()
+		_, err = db.Exec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES ($1, $2, $3)", id, `{"ServiceSettings": {"SiteURL": 5}}`, entries[1].CreateAt+1)
+		require.NoError(t, err)
+		defer func() {
+			_, deleteErr := db.Exec("DELETE FROM Configurations WHERE Id = $1", id)
+			require.NoError(t, deleteErr)
+		}()
+
+		page, _, err := th.SystemAdminClient.GetConfigHistory(context.Background(), 0, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, entries[0].Id, page[0].Id)
+		assert.Nil(t, page[0].Changes, "the changes from a configuration that can't be loaded aren't known")
+
+		page, _, err = th.SystemAdminClient.GetConfigHistory(context.Background(), 1, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, id, page[0].Id)
+		assert.True(t, page[0].Unreadable)
+		assert.Nil(t, page[0].Changes)
+
+		page, _, err = th.SystemAdminClient.GetConfigHistory(context.Background(), 2, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, entries[1], page[0])
+
+		_, resp, err := th.SystemAdminClient.GetHistoricalConfig(context.Background(), id)
+		require.Error(t, err)
+		CheckInternalErrorStatus(t, resp)
+	})
+
+	t.Run("lists only the settings the user may read", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+
+		entries, _, err := th.Client.GetConfigHistory(context.Background(), 0, 1)
+		require.NoError(t, err)
+		require.Len(t, entries, 1)
+
+		varyByHeader := findConfigChange(entries[0].Changes, "RateLimitSettings.VaryByHeader")
+		require.NotNil(t, varyByHeader)
+		assert.Equal(t, "X-Old", varyByHeader.OldValue)
+		assert.Equal(t, "X-New", varyByHeader.NewValue)
+		assert.Nil(t, findConfigChange(entries[0].Changes, "TeamSettings.SiteName"))
+	})
+
+	t.Run("hides cloud restricted settings in cloud", func(t *testing.T) {
+		entries, _, err := th.SystemAdminClient.GetConfigHistory(context.Background(), 0, 1)
+		require.NoError(t, err)
+		require.Len(t, entries, 1)
+		require.NotNil(t, findConfigChange(entries[0].Changes, "ServiceSettings.TLSStrictTransport"))
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		entries, _, err = th.SystemAdminClient.GetConfigHistory(context.Background(), 0, 1)
+		require.NoError(t, err)
+		require.Len(t, entries, 1)
+		assert.Nil(t, findConfigChange(entries[0].Changes, "ServiceSettings.TLSStrictTransport"))
+		assert.NotNil(t, findConfigChange(entries[0].Changes, "TeamSettings.SiteName"))
+	})
+}
+
+func TestGetHistoricalConfig(t *testing.T) {
+	th := setupConfigHistory(t)
+
+	history, appErr := th.App.GetConfigHistory(0, 2)
+	require.Nil(t, appErr)
+	require.Len(t, history, 2)
+	oldConfigID := history[1].Id
+
+	t.Run("requires a system console read permission", func(t *testing.T) {
+		_, resp, err := th.Client.GetHistoricalConfig(context.Background(), oldConfigID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("sanitizes the configuration for a system admin", func(t *testing.T) {
+		cfg, _, err := th.SystemAdminClient.GetHistoricalConfig(context.Background(), oldConfigID)
+		require.NoError(t, err)
+		assert.Equal(t, "Old Site", *cfg.TeamSettings.SiteName)
+		assert.Equal(t, model.FakeSetting, *cfg.EmailSettings.SMTPPassword)
+		assert.Equal(t, model.FakeSetting, *cfg.SqlSettings.DataSource)
+	})
+
+	t.Run("returns the configuration unsanitized in local mode", func(t *testing.T) {
+		cfg, _, err := th.LocalClient.GetHistoricalConfig(context.Background(), oldConfigID)
+		require.NoError(t, err)
+		assert.Equal(t, "Old Site", *cfg.TeamSettings.SiteName)
+		assert.Equal(t, "old-password", *cfg.EmailSettings.SMTPPassword)
+	})
+
+	t.Run("returns only the settings the user may read", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+
+		cfg, _, err := th.Client.GetHistoricalConfig(context.Background(), oldConfigID)
+		require.NoError(t, err)
+		assert.Equal(t, "X-Old", cfg.RateLimitSettings.VaryByHeader)
+		assert.Nil(t, cfg.TeamSettings.SiteName)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp, err := client.GetHistoricalConfig(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "app.config.history.not_found.app_error")
+
+		_, resp, err = client.GetHistoricalConfig(context.Background(), "notanid")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	}, "unknown or invalid id")
+}
+
+func TestConfigHistoryNotSupported(t *testing.T) {
+	th := Setup(t)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp, err := client.GetConfigHistory(context.Background(), 0, 10)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorID(t, err, "app.config.history.not_supported.app_error")
+
+		_, resp, err = client.GetHistoricalConfig(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorID(t, err, "app.config.history.not_supported.app_error")
+	}, "memory store")
 }
