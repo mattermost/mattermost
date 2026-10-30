@@ -8,7 +8,7 @@ FIPS/STIG compliance in Mattermost is a property of the **container image**, not
 
 Mattermost FIPS-compliant Docker images are built using Chainguard’s FIPS-certified base containers. These images help organizations meet stringent security requirements by ensuring compliance with the Federal Information Processing Standards (FIPS).
 
-On top of this foundation, Mattermost product code itself is aligned with FIPS requirements, using only FIPS-approved cryptographic algorithms. This ensures that both the underlying container base and the application layer meet compliance expectations.
+On top of this foundation, Mattermost product code itself is aligned with FIPS requirements, using FIPS-approved cryptographic algorithms, with the [exceptions to the FIPS boundary](#exceptions-to-the-fips-boundary) listed below. This ensures that both the underlying container base and the application layer meet compliance expectations.
 
 In addition, the Chainguard base images are STIG-hardened and rigorously scanned against the DISA General Purpose Operating System SRG, providing a robust and secure operational posture.
 
@@ -17,7 +17,7 @@ Mattermost’s FIPS-compliant images are built using two Chainguard base images:
 - [Build-Time Image](https://images.chainguard.dev/directory/image/go-msft-fips/overview): Ensures compiled Mattermost binaries invoke OpenSSL through CGO for FIPS-compliance during compilation.
 - [Runtime Image](https://images.chainguard.dev/directory/image/glibc-openssl-fips/overview): Enforces FIPS compliance in the runtime environment using strict OpenSSL configurations.
 
-All application-level code uses only FIPS-approved algorithms, ensuring that cryptographic requirements are consistently enforced across every layer of the system.
+All application-level code uses FIPS-approved algorithms, except for the [documented exceptions](#exceptions-to-the-fips-boundary), ensuring that cryptographic requirements are consistently enforced across every layer of the system.
 
 <Note>
 
@@ -25,3 +25,15 @@ All application-level code uses only FIPS-approved algorithms, ensuring that cry
 - Existing Docker or Kubernetes-based deployments can change the image from `mattermost/mattermost-enterprise-edition` to `mattermost/mattermost-enterprise-fips-edition`. See [Migrate an existing deployment to FIPS-compliant images](/administration-guide/manage/admin/fips-migration) for step-by-step instructions.
 
 </Note>
+
+## Exceptions to the FIPS boundary
+
+The Mattermost FIPS image deliberately doesn't use validated cryptography in the cases below.
+
+### Multi-factor authentication (TOTP)
+
+Multi-factor authentication (MFA) uses time-based one-time passwords (TOTP) as defined in [RFC 6238](https://datatracker.ietf.org/doc/html/rfc6238). TOTP codes are computed with HMAC-SHA1, which is the algorithm authenticator apps use by default and which the FIPS cryptographic module doesn't accept for this use. Mattermost therefore computes TOTP codes with the Go standard library instead of the validated OpenSSL module.
+
+The exception is scoped as tightly as possible: HMAC-SHA1 is used only for TOTP code generation and verification. If this exception isn't acceptable, leave **Enable Multi-factor Authentication** (**System Console > Authentication > MFA**) set to `false` and use multi-factor authentication provided by your SSO or identity provider instead.
+
+When the server runs in FIPS mode, the **MFA** page in the System Console shows a notice linking to this section.
