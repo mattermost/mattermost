@@ -791,6 +791,33 @@ func TestPostShallowCopy(t *testing.T) {
 	})
 }
 
+func TestUpdatePostOptionsCopy(t *testing.T) {
+	original := &UpdatePostOptions{
+		SafeUpdate:                 true,
+		IsRestorePost:              true,
+		AllowMmBlocksActionsUpdate: true,
+		AllowIdentityPropsUpdate:   true,
+		FileCreatorID:              NewId(),
+	}
+
+	// Every field must be non-zero so a new field fails this test until the
+	// fixture and Copy both include it.
+	value := reflect.ValueOf(*original)
+	for i := range value.NumField() {
+		require.Falsef(t, value.Field(i).IsZero(), "set %s on the copy fixture", value.Type().Field(i).Name)
+	}
+
+	copied := original.Copy()
+	require.Equal(t, original, copied)
+	require.NotSame(t, original, copied)
+
+	copied.SafeUpdate = false
+	copied.FileCreatorID = "other"
+	require.True(t, original.SafeUpdate)
+	require.NotEqual(t, "other", original.FileCreatorID)
+	require.Nil(t, (*UpdatePostOptions)(nil).Copy())
+}
+
 func TestPostClone(t *testing.T) {
 	p := &Post{
 		Id: NewId(),

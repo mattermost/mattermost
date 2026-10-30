@@ -36,6 +36,7 @@ import {
     elasticsearchServerConfig,
     enableAIBridgeTestMode,
     ensureAzurite,
+    ensureChannelIntroActions,
     ensureDemoPlugin,
     ensureElasticsearch,
     ensureFeatureFlag,
@@ -81,6 +82,7 @@ import {
     samlServerConfig,
     saveUpgradePhaseLogs,
     setDefaultOnboardingPreferences,
+    setKeycloakUserAttributes,
     suspendKeycloakUser,
     updateLdapUser,
     upgradeServerImage,
@@ -200,6 +202,7 @@ export class PlaywrightExtended {
     readonly getFileFromAsset;
 
     // ./server
+    readonly ensureChannelIntroActions;
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
     readonly resetConfig;
@@ -250,6 +253,7 @@ export class PlaywrightExtended {
     readonly opensearchServerConfig;
     readonly runMmctl;
     readonly samlServerConfig;
+    readonly setKeycloakUserAttributes;
     readonly suspendKeycloakUser;
     readonly updateLdapUser;
 
@@ -330,6 +334,7 @@ export class PlaywrightExtended {
         this.getFileFromAsset = getFileFromAsset;
 
         // ./server
+        this.ensureChannelIntroActions = ensureChannelIntroActions;
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
@@ -381,6 +386,7 @@ export class PlaywrightExtended {
         this.opensearchServerConfig = opensearchServerConfig;
         this.runMmctl = runMmctl;
         this.samlServerConfig = samlServerConfig;
+        this.setKeycloakUserAttributes = setKeycloakUserAttributes;
         this.suspendKeycloakUser = suspendKeycloakUser;
         this.updateLdapUser = updateLdapUser;
 

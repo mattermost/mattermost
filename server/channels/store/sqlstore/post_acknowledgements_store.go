@@ -118,6 +118,18 @@ func (s *SqlPostAcknowledgementStore) DeleteAllForPost(postID string) error {
 	return err
 }
 
+func (s *SqlPostAcknowledgementStore) PermanentDeleteByUser(userID string) error {
+	query := s.getQueryBuilder().
+		Delete("PostAcknowledgements").
+		Where(sq.Eq{"UserId": userID})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete PostAcknowledgements with userId=%s", userID)
+	}
+
+	return nil
+}
+
 func (s *SqlPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAcknowledgement, error) {
 	var acknowledgements []*model.PostAcknowledgement
 

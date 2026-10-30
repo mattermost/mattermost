@@ -6,7 +6,10 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
-import {PlusIcon} from '@mattermost/compass-icons/components';
+import {InformationOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
@@ -23,7 +26,6 @@ import ConfirmModal from 'components/confirm_modal';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import LoadingScreen from 'components/loading_screen';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {getHistory} from 'utils/browser_history';
@@ -711,7 +713,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                         <SectionNotice
                             type='danger'
                             title={<FormattedMessage {...msg.conflictTitle}/>}
-                            text={formatMessage(conflictMessageByKind[fieldConflict.kind], {name: fieldConflict.field.name})}
+                            description={formatMessage(conflictMessageByKind[fieldConflict.kind], {name: fieldConflict.field.name})}
                         />
                     </InformationNoticeWrapper>
                 )}
@@ -722,9 +724,9 @@ export default function ClassificationMarkings({disabled}: Props) {
                     <InformationNoticeWrapper>
                         <SectionNotice
                             type='warning'
-                            iconOverride='icon-information-outline'
+                            icon={<Icon glyph={<InformationOutlineIcon/>}/>}
                             title={<FormattedMessage {...msg.informationalNoticeTitle}/>}
-                            text={formatMessage(msg.informationalNoticeBody)}
+                            description={formatMessage(msg.informationalNoticeBody)}
                         />
                     </InformationNoticeWrapper>
                 )}
@@ -788,22 +790,21 @@ export default function ClassificationMarkings({disabled}: Props) {
                             }
                             setByEnv={false}
                         >
-                            <label className='checkbox-inline'>
-                                <input
-                                    data-testid='clearanceAttributeCheckbox'
-                                    type='checkbox'
-                                    checked={clearanceEnabled}
-                                    onChange={handleClearanceChange}
-                                    disabled={readOnly || clearanceConflict !== null}
-                                />
+                            <Checkbox
+                                className='checkbox-inline'
+                                data-testid='clearanceAttributeCheckbox'
+                                checked={clearanceEnabled}
+                                onChange={handleClearanceChange}
+                                disabled={readOnly || clearanceConflict !== null}
+                            >
                                 <FormattedMessage {...msg.clearanceCheckbox}/>
-                            </label>
+                            </Checkbox>
                             {clearanceConflict && (
                                 <InformationNoticeWrapper>
                                     <SectionNotice
                                         type='danger'
                                         title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
-                                        text={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
+                                        description={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
                                     />
                                 </InformationNoticeWrapper>
                             )}
@@ -815,7 +816,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                                     <SectionNotice
                                         type='warning'
                                         title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
-                                        text={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
+                                        description={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
                                     />
                                 </InformationNoticeWrapper>
                             )}
@@ -881,7 +882,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                 title={formatMessage({id: 'admin.classification_markings.preset_switch.title', defaultMessage: 'Change classification preset?'})}
                 message={formatMessage({id: 'admin.classification_markings.preset_switch.message', defaultMessage: 'Changing the classification preset will affect all existing classifications across the system. Any channels, files, or other resources marked with the current classification levels may lose their markings.'})}
                 confirmButtonText={formatMessage({id: 'admin.classification_markings.preset_switch.confirm', defaultMessage: 'Change preset'})}
-                confirmButtonVariant='destructive'
+                destructive={true}
                 onConfirm={handleConfirmPresetSwitch}
                 onCancel={handleCancelPresetSwitch}
                 onExited={handleCancelPresetSwitch}

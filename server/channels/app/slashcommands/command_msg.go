@@ -40,15 +40,7 @@ func (*msgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command 
 }
 
 func (*msgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	splitMessage := strings.SplitN(message, " ", 2)
-
-	parsedMessage := ""
-	targetUsername := ""
-
-	if len(splitMessage) > 1 {
-		parsedMessage = strings.SplitN(message, " ", 2)[1]
-	}
-	targetUsername = strings.SplitN(message, " ", 2)[0]
+	targetUsername, parsedMessage, _ := strings.Cut(message, " ")
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
 	userProfile, nErr := a.Srv().Store().User().GetByUsername(targetUsername)
@@ -75,8 +67,7 @@ func (*msgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandA
 
 	targetChannelID := ""
 	if channel, channelErr := a.Srv().Store().Channel().GetByName(args.TeamId, channelName, true); channelErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(channelErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](channelErr); ok {
 			if !a.HasPermissionTo(rctx, args.UserId, model.PermissionCreateDirectChannel) {
 				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 			}

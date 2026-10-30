@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import AdvancedCreatePost from 'components/advanced_create_post';
 import ChannelBanner from 'components/channel_banner/channel_banner';
@@ -18,6 +18,7 @@ import PostView from 'components/post_view';
 import WebSocketClient from 'client/web_websocket_client';
 
 import {ChannelComposerBanner} from './channel_composer_banner';
+import ChannelViewPluginComponent from './channel_view_plugin_component';
 import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
@@ -108,6 +109,20 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     }
 
     render() {
+        const {channelViewPluginComponent} = this.props;
+        const {focusedPostId} = this.state;
+
+        let center: React.ReactNode;
+        if (channelViewPluginComponent) {
+            center = (
+                <ChannelViewPluginComponent
+                    registration={channelViewPluginComponent}
+                    channelId={this.props.channelId}
+                    focusedPostId={focusedPostId}
+                />
+            );
+        }
+
         let createPost;
         if (this.props.deactivatedChannel) {
             createPost = (
@@ -210,7 +225,18 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             );
         }
 
-        const DeferredPostView = this.state.deferredPostView;
+        if (!center) {
+            const DeferredPostView = this.state.deferredPostView;
+            center = (
+                <>
+                    <DeferredPostView
+                        channelId={this.props.channelId}
+                        focusedPostId={focusedPostId}
+                    />
+                    {createPost}
+                </>
+            );
+        }
 
         return (
             <div
@@ -218,18 +244,24 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 id='app-content'
                 className='app__content'
             >
-                <FileUploadOverlay
-                    overlayType='center'
-                    id={DropOverlayIdCenterChannel}
-                />
-                <ChannelHeader/>
-                <ChannelBanner channelId={this.props.channelId}/>
-                {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
-                <DeferredPostView
+                {!channelViewPluginComponent && (
+                    <FileUploadOverlay
+                        overlayType='center'
+                        id={DropOverlayIdCenterChannel}
+                    />
+                )}
+                <ChannelHeader key='channelHeader'/>
+                <ChannelBanner
+                    key='channelBanner'
                     channelId={this.props.channelId}
-                    focusedPostId={this.state.focusedPostId}
                 />
-                {createPost}
+                {this.props.isChannelBookmarksEnabled && (
+                    <ChannelBookmarks
+                        key='channelBookmarks'
+                        channelId={this.props.channelId}
+                    />
+                )}
+                {center}
             </div>
         );
     }

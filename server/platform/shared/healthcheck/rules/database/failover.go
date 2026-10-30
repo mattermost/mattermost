@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
 )
 
 const failoverBurst = 400
@@ -30,7 +31,7 @@ var dbHAFailoverStormRisk = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityTopology,
 	Subject:    maxOpenConnsSubject,
-	Eval: healthcheck.Licensed(func(f *model.Features) *bool { return f.Cluster },
+	Eval: healthcheck.Licensed(healthcheck.FeatureCluster,
 		healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalDBHAFailoverStormRisk)),
 }
 
@@ -42,10 +43,10 @@ func isPoolerHost(host string) bool {
 	if h, _, err := net.SplitHostPort(host); err == nil {
 		host = h
 	}
-	host = strings.ToLower(strings.Trim(host, "[]"))
-	if ip := net.ParseIP(host); host == "localhost" || (ip != nil && ip.IsLoopback()) {
+	if hosts.IsLocal(host) {
 		return true
 	}
+	host = strings.ToLower(host)
 	return slices.ContainsFunc(poolerHostMarkers, func(marker string) bool { return strings.Contains(host, marker) })
 }
 

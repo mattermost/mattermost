@@ -1,12 +1,6 @@
 .IPFiltering {
     height: 100%;
 
-    .admin-console-save {
-        .btn.btn-primary:disabled {
-            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
-        }
-    }
-
     .MainPanel {
         display: flex;
         height: 100%;
@@ -64,9 +58,18 @@
                 }
 
                 .SwitchSelector {
+                    display: flex;
                     width: 32px;
                     height: 20px;
                     flex-shrink: 0;
+                    align-items: center;
+
+                    // Compass Switch root is a <label>; Bootstrap form labels
+                    // add margin-bottom which misaligns / can clip hit targets.
+                    > label {
+                        width: auto;
+                        margin-bottom: 0;
+                    }
                 }
             }
         }
