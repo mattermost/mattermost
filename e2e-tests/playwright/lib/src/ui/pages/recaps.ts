@@ -55,8 +55,8 @@ class CreateRecapModal {
     async enableRunOnce() {
         const runOnce = this.container.locator('#run-once-toggle');
         await expect(runOnce).toBeVisible();
-        if ((await runOnce.getAttribute('aria-pressed')) !== 'true') {
-            await runOnce.click();
+        if (!(await runOnce.isChecked())) {
+            await runOnce.check({force: true});
         }
     }
 
@@ -236,7 +236,7 @@ class ScheduledRecapItem {
     ) {
         this.menuButton = container.getByRole('button', {name: /Options for /});
         this.schedulePattern = container.locator('.schedule-pattern');
-        this.toggleButton = container.locator('.scheduled-recap-toggle button');
+        this.toggleButton = container.locator('.scheduled-recap-toggle').getByRole('switch');
     }
 
     async toBeVisible() {
@@ -253,24 +253,27 @@ class ScheduledRecapItem {
     }
 
     async expectActive() {
-        await expect(this.toggleButton).toHaveAttribute('aria-pressed', 'true');
+        await expect(this.toggleButton).toBeChecked();
         await expect(this.toggleButton).toHaveAccessibleName('Active - click to pause');
     }
 
     async expectPaused() {
-        await expect(this.toggleButton).toHaveAttribute('aria-pressed', 'false');
+        await expect(this.toggleButton).not.toBeChecked();
         await expect(this.toggleButton).toHaveAccessibleName('Paused - click to resume');
     }
 
     async pause() {
         await this.expectActive();
-        await this.toggleButton.click();
+        // Click instead of uncheck: the Switch is controlled by async Redux/API
+        // updates, so Playwright's checked-state verification fails before the
+        // store refreshes. expectPaused() polls until aria-checked flips.
+        await this.toggleButton.click({force: true});
         await this.expectPaused();
     }
 
     async resume() {
         await this.expectPaused();
-        await this.toggleButton.click();
+        await this.toggleButton.click({force: true});
         await this.expectActive();
     }
 
@@ -371,7 +374,7 @@ export default class RecapsPage {
         await expect(this.page.getByRole('heading', {name: 'Set up your first recap'})).toBeVisible();
         await expect(
             this.page.getByText(
-                'Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
+                'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
             ),
         ).toBeVisible();
         await expect(

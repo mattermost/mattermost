@@ -16,7 +16,16 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 ## Release v12.0 - [Major Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-0-major-release}
 
-**Release day: 2026-10-16**
+- **12.0.1, released 2026-10-22**
+  - Mattermost v12.0.1 contains Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Go runtime was updated from 1.26.7 to 1.26.10.
+  - Pre-packaged Dataminr plugin version [v3.0.0](https://github.com/mattermost/mattermost-plugin-dataminr/releases/tag/v3.0.0).
+  - Added the ``EnforceLogPathRoot`` feature flag, disabled by default. When enabled, the server refuses to start, and a configuration save is rejected, if a log or audit file path resolves outside the logging root (``MM_LOG_PATH``, or the default logs directory). Validation now also covers ``LogSettings.FileLocation`` and ``ExperimentalAuditSettings.FileName``.
+  - Fixed an issue where a v12 server failed to start when ``SupportEmail``, ``FeedbackEmail``, or ``ReplyToAddress`` held a list of addresses or a value that was not an email address. Such values are now reduced to their first valid address or cleared, and a warning is logged.
+  - Fixed an issue where ``mattermost db`` commands reported configuration validation errors as untranslated message IDs.
+  - Mattermost v12.0.1 contains no database or functional changes.
+- **12.0.0, released 2026-10-16**
+  - Original 12.0.0 release.
 
 <Important>
 
@@ -117,7 +126,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
 
 ### Improvements
 
-See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-available/) on the highlights in our latest release.
+See the [Mattermost v12 overview](https://mattermost.com/v12-ecosystem-that-comes-to-the-mission/) for highlights of this release.
 
 #### User Interface
  - Pre-packaged Calls plugin version [v1.12.5](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.5).

@@ -106,8 +106,7 @@ func sanitizePingDataSource(dsn string) (string, error) {
 }
 
 func safeDataSourceSanitizationError(err error) error {
-	var urlErr *url.Error
-	if stdErrors.As(err, &urlErr) {
+	if urlErr, ok := stdErrors.AsType[*url.Error](err); ok {
 		if urlErr.Err != nil {
 			return errors.Errorf("invalid database DSN: %v", urlErr.Err)
 		}
