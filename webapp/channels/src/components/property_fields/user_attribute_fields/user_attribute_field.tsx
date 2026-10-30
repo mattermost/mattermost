@@ -6,7 +6,6 @@ import React from 'react';
 import {FormattedList, FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
-import ReactSelect from 'react-select';
 
 import {SyncIcon, PowerPlugOutlineIcon, CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
@@ -20,6 +19,7 @@ import {getPluginDisplayName} from 'selectors/plugins';
 
 import RankBadge from 'components/admin_console/system_properties/rank_badge';
 import * as Menu from 'components/menu';
+import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
 
@@ -31,67 +31,6 @@ import {canEditUserAttribute, isAdminManagedLocked} from './user_attribute_utils
 import type {UserAttributeValue} from './user_attribute_utils';
 
 import './user_attribute_fields.scss';
-
-// Private component for CPA multiselect fields
-type CPAMultiSelectProps = {
-    options: Array<{id: string; name: string}>;
-    selectedValues: string[];
-    onChange: (values: string[]) => void;
-    disabled: boolean;
-    placeholder: string;
-    noOptionsMessage: string;
-    errorId?: string;
-};
-
-const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
-    options,
-    selectedValues,
-    onChange,
-    disabled,
-    placeholder,
-    noOptionsMessage,
-    errorId,
-}) => {
-    // Transform options to ReactSelect format
-    const selectOptions = options.map((option) => ({
-        value: option.id,
-        label: option.name,
-    }));
-
-    // Keep assigned ids even when the option is gone; dropping them shrinks the saved value.
-    const selectedOptions = selectedValues.map((selectedId) => {
-        const option = options.find((opt) => opt.id === selectedId);
-        return {value: selectedId, label: option?.name ?? selectedId};
-    });
-
-    return (
-        <ReactSelect
-            isMulti={true}
-            options={selectOptions}
-            value={selectedOptions}
-            onChange={(selectedOptions) => {
-                const selectedIds = selectedOptions ? selectedOptions.map((opt) => opt.value) : [];
-                onChange(selectedIds);
-            }}
-            isDisabled={disabled}
-            aria-invalid={errorId ? true : undefined}
-            aria-errormessage={errorId}
-            isClearable={false}
-
-            // A disabled select keeps its values; a remove button on each would
-            // suggest otherwise.
-            components={disabled ? {MultiValueRemove: () => null} : undefined}
-            placeholder={placeholder}
-            noOptionsMessage={() => noOptionsMessage}
-            styles={{
-                container: (provided) => ({
-                    ...provided,
-                    maxWidth: '320px',
-                }),
-            }}
-        />
-    );
-};
 
 // Private component for CPA ranked fields. Renders a menu of the field's options
 // in descending rank order (highest first), each prefixed with its rank badge and
@@ -323,6 +262,9 @@ export default function UserAttributeField({
     const isDisabled = disabled || !canEditUserAttribute(field, lockOpts);
     const errorId = field.id + '-error';
     const describedErrorId = error ? errorId : undefined;
+    const fieldLabel = getUserPropertyFieldLabel(field);
+    const comboboxId = `${testIdPrefix}-combobox-${field.id}`;
+    const usesCombobox = (field.type === 'select' || field.type === 'multiselect') && !omitLocksField;
 
     const fieldContent = (() => {
         if (omitLocksField && valueRefersToOptions(field)) {
@@ -344,34 +286,26 @@ export default function UserAttributeField({
         }
 
         switch (field.type) {
-        case 'select': {
-            const options = field.attrs?.options || [];
+        case 'select':
             return (
-                <select
-                    className='form-control'
+                <AttributeCombobox
+                    id={comboboxId}
+                    testId={comboboxId}
+                    label={fieldLabel}
+                    options={field.attrs?.options || []}
                     value={Array.isArray(value) ? value[0] || '' : value}
-                    onChange={(e) => onChange(field.id, e.target.value)}
+                    onChange={(next: string) => onChange(field.id, next)}
                     disabled={isDisabled}
-                    aria-invalid={error ? 'true' : undefined}
+                    invalid={Boolean(error)}
                     aria-describedby={describedErrorId}
-                >
-                    <option value=''>
-                        {intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.selectOption',
-                            defaultMessage: 'Select an option',
-                        })}
-                    </option>
-                    {options.map((option) => (
-                        <option
-                            key={option.id}
-                            value={option.id}
-                        >
-                            {option.name}
-                        </option>
-                    ))}
-                </select>
+                    placeholder={intl.formatMessage({
+                        id: 'admin.userManagement.userDetail.selectOption',
+                        defaultMessage: 'Select an option',
+                    })}
+                    className='UserAttributeField__combobox'
+                    preventEnterSubmit={true}
+                />
             );
-        }
         case 'rank': {
             const options = field.attrs?.options || [];
             return (
@@ -404,32 +338,31 @@ export default function UserAttributeField({
                         id: 'admin.user.selectOptions',
                         defaultMessage: 'Select options...',
                     })}
-                    ariaLabel={getUserPropertyFieldLabel(field)}
+                    ariaLabel={fieldLabel}
                 />
             );
         }
-        case 'multiselect': {
-            const options = field.attrs?.options || [];
-            const selectedValues = Array.isArray(value) ? value : [];
-
+        case 'multiselect':
             return (
-                <CPAMultiSelect
-                    options={options}
-                    selectedValues={selectedValues}
-                    onChange={(values) => onChange(field.id, values)}
+                <AttributeCombobox
+                    multiple={true}
+                    id={comboboxId}
+                    testId={comboboxId}
+                    label={fieldLabel}
+                    options={field.attrs?.options || []}
+                    value={value}
+                    onChange={(next: string[]) => onChange(field.id, next)}
                     disabled={isDisabled}
-                    errorId={describedErrorId}
+                    invalid={Boolean(error)}
+                    aria-errormessage={describedErrorId}
                     placeholder={intl.formatMessage({
                         id: 'admin.user.selectOptions',
                         defaultMessage: 'Select options...',
                     })}
-                    noOptionsMessage={intl.formatMessage({
-                        id: 'admin.userManagement.userDetail.noOptions',
-                        defaultMessage: 'No options available',
-                    })}
+                    className='UserAttributeField__combobox'
+                    preventEnterSubmit={true}
                 />
             );
-        }
         case 'text':
         default: {
             const inputType = getInputTypeFromValueType(field.attrs?.value_type);
@@ -455,13 +388,13 @@ export default function UserAttributeField({
         <FormattedMessage
             id='admin.userManagement.userDetail.cpaField'
             defaultMessage='{fieldName}'
-            values={{fieldName: getUserPropertyFieldLabel(field)}}
+            values={{fieldName: fieldLabel}}
         />
     );
 
-    const fieldBody = (
-        <>
-            {field.type === 'graph' ? (
+    const fieldNameElement = (() => {
+        if (field.type === 'graph') {
+            return (
                 <label
                     htmlFor={`cpa-graph-button-${field.id}`}
                     onClick={() => {
@@ -473,7 +406,17 @@ export default function UserAttributeField({
                 >
                     {fieldName}
                 </label>
-            ) : fieldName}
+            );
+        }
+        if (usesCombobox) {
+            return <label htmlFor={comboboxId}>{fieldName}</label>;
+        }
+        return fieldName;
+    })();
+
+    const fieldBody = (
+        <>
+            {fieldNameElement}
             {fieldContent}
             {error && (
                 <div
@@ -500,7 +443,10 @@ export default function UserAttributeField({
     // Wrapping that in <label> forwards chip clicks to the trigger, so the X
     // opens the menu instead of removing the value. Point the name at the
     // trigger instead (with a click forwarder — divs are not labelable).
-    const root = field.type === 'graph' ? (
+    // Comboboxes need a <div> root too: their name is its own <label htmlFor>,
+    // and in a multiselect a <label> root would forward clicks to the first
+    // chip's remove button.
+    const root = field.type === 'graph' || usesCombobox ? (
         <div
             className='UserAttributeField cpa-field'
             data-testid={testId}

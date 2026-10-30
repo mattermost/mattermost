@@ -85,7 +85,9 @@
             }
         }
 
-        svg {
+        // Compass sizes its own combobox icons. :where() keeps this rule's
+        // specificity below the sync-indicator icon rule.
+        svg:where(:not(.UserAttributeField__combobox svg)) {
             display: inline-block;
             width: 16px;
             height: 16px;
