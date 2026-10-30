@@ -76,7 +76,7 @@ func (ad *AuthData) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.create_at.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
-	if len(ad.RedirectUri) > 256 || !IsValidHTTPURL(ad.RedirectUri) {
+	if len(ad.RedirectUri) > 256 || !IsValidDCRRedirectURI(ad.RedirectUri) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
@@ -116,7 +116,7 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.response_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if ar.RedirectURI == "" || len(ar.RedirectURI) > 256 || !IsValidHTTPURL(ar.RedirectURI) {
+	if ar.RedirectURI == "" || len(ar.RedirectURI) > 256 || !IsValidDCRRedirectURI(ar.RedirectURI) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ar.ClientId, http.StatusBadRequest)
 	}
 
@@ -236,9 +236,9 @@ func (ad *AuthData) VerifyPKCE(codeVerifier string) bool {
 }
 
 // ValidatePKCEForClientType validates PKCE parameters based on OAuth client type and security requirements
-func (ad *AuthData) ValidatePKCEForClientType(isPublicClient bool, codeVerifier string) *AppError {
-	if isPublicClient {
-		// RFC 7636: Public clients MUST use PKCE
+func (ad *AuthData) ValidatePKCEForClientType(requirePKCE bool, codeVerifier string) *AppError {
+	if requirePKCE {
+		// RFC 7636: Public clients MUST use PKCE; the same applies to non-http(s) redirect URIs
 		if ad.CodeChallenge == "" {
 			return NewAppError("AuthData.ValidatePKCEForClientType", "model.authorize.validate_pkce.public_client_required.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 		}
@@ -250,7 +250,7 @@ func (ad *AuthData) ValidatePKCEForClientType(isPublicClient bool, codeVerifier 
 			return NewAppError("AuthData.ValidatePKCEForClientType", "model.authorize.validate_pkce.verification_failed.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 		}
 	} else {
-		// Confidential clients: PKCE is optional but enforced if initiated
+		// Confidential clients with http(s) redirects: PKCE is optional but enforced if initiated
 		if ad.CodeChallenge != "" {
 			// Client started flow with PKCE - code_verifier is required
 			if codeVerifier == "" {

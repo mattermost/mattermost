@@ -84,6 +84,67 @@ func TestCreateOAuthApp(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 }
 
+func TestOAuthAppCustomRedirectSchemes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	adminClient := th.SystemAdminClient
+
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider
+		cfg.ServiceSettings.OAuthAllowedRedirectURISchemes = []string{}
+	})
+
+	setSchemes := func(schemes ...string) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+			cfg.ServiceSettings.OAuthAllowedRedirectURISchemes = schemes
+		})
+	}
+
+	newApp := func(callbacks ...string) *model.OAuthApp {
+		return &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: callbacks}
+	}
+
+	t.Run("create rejects custom scheme unless allowlisted", func(t *testing.T) {
+		setSchemes()
+		_, resp, err := adminClient.CreateOAuthApp(context.Background(), newApp("com.example.app://cb"))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		setSchemes("com.example.app")
+		rapp, resp, err := adminClient.CreateOAuthApp(context.Background(), newApp("com.example.app://cb"))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, model.StringArray{"com.example.app://cb"}, rapp.CallbackUrls)
+	})
+
+	t.Run("dangerous schemes are rejected", func(t *testing.T) {
+		setSchemes("com.example.app")
+		for _, callback := range []string{"javascript://x", "javascript:alert(1)"} {
+			_, resp, err := adminClient.CreateOAuthApp(context.Background(), newApp(callback))
+			require.Error(t, err, callback)
+			CheckBadRequestStatus(t, resp)
+		}
+	})
+
+	t.Run("update rejects custom scheme unless allowlisted", func(t *testing.T) {
+		setSchemes()
+		rapp, _, err := adminClient.CreateOAuthApp(context.Background(), newApp("https://nowhere.com"))
+		require.NoError(t, err)
+
+		rapp.CallbackUrls = []string{"com.example.app://cb"}
+		_, resp, err := adminClient.UpdateOAuthApp(context.Background(), rapp)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		setSchemes("com.example.app")
+		updated, _, err := adminClient.UpdateOAuthApp(context.Background(), rapp)
+		require.NoError(t, err)
+		assert.Equal(t, model.StringArray{"com.example.app://cb"}, updated.CallbackUrls)
+	})
+}
+
 // setupCreateOAuthAppClient returns a client whose user holds manage_oauth, with the OAuth service
 // provider enabled. When asSystemAdmin is false, the permission is granted to the system user role.
 func setupCreateOAuthAppClient(t *testing.T, th *TestHelper, asSystemAdmin bool) *model.Client4 {

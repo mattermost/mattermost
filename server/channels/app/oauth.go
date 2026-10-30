@@ -61,6 +61,10 @@ func (a *App) CreateOAuthAppInternal(app *model.OAuthApp, generateSecret bool) (
 		return nil, model.NewAppError("CreateOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	if err := a.validateOAuthAppCallbackSchemes(app); err != nil {
+		return nil, err
+	}
+
 	// Generate a client secret if requested and not already set
 	if generateSecret {
 		app.ClientSecret = model.NewId()
@@ -79,6 +83,47 @@ func (a *App) CreateOAuthAppInternal(app *model.OAuthApp, generateSecret bool) (
 	}
 
 	return oauthApp, nil
+}
+
+// validateOAuthAppCallbackSchemes rejects callback URLs of manually created apps
+// whose scheme is neither http(s) nor listed in OAuthAllowedRedirectURISchemes.
+func (a *App) validateOAuthAppCallbackSchemes(app *model.OAuthApp) *model.AppError {
+	if app.IsDynamicallyRegistered {
+		return nil
+	}
+
+	allowed := a.Config().ServiceSettings.OAuthAllowedRedirectURISchemes
+	for _, callback := range app.CallbackUrls {
+		if !model.IsAllowedOAuthRedirectScheme(callback, allowed) {
+			return model.NewAppError("validateOAuthAppCallbackSchemes", "app.oauth.callback_scheme_not_allowed.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
+// ValidateOAuthAuthorizeRequest checks an authorization request against the app's
+// registered callbacks and the redirect-scheme and PKCE requirements.
+func (a *App) ValidateOAuthAuthorizeRequest(oauthApp *model.OAuthApp, authRequest *model.AuthorizeRequest) *model.AppError {
+	if !oauthApp.IsValidRedirectURL(authRequest.RedirectURI) {
+		return model.NewAppError("ValidateOAuthAuthorizeRequest", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !model.IsHTTPScheme(authRequest.RedirectURI) {
+		if !oauthApp.IsDynamicallyRegistered && !model.IsAllowedOAuthRedirectScheme(authRequest.RedirectURI, a.Config().ServiceSettings.OAuthAllowedRedirectURISchemes) {
+			return model.NewAppError("ValidateOAuthAuthorizeRequest", "app.oauth.callback_scheme_not_allowed.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if authRequest.ResponseType == model.ImplicitResponseType {
+			return model.NewAppError("ValidateOAuthAuthorizeRequest", "api.oauth.allow_oauth.implicit_custom_scheme.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if oauthApp.RequiresPKCE(authRequest.RedirectURI) && authRequest.ResponseType == model.AuthCodeResponseType && authRequest.CodeChallenge == "" {
+		return model.NewAppError("ValidateOAuthAuthorizeRequest", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 func (a *App) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
@@ -107,6 +152,10 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 	updatedApp.CreateAt = oldApp.CreateAt
 	updatedApp.ClientSecret = oldApp.ClientSecret
 	updatedApp.IsDynamicallyRegistered = oldApp.IsDynamicallyRegistered
+
+	if err := a.validateOAuthAppCallbackSchemes(updatedApp); err != nil {
+		return nil, err
+	}
 
 	oauthApp, err := a.Srv().Store().OAuth().UpdateApp(updatedApp)
 	if err != nil {
@@ -228,13 +277,8 @@ func (a *App) AllowOAuthAppAccessToUser(rctx request.CTX, userID string, authReq
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	if !oauthApp.IsValidRedirectURL(authRequest.RedirectURI) {
-		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// Validate PKCE requirements for public clients
-	if oauthApp.IsPublicClient() && authRequest.ResponseType == model.AuthCodeResponseType && authRequest.CodeChallenge == "" {
-		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
+	if err := a.ValidateOAuthAuthorizeRequest(oauthApp, authRequest); err != nil {
+		return "", err
 	}
 
 	var redirectURI string
@@ -328,7 +372,7 @@ func (a *App) validateOAuthClient(oauthApp *model.OAuthApp, grantType, secret, c
 }
 
 func (a *App) validatePKCE(oauthApp *model.OAuthApp, authData *model.AuthData, codeVerifier string) *model.AppError {
-	return authData.ValidatePKCEForClientType(oauthApp.IsPublicClient(), codeVerifier)
+	return authData.ValidatePKCEForClientType(oauthApp.RequiresPKCE(authData.RedirectUri), codeVerifier)
 }
 
 func (a *App) handleAuthorizationCodeGrant(rctx request.CTX, oauthApp *model.OAuthApp, redirectURI, code, codeVerifier, clientId, resource string) (*model.AccessResponse, *model.AppError) {

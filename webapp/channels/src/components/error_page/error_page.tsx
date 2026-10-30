@@ -125,7 +125,12 @@ export default class ErrorPage extends React.PureComponent<Props> {
                     />
                 </Link>
             );
-        } else if (type === ErrorPageTypes.OAUTH_INVALID_PARAM || type === ErrorPageTypes.OAUTH_INVALID_REDIRECT_URL) {
+        } else if (
+            type === ErrorPageTypes.OAUTH_INVALID_PARAM ||
+            type === ErrorPageTypes.OAUTH_INVALID_REDIRECT_URL ||
+            type === ErrorPageTypes.OAUTH_PKCE_REQUIRED ||
+            type === ErrorPageTypes.OAUTH_IMPLICIT_NOT_ALLOWED
+        ) {
             backButton = null;
         } else {
             backButton = (

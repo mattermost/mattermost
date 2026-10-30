@@ -6232,6 +6232,20 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
+                            type: 'text',
+                            key: 'ServiceSettings.OAuthAllowedRedirectURISchemes',
+                            multiple: true,
+                            label: defineMessage({id: 'admin.oauth.allowedRedirectURISchemesTitle', defaultMessage: 'Allowed Custom Redirect URI Schemes:'}),
+                            help_text: defineMessage({id: 'admin.oauth.allowedRedirectURISchemesDesc', defaultMessage: 'Enter comma-separated URI schemes (without ://) that manually created OAuth 2.0 apps may use for callback URLs, e.g. com.example.app. http and https are always allowed. PKCE is required for any custom-scheme redirect. If empty, only http and https callback URLs are allowed.'}),
+                            help_text_markdown: false,
+                            placeholder: defineMessage({id: 'admin.oauth.allowedRedirectURISchemesPlaceholder', defaultMessage: 'E.g.: com.example.app, myapp'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                                it.stateIsFalse('ServiceSettings.EnableOAuthServiceProvider'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
                             type: 'number',
                             key: 'ServiceSettings.OutgoingIntegrationRequestsTimeout',
                             label: defineMessage({id: 'admin.service.integrationRequestTitle', defaultMessage: 'Integration request timeout: '}),

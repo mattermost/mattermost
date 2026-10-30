@@ -180,24 +180,18 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !oauthApp.IsValidRedirectURL(authRequest.RedirectURI) {
-		err := model.NewAppError("authorizeOAuthPage", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest)
+	if err := c.App.ValidateOAuthAuthorizeRequest(oauthApp, authRequest); err != nil {
+		errorType := "oauth_invalid_redirect_url"
+		switch err.Id {
+		case "api.oauth.allow_oauth.pkce_required_public.app_error":
+			errorType = "oauth_pkce_required"
+		case "api.oauth.allow_oauth.implicit_custom_scheme.app_error":
+			errorType = "oauth_implicit_not_allowed"
+		}
 		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
 			url.Values{
-				"type":    []string{"oauth_invalid_redirect_url"},
-				"message": []string{i18n.T("api.oauth.allow_oauth.redirect_callback.app_error")},
-			}, c.App.AsymmetricSigningKey())
-		return
-	}
-
-	// Validate PKCE requirements for public clients using authorization code flow
-	// Implicit flow doesn't require PKCE as it doesn't use code exchange
-	if oauthApp.IsPublicClient() && authRequest.ResponseType == model.AuthCodeResponseType && authRequest.CodeChallenge == "" {
-		err := model.NewAppError("authorizeOAuthPage", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
-		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
-			url.Values{
-				"type":    []string{"oauth_pkce_required"},
-				"message": []string{"PKCE is required for public clients using authorization code flow"},
+				"type":    []string{errorType},
+				"message": []string{i18n.T(err.Id)},
 			}, c.App.AsymmetricSigningKey())
 		return
 	}

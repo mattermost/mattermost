@@ -4324,6 +4324,26 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
 	})
+
+	t.Run("OAuth allowed redirect URI schemes validation", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.ServiceSettings.OAuthAllowedRedirectURISchemes)
+		require.Empty(t, cfg.ServiceSettings.OAuthAllowedRedirectURISchemes)
+		require.Nil(t, cfg.ServiceSettings.isValid())
+
+		for _, scheme := range []string{"com.example.app", "cursor", "My.App", " cursor ", "a+b-c.d1"} {
+			cfg.ServiceSettings.OAuthAllowedRedirectURISchemes = []string{scheme}
+			require.Nil(t, cfg.ServiceSettings.isValid(), "expected valid: %q", scheme)
+		}
+
+		for _, scheme := range []string{"http", "HTTPS", "javascript", "JavaScript", "data", "file", "1abc", "bad_scheme", "", "  ", "app://", "-app"} {
+			cfg.ServiceSettings.OAuthAllowedRedirectURISchemes = []string{"cursor", scheme}
+			appErr := cfg.ServiceSettings.isValid()
+			require.NotNil(t, appErr, "expected invalid: %q", scheme)
+			require.Equal(t, "model.config.is_valid.oauth_allowed_redirect_uri_schemes.app_error", appErr.Id)
+		}
+	})
 }
 
 func TestConfigDefaultCallsPluginState(t *testing.T) {

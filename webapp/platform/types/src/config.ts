@@ -351,6 +351,7 @@ export type ServiceSettings = {
     EnableOAuthServiceProvider: boolean;
     EnableDynamicClientRegistration: boolean;
     DCRRedirectURIAllowlist: string[];
+    OAuthAllowedRedirectURISchemes: string[];
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
     EnableOutgoingOAuthConnections: boolean;
