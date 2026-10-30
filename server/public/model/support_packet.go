@@ -8,30 +8,55 @@ import "time"
 const (
 	CurrentSupportPacketVersion = 2
 	SupportPacketErrorFile      = "warning.txt"
+
+	SupportPacketDiagnosticsFileName = "diagnostics.yaml"
+	SupportPacketConfigFileName      = "sanitized_config.json"
+	SupportPacketStatsFileName       = "stats.yaml"
+	SupportPacketJobsFileName        = "jobs.yaml"
+	SupportPacketPluginsFileName     = "plugins.json"
 )
 
+type SupportPacketLicense struct {
+	Company         string `yaml:"company"`
+	Users           int    `yaml:"users"`
+	SkuShortName    string `yaml:"sku_short_name"`
+	IsTrial         bool   `yaml:"is_trial,omitempty"`
+	IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
+	IsNonProduction bool   `yaml:"is_non_production,omitempty"`
+	IsCloud         bool   `yaml:"is_cloud,omitempty"`
+	// ExpiresAt is in epoch milliseconds.
+	ExpiresAt           int64 `yaml:"expires_at,omitempty"`
+	IsSeatCountEnforced bool  `yaml:"is_seat_count_enforced,omitempty"`
+	ExtraUsers          *int  `yaml:"extra_users,omitempty"`
+	// Features is nil in packets from servers that predate it.
+	Features *Features `yaml:"features,omitempty"`
+}
+
+func (l *SupportPacketLicense) IsMattermostEntry() bool {
+	return l != nil && l.SkuShortName == LicenseShortSkuMattermostEntry
+}
+
+// MinimumEnterprise reports whether the license is at least Enterprise, as MinimumEnterpriseLicense does for a License.
+func (l *SupportPacketLicense) MinimumEnterprise() bool {
+	return l != nil && MinimumEnterpriseLicense(&License{SkuShortName: l.SkuShortName})
+}
+
+// SupportPacketDiagnostics reports one node's diagnostics. A nil pointer field was not collected, which is not the same as zero.
 type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`
 
-	License struct {
-		Company         string `yaml:"company"`
-		Users           int    `yaml:"users"`
-		SkuShortName    string `yaml:"sku_short_name"`
-		IsTrial         bool   `yaml:"is_trial,omitempty"`
-		IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
-		IsNonProduction bool   `yaml:"is_non_production,omitempty"`
-	} `yaml:"license"`
+	License SupportPacketLicense `yaml:"license"`
 
 	Server struct {
 		// Machine
-		OS               string `yaml:"os"`
-		Architecture     string `yaml:"architecture"`
-		Hostname         string `yaml:"hostname"`
-		InstallationType string `yaml:"installation_type"`
+		OS               string  `yaml:"os"`
+		Architecture     string  `yaml:"architecture"`
+		Hostname         *string `yaml:"hostname,omitempty"`
+		InstallationType string  `yaml:"installation_type"`
 
 		// Capacity
 		CPUCores               int     `yaml:"cpu_cores"`
-		TotalMemoryMB          uint64  `yaml:"total_memory_mb"`
+		TotalMemoryMB          *uint64 `yaml:"total_memory_mb,omitempty"`
 		ContainerCPULimit      float64 `yaml:"container_cpu_limit,omitempty"`
 		ContainerMemoryLimitMB uint64  `yaml:"container_memory_limit_mb,omitempty"`
 
@@ -39,8 +64,8 @@ type SupportPacketDiagnostics struct {
 		ProcessID           int       `yaml:"process_id"`
 		StartedAt           time.Time `yaml:"started_at"`
 		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
-		OpenFileDescriptors int64     `yaml:"open_file_descriptors"`
-		MaxFileDescriptors  int64     `yaml:"max_file_descriptors"`
+		OpenFileDescriptors *int64    `yaml:"open_file_descriptors,omitempty"`
+		MaxFileDescriptors  *int64    `yaml:"max_file_descriptors,omitempty"`
 
 		// Software
 		Version   string `yaml:"version"`
@@ -50,27 +75,32 @@ type SupportPacketDiagnostics struct {
 
 	Config struct {
 		Source string `yaml:"store_type"`
+		// AuditLoggingConfigured is the server's own audit check of its config, license, environment and
+		// platform at packet time. The audit logger applies its targets only at startup, so after a runtime
+		// config or license change this can differ from what the server is writing.
+		AuditLoggingConfigured *bool `yaml:"audit_logging_configured,omitempty"`
 	} `yaml:"config"`
 
 	Database struct {
-		Type                                string     `yaml:"type"`
-		Version                             string     `yaml:"version"`
-		SchemaVersion                       string     `yaml:"schema_version"`
+		Type                                *string    `yaml:"type,omitempty"`
+		Version                             *string    `yaml:"version,omitempty"`
+		SchemaVersion                       *string    `yaml:"schema_version,omitempty"`
 		MasterConnections                   int        `yaml:"master_connections"`
 		ReplicaConnections                  int        `yaml:"replica_connections"`
 		SearchConnections                   int        `yaml:"search_connections"`
-		MasterConnectionsInUse              int        `yaml:"master_connections_in_use"`
-		MasterConnectionsIdle               int        `yaml:"master_connections_idle"`
-		MasterPoolWaitCount                 int64      `yaml:"master_pool_wait_count"`
-		MasterPoolWaitDurationMs            int64      `yaml:"master_pool_wait_duration_ms"`
-		MasterConnectionsClosedMaxIdle      int64      `yaml:"master_connections_closed_max_idle"`
-		MasterConnectionsClosedMaxLifetime  int64      `yaml:"master_connections_closed_max_lifetime"`
-		ReplicaConnectionsInUse             int        `yaml:"replica_connections_in_use"`
-		ReplicaConnectionsIdle              int        `yaml:"replica_connections_idle"`
-		ReplicaPoolWaitCount                int64      `yaml:"replica_pool_wait_count"`
-		ReplicaPoolWaitDurationMs           int64      `yaml:"replica_pool_wait_duration_ms"`
-		ReplicaConnectionsClosedMaxIdle     int64      `yaml:"replica_connections_closed_max_idle"`
-		ReplicaConnectionsClosedMaxLifetime int64      `yaml:"replica_connections_closed_max_lifetime"`
+		MasterConnectionsInUse              *int       `yaml:"master_connections_in_use,omitempty"`
+		MasterConnectionsIdle               *int       `yaml:"master_connections_idle,omitempty"`
+		MasterPoolWaitCount                 *int64     `yaml:"master_pool_wait_count,omitempty"`
+		MasterPoolWaitDurationMs            *int64     `yaml:"master_pool_wait_duration_ms,omitempty"`
+		MasterConnectionsClosedMaxIdle      *int64     `yaml:"master_connections_closed_max_idle,omitempty"`
+		MasterConnectionsClosedMaxLifetime  *int64     `yaml:"master_connections_closed_max_lifetime,omitempty"`
+		ReplicaConnectionsInUse             *int       `yaml:"replica_connections_in_use,omitempty"`
+		ReplicaConnectionsIdle              *int       `yaml:"replica_connections_idle,omitempty"`
+		ReplicaPoolWaitCount                *int64     `yaml:"replica_pool_wait_count,omitempty"`
+		ReplicaPoolWaitDurationMs           *int64     `yaml:"replica_pool_wait_duration_ms,omitempty"`
+		ReplicaConnectionsClosedMaxIdle     *int64     `yaml:"replica_connections_closed_max_idle,omitempty"`
+		ReplicaConnectionsClosedMaxLifetime *int64     `yaml:"replica_connections_closed_max_lifetime,omitempty"`
+		ReplicasOnline                      *int       `yaml:"replicas_online,omitempty"`
 		CacheHitRatio                       *float64   `yaml:"cache_hit_ratio,omitempty"`
 		Deadlocks                           *int64     `yaml:"deadlocks,omitempty"`
 		TempFiles                           *int64     `yaml:"temp_files,omitempty"`
@@ -84,12 +114,12 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"database"`
 
 	FileStore struct {
-		Status         string `yaml:"file_status"`
-		Error          string `yaml:"error,omitempty"`
-		Driver         string `yaml:"file_driver"`
-		FilesystemType string `yaml:"filesystem_type,omitempty"`
-		TotalMB        uint64 `yaml:"total_mb,omitempty"`
-		AvailableMB    uint64 `yaml:"available_mb,omitempty"`
+		Status         string  `yaml:"file_status"`
+		Error          string  `yaml:"error,omitempty"`
+		Driver         string  `yaml:"file_driver"`
+		FilesystemType *string `yaml:"filesystem_type,omitempty"`
+		TotalMB        *uint64 `yaml:"total_mb,omitempty"`
+		AvailableMB    *uint64 `yaml:"available_mb,omitempty"`
 	} `yaml:"file_store"`
 
 	Websocket struct {
@@ -98,7 +128,10 @@ type SupportPacketDiagnostics struct {
 
 	Cluster struct {
 		ID            string `yaml:"id"`
-		NumberOfNodes int    `yaml:"number_of_nodes"`
+		NumberOfNodes *int   `yaml:"number_of_nodes,omitempty"`
+		// NumberOfConnectedNodes leaves out nodes that are registered in the database but not in the gossip cluster.
+		NumberOfConnectedNodes *int `yaml:"number_of_connected_nodes,omitempty"`
+		IsLeader               bool `yaml:"is_leader,omitempty"`
 	} `yaml:"cluster"`
 
 	Notifications struct {

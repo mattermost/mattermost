@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"net/http"
 	"slices"
@@ -41,11 +42,15 @@ type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
 //     ([model.ValidateCPAFieldName]); on update this fires only when Name
 //     actually changes, so pre-existing fields with non-conforming names
 //     remain editable on all other attrs (lenient grandfather)
+//   - refuses the field types access policies cannot read (number,
+//     checkbox; see PropertyFieldType.SupportsAccessControl)
 //   - trims whitespace on string attrs
 //   - applies the visibility default when unset
 //   - clears attrs that don't apply to the field type (options on non-select,
-//     ldap/saml on non-text fields)
+//     ldap/saml on types that cannot be synced from an identity source)
 //   - auto-assigns IDs to options that lack one and validates option shape
+//   - keeps the option set of a synced select-shaped field owned by its sync:
+//     other callers may only recolor or reorder its options
 //   - validates visibility, value_type, managed, display_name, and sort_order
 //   - validates required and editable, removing either when explicitly unset
 //   - validates and canonicalizes actions, the render-placement allow-list
@@ -69,6 +74,11 @@ type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
 // flag flip takes effect without restarting the hook.
 type RequiredAttributeEnforcementProvider func() bool
 
+// OpenIDAttributeSyncProvider reports whether linking attributes to OpenID
+// Connect claims is currently enabled. Backed by a closure over live config,
+// like RequiredAttributeEnforcementProvider.
+type OpenIDAttributeSyncProvider func() bool
+
 type AccessControlAttributeValidationHook struct {
 	BasePropertyHook
 	propertyService              *PropertyService
@@ -77,6 +87,7 @@ type AccessControlAttributeValidationHook struct {
 	pluginChecker                PluginChecker
 	directChannelChecker         DirectChannelChecker
 	requiredAttributeEnforcement RequiredAttributeEnforcementProvider
+	openIDAttributeSync          OpenIDAttributeSyncProvider
 }
 
 var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
@@ -104,6 +115,11 @@ type AccessControlAttributeValidationHookConfig struct {
 	// field, classification included; a required field on any other object
 	// type (post, user) is always enforced regardless of this provider.
 	RequiredAttributeEnforcement RequiredAttributeEnforcementProvider
+	// OpenIDAttributeSync reports whether attributes may be linked to OpenID
+	// Connect claims. A nil provider defaults to enabled. When it reports
+	// false, a new or changed openid link is refused; an existing one rides
+	// along untouched.
+	OpenIDAttributeSync OpenIDAttributeSyncProvider
 }
 
 // NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
@@ -120,6 +136,7 @@ func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessCont
 		pluginChecker:                cfg.PluginChecker,
 		directChannelChecker:         cfg.DirectChannelChecker,
 		requiredAttributeEnforcement: cfg.RequiredAttributeEnforcement,
+		openIDAttributeSync:          cfg.OpenIDAttributeSync,
 	}
 }
 
@@ -135,15 +152,39 @@ func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
 	return h.requiredAttributeEnforcement == nil || h.requiredAttributeEnforcement()
 }
 
+// openIDAttributeSyncEnabled reports whether attributes may be linked to
+// OpenID Connect claims. A nil provider defaults to enabled.
+func (h *AccessControlAttributeValidationHook) openIDAttributeSyncEnabled() bool {
+	return h.openIDAttributeSync == nil || h.openIDAttributeSync()
+}
+
 // sanitizeAndValidateFieldAttrs trims string attrs, applies the visibility
 // default, clears attrs that don't apply to the field type, validates each
 // attr, and auto-IDs+validates options for select-shaped fields. Mutates
-// field.Attrs in place. prevType is the field's type before this operation.
-// prevType is empty on creation of a new field. prevActions is the field's
-// attrs["actions"] before this operation, nil on creation.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType, prevActions any, prevRequired bool) error {
+// field.Attrs in place. existing is the field before this operation, nil on
+// creation of a new field (or when an update targets a field that does not
+// exist, which the store reports later): every rule then treats the field as
+// brand new, with nothing to grandfather.
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field, existing *model.PropertyField) error {
+	// Access policies and the attribute views they read have no notion of a
+	// number or a boolean, so those types are refused here, whether a field is
+	// created with one or changed to one, rather than stored and then ignored or
+	// misread by every rule.
+	if !field.Type.SupportsAccessControl() {
+		return fmt.Errorf("a %s field cannot be an access control attribute: %w", field.Type, ErrInvalidFieldAttrs)
+	}
+
 	if field.Attrs == nil {
 		field.Attrs = model.StringInterface{}
+	}
+
+	var prevType model.PropertyFieldType
+	var prevActions any
+	var prevRequired bool
+	if existing != nil {
+		prevType = existing.Type
+		prevActions = existing.Attrs[model.PropertyFieldAttrActions]
+		prevRequired = model.IsPropertyFieldRequired(existing)
 	}
 
 	for _, key := range trimmedFieldAttrKeys {
@@ -156,9 +197,9 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		field.Attrs[model.PropertyFieldAttrVisibility] = model.PropertyFieldVisibilityWhenSet
 	}
 
-	// Type-based attr clearing: select-shaped fields keep options, only text
-	// supports external sync, and admin-managed fields can never be synced
-	// (mutual exclusivity).
+	// Type-based attr clearing: select-shaped fields keep options, and only
+	// the types that can be populated from an identity source keep their
+	// ldap/saml/openid link (see PropertyFieldType.SupportsExternalSync).
 	isSelect := field.Type.SupportsOptions()
 	isText := field.Type == model.PropertyFieldTypeText
 	managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string)
@@ -173,9 +214,13 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		delete(field.Attrs, model.PropertyFieldAttributeOptionsCount)
 		delete(field.Attrs, model.PropertyFieldAttributeOptionsOmitted)
 	}
-	if !isText {
-		delete(field.Attrs, model.PropertyFieldAttrLDAP)
-		delete(field.Attrs, model.PropertyFieldAttrSAML)
+	if !field.Type.SupportsExternalSync() {
+		for _, source := range model.PropertySyncSources() {
+			delete(field.Attrs, model.PropertySyncSourceAttr(source))
+		}
+	}
+	if err := h.validateSyncSources(field, existing); err != nil {
+		return err
 	}
 
 	if err := model.ValidatePropertyFieldVisibility(field); err != nil {
@@ -189,7 +234,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if managed != "" && managed != "admin" {
 		return fmt.Errorf("invalid managed %q (must be empty or %q): %w", managed, "admin", ErrInvalidFieldAttrs)
 	}
-	if err := h.sanitizeAndValidateOwners(field); err != nil {
+	if err := h.sanitizeAndValidateOwners(field, existing); err != nil {
 		return err
 	}
 	if dn, _ := field.Attrs[model.PropertyFieldAttrDisplayName].(string); utf8.RuneCountInString(dn) > model.PropertyFieldNameMaxRunes {
@@ -272,6 +317,7 @@ var trimmedFieldAttrKeys = []string{
 	model.PropertyFieldAttrManaged,
 	model.PropertyFieldAttrLDAP,
 	model.PropertyFieldAttrSAML,
+	model.PropertyFieldAttrOpenID,
 	model.PropertyFieldAttrDisplayName,
 }
 
@@ -302,6 +348,15 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 	var options model.PropertyOptions[*model.CustomProfileAttributesSelectOption]
 	if err = json.Unmarshal(data, &options); err != nil {
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+
+	// A synced option field has no options until its first sync provisions
+	// them, so an empty list is legitimate there. It is dropped rather than
+	// canonicalized: an absent list and an empty one both state that the field
+	// has no options.
+	if len(options) == 0 && model.IsPropertyFieldSynced(field) {
+		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+		return nil
 	}
 
 	// Rank handling.
@@ -360,20 +415,22 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 // sanitizeAndValidateOwners normalizes and validates the owners attr on a
 // field. Each entry is trimmed and must be well-formed ({id, type, scopes}
 // with a recognized type); scopes are trimmed and deduped; duplicate owner
-// entries (same type+id) are merged. Owners may not be combined with
-// managed="admin". An empty or absent list is removed so HasPropertyFieldOwners
-// stays false. The normalized list is written back in canonical form
-// ([]any of maps) so downstream readers see a single shape.
+// entries (same type+id) are merged by mergeDuplicateOwners. An empty or
+// absent list is removed so HasPropertyFieldOwners stays false. The
+// normalized list is written back in canonical form ([]any of maps) so
+// downstream readers see a single shape.
 //
 // Defensive bounds (see the Property Owner* constants) cap the id and scope
 // lengths and the number of owners/scopes so a buggy or hostile owner cannot
-// bloat the Attrs blob. They are deliberately far above real usage.
+// bloat the Attrs blob. They are deliberately far above real usage. The owner
+// cap skips the synthetic owners a projected echo of existing carries, since
+// they are dropped before saving.
 //
 // An unrecognized owner type is rejected here, but an owner that simply does
 // not correspond to any real installed plugin/service is intentionally
 // accepted: it is a harmless no-op (the field stays locked to its real owners),
 // so the system fails safe and access is checked at the moment of action.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field, existing *model.PropertyField) error {
 	raw, ok := field.Attrs[model.PropertyAttrsOwners]
 	if !ok || raw == nil {
 		return nil
@@ -393,13 +450,8 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *
 		return nil
 	}
 
-	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
-		return fmt.Errorf("owners cannot be combined with managed=admin: %w", ErrInvalidFieldAttrs)
-	}
-
-	normalized := make([]model.PropertyOwner, 0, len(owners))
-	indexByKey := make(map[string]int, len(owners))
-	for _, owner := range owners {
+	for i := range owners {
+		owner := &owners[i]
 		owner.ID = strings.TrimSpace(owner.ID)
 		owner.Type = strings.TrimSpace(owner.Type)
 		if owner.ID == "" {
@@ -427,22 +479,20 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *
 			scopes = append(scopes, scope)
 		}
 		owner.Scopes = scopes
-
-		key := owner.Type + "\x00" + owner.ID
-		if idx, dup := indexByKey[key]; dup {
-			for _, scope := range owner.Scopes {
-				if !slices.Contains(normalized[idx].Scopes, scope) {
-					normalized[idx].Scopes = append(normalized[idx].Scopes, scope)
-				}
-			}
-			continue
-		}
-		indexByKey[key] = len(normalized)
-		normalized = append(normalized, owner)
 	}
+	normalized := mergeDuplicateOwners(owners)
 
-	if len(normalized) > model.PropertyOwnersMaxPerField {
-		return fmt.Errorf("invalid owners: too many owners (%d), max is %d: %w", len(normalized), model.PropertyOwnersMaxPerField, ErrInvalidFieldAttrs)
+	saved := len(normalized)
+	if existing != nil {
+		synthetic := syntheticOwnerIdentities(existing)
+		for _, owner := range normalized {
+			if synthetic[model.Identity{Type: owner.Type, ID: owner.ID}] {
+				saved--
+			}
+		}
+	}
+	if saved > model.PropertyOwnersMaxPerField {
+		return fmt.Errorf("invalid owners: too many owners (%d), max is %d: %w", saved, model.PropertyOwnersMaxPerField, ErrInvalidFieldAttrs)
 	}
 	for _, owner := range normalized {
 		if len(owner.Scopes) > model.PropertyOwnerScopesMax {
@@ -460,6 +510,44 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *
 	}
 	field.Attrs[model.PropertyAttrsOwners] = canonical
 	return nil
+}
+
+// mergeDuplicateOwners merges owners sharing a type and id into the first
+// one, unioning Scopes and Allow in first-seen order; a map would make the
+// order random. The projection splits a scoped owner into a value half and
+// an unscoped rest (see grantsFromLegacy), and the union converts back to
+// the same two grants. An empty Allow means every action, so it absorbs the
+// other entry's list. owners is not modified.
+func mergeDuplicateOwners(owners []model.PropertyOwner) []model.PropertyOwner {
+	appendMissing := func(into, from []string) []string {
+		into = slices.Clip(into)
+		for _, s := range from {
+			if !slices.Contains(into, s) {
+				into = append(into, s)
+			}
+		}
+		return into
+	}
+
+	merged := make([]model.PropertyOwner, 0, len(owners))
+	indexByIdentity := make(map[model.Identity]int, len(owners))
+	for _, owner := range owners {
+		identity := model.Identity{Type: owner.Type, ID: owner.ID}
+		idx, dup := indexByIdentity[identity]
+		if !dup {
+			indexByIdentity[identity] = len(merged)
+			merged = append(merged, owner)
+			continue
+		}
+		first := &merged[idx]
+		first.Scopes = appendMissing(first.Scopes, owner.Scopes)
+		if len(first.Allow) == 0 || len(owner.Allow) == 0 {
+			first.Allow = nil
+		} else {
+			first.Allow = appendMissing(first.Allow, owner.Allow)
+		}
+	}
+	return merged
 }
 
 // validateRankOptions enforces that every option on a rank field carries a
@@ -520,47 +608,84 @@ func rankSortKey(rank *int) int {
 // enforceGroupPermissions pins schema-edit permissions for fields in
 // managed groups and applies the managed=admin upgrade to PermissionValues:
 //   - PermissionField and PermissionOptions are always set to sysadmin so
-//     that only admins can modify field definitions and options.
+//     that only admins can modify field definitions and options. A protected
+//     field gets PermissionField none instead, the only level IsValid
+//     accepts with Protected. On update, Protected follows the protected
+//     attr (see pinFieldPermission).
 //   - When managed="admin", PermissionValues is set to sysadmin. This is
 //     gated on PermissionManageSystem; callers without an identifiable
 //     caller ID (e.g. internal callers with no session on rctx) are
-//     treated as non-admin and rejected.
-//   - When the field is owner-managed, PermissionValues is pinned to sysadmin.
-//     Human value writes are already blocked authoritatively by
-//     checkOwnerValueWriteAccess in the property-service hook, but pinning
-//     sysadmin here is the safe fallback: if the owners list is ever dropped,
-//     the field defaults to admin-only rather than becoming writable by every
-//     member.
+//     treated as non-admin and rejected. A plugin listed as an owner of a
+//     field that is already admin-managed is exempt, so it can edit the
+//     field or remove itself as owner without being a system admin.
+//   - When the field is created owner-managed or an update changes its owners,
+//     PermissionValues is pinned to sysadmin. Human value writes are already
+//     blocked authoritatively by the converted restriction
+//     (PermissionsFromLegacy forces value.write to none for an owner-managed
+//     field), but pinning sysadmin here is the safe fallback: if the owners
+//     list is ever dropped, the field defaults to admin-only rather than
+//     becoming writable by every member. An unchanged echo is not pinned: a
+//     projected read reports every grant as an owner, and pinning it would
+//     reconvert value.write to none on a field nobody touched.
 //   - Otherwise, PermissionValues is left as-is when set, and default-filled
 //     by ObjectType when nil (member for user fields, sysadmin for system
 //     and template). Caller pins are never downgraded.
-func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field, existing *model.PropertyField) (*model.PropertyField, error) {
 	sysadmin := model.PermissionLevelSysadmin
 
 	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
-		// Verify the caller has admin privileges. Default-deny if the
-		// permission checker isn't wired up or if the caller is
-		// unidentifiable — we never silently promote to sysadmin.
-		if h.permissionChecker == nil {
-			return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
-		}
 		callerID := h.propertyService.extractCallerID(rctx)
-		if callerID == "" || !h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
-			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
+
+		exempt := false
+		if existing != nil {
+			if exManaged, _ := existing.Attrs[model.PropertyFieldAttrManaged].(string); exManaged == "admin" {
+				if isMachineCaller(h.pluginChecker, callerID) && isListedOwner(existing, callerID) {
+					exempt = true
+				}
+			}
+		}
+
+		if !exempt {
+			// Verify the caller has admin privileges. Default-deny if the
+			// permission checker isn't wired up or if the caller is
+			// unidentifiable — we never silently promote to sysadmin.
+			if h.permissionChecker == nil {
+				return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
+			}
+			if callerID == "" || !h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
+				return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
+			}
 		}
 		field.PermissionValues = &sysadmin
-	} else if model.HasPropertyFieldOwners(field) {
+	} else if model.HasPropertyFieldOwners(field) && (existing == nil || legacyOwnersChanged(field, existing)) {
 		field.PermissionValues = &sysadmin
 	} else if field.PermissionValues == nil {
 		defaultLevel := defaultPermissionValuesForObjectType(field.ObjectType)
 		field.PermissionValues = &defaultLevel
 	}
 
-	// Fields in managed groups always require sysadmin for field/options edits.
-	field.PermissionField = &sysadmin
+	// Fields in managed groups require sysadmin for field/options edits.
+	pinFieldPermission(field, existing)
 	field.PermissionOptions = &sysadmin
 
 	return field, nil
+}
+
+// pinFieldPermission pins PermissionField to sysadmin, or to none on a
+// protected field. The stored columns are written from Permissions, so
+// pinning none grants nobody anything. On update, protection comes from the
+// attr alone: the projection reports Protected whenever field.write is none,
+// so an echo that clears the attr still carries Protected, and reconverting
+// from it would keep the field locked.
+func pinFieldPermission(field, existing *model.PropertyField) {
+	if existing != nil {
+		field.Protected = model.IsPropertyFieldProtected(field)
+	}
+	level := model.PermissionLevelSysadmin
+	if field.Protected {
+		level = model.PermissionLevelNone
+	}
+	field.PermissionField = &level
 }
 
 // defaultPermissionValuesForObjectType returns the PermissionValues level a
@@ -601,11 +726,11 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 	// repaired, actions get the strict check with nothing to grandfather, and a
 	// required=true channel field is rejected outright if the kill switch is on
 	// (there is nothing to grandfather on a brand new field).
-	if err := h.sanitizeAndValidateFieldAttrs(field, "", nil, false); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, nil); err != nil {
 		return nil, err
 	}
 
-	return h.enforceGroupPermissions(rctx, field)
+	return h.enforceGroupPermissions(rctx, field, nil)
 }
 
 func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
@@ -626,11 +751,14 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type, existing.Attrs[model.PropertyFieldAttrActions], model.IsPropertyFieldRequired(existing)); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
+		return nil, err
+	}
+	if err := h.validateSyncedOptionsOwnership(rctx, existing, field); err != nil {
 		return nil, err
 	}
 
-	return h.enforceGroupPermissions(rctx, field)
+	return h.enforceGroupPermissions(rctx, field, existing)
 }
 
 func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
@@ -661,23 +789,20 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 			}
 		}
 
-		// prevType stays empty when the field isn't found (the store surfaces
-		// the not-found error later); strict rank validation is the safe
-		// default for that path, and prevRequired stays false so a required
-		// channel field is rejected outright rather than grandfathered.
-		var prevType model.PropertyFieldType
-		var prevActions any
-		var prevRequired bool
-		if existing != nil {
-			prevType = existing.Type
-			prevActions = existing.Attrs[model.PropertyFieldAttrActions]
-			prevRequired = model.IsPropertyFieldRequired(existing)
-		}
-		if err := h.sanitizeAndValidateFieldAttrs(field, prevType, prevActions, prevRequired); err != nil {
+		// existing is nil when the field isn't found (the store surfaces the
+		// not-found error later): strict rank validation is the safe default
+		// for that path, and a required channel field is rejected outright
+		// rather than grandfathered.
+		if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
+		if existing != nil {
+			if err := h.validateSyncedOptionsOwnership(rctx, existing, field); err != nil {
+				return nil, err
+			}
+		}
 
-		updated, err := h.enforceGroupPermissions(rctx, field)
+		updated, err := h.enforceGroupPermissions(rctx, field, existing)
 		if err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
@@ -699,6 +824,137 @@ func optionsMissing(optionIDs []string, existing map[string]struct{}) error {
 		}
 	}
 	return nil
+}
+
+// The options of a synced attribute belong to its sync: it provisions them
+// from the identity source's values and prunes them once nobody holds them, so
+// an option someone else adds, renames or removes is either undone by the next
+// sync or, worse, becomes a value a policy can match that the source never
+// reported. While a field is synced, only its own sync may change which options
+// it has. Unlinking the field (dropping its ldap/saml attr) hands the options
+// back in the same update.
+//
+// For a linked field the options are its template's, and the template carries
+// the sync link it copies to the user fields linking to it, so the rule lands
+// on the template -- where the options are edited.
+
+// isFieldSync reports whether callerID is the sync that owns field's options.
+func isFieldSync(field *model.PropertyField, callerID string) bool {
+	return callerID != "" && callerID == model.PropertySyncCallerID(model.GetPropertyFieldSyncSource(field))
+}
+
+// isDefinitionSync reports whether callerID is the sync of field's definition:
+// the field's own link, or, for a field linked to a template whose link it has
+// no copy of, the template's. Attribute Management edits the template alone, so
+// a user field created before the template was linked carries no copy, and the
+// sync follows the template for it.
+func (ps *PropertyService) isDefinitionSync(rctx request.CTX, field *model.PropertyField, callerID string) bool {
+	if model.PropertySyncSourceForCallerID(callerID) == "" {
+		return false
+	}
+	if model.IsPropertyFieldSynced(field) {
+		return isFieldSync(field, callerID)
+	}
+	if field.LinkSourceID() == "" {
+		return false
+	}
+	template, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.LinkSourceID())
+	if err != nil {
+		return false
+	}
+	return isFieldSync(template, callerID)
+}
+
+// syncedOptionsLockedError is an AppError so that its i18n key survives the
+// HTTP layer's mapPropertyServiceError fallback.
+func syncedOptionsLockedError(where string, field *model.PropertyField) *model.AppError {
+	details := fmt.Sprintf("field %s: options of a synced field are managed by %s sync", field.ID, model.GetPropertyFieldSyncSource(field))
+	return model.NewAppError(where, "app.property_field.synced_options_locked.app_error", nil, details, http.StatusForbidden)
+}
+
+// syncSourceUnlinkedError refuses a sync changing a field that is not synced
+// from its source, such as one an admin unlinked while a sync job was running.
+func syncSourceUnlinkedError(where string, field *model.PropertyField, source string) *model.AppError {
+	details := fmt.Sprintf("field %s is not synced from %s", field.ID, source)
+	return model.NewAppError(where, "app.property_field.sync_source_unlinked.app_error", nil, details, http.StatusConflict)
+}
+
+// validateSyncedOptionsOwnership applies the synced-options rule to a field
+// write. The write states the whole option list, so it can be judged option by
+// option: recoloring or reordering is allowed, adding, renaming or removing is
+// not. It is judged on the incoming type, so converting a synced field to an
+// option type cannot bring options in with the conversion.
+func (h *AccessControlAttributeValidationHook) validateSyncedOptionsOwnership(rctx request.CTX, existing, field *model.PropertyField) error {
+	if !field.Type.SupportsOptions() || !model.IsPropertyFieldSynced(existing) || !model.IsPropertyFieldSynced(field) ||
+		isFieldSync(existing, h.propertyService.extractCallerID(rctx)) {
+		return nil
+	}
+
+	before, err := optionNamesByID(existing)
+	if err != nil {
+		return fmt.Errorf("invalid existing options: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	after, err := optionNamesByID(field)
+	if err != nil {
+		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	if maps.Equal(before, after) {
+		return nil
+	}
+	return syncedOptionsLockedError("UpdatePropertyField", existing)
+}
+
+// PreChangePropertyFieldOptions applies the synced-options rule to the options
+// endpoints. The change itself is not visible here, only the field, so every
+// change is refused to anyone but the sync -- a recolor included; the field's
+// option list, judged option by option above, is where that is done.
+//
+// A sync, in turn, changes only the options of a field synced from its own
+// source: a field an admin unlinked while a sync job was running is the
+// admin's again, options added since included.
+func (h *AccessControlAttributeValidationHook) PreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error {
+	if field == nil || !h.isGroupManaged(field.GroupID) || !field.Type.SupportsOptions() {
+		return nil
+	}
+	callerID := h.propertyService.extractCallerID(rctx)
+	if isFieldSync(field, callerID) {
+		return nil
+	}
+	if model.IsPropertyFieldSynced(field) {
+		return syncedOptionsLockedError("PropertyFieldOptions", field)
+	}
+	if source := model.PropertySyncSourceForCallerID(callerID); source != "" {
+		return syncSourceUnlinkedError("PropertyFieldOptions", field, source)
+	}
+	return nil
+}
+
+// optionNamesByID maps option ID to option name for a field, ignoring color
+// and order. Returns an empty map for a field with no options.
+func optionNamesByID(field *model.PropertyField) (map[string]string, error) {
+	out := map[string]string{}
+	if field.Attrs == nil {
+		return out, nil
+	}
+	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok || rawOptions == nil {
+		return out, nil
+	}
+	data, err := json.Marshal(rawOptions)
+	if err != nil {
+		return nil, err
+	}
+	var options []struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(data, &options); err != nil {
+		return nil, err
+	}
+	for _, opt := range options {
+		out[opt.ID] = opt.Name
+	}
+	return out, nil
 }
 
 // validateValueAgainstField checks a property value against field-type
@@ -877,6 +1133,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 	if !h.isGroupManaged(groupID) {
 		return nil
 	}
+	callerID := h.propertyService.extractCallerID(rctx)
 
 	// Authorization precedes validation, and refusing here avoids the field
 	// round trip below.
@@ -927,8 +1184,12 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		}
 		// The kill switch is scoped to channel attributes: a required field on any
 		// other object type (post, user) stays enforced regardless of the flag.
+		// The field's own sync may still clear it: the source decides the value,
+		// including that there is none, and a value it no longer reports must not
+		// stay behind to satisfy an access policy.
 		if (field.ObjectType != model.PropertyFieldObjectTypeChannel || h.requiredEnforced()) &&
-			model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
+			model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) &&
+			!h.propertyService.isDefinitionSync(rctx, field, callerID) {
 			return newRequiredValueError(field)
 		}
 		if len(optionIDs) == 0 {
@@ -1124,6 +1385,34 @@ func newRequiredValueError(field *model.PropertyField) error {
 // field required while required-attribute enforcement is disabled: nothing
 // would enforce it, and an admin authoring it now would reasonably expect the
 // opposite.
+// validateSyncSources applies the rules on which identity sources may sync a
+// field. An OpenID Connect link is exclusive: OpenID Connect users never pass
+// through the AD/LDAP or SAML sync, so under the AD/LDAP-first precedence a
+// field also linked to one of those would be locked against the OpenID Connect
+// sync and never written for its users. AD/LDAP plus SAML stays allowed.
+//
+// While the OpenIdAttributeSync kill switch is engaged, an openid link may not
+// be added or changed. One that predates the switch rides along untouched, so
+// the field stays editable on every other attr, and removing it is allowed.
+func (h *AccessControlAttributeValidationHook) validateSyncSources(field, existing *model.PropertyField) error {
+	sources := model.GetPropertyFieldSyncSources(field)
+	if slices.Contains(sources, model.PropertySyncSourceOpenID) && len(sources) > 1 {
+		details := fmt.Sprintf("field %s: an openid link cannot be combined with an ldap or saml link", field.ID)
+		return model.NewAppError("UpsertPropertyField", "app.property_field.sync_source_exclusive.app_error", nil, details, http.StatusBadRequest)
+	}
+
+	claim, _ := field.Attrs[model.PropertyFieldAttrOpenID].(string)
+	var prevClaim string
+	if existing != nil {
+		prevClaim, _ = existing.Attrs[model.PropertyFieldAttrOpenID].(string)
+	}
+	if claim != "" && claim != prevClaim && !h.openIDAttributeSyncEnabled() {
+		details := fmt.Sprintf("field %s: cannot link to an OpenID Connect claim while OpenID Connect attribute sync is disabled", field.ID)
+		return model.NewAppError("UpsertPropertyField", "app.property_field.openid_sync_disabled.app_error", nil, details, http.StatusBadRequest)
+	}
+	return nil
+}
+
 func newRequiredAttrDisabledError(field *model.PropertyField) error {
 	details := fmt.Sprintf("field %s: cannot mark required while required-attribute enforcement is disabled", field.ID)
 	return model.NewAppError("UpsertPropertyField", "app.property_field.required_disabled.app_error", nil, details, http.StatusBadRequest)

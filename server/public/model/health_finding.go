@@ -30,11 +30,13 @@ type HealthFinding struct {
 	// Details is render context and doubles as the interpolation params for MessageID.
 	Details map[string]string `json:"details,omitempty"`
 
-	// Title, Remediation and Message are filled only at the API/mmctl boundary from the
-	// request locale; they are always empty in a store result.
+	// Title, Remediation, Message, DocsURL and ConsolePath are filled only at the API/mmctl
+	// boundary, the text from the request locale; they are always empty in a store result.
 	Title       string `json:"title,omitempty"`
 	Remediation string `json:"remediation,omitempty"`
 	Message     string `json:"message,omitempty"`
+	DocsURL     string `json:"docs_url,omitempty"`
+	ConsolePath string `json:"console_path,omitempty"`
 
 	FirstSeenAt int64 `json:"first_seen_at"`
 	LastSeenAt  int64 `json:"last_seen_at"`
@@ -76,6 +78,8 @@ func (f *HealthFinding) Render(t i18n.TranslateFunc, text RuleText) *HealthFindi
 	rendered.Title = translateFindingText(t, text.TitleID, args)
 	rendered.Remediation = translateFindingText(t, text.RemediationID, args)
 	rendered.Message = translateFindingText(t, f.MessageID, args)
+	rendered.DocsURL = text.DocsURL
+	rendered.ConsolePath = text.ConsolePath
 
 	return &rendered
 }
@@ -139,7 +143,7 @@ func (m MutedFilter) Matches(f *HealthFinding) bool {
 // HealthFindingList is the findings API response.
 type HealthFindingList struct {
 	// EvaluatedAt is when the server last evaluated its health rules, taken across every stored
-	// finding whatever the filter; 0 means nothing has been evaluated yet.
+	// finding whatever the filter; 0 means nothing has been evaluated yet or no check has fired yet.
 	EvaluatedAt int64            `json:"evaluated_at"`
 	Findings    []*HealthFinding `json:"findings"`
 }

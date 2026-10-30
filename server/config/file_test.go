@@ -497,19 +497,18 @@ func TestFileStoreSet(t *testing.T) {
 		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 	})
 
-	t.Run("AppsEnabled feature flag rejected", func(t *testing.T) {
+	t.Run("retired feature flags forced off", func(t *testing.T) {
 		configStore, tearDown := setupConfigFileStore(t, emptyConfig)
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.FeatureFlags = &model.FeatureFlags{AppsEnabled: true}
+		newCfg.FeatureFlags = &model.FeatureFlags{AppsEnabled: true, MoveThreadsEnabled: true}
 
 		_, _, err := configStore.Set(newCfg)
-		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: FeatureFlags.IsValid: model.config.is_valid.feature_flags.apps_enabled.app_error")
-		}
+		require.NoError(t, err)
 
 		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)
+		assert.False(t, configStore.Get().FeatureFlags.MoveThreadsEnabled)
 	})
 
 	t.Run("read-only", func(t *testing.T) {
@@ -644,6 +643,42 @@ func TestFileStoreLoad(t *testing.T) {
 		err = fs.Load()
 		require.NoError(t, err)
 		assertFileNotEqualsConfig(t, emptyConfig, path)
+	})
+
+	t.Run("migrate legacy atmos/camo image proxy type", func(t *testing.T) {
+		cfg := minimalConfig.Clone()
+		cfg.ImageProxySettings.Enable = new(true)
+		cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeLegacyAtmosCamo)
+
+		path, tearDown := setupConfigFile(t, cfg)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.True(t, *fs.Get().ImageProxySettings.Enable)
+		assert.Equal(t, model.ImageProxyTypeLocal, *fs.Get().ImageProxySettings.ImageProxyType)
+
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, model.ImageProxyTypeLocal, *actualConfig.ImageProxySettings.ImageProxyType)
+	})
+
+	t.Run("retired feature flags from environment forced off", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
+		os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
+
+		err := configStore.Load()
+		require.NoError(t, err)
+		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)
+		assert.False(t, configStore.Get().FeatureFlags.MoveThreadsEnabled)
 	})
 
 	t.Run("honour environment", func(t *testing.T) {

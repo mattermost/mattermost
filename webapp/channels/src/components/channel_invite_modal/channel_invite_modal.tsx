@@ -9,6 +9,7 @@ import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {ButtonSize} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group, GroupSearchParams} from '@mattermost/types/groups';
@@ -635,7 +636,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     <div className='more-modal__actions'>
                         <button
                             className='more-modal__actions--round'
-                            aria-label='Add channel to invite'
+                            aria-label={props.intl.formatMessage({id: 'accessibility.add_user_to_invite', defaultMessage: 'Add user to invite'})}
                         >
                             <i
                                 className='icon icon-plus'
@@ -789,6 +790,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                             channel={channel}
                             closeMembersInviteModal={closeMembersInviteModal}
                             inviteAsGuest={false}
+                            size='large'
                             term={term}
                         >
                             {chunks}
@@ -918,6 +920,10 @@ interface InviteModalLinkProps extends Pick<Props, 'channel'> {
     id: string;
     inviteAsGuest: boolean;
     term: string;
+
+    // The Compass label takes its font size from the size class, so callers set
+    // it to match whatever copy the link sits in.
+    size?: ButtonSize;
 }
 
 const InviteModalLink = ({
@@ -927,11 +933,14 @@ const InviteModalLink = ({
     closeMembersInviteModal,
     id,
     inviteAsGuest,
+    size,
     term,
 }: InviteModalLinkProps) => {
     return (
         <ToggleModalButton
-            className={`${inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+            className={inviteAsGuest ? 'invite-as-guest' : undefined}
+            emphasis='link'
+            size={size}
             modalId={ModalIdentifiers.INVITATION}
             dialogType={InvitationModal}
             dialogProps={{

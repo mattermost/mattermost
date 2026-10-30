@@ -83,8 +83,7 @@ func (a *App) RequestJoinChannel(rctx request.CTX, userID, channelID, message st
 	if memberErr == nil {
 		return false, nil, model.NewAppError("RequestJoinChannel", "api.channel.discoverable_join_request.already_member.app_error", nil, "channel_id="+channel.Id, http.StatusBadRequest)
 	}
-	var nfErr *store.ErrNotFound
-	if !errors.As(memberErr, &nfErr) {
+	if _, ok := errors.AsType[*store.ErrNotFound](memberErr); !ok {
 		return false, nil, model.NewAppError("RequestJoinChannel", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(memberErr)
 	}
 
@@ -120,8 +119,7 @@ func (a *App) RequestJoinChannel(rctx request.CTX, userID, channelID, message st
 
 	saved, err := a.Srv().Store().ChannelJoinRequest().Save(pending)
 	if err != nil {
-		var conflict *store.ErrConflict
-		if errors.As(err, &conflict) {
+		if _, ok := errors.AsType[*store.ErrConflict](err); ok {
 			existing, getErr := a.Srv().Store().ChannelJoinRequest().GetPendingForChannelAndUser(channel.Id, user.Id)
 			if getErr == nil {
 				return false, existing, nil
@@ -144,8 +142,7 @@ func (a *App) RequestJoinChannel(rctx request.CTX, userID, channelID, message st
 func (a *App) WithdrawChannelJoinRequest(rctx request.CTX, requestID, userID string) (*model.ChannelJoinRequest, *model.AppError) {
 	current, err := a.Srv().Store().ChannelJoinRequest().Get(requestID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("WithdrawChannelJoinRequest", "app.channel.join_request.not_found.app_error", nil, "request_id="+requestID, http.StatusNotFound)
 		}
 		return nil, model.NewAppError("WithdrawChannelJoinRequest", "app.channel.join_request.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -189,8 +186,7 @@ func (a *App) WithdrawChannelJoinRequest(rctx request.CTX, requestID, userID str
 func (a *App) GetMyChannelJoinRequest(rctx request.CTX, userID, channelID string) (*model.ChannelJoinRequest, *model.AppError) {
 	req, err := a.Srv().Store().ChannelJoinRequest().GetPendingForChannelAndUser(channelID, userID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, nil
 		}
 		return nil, model.NewAppError("GetMyChannelJoinRequest", "app.channel.join_request.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -250,8 +246,7 @@ func (a *App) UpdateChannelJoinRequest(rctx request.CTX, requestID, channelID st
 
 	current, err := a.Srv().Store().ChannelJoinRequest().Get(requestID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("UpdateChannelJoinRequest", "app.channel.join_request.not_found.app_error", nil, "request_id="+requestID, http.StatusNotFound)
 		}
 		return nil, model.NewAppError("UpdateChannelJoinRequest", "app.channel.join_request.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

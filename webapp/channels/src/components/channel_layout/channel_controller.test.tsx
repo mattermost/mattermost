@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {act} from '@testing-library/react';
+import {createMemoryHistory} from 'history';
 import React from 'react';
 import {Provider} from 'react-redux';
 
 import * as actions from 'actions/status_actions';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -19,7 +20,7 @@ import ChannelController, {getClassnamesForBody} from './channel_controller';
 let mockState: GlobalState;
 
 jest.mock('components/reset_status_modal', () => () => <div/>);
-jest.mock('components/sidebar', () => () => <div/>);
+jest.mock('components/sidebar', () => () => <div data-testid='sidebar'/>);
 jest.mock('components/channel_layout/center_channel', () => () => <div/>);
 jest.mock('components/loading_screen', () => () => <div/>);
 jest.mock('components/unreads_status_handler', () => () => <div/>);
@@ -88,6 +89,41 @@ describe('ChannelController', () => {
         });
 
         expect(actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll).not.toHaveBeenCalled();
+    });
+});
+
+describe('ChannelController with the product rail', () => {
+    function renderAt(pathname: string, productRail: boolean) {
+        const state = {
+            entities: {
+                general: {config: {EnableUserStatuses: 'false', FeatureFlagProductRail: String(productRail)}},
+                preferences: {myPreferences: TestHelper.getPreferencesMock()},
+            },
+        } as unknown as GlobalState;
+
+        renderWithContext(
+            <ChannelController shouldRenderCenterChannel={true}/>,
+            state,
+            {history: createMemoryHistory({initialEntries: [pathname]})},
+        );
+    }
+
+    it('hides the channel sidebar in Threads', () => {
+        renderAt('/team-one/threads', true);
+
+        expect(screen.queryByTestId('sidebar')).not.toBeInTheDocument();
+    });
+
+    it('shows the channel sidebar in a channel', () => {
+        renderAt('/team-one/channels/town-square', true);
+
+        expect(screen.getByTestId('sidebar')).toBeInTheDocument();
+    });
+
+    it('shows the channel sidebar in Threads without the product rail', () => {
+        renderAt('/team-one/threads', false);
+
+        expect(screen.getByTestId('sidebar')).toBeInTheDocument();
     });
 });
 

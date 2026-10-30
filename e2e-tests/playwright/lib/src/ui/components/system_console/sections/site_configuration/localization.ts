@@ -29,7 +29,7 @@ export default class Localization {
         this.header = container.getByText('Localization', {exact: true});
         this.featureDiscoveryBlock = container.getByText('Remove language barriers with auto-translation');
         this.autoTranslationSection = container.getByTestId('autotranslation-section-header');
-        this.autoTranslationToggle = container.getByTestId('autotranslation-section-toggle').locator('button');
+        this.autoTranslationToggle = container.getByTestId('autotranslation-section-toggle').getByRole('switch');
         this.providerDropdown = container.getByTestId('Providerdropdown');
         this.mattermostAgentsInactiveNotice = container.getByText(
             'LLMs must first be configured in the Agents plugin.',
@@ -56,7 +56,7 @@ export default class Localization {
     async turnOnAutoTranslation() {
         const on = await this.isToggleOn();
         if (!on) {
-            await this.autoTranslationToggle.click();
+            await this.autoTranslationToggle.check({force: true});
         }
     }
 
