@@ -142,15 +142,22 @@ const AIActionsMenu = ({
                 menuButton={{
                     id: 'ai-actions-button',
                     as: 'div',
+                    'aria-label': formatMessage({
+                        id: 'texteditor.ai_actions',
+                        defaultMessage: 'AI Actions',
+                    }),
                     children: (
+
+                        // IconContainer is a real <button>, but the surrounding Menu.Container div
+                        // above is already the accessible menu trigger (role="button"). Hiding this
+                        // inner button from assistive tech avoids exposing two "AI Actions" buttons
+                        // with the same accessible name (nested interactive elements).
                         <IconContainer
                             id='aiActionsMenu'
                             className={classNames('control', {active: isMenuOpen})}
                             type='button'
-                            aria-label={formatMessage({
-                                id: 'texteditor.ai_actions',
-                                defaultMessage: 'AI Actions',
-                            })}
+                            tabIndex={-1}
+                            aria-hidden='true'
                         >
                             <CreationOutlineIcon
                                 size={18}

@@ -19,7 +19,6 @@ Review and manage the following plugin configuration options in the System Conso
 - [Performance metrics](#performance-metrics)
 - [Collaborative playbooks](#collaborative-playbooks)
 - [User satisfaction surveys](#user-satisfaction-surveys)
-- [ServiceNow](#servicenow)
 - [Zoom](#zoom)
 - [config.json-only settings](#configjson-only-settings)
 
@@ -1841,12 +1840,6 @@ Access the following configuration settings in the System Console by going to **
 
 ------------------------------------------------------------------------------------------------------------------------
 
-## ServiceNow
-
-See the [Connect ServiceNow to Mattermost](/integrations-guide/servicenow) product documentation for available [Mattermost configuration options](/integrations-guide/servicenow#mattermost-configuration).
-
-------------------------------------------------------------------------------------------------------------------------
-
 ## Zoom
 
 See the [Connect Zoom to Mattermost](/integrations-guide/zoom) product documentation for available [Mattermost configuration options](/integrations-guide/zoom#mattermost-configuration).
@@ -1881,23 +1874,6 @@ When bundling custom plugins:
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"SignaturePublicKeyFiles": &#123;&#125;</code> with string array input consisting of contents that are relative or absolute paths to signature files.</td>
-</tr>
-</tbody>
-</table>
-
-### Chimera OAuth proxy URL
-
-This setting isn't available in the System Console and can only be set in `config.json`.
-
-Specify the [Chimera](https://github.com/mattermost/chimera) URL used by Mattermost plugins to connect with pre-created OAuth applications.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ChimeraOAuthProxyUrl": &#123;&#125;</code> with string input.</td>
 </tr>
 </tbody>
 </table>

@@ -191,8 +191,7 @@ func (a *App) CanNotifyAdmin(rctx request.CTX, trial bool) bool {
 
 	sysVal, sysValErr := a.Srv().Store().System().GetByName(systemVarName)
 	if sysValErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(sysValErr, &nfErr) { // if no timestamps have been recorded before, system is free to notify
+		if _, ok := errors.AsType[*store.ErrNotFound](sysValErr); ok { // if no timestamps have been recorded before, system is free to notify
 			return true
 		}
 		rctx.Logger().Error("Cannot notify", mlog.Err(sysValErr))

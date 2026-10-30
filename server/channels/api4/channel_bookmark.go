@@ -29,7 +29,7 @@ func stripBookmarkFileInfoIfDenied(c *Context, channelID string, bookmarks []*mo
 		return bookmarks
 	}
 
-	if c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
 		return bookmarks
 	}
 

@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -28,79 +26,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
-
-func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
-	maxActiveTeams := *teamLimits.Active
-	teams, appErr := a.GetAllTeams()
-	if appErr != nil {
-		return appErr
-	}
-
-	if teams == nil {
-		return nil
-	}
-	// Sort the list of teams based on their creation date
-	slices.SortFunc(teams, func(a, b *model.Team) int {
-		return cmp.Compare(a.CreateAt, b.CreateAt)
-	})
-
-	var activeTeams []*model.Team
-	var cloudArchivedTeams []*model.Team
-	for _, team := range teams {
-		if team.DeleteAt == 0 {
-			activeTeams = append(activeTeams, team)
-		}
-		if team.DeleteAt > 0 && team.CloudLimitsArchived {
-			cloudArchivedTeams = append(cloudArchivedTeams, team)
-		}
-	}
-
-	if len(activeTeams) > maxActiveTeams {
-		// If there are more active teams than allowed, we must archive them
-		// Remove the first n elements (where n is the allowed number of teams) so they aren't archived
-
-		teamsToArchive := activeTeams[maxActiveTeams:]
-
-		for _, team := range teamsToArchive {
-			cloudLimitsArchived := true
-			// Archive the remainder
-			patch := model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-			_, err := a.PatchTeam(team.Id, &patch)
-			if err != nil {
-				return err
-			}
-			err = a.SoftDeleteTeam(team.Id)
-			if err != nil {
-				return err
-			}
-		}
-	} else if len(activeTeams) < maxActiveTeams && len(cloudArchivedTeams) > 0 {
-		// If the number of activeTeams is less than the allowed limit, and there are some cloudArchivedTeams, we can restore these cloudArchivedTeams
-		activeTeamsBeforeLimit := maxActiveTeams - len(activeTeams)
-		teamsToRestore := cloudArchivedTeams
-		// If the number of active teams remaining before the limit is hit is fewer than the number of cloudArchivedTeams, trim the list (still according to CreateAt)
-		// Otherwise, we can restore all of the cloudArchivedTeams without hitting the limit, so don't filter the list
-		if activeTeamsBeforeLimit < len(cloudArchivedTeams) {
-			teamsToRestore = cloudArchivedTeams[:(activeTeamsBeforeLimit)]
-		}
-
-		cloudLimitsArchived := false
-		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-		for _, team := range teamsToRestore {
-			err := a.RestoreTeam(team.Id)
-			if err != nil {
-				return err
-			}
-
-			_, err = a.PatchTeam(team.Id, patch)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func (a *App) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(rctx, team)
@@ -1355,8 +1280,7 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	}); nErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			channelList = model.ChannelList{}
 		} else {
 			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -2091,8 +2015,7 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 	}
 
 	if channels, err := a.Srv().Store().Channel().GetTeamChannels(team.Id); err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
@@ -2296,18 +2219,18 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 	if tokenID != "" {
 		token, err := a.Srv().Store().Token().GetByToken(tokenID)
 		if err != nil {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if !token.IsInvitationToken() {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if token.IsExpired() {
 			if err := a.DeleteToken(token); err != nil {
 				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
 			}
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
@@ -2403,6 +2326,12 @@ func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.Re
 	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Decode() reads the file to EOF; seek back to beginning so GetImageOrientation
+	// can read the EXIF data to determine the correct orientation.
+	if _, err = file.Seek(0, io.SeekStart); err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	orientation, err := imaging.GetImageOrientation(file, format)

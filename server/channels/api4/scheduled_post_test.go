@@ -10,8 +10,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestUpdateScheduledPost(t *testing.T) {
@@ -172,31 +173,31 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Empty(t, fetchedPost.RepeatTimezone)
 	})
 
-	t.Run("system post types", func(t *testing.T) {
+	t.Run("updated post types are ignored", func(t *testing.T) {
 		testCases := []struct {
-			name     string
-			postType string
-			rejected bool
+			name            string
+			initialPostType string
+			updatedPostType string
 		}{
 			{
-				name:     "generic system post type",
-				postType: model.PostTypeSystemGeneric,
-				rejected: true,
+				name:            "generic system post type",
+				initialPostType: model.PostTypeDefault,
+				updatedPostType: model.PostTypeBurnOnRead,
 			},
 			{
-				name:     "structured system post type",
-				postType: model.PostTypeAddToTeam,
-				rejected: true,
+				name:            "structured system post type",
+				initialPostType: model.PostTypeDefault,
+				updatedPostType: model.PostTypeAddToTeam,
 			},
 			{
-				name:     "default post type",
-				postType: model.PostTypeDefault,
-				rejected: false,
+				name:            "default post type",
+				initialPostType: model.PostTypeDefault,
+				updatedPostType: model.PostTypeSystemGeneric,
 			},
 			{
-				name:     "attachment post type",
-				postType: model.PostTypeMessageAttachment,
-				rejected: false,
+				name:            "attachment post type",
+				initialPostType: model.PostTypeMessageAttachment,
+				updatedPostType: model.PostTypeDefault,
 			},
 		}
 
@@ -208,6 +209,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 						UserId:    th.BasicUser.Id,
 						ChannelId: th.BasicChannel.Id,
 						Message:   "this is a scheduled post",
+						Type:      testCase.initialPostType,
 					},
 					ScheduledAt: model.GetMillis() + 100000,
 				}
@@ -215,23 +217,16 @@ func TestUpdateScheduledPost(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, created)
 
-				created.Type = testCase.postType
 				created.ScheduledAt = model.GetMillis() + 200000
+				created.Type = testCase.updatedPostType
+				updated, _, err := th.Client.UpdateScheduledPost(context.Background(), created)
 
-				updated, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
-
-				if !testCase.rejected {
-					require.NoError(t, err)
-					require.NotNil(t, updated)
-					return
-				}
-
-				require.Error(t, err)
-				CheckBadRequestStatus(t, resp)
+				require.NoError(t, err)
+				require.NotNil(t, updated)
 
 				fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
 				require.NoError(t, storeErr)
-				require.NotEqual(t, testCase.postType, fetched.Type, "a scheduled post must not keep a reserved system post type")
+				require.Equal(t, testCase.initialPostType, fetched.Type, "a scheduled post must not allow its type to be updated")
 			})
 		}
 	})
@@ -440,6 +435,96 @@ func TestCreateScheduledPost(t *testing.T) {
 				}
 			})
 		}
+	})
+}
+
+// The scheduled-post job never re-checks file uploads when it sends the post,
+// so scheduling and updating are where the upload_file_attachment policy applies.
+func TestScheduledPostUploadFileAttachmentABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupUploadFileAttachmentABAC(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	newScheduledPost := func(fileIDs ...string) *model.ScheduledPost {
+		return &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+				FileIds:   fileIDs,
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+	}
+
+	t.Run("create with files is rejected when the policy denies the upload action", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		created, resp, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(fileID))
+		require.Error(t, err)
+		require.Nil(t, created)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("create with files succeeds when the policy allows the upload action", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(fileID))
+		require.NoError(t, err)
+		require.Equal(t, model.StringArray{fileID}, created.FileIds)
+	})
+
+	t.Run("create without files is unaffected by the policy", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost())
+		require.NoError(t, err)
+		require.NotNil(t, created)
+	})
+
+	t.Run("create with files is unaffected when ABAC is disabled", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+		disableABACForTest(t, th)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(fileID))
+		require.NoError(t, err)
+		require.NotNil(t, created)
+	})
+
+	t.Run("update adding a file is rejected when the policy denies the upload action", func(t *testing.T) {
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost())
+		require.NoError(t, err)
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		created.FileIds = model.StringArray{fileID}
+		updated, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.Error(t, err)
+		require.Nil(t, updated)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+
+		stored, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+		require.NoError(t, storeErr)
+		require.Empty(t, stored.FileIds)
+	})
+
+	t.Run("update keeping the same files is allowed when the policy denies the upload action", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(fileID))
+		require.NoError(t, err)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		created.Message = "edited message"
+		updated, _, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, "edited message", updated.Message)
+		require.Equal(t, model.StringArray{fileID}, updated.FileIds)
 	})
 }
 

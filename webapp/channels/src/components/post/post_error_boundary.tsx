@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import type {FallbackProps} from 'components/with_error_boundary';
 import withErrorBoundary from 'components/with_error_boundary';

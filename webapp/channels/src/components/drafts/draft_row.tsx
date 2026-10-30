@@ -33,6 +33,7 @@ import {getChannelURL} from 'selectors/urls';
 
 import usePriority from 'components/advanced_text_editor/use_priority';
 import useSubmit from 'components/advanced_text_editor/use_submit';
+import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
@@ -82,6 +83,13 @@ function DraftRow({
 
     const rootId = ('rootId' in item) ? item.rootId : item.root_id;
     const channelId = ('channelId' in item) ? item.channelId : item.channel_id;
+
+    // A draft keeps its burn-on-read type after the policy stops allowing one, so the
+    // drafts list can offer Send and Schedule for a post the server will refuse. Ask only
+    // for burn-on-read drafts: an ordinary draft in the same channel is unaffected.
+    const isBurnOnReadItem = item.type === PostTypes.BURN_ON_READ;
+    const burnOnReadAllowed = useCreateBurnOnReadAccess(isBurnOnReadItem ? channelId : undefined);
+    const invalidBurnOnRead = isBurnOnReadItem && !burnOnReadAllowed;
 
     const [serverError, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
 
@@ -133,7 +141,10 @@ function DraftRow({
         postError = intl.formatMessage({id: 'drafts.error.read_only', defaultMessage: 'Channel is read only'});
     }
 
-    const canSend = !postError;
+    // Withdraws Schedule alongside Send, which DraftActions gates on the same flag.
+    // Both are creation paths the server enforces, so scheduling a draft that can no
+    // longer be sent would only move the rejection later.
+    const canSend = !postError && !invalidBurnOnRead;
     const canEdit = !(rootPostDeleted || readOnly);
 
     const channelUrl = useSelector((state: GlobalState) => {
@@ -159,7 +170,6 @@ function DraftRow({
         history.push(channelUrl);
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted, isEditing]);
 
-    const isBeingScheduled = useRef(false);
     const isScheduledPostBeingSent = useRef(false);
 
     const thread = useSelector((state: GlobalState) => {
@@ -183,18 +193,22 @@ function DraftRow({
     }, [dispatch, channelId, rootId]);
 
     const afterSubmit = useCallback((response: SubmitPostReturnType) => {
-        // if draft was being scheduled, delete the draft after it's been scheduled
-        if (isBeingScheduled.current && response.created && !response.error) {
-            handleOnDelete();
-            isBeingScheduled.current = false;
+        if (!response.created || response.error) {
+            return;
         }
 
         // if scheduled posts was being sent, delete the scheduled post after it's been sent
-        if (isScheduledPostBeingSent.current && response.created && !response.error) {
+        if (isScheduledPostBeingSent.current) {
             const scheduledPost = item as ScheduledPost;
             dispatch(deleteScheduledPost(scheduledPost.user_id, scheduledPost.id, connectionId));
             isScheduledPostBeingSent.current = false;
+            return;
         }
+
+        // createPost only clears the local copy of the draft, through storeDraft's
+        // setGlobalItem, so the draft has to be removed here or the surviving server copy
+        // syncs back in on the next fetch.
+        handleOnDelete();
     }, [connectionId, dispatch, handleOnDelete, item]);
 
     // TODO LOL verify the types and handled it better
@@ -217,7 +231,6 @@ function DraftRow({
     );
 
     const onScheduleDraft = useCallback(async (schedulingInfo: SchedulingInfo): Promise<{error?: string}> => {
-        isBeingScheduled.current = true;
         await handleOnSend(item as PostDraft, schedulingInfo);
         return Promise.resolve({});
     }, [item, handleOnSend]);
