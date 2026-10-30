@@ -3,7 +3,9 @@
 
 package model
 
-// PluginKVListOptions contains options for listing plugin KV store keys.
+// PluginKVListOptions contains the options for the KVListWithOptions plugin API method.
 type PluginKVListOptions struct {
-	Prefix string // Only return keys that start with this prefix
+	// Prefix returns only the keys that start with this string. All characters match
+	// literally. An empty prefix returns all keys.
+	Prefix string
 }

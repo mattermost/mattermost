@@ -242,7 +242,14 @@ func WithChecker(f func(key string) (keep bool, err error)) ListKeysOption {
 	}
 }
 
-// ListKeys lists all keys that match the given options. If no options are provided then all keys are returned.
+// ListKeys lists all keys that match the given options, sorted by key. If no options are provided then all keys are returned.
+//
+// With WithPrefix, page and count apply to the keys with the prefix, so a page with fewer than
+// count keys is the last page. The server filters on the prefix through KVListWithOptions, from
+// server version 12.2. On older servers, ListKeys lists all keys and filters them in the plugin.
+//
+// WithChecker runs after page and count are applied, so a page can contain fewer than count keys
+// before the last page.
 //
 // Minimum server version: 5.6
 func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]string, error) {
