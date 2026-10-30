@@ -18,7 +18,12 @@ const OPTIONS: PropertyFieldOption[] = [
 
 const TEST_ID = 'attr';
 
-function SingleHarness({initialValue = '', onChange}: {initialValue?: string; onChange?: (value: string) => void}) {
+type HarnessProps = {
+    initialValue?: string | string[];
+    onChange?: (value: string | string[]) => void;
+};
+
+function SingleHarness({initialValue = '', onChange}: HarnessProps) {
     const [value, setValue] = useState(initialValue);
     return (
         <AttributeCombobox
@@ -35,7 +40,7 @@ function SingleHarness({initialValue = '', onChange}: {initialValue?: string; on
     );
 }
 
-function MultiHarness({initialValue = [], onChange}: {initialValue?: string[]; onChange?: (value: string[]) => void}) {
+function MultiHarness({initialValue = [], onChange}: HarnessProps) {
     const [value, setValue] = useState(initialValue);
     return (
         <AttributeCombobox
@@ -62,33 +67,6 @@ type FormHarnessProps = {
 
 function FormHarness({multiple = false, initialValue, preventEnterSubmit, onChange, onSubmit}: FormHarnessProps) {
     const [value, setValue] = useState<string | string[]>(initialValue ?? (multiple ? [] : ''));
-    const handleChange = (next: string | string[]) => {
-        onChange?.(next);
-        setValue(next);
-    };
-    const shared = {testId: TEST_ID, options: OPTIONS, preventEnterSubmit};
-
-    let combobox: React.ReactNode;
-    if (multiple) {
-        combobox = (
-            <AttributeCombobox
-                {...shared}
-                multiple={true}
-                label='Skills'
-                value={value}
-                onChange={handleChange}
-            />
-        );
-    } else {
-        combobox = (
-            <AttributeCombobox
-                {...shared}
-                label='Department'
-                value={typeof value === 'string' ? value : ''}
-                onChange={handleChange}
-            />
-        );
-    }
 
     return (
         <form
@@ -101,7 +79,18 @@ function FormHarness({multiple = false, initialValue, preventEnterSubmit, onChan
                 type='text'
                 aria-label='Name'
             />
-            {combobox}
+            <AttributeCombobox
+                multiple={multiple}
+                testId={TEST_ID}
+                label={multiple ? 'Skills' : 'Department'}
+                options={OPTIONS}
+                value={value}
+                preventEnterSubmit={preventEnterSubmit}
+                onChange={(next) => {
+                    onChange?.(next);
+                    setValue(next);
+                }}
+            />
             <button type='submit'>{'Save'}</button>
         </form>
     );
@@ -202,6 +191,12 @@ describe('AttributeCombobox', () => {
             renderWithContext(<SingleHarness initialValue='gone'/>);
 
             expect(screen.getByRole('combobox', {name: 'Department'})).toHaveValue('gone');
+        });
+
+        test('shows the first id of a list', () => {
+            renderWithContext(<SingleHarness initialValue={['opt2', 'opt1']}/>);
+
+            expect(screen.getByRole('combobox', {name: 'Department'})).toHaveValue('Option 2');
         });
 
         test('has no clear button while empty', () => {
@@ -666,26 +661,31 @@ describe('AttributeCombobox', () => {
             expect(screen.getByRole('combobox', {name: 'Department'})).not.toHaveAttribute('aria-describedby');
         });
 
-        test('puts aria-errormessage on the input alongside aria-invalid', () => {
-            renderWithContext(
-                <>
-                    <AttributeCombobox
-                        multiple={true}
-                        label='Skills'
-                        options={OPTIONS}
-                        value={['opt1']}
-                        invalid={true}
-                        aria-errormessage='err'
-                        onChange={jest.fn()}
-                    />
-                    <div id='err'>{'Bad'}</div>
-                </>,
+        test('marks the input invalid only with invalid', () => {
+            const {rerender} = renderWithContext(
+                <AttributeCombobox
+                    multiple={true}
+                    label='Skills'
+                    options={OPTIONS}
+                    value={['opt1']}
+                    invalid={true}
+                    onChange={jest.fn()}
+                />,
             );
-            const input = screen.getByRole('combobox', {name: 'Skills'});
 
-            expect(input).toHaveAttribute('aria-errormessage', 'err');
-            expect(input).toHaveAttribute('aria-invalid', 'true');
-            expect(input).toHaveAccessibleErrorMessage('Bad');
+            expect(screen.getByRole('combobox', {name: 'Skills'})).toHaveAttribute('aria-invalid', 'true');
+
+            rerender(
+                <AttributeCombobox
+                    multiple={true}
+                    label='Skills'
+                    options={OPTIONS}
+                    value={['opt1']}
+                    onChange={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('combobox', {name: 'Skills'})).not.toHaveAttribute('aria-invalid');
         });
     });
 });

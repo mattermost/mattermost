@@ -164,20 +164,24 @@ describe('UserAttributeFields', () => {
         expect(screen.getByRole('textbox')).toHaveClass('error');
     });
 
-    test('shows an error for a select field and links it to the control', () => {
-        const field = buildField({type: 'select'}, {options: [{id: 'opt-1', name: 'One'}]});
-        const {unmount} = renderFields({fields: [field], errors: {'field-1': 'Bad'}});
+    test.each([
+        ['select', 'opt-1'],
+        ['multiselect', ['opt-1']],
+    ] as const)('shows an error for a %s field and links it to the input', (type, value) => {
+        const field = buildField({type}, {options: [{id: 'opt-1', name: 'One'}]});
+        const values = {'field-1': typeof value === 'string' ? value : [...value]};
+        const {unmount} = renderFields({fields: [field], values, errors: {'field-1': 'Bad'}});
 
-        const select = screen.getByRole('combobox');
+        const input = screen.getByRole('combobox');
         expect(screen.getByRole('alert')).toHaveTextContent('Bad');
-        expect(select).toHaveAttribute('aria-invalid', 'true');
-        expect(select).toHaveAccessibleDescription('Bad');
-        expect(select).not.toHaveAttribute('aria-errormessage');
+        expect(input).toHaveAttribute('aria-invalid', 'true');
+        expect(input).toHaveAccessibleDescription('Bad');
         unmount();
 
-        renderFields({fields: [field]});
+        renderFields({fields: [field], values});
         expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-invalid');
         expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-describedby');
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
     test('shows an error for a rank field and links it to the menu button', () => {
@@ -190,23 +194,6 @@ describe('UserAttributeFields', () => {
 
         renderFields({fields: [field], values: {'field-1': 'opt-1'}});
         expect(screen.getByTestId('cpa-rank-select-field-1')).not.toHaveAttribute('aria-describedby');
-    });
-
-    test('shows an error for a multiselect field and marks the input invalid', () => {
-        const field = buildField({type: 'multiselect'}, {options: [{id: 'opt-1', name: 'One'}]});
-        const {unmount} = renderFields({fields: [field], values: {'field-1': ['opt-1']}, errors: {'field-1': 'Bad'}});
-
-        const input = screen.getByRole('combobox');
-        expect(screen.getByRole('alert')).toHaveTextContent('Bad');
-        expect(input).toHaveAttribute('aria-invalid', 'true');
-        expect(input).toHaveAttribute('aria-errormessage', 'field-1-error');
-        expect(input).not.toHaveAttribute('aria-describedby');
-        expect(screen.getByText('One')).toBeInTheDocument();
-        unmount();
-
-        renderFields({fields: [field], values: {'field-1': ['opt-1']}});
-        expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-errormessage');
-        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
     test('renders no error element without an error', () => {
@@ -281,19 +268,19 @@ describe('UserAttributeFields', () => {
             expect(root.children[1]).toBe(wrapper);
         });
 
-        test('keeps a label root for text, rank and omitted-options fields', () => {
-            renderFields({
-                fields: [
-                    buildField({id: 'text'}),
-                    buildField({id: 'rank', type: 'rank'}, {options: [{id: 'opt-1', name: 'Low', rank: 1}]}),
-                    buildField({id: 'omitted', type: 'select'}, {options_omitted: true}),
-                    buildField({id: 'omitted-multi', type: 'multiselect'}, {options_omitted: true}),
-                ],
-            });
+        test.each([
+            ['text', buildField({id: 'text'}), 'textbox'],
+            ['rank', buildField({id: 'rank', type: 'rank'}, {options: [{id: 'opt-1', name: 'Low', rank: 1}]}), 'button'],
+            ['omitted select', buildField({id: 'omitted', type: 'select'}, {options_omitted: true}), 'textbox'],
+            ['omitted multiselect', buildField({id: 'omitted-multi', type: 'multiselect'}, {options_omitted: true}), 'textbox'],
+        ] as const)('names a %s field the same way: a div root whose first child labels the control', (_, field, role) => {
+            renderFields({fields: [field]});
 
-            for (const id of ['text', 'rank', 'omitted', 'omitted-multi']) {
-                expect(screen.getByTestId(`user-detail-custom-attribute-label-${id}`).tagName).toBe('LABEL');
-            }
+            const root = screen.getByTestId(`user-detail-custom-attribute-label-${field.id}`);
+            const control = screen.getByRole(role, {name: 'department'});
+            expect(root.tagName).toBe('DIV');
+            expect(root.children[0].tagName).toBe('LABEL');
+            expect(root.children[0]).toHaveAttribute('for', control.id);
             expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
         });
 
