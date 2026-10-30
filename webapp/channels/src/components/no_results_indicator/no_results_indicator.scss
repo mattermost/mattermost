@@ -23,7 +23,11 @@
     word-break: break-word;
 
     &.no-results__wrapper--compass {
+        // SimpleBar positions the Compass content absolutely, so the wrapper has
+        // almost no intrinsic width. In shrink-to-fit parents (flex/grid
+        // centering) it collapses, so give it a floor to size those parents.
         width: 100%;
+        min-width: 360px;
         max-width: none;
         padding: 0;
     }
