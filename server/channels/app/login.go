@@ -133,6 +133,10 @@ func (a *App) GetUserForLogin(rctx request.CTX, id, loginId string) (*model.User
 }
 
 func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, opts model.LoginOptions) (*model.Session, *model.AppError) {
+	if err := checkUserNotDisabled(user); err != nil {
+		return nil, err
+	}
+
 	var rejectionReason string
 	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
