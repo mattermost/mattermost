@@ -306,21 +306,17 @@ describe('bot_attributes', () => {
             ['an attributes failure', {attributesFailed: true}, '/team/integrations/confirm?type=bots&id=bot-id&bot_warnings=attributes'],
             ['roles and attributes failures', {rolesFailed: true, attributesFailed: true}, '/team/integrations/confirm?type=bots&id=bot-id&bot_warnings=roles,attributes'],
         ])('created bot with %s lands on confirm with type and id', (_, warnings, expected) => {
-            const url = getBotCreateRedirectUrl('team', 'bot-id', 'tok', warnings);
+            const url = getBotCreateRedirectUrl('team', 'bot-id', true, warnings);
             expect(url).toBe(expected);
             expect(url).not.toMatch(/[?&]token=/);
         });
 
         test('no token lands on the list', () => {
-            expect(getBotCreateRedirectUrl('team', 'bot-id', undefined, {})).toBe('/team/integrations/bots?bot_warnings=token');
+            expect(getBotCreateRedirectUrl('team', 'bot-id', false, {})).toBe('/team/integrations/bots?bot_warnings=token');
         });
 
         test('no token with an attributes failure', () => {
-            expect(getBotCreateRedirectUrl('team', 'bot-id', undefined, {attributesFailed: true})).toBe('/team/integrations/bots?bot_warnings=token,attributes');
-        });
-
-        test('an empty token behaves like a missing one', () => {
-            expect(getBotCreateRedirectUrl('team', 'bot-id', '', {})).toBe('/team/integrations/bots?bot_warnings=token');
+            expect(getBotCreateRedirectUrl('team', 'bot-id', false, {attributesFailed: true})).toBe('/team/integrations/bots?bot_warnings=token,attributes');
         });
     });
 });

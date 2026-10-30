@@ -231,7 +231,7 @@ export async function saveBotCreate(actions: BotSaveActions, input: BotSaveInput
 
     return {
         ok: true,
-        redirectUrl: getBotCreateRedirectUrl(input.teamName, data.user_id, token, {
+        redirectUrl: getBotCreateRedirectUrl(input.teamName, data.user_id, Boolean(token), {
             imageFailed: errors.image !== undefined,
             rolesFailed: errors.roles !== undefined,
             attributesFailed: errors.attributes !== undefined,

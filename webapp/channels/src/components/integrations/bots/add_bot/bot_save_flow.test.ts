@@ -197,6 +197,14 @@ describe('bot_save_flow', () => {
             }
         });
 
+        test('an empty token lands on the list with a token warning', async () => {
+            const actions = buildActions({
+                createUserAccessToken: jest.fn().mockResolvedValue({data: TestHelper.getUserAccessTokenMock({token: ''})}),
+            });
+
+            await expect(saveBotCreate(actions, base)).resolves.toEqual({ok: true, redirectUrl: '/team/integrations/bots?bot_warnings=token'});
+        });
+
         test('a failed automatic default image is not surfaced as a warning', async () => {
             const actions = buildActions({setDefaultProfileImage: jest.fn().mockResolvedValue({error: {message: 'Reset failed'}})});
 
