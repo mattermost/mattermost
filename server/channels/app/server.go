@@ -51,6 +51,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/health_check"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
@@ -1056,6 +1057,11 @@ func (s *Server) Start() error {
 		s.platform.Cluster().StartInterNodeCommunication()
 	}
 
+	// After the cluster join, so a run can always reach the other nodes.
+	if s.runEssentialJobs {
+		s.Channels().startHealthCheckWorkers()
+	}
+
 	if err := s.ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
@@ -1858,6 +1864,10 @@ func (s *Server) initJobs() {
 		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
 	)
 
+	// No framework worker: app servers run health_check in their own worker set, see
+	// Channels.startHealthCheckWorkers.
+	s.Jobs.RegisterJobType(model.JobTypeHealthCheck, nil, health_check.MakeScheduler(s.Jobs))
+
 	s.Jobs.RegisterJobType(
 		model.JobTypeCleanupDesktopTokens,
 		cleanup_desktop_tokens.MakeWorker(s.Jobs),
@@ -2101,15 +2111,6 @@ func runLeaderTasks(a *App) {
 		}
 		fn := func() { a.ProcessScheduledPosts(rctx) }
 		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
-	})
-
-	a.ch.healthCheckTask.runOnLeader(a, "Health Check", func() *model.ScheduledTask {
-		fn := func() {
-			if err := a.RunHealthCheck(rctx); err != nil {
-				a.Log().Error("Health check failed", mlog.Err(err))
-			}
-		}
-		return model.CreateRecurringTask("Health Check", fn, healthCheckInterval)
 	})
 }
 

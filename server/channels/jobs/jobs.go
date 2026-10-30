@@ -88,7 +88,7 @@ func (srv *JobServer) _createJob(rctx request.CTX, jobType string, jobData map[s
 		return nil, err
 	}
 
-	if srv.workers.Get(job.Type) == nil {
+	if srv.workers.Get(job.Type) == nil && srv.schedulers.schedulers[job.Type] == nil {
 		return nil, model.NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+job.Id, http.StatusBadRequest)
 	}
 
@@ -167,7 +167,7 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionReadJobs
-	case model.JobTypeAccessControlSync:
+	case model.JobTypeAccessControlSync, model.JobTypeHealthCheck:
 		permission = model.PermissionManageSystem
 	case model.JobTypeAccessControlTeamSync:
 		permission = model.PermissionManageTeamAccessRules

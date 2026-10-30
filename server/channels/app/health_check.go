@@ -4,20 +4,19 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/health_check"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules"
 )
-
-const healthCheckInterval = time.Hour
 
 // HealthCheckService evaluates the built-in health rules and reconciles the results into
 // stored findings.
@@ -44,6 +43,33 @@ func NewHealthCheckService(s store.Store, logger mlog.LoggerIFace) *HealthCheckS
 			Registry: registry,
 		}),
 	}
+}
+
+// startHealthCheckWorkers starts the worker set that runs health_check jobs. Every app server
+// starts it, standalone included, whatever JobSettings.RunJobs says. The framework's workers
+// can't run them: a node runs all of its framework workers or none, and dedicated job servers,
+// which usually run them, are not cluster members and could not collect from the other nodes.
+func (ch *Channels) startHealthCheckWorkers() {
+	ctx, cancel := context.WithCancel(context.Background())
+	a := New(ServerConnector(ch))
+	worker := health_check.MakeWorker(ch.srv.Jobs, func(rctx request.CTX) error {
+		return a.RunHealthCheck(rctx.WithContext(ctx))
+	})
+
+	ch.cancelHealthCheck = cancel
+	ch.healthCheckWorkers = health_check.MakeWorkers(ch.srv.Jobs, ch.srv.platform, worker)
+	ch.healthCheckWorkers.Start()
+}
+
+func (ch *Channels) stopHealthCheckWorkers() {
+	if ch.healthCheckWorkers == nil {
+		return
+	}
+
+	// Stop waits for a run in progress; cancel it so shutdown doesn't wait out the collect deadline.
+	ch.cancelHealthCheck()
+	ch.healthCheckWorkers.Stop()
+	ch.healthCheckWorkers = nil
 }
 
 // RunHealthCheck performs one evaluation cycle over every connected node and stores the
@@ -108,22 +134,23 @@ func (a *App) UnmuteHealthFinding(rctx request.CTX, fingerprint string) *model.A
 
 // GetHealthFindings returns product-surface findings only, whatever surfaces the filter asks for:
 // internal rules are for support engineers, not the customer admin who calls the API.
-// EvaluatedAt is taken across every stored finding so that muting or hiding findings never makes
-// an evaluated server look unevaluated. Checks that never fired store no finding, so it stays 0
-// until one fires; deriving it from the health check job's last run will remove that gap.
+// EvaluatedAt is when the last successful health_check job finished, or 0 if none has.
 func (a *App) GetHealthFindings(rctx request.CTX, filter model.HealthFindingFilter) (*model.HealthFindingList, *model.AppError) {
-	all, err := a.Srv().Store().HealthFinding().List(model.HealthFindingFilter{Muted: model.MutedIncluded})
+	findings, err := a.Srv().Store().HealthFinding().List(model.HealthFindingFilter{
+		Surfaces: []string{string(healthcheck.SurfaceProduct)},
+		Muted:    filter.Muted,
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetHealthFindings", "app.health_finding.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	list := &model.HealthFindingList{Findings: []*model.HealthFinding{}}
-	for _, finding := range all {
-		// Every cycle refreshes every stored finding it evaluates, so the newest LastSeenAt is the last cycle.
-		list.EvaluatedAt = max(list.EvaluatedAt, finding.LastSeenAt)
-		if finding.Surface == string(healthcheck.SurfaceProduct) && filter.Muted.Matches(finding) {
-			list.Findings = append(list.Findings, finding)
-		}
+	list := &model.HealthFindingList{Findings: findings}
+	job, appErr := a.Srv().Jobs.GetLastSuccessfulJobByType(model.JobTypeHealthCheck)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if job != nil {
+		list.EvaluatedAt = job.LastActivityAt
 	}
 
 	return list, nil
