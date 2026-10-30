@@ -29295,6 +29295,10 @@
     "defaultMessage": "Files",
     "description": "Tab/option label in the search box for searching files (as opposed to messages); compact space."
   },
+  "search_bar.usage.search_type_keyword": {
+    "defaultMessage": "Keyword:",
+    "description": "Short label shown before the Messages and Files options in the search box when an AI search option is shown first, to indicate those options do plain keyword search; compact space."
+  },
   "search_bar.usage.search_type_messages": {
     "defaultMessage": "Messages",
     "description": "Tab/option label in the search box for searching messages (as opposed to files); compact space."

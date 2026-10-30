@@ -3,9 +3,12 @@
 
 import React, {useState, useRef, forwardRef, useCallback, useEffect, type JSX} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import type {Team} from '@mattermost/types/teams';
+
+import {getDefaultSearchType, getSearchButtons} from 'selectors/plugins';
 
 import {hasResults} from 'components/suggestion/suggestion_results';
 
@@ -84,7 +87,14 @@ const SearchBox = forwardRef(
         const [caretPosition, setCaretPosition] = useState<number>(0);
         const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
         const [searchTeam, setSearchTeam] = useState<string>(initialSearchTeam);
-        const [searchType, setSearchType] = useState<string>(initialSearchType || 'messages');
+        const defaultSearchType = useSelector(getDefaultSearchType);
+        const pluginSearchButtons = useSelector(getSearchButtons);
+        const [searchType, setSearchType] = useState<string>(() => {
+            const isKnownType = initialSearchType === 'messages' ||
+                initialSearchType === 'files' ||
+                pluginSearchButtons.some((button) => button.pluginId === initialSearchType);
+            return isKnownType ? initialSearchType : defaultSearchType;
+        });
 
         const hasMoreThanOneTeam = myTeams.length > 1;
 

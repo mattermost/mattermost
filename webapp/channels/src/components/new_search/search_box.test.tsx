@@ -121,4 +121,51 @@ describe('components/new_search/SearchBox', () => {
         const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
         expect(teamSelector).not.toBeInTheDocument();
     });
+
+    describe('default search type', () => {
+        const pluginState = (priority?: number) => ({
+            plugins: {
+                components: {
+                    SearchButtons: [{id: 'ai', pluginId: 'ai-plugin', component: (() => <span>{'Ask AI'}</span>) as React.ComponentType, action: jest.fn(), priority}],
+                    SearchSuggestions: [],
+                    SearchHints: [],
+                },
+            },
+            entities: {general: {license: {IsLicensed: 'true'}}},
+        });
+
+        test.each([
+            {name: 'opens on the prioritized plugin type when no type is set', initialSearchType: '', priority: 10, expected: 'ai-plugin'},
+            {name: 'opens on messages when the plugin has no priority', initialSearchType: '', priority: undefined, expected: 'messages'},
+            {name: 'keeps an explicit keyword type', initialSearchType: 'messages', priority: 10, expected: 'messages'},
+            {name: 'falls back to the default when the saved plugin type is gone', initialSearchType: 'removed-plugin', priority: 10, expected: 'ai-plugin'},
+        ])('$name', async ({initialSearchType, priority, expected}) => {
+            const onSearch = jest.fn();
+            renderWithContext(
+                <SearchBox
+                    {...baseProps}
+                    onSearch={onSearch}
+                    initialSearchType={initialSearchType}
+                />,
+                pluginState(priority),
+            );
+
+            await userEvent.keyboard('{Enter}');
+            expect(onSearch).toHaveBeenCalledWith(expected, 'teamId', '');
+        });
+
+        test('opens on messages when no plugin search type is registered', async () => {
+            const onSearch = jest.fn();
+            renderWithContext(
+                <SearchBox
+                    {...baseProps}
+                    onSearch={onSearch}
+                    initialSearchType=''
+                />,
+            );
+
+            await userEvent.keyboard('{Enter}');
+            expect(onSearch).toHaveBeenCalledWith('messages', 'teamId', '');
+        });
+    });
 });
