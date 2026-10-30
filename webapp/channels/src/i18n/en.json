@@ -2279,77 +2279,17 @@
     "defaultMessage": "There is currently no company information on file.",
     "description": "Empty-state message on the Company Information page when nothing has been entered yet."
   },
-  "admin.billing.company_info_display.provideDetails": {
-    "defaultMessage": "Provide your company name and address",
-    "description": "Subtitle under the 'Company Details' heading prompting the admin to enter company information."
-  },
-  "admin.billing.company_info_edit.cancel": {
-    "defaultMessage": "Cancel",
-    "description": "Cancel link at the bottom of the company information edit form; discards changes and returns to the display page."
-  },
-  "admin.billing.company_info_edit.company_address": {
-    "defaultMessage": "Company Address",
-    "description": "Section heading in the company information edit form above the address fields."
-  },
-  "admin.billing.company_info_edit.companyDetails": {
-    "defaultMessage": "Company Details",
-    "description": "Section heading in the company information edit form above the name and employee-count fields."
-  },
-  "admin.billing.company_info_edit.sameAsBillingAddress": {
-    "defaultMessage": "Same as Billing Address",
-    "description": "Checkbox label in the company information edit form; reuses the billing address as the company address."
-  },
-  "admin.billing.company_info_edit.save": {
-    "defaultMessage": "Save info",
-    "description": "Save button at the bottom of the company information edit form."
-  },
-  "admin.billing.company_info_edit.title": {
-    "defaultMessage": "Edit Company Information",
-    "description": "Page title of the form for editing billing company information. 'Edit' is a verb."
-  },
-  "admin.billing.company_info.add": {
-    "defaultMessage": "Add Company Information",
-    "description": "Button/link on the Company Information page that opens the form to enter company details for billing."
-  },
-  "admin.billing.company_info.address": {
-    "defaultMessage": "Address",
-    "description": "Form field label for the first address line on the billing Company Information edit page in the System Console."
-  },
-  "admin.billing.company_info.address_2": {
-    "defaultMessage": "Address 2",
-    "description": "Form field label for the optional second address line on the billing Company Information edit page."
-  },
-  "admin.billing.company_info.billingAddress": {
-    "defaultMessage": "Billing Address",
-    "description": "Heading above the read-only billing address block in the company information edit form."
-  },
-  "admin.billing.company_info.city": {
-    "defaultMessage": "City",
-    "description": "Placeholder of the city input in the company address form for billing."
-  },
   "admin.billing.company_info.companyAddress": {
     "defaultMessage": "Company Address",
     "description": "Section heading on the Company Information display page above the stored company address."
-  },
-  "admin.billing.company_info.companyName": {
-    "defaultMessage": "Company name",
-    "description": "Placeholder of the company name input in the billing company information form."
   },
   "admin.billing.company_info.employees": {
     "defaultMessage": "{employees} employees",
     "description": "Line under the company name on the Company Information page; {employees} is the number of employees."
   },
-  "admin.billing.company_info.numEmployees": {
-    "defaultMessage": "Number of employees (optional)",
-    "description": "Placeholder of an optional numeric input for company size in the billing company information form."
-  },
   "admin.billing.company_info.title": {
     "defaultMessage": "Company Information",
     "description": "Page title of the Company Information section under Billing in the System Console."
-  },
-  "admin.billing.company_info.zipcode": {
-    "defaultMessage": "Zip/Postal Code",
-    "description": "Placeholder of the postal code input in the company address form for billing."
   },
   "admin.billing.deleteWorkspace.failureModal.buttonText": {
     "defaultMessage": "Try Again",
@@ -21755,30 +21695,6 @@
     "defaultMessage": "Your message is too long. Character count: {length}/{limit}",
     "description": "Error under the message box when a draft exceeds the maximum length; {length} is the current character count, {limit} the maximum."
   },
-  "create_post.file_limit_sticky_banner.admin_message": {
-    "defaultMessage": "New uploads will automatically archive older files. To view them again, you can delete older files or <a>upgrade to a paid plan.</a>",
-    "description": "Body of a sticky banner above the message box for system admins when the Cloud free plan's file storage limit is reached; the <a> tag wraps a link that opens the upgrade flow."
-  },
-  "create_post.file_limit_sticky_banner.admin_message_airgapped": {
-    "defaultMessage": "New uploads will automatically archive older files. To view them again, you can delete older files.",
-    "description": "Sticky banner above the message input shown to system admins on air-gapped servers when the free-plan file storage limit is reached."
-  },
-  "create_post.file_limit_sticky_banner.messageTitle": {
-    "defaultMessage": "Your free plan is limited to {storageGB} of files.",
-    "description": "Leading sentence of the sticky banner shown when file storage is full; {storageGB} is a formatted storage amount like '10GB'."
-  },
-  "create_post.file_limit_sticky_banner.non_admin_message": {
-    "defaultMessage": "New uploads will automatically archive older files. To view them again, <a>notify your admin to upgrade to a paid plan.</a>",
-    "description": "Body of the file storage limit sticky banner for non-admin users; the <a> tag wraps a link that sends an upgrade request to the admin."
-  },
-  "create_post.file_limit_sticky_banner.non_admin_message_airgapped": {
-    "defaultMessage": "New uploads will automatically archive older files. To view them again, contact your admin.",
-    "description": "Sticky banner above the message input shown to regular users on air-gapped servers when the file storage limit is reached."
-  },
-  "create_post.file_limit_sticky_banner.snooze_tooltip": {
-    "defaultMessage": "Snooze for {snoozeDays} days",
-    "description": "Tooltip on the close button of the file storage limit banner; {snoozeDays} is the number of days the banner stays hidden."
-  },
   "create_post.fileProcessing": {
     "defaultMessage": "Processing...",
     "description": "Status text on a file upload preview thumbnail while the file is still being processed after upload."
@@ -21846,14 +21762,6 @@
   "create_post.write": {
     "defaultMessage": "Write to {channelDisplayName}",
     "description": "Placeholder in the message box for a channel; {channelDisplayName} is the channel's display name."
-  },
-  "create_team.createTeamRestricted.message": {
-    "defaultMessage": "Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.",
-    "description": "Body text on the team creation page when the workspace plan's team limit is reached, prompting a trial or admin contact."
-  },
-  "create_team.createTeamRestricted.title": {
-    "defaultMessage": "Professional feature",
-    "description": "Heading on the team creation page when team creation is blocked by the plan limit; names the required plan tier."
   },
   "create_team.display_name.create": {
     "defaultMessage": "Create",
@@ -23810,10 +23718,6 @@
   "globalHeader.productSwitcherMenu.ariaLabel": {
     "defaultMessage": "Product menu",
     "description": "Screen-reader label for the product menu that opens from the grid icon and product name at the top left of the global header."
-  },
-  "globalHeader.productSwitcherMenu.cloudLimitsFooter.infoButtonAriaLabel": {
-    "defaultMessage": "View limits",
-    "description": "Screen-reader label for the info icon button in the usage-limits footer of the product menu, on Cloud workspaces. It opens a dialog with workspace usage limits. 'View' is a verb."
   },
   "globalHeader.productSwitcherMenu.downloadMenuItem.label": {
     "defaultMessage": "Download Apps",
@@ -28403,6 +28307,10 @@
     "defaultMessage": "Type to find a channel. Use <b>UP/DOWN</b> to browse, <b>ENTER</b> to select, <b>ESC</b> to dismiss.",
     "description": "Help text under the search box in the channel switcher modal (Ctrl+K); <b> tags render the key names in bold; UP/DOWN, ENTER and ESC are keyboard keys."
   },
+  "quote_selection_button.label": {
+    "defaultMessage": "Quote selection",
+    "description": "Tooltip and accessible name of the floating button shown next to text selected in a message, which inserts the selected text as a quote into the message box."
+  },
   "reaction_limit_reached_modal.body": {
     "defaultMessage": "Oops! It looks like we've hit a ceiling on emoji reactions for this message. Please contact your system administrator for any adjustments to this limit.",
     "description": "Body of the dialog shown when a message has reached the maximum number of unique emoji reactions; addressed to end users."
@@ -28870,14 +28778,6 @@
   "recaps.scheduled.delete.title": {
     "defaultMessage": "Delete scheduled recap?",
     "description": "Title of the confirmation dialog asked before deleting a recurring scheduled recap."
-  },
-  "recaps.scheduled.emptyState.cta": {
-    "defaultMessage": "Create a recap",
-    "description": "Call-to-action button on the empty scheduled-recaps tab that starts creating a recap; 'recap' is a noun."
-  },
-  "recaps.scheduled.emptyState.description": {
-    "defaultMessage": "Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.",
-    "description": "Empty-state description on the scheduled-recaps tab; 'Copilot' is the AI assistant product name."
   },
   "recaps.scheduled.emptyState.title": {
     "defaultMessage": "Set up your first recap",
@@ -31919,17 +31819,9 @@
     "defaultMessage": "Synchronize your Active Directory/LDAP groups",
     "description": "Feature card title in the 'trial ends soon' modal shown to admins; refers to AD/LDAP group synchronization."
   },
-  "three_days_left_trial.modal.limitsTitle": {
-    "defaultMessage": "Limits",
-    "description": "Card title in the 'trial ends soon' modal shown to admins on Cloud; refers to plan usage limits."
-  },
   "three_days_left_trial.modal.subtitle": {
     "defaultMessage": "There is still time to explore what our paid plans can help you accomplish.",
     "description": "Subtitle of the modal shown to admins when their Enterprise trial has three days remaining."
-  },
-  "three_days_left_trial.modal.subtitleLimitsOverpassed": {
-    "defaultMessage": "There are 3 days left on your trial. Upgrade to our Professional or Enterprise plan to avoid exceeding your data limits on the Free plan.",
-    "description": "Subtitle of the modal shown to Cloud admins when 3 days remain in their trial and they have exceeded Free plan data limits; urges upgrading to a paid plan."
   },
   "three_days_left_trial.modal.systemConsoleDescription": {
     "defaultMessage": "Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.",
@@ -31942,10 +31834,6 @@
   "three_days_left_trial.modal.title": {
     "defaultMessage": "Your trial ends soon",
     "description": "Title of the modal shown to admins when their paid-plan trial is about to expire."
-  },
-  "three_days_left_trial.modal.titleLimitsOverpassed": {
-    "defaultMessage": "Upgrade before the trial ends",
-    "description": "Title of the modal shown to Cloud admins when 3 days remain in their trial and Free plan data limits are exceeded."
   },
   "three_days_left_trial.modal.useSsoDescription": {
     "defaultMessage": "Sign on quickly and easily with our SSO feature that works with OpenID, SAML, Google, and O365.",
@@ -34619,77 +34507,9 @@
     "defaultMessage": "Unarchive this file by upgrading",
     "description": "Tooltip title on an archived file attachment prompting an upgrade to a paid plan to restore access."
   },
-  "workspace_limits.file_storage.short": {
-    "defaultMessage": "Files",
-    "description": "Compact label for the file storage usage bar in the Cloud workspace usage panel; refers to uploaded file storage."
-  },
-  "workspace_limits.file_storage.short.usage": {
-    "defaultMessage": "{actual} / {limit}",
-    "description": "Compact usage readout next to the file storage bar in the Cloud usage panel; {actual} is current storage used and {limit} the plan's cap (both sizes like '5GB')."
-  },
-  "workspace_limits.menu_limit.critical.files_storage": {
-    "defaultMessage": "You’re getting closer to the {limit} file storage limit. <a>{callToAction}</a>",
-    "description": "Cloud usage warning in the main menu when file storage nears its limit; {limit} is a storage amount (e.g. 10GB); <a> wraps {callToAction}, a link like 'View plans'."
-  },
-  "workspace_limits.menu_limit.critical.messages_history": {
-    "defaultMessage": "You’re close to hitting the free {limit} message history limit <a>{callToAction}</a>",
-    "description": "Cloud usage warning in the main menu when message history nears the free limit; {limit} is a message count; <a> wraps {callToAction}, a link like 'View plans'."
-  },
-  "workspace_limits.menu_limit.critical.messages_history_non_admin": {
-    "defaultMessage": "You’re almost at the message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>",
-    "description": "Warning shown to non-admin end users in the main menu usage widget when the workspace nears the Cloud Free message limit; <a> wraps the {callToAction} link text (e.g. 'Notify admin')."
-  },
-  "workspace_limits.menu_limit.file_storage": {
-    "defaultMessage": "File storage limit",
-    "description": "Label of the file storage usage meter shown in the main menu for cloud workspaces near their limits."
-  },
-  "workspace_limits.menu_limit.messages": {
-    "defaultMessage": "Total messages",
-    "description": "Label of the message count usage meter shown in the main menu for cloud workspaces near their limits."
-  },
-  "workspace_limits.menu_limit.notify_admin": {
-    "defaultMessage": "Notify admin",
-    "description": "Call-to-action link text for non-admin users to notify their admin about a reached cloud usage limit."
-  },
-  "workspace_limits.menu_limit.over.files_storage": {
-    "defaultMessage": "You’re over the {limit} file storage limit. You can only access the most recent {limit} worth of files. <a>{callToAction}</a>",
-    "description": "Cloud usage notice in the main menu when file storage is over its limit; {limit} is a storage amount; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.over.messages_history": {
-    "defaultMessage": "You’re over the free message history limit. You can only view up to the last {limit} messages in your history. <a>{callToAction}</a>",
-    "description": "Cloud usage notice in the main menu when message history is over the free limit; {limit} is a message count; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.over.messages_history_non_admin": {
-    "defaultMessage": "You’re over your message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>",
-    "description": "Warning shown to non-admin end users in the main menu usage widget when the workspace has exceeded the Cloud Free message limit; <a> wraps the {callToAction} link text."
-  },
-  "workspace_limits.menu_limit.reached.files_storage": {
-    "defaultMessage": "You’ve reached the {limit} file storage limit. You can only access the most recent {limit} worth of files. <a>{callToAction}</a>",
-    "description": "Cloud usage notice in the main menu when file storage has hit its limit; {limit} is a storage amount; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.reached.messages_history": {
-    "defaultMessage": "You’ve reached the free message history limit. You can only view up to the last {limit} messages in your history. <a>{callToAction}</a>",
-    "description": "Cloud usage notice in the main menu when message history has hit the free limit; {limit} is a message count; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.reached.messages_history_non_admin": {
-    "defaultMessage": "You’ve reached your message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>",
-    "description": "Warning shown to non-admin end users in the main menu usage widget when the workspace has just hit the Cloud Free message limit; <a> wraps the {callToAction} link text."
-  },
   "workspace_limits.menu_limit.view_plans": {
     "defaultMessage": "View plans",
     "description": "Short link/button that opens the plan comparison view; used on license panels and usage menus; compact space."
-  },
-  "workspace_limits.menu_limit.view_upgrade_options": {
-    "defaultMessage": "View upgrade options.",
-    "description": "Call-to-action link text for admins in the cloud usage limit notices; opens upgrade/pricing options."
-  },
-  "workspace_limits.menu_limit.warn.files_storage": {
-    "defaultMessage": "You’re getting closer to the {limit} file storage limit. <a>{callToAction}</a>",
-    "description": "Cloud usage warning in the main menu as file storage approaches its limit; {limit} is a storage amount; <a> wraps {callToAction}."
-  },
-  "workspace_limits.menu_limit.warn.messages_history": {
-    "defaultMessage": "You're getting closer to the free {limit} message limit. <a>{callToAction}</a>",
-    "description": "Cloud usage warning in the main menu as message history approaches the free limit; {limit} is a message count; <a> wraps {callToAction}."
   },
   "workspace_limits.message_history.locked.description.admin": {
     "defaultMessage": "Full access to message history is included in <a>paid plans</a>",
@@ -34699,46 +34519,6 @@
     "defaultMessage": "Limited history is displayed",
     "description": "Title of the banner shown to admins at the top of a channel when older messages are hidden due to the Cloud Free message-history limit."
   },
-  "workspace_limits.message_history.short": {
-    "defaultMessage": "Messages",
-    "description": "Compact label for the message history usage bar in the Cloud workspace usage panel; refers to stored messages."
-  },
-  "workspace_limits.message_history.short.usage": {
-    "defaultMessage": "{actual} / {limit}",
-    "description": "Compact usage readout next to the message history bar in the Cloud usage panel; {actual} is the current message count (e.g. '8K') and {limit} the plan's cap."
-  },
-  "workspace_limits.modals.close": {
-    "defaultMessage": "Close",
-    "description": "Secondary button that dismisses the cloud usage-limits modal."
-  },
-  "workspace_limits.modals.informational.description.freeLimits": {
-    "defaultMessage": "{planName} is restricted to {messages} message history and {storage} file storage.",
-    "description": "Body of the cloud usage-limits modal; {planName} is the plan name, {messages} a formatted message count, {storage} a size like '10GB'."
-  },
-  "workspace_limits.modals.informational.title": {
-    "defaultMessage": "{planName} limits",
-    "description": "Title of the cloud usage-limits modal; {planName} is the subscription plan name (e.g. 'Cloud Free')."
-  },
-  "workspace_limits.modals.limits_reached.description.message_history": {
-    "defaultMessage": "Your sent message history is no longer available but you can still send messages. Upgrade to a paid plan and get unlimited access to your message history.",
-    "description": "Body of the modal shown when a cloud workspace exceeds its message-history limit, prompting an upgrade."
-  },
-  "workspace_limits.modals.limits_reached.title": {
-    "defaultMessage": "{limitName} limit reached",
-    "description": "Title of the modal shown to cloud admins on login when a usage limit is exceeded; {limitName} is the limit's name (e.g. 'Message history')."
-  },
-  "workspace_limits.modals.limits_reached.title.message_history": {
-    "defaultMessage": "Message history",
-    "description": "Name of the limit inserted into the 'limits reached' modal title shown to Cloud admins; refers to the stored message history limit."
-  },
-  "workspace_limits.modals.view_plan_options": {
-    "defaultMessage": "View plan options",
-    "description": "Button in workspace-limit notices that opens the pricing/plan comparison modal."
-  },
-  "workspace_limits.modals.view_plans": {
-    "defaultMessage": "View plans",
-    "description": "Primary button in the cloud usage-limits modal that opens the pricing/plans modal."
-  },
   "workspace_limits.post_history_banner.cta_button": {
     "defaultMessage": "Restore Access",
     "description": "Button in the message-history limit banner on Cloud free plans; leads to upgrading to restore access to older messages."
@@ -34746,18 +34526,6 @@
   "workspace_limits.post_history_banner.text": {
     "defaultMessage": "{limit, number}-message limit reached. Messages sent before {date} are hidden",
     "description": "Announcement banner on Cloud free plans when the message history limit is reached; {limit} is the message count limit and {date} a formatted date."
-  },
-  "workspace_limits.teams_limit_reached.tool_tip": {
-    "defaultMessage": "You've reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams",
-    "description": "Tooltip hint on the disabled Unarchive Team button when the workspace's plan team limit is reached; shown to admins."
-  },
-  "workspace_limits.teams_limit_reached.upgrade_to_unarchive": {
-    "defaultMessage": "Upgrade to Unarchive",
-    "description": "Tooltip title on the disabled Unarchive Team button when the plan's team limit is reached."
-  },
-  "workspace_limits.teams_limit_reached.view_upgrade_options": {
-    "defaultMessage": "View upgrade options",
-    "description": "Button next to the disabled Unarchive Team button; opens plan upgrade options."
   },
   "wysiwyg.link.display_text": {
     "defaultMessage": "Display text",
