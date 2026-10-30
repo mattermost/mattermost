@@ -104,8 +104,7 @@ func (s *LocalCacheDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, c
 
 	channel, err := s.rootStore.Channel().Get(channelID, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return false, err
 		}
 

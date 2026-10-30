@@ -14,25 +14,6 @@ import type {GlobalState} from 'types/store';
 
 import ProductSwitcherCloudTrialMenuItem from './switch_product_cloud_trial_menuitem';
 
-jest.mock('components/common/hooks/useGetLimits', () => ({
-    __esModule: true,
-    default: jest.fn().mockReturnValue([{}, true]),
-}));
-
-jest.mock('components/common/hooks/useGetUsage', () => ({
-    __esModule: true,
-    default: jest.fn().mockReturnValue({
-        files: {totalStorage: 0, totalStorageLoaded: true},
-        messages: {history: 0, historyLoaded: true},
-        teams: {active: 0, teamsLoaded: true},
-    }),
-}));
-
-jest.mock('components/common/hooks/useGetHighestThresholdCloudLimit', () => ({
-    __esModule: true,
-    default: jest.fn().mockReturnValue(false),
-}));
-
 const mockOpenPricingModal = jest.fn();
 jest.mock('components/common/hooks/useOpenPricingModal', () => ({
     __esModule: true,
@@ -47,7 +28,6 @@ jest.mock('react-redux', () => ({
     useDispatch: jest.fn().mockReturnValue(jest.fn()),
 }));
 
-const mockUseGetHighestThresholdCloudLimit = require('components/common/hooks/useGetHighestThresholdCloudLimit').default;
 const mockUseOpenPricingModal = require('components/common/hooks/useOpenPricingModal').default;
 
 describe('ProductSwitcherCloudTrialMenuItem', () => {
@@ -86,7 +66,6 @@ describe('ProductSwitcherCloudTrialMenuItem', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseGetHighestThresholdCloudLimit.mockReturnValue(false);
         mockUseOpenPricingModal.mockReturnValue({
             openPricingModal: mockOpenPricingModal,
             isAirGapped: false,
@@ -98,26 +77,6 @@ describe('ProductSwitcherCloudTrialMenuItem', () => {
             <ProductSwitcherCloudTrialMenuItem
                 isUserAdmin={true}
                 isCloudLicensed={false}
-                isFreeTrialSubscription={false}
-            />,
-            initialState,
-        );
-
-        expect(screen.queryByText('Enterprise Advanced Trial')).not.toBeInTheDocument();
-        expect(screen.queryByText('Interested in a limitless plan with high-security features?')).not.toBeInTheDocument();
-    });
-
-    test('should not show when some limit needs attention', () => {
-        mockUseGetHighestThresholdCloudLimit.mockReturnValue({
-            id: 'messageHistory',
-            limit: 10000,
-            usage: 9000,
-        });
-
-        renderWithContext(
-            <ProductSwitcherCloudTrialMenuItem
-                isUserAdmin={true}
-                isCloudLicensed={true}
                 isFreeTrialSubscription={false}
             />,
             initialState,

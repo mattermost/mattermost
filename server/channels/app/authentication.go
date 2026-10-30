@@ -173,7 +173,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 }
 
 // This to be used for places we check the users password when they are already logged in
-func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError {
+func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password string) error {
 	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
 	claimed, claimErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(user.Id, maxAttempts)
 	if claimErr != nil {
@@ -190,7 +190,7 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
 		}
-		return model.AsAppError(err)
+		return err
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
@@ -344,7 +344,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *m
 	}
 
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -428,7 +428,7 @@ func (a *App) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }
 
-func checkUserLoginAttempts(user *model.User, maxAttempts int) *model.AppError {
+func checkUserLoginAttempts(user *model.User, maxAttempts int) error {
 	if user.FailedAttempts >= maxAttempts {
 		if user.AuthService == model.UserAuthServiceLdap {
 			return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many_ldap.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)

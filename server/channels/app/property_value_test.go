@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 	"time"
@@ -179,6 +180,100 @@ func TestUpsertPropertyValues_Invariants(t *testing.T) {
 		if err != nil {
 			assert.NotEqual(t, "app.property_value.upsert.object_type_mismatch.app_error", err.Id)
 		}
+	})
+}
+
+// TestUpsertPropertyValues_BroadcastWithholdsValuesNotEveryoneCanRead covers
+// the property_values_updated broadcast, which has no single reader to decide
+// for: it carries a value only when everyone may read it, and withholds one
+// whose value.read tier is narrower than everyone, or whose linked field's
+// template masks it.
+func TestUpsertPropertyValues_BroadcastWithholdsValuesNotEveryoneCanRead(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	groupID := registerTestPropertyGroup(t, th)
+
+	newField := func(t *testing.T, objectType string, linkedFieldID *string) *model.PropertyField {
+		t.Helper()
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "broadcast_" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    objectType,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: linkedFieldID,
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, field.Permissions)
+		return field
+	}
+	// Store writes rather than the API: neither permissions object below is
+	// one a caller could author while leaving the value writable.
+	storeUpdate := func(t *testing.T, field *model.PropertyField) {
+		t.Helper()
+		_, err := th.Store.PropertyField().Update(groupID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+	}
+
+	public := newField(t, model.PropertyFieldObjectTypeUser, nil)
+
+	sysadminOnly := newField(t, model.PropertyFieldObjectTypeUser, nil)
+	sysadminOnly.Permissions.Restrictions.Value.Read = model.PermissionLevelSysadmin
+	storeUpdate(t, sysadminOnly)
+
+	template := newField(t, model.PropertyFieldObjectTypeTemplate, nil)
+	linked := newField(t, model.PropertyFieldObjectTypeUser, &template.ID)
+	require.Nil(t, linked.Permissions.Masking, "a linked field carries no masking of its own")
+	template.Permissions.Masking = &model.Masking{}
+	storeUpdate(t, template)
+
+	// A linked field everyone may read, through a template that masks nothing.
+	openTemplate := newField(t, model.PropertyFieldObjectTypeTemplate, nil)
+	openLinked := newField(t, model.PropertyFieldObjectTypeUser, &openTemplate.ID)
+
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPropertyValuesUpdated})
+	defer closeWS()
+
+	values := make([]*model.PropertyValue, 0, 4)
+	for _, field := range []*model.PropertyField{public, sysadminOnly, linked, openLinked} {
+		values = append(values, &model.PropertyValue{
+			TargetID:   th.BasicUser.Id,
+			TargetType: model.PropertyFieldObjectTypeUser,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"secret"`),
+		})
+	}
+	upserted, appErr := th.App.UpsertPropertyValues(th.Context, values, model.PropertyFieldObjectTypeUser, th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+	require.Len(t, upserted, 4)
+
+	select {
+	case event := <-messages:
+		raw, ok := event.GetData()["values"].(string)
+		require.True(t, ok, "event carries no values payload")
+		var broadcast []model.PropertyValue
+		require.NoError(t, json.Unmarshal([]byte(raw), &broadcast))
+		byField := make(map[string]json.RawMessage, len(broadcast))
+		for _, v := range broadcast {
+			byField[v.FieldID] = v.Value
+		}
+		assert.JSONEq(t, `"secret"`, string(byField[public.ID]), "a value everyone may read is broadcast as is")
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(byField[sysadminOnly.ID]), "a sysadmin value.read is withheld")
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(byField[linked.ID]), "a linked field's template masking is withheld")
+		assert.JSONEq(t, `"secret"`, string(byField[openLinked.ID]), "a linked field everyone may read is broadcast as is")
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the property_values_updated event was not published")
+	}
+
+	t.Run("a linked field whose template can't be read is withheld", func(t *testing.T) {
+		missingTemplateID := model.NewId()
+		orphan := *linked
+		orphan.LinkedFieldID = &missingTemplateID
+
+		broadcastValue := th.App.PropertyValueBroadcaster(th.Context)
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(broadcastValue(&orphan, json.RawMessage(`"secret"`))))
+		assert.JSONEq(t, `"secret"`, string(broadcastValue(public, json.RawMessage(`"secret"`))))
 	})
 }
 

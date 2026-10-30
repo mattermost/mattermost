@@ -1,5 +1,4 @@
 @use "utils/functions";
-@use "utils/mixins";
 @use "utils/variables";
 
 .sidebar--right--width-holder {
@@ -123,6 +122,7 @@
     .sidebar--right__title {
         display: flex;
         overflow: hidden;
+        overflow: clip;
         min-width: 0;
         height: auto;
         flex: 1 1 auto;
@@ -132,8 +132,8 @@
         font-size: 1.6rem;
         font-weight: 600;
         line-height: 1;
+        overflow-clip-margin: 8px;
 
-        @include mixins.clearfix;
         h2 {
             margin: 0;
             font-family: inherit;

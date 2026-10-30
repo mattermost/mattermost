@@ -240,8 +240,8 @@ func TestDoubleCheckPassword(t *testing.T) {
 		err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, maxFailedLoginAttempts-1)
 		require.NoError(t, err)
 
-		appErr := th.App.DoubleCheckPassword(th.Context, user, password)
-		require.Nil(t, appErr)
+		err = th.App.DoubleCheckPassword(th.Context, user, password)
+		require.NoError(t, err)
 
 		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
@@ -252,9 +252,11 @@ func TestDoubleCheckPassword(t *testing.T) {
 		err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, maxFailedLoginAttempts)
 		require.NoError(t, err)
 
-		appErr := th.App.DoubleCheckPassword(th.Context, user, password)
-		require.NotNil(t, appErr)
-		require.Equal(t, "api.user.check_user_login_attempts.too_many.app_error", appErr.Id)
+		err = th.App.DoubleCheckPassword(th.Context, user, password)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "api.user.check_user_login_attempts.too_many.app_error", appErr.Id)
 	})
 
 	t.Run("backend error refunds the slot", func(t *testing.T) {
@@ -268,9 +270,10 @@ func TestDoubleCheckPassword(t *testing.T) {
 		user, appErr := th.App.GetUser(th.Context, badHashUser.Id)
 		require.Nil(t, appErr)
 
-		appErr = th.App.DoubleCheckPassword(th.Context, user, "any-password")
-		require.NotNil(t, appErr)
-		require.Equal(t, "api.user.check_user_password.invalid_hash.app_error", appErr.Id)
+		err = th.App.DoubleCheckPassword(th.Context, user, "any-password")
+		require.Error(t, err)
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "api.user.check_user_password.invalid_hash.app_error", appErr.Id)
 
 		updatedUser, appErr := th.App.GetUser(th.Context, badHashUser.Id)
 		require.Nil(t, appErr)
