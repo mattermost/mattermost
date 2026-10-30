@@ -3,7 +3,8 @@
 fixtures/v12_1_cherry_picks.json holds the 17 PRs (16 in mattermost, 1 in enterprise, its
 title left out) that ended up with ``CherryPick/Done`` and the v12.1.0 milestone, as GitHub
 had them on Oct 29, 2026. Jira isn't readable from CI, so each PR stands in for a Submitted
-v12.1 ticket linking to it: the key in its title, or a made-up one.
+v12.1 ticket linking to it: the key in its title, or a made-up one. The enterprise PR is
+for the release manager to label by hand.
 """
 
 import copy
@@ -54,12 +55,18 @@ class ReplayV121Test(unittest.TestCase):
         fake = github(before=True)
         report = Labeller(jira(), fake, live=False).run_version(V121)
         self.assertEqual(fake.writes, [])
-        planned = {(c.repo, c.number): (c.label, c.milestone) for c in report.labelled}
-        actual = {(pr["repo"], pr["number"]): ("would_add" if {"CherryPick/Approved", "CherryPick/Done"} & {l["name"] for l in pr["labels"]} else "",
-                                               "would_set" if pr["milestone"]["title"] == "v12.1.0" else "")
-                  for pr in PRS}
+        planned = {(c.repo, c.number): (c.label, c.milestone) for c in report.labelled + report.by_hand}
+        actual = {}
+        for pr in PRS:
+            to_label = bool({"CherryPick/Approved", "CherryPick/Done"} & {l["name"] for l in pr["labels"]})
+            to_set = pr["milestone"]["title"] == "v12.1.0"
+            if pr["repo"] == "mattermost/mattermost":
+                actual[(pr["repo"], pr["number"])] = ("would_add" if to_label else "", "would_set" if to_set else "")
+            else:
+                actual[(pr["repo"], pr["number"])] = ("by_hand" if to_label else "", "by_hand" if to_set else "")
         self.assertEqual(planned, actual)
-        self.assertEqual(len(planned), 17)
+        self.assertEqual((len(report.labelled), len(report.by_hand)), (16, 1))
+        self.assertIn("- MM-", output.summary([report], False).split("**To label by hand")[1])
         self.assertEqual((report.no_pr, report.outside, report.conflicts, report.skipped, report.errors), ([], [], [], [], []))
         self.assertNotIn("left out", output.summary([report], False))
 

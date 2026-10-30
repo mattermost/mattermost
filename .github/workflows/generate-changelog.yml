@@ -153,10 +153,6 @@ jobs:
           client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
           private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
           owner: mattermost
-          # The app can also write PRs and issues (cherry-pick labels); this job only reads.
-          permission-contents: read
-          permission-pull-requests: read
-          permission-issues: read
 
       # App 2: Read/write access to this repo (mattermost/mattermost).
       # Used to check out the repo, push the changelog branch, and open the PR.

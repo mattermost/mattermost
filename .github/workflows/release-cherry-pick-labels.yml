@@ -2,8 +2,10 @@ name: Release cherry-pick labels
 
 # Labels approved cherry-pick PRs, the step of /release-bugs that the release agent doesn't
 # cover. For MM tickets in Submitted status with a release's fix version (vX.Y (Month Year),
-# looked up through the Jira versions API), each linked GitHub PR in mattermost/mattermost
-# or mattermost/enterprise gets the CherryPick/Approved label and the vX.Y.0 milestone.
+# looked up through the Jira versions API), each linked mattermost/mattermost PR gets the
+# CherryPick/Approved label and the vX.Y.0 milestone. Linked mattermost/enterprise PRs that
+# need them are listed for the release manager to label by hand; the release agent's status
+# post lists them too until they're done.
 # Linked PRs come from the ticket's Jira remote links, else PRs naming the ticket in their
 # title or branch. Labels and milestones are only added, never removed or overwritten:
 # another milestone is reported, PRs in other repos are reported, and dot-release fix
@@ -20,19 +22,20 @@ name: Release cherry-pick labels
 # Modes (CHERRYPICK_LABEL_MODE, or the dispatch input):
 #   dry_run (default) — reports what it would change and changes nothing
 #   live              — labels PRs, sets milestones, and replies under the release agent's
-#                       status post in the release channel (or posts there)
+#                       status post in the release channel (or posts there) with what it
+#                       labelled and, for a dispatched ticket, the PRs to label by hand
 #
 # This repo is public, so its Actions logs are too. The run summary shows ticket keys and
 # PRs, but mattermost/enterprise PRs only as "(private repo)" and the number. Titles and
 # links for those go to Hub only.
 #
-# GitHub App: the existing changelog read app (CHANGELOG_READ_*), already installed on
-# mattermost/mattermost and mattermost/enterprise, with Pull requests: Read and write and
-# Issues: Read and write added to its grant (labels and milestones are issue endpoints).
-# This workflow's token is narrowed to those plus Contents: read, and the changelog and
-# release agent workflows narrow theirs to read-only, so only this workflow writes. Not the
-# release docs app (RELEASE_DOCS_*): it has Contents: write on the docs repos, and installing
-# it on enterprise would give that write access to private source too.
+# GitHub access, with no app of its own:
+#   writes — the job's GITHUB_TOKEN, with pull-requests: write and issues: write (labels and
+#            milestones are issue endpoints). It only reaches this repo. Labels it adds don't
+#            start other workflows; the cherry-pick bot (Mattermod, as mattermost-build) is
+#            an outside service on GitHub webhooks, so it still sees them.
+#   reads  — the changelog read app (CHANGELOG_READ_*), read-only on mattermost/mattermost
+#            and mattermost/enterprise, to read enterprise PRs and search both repos.
 #
 # Secrets:
 #   CHANGELOG_READ_PRIVATE_KEY  — the changelog read app's private key
@@ -83,6 +86,8 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      pull-requests: write
+      issues: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -95,23 +100,20 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Get app token (mattermost and enterprise)
+      - name: Get read token (mattermost and enterprise)
         uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
-        id: appToken
+        id: readToken
         with:
           client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
           private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
           owner: mattermost
           repositories: mattermost,enterprise
-          # Narrow below the App installation grant (cannot exceed it).
-          permission-contents: read
-          permission-pull-requests: write
-          permission-issues: write
 
       - name: Label approved cherry-picks
         working-directory: .github/scripts
         env:
-          GH_TOKEN: ${{ steps.appToken.outputs.token }}
+          GH_TOKEN: ${{ steps.readToken.outputs.token }}
+          GH_WRITE_TOKEN: ${{ github.token }}
           JIRA_EMAIL: ${{ vars.RELEASE_AGENT_JIRA_EMAIL }}
           JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
           MM_URL: ${{ vars.RELEASE_AGENT_MM_URL || 'https://hub.mattermost.com' }}

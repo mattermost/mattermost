@@ -4,6 +4,10 @@ For each Submitted ticket with the release's fix version, its linked PRs get the
 ``CherryPick/Approved`` label and the ``vX.Y.0`` milestone. Labels and milestones are only
 ever added: a PR that already has ``CherryPick/Approved`` or ``CherryPick/Done`` keeps it, and
 a PR with another milestone keeps it and is reported.
+
+Only PRs in ``WRITABLE_REPOS`` are changed: the workflow writes with its own GITHUB_TOKEN,
+which reaches no other repo. PRs in mattermost/enterprise are listed for the release manager
+to label by hand.
 """
 
 import re
@@ -17,6 +21,7 @@ APPROVED = "CherryPick/Approved"
 DONE_LABELS = frozenset({APPROVED, "CherryPick/Done"})
 ALLOWED_REPOS = ("mattermost/mattermost", "mattermost/enterprise")
 PUBLIC_REPOS = frozenset({"mattermost/mattermost"})
+WRITABLE_REPOS = frozenset({"mattermost/mattermost"})
 BASE_BRANCH = "master"
 FIELDS = ["summary", "status", "fixVersions"]
 
@@ -28,6 +33,7 @@ ISSUE_KEY = re.compile(r"^MM-\d+$")
 # Change states
 ADDED, WOULD_ADD, PRESENT = "added", "would_add", "present"
 SET, WOULD_SET, CONFLICT, NO_MILESTONE = "set", "would_set", "conflict", "no_milestone"
+BY_HAND = "by_hand"  # needed, in a repo the workflow can't write to
 
 
 class LabelError(Exception):
@@ -113,6 +119,10 @@ class PrChange:
         return self.label in (ADDED, WOULD_ADD) or self.milestone in (SET, WOULD_SET)
 
     @property
+    def by_hand(self) -> bool:
+        return BY_HAND in (self.label, self.milestone)
+
+    @property
     def public_ref(self) -> str:
         """The PR as it may appear in public output."""
         if self.repo in PUBLIC_REPOS:
@@ -133,6 +143,7 @@ class OutsidePr:
 class Report:
     version: FixVersion | None
     live: bool
+    dispatched: bool = False  # one ticket, just moved to Submitted
     tickets: list = field(default_factory=list)  # ticket keys looked at
     changes: list = field(default_factory=list)  # PrChange per allowlisted PR
     no_pr: list = field(default_factory=list)
@@ -147,7 +158,11 @@ class Report:
 
     @property
     def already_done(self) -> list:
-        return [c for c in self.changes if not c.changed and not c.skipped and c.milestone in (PRESENT,)]
+        return [c for c in self.changes if not c.changed and not c.skipped and not c.by_hand and c.milestone == PRESENT]
+
+    @property
+    def by_hand(self) -> list:
+        return [c for c in self.changes if c.by_hand]
 
     @property
     def conflicts(self) -> list:
@@ -182,7 +197,7 @@ class Labeller:
         known = {v.name: v for v in map(feature_version, versions) if v}
         targets = sorted((known[n] for n in names if n in known and not known[n].released),
                          key=lambda v: (v.major, v.minor))
-        report = Report(targets[0] if targets else None, self.live)
+        report = Report(targets[0] if targets else None, self.live, dispatched=True)
         if status.casefold() != SUBMITTED.casefold():
             report.notes.append(f"{key} isn't {SUBMITTED} (it's {status or 'unknown'}), so nothing was changed.")
             return report
@@ -262,8 +277,11 @@ class Labeller:
         if by_title and change.current_milestone not in ("", version.milestone):
             change.milestone = CONFLICT
             return change
+        writable = repo in WRITABLE_REPOS
         if labels & DONE_LABELS:
             change.label = PRESENT
+        elif not writable:
+            change.label = BY_HAND
         elif self.live:
             self.github.add_label(repo, number, APPROVED)
             change.label = ADDED
@@ -274,6 +292,8 @@ class Labeller:
             change.milestone = PRESENT
         elif change.current_milestone:
             change.milestone = CONFLICT
+        elif not writable:
+            change.milestone = BY_HAND
         else:
             milestone = self.milestone_number(repo, version.milestone)
             if milestone is None:

@@ -1,7 +1,8 @@
 """python3 -m release_cherrypick run
 
 Environment:
-  GH_TOKEN          GitHub App token for mattermost/mattermost and mattermost/enterprise
+  GH_TOKEN          read-only GitHub App token for mattermost/mattermost and mattermost/enterprise
+  GH_WRITE_TOKEN    the workflow's GITHUB_TOKEN, for labels and milestones on mattermost/mattermost
   JIRA_EMAIL, JIRA_TOKEN, JIRA_URL (default https://mattermost.atlassian.net)
   MODE_INPUT        dry_run | live, from workflow_dispatch; else CHERRYPICK_LABEL_MODE; else dry_run
   VERSION_INPUT     e.g. v12.2: run on that release only
@@ -62,7 +63,7 @@ def main(argv: list[str]) -> int:
         return 2
     env = os.environ
     jira = Jira(env.get("JIRA_URL") or "https://mattermost.atlassian.net", env.get("JIRA_EMAIL", ""), env.get("JIRA_TOKEN", ""))
-    github = GitHub(env.get("GH_TOKEN", ""))
+    github = GitHub(env.get("GH_TOKEN", ""), env.get("GH_WRITE_TOKEN", ""))
     hub = Hub(env.get("MM_URL") or "https://hub.mattermost.com", env["MM_TOKEN"]) if env.get("MM_TOKEN") else None
     text, line, code = run(env, jira, github, hub)
     print(text)

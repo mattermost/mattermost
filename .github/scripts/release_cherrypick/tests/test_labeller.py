@@ -2,6 +2,7 @@ import unittest
 
 from release_cherrypick import labeller, output
 from release_cherrypick.__main__ import resolve_mode, run
+from release_cherrypick.clients import GitHub
 from release_cherrypick.labeller import LabelError, Labeller
 from release_cherrypick.tests.fakes import VERSIONS, FakeGitHub, FakeHub, FakeJira, pull, ticket
 
@@ -113,7 +114,8 @@ class LabelTest(unittest.TestCase):
         github.pulls[(ENT, 20)]["body"] = "MM-12"
         github.pulls[(ENT, 21)]["body"] = "See MM-12"
         report = label_run(jira, github)
-        self.assertEqual([(c.repo, c.number) for c in report.labelled], [(ENT, 20), (MM, 10)])
+        self.assertEqual([(c.repo, c.number) for c in report.labelled], [(MM, 10)])
+        self.assertEqual([(c.repo, c.number) for c in report.by_hand], [(ENT, 20)])
 
     def test_a_pr_found_by_title_with_another_milestone_is_not_labelled(self):
         jira = FakeJira([ticket("MM-1")])
@@ -143,12 +145,32 @@ class LabelTest(unittest.TestCase):
         self.assertIn("**Would label** (1)", output.summary([report], False))
 
     def test_a_repo_without_the_milestone_is_noted(self):
-        jira = FakeJira([ticket("MM-1")], {"MM-1": [link(ENT, 3)]})
-        github = FakeGitHub([(ENT, pull(3, repo=ENT))])
-        github.milestone_titles[ENT] = {}
+        jira = FakeJira([ticket("MM-1")], {"MM-1": [link(MM, 3)]})
+        github = FakeGitHub([(MM, pull(3))])
+        github.milestone_titles[MM] = {}
         report = label_run(jira, github)
-        self.assertEqual(github.writes, [("label", ENT, 3, "CherryPick/Approved")])
-        self.assertEqual(report.notes, ["(private repo) has no v12.2.0 milestone, so it wasn't set."])
+        self.assertEqual(github.writes, [("label", MM, 3, "CherryPick/Approved")])
+        self.assertEqual(report.notes, ["mattermost has no v12.2.0 milestone, so it wasn't set."])
+
+    def test_enterprise_prs_are_listed_to_label_by_hand(self):
+        jira = FakeJira([ticket("MM-1"), ticket("MM-2"), ticket("MM-3"), ticket("MM-4")],
+                        {"MM-1": [link(ENT, 1)], "MM-2": [link(ENT, 2)], "MM-3": [link(ENT, 3)], "MM-4": [link(ENT, 4)]})
+        github = FakeGitHub([(ENT, pull(1, repo=ENT)),
+                             (ENT, pull(2, repo=ENT, labels=["CherryPick/Approved"])),
+                             (ENT, pull(3, repo=ENT, labels=["CherryPick/Done"], milestone="v12.2.0")),
+                             (ENT, pull(4, repo=ENT, milestone="v12.1.0"))])
+        report = label_run(jira, github)
+        self.assertEqual(github.writes, [])
+        self.assertEqual([(c.number, c.label, c.milestone) for c in report.by_hand],
+                         [(1, "by_hand", "by_hand"), (2, "present", "by_hand"), (4, "by_hand", "conflict")])
+        self.assertEqual(([c.number for c in report.already_done], [c.number for c in report.conflicts]), ([3], [4]))
+        self.assertEqual(report.labelled, [])
+        text = output.summary([report], True)
+        self.assertIn("**To label by hand, outside mattermost/mattermost** (3)\n"
+                      "- MM-1: (private repo) #1 needs `CherryPick/Approved` and milestone v12.2.0\n"
+                      "- MM-2: (private repo) #2 needs milestone v12.2.0\n"
+                      "- MM-4: (private repo) #4 needs `CherryPick/Approved`", text)
+        self.assertNotIn("A fix", text)
 
     def test_a_pr_linked_from_two_tickets_is_handled_once(self):
         jira = FakeJira([ticket("MM-1"), ticket("MM-2")], {"MM-1": [link(MM, 10)], "MM-2": [link(MM, 10)]})
@@ -186,6 +208,34 @@ class TicketDispatchTest(unittest.TestCase):
             Labeller(FakeJira(), FakeGitHub(), True).run_ticket("SEC-1; rm", VERSIONS)
 
 
+class RecordingHttp:
+    def __init__(self, name):
+        self.name, self.calls = name, []
+
+    def get(self, path, /, **params):
+        self.calls.append(("GET", path))
+        return {"number": 1}
+
+    def request(self, method, path, params=None, body=None):
+        self.calls.append((method, path))
+
+
+class GitHubClientTest(unittest.TestCase):
+    def test_reads_with_the_app_token_and_writes_with_the_workflow_token(self):
+        read, write = RecordingHttp("read"), RecordingHttp("write")
+        github = GitHub("app", "workflow", http=read, write_http=write)
+        github.pull(ENT, 1)
+        github.add_label(MM, 1, "CherryPick/Approved")
+        github.set_milestone(MM, 1, 12)
+        self.assertEqual(read.calls, [("GET", f"/repos/{ENT}/pulls/1")])
+        self.assertEqual(write.calls, [("POST", f"/repos/{MM}/issues/1/labels"), ("PATCH", f"/repos/{MM}/issues/1")])
+
+    def test_the_write_token_is_separate(self):
+        github = GitHub("app", "workflow")
+        self.assertEqual(github.http.headers["Authorization"], "Bearer app")
+        self.assertEqual(github.write_http.headers["Authorization"], "Bearer workflow")
+
+
 class RunTest(unittest.TestCase):
     def setUp(self):
         self.jira = FakeJira([ticket("MM-1"), ticket("MM-2")],
@@ -207,23 +257,36 @@ class RunTest(unittest.TestCase):
         self.assertEqual((code, self.github.writes, self.hub.created), (0, [], []))
         self.assertIn("## Cherry-pick labels · dry run (nothing changed)", text)
         self.assertIn("- MM-1: [mattermost#10](https://github.com/mattermost/mattermost/pull/10) Public fix (label and milestone)", text)
-        self.assertIn("- MM-2: (private repo) #20 (label and milestone)", text)
+        self.assertIn("- MM-2: (private repo) #20 needs `CherryPick/Approved` and milestone v12.2.0", text)
         self.assertNotIn("Top secret", text)
-        self.assertEqual(line, ":white_check_mark: Cherry-pick labels (dry run) · v12.2: 2 to label, 0 already done, "
+        self.assertEqual(line, ":white_check_mark: Cherry-pick labels (dry run) · v12.2: 1 to label, 1 to label by hand, 0 already done, "
                                "0 without a PR, 0 outside the allowlist, 0 milestone conflicts · [run](https://run)")
 
     def test_live_run_replies_under_the_status_post(self):
         text, _, code = run({"CHERRYPICK_LABEL_MODE": "live"}, self.jira, self.github, self.hub)
         self.assertEqual(code, 0)
-        self.assertEqual(len(self.github.writes), 4)
+        self.assertEqual(self.github.writes, [("label", MM, 10, "CherryPick/Approved"), ("milestone", MM, 10, 12)])
         [reply] = self.hub.created
         self.assertEqual((reply["channel_id"], reply["root_id"]), ("c122", "status"))
-        self.assertIn("[enterprise#20](https://github.com/mattermost/enterprise/pull/20) Top secret fix", reply["message"])
+        self.assertIn("- MM-1: [mattermost#10](https://github.com/mattermost/mattermost/pull/10) Public fix (label and milestone)",
+                      reply["message"])
+        self.assertIn("For the release manager to label by hand (v12.2):\n- MM-2: [enterprise#20]"
+                      "(https://github.com/mattermost/enterprise/pull/20) Top secret fix needs `CherryPick/Approved` and "
+                      "milestone v12.2.0", reply["message"])
         self.assertIn("Hub: replied to the status post.", text)
         self.assertNotIn("Top secret", text)
 
-        run({"CHERRYPICK_LABEL_MODE": "live"}, self.jira, self.github, self.hub)
-        self.assertEqual((len(self.github.writes), len(self.hub.created)), (4, 1))
+        # The status post keeps listing the enterprise PR, so a rerun doesn't post it again.
+        text, _, _ = run({"CHERRYPICK_LABEL_MODE": "live"}, self.jira, self.github, self.hub)
+        self.assertEqual((len(self.github.writes), len(self.hub.created)), (2, 1))
+        self.assertIn("Hub: nothing new to post.", text)
+
+    def test_a_dispatched_enterprise_ticket_is_posted_for_the_release_manager(self):
+        run({"CHERRYPICK_LABEL_MODE": "live", "ISSUE_KEY": "MM-2"}, self.jira, self.github, self.hub)
+        self.assertEqual(self.github.writes, [])
+        [reply] = self.hub.created
+        self.assertTrue(reply["message"].startswith("For the release manager to label by hand (v12.2):"))
+        self.assertNotIn("Labelled", reply["message"])
 
     def test_live_run_posts_in_the_channel_without_a_status_post(self):
         self.hub.posts = {}

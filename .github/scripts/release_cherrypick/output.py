@@ -5,7 +5,7 @@ mattermost/enterprise (or any non-public repo): those appear as "(private repo)"
 number. The Hub message is private and has titles and links.
 """
 
-from .labeller import ADDED, PUBLIC_REPOS, SET, WOULD_ADD, WOULD_SET, Report
+from .labeller import ADDED, APPROVED, BY_HAND, PUBLIC_REPOS, SET, WOULD_ADD, WOULD_SET, Report
 
 STATUS_MARKER_PROP = "release_agent_marker"
 RELEASE_CHANNELS = ("Release: {short}", "Release: {short} (ESR)", "Release: {short} ESR")
@@ -18,6 +18,15 @@ def _what(change) -> str:
         parts.append("label")
     if change.milestone in (SET, WOULD_SET):
         parts.append("milestone")
+    return " and ".join(parts)
+
+
+def _needs(change, milestone: str) -> str:
+    parts = []
+    if change.label == BY_HAND:
+        parts.append(f"`{APPROVED}`")
+    if change.milestone == BY_HAND:
+        parts.append(f"milestone {milestone}")
     return " and ".join(parts)
 
 
@@ -48,6 +57,8 @@ def report_lines(report: Report, private: bool = False) -> list[str]:
             lines.extend(["", f"**{title}** ({len(entries)})"] + [f"- {entry}" for entry in entries])
 
     section(verb, [f"{c.ticket}: {_pr(c, private)} ({_what(c)})" for c in report.labelled])
+    section("To label by hand, outside mattermost/mattermost", [
+        f"{c.ticket}: {_pr(c, private)} needs {_needs(c, version.milestone)}" for c in report.by_hand])
     section("Already done", [f"{c.ticket}: {_pr(c, private)}" for c in report.already_done])
     section("Submitted tickets with no linked PR", report.no_pr)
     section("PRs outside the allowlist, not changed", [f"{p.ticket}: {_outside(p, private)}" for p in report.outside])
@@ -75,7 +86,8 @@ def summary(reports: list[Report], live: bool, problems: list[str] = ()) -> str:
 
 def counts(report: Report) -> str:
     verb = "labelled" if report.live else "to label"
-    parts = [f"{len(report.labelled)} {verb}", f"{len(report.already_done)} already done",
+    parts = [f"{len(report.labelled)} {verb}", f"{len(report.by_hand)} to label by hand",
+             f"{len(report.already_done)} already done",
              f"{len(report.no_pr)} without a PR", f"{len(report.outside)} outside the allowlist",
              f"{len(report.conflicts)} milestone conflicts"]
     if report.errors:
@@ -94,9 +106,14 @@ def log_line(reports: list[Report], live: bool, run_url: str, problems: list[str
 
 def hub_message(report: Report) -> str:
     version = report.version
-    lines = [f"Labelled approved cherry-picks for {version.short} with `CherryPick/Approved` and milestone "
-             f"{version.milestone}:"]
-    lines += [f"- {c.ticket}: {_pr(c, True)} ({_what(c)})" for c in report.labelled]
+    lines = []
+    if report.labelled:
+        lines += [f"Labelled approved cherry-picks for {version.short} with `{APPROVED}` and milestone "
+                  f"{version.milestone}:"]
+        lines += [f"- {c.ticket}: {_pr(c, True)} ({_what(c)})" for c in report.labelled]
+    if report.by_hand:
+        lines += [f"For the release manager to label by hand ({version.short}):"] + [
+            f"- {c.ticket}: {_pr(c, True)} needs {_needs(c, version.milestone)}" for c in report.by_hand]
     if report.conflicts:
         lines += ["Milestone conflicts, not changed:"] + [
             f"- {c.ticket}: {_pr(c, True)} has milestone {c.current_milestone}" for c in report.conflicts]
@@ -126,9 +143,13 @@ def status_post(hub, channel_id: str, short: str) -> dict | None:
 
 
 def post_to_release(hub, report: Report) -> str:
-    """Reply under the status post in the release channel, or post there. Returns what happened."""
-    if not report.labelled:
-        return "nothing labelled"
+    """Reply under the status post in the release channel, or post there. Returns what happened.
+
+    PRs to label by hand are only posted with new labels or for a ticket that just moved to
+    Submitted: the status post lists them every day until they're done.
+    """
+    if not report.labelled and not (report.by_hand and report.dispatched):
+        return "nothing new to post"
     channel = release_channel(hub, report.version.short)
     if not channel:
         return "no release channel"

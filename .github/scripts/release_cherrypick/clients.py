@@ -86,8 +86,16 @@ class Jira:
 
 
 class GitHub:
-    def __init__(self, token: str, http: Http | None = None):
-        self.http = http or Http("GitHub", "https://api.github.com", {
+    """Reads with ``token`` (mattermost and enterprise) and writes with ``write_token`` (the
+    workflow's GITHUB_TOKEN, which only reaches mattermost/mattermost)."""
+
+    def __init__(self, token: str, write_token: str = "", http: Http | None = None, write_http: Http | None = None):
+        self.http = http or self._http(token)
+        self.write_http = write_http or (self._http(write_token) if write_token else self.http)
+
+    @staticmethod
+    def _http(token: str) -> Http:
+        return Http("GitHub", "https://api.github.com", {
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
@@ -124,10 +132,10 @@ class GitHub:
             return False
 
     def add_label(self, repo: str, number: int, label: str) -> None:
-        self.http.request("POST", f"/repos/{repo}/issues/{number}/labels", body={"labels": [label]})
+        self.write_http.request("POST", f"/repos/{repo}/issues/{number}/labels", body={"labels": [label]})
 
     def set_milestone(self, repo: str, number: int, milestone_number: int) -> None:
-        self.http.request("PATCH", f"/repos/{repo}/issues/{number}", body={"milestone": milestone_number})
+        self.write_http.request("PATCH", f"/repos/{repo}/issues/{number}", body={"milestone": milestone_number})
 
 
 class Hub:
