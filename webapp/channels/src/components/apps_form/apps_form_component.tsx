@@ -7,11 +7,11 @@ import {Modal, Fade} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
-import {AppCallResponseTypes, AppFieldTypes} from 'mattermost-redux/constants/apps';
+import {AppCallResponseTypes, AppFieldLayouts, AppFieldTypes} from 'mattermost-redux/constants/apps';
 import {
     checkDialogElementForError, checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
@@ -29,6 +29,7 @@ import {flattenCollapsible} from 'utils/dialog_conversion';
 import type {DoAppCallResult} from 'types/apps';
 
 import AppsFormField from './apps_form_field';
+import AppsFormGrid from './apps_form_grid';
 import AppsFormHeader from './apps_form_header';
 import CollapsibleSection from './collapsible_section';
 
@@ -741,12 +742,33 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     renderModal() {
-        const {fields, header} = this.props.form;
+        const {fields, header, size} = this.props.form;
         const loading = Boolean(this.state.loading);
         const bodyClass = loading ? 'apps-form-modal-body-loading' : 'apps-form-modal-body-loaded';
         const bodyClassNames = 'apps-form-modal-body-common ' + bodyClass;
 
-        const dialogClassName = 'a11y__modal about-modal';
+        // Width tier. An absent size keeps the historical width, so every
+        // dialog that predates the field renders exactly as before. The form is
+        // replaced wholesale on a refresh, so an integration that changes size
+        // in a refresh response resizes the modal that is already open.
+        //
+        // Both wide tiers get a class of their own rather than borrowing
+        // .modal-lg, whose width is set globally for every consumer in the app
+        // and at a breakpoint that would leave medium silently equal to small
+        // below 992px.
+        let sizeClass = '';
+        if (size === 'medium') {
+            sizeClass = ' apps-form-modal--medium';
+        } else if (size === 'large') {
+            sizeClass = ' apps-form-modal--large';
+        }
+
+        // apps-form-modal-dialog is what the width styles hang off. It is here
+        // rather than reusing a11y__modal because that class is on nearly a
+        // hundred modals across the app, none of which should pick up a width
+        // transition from this form. It is not apps-form-modal, which is
+        // already on the outer .modal and is counted once per open dialog.
+        const dialogClassName = 'a11y__modal about-modal apps-form-modal-dialog' + sizeClass;
         const hasDateTimeFields = this.hasDateTimeFields();
 
         return (
@@ -787,7 +809,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                                         bodyClassNames
                                     }
                                 >
-                                    <LoadingSpinner style={{fontSize: '24px'}}/>
+                                    <LoadingSpinner size='24'/>
                                 </div>
                             </Fade>
                             {this.renderBody()}
@@ -856,18 +878,37 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const {isEmbedded} = this.props;
 
         if (originalField.type === AppFieldTypes.COLLAPSIBLE) {
-            const childFields = (originalField.collapsible_config?.fields || []).filter(
-                (f) => f.name !== this.props.form.submit_buttons,
+            const config = originalField.collapsible_config;
+            const label = originalField.label || originalField.name;
+
+            // A grid container is still an ordinary collapsible: it keeps its
+            // heading, its caret and its border, and only the arrangement of
+            // its children changes. Laying the grid out inside the same section
+            // the stacked renderer uses is what keeps `collapsed`, `borderless`
+            // and `display_name` meaning the same thing whichever layout an
+            // integration picks.
+            const children = config?.layout === AppFieldLayouts.GRID ? (
+                <AppsFormGrid
+                    field={originalField}
+                    label={label}
+                    excludeName={this.props.form.submit_buttons}
+                    renderCell={(cell, cellAutoFocus) => this.renderField(cell, autoFocus && cellAutoFocus, depth + 1)}
+                />
+            ) : (
+                (config?.fields || []).
+                    filter((f) => f.name !== this.props.form.submit_buttons).
+                    map((child, i) => this.renderField(child, autoFocus && i === 0, depth + 1))
             );
+
             return (
                 <CollapsibleSection
                     key={originalField.name}
-                    label={originalField.label || originalField.name}
-                    expanded={originalField.collapsible_config?.expanded ?? true}
-                    bordered={originalField.collapsible_config?.bordered ?? true}
+                    label={label}
+                    expanded={config?.expanded ?? true}
+                    bordered={config?.bordered ?? true}
                     depth={depth}
                 >
-                    {childFields.map((child, i) => this.renderField(child, autoFocus && i === 0, depth + 1))}
+                    {children}
                 </CollapsibleSection>
             );
         }
@@ -976,15 +1017,15 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return (
-            <>
-                <div>
-                    {this.state.formError && (
-                        <div>
-                            <div className='error-text'>
-                                <Markdown message={this.state.formError}/>
-                            </div>
+            <div className='apps-form-footer'>
+                {this.state.formError && (
+                    <div className='apps-form-footer__error'>
+                        <div className='error-text'>
+                            <Markdown message={this.state.formError}/>
                         </div>
-                    )}
+                    </div>
+                )}
+                <div className='apps-form-footer__buttons'>
                     <Button
                         id={this.elementId('appsModalCancel')}
                         type='button'
@@ -998,7 +1039,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     </Button>
                     {submitButtons}
                 </div>
-            </>
+            </div>
         );
     }
 

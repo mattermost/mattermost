@@ -1,5 +1,0 @@
-<mj-section padding-top="0px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
-  <mj-column padding="0px">
-    <mj-image src="{{.Props.SiteURL}}/static/images/cloud-upgrade-person-hand-to-face.png" width="320px" padding="0px" />
-  </mj-column>
-</mj-section>

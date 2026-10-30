@@ -58,7 +58,7 @@ var metricsOff = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "MetricsSettings.Enable",
-	Eval:       healthcheck.Licensed(func(f *model.Features) *bool { return f.Metrics }, healthcheck.Single(evalMetricsOff)),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureMetrics, healthcheck.Single(evalMetricsOff)),
 }
 
 func fileLogging(s *healthcheck.Snapshot) (bool, bool) {

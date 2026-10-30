@@ -46,17 +46,6 @@
         line-height: 24px;
     }
 
-    &__permissionsPolicyAddRule {
-        display: inline-flex;
-        align-items: center;
-        padding: 8px 16px;
-        gap: 4px;
-
-        i {
-            font-size: 16px;
-        }
-    }
-
     &__permissionsPolicySearch {
         position: relative;
         display: flex;
@@ -175,7 +164,7 @@
         font-size: 13px;
         gap: 6px;
 
-        .btn-tertiary {
+        .ChannelSettingsModal__permissionsPolicyPaginationButton {
             display: inline-flex;
             width: 32px;
             height: 32px;

@@ -52,6 +52,7 @@ interface Props extends WrappedComponentProps {
 
     // Enhanced functionality
     sourceUrl?: string; // Optional URL for form refresh functionality
+    size?: AppForm['size']; // Width tier; undefined means the historical width
     isTopDialog?: boolean; // False while a child dialog is stacked on top of this one
     submitButtons?: string; // Name of a select element whose options render as submit buttons
     refreshOnReturn?: boolean; // Re-fetch from sourceUrl when a child dialog closes and this one is on top again
@@ -175,7 +176,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props, State> {
     };
 
     private convertToAppForm = (): {form?: AppForm; error?: string} => {
-        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state, submitButtons, refreshOnReturn} = this.props;
+        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state, size, submitButtons, refreshOnReturn} = this.props;
         const {form, errors} = convertDialogToAppForm(
             elements,
             title,
@@ -187,6 +188,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props, State> {
             this.conversionContext,
             submitButtons,
             refreshOnReturn,
+            size,
         );
 
         const {error} = this.handleValidationErrors(errors);

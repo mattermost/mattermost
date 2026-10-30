@@ -5,7 +5,9 @@ import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -13,6 +15,7 @@ import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
 
 import Markdown from 'components/markdown';
 
@@ -231,11 +234,11 @@ export function isNativeField(field?: Pick<UserPropertyField, 'attrs'>): boolean
     return Boolean(field?.attrs?.native);
 }
 
-// True when an attribute's values come from a controlled source (LDAP/SAML sync,
+// True when an attribute's values come from a controlled source (AD/LDAP, SAML or OpenID Connect sync,
 // admin-managed, plugin-protected, or owner-managed integration) and so cannot be
 // set by users. Such attributes are safe to reference in access control policies.
 export function hasControlledAttributeValues(field: Pick<UserPropertyField, 'attrs'>): boolean {
-    const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+    const isSynced = isPropertyFieldSynced(field);
     const isAdminManaged = field.attrs?.managed === 'admin';
     const isProtected = Boolean(field.attrs?.protected);
     const isOwnerManaged = (field.attrs?.owners?.length ?? 0) > 0;
@@ -504,11 +507,11 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
     const button = (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<LockOutlineIcon/>}/>}
         >
-            <i className='icon icon-lock-outline'/>
             {label ?? (
                 <FormattedMessage
                     id='admin.access_control.table_editor.test_access_rule'
@@ -593,11 +596,11 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
     return (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
         >
-            <i className='icon icon-plus'/>
             <FormattedMessage
                 id='admin.access_control.table_editor.add_attribute'
                 defaultMessage='Add attribute'

@@ -43,6 +43,11 @@ MarkdownManager.prototype.parse = function parse(markdown: string): JSONContent 
     return {type: 'doc', content: manager.parseTokens(tokens)};
 };
 
+// Text typed into a paragraph is markdown source: `[label](url)`, an unclosed ``` that
+// keeps Enter from sending, `- [ ]` task markers. The serializer's backslash escaping
+// would post those characters literally, so text is written out unchanged.
+(MarkdownManager.prototype as unknown as {escapeMarkdownSyntax: (text: string) => string}).escapeMarkdownSyntax = (text) => text;
+
 export const isRedundantLinkText = (text: string, href: string): boolean => {
     if (!text || !href) {
         return false;

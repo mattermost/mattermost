@@ -69,13 +69,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -151,41 +177,23 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             <div
               class="group-teams-and-channels--body"
             >
-              <div>
-                <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+              <div
+                data-testid="syncGroupSwitch"
+              >
+                <label
+                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                  for="syncGroupSwitch"
                 >
-                  <label
-                    class="line-switch__label"
+                  <span
+                    class="switch__labels"
                   >
-                    Sync Group Members
-                  </label>
-                  <div
-                    class="line-switch__toggle"
-                    data-testid="syncGroupSwitch"
-                  >
-                    <button
-                      aria-pressed="false"
-                      class="btn btn-lg btn-toggle"
-                      data-testid="syncGroupSwitch-button"
-                      id="syncGroupSwitch"
-                      tabindex="0"
-                      type="button"
+                    <span
+                      class="switch__label"
                     >
-                      <div
-                        class="handle"
-                      />
-                    </button>
-                  </div>
-                </div>
-                <div
-                  class="row"
-                >
-                  <div
-                    class="col-sm-10"
-                  >
-                    <div
-                      class="help-text-small help-text-no-padding "
+                      Sync Group Members
+                    </span>
+                    <span
+                      class="switch__secondary-label"
                     >
                       When enabled, adding and removing users from groups will add or remove them from this channel. The only way of inviting members to this channel is by adding the groups they belong to. 
                       <a
@@ -196,114 +204,127 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                       >
                         Learn More
                       </a>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="section-separator"
-                >
-                  <hr
-                    class="separator__hr"
-                  />
-                </div>
+                    </span>
+                  </span>
+                  <span
+                    class="switch__track"
+                  >
+                    <input
+                      aria-checked="false"
+                      class="switch__input"
+                      data-testid="syncGroupSwitch-button"
+                      id="syncGroupSwitch"
+                      role="switch"
+                      tabindex="0"
+                      type="checkbox"
+                    />
+                    <span
+                      aria-hidden="true"
+                      class="switch__knob"
+                    />
+                  </span>
+                </label>
               </div>
-              <div>
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
+                />
+              </div>
+              <div
+                class="AdminSettingsSegmentedRow"
+                data-testid="allow-all-toggle"
+              >
                 <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                  class="AdminSettingsSegmentedRow__text"
                 >
-                  <label
-                    class="line-switch__label"
+                  <div
+                    class="AdminSettingsSegmentedRow__title"
                   >
                     Public channel or private channel
-                  </label>
+                  </div>
                   <div
-                    class="line-switch__toggle"
-                    data-testid="allow-all-toggle"
+                    class="AdminSettingsSegmentedRow__description"
                   >
-                    <button
-                      aria-pressed="true"
-                      class="btn btn-lg btn-toggle active"
-                      data-testid="allow-all-toggle-button"
-                      id="allow-all-toggle"
-                      tabindex="0"
-                      type="button"
-                    >
-                      <div
-                        class="handle"
-                      />
-                      <div
-                        class="bg-text on"
-                      >
-                        Public
-                      </div>
-                    </button>
+                    Select Public for a channel any user can find and join. 
+                    <br />
+                    Select Private to require channel invitations to join. 
+                    <br />
+                    Use this control to change this channel from public to private or from private to public.
                   </div>
                 </div>
                 <div
-                  class="row"
+                  aria-label="Public channel or private channel"
+                  class="AdminSettingsSegmentedRow__segments"
+                  role="group"
                 >
-                  <div
-                    class="col-sm-10"
+                  <button
+                    aria-pressed="true"
+                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                    data-testid="allow-all-toggle-public"
+                    id="allow-all-toggle-public"
+                    type="button"
                   >
-                    <div
-                      class="help-text-small help-text-no-padding "
-                    >
-                      Select Public for a channel any user can find and join. 
-                      <br />
-                      Select Private to require channel invitations to join. 
-                      <br />
-                      Use this switch to change this channel from public to private or from private to public.
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="section-separator"
-                >
-                  <hr
-                    class="separator__hr"
-                  />
+                    Public
+                  </button>
+                  <button
+                    aria-pressed="false"
+                    class="AdminSettingsSegmentedRow__segment"
+                    data-testid="allow-all-toggle-private"
+                    id="allow-all-toggle-private"
+                    type="button"
+                  >
+                    Private
+                  </button>
                 </div>
               </div>
-              <div>
-                <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
+                />
+              </div>
+              <div
+                data-testid="policy-enforce-toggle"
+              >
+                <label
+                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                  for="policy-enforce-toggle"
                 >
-                  <label
-                    class="line-switch__label"
+                  <span
+                    class="switch__labels"
                   >
-                    Enable attribute based channel access
-                  </label>
-                  <div
-                    class="line-switch__toggle"
-                    data-testid="policy-enforce-toggle"
-                  >
-                    <button
-                      aria-pressed="false"
-                      class="btn btn-lg btn-toggle"
-                      data-testid="policy-enforce-toggle-button"
-                      id="policy-enforce-toggle"
-                      tabindex="0"
-                      type="button"
+                    <span
+                      class="switch__label"
                     >
-                      <div
-                        class="handle"
-                      />
-                    </button>
-                  </div>
-                </div>
-                <div
-                  class="row"
-                >
-                  <div
-                    class="col-sm-10"
-                  >
-                    <div
-                      class="help-text-small help-text-no-padding "
+                      Enable attribute based channel access
+                    </span>
+                    <span
+                      class="switch__secondary-label"
                     >
                       Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
-                    </div>
-                  </div>
-                </div>
+                    </span>
+                  </span>
+                  <span
+                    class="switch__track"
+                  >
+                    <input
+                      aria-checked="false"
+                      class="switch__input"
+                      data-testid="policy-enforce-toggle-button"
+                      id="policy-enforce-toggle"
+                      role="switch"
+                      tabindex="0"
+                      type="checkbox"
+                    />
+                    <span
+                      aria-hidden="true"
+                      class="switch__knob"
+                    />
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -329,10 +350,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               class="button"
             >
               <button
-                class="style--none btn btn-primary"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                 id="addGroupsToChannelToggle"
+                type="button"
               >
-                Add Group
+                <span
+                  class="_button__label_we8pe_31"
+                >
+                  Add Group
+                </span>
               </button>
             </div>
           </div>
@@ -386,7 +412,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 1 - 1 of 1
               </div>
               <button
-                class="btn btn-tertiary disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
@@ -396,7 +423,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 />
               </button>
               <button
-                class="btn btn-tertiary disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
                 data-testid="page-link-next"
                 disabled=""
                 type="button"
@@ -418,22 +445,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -512,13 +545,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -594,41 +653,23 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             <div
               class="group-teams-and-channels--body"
             >
-              <div>
-                <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+              <div
+                data-testid="syncGroupSwitch"
+              >
+                <label
+                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                  for="syncGroupSwitch"
                 >
-                  <label
-                    class="line-switch__label"
+                  <span
+                    class="switch__labels"
                   >
-                    Sync Group Members
-                  </label>
-                  <div
-                    class="line-switch__toggle"
-                    data-testid="syncGroupSwitch"
-                  >
-                    <button
-                      aria-pressed="false"
-                      class="btn btn-lg btn-toggle"
-                      data-testid="syncGroupSwitch-button"
-                      id="syncGroupSwitch"
-                      tabindex="0"
-                      type="button"
+                    <span
+                      class="switch__label"
                     >
-                      <div
-                        class="handle"
-                      />
-                    </button>
-                  </div>
-                </div>
-                <div
-                  class="row"
-                >
-                  <div
-                    class="col-sm-10"
-                  >
-                    <div
-                      class="help-text-small help-text-no-padding "
+                      Sync Group Members
+                    </span>
+                    <span
+                      class="switch__secondary-label"
                     >
                       When enabled, adding and removing users from groups will add or remove them from this channel. The only way of inviting members to this channel is by adding the groups they belong to. 
                       <a
@@ -639,114 +680,127 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                       >
                         Learn More
                       </a>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="section-separator"
-                >
-                  <hr
-                    class="separator__hr"
-                  />
-                </div>
+                    </span>
+                  </span>
+                  <span
+                    class="switch__track"
+                  >
+                    <input
+                      aria-checked="false"
+                      class="switch__input"
+                      data-testid="syncGroupSwitch-button"
+                      id="syncGroupSwitch"
+                      role="switch"
+                      tabindex="0"
+                      type="checkbox"
+                    />
+                    <span
+                      aria-hidden="true"
+                      class="switch__knob"
+                    />
+                  </span>
+                </label>
               </div>
-              <div>
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
+                />
+              </div>
+              <div
+                class="AdminSettingsSegmentedRow"
+                data-testid="allow-all-toggle"
+              >
                 <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                  class="AdminSettingsSegmentedRow__text"
                 >
-                  <label
-                    class="line-switch__label"
+                  <div
+                    class="AdminSettingsSegmentedRow__title"
                   >
                     Public channel or private channel
-                  </label>
+                  </div>
                   <div
-                    class="line-switch__toggle"
-                    data-testid="allow-all-toggle"
+                    class="AdminSettingsSegmentedRow__description"
                   >
-                    <button
-                      aria-pressed="true"
-                      class="btn btn-lg btn-toggle active"
-                      data-testid="allow-all-toggle-button"
-                      id="allow-all-toggle"
-                      tabindex="0"
-                      type="button"
-                    >
-                      <div
-                        class="handle"
-                      />
-                      <div
-                        class="bg-text on"
-                      >
-                        Public
-                      </div>
-                    </button>
+                    Select Public for a channel any user can find and join. 
+                    <br />
+                    Select Private to require channel invitations to join. 
+                    <br />
+                    Use this control to change this channel from public to private or from private to public.
                   </div>
                 </div>
                 <div
-                  class="row"
+                  aria-label="Public channel or private channel"
+                  class="AdminSettingsSegmentedRow__segments"
+                  role="group"
                 >
-                  <div
-                    class="col-sm-10"
+                  <button
+                    aria-pressed="true"
+                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                    data-testid="allow-all-toggle-public"
+                    id="allow-all-toggle-public"
+                    type="button"
                   >
-                    <div
-                      class="help-text-small help-text-no-padding "
-                    >
-                      Select Public for a channel any user can find and join. 
-                      <br />
-                      Select Private to require channel invitations to join. 
-                      <br />
-                      Use this switch to change this channel from public to private or from private to public.
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="section-separator"
-                >
-                  <hr
-                    class="separator__hr"
-                  />
+                    Public
+                  </button>
+                  <button
+                    aria-pressed="false"
+                    class="AdminSettingsSegmentedRow__segment"
+                    data-testid="allow-all-toggle-private"
+                    id="allow-all-toggle-private"
+                    type="button"
+                  >
+                    Private
+                  </button>
                 </div>
               </div>
-              <div>
-                <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
+                />
+              </div>
+              <div
+                data-testid="policy-enforce-toggle"
+              >
+                <label
+                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                  for="policy-enforce-toggle"
                 >
-                  <label
-                    class="line-switch__label"
+                  <span
+                    class="switch__labels"
                   >
-                    Enable attribute based channel access
-                  </label>
-                  <div
-                    class="line-switch__toggle"
-                    data-testid="policy-enforce-toggle"
-                  >
-                    <button
-                      aria-pressed="false"
-                      class="btn btn-lg btn-toggle"
-                      data-testid="policy-enforce-toggle-button"
-                      id="policy-enforce-toggle"
-                      tabindex="0"
-                      type="button"
+                    <span
+                      class="switch__label"
                     >
-                      <div
-                        class="handle"
-                      />
-                    </button>
-                  </div>
-                </div>
-                <div
-                  class="row"
-                >
-                  <div
-                    class="col-sm-10"
-                  >
-                    <div
-                      class="help-text-small help-text-no-padding "
+                      Enable attribute based channel access
+                    </span>
+                    <span
+                      class="switch__secondary-label"
                     >
                       Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
-                    </div>
-                  </div>
-                </div>
+                    </span>
+                  </span>
+                  <span
+                    class="switch__track"
+                  >
+                    <input
+                      aria-checked="false"
+                      class="switch__input"
+                      data-testid="policy-enforce-toggle-button"
+                      id="policy-enforce-toggle"
+                      role="switch"
+                      tabindex="0"
+                      type="checkbox"
+                    />
+                    <span
+                      aria-hidden="true"
+                      class="switch__knob"
+                    />
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -772,10 +826,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               class="button"
             >
               <button
-                class="style--none btn btn-primary"
+                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                 id="addGroupsToChannelToggle"
+                type="button"
               >
-                Add Group
+                <span
+                  class="_button__label_we8pe_31"
+                >
+                  Add Group
+                </span>
               </button>
             </div>
           </div>
@@ -829,7 +888,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 1 - 1 of 1
               </div>
               <button
-                class="btn btn-tertiary disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
@@ -839,7 +899,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 />
               </button>
               <button
-                class="btn btn-tertiary disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
                 data-testid="page-link-next"
                 disabled=""
                 type="button"
@@ -861,22 +921,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -956,13 +1022,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1038,103 +1130,99 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             <div
               class="group-teams-and-channels--body"
             >
-              <div>
+              <div
+                class="AdminSettingsSegmentedRow"
+                data-testid="allow-all-toggle"
+              >
                 <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                  class="AdminSettingsSegmentedRow__text"
                 >
-                  <label
-                    class="line-switch__label"
+                  <div
+                    class="AdminSettingsSegmentedRow__title"
                   >
                     Public channel or private channel
-                  </label>
+                  </div>
                   <div
-                    class="line-switch__toggle"
-                    data-testid="allow-all-toggle"
+                    class="AdminSettingsSegmentedRow__description"
                   >
-                    <button
-                      aria-pressed="true"
-                      class="btn btn-lg btn-toggle active"
-                      data-testid="allow-all-toggle-button"
-                      id="allow-all-toggle"
-                      tabindex="0"
-                      type="button"
-                    >
-                      <div
-                        class="handle"
-                      />
-                      <div
-                        class="bg-text on"
-                      >
-                        Public
-                      </div>
-                    </button>
+                    Select Public for a channel any user can find and join. 
+                    <br />
+                    Select Private to require channel invitations to join. 
+                    <br />
+                    Use this control to change this channel from public to private or from private to public.
                   </div>
                 </div>
                 <div
-                  class="row"
+                  aria-label="Public channel or private channel"
+                  class="AdminSettingsSegmentedRow__segments"
+                  role="group"
                 >
-                  <div
-                    class="col-sm-10"
+                  <button
+                    aria-pressed="true"
+                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                    data-testid="allow-all-toggle-public"
+                    id="allow-all-toggle-public"
+                    type="button"
                   >
-                    <div
-                      class="help-text-small help-text-no-padding "
-                    >
-                      Select Public for a channel any user can find and join. 
-                      <br />
-                      Select Private to require channel invitations to join. 
-                      <br />
-                      Use this switch to change this channel from public to private or from private to public.
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="section-separator"
-                >
-                  <hr
-                    class="separator__hr"
-                  />
+                    Public
+                  </button>
+                  <button
+                    aria-pressed="false"
+                    class="AdminSettingsSegmentedRow__segment"
+                    data-testid="allow-all-toggle-private"
+                    id="allow-all-toggle-private"
+                    type="button"
+                  >
+                    Private
+                  </button>
                 </div>
               </div>
-              <div>
-                <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
+                />
+              </div>
+              <div
+                data-testid="policy-enforce-toggle"
+              >
+                <label
+                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                  for="policy-enforce-toggle"
                 >
-                  <label
-                    class="line-switch__label"
+                  <span
+                    class="switch__labels"
                   >
-                    Enable attribute based channel access
-                  </label>
-                  <div
-                    class="line-switch__toggle"
-                    data-testid="policy-enforce-toggle"
-                  >
-                    <button
-                      aria-pressed="false"
-                      class="btn btn-lg btn-toggle"
-                      data-testid="policy-enforce-toggle-button"
-                      id="policy-enforce-toggle"
-                      tabindex="0"
-                      type="button"
+                    <span
+                      class="switch__label"
                     >
-                      <div
-                        class="handle"
-                      />
-                    </button>
-                  </div>
-                </div>
-                <div
-                  class="row"
-                >
-                  <div
-                    class="col-sm-10"
-                  >
-                    <div
-                      class="help-text-small help-text-no-padding "
+                      Enable attribute based channel access
+                    </span>
+                    <span
+                      class="switch__secondary-label"
                     >
                       Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
-                    </div>
-                  </div>
-                </div>
+                    </span>
+                  </span>
+                  <span
+                    class="switch__track"
+                  >
+                    <input
+                      aria-checked="false"
+                      class="switch__input"
+                      data-testid="policy-enforce-toggle-button"
+                      id="policy-enforce-toggle"
+                      role="switch"
+                      tabindex="0"
+                      type="checkbox"
+                    />
+                    <span
+                      aria-hidden="true"
+                      class="switch__knob"
+                    />
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -1148,22 +1236,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -1242,13 +1336,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1324,103 +1444,99 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             <div
               class="group-teams-and-channels--body"
             >
-              <div>
+              <div
+                class="AdminSettingsSegmentedRow"
+                data-testid="allow-all-toggle"
+              >
                 <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                  class="AdminSettingsSegmentedRow__text"
                 >
-                  <label
-                    class="line-switch__label"
+                  <div
+                    class="AdminSettingsSegmentedRow__title"
                   >
                     Public channel or private channel
-                  </label>
+                  </div>
                   <div
-                    class="line-switch__toggle"
-                    data-testid="allow-all-toggle"
+                    class="AdminSettingsSegmentedRow__description"
                   >
-                    <button
-                      aria-pressed="true"
-                      class="btn btn-lg btn-toggle active"
-                      data-testid="allow-all-toggle-button"
-                      id="allow-all-toggle"
-                      tabindex="0"
-                      type="button"
-                    >
-                      <div
-                        class="handle"
-                      />
-                      <div
-                        class="bg-text on"
-                      >
-                        Public
-                      </div>
-                    </button>
+                    Select Public for a channel any user can find and join. 
+                    <br />
+                    Select Private to require channel invitations to join. 
+                    <br />
+                    Use this control to change this channel from public to private or from private to public.
                   </div>
                 </div>
                 <div
-                  class="row"
+                  aria-label="Public channel or private channel"
+                  class="AdminSettingsSegmentedRow__segments"
+                  role="group"
                 >
-                  <div
-                    class="col-sm-10"
+                  <button
+                    aria-pressed="true"
+                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                    data-testid="allow-all-toggle-public"
+                    id="allow-all-toggle-public"
+                    type="button"
                   >
-                    <div
-                      class="help-text-small help-text-no-padding "
-                    >
-                      Select Public for a channel any user can find and join. 
-                      <br />
-                      Select Private to require channel invitations to join. 
-                      <br />
-                      Use this switch to change this channel from public to private or from private to public.
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="section-separator"
-                >
-                  <hr
-                    class="separator__hr"
-                  />
+                    Public
+                  </button>
+                  <button
+                    aria-pressed="false"
+                    class="AdminSettingsSegmentedRow__segment"
+                    data-testid="allow-all-toggle-private"
+                    id="allow-all-toggle-private"
+                    type="button"
+                  >
+                    Private
+                  </button>
                 </div>
               </div>
-              <div>
-                <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
+                />
+              </div>
+              <div
+                data-testid="policy-enforce-toggle"
+              >
+                <label
+                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                  for="policy-enforce-toggle"
                 >
-                  <label
-                    class="line-switch__label"
+                  <span
+                    class="switch__labels"
                   >
-                    Enable attribute based channel access
-                  </label>
-                  <div
-                    class="line-switch__toggle"
-                    data-testid="policy-enforce-toggle"
-                  >
-                    <button
-                      aria-pressed="false"
-                      class="btn btn-lg btn-toggle"
-                      data-testid="policy-enforce-toggle-button"
-                      id="policy-enforce-toggle"
-                      tabindex="0"
-                      type="button"
+                    <span
+                      class="switch__label"
                     >
-                      <div
-                        class="handle"
-                      />
-                    </button>
-                  </div>
-                </div>
-                <div
-                  class="row"
-                >
-                  <div
-                    class="col-sm-10"
-                  >
-                    <div
-                      class="help-text-small help-text-no-padding "
+                      Enable attribute based channel access
+                    </span>
+                    <span
+                      class="switch__secondary-label"
                     >
                       Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
-                    </div>
-                  </div>
-                </div>
+                    </span>
+                  </span>
+                  <span
+                    class="switch__track"
+                  >
+                    <input
+                      aria-checked="false"
+                      class="switch__input"
+                      data-testid="policy-enforce-toggle-button"
+                      id="policy-enforce-toggle"
+                      role="switch"
+                      tabindex="0"
+                      type="checkbox"
+                    />
+                    <span
+                      aria-hidden="true"
+                      class="switch__knob"
+                    />
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -1434,22 +1550,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -1529,13 +1651,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1611,62 +1759,59 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             <div
               class="group-teams-and-channels--body"
             >
-              <div>
+              <div
+                class="AdminSettingsSegmentedRow"
+                data-testid="allow-all-toggle"
+              >
                 <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                  class="AdminSettingsSegmentedRow__text"
                 >
-                  <label
-                    class="line-switch__label"
+                  <div
+                    class="AdminSettingsSegmentedRow__title"
                   >
                     Public channel or private channel
-                  </label>
+                  </div>
                   <div
-                    class="line-switch__toggle"
-                    data-testid="allow-all-toggle"
+                    class="AdminSettingsSegmentedRow__description"
                   >
-                    <button
-                      aria-pressed="true"
-                      class="btn btn-lg btn-toggle active"
-                      data-testid="allow-all-toggle-button"
-                      id="allow-all-toggle"
-                      tabindex="0"
-                      type="button"
-                    >
-                      <div
-                        class="handle"
-                      />
-                      <div
-                        class="bg-text on"
-                      >
-                        Public
-                      </div>
-                    </button>
+                    Select Public for a channel any user can find and join. 
+                    <br />
+                    Select Private to require channel invitations to join. 
+                    <br />
+                    Use this control to change this channel from public to private or from private to public.
                   </div>
                 </div>
                 <div
-                  class="row"
+                  aria-label="Public channel or private channel"
+                  class="AdminSettingsSegmentedRow__segments"
+                  role="group"
                 >
-                  <div
-                    class="col-sm-10"
+                  <button
+                    aria-pressed="true"
+                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                    data-testid="allow-all-toggle-public"
+                    id="allow-all-toggle-public"
+                    type="button"
                   >
-                    <div
-                      class="help-text-small help-text-no-padding "
-                    >
-                      Select Public for a channel any user can find and join. 
-                      <br />
-                      Select Private to require channel invitations to join. 
-                      <br />
-                      Use this switch to change this channel from public to private or from private to public.
-                    </div>
-                  </div>
+                    Public
+                  </button>
+                  <button
+                    aria-pressed="false"
+                    class="AdminSettingsSegmentedRow__segment"
+                    data-testid="allow-all-toggle-private"
+                    id="allow-all-toggle-private"
+                    type="button"
+                  >
+                    Private
+                  </button>
                 </div>
-                <div
-                  class="section-separator"
-                >
-                  <hr
-                    class="separator__hr"
-                  />
-                </div>
+              </div>
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
+                />
               </div>
             </div>
           </div>
@@ -1680,22 +1825,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -1774,13 +1925,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    class="_button__icon-slot_we8pe_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1856,62 +2033,59 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             <div
               class="group-teams-and-channels--body"
             >
-              <div>
+              <div
+                class="AdminSettingsSegmentedRow"
+                data-testid="allow-all-toggle"
+              >
                 <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                  class="AdminSettingsSegmentedRow__text"
                 >
-                  <label
-                    class="line-switch__label"
+                  <div
+                    class="AdminSettingsSegmentedRow__title"
                   >
                     Public channel or private channel
-                  </label>
+                  </div>
                   <div
-                    class="line-switch__toggle"
-                    data-testid="allow-all-toggle"
+                    class="AdminSettingsSegmentedRow__description"
                   >
-                    <button
-                      aria-pressed="true"
-                      class="btn btn-lg btn-toggle active"
-                      data-testid="allow-all-toggle-button"
-                      id="allow-all-toggle"
-                      tabindex="0"
-                      type="button"
-                    >
-                      <div
-                        class="handle"
-                      />
-                      <div
-                        class="bg-text on"
-                      >
-                        Public
-                      </div>
-                    </button>
+                    Select Public for a channel any user can find and join. 
+                    <br />
+                    Select Private to require channel invitations to join. 
+                    <br />
+                    Use this control to change this channel from public to private or from private to public.
                   </div>
                 </div>
                 <div
-                  class="row"
+                  aria-label="Public channel or private channel"
+                  class="AdminSettingsSegmentedRow__segments"
+                  role="group"
                 >
-                  <div
-                    class="col-sm-10"
+                  <button
+                    aria-pressed="true"
+                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                    data-testid="allow-all-toggle-public"
+                    id="allow-all-toggle-public"
+                    type="button"
                   >
-                    <div
-                      class="help-text-small help-text-no-padding "
-                    >
-                      Select Public for a channel any user can find and join. 
-                      <br />
-                      Select Private to require channel invitations to join. 
-                      <br />
-                      Use this switch to change this channel from public to private or from private to public.
-                    </div>
-                  </div>
+                    Public
+                  </button>
+                  <button
+                    aria-pressed="false"
+                    class="AdminSettingsSegmentedRow__segment"
+                    data-testid="allow-all-toggle-private"
+                    id="allow-all-toggle-private"
+                    type="button"
+                  >
+                    Private
+                  </button>
                 </div>
-                <div
-                  class="section-separator"
-                >
-                  <hr
-                    class="separator__hr"
-                  />
-                </div>
+              </div>
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
+                />
               </div>
             </div>
           </div>
@@ -1925,22 +2099,28 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"

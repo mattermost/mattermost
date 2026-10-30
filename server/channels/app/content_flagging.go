@@ -607,10 +607,14 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 
 	// Send the deletion report even if there is an error as there can be partial deletion of data
 	// which must be reported to the reviewers.
+	deletionReportSent := make(chan struct{})
 	if deletionReport != nil {
 		a.Srv().Go(func() {
+			defer close(deletionReportSent)
 			a.sendDeletionReportToReviewers(rctx, flaggedPost.Id, deletionReport, groupId)
 		})
+	} else {
+		close(deletionReportSent)
 	}
 
 	if appErr != nil {
@@ -678,6 +682,9 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 	})
 
 	a.Srv().Go(func() {
+		// The report and this notice can be the first two replies on a reviewer's thread, and
+		// two first replies saved concurrently race to create the thread, losing one of them.
+		<-deletionReportSent
 		a.sendFlaggedPostRemovalNotification(rctx, flaggedPost, reviewerId, actionRequest.Comment, groupId)
 	})
 

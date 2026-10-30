@@ -21,7 +21,7 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
     tabindex="-1"
   >
     <div
-      class="a11y__modal about-modal modal-dialog"
+      class="a11y__modal about-modal apps-form-modal-dialog modal-dialog"
     >
       <div
         class="modal-content"
@@ -66,11 +66,12 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
                 class="LoadingSpinner"
                 data-testid="loadingSpinner"
                 id="loadingSpinner"
-                style="font-size: 24px;"
               >
                 <span
-                  class="fa fa-spinner fa-fw fa-pulse spinner"
-                  title="Loading Icon"
+                  aria-label="Loading Icon"
+                  class="_spinner_3elm7_10 spinner"
+                  role="status"
+                  style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
                 />
               </span>
             </div>
@@ -228,21 +229,35 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
           <div
             class="modal-footer"
           >
-            <div>
-              <button
-                class="btn btn-tertiary"
-                id="appsModalCancel"
-                type="button"
+            <div
+              class="apps-form-footer"
+            >
+              <div
+                class="apps-form-footer__buttons"
               >
-                Cancel
-              </button>
-              <button
-                class="btn btn-primary"
-                id="appsModalSubmit"
-                type="submit"
-              >
-                Submit
-              </button>
+                <button
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                  id="appsModalCancel"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Cancel
+                  </span>
+                </button>
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  id="appsModalSubmit"
+                  type="submit"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Submit
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </form>

@@ -35,14 +35,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableIndexingtrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableIndexingtrue"
                     id="enableIndexingtrue"
                     name="enableIndexing"
@@ -50,26 +50,26 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableIndexingfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableIndexingfalse"
                     id="enableIndexingfalse"
                     name="enableIndexing"
@@ -77,15 +77,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -289,14 +289,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="skipTLSVerificationtrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="skipTLSVerificationtrue"
                     disabled=""
                     id="skipTLSVerificationtrue"
@@ -305,26 +305,26 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="skipTLSVerificationfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="skipTLSVerificationfalse"
                     disabled=""
                     id="skipTLSVerificationfalse"
@@ -333,15 +333,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -433,14 +433,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="snifftrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="snifftrue"
                     disabled=""
                     id="snifftrue"
@@ -449,26 +449,26 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="snifffalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="snifffalse"
                     disabled=""
                     id="snifffalse"
@@ -477,15 +477,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -508,11 +508,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                   disabled=""
                   type="button"
                 >
-                  Test Connection
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Test Connection
+                  </span>
                 </button>
               </div>
               <div
@@ -544,11 +548,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   >
                     <div>
                       <button
-                        class="btn btn-tertiary"
+                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                         disabled=""
                         type="button"
                       >
-                        Index Now
+                        <span
+                          class="_button__label_we8pe_31"
+                        >
+                          Index Now
+                        </span>
                       </button>
                     </div>
                     <div
@@ -606,11 +614,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                   disabled=""
                   type="button"
                 >
-                  Rebuild Channels Index
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Rebuild Channels Index
+                  </span>
                 </button>
               </div>
               <div
@@ -639,11 +651,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                   disabled=""
                   type="button"
                 >
-                  Purge Indexes
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Purge Indexes
+                  </span>
                 </button>
               </div>
               <div
@@ -699,14 +715,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchingtrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchingtrue"
                     disabled=""
                     id="enableSearchingtrue"
@@ -715,26 +731,26 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchingfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchingfalse"
                     disabled=""
                     id="enableSearchingfalse"
@@ -743,15 +759,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -779,14 +795,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableAutocompletetrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableAutocompletetrue"
                     disabled=""
                     id="enableAutocompletetrue"
@@ -795,26 +811,26 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableAutocompletefalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableAutocompletefalse"
                     disabled=""
                     id="enableAutocompletefalse"
@@ -823,15 +839,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -859,14 +875,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchPublicChannelsWithoutMembershiptrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchPublicChannelsWithoutMembershiptrue"
                     disabled=""
                     id="enableSearchPublicChannelsWithoutMembershiptrue"
@@ -875,26 +891,26 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchPublicChannelsWithoutMembershipfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchPublicChannelsWithoutMembershipfalse"
                     disabled=""
                     id="enableSearchPublicChannelsWithoutMembershipfalse"
@@ -903,15 +919,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -939,15 +955,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableFileIndexingtrue"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableFileIndexingtrue"
                     disabled=""
                     id="enableFileIndexingtrue"
@@ -956,25 +972,25 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableFileIndexingfalse"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableFileIndexingfalse"
                     disabled=""
                     id="enableFileIndexingfalse"
@@ -983,15 +999,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -1011,13 +1027,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -1065,15 +1083,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableIndexingtrue"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableIndexingtrue"
                     id="enableIndexingtrue"
                     name="enableIndexing"
@@ -1081,25 +1099,25 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableIndexingfalse"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableIndexingfalse"
                     id="enableIndexingfalse"
                     name="enableIndexing"
@@ -1107,15 +1125,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -1314,14 +1332,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="skipTLSVerificationtrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="skipTLSVerificationtrue"
                     id="skipTLSVerificationtrue"
                     name="skipTLSVerification"
@@ -1329,26 +1347,26 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="skipTLSVerificationfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="skipTLSVerificationfalse"
                     id="skipTLSVerificationfalse"
                     name="skipTLSVerification"
@@ -1356,15 +1374,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -1454,14 +1472,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="snifftrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="snifftrue"
                     id="snifftrue"
                     name="sniff"
@@ -1469,26 +1487,26 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="snifffalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="snifffalse"
                     id="snifffalse"
                     name="sniff"
@@ -1496,15 +1514,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -1527,10 +1545,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                   type="button"
                 >
-                  Test Connection
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Test Connection
+                  </span>
                 </button>
               </div>
               <div
@@ -1562,10 +1584,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                   >
                     <div>
                       <button
-                        class="btn btn-tertiary"
+                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                         type="button"
                       >
-                        Index Now
+                        <span
+                          class="_button__label_we8pe_31"
+                        >
+                          Index Now
+                        </span>
                       </button>
                     </div>
                     <div
@@ -1623,10 +1649,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                   type="button"
                 >
-                  Rebuild Channels Index
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Rebuild Channels Index
+                  </span>
                 </button>
               </div>
               <div
@@ -1655,10 +1685,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                   type="button"
                 >
-                  Purge Indexes
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Purge Indexes
+                  </span>
                 </button>
               </div>
               <div
@@ -1713,14 +1747,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchingtrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchingtrue"
                     id="enableSearchingtrue"
                     name="enableSearching"
@@ -1728,26 +1762,26 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchingfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchingfalse"
                     id="enableSearchingfalse"
                     name="enableSearching"
@@ -1755,15 +1789,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -1791,14 +1825,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableAutocompletetrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableAutocompletetrue"
                     id="enableAutocompletetrue"
                     name="enableAutocomplete"
@@ -1806,26 +1840,26 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableAutocompletefalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableAutocompletefalse"
                     id="enableAutocompletefalse"
                     name="enableAutocomplete"
@@ -1833,15 +1867,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -1869,14 +1903,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchPublicChannelsWithoutMembershiptrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchPublicChannelsWithoutMembershiptrue"
                     id="enableSearchPublicChannelsWithoutMembershiptrue"
                     name="enableSearchPublicChannelsWithoutMembership"
@@ -1884,26 +1918,26 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchPublicChannelsWithoutMembershipfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchPublicChannelsWithoutMembershipfalse"
                     id="enableSearchPublicChannelsWithoutMembershipfalse"
                     name="enableSearchPublicChannelsWithoutMembership"
@@ -1911,15 +1945,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -1947,15 +1981,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableFileIndexingtrue"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableFileIndexingtrue"
                     id="enableFileIndexingtrue"
                     name="enableFileIndexing"
@@ -1963,25 +1997,25 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableFileIndexingfalse"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableFileIndexingfalse"
                     id="enableFileIndexingfalse"
                     name="enableFileIndexing"
@@ -1989,15 +2023,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -2017,13 +2051,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -2071,15 +2107,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableIndexingtrue"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableIndexingtrue"
                     id="enableIndexingtrue"
                     name="enableIndexing"
@@ -2087,25 +2123,25 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableIndexingfalse"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableIndexingfalse"
                     id="enableIndexingfalse"
                     name="enableIndexing"
@@ -2113,15 +2149,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -2320,14 +2356,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="skipTLSVerificationtrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="skipTLSVerificationtrue"
                     id="skipTLSVerificationtrue"
                     name="skipTLSVerification"
@@ -2335,26 +2371,26 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="skipTLSVerificationfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="skipTLSVerificationfalse"
                     id="skipTLSVerificationfalse"
                     name="skipTLSVerification"
@@ -2362,15 +2398,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -2460,15 +2496,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="snifftrue"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="snifftrue"
                     id="snifftrue"
                     name="sniff"
@@ -2476,25 +2512,25 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="snifffalse"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="snifffalse"
                     id="snifffalse"
                     name="sniff"
@@ -2502,15 +2538,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -2542,10 +2578,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                   type="button"
                 >
-                  Test Connection
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Test Connection
+                  </span>
                 </button>
               </div>
               <div
@@ -2577,10 +2617,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                   >
                     <div>
                       <button
-                        class="btn btn-tertiary"
+                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                         type="button"
                       >
-                        Index Now
+                        <span
+                          class="_button__label_we8pe_31"
+                        >
+                          Index Now
+                        </span>
                       </button>
                     </div>
                     <div
@@ -2638,10 +2682,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                   type="button"
                 >
-                  Rebuild Channels Index
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Rebuild Channels Index
+                  </span>
                 </button>
               </div>
               <div
@@ -2670,10 +2718,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
                   type="button"
                 >
-                  Purge Indexes
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Purge Indexes
+                  </span>
                 </button>
               </div>
               <div
@@ -2728,14 +2780,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchingtrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchingtrue"
                     id="enableSearchingtrue"
                     name="enableSearching"
@@ -2743,26 +2795,26 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchingfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchingfalse"
                     id="enableSearchingfalse"
                     name="enableSearching"
@@ -2770,15 +2822,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -2806,14 +2858,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableAutocompletetrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableAutocompletetrue"
                     id="enableAutocompletetrue"
                     name="enableAutocomplete"
@@ -2821,26 +2873,26 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableAutocompletefalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableAutocompletefalse"
                     id="enableAutocompletefalse"
                     name="enableAutocomplete"
@@ -2848,15 +2900,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -2884,14 +2936,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchPublicChannelsWithoutMembershiptrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchPublicChannelsWithoutMembershiptrue"
                     id="enableSearchPublicChannelsWithoutMembershiptrue"
                     name="enableSearchPublicChannelsWithoutMembership"
@@ -2899,26 +2951,26 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableSearchPublicChannelsWithoutMembershipfalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableSearchPublicChannelsWithoutMembershipfalse"
                     id="enableSearchPublicChannelsWithoutMembershipfalse"
                     name="enableSearchPublicChannelsWithoutMembership"
@@ -2926,15 +2978,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -2962,15 +3014,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableFileIndexingtrue"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableFileIndexingtrue"
                     id="enableFileIndexingtrue"
                     name="enableFileIndexing"
@@ -2978,25 +3030,25 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="enableFileIndexingfalse"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="enableFileIndexingfalse"
                     id="enableFileIndexingfalse"
                     name="enableFileIndexing"
@@ -3004,15 +3056,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -3032,13 +3084,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>

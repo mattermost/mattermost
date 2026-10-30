@@ -336,16 +336,6 @@
         gap: 8px;
     }
 
-    &__retry.btn {
-        height: auto;
-        min-height: 0;
-        padding: 0;
-        border: none;
-        background: transparent;
-        color: var(--link-color);
-        font-size: 12px;
-        font-weight: 600;
-    }
 }
 
 // Menu portals outside .hierarchical-value-menu; keep the paper in sync with

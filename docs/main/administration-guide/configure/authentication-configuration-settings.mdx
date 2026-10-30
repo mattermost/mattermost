@@ -66,11 +66,13 @@ Access the following configuration settings in the System Console by going to **
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>This setting limits the email address domains that can be used to create a new account or team. | - System Config path: <strong>Authentication &gt; Signup</strong> | You <strong>must</strong> set <a href={useBaseUrl('/administration-guide/configure/authentication-configuration-settings#require-email-verification')}>Require Email Verification</a> | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>RestrictCreationToDomains</code> to <code>true</code> for the restriction to function. This setting only affects email login. | - Environment variable: <code>MM_TEAMSETTINGS_RESTRICTCREATIONTODOMAINS</code> |</td>
+<td><p>This setting limits the email address domains that can be used to create a new account or team. You <strong>must</strong> set <a href={useBaseUrl('/administration-guide/configure/authentication-configuration-settings#require-email-verification')}>Require Email Verification</a> to <code>true</code> for the restriction to function. This setting only affects email login.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; Signup</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>RestrictCreationToDomains</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_RESTRICTCREATIONTODOMAINS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -302,11 +304,13 @@ We recommend deploying Mattermost within your own private network, and using VPN
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Users who sign-in with AD/LDAP or an email address have the option to add | - System Config path: <strong>Authentication &gt; MFA</strong> | <a href={useBaseUrl('/administration-guide/onboard/multi-factor-authentication')}>multi-factor authentication</a> to their accounts. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableMultifactorAuthentication</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Disables multi-factor authentication. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEMULTIFACTORAUTHENTICATION</code> |</li></ul></td>
+<td><ul><li><strong>true</strong>: Users who sign-in with AD/LDAP or an email address have the option to add <a href={useBaseUrl('/administration-guide/onboard/multi-factor-authentication')}>multi-factor authentication</a> to their accounts.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables multi-factor authentication.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; MFA</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableMultifactorAuthentication</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEMULTIFACTORAUTHENTICATION</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -315,11 +319,13 @@ We recommend deploying Mattermost within your own private network, and using VPN
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>- <strong>true</strong>: Requires <a href={useBaseUrl('/administration-guide/onboard/multi-factor-authentication')}>multi-factor authentication (MFA)</a> | - System Config path: **Authentication &gt; MFA** | | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnforceMultifactorAuthentication</code> &gt; <code>false</code></dt><dd><p>for users who sign-in with AD/LDAP or an email address. | - Environment variable: <code>MM_SERVICESETTINGS_ENFORCEMULTIFACTORAUTHENTICATION</code> | New users must set up MFA. Logged in users are redirected to the MFA | | setup page until configuration is complete. | |</p></dd></dl><ul><li><strong>false</strong>: <strong>(Default)</strong> MFA is optional. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: Requires <a href={useBaseUrl('/administration-guide/onboard/multi-factor-authentication')}>multi-factor authentication (MFA)</a> for users who sign-in with AD/LDAP or an email address. New users must set up MFA. Logged in users are redirected to the MFA setup page until configuration is complete.</li><li><strong>false</strong>: <strong>(Default)</strong> MFA is optional.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; MFA</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnforceMultifactorAuthentication</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENFORCEMULTIFACTORAUTHENTICATION</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -665,11 +671,13 @@ If this setting is `false`, no additional users are designated as system admins 
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting accepts an AD/LDAP filter to apply when searching for external users with Guest Access to Mattermost. Only users selected by the query can access Mattermost as Guests. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>GuestFilter</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/guest-accounts')}>Guest Accounts</a> for more information. | - Environment variable: <code>MM_LDAPSETTINGS_GUESTFILTER</code></dt><dd><div class="line-block">                                                              |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting accepts an AD/LDAP filter to apply when searching for external users with Guest Access to Mattermost. Only users selected by the query can access Mattermost as Guests.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/guest-accounts')}>Guest Accounts</a> for more information.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>GuestFilter</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_GUESTFILTER</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -755,11 +763,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This is the attribute in the AD/LDAP server that populates the first name field in Mattermost. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>FirstNameAttribute</code> |</div></dd><dt>When set, users cannot edit their first name. | - Environment variable: <code>MM_LDAPSETTINGS_FIRSTNAMEATTRIBUTE</code> |</dt><dd><div class="line-block">                                                                     |</div></dd></dl><p>When not set, users can edit their first name in their | | <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>. | | | String input. | |</p></td>
+<td><p>This is the attribute in the AD/LDAP server that populates the first name field in Mattermost.</p><p>When set, users cannot edit their first name. When not set, users can edit their first name in their <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>FirstNameAttribute</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_FIRSTNAMEATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -768,11 +778,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This is the attribute in the AD/LDAP server that populates the last name field in Mattermost. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>LastNameAttribute</code> |</div></dd><dt>When set, users cannot edit their last name. | - Environment variable: <code>MM_LDAPSETTINGS_LASTNAMEATTRIBUTE</code> |</dt><dd><div class="line-block">                                                                    |</div></dd></dl><p>When not set, users can edit their last name as part of their | | <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>. | | | | String input. | |</p></td>
+<td><p>This is the attribute in the AD/LDAP server that populates the last name field in Mattermost.</p><p>When set, users cannot edit their last name. When not set, users can edit their last name as part of their <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>LastNameAttribute</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_LASTNAMEATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -781,11 +793,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This is the attribute in the AD/LDAP server that populates the nickname field in Mattermost. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>NicknameAttribute</code> |</div></dd><dt>When set, users cannot edit their nickname. | - Environment variable: <code>MM_LDAPSETTINGS_NICKNAMEATTRIBUTE</code> |</dt><dd><div class="line-block">                                                                    |</div></dd></dl><p>When not set, users can edit their nickname as part of their | | <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>. | | | String input. | |</p></td>
+<td><p>This is the attribute in the AD/LDAP server that populates the nickname field in Mattermost.</p><p>When set, users cannot edit their nickname. When not set, users can edit their nickname as part of their <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>NicknameAttribute</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_NICKNAMEATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -794,11 +808,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This is the attribute in the AD/LDAP server that populates the position field in Mattermost. | - System Config path: <strong>Authentication &gt; AD/LDAP</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>PositionAttribute</code> |</div></dd><dt>When set, users cannot edit their position. | - Environment variable: <code>MM_LDAPSETTINGS_POSITIONATTRIBUTE</code> |</dt><dd><div class="line-block">                                                                    |</div></dd></dl><p>When not set, users can edit their position as part of their | | <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>. | | | String input. | |</p></td>
+<td><p>This is the attribute in the AD/LDAP server that populates the position field in Mattermost.</p><p>When set, users cannot edit their position. When not set, users can edit their position as part of their <a href={useBaseUrl('/end-user-guide/preferences/manage-your-profile')}>profile settings</a>.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>PositionAttribute</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_POSITIONATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1008,11 +1024,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables sign-in with SAML. See <a href={useBaseUrl('/administration-guide/onboard/sso-saml')}>SAML Single Sign-On</a> to learn more. | - System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Disables sign-in with SAML. | - <code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>Enable</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_SAMLSETTINGS_ENABLE</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: Enables sign-in with SAML. See <a href={useBaseUrl('/administration-guide/onboard/sso-saml')}>SAML Single Sign-On</a> to learn more.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables sign-in with SAML.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SAMLSETTINGS_ENABLE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1345,11 +1363,13 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>(Optional) This setting determines the SAML Assertion attribute used to apply a Guest role to users in Mattermost. | - System Config path: <strong>Authentication &gt; SAML 2.0</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>GuestAttribute</code>|</div></dd><dt>See the <a href={useBaseUrl('/administration-guide/onboard/guest-accounts')}>Guest Accounts documentation</a> for more information. | - Environment variable: <code>MM_SAMLSETTINGS_GUESTATTRIBUTE</code></dt><dd><div class="line-block">                                                                |</div></dd></dl><p>String input. | |</p></td>
+<td><p>(Optional) This setting determines the SAML Assertion attribute used to apply a Guest role to users in Mattermost.</p><p>See the <a href={useBaseUrl('/administration-guide/onboard/guest-accounts')}>Guest Accounts documentation</a> for more information.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>GuestAttribute</code></li><li>Environment variable: <code>MM_SAMLSETTINGS_GUESTATTRIBUTE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1622,11 +1642,13 @@ GitLab provides the [Application Secret Key](#gitlab-oauth-20-application-secret
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows team and account creation using Google OAuth authentication. Input the <strong>Client ID</strong> and <strong>Client Secret</strong> credentials to configure. | - System Config path: <strong>Authentication &gt; OAuth 2.0</strong> |</li></ul><dl><dt>- <strong>false</strong>: <strong>(Default)</strong> Disables Google OAuth authentication. | - <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Enable</code> &gt; <code>false</code>|</dt><dd><div class="line-block">- Environment variable: <code>MM_GOOGLESETTINGS_ENABLE</code> |</div></dd></dl><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions. |</p></td>
+<td><ul><li><strong>true</strong>: Allows team and account creation using Google OAuth authentication. Input the <strong>Client ID</strong> and <strong>Client Secret</strong> credentials to configure.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables Google OAuth authentication.</li></ul><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OAuth 2.0</strong></li><li><code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_GOOGLESETTINGS_ENABLE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1635,11 +1657,13 @@ GitLab provides the [Application Secret Key](#gitlab-oauth-20-application-secret
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the OAuth Client ID from Google. Generate the ID by going to the <strong>Credentials</strong> section of the Google Cloud Platform APIs &amp; Services menu and selecting <strong>Create Credentials &gt; OAuth client ID</strong>. | - System Config path: <strong>Authentication &gt; OAuth 2.0</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Id</code>|</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> for instructions that can be used to implement Google OAuth or OpenID authentication. | - Environment variable: <code>MM_GOOGLESETTINGS_ID</code></dt><dd><div class="line-block">                                                      |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the OAuth Client ID from Google. Generate the ID by going to the <strong>Credentials</strong> section of the Google Cloud Platform APIs &amp; Services menu and selecting <strong>Create Credentials &gt; OAuth client ID</strong>.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> for instructions that can be used to implement Google OAuth or OpenID authentication.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OAuth 2.0</strong></li><li><code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Id</code></li><li>Environment variable: <code>MM_GOOGLESETTINGS_ID</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1979,12 +2003,13 @@ See **Step 2** of the [GitLab Single Sign-On](/administration-guide/onboard/sso-
 
 <table>
 <colgroup>
-<col style={{width: '56%'}} />
-<col style={{width: '43%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td colspan="2"><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the GitLab OpenID token as the Mattermost | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> | username. | - <code>config.json</code> setting: <code>GitLabSettings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment. | - Environment variable: <code>MM_GITLABSETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
+<td><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the GitLab OpenID token as the Mattermost username.</li><li><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>GitLabSettings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_GITLABSETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1993,16 +2018,15 @@ See **Step 2** of the [GitLab Single Sign-On](/administration-guide/onboard/sso-
 
 ##### Enable OpenID Connect authentication with Google
 
-> - **true**: Allow team creation and account signup using Google OpenID Connect.
-> - **false**: **(Default)** Google OpenID Connect cannot be used for team creation or account signup.
-
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows team and account creation using Google OpenID authentication. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</li></ul><dl><dt>- <strong>false</strong>: <strong>(Default)</strong> Disables Google OpenID authentication. | - <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Enable</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_GOOGLESETTINGS_ENABLE</code> |</div></dd></dl><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions. |</p></td>
+<td><ul><li><strong>true</strong>: Allows team and account creation using Google OpenID authentication.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables Google OpenID authentication.</li></ul><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_GOOGLESETTINGS_ENABLE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2011,11 +2035,13 @@ See **Step 2** of the [GitLab Single Sign-On](/administration-guide/onboard/sso-
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting is prepopulated with the Discovery Endpoint for Google OpenID Connect. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>DiscoveryEndpoint</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-google#step-3-configure-mattermost-for-google-apps-sso')}>Configure Mattermost for Google Apps SSO</a>. | - Environment variable: <code>MM_GOOGLESETTINGS_DISCOVERYENDPOINT</code></dt><dd><div class="line-block">                                                                      |</div></dd></dl><p>String input. Default is <code>https://accounts.google.com/.well-known/openid-configuration</code> | |</p></td>
+<td><p>The System Console fills in this setting with the Discovery Endpoint for Google OpenID Connect, <code>https://accounts.google.com/.well-known/openid-configuration</code>, and it can't be changed there.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google#step-3-configure-mattermost-for-google-apps-sso')}>Configure Mattermost for Google Apps SSO</a>.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>DiscoveryEndpoint</code></li><li>Environment variable: <code>MM_GOOGLESETTINGS_DISCOVERYENDPOINT</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2024,11 +2050,13 @@ See **Step 2** of the [GitLab Single Sign-On](/administration-guide/onboard/sso-
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the Client ID generated by Google. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Id</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_GOOGLESETTINGS_ID</code></dt><dd><div class="line-block">                                                          |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the Client ID generated by Google.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Id</code></li><li>Environment variable: <code>MM_GOOGLESETTINGS_ID</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2037,25 +2065,13 @@ See **Step 2** of the [GitLab Single Sign-On](/administration-guide/onboard/sso-
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the Client Secret generated by Google. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Secret</code>|</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_GOOGLESETTINGS_SECRET</code></dt><dd><div class="line-block">                                                          |</div></dd></dl><p>String input. | |</p></td>
-</tr>
-</tbody>
-</table>
-
-##### Google OpenID use preferred username
-
-<table>
-<colgroup>
-<col style={{width: '56%'}} />
-<col style={{width: '43%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="2"><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the Google OpenID token as the Mattermost | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> | username. | - <code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment. | - Environment variable: <code>MM_GOOGLESETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
+<td><p>This setting stores the Client Secret generated by Google.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-google')}>Google Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>GoogleSettings</code> &gt; <code>Secret</code></li><li>Environment variable: <code>MM_GOOGLESETTINGS_SECRET</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2072,11 +2088,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows team and account creation using Entra ID OpenID Connect authentication. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</li></ul><dl><dt>- <strong>false</strong>: <strong>(Default)</strong> Disables Entra ID OpenID Connect authentication. | - <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Enable</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_OFFICE365SETTINGS_ENABLE</code> |</div></dd></dl><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. |</p></td>
+<td><ul><li><strong>true</strong>: Allows team and account creation using Entra ID OpenID Connect authentication.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables Entra ID OpenID Connect authentication.</li></ul><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_ENABLE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2085,11 +2103,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting holds the Directory (tenant) ID set for Mattermost through the Microsoft Azure Portal. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>DirectoryId</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OFFICE365SETTINGS_DIRECTORYID</code></dt><dd><div class="line-block">                                                                   |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting holds the Directory (tenant) ID set for Mattermost through the Microsoft Azure Portal.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>DirectoryId</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_DIRECTORYID</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2098,11 +2118,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting is prepopulated with the Discovery Endpoint for Entra ID OpenID Connect. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>DiscoveryEndpoint</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OFFICE365SETTINGS_DISCOVERYENDPOINT</code></dt><dd><div class="line-block">                                                                                                                   |</div></dd></dl><p>String input. Default is <code>https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration</code> | |</p></td>
+<td><p>The System Console fills in this setting from the <strong>Directory (tenant) ID</strong>, as <code>https://login.microsoftonline.com/&#123;directory_id&#125;/v2.0/.well-known/openid-configuration</code>, and it can't be changed there. When no directory ID is set, it uses <code>https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration</code>.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>DiscoveryEndpoint</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_DISCOVERYENDPOINT</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2111,11 +2133,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the <strong>Application (client) ID</strong> generated through the Microsoft Azure Portal. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Id</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OFFICE365SETTINGS_ID</code></dt><dd><div class="line-block">                                                          |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the <strong>Application (client) ID</strong> generated through the Microsoft Azure Portal.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Id</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_ID</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2124,11 +2148,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the <strong>Client Secret</strong> generated through the Microsoft Azure Portal. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Secret</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OFFICE365SETTINGS_SECRET</code></dt><dd><div class="line-block">                                                               |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the <strong>Client Secret</strong> generated through the Microsoft Azure Portal.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-entraid')}>Entra ID Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>Secret</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_SECRET</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2137,12 +2163,13 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 <table>
 <colgroup>
-<col style={{width: '57%'}} />
-<col style={{width: '42%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td colspan="2"><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the Entra ID OpenID token as the Mattermost username. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment. | - <code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></dt><dd><div class="line-block">- Environment variable: <code>MM_OFFICE365SETTINGS_USEPREFERREDUSERNAME</code></div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the Entra ID OpenID token as the Mattermost username.</li><li><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>Office365Settings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_OFFICE365SETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2159,11 +2186,13 @@ To make the `preferred_username` claim available, add it as an optional claim in
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows team and account creation using other OpenID Connect service providers. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</li></ul><dl><dt>- <strong>false</strong>: <strong>(Default)</strong> Disables OpenID Connect authentication with other service providers. | - <code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Enable</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_OPENIDSETTINGS_ENABLE</code> |</div></dd></dl><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions. |</p></td>
+<td><ul><li><strong>true</strong>: Allows team and account creation using other OpenID Connect service providers.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables OpenID Connect authentication with other service providers.</li></ul><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_ENABLE</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2202,11 +2231,13 @@ To make the `preferred_username` claim available, add it as an optional claim in
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td>This setting stores the Discovery Endpoint URL from the OpenID provider. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> | The URL should be in the format of <code>https://myopenid.provider.com/&#123;my_organization&#125;/                  | -</code>config.json<code>setting:</code>OpenIdSettings<code>&gt;</code>DiscoveryEndpoint<code>| .well-known/openid-configuration</code>. | - Environment variable: <code>MM_OPENIDSETTINGS_DISCOVERYENDPOINT</code> | | | See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> | implementation instructions. | | | | String input. | |</td>
+<td><p>This setting stores the Discovery Endpoint URL from the OpenID provider. The URL should be in the format of <code>https://myopenid.provider.com/&#123;my_organization&#125;/.well-known/openid-configuration</code>.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>DiscoveryEndpoint</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_DISCOVERYENDPOINT</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2221,11 +2252,13 @@ The **Discovery Endpoint** setting can be used to determine the connectivity and
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the Client ID from the OpenID provider. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Id</code> |</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OPENIDSETTINGS_ID</code></dt><dd><div class="line-block">                                                          |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the Client ID from the OpenID provider.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Id</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_ID</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2234,11 +2267,13 @@ The **Discovery Endpoint** setting can be used to determine the connectivity and
 
 <table>
 <colgroup>
-<col style={{width: '100%'}} />
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>This setting stores the Client Secret from the OpenID provider. | - System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Secret</code>|</div></dd><dt>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions. | - Environment variable: <code>MM_OPENIDSETTINGS_SECRET</code></dt><dd><div class="line-block">                                                          |</div></dd></dl><p>String input. | |</p></td>
+<td><p>This setting stores the Client Secret from the OpenID provider.</p><p>See <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect')}>OpenID Connect Single Sign-On</a> implementation instructions.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>Secret</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_SECRET</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2247,13 +2282,28 @@ The **Discovery Endpoint** setting can be used to determine the connectivity and
 
 <table>
 <colgroup>
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the provider's OpenID token as the Mattermost username.</li><li><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment.</li></ul></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>UsePreferredUsername</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+##### OpenID Connect (other) Additional scopes
+
+<table>
+<colgroup>
 <col style={{width: '68%'}} />
 <col style={{width: '31%'}} />
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Mattermost uses the <code>preferred_username</code> claim from the provider's OpenID token as the Mattermost username.</li><li><strong>false</strong>: <strong>(Default)</strong> Mattermost does not use the <code>preferred_username</code> claim for username assignment.</li></ul></td>
-<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong> |</li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; | <code>UsePreferredUsername</code> &gt; <code>false</code> |</li><li>Environment variable: | <code>MM_OPENIDSETTINGS_USEPREFERREDUSERNAME</code></li></ul></td>
+<td><p>From Mattermost v12.1, scopes requested at sign-in in addition to <code>profile openid email</code>, separated by spaces. Use it when your provider releases a claim that a <a href={useBaseUrl('/administration-guide/onboard/sso-openidconnect#sync-user-attributes-from-openid-connect-claims')}>synced user attribute</a> is linked to only for a specific scope, for example <code>groups</code>.</p><p>String input, at most 1024 characters. Default is empty.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>AdditionalScopes</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_ADDITIONALSCOPES</code></li></ul></td>
 </tr>
 </tbody>
 </table>

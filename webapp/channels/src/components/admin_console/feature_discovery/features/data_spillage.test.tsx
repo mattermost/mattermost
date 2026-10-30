@@ -48,6 +48,6 @@ describe('components/admin_console/feature_discovery/features/DataSpillageFeatur
             'href',
             expect.stringContaining('https://docs.mattermost.com/administration-guide/manage/admin/content-flagging.html'),
         );
-        expect(document.querySelector('.FeatureDiscovery_imageWrapper svg')).toBeInTheDocument();
+        expect(screen.getByTestId('featureDiscovery').querySelector('svg')).toBeInTheDocument();
     });
 });
