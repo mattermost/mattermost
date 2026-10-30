@@ -414,6 +414,11 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 		return appErr
 	}
 
+	var previous []*model.PropertyValue
+	if a.propertyValuesHookEnabled() {
+		previous = a.storedPropertyValues(rctx, groupID, propertyValuesTarget{value.TargetType, value.TargetID}, map[string]bool{value.FieldID: true})
+	}
+
 	if err := a.Srv().propertyService.DeletePropertyValue(rctx, groupID, valueID); err != nil {
 		if mappedErr := mapPropertyServiceError("DeletePropertyValue", err); mappedErr != nil {
 			return mappedErr
@@ -422,7 +427,7 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 	}
 
 	a.invalidateUserPropertyValuesEpoch(value.TargetType, value.TargetID)
-	a.runPropertyValuesHaveBeenUpdatedHook(rctx, groupID, nil, []*model.PropertyValue{value})
+	a.runPropertyValuesHaveBeenUpdatedHook(rctx, groupID, nil, previous)
 
 	teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, value.TargetType, value.TargetID)
 	if appErr != nil {

@@ -343,25 +343,26 @@ func TestHookPropertyValuesHaveBeenUpdated(t *testing.T) {
 		cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 		require.Nil(t, appErr)
 
-		// Written to the store directly: only the owning plugin could create this field through
-		// the service, and it isn't installed.
-		newCPAField := func(attrs model.StringInterface) *model.PropertyField {
-			created, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
-				GroupID:    cpaGroup.ID,
-				Name:       "field_" + model.NewId(),
-				Type:       model.PropertyFieldTypeText,
-				ObjectType: model.PropertyFieldObjectTypeUser,
-				TargetType: string(model.PropertyFieldTargetLevelSystem),
-				Attrs:      attrs,
-			})
-			require.NoError(t, err)
+		// Created through the app so each field gets its permissions.
+		newCPAField := func(permissions *model.Permissions) *model.PropertyField {
+			created, appErr := th.App.CreatePropertyField(th.emptyContextWithCallerID(th.SystemAdminUser.Id), &model.PropertyField{
+				GroupID:     cpaGroup.ID,
+				Name:        "field_" + model.NewId(),
+				Type:        model.PropertyFieldTypeText,
+				ObjectType:  model.PropertyFieldObjectTypeUser,
+				TargetType:  string(model.PropertyFieldTargetLevelSystem),
+				Permissions: permissions,
+			}, false, "")
+			require.Nil(t, appErr)
 			return created
 		}
 		public := newCPAField(nil)
-		restricted := newCPAField(model.StringInterface{
-			model.PropertyAttrsProtected:      true,
-			model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
-			model.PropertyAttrsSourcePluginID: "another.plugin",
+		// Nobody may read its values.
+		restricted := newCPAField(&model.Permissions{
+			Restrictions: &model.Restrictions{
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+			},
 		})
 		userValue := func(fieldID, v string) *model.PropertyValue {
 			return &model.PropertyValue{
