@@ -19352,6 +19352,16 @@
     "description": "Error returned to plugins when listing channel users is called with an unsupported sort option; developer-facing."
   },
   {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "The server does not support listing plugin keys with options.",
+    "description": "Error a plugin receives when it lists its key-value store keys with filter options on a server version that does not support that API. The plugin library then falls back to listing all keys."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Unable to list plugin keys with options.",
+    "description": "Error a plugin receives when the call from the plugin process to the server fails while it lists its key-value store keys with filter options."
+  },
+  {
     "id": "plugin.api.thread.invalid_thread_id.app_error",
     "translation": "Invalid thread id.",
     "description": "Error returned to plugins when GetThreadFollowers or SetThreadFollowing is called with a thread id that is not a valid Mattermost id; developer-facing."
