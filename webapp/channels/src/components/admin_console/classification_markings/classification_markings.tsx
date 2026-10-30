@@ -27,13 +27,13 @@ import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {getHistory} from 'utils/browser_history';
 
 import {
     AddLevelButton,
-    AddLevelButtonRow,
-    ClassificationLevelsSectionContent,
+    ClassificationLevelsBody,
     InformationNoticeWrapper,
     PresetDropdownWrapper,
 } from './classification_markings_styled';
@@ -71,7 +71,9 @@ import type {ClassificationLevel} from './utils/presets';
 import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './utils/presets';
 
 import SaveChangesPanel from '../save_changes_panel';
-import {AdminSection, AdminWrapper, DangerText, SectionHeader, SectionHeading} from '../system_properties/controls';
+import {AdminWrapper, DangerText} from '../system_properties/controls';
+
+import './classification_markings.scss';
 
 const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_policies';
 
@@ -86,6 +88,7 @@ const msg = defineMessages({
     clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Classification clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
+    levelsAdd: {id: 'admin.classification_markings.levels.add', defaultMessage: 'Add level'},
     informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
     informationalNoticeBody: {id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'},
     globalBannerSectionTitle: {id: 'admin.classification_markings.global_banner.section_title', defaultMessage: 'Global Classification Indicators'},
@@ -703,7 +706,7 @@ export default function ClassificationMarkings({disabled}: Props) {
     const readOnly = disabled || fieldConflict !== null;
 
     return (
-        <div className='wrapper--fixed'>
+        <div className='wrapper--fixed ClassificationMarkings'>
             <AdminHeader>
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
@@ -731,7 +734,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                     </InformationNoticeWrapper>
                 )}
                 <form
-                    className='form-horizontal'
+                    className='admin-console__setting-group form-horizontal'
                     onSubmit={(e) => e.preventDefault()}
                 >
                     <BooleanSetting
@@ -755,87 +758,88 @@ export default function ClassificationMarkings({disabled}: Props) {
                             />
                         )}
                     />
-                    {enabled && (
-                        <Setting
-                            inputId='DropdownInput_classificationPreset'
-                            label={<FormattedMessage {...msg.presetTitle}/>}
-                            helpText={<FormattedMessage {...msg.presetDescription}/>}
-                            setByEnv={false}
-                        >
-                            <PresetDropdownWrapper>
-                                <DropdownInput
-                                    className='classificationPresetDropdownFieldset'
-                                    name='classificationPreset'
-                                    testId='classificationPreset'
-                                    options={presetDropdownOptions}
-                                    value={presetDropdownValue}
-                                    onChange={handlePresetDropdownChange}
-                                    isDisabled={readOnly}
-                                    isClearable={false}
-                                    menuPortalTarget={document.body}
-                                    styles={classificationPresetDropdownStyles}
-                                />
-                            </PresetDropdownWrapper>
-                        </Setting>
-                    )}
-                    {enabled && abacEnabled && (
-                        <Setting
-                            inputId='clearanceAttribute'
-                            label={<FormattedMessage {...msg.clearanceTitle}/>}
-                            helpText={
-                                <FormattedMessage
-                                    {...msg.clearanceHelp}
-                                    values={{link: membershipPolicyLink}}
-                                />
-                            }
-                            setByEnv={false}
-                        >
-                            <Checkbox
-                                className='checkbox-inline'
-                                data-testid='clearanceAttributeCheckbox'
-                                checked={clearanceEnabled}
-                                onChange={handleClearanceChange}
-                                disabled={readOnly || clearanceConflict !== null}
-                            >
-                                <FormattedMessage {...msg.clearanceCheckbox}/>
-                            </Checkbox>
-                            {clearanceConflict && (
-                                <InformationNoticeWrapper>
-                                    <SectionNotice
-                                        type='danger'
-                                        title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
-                                        description={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
-                                    />
-                                </InformationNoticeWrapper>
-                            )}
-                            {/* Suppressed while the blocking conflict above is showing: the
-                                checkbox is disabled then, so nothing would be created and
-                                this notice would describe an outcome that cannot happen. */}
-                            {!clearanceConflict && clearanceTemplateConflict && (
-                                <InformationNoticeWrapper>
-                                    <SectionNotice
-                                        type='warning'
-                                        title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
-                                        description={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
-                                    />
-                                </InformationNoticeWrapper>
-                            )}
-                        </Setting>
-                    )}
                 </form>
+                {enabled && (
+                    <AdminPanel id='classification_markings_settings'>
+                        <form
+                            className='form-horizontal'
+                            onSubmit={(e) => e.preventDefault()}
+                        >
+                            <Setting
+                                inputId='DropdownInput_classificationPreset'
+                                label={<FormattedMessage {...msg.presetTitle}/>}
+                                helpText={<FormattedMessage {...msg.presetDescription}/>}
+                                setByEnv={false}
+                            >
+                                <PresetDropdownWrapper>
+                                    <DropdownInput
+                                        className='classificationPresetDropdownFieldset'
+                                        name='classificationPreset'
+                                        testId='classificationPreset'
+                                        options={presetDropdownOptions}
+                                        value={presetDropdownValue}
+                                        onChange={handlePresetDropdownChange}
+                                        isDisabled={readOnly}
+                                        isClearable={false}
+                                        menuPortalTarget={document.body}
+                                        styles={classificationPresetDropdownStyles}
+                                    />
+                                </PresetDropdownWrapper>
+                            </Setting>
+                            {abacEnabled && (
+                                <Setting
+                                    inputId='clearanceAttribute'
+                                    label={<FormattedMessage {...msg.clearanceTitle}/>}
+                                    helpText={
+                                        <FormattedMessage
+                                            {...msg.clearanceHelp}
+                                            values={{link: membershipPolicyLink}}
+                                        />
+                                    }
+                                    setByEnv={false}
+                                >
+                                    <Checkbox
+                                        data-testid='clearanceAttributeCheckbox'
+                                        checked={clearanceEnabled}
+                                        onChange={handleClearanceChange}
+                                        disabled={readOnly || clearanceConflict !== null}
+                                    >
+                                        <FormattedMessage {...msg.clearanceCheckbox}/>
+                                    </Checkbox>
+                                    {clearanceConflict && (
+                                        <InformationNoticeWrapper>
+                                            <SectionNotice
+                                                type='danger'
+                                                title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
+                                                description={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
+                                            />
+                                        </InformationNoticeWrapper>
+                                    )}
+                                    {/* Suppressed while the blocking conflict above is showing: the
+                                        checkbox is disabled then, so nothing would be created and
+                                        this notice would describe an outcome that cannot happen. */}
+                                    {!clearanceConflict && clearanceTemplateConflict && (
+                                        <InformationNoticeWrapper>
+                                            <SectionNotice
+                                                type='warning'
+                                                title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
+                                                description={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
+                                            />
+                                        </InformationNoticeWrapper>
+                                    )}
+                                </Setting>
+                            )}
+                        </form>
+                    </AdminPanel>
+                )}
 
                 {enabled && (
-                    <AdminSection>
-                        <SectionHeader>
-                            <hgroup>
-                                <FormattedMessage
-                                    tagName={SectionHeading}
-                                    {...msg.levelsTitle}
-                                />
-                                <FormattedMessage {...msg.levelsDescription}/>
-                            </hgroup>
-                        </SectionHeader>
-                        <ClassificationLevelsSectionContent>
+                    <AdminPanel
+                        id='classification_levels'
+                        title={msg.levelsTitle}
+                        subtitle={msg.levelsDescription}
+                    >
+                        <ClassificationLevelsBody>
                             <ClassificationLevelsTable
                                 levels={levels}
                                 updateLevel={updateLevel}
@@ -844,18 +848,13 @@ export default function ClassificationMarkings({disabled}: Props) {
                                 disabled={readOnly}
                             />
                             {!readOnly && (
-                                <AddLevelButtonRow>
-                                    <AddLevelButton onClick={addLevel}>
-                                        <PlusIcon size={14}/>
-                                        <FormattedMessage
-                                            id='admin.classification_markings.levels.add'
-                                            defaultMessage='Add level'
-                                        />
-                                    </AddLevelButton>
-                                </AddLevelButtonRow>
+                                <AddLevelButton onClick={addLevel}>
+                                    <PlusIcon size={14}/>
+                                    <FormattedMessage {...msg.levelsAdd}/>
+                                </AddLevelButton>
                             )}
-                        </ClassificationLevelsSectionContent>
-                    </AdminSection>
+                        </ClassificationLevelsBody>
+                    </AdminPanel>
                 )}
 
                 {enabled && (

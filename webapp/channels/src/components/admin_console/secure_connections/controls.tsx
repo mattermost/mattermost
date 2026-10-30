@@ -14,12 +14,6 @@ import Timestamp, {RelativeRanges} from 'components/timestamp';
 
 import {isConfirmed, isConnected} from './utils';
 
-export const SectionHeading = styled.h3`
-    &&& {
-        margin-bottom: 8px;
-    }
-`;
-
 const FormFieldLabel = styled.label`
     width: 100%;
 
@@ -32,33 +26,11 @@ const FormFieldLabel = styled.label`
     }
 `;
 
-export const SectionHeader = styled.div.attrs({className: 'header'})<{$borderless?: boolean}>`
-    &&& {
-        padding: 24px 32px;
-        ${({$borderless}) => !$borderless && css`
-            border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
-        `}
-    }
-`;
-
-export const SectionContent = styled.div.attrs({className: 'content'})<{$compact?: boolean}>`
-    &&& {
-        padding: ${({$compact}) => ($compact ? '24px 32px' : '48px 32px')};
-        border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
-    }
-`;
-
 export const ModalBody = styled.div`
     padding: 0 32px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-`;
-
-export const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
-    && {
-        overflow: visible;
-    }
 `;
 
 export const PlaceholderHeading = styled.h4`

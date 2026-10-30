@@ -540,63 +540,92 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               <div
                 class="job-table-setting"
               >
-                <div
-                  class="JobTable job-table__panel"
+                <section
+                  aria-labelledby="_r_6_"
+                  class="_admin-panel_iwm08_2 AdminPanel JobTable job-table__panel"
                 >
-                  <div
-                    class="job-table__create-button"
+                  <header
+                    class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
                   >
-                    <div>
-                      <button
-                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
-                        disabled=""
-                        type="button"
-                      >
-                        <span
-                          class="_button__label_we8pe_31"
-                        >
-                          Index Now
-                        </span>
-                      </button>
-                    </div>
                     <div
-                      class="help-text"
+                      class="_admin-panel-header__main_19tix_10"
                     >
-                      All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.
+                      <div
+                        class="_admin-panel-header__start_19tix_19"
+                      >
+                        <div
+                          class="_admin-panel-header__title-stack_19tix_37"
+                        >
+                          <div
+                            class="_admin-panel-header__title-row_19tix_46"
+                          >
+                            <h2
+                              class="_admin-panel-header__title_19tix_37"
+                              id="_r_6_"
+                            >
+                              Index Now
+                            </h2>
+                          </div>
+                          <p
+                            class="_admin-panel-header__subtitle_19tix_66"
+                          >
+                            All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.
+                          </p>
+                        </div>
+                      </div>
+                      <div
+                        class="_admin-panel-header__actions_19tix_75"
+                      >
+                        <button
+                          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                          disabled=""
+                          type="button"
+                        >
+                          <span
+                            class="_button__label_we8pe_31"
+                          >
+                            Index Now
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </header>
+                  <div
+                    class="_admin-panel__body_iwm08_25"
+                  >
+                    <div
+                      class="job-table__table"
+                    >
+                      <table
+                        class="table"
+                        data-testid="jobTable"
+                      >
+                        <thead>
+                          <tr>
+                            <th>
+                              Status
+                            </th>
+                            <th>
+                              Finish Time
+                            </th>
+                            <th>
+                              Run Time
+                            </th>
+                            <th
+                              colspan="3"
+                            >
+                              Details
+                            </th>
+                            <th
+                              class="cancel-button-field"
+                            />
+                          </tr>
+                        </thead>
+                        <tbody />
+                      </table>
                     </div>
                   </div>
-                  <div
-                    class="job-table__table"
-                  >
-                    <table
-                      class="table"
-                      data-testid="jobTable"
-                    >
-                      <thead>
-                        <tr>
-                          <th>
-                            Status
-                          </th>
-                          <th>
-                            Finish Time
-                          </th>
-                          <th>
-                            Run Time
-                          </th>
-                          <th
-                            colspan="3"
-                          >
-                            Details
-                          </th>
-                          <th
-                            class="cancel-button-field"
-                          />
-                        </tr>
-                      </thead>
-                      <tbody />
-                    </table>
-                  </div>
-                </div>
+                </section>
               </div>
             </div>
           </fieldset>
@@ -1576,62 +1605,91 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               <div
                 class="job-table-setting"
               >
-                <div
-                  class="JobTable job-table__panel"
+                <section
+                  aria-labelledby="_r_n_"
+                  class="_admin-panel_iwm08_2 AdminPanel JobTable job-table__panel"
                 >
-                  <div
-                    class="job-table__create-button"
+                  <header
+                    class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
                   >
-                    <div>
-                      <button
-                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
-                        type="button"
-                      >
-                        <span
-                          class="_button__label_we8pe_31"
-                        >
-                          Index Now
-                        </span>
-                      </button>
-                    </div>
                     <div
-                      class="help-text"
+                      class="_admin-panel-header__main_19tix_10"
                     >
-                      All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.
+                      <div
+                        class="_admin-panel-header__start_19tix_19"
+                      >
+                        <div
+                          class="_admin-panel-header__title-stack_19tix_37"
+                        >
+                          <div
+                            class="_admin-panel-header__title-row_19tix_46"
+                          >
+                            <h2
+                              class="_admin-panel-header__title_19tix_37"
+                              id="_r_n_"
+                            >
+                              Index Now
+                            </h2>
+                          </div>
+                          <p
+                            class="_admin-panel-header__subtitle_19tix_66"
+                          >
+                            All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.
+                          </p>
+                        </div>
+                      </div>
+                      <div
+                        class="_admin-panel-header__actions_19tix_75"
+                      >
+                        <button
+                          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                          type="button"
+                        >
+                          <span
+                            class="_button__label_we8pe_31"
+                          >
+                            Index Now
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </header>
+                  <div
+                    class="_admin-panel__body_iwm08_25"
+                  >
+                    <div
+                      class="job-table__table"
+                    >
+                      <table
+                        class="table"
+                        data-testid="jobTable"
+                      >
+                        <thead>
+                          <tr>
+                            <th>
+                              Status
+                            </th>
+                            <th>
+                              Finish Time
+                            </th>
+                            <th>
+                              Run Time
+                            </th>
+                            <th
+                              colspan="3"
+                            >
+                              Details
+                            </th>
+                            <th
+                              class="cancel-button-field"
+                            />
+                          </tr>
+                        </thead>
+                        <tbody />
+                      </table>
                     </div>
                   </div>
-                  <div
-                    class="job-table__table"
-                  >
-                    <table
-                      class="table"
-                      data-testid="jobTable"
-                    >
-                      <thead>
-                        <tr>
-                          <th>
-                            Status
-                          </th>
-                          <th>
-                            Finish Time
-                          </th>
-                          <th>
-                            Run Time
-                          </th>
-                          <th
-                            colspan="3"
-                          >
-                            Details
-                          </th>
-                          <th
-                            class="cancel-button-field"
-                          />
-                        </tr>
-                      </thead>
-                      <tbody />
-                    </table>
-                  </div>
-                </div>
+                </section>
               </div>
             </div>
           </fieldset>
@@ -2609,62 +2667,91 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               <div
                 class="job-table-setting"
               >
-                <div
-                  class="JobTable job-table__panel"
+                <section
+                  aria-labelledby="_r_18_"
+                  class="_admin-panel_iwm08_2 AdminPanel JobTable job-table__panel"
                 >
-                  <div
-                    class="job-table__create-button"
+                  <header
+                    class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
                   >
-                    <div>
-                      <button
-                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
-                        type="button"
-                      >
-                        <span
-                          class="_button__label_we8pe_31"
-                        >
-                          Index Now
-                        </span>
-                      </button>
-                    </div>
                     <div
-                      class="help-text"
+                      class="_admin-panel-header__main_19tix_10"
                     >
-                      All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.
+                      <div
+                        class="_admin-panel-header__start_19tix_19"
+                      >
+                        <div
+                          class="_admin-panel-header__title-stack_19tix_37"
+                        >
+                          <div
+                            class="_admin-panel-header__title-row_19tix_46"
+                          >
+                            <h2
+                              class="_admin-panel-header__title_19tix_37"
+                              id="_r_18_"
+                            >
+                              Index Now
+                            </h2>
+                          </div>
+                          <p
+                            class="_admin-panel-header__subtitle_19tix_66"
+                          >
+                            All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.
+                          </p>
+                        </div>
+                      </div>
+                      <div
+                        class="_admin-panel-header__actions_19tix_75"
+                      >
+                        <button
+                          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                          type="button"
+                        >
+                          <span
+                            class="_button__label_we8pe_31"
+                          >
+                            Index Now
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </header>
+                  <div
+                    class="_admin-panel__body_iwm08_25"
+                  >
+                    <div
+                      class="job-table__table"
+                    >
+                      <table
+                        class="table"
+                        data-testid="jobTable"
+                      >
+                        <thead>
+                          <tr>
+                            <th>
+                              Status
+                            </th>
+                            <th>
+                              Finish Time
+                            </th>
+                            <th>
+                              Run Time
+                            </th>
+                            <th
+                              colspan="3"
+                            >
+                              Details
+                            </th>
+                            <th
+                              class="cancel-button-field"
+                            />
+                          </tr>
+                        </thead>
+                        <tbody />
+                      </table>
                     </div>
                   </div>
-                  <div
-                    class="job-table__table"
-                  >
-                    <table
-                      class="table"
-                      data-testid="jobTable"
-                    >
-                      <thead>
-                        <tr>
-                          <th>
-                            Status
-                          </th>
-                          <th>
-                            Finish Time
-                          </th>
-                          <th>
-                            Run Time
-                          </th>
-                          <th
-                            colspan="3"
-                          >
-                            Details
-                          </th>
-                          <th
-                            class="cancel-button-field"
-                          />
-                        </tr>
-                      </thead>
-                      <tbody />
-                    </table>
-                  </div>
-                </div>
+                </section>
               </div>
             </div>
           </fieldset>

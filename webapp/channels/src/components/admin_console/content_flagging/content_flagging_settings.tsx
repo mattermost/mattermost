@@ -185,7 +185,10 @@ export default function ContentFlaggingSettings() {
 
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
-                    <div className='admin-console__setting-group'>
+                    <form
+                        className='admin-console__setting-group form-horizontal'
+                        onSubmit={(e) => e.preventDefault()}
+                    >
                         <BooleanSetting
                             id='EnableContentFlagging'
                             label={
@@ -199,7 +202,7 @@ export default function ContentFlaggingSettings() {
                             onChange={handleSettingsChange}
                             helpText=''
                         />
-                    </div>
+                    </form>
                     <ContentFlaggingContentReviewers
                         id='ReviewerSettings'
                         onChange={handleSettingsChange}

@@ -1,28 +1,61 @@
 .AdminUserCard {
-    padding: 0;
-    border-radius: 2px;
-    margin: 2em 0 1em;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+    // Keep in sync with ProfilePicture size="xxl" / Avatar (128px).
+    --admin-user-card-avatar-size: 128px;
+    --admin-user-card-header-gap: var(--spacing-xl);
+
+    display: flex;
+    width: 100%;
+    max-width: 920px;
+    flex-direction: column;
+
+    // Avoid overflow:hidden on the card root — the footer tertiary action
+    // (Manage User Settings) uses margin-left:auto and Cypress treats overflow
+    // clipping as "not visible". Clip radius on header/footer instead.
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: var(--radius-m);
+    margin: 0;
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-1);
 
     .noUserBody {
         display: flex;
         min-height: 20vh;
         align-items: center;
         justify-content: center;
+        padding: var(--spacing-xxl);
     }
 }
 
 .AdminUserCard__header {
-    display: flex;
-    height: 92px;
-    flex-direction: row;
-    align-items: flex-start;
-    padding: 0 20px 0 30px;
-    background-color: #295eb9;
+    // Keep overflow visible so the avatar (and edit control) can hang below the
+    // header band via .AdminUserCard__header-start's negative margin.
+    overflow: visible;
+    flex-shrink: 0;
 }
 
-.AdminUserCard__header .Avatar.Avatar-xxl {
-    border: solid 2px #fff;
+.AdminUserCard__header-main {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-xxl);
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    border-top-left-radius: var(--radius-m);
+    border-top-right-radius: var(--radius-m);
+    gap: var(--spacing-m);
+}
+
+.AdminUserCard__header-start {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    margin-bottom: calc(-1 * var(--spacing-xxxxxl)); // -48px
+    gap: var(--admin-user-card-header-gap);
 }
 
 .AdminUserCard__picture {
@@ -38,26 +71,23 @@ input.AdminUserCard__picture-input[type='file'] {
 .AdminUserCard__picture-edit {
     position: absolute;
     z-index: 2;
-
-    // Anchor to the bottom-right of the 128px (xxl) avatar from the top-left
-    // origin so placement is independent of the avatar wrapper's own box size.
-    top: 94px;
-    left: 94px;
+    right: 4px;
+    bottom: 4px;
     display: flex;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     align-items: center;
     justify-content: center;
     padding: 0;
-    border: solid 2px #fff;
+    border: solid 2px var(--center-channel-bg);
     border-radius: 50%;
-    background-color: #1c58d9;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
-    color: #fff;
+    background-color: var(--button-bg);
+    box-shadow: var(--elevation-1);
+    color: var(--button-color);
     cursor: pointer;
 
     &:hover:not(:disabled) {
-        background-color: #1451c8;
+        background-color: rgba(var(--button-bg-rgb), 0.88);
     }
 
     &:disabled {
@@ -71,45 +101,89 @@ input.AdminUserCard__picture-input[type='file'] {
 
     .LoadingSpinner {
         display: flex;
-        font-size: 16px;
+        font-size: 14px;
     }
 }
 
-.AdminUserCard__body {
-    padding: 12px 20px 20px 178px;
-    background-color: #fff;
-}
-
-.AdminUserCard__footer {
+.AdminUserCard__title-stack {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 20px;
-    border-top: solid 1px rgba(0, 0, 0, 0.2);
-    background-color: #fff;
-    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding-bottom: var(--spacing-l);
+    gap: var(--spacing-xxxxs);
 }
 
 .AdminUserCard__user-info {
+    display: flex;
     overflow: hidden;
     min-width: 0;
-    align-self: flex-end;
-    padding: 0;
-    margin-left: 20px;
-    color: #fff;
-    font-size: 20px;
-    font-weight: normal;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 0;
+    color: var(--center-channel-color);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-400);
+    font-weight: var(--font-weight-semibold);
+    gap: var(--spacing-xs);
+    line-height: var(--line-height-400);
     text-overflow: ellipsis;
 }
 
 .AdminUserCard__user-nickname {
-    opacity: 0.5;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-75);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-75);
 }
 
 .AdminUserCard__user-id {
-    align-self: flex-end;
-    margin-left: auto;
-    color: #fff;
-    font-size: 12px;
-    opacity: 0.5;
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-75);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-75);
+}
+
+.AdminUserCard__body {
+    position: relative;
+    z-index: 0;
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1 1 auto;
+
+    // Match the header title stack: card padding + avatar + header gap.
+    padding: var(--spacing-xxl);
+    padding-left: calc(var(--spacing-xxl) + var(--admin-user-card-avatar-size) + var(--admin-user-card-header-gap));
+    background: var(--center-channel-bg);
+
+    // Narrow layouts stack under the avatar; drop the desktop offset so fields
+    // use the full card width with normal horizontal padding.
+    @media screen and (max-width: 768px) {
+        padding-left: var(--spacing-xxl);
+    }
+}
+
+.AdminUserCard__footer {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: var(--spacing-xxl);
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    background: var(--center-channel-bg);
+    border-bottom-left-radius: var(--radius-m);
+    border-bottom-right-radius: var(--radius-m);
+    gap: var(--spacing-xs); // 8px
+
+    // Prefer flex gap over global `.btn + .btn { margin-left }`.
+    > .btn {
+        margin-left: 0;
+    }
 }

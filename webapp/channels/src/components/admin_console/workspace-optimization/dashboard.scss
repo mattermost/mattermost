@@ -65,22 +65,24 @@
         }
     }
 
-    div.OverallScore {
-        display: flex;
-        width: 872px;
-        box-sizing: border-box;
-        align-items: center;
-        padding: 24px;
-        border: 1px solid rgba(var(--sys-denim-center-channel-text-rgb), 0.08) !important;
-        border-radius: 4px;
-        margin-left: 4px;
-        background: var(--sys-center-channel-bg);
-        box-shadow: var(--elevation-1);
+    // AdminPanel now supplies surface/border/radius/elevation/padding/sizing
+    // itself (it's a <section>, not a <div>, now). Its real children sit
+    // inside its own internal body wrapper, not directly under the root
+    // section, so the icon-beside-content flex layout has to target that
+    // wrapper (same fix server_logs.scss needed) — flex on .OverallScore
+    // itself never reaches scoreEllipseSvg/content, which just block-stack.
+    .OverallScore {
+        [class*='admin-panel__body'] {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xxl);
+        }
 
         &__scoreEllipseSvg {
             display: flex;
             width: 140px;
             height: 140px;
+            flex-shrink: 0;
             align-items: center;
 
             .alertImageScore {
@@ -123,9 +125,9 @@
                     }
 
                     .percentageOrNumber {
-                        font-family: Metropolis;
+                        font-family: var(--font-family-heading);
                         font-size: 0.65em;
-                        font-weight: 550;
+                        font-weight: var(--font-weight-semibold);
                     }
                 }
 
@@ -139,167 +141,129 @@
 
         &__content {
             display: flex;
+            min-width: 0;
+            flex: 1 1 auto;
             flex-direction: column;
-            margin-left: 24px;
 
             &__title {
-                margin-bottom: 8px;
-                color: var(--sys-denim-center-channel-text);
-                font-family: Metropolis, sans-serif;
-                font-size: 20px;
-                font-weight: 700;
-                line-height: 28px;
+                margin: 0 0 var(--spacing-xs);
+                color: var(--center-channel-color);
+                font-family: var(--font-family-heading);
+                font-size: var(--font-size-200);
+                font-weight: var(--font-weight-semibold);
+                line-height: var(--line-height-200);
             }
 
             &__description {
-                margin-bottom: 24px;
-                color: var(--sys-denim-center-channel-text);
-                font-size: 14px;
-                font-style: normal;
-                font-weight: normal;
-                line-height: 20px;
+                margin: 0 0 var(--spacing-xxl);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-family: var(--font-family-body);
+                font-size: var(--font-size-100);
+                font-weight: var(--font-weight-regular);
+                line-height: var(--line-height-100);
             }
 
             &__chips {
                 display: flex;
                 flex-direction: row;
+                flex-wrap: wrap;
+                gap: var(--spacing-m);
 
                 button[class*=' StyledChip'],
                 button[class^='StyledChip'] {
                     width: 180px;
                     height: 32px;
-                    margin-right: 16px;
+                    margin-right: 0;
                 }
             }
         }
     }
 
-    ul.Accordion {
-        width: 872px;
-        margin-left: 4px;
+    .WorkspaceOptimizationDashboard__sections {
+        display: flex;
+        width: 100%;
+        max-width: 920px;
+        flex-direction: column;
+        margin-top: var(--spacing-xl);
+        gap: var(--spacing-l);
+    }
 
-        li.accordion-card {
-            overflow: hidden;
-            box-sizing: border-box;
-            border: var(--border-light);
-            border-radius: var(--radius-s);
-            margin-top: 16px;
-            background-color: var(--sys-center-channel-bg);
+    .WorkspaceOptimizationDashboard__section {
+        // Success / up-to-date sections: green leading pill like the former accordion.
+        &--success {
+            [class*='admin-panel-header__leading'] {
+                background-color: rgba(var(--sys-online-indicator-rgb), 0.16);
+                color: var(--sys-online-indicator);
+            }
+        }
 
-            &:has(.accordion-card-header[role="button"]){
-                &:hover {
-                    border: var(--border-dark);
-                    box-shadow: var(--elevation-2);
-                }
+        // Whole-header toggle (former accordion-card-header click target).
+        &--expandable {
+            > header,
+            > [class*='admin-panel-header'] {
+                cursor: pointer;
+            }
+        }
+
+        // Header-only (no recommendations): hide empty Compass body + divider.
+        &--header-only {
+            [class*='admin-panel-header--divided'] {
+                border-bottom-color: transparent;
             }
 
-            .accordion-card-header {
-                max-height: 92px;
+            [class*='admin-panel__body'] {
+                display: none;
                 padding: 0;
-                background-color: var(--sys-center-channel-bg);
+            }
+        }
 
-                &__icon {
-                    padding: 0;
-                    margin: 24px 0 24px 24px;
+        [class*='admin-panel-header__actions'] {
+            button[class*=' StyledChip'],
+            button[class^='StyledChip'] {
+                width: auto;
+                min-width: 120px;
+                height: 24px;
+                margin-right: 0;
+            }
+        }
 
-                    div {
-                        z-index: 1;
-                        display: flex;
-                        width: 44px;
-                        height: 44px;
-                        align-items: center;
-                        justify-content: center;
-                        border-radius: 50%;
-                        background-color: rgba(var(--sys-denim-center-channel-text-rgb), 0.16);
+        [class*='admin-panel__body'] {
+            .WorkspaceOptimizationDashboard__item {
+                padding: var(--spacing-l) 0;
 
-                        &.success {
-                            background-color: rgba(var(--sys-online-indicator-rgb), 0.16);
-
-                            svg {
-                                opacity: 1;
-                            }
-                        }
-
-                        svg {
-                            opacity: 0.73;
-                        }
-                    }
+                &:first-child {
+                    padding-top: 0;
                 }
 
-                &__body {
-                    padding: 0;
-                    margin: 27px 0 26px 16px;
-
-                    &__title {
-                        margin-bottom: 5px;
-                        color: #1c58d9;
-                        font-size: 14px;
-                        font-weight: 600;
-                        line-height: 14px;
-                    }
-
-                    &__description {
-                        color: #3d3c40;
-                        font-size: 14px;
-                        font-style: normal;
-                        font-weight: normal;
-                        line-height: 20px;
-                    }
+                &:last-child {
+                    padding-bottom: 0;
+                    border-bottom: none;
                 }
 
-                &__extraContent {
-                    display: flex;
-                    flex-direction: row;
-                    align-items: flex-end;
-                    margin-top: 34px;
-                    margin-left: auto;
-
-                    button[class*=' StyledChip'],
-                    button[class^='StyledChip'] {
-                        margin-right: 24px;
-                    }
+                h5 {
+                    display: inline-flex;
+                    align-items: center;
+                    margin-top: 0;
+                    margin-bottom: var(--spacing-xxs);
+                    font-weight: bold;
                 }
 
-                &__chevron {
-                    padding: 0;
-                    margin: 30px 30px 30px 0;
-                    font-size: 24px;
+                i {
+                    margin-left: calc(var(--spacing-xxs) * -1);
+                    font-size: 20px;
+
+                    &.warning {
+                        color: var(--sys-away-indicator);
+                    }
                 }
             }
 
-            .accordion-card-container {
-                &__content {
-                    padding: 16px 24px;
-                    border-top: 1px solid rgba(63, 67, 80, 0.06);
-                    background-color: rgb(255, 255, 255);
-
-                    div[class*=' AccordionItem'],
-                    div[class^='AccordionItem'] {
-                        padding: 16px 0;
-
-                        h5 {
-                            margin-top: 0;
-                            margin-bottom: 4px;
-                        }
-
-                        i {
-                            margin-left: -5px;
-                            font-size: 20px;
-
-                            &.warning {
-                                color: var(--sys-away-indicator);
-                            }
-                        }
-                    }
-                }
-
-                .ctaButtons {
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: flex-start;
-                    margin: 15px 0 0 0;
-                    gap: 8px;
-                }
+            .ctaButtons {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                margin: var(--spacing-l) 0 0 0;
+                gap: var(--spacing-xs);
             }
         }
     }

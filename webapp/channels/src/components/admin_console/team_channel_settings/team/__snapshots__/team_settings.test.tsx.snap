@@ -17,28 +17,50 @@ exports[`admin_console/team_channel_settings/team/TeamSettings should match snap
       <div
         class="admin-console__content"
       >
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="teams"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Teams
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Manage team settings.
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      Teams
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Manage team settings.
+                  </p>
+                </div>
               </div>
             </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div>
+              TeamList
+            </div>
           </div>
-          <div>
-            TeamList
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>

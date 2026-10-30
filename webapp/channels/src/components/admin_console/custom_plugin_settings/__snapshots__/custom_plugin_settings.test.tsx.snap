@@ -27,92 +27,244 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           role="form"
         >
           <div
-            class=""
+            class="admin-console__schema-sections"
           >
             <div
               class=""
             >
               <div
-                class="banner"
+                class=""
               >
-                <span>
-                  <h1
-                    id="header"
-                  >
-                    Header
-                  </h1>
-                  
-
-                  <em>
-                    This
-                  </em>
-                   is the 
-                  <strong>
-                    header
-                  </strong>
-                </span>
-              </div>
-              <div
-                class="form-group"
-                data-testid="settinga"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  data-testid="settingalabel"
-                  for="settinga"
-                >
-                  Setting One
-                </label>
                 <div
-                  class="col-sm-8"
+                  class="banner"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="settingainput"
-                    id="settinga"
-                    maxlength="-1"
-                    placeholder="e.g. some setting"
-                    type="text"
-                    value="setting_default"
-                  />
-                  <div
-                    class="help-text"
-                    data-testid="settingahelp-text"
+                  <span>
+                    <h1
+                      id="header"
+                    >
+                      Header
+                    </h1>
+                    
+
+                    <em>
+                      This
+                    </em>
+                     is the 
+                    <strong>
+                      header
+                    </strong>
+                  </span>
+                </div>
+                <div
+                  class="form-group"
+                  data-testid="settinga"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    data-testid="settingalabel"
+                    for="settinga"
                   >
-                    <span>
-                      This is some help text for the text field.
-                    </span>
+                    Setting One
+                  </label>
+                  <div
+                    class="col-sm-8"
+                  >
+                    <input
+                      class="form-control"
+                      data-testid="settingainput"
+                      id="settinga"
+                      maxlength="-1"
+                      placeholder="e.g. some setting"
+                      type="text"
+                      value="setting_default"
+                    />
+                    <div
+                      class="help-text"
+                      data-testid="settingahelp-text"
+                    >
+                      <span>
+                        This is some help text for the text field.
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <fieldset
-                class="form-group"
-                data-testid="settingb"
-                id="settingb"
-              >
-                <legend
-                  class="control-label form-legend col-sm-4"
+                <fieldset
+                  class="form-group"
+                  data-testid="settingb"
+                  id="settingb"
                 >
-                  Setting Two
-                </legend>
-                <div
-                  class="col-sm-8"
-                >
+                  <legend
+                    class="control-label form-legend col-sm-4"
+                  >
+                    Setting Two
+                  </legend>
                   <div
-                    class="BooleanRadioGroup-caqMkq klbaOn"
+                    class="col-sm-8"
+                  >
+                    <div
+                      class="BooleanRadioGroup-caqMkq klbaOn"
+                    >
+                      <label
+                        class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                        for="settingbtrue"
+                      >
+                        <input
+                          checked=""
+                          class="_radio__input_h0rbb_17"
+                          data-testid="settingbtrue"
+                          id="settingbtrue"
+                          name="settingb"
+                          type="radio"
+                          value="true"
+                        />
+                        <span
+                          class="_radio__circle_h0rbb_36"
+                        >
+                          <span
+                            aria-hidden="true"
+                            class="_radio__dot_h0rbb_62"
+                          />
+                        </span>
+                        <span
+                          class="_radio__label_h0rbb_119"
+                        >
+                          True
+                        </span>
+                      </label>
+                      <label
+                        class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                        for="settingbfalse"
+                      >
+                        <input
+                          class="_radio__input_h0rbb_17"
+                          data-testid="settingbfalse"
+                          id="settingbfalse"
+                          name="settingb"
+                          type="radio"
+                          value="false"
+                        />
+                        <span
+                          class="_radio__circle_h0rbb_36"
+                        >
+                          <span
+                            aria-hidden="true"
+                            class="_radio__dot_h0rbb_62"
+                          />
+                        </span>
+                        <span
+                          class="_radio__label_h0rbb_119"
+                        >
+                          False
+                        </span>
+                      </label>
+                    </div>
+                    <div
+                      class="help-text"
+                      data-testid="settingbhelp-text"
+                    >
+                      <span>
+                        This is some help text for the bool field.
+                      </span>
+                    </div>
+                  </div>
+                </fieldset>
+                <div
+                  class="form-group"
+                  data-testid="settingc"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    for="settingc"
+                  >
+                    Setting Three
+                  </label>
+                  <div
+                    class="col-sm-8"
+                  >
+                    <select
+                      class="form-control"
+                      data-testid="settingcdropdown"
+                      id="settingc"
+                    >
+                      <option
+                        value="option1"
+                      >
+                        Option 1
+                      </option>
+                      <option
+                        value="option2"
+                      >
+                        Option 2
+                      </option>
+                      <option
+                        value="option3"
+                      >
+                        Option 3
+                      </option>
+                    </select>
+                    <div
+                      class="help-text"
+                      data-testid="settingchelp-text"
+                    >
+                      <span>
+                        This is some help text for the dropdown field.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="form-group"
+                  data-testid="settingd"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    for="settingd"
+                  >
+                    Setting Four
+                  </label>
+                  <div
+                    class="col-sm-8"
                   >
                     <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                      for="settingbtrue"
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      for="_r_b_"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        id="_r_b_"
+                        name="settingd"
+                        type="radio"
+                        value="option1"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        <span
+                          class="RadioSetting__text"
+                        >
+                          Option 1
+                        </span>
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      for="_r_c_"
                     >
                       <input
                         checked=""
                         class="_radio__input_h0rbb_17"
-                        data-testid="settingbtrue"
-                        id="settingbtrue"
-                        name="settingb"
+                        id="_r_c_"
+                        name="settingd"
                         type="radio"
-                        value="true"
+                        value="option2"
                       />
                       <span
                         class="_radio__circle_h0rbb_36"
@@ -125,20 +277,23 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       <span
                         class="_radio__label_h0rbb_119"
                       >
-                        True
+                        <span
+                          class="RadioSetting__text"
+                        >
+                          Option 2
+                        </span>
                       </span>
                     </label>
                     <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                      for="settingbfalse"
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      for="_r_d_"
                     >
                       <input
                         class="_radio__input_h0rbb_17"
-                        data-testid="settingbfalse"
-                        id="settingbfalse"
-                        name="settingb"
+                        id="_r_d_"
+                        name="settingd"
                         type="radio"
-                        value="false"
+                        value="option3"
                       />
                       <span
                         class="_radio__circle_h0rbb_36"
@@ -151,286 +306,135 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       <span
                         class="_radio__label_h0rbb_119"
                       >
-                        False
+                        <span
+                          class="RadioSetting__text"
+                        >
+                          Option 3
+                        </span>
                       </span>
                     </label>
-                  </div>
-                  <div
-                    class="help-text"
-                    data-testid="settingbhelp-text"
-                  >
-                    <span>
-                      This is some help text for the bool field.
-                    </span>
-                  </div>
-                </div>
-              </fieldset>
-              <div
-                class="form-group"
-                data-testid="settingc"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  for="settingc"
-                >
-                  Setting Three
-                </label>
-                <div
-                  class="col-sm-8"
-                >
-                  <select
-                    class="form-control"
-                    data-testid="settingcdropdown"
-                    id="settingc"
-                  >
-                    <option
-                      value="option1"
-                    >
-                      Option 1
-                    </option>
-                    <option
-                      value="option2"
-                    >
-                      Option 2
-                    </option>
-                    <option
-                      value="option3"
-                    >
-                      Option 3
-                    </option>
-                  </select>
-                  <div
-                    class="help-text"
-                    data-testid="settingchelp-text"
-                  >
-                    <span>
-                      This is some help text for the dropdown field.
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="form-group"
-                data-testid="settingd"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  for="settingd"
-                >
-                  Setting Four
-                </label>
-                <div
-                  class="col-sm-8"
-                >
-                  <label
-                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_b_"
-                  >
-                    <input
-                      class="_radio__input_h0rbb_17"
-                      id="_r_b_"
-                      name="settingd"
-                      type="radio"
-                      value="option1"
-                    />
-                    <span
-                      class="_radio__circle_h0rbb_36"
-                    >
-                      <span
-                        aria-hidden="true"
-                        class="_radio__dot_h0rbb_62"
-                      />
-                    </span>
-                    <span
-                      class="_radio__label_h0rbb_119"
-                    >
-                      <span
-                        class="RadioSetting__text"
-                      >
-                        Option 1
-                      </span>
-                    </span>
-                  </label>
-                  <label
-                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_c_"
-                  >
-                    <input
-                      checked=""
-                      class="_radio__input_h0rbb_17"
-                      id="_r_c_"
-                      name="settingd"
-                      type="radio"
-                      value="option2"
-                    />
-                    <span
-                      class="_radio__circle_h0rbb_36"
-                    >
-                      <span
-                        aria-hidden="true"
-                        class="_radio__dot_h0rbb_62"
-                      />
-                    </span>
-                    <span
-                      class="_radio__label_h0rbb_119"
-                    >
-                      <span
-                        class="RadioSetting__text"
-                      >
-                        Option 2
-                      </span>
-                    </span>
-                  </label>
-                  <label
-                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_d_"
-                  >
-                    <input
-                      class="_radio__input_h0rbb_17"
-                      id="_r_d_"
-                      name="settingd"
-                      type="radio"
-                      value="option3"
-                    />
-                    <span
-                      class="_radio__circle_h0rbb_36"
-                    >
-                      <span
-                        aria-hidden="true"
-                        class="_radio__dot_h0rbb_62"
-                      />
-                    </span>
-                    <span
-                      class="_radio__label_h0rbb_119"
-                    >
-                      <span
-                        class="RadioSetting__text"
-                      >
-                        Option 3
-                      </span>
-                    </span>
-                  </label>
-                  <div
-                    class="help-text"
-                    data-testid="settingdhelp-text"
-                  >
-                    <span>
-                      This is some help text for the radio field.
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="form-group"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  for="settinge"
-                >
-                  Setting Five
-                </label>
-                <div
-                  class="col-sm-8"
-                >
-                  <div
-                    class="form-control disabled"
-                    id="settinge"
-                  >
-                    option3
-                  </div>
-                  <div
-                    class="help-text"
-                  >
-                    <span>
-                      This is some help text for the generated field.
-                    </span>
-                  </div>
-                  <div
-                    class="help-text"
-                  >
-                    <button
-                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
-                      type="button"
-                    >
-                      <span
-                        class="_button__label_we8pe_31"
-                      >
-                        Regenerate
-                      </span>
-                    </button>
-                  </div>
-                  <div
-                    class="help-text"
-                  >
-                    This is help text for the regenerate button.
-                  </div>
-                </div>
-              </div>
-              <div
-                class="form-group"
-                data-testid="settingf"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  for="settingf"
-                >
-                  Setting Six
-                </label>
-                <div
-                  class="col-sm-8"
-                >
-                  <div
-                    class="admin-setting-user__dropdown"
-                  >
                     <div
-                      class=""
+                      class="help-text"
+                      data-testid="settingdhelp-text"
                     >
-                      <div
-                        class="input-wrapper"
-                      >
-                        <input
-                          aria-autocomplete="list"
-                          aria-controls="suggestionList"
-                          aria-expanded="false"
-                          autocomplete="off"
-                          class="form-control"
-                          id="admin_user_setting_settingf"
-                          placeholder="Type a username here"
-                          role="combobox"
-                          value="option4"
-                        />
-                      </div>
+                      <span>
+                        This is some help text for the radio field.
+                      </span>
                     </div>
                   </div>
-                  <div
-                    class="help-text"
-                    data-testid="settingfhelp-text"
+                </div>
+                <div
+                  class="form-group"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    for="settinge"
                   >
-                    <span>
-                      This is some help text for the user autocomplete field.
-                    </span>
+                    Setting Five
+                  </label>
+                  <div
+                    class="col-sm-8"
+                  >
+                    <div
+                      class="form-control disabled"
+                      id="settinge"
+                    >
+                      option3
+                    </div>
+                    <div
+                      class="help-text"
+                    >
+                      <span>
+                        This is some help text for the generated field.
+                      </span>
+                    </div>
+                    <div
+                      class="help-text"
+                    >
+                      <button
+                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                        type="button"
+                      >
+                        <span
+                          class="_button__label_we8pe_31"
+                        >
+                          Regenerate
+                        </span>
+                      </button>
+                    </div>
+                    <div
+                      class="help-text"
+                    >
+                      This is help text for the regenerate button.
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div
-                class="banner"
-              >
-                <span>
-                  <h1
-                    id="footer"
+                <div
+                  class="form-group"
+                  data-testid="settingf"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    for="settingf"
                   >
-                    Footer
-                  </h1>
-                  
+                    Setting Six
+                  </label>
+                  <div
+                    class="col-sm-8"
+                  >
+                    <div
+                      class="admin-setting-user__dropdown"
+                    >
+                      <div
+                        class=""
+                      >
+                        <div
+                          class="input-wrapper"
+                        >
+                          <input
+                            aria-autocomplete="list"
+                            aria-controls="suggestionList"
+                            aria-expanded="false"
+                            autocomplete="off"
+                            class="form-control"
+                            id="admin_user_setting_settingf"
+                            placeholder="Type a username here"
+                            role="combobox"
+                            value="option4"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="help-text"
+                      data-testid="settingfhelp-text"
+                    >
+                      <span>
+                        This is some help text for the user autocomplete field.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="banner"
+                >
+                  <span>
+                    <h1
+                      id="footer"
+                    >
+                      Footer
+                    </h1>
+                    
 
-                  <em>
-                    This
-                  </em>
-                   is the 
-                  <strong>
-                    footer
-                  </strong>
-                </span>
+                    <em>
+                      This
+                    </em>
+                     is the 
+                    <strong>
+                      footer
+                    </strong>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -542,118 +546,215 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           role="form"
         >
           <div
-            class=""
+            class="admin-console__schema-sections"
           >
             <div
               class=""
             >
               <div
-                class="banner"
+                class=""
               >
-                <span>
-                  <h1
-                    id="header"
-                  >
-                    Header
-                  </h1>
-                  
-
-                  <em>
-                    This
-                  </em>
-                   is the 
-                  <strong>
-                    header
-                  </strong>
-                </span>
-              </div>
-              <div
-                class="form-group"
-                data-testid="PluginSettings.Plugins.testplugin.settinga"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  data-testid="PluginSettings.Plugins.testplugin.settingalabel"
-                  for="PluginSettings.Plugins.testplugin.settinga"
-                >
-                  Setting One
-                </label>
                 <div
-                  class="col-sm-8"
+                  class="banner"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="PluginSettings.Plugins.testplugin.settingainput"
-                    id="PluginSettings.Plugins.testplugin.settinga"
-                    maxlength="-1"
-                    placeholder="e.g. some setting"
-                    type="text"
-                    value="fsdsdg"
-                  />
-                  <div
-                    class="help-text"
-                    data-testid="PluginSettings.Plugins.testplugin.settingahelp-text"
+                  <span>
+                    <h1
+                      id="header"
+                    >
+                      Header
+                    </h1>
+                    
+
+                    <em>
+                      This
+                    </em>
+                     is the 
+                    <strong>
+                      header
+                    </strong>
+                  </span>
+                </div>
+                <div
+                  class="form-group"
+                  data-testid="PluginSettings.Plugins.testplugin.settinga"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    data-testid="PluginSettings.Plugins.testplugin.settingalabel"
+                    for="PluginSettings.Plugins.testplugin.settinga"
                   >
-                    <span>
-                      This is some help text for the text field.
-                    </span>
+                    Setting One
+                  </label>
+                  <div
+                    class="col-sm-8"
+                  >
+                    <input
+                      class="form-control"
+                      data-testid="PluginSettings.Plugins.testplugin.settingainput"
+                      id="PluginSettings.Plugins.testplugin.settinga"
+                      maxlength="-1"
+                      placeholder="e.g. some setting"
+                      type="text"
+                      value="fsdsdg"
+                    />
+                    <div
+                      class="help-text"
+                      data-testid="PluginSettings.Plugins.testplugin.settingahelp-text"
+                    >
+                      <span>
+                        This is some help text for the text field.
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <fieldset
-                class="form-group"
-                data-testid="PluginSettings.Plugins.testplugin.settingb"
-                id="PluginSettings.Plugins.testplugin.settingb"
-              >
-                <legend
-                  class="control-label form-legend col-sm-4"
+                <fieldset
+                  class="form-group"
+                  data-testid="PluginSettings.Plugins.testplugin.settingb"
+                  id="PluginSettings.Plugins.testplugin.settingb"
                 >
-                  Setting Two
-                </legend>
-                <div
-                  class="col-sm-8"
-                >
+                  <legend
+                    class="control-label form-legend col-sm-4"
+                  >
+                    Setting Two
+                  </legend>
                   <div
-                    class="BooleanRadioGroup-caqMkq klbaOn"
+                    class="col-sm-8"
+                  >
+                    <div
+                      class="BooleanRadioGroup-caqMkq klbaOn"
+                    >
+                      <label
+                        class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                        for="PluginSettings.Plugins.testplugin.settingbtrue"
+                      >
+                        <input
+                          class="_radio__input_h0rbb_17"
+                          data-testid="PluginSettings.Plugins.testplugin.settingbtrue"
+                          id="PluginSettings.Plugins.testplugin.settingbtrue"
+                          name="PluginSettings.Plugins.testplugin.settingb"
+                          type="radio"
+                          value="true"
+                        />
+                        <span
+                          class="_radio__circle_h0rbb_36"
+                        >
+                          <span
+                            aria-hidden="true"
+                            class="_radio__dot_h0rbb_62"
+                          />
+                        </span>
+                        <span
+                          class="_radio__label_h0rbb_119"
+                        >
+                          True
+                        </span>
+                      </label>
+                      <label
+                        class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                        for="PluginSettings.Plugins.testplugin.settingbfalse"
+                      >
+                        <input
+                          checked=""
+                          class="_radio__input_h0rbb_17"
+                          data-testid="PluginSettings.Plugins.testplugin.settingbfalse"
+                          id="PluginSettings.Plugins.testplugin.settingbfalse"
+                          name="PluginSettings.Plugins.testplugin.settingb"
+                          type="radio"
+                          value="false"
+                        />
+                        <span
+                          class="_radio__circle_h0rbb_36"
+                        >
+                          <span
+                            aria-hidden="true"
+                            class="_radio__dot_h0rbb_62"
+                          />
+                        </span>
+                        <span
+                          class="_radio__label_h0rbb_119"
+                        >
+                          False
+                        </span>
+                      </label>
+                    </div>
+                    <div
+                      class="help-text"
+                      data-testid="PluginSettings.Plugins.testplugin.settingbhelp-text"
+                    >
+                      <span>
+                        This is some help text for the bool field.
+                      </span>
+                    </div>
+                  </div>
+                </fieldset>
+                <div
+                  class="form-group"
+                  data-testid="PluginSettings.Plugins.testplugin.settingc"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    for="PluginSettings.Plugins.testplugin.settingc"
+                  >
+                    Setting Three
+                  </label>
+                  <div
+                    class="col-sm-8"
+                  >
+                    <select
+                      class="form-control"
+                      data-testid="PluginSettings.Plugins.testplugin.settingcdropdown"
+                      id="PluginSettings.Plugins.testplugin.settingc"
+                    >
+                      <option
+                        value="option1"
+                      >
+                        Option 1
+                      </option>
+                      <option
+                        value="option2"
+                      >
+                        Option 2
+                      </option>
+                      <option
+                        value="option3"
+                      >
+                        Option 3
+                      </option>
+                    </select>
+                    <div
+                      class="help-text"
+                      data-testid="PluginSettings.Plugins.testplugin.settingchelp-text"
+                    >
+                      <span>
+                        This is some help text for the dropdown field.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="form-group"
+                  data-testid="PluginSettings.Plugins.testplugin.settingd"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    for="PluginSettings.Plugins.testplugin.settingd"
+                  >
+                    Setting Four
+                  </label>
+                  <div
+                    class="col-sm-8"
                   >
                     <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                      for="PluginSettings.Plugins.testplugin.settingbtrue"
-                    >
-                      <input
-                        class="_radio__input_h0rbb_17"
-                        data-testid="PluginSettings.Plugins.testplugin.settingbtrue"
-                        id="PluginSettings.Plugins.testplugin.settingbtrue"
-                        name="PluginSettings.Plugins.testplugin.settingb"
-                        type="radio"
-                        value="true"
-                      />
-                      <span
-                        class="_radio__circle_h0rbb_36"
-                      >
-                        <span
-                          aria-hidden="true"
-                          class="_radio__dot_h0rbb_62"
-                        />
-                      </span>
-                      <span
-                        class="_radio__label_h0rbb_119"
-                      >
-                        True
-                      </span>
-                    </label>
-                    <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                      for="PluginSettings.Plugins.testplugin.settingbfalse"
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      for="_r_2_"
                     >
                       <input
                         checked=""
                         class="_radio__input_h0rbb_17"
-                        data-testid="PluginSettings.Plugins.testplugin.settingbfalse"
-                        id="PluginSettings.Plugins.testplugin.settingbfalse"
-                        name="PluginSettings.Plugins.testplugin.settingb"
+                        id="_r_2_"
+                        name="PluginSettings.Plugins.testplugin.settingd"
                         type="radio"
-                        value="false"
+                        value="option1"
                       />
                       <span
                         class="_radio__circle_h0rbb_36"
@@ -666,286 +767,193 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       <span
                         class="_radio__label_h0rbb_119"
                       >
-                        False
+                        <span
+                          class="RadioSetting__text"
+                        >
+                          Option 1
+                        </span>
                       </span>
                     </label>
-                  </div>
-                  <div
-                    class="help-text"
-                    data-testid="PluginSettings.Plugins.testplugin.settingbhelp-text"
-                  >
-                    <span>
-                      This is some help text for the bool field.
-                    </span>
-                  </div>
-                </div>
-              </fieldset>
-              <div
-                class="form-group"
-                data-testid="PluginSettings.Plugins.testplugin.settingc"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  for="PluginSettings.Plugins.testplugin.settingc"
-                >
-                  Setting Three
-                </label>
-                <div
-                  class="col-sm-8"
-                >
-                  <select
-                    class="form-control"
-                    data-testid="PluginSettings.Plugins.testplugin.settingcdropdown"
-                    id="PluginSettings.Plugins.testplugin.settingc"
-                  >
-                    <option
-                      value="option1"
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      for="_r_3_"
                     >
-                      Option 1
-                    </option>
-                    <option
-                      value="option2"
-                    >
-                      Option 2
-                    </option>
-                    <option
-                      value="option3"
-                    >
-                      Option 3
-                    </option>
-                  </select>
-                  <div
-                    class="help-text"
-                    data-testid="PluginSettings.Plugins.testplugin.settingchelp-text"
-                  >
-                    <span>
-                      This is some help text for the dropdown field.
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="form-group"
-                data-testid="PluginSettings.Plugins.testplugin.settingd"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  for="PluginSettings.Plugins.testplugin.settingd"
-                >
-                  Setting Four
-                </label>
-                <div
-                  class="col-sm-8"
-                >
-                  <label
-                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_2_"
-                  >
-                    <input
-                      checked=""
-                      class="_radio__input_h0rbb_17"
-                      id="_r_2_"
-                      name="PluginSettings.Plugins.testplugin.settingd"
-                      type="radio"
-                      value="option1"
-                    />
-                    <span
-                      class="_radio__circle_h0rbb_36"
-                    >
-                      <span
-                        aria-hidden="true"
-                        class="_radio__dot_h0rbb_62"
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        id="_r_3_"
+                        name="PluginSettings.Plugins.testplugin.settingd"
+                        type="radio"
+                        value="option2"
                       />
-                    </span>
-                    <span
-                      class="_radio__label_h0rbb_119"
-                    >
                       <span
-                        class="RadioSetting__text"
+                        class="_radio__circle_h0rbb_36"
                       >
-                        Option 1
-                      </span>
-                    </span>
-                  </label>
-                  <label
-                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_3_"
-                  >
-                    <input
-                      class="_radio__input_h0rbb_17"
-                      id="_r_3_"
-                      name="PluginSettings.Plugins.testplugin.settingd"
-                      type="radio"
-                      value="option2"
-                    />
-                    <span
-                      class="_radio__circle_h0rbb_36"
-                    >
-                      <span
-                        aria-hidden="true"
-                        class="_radio__dot_h0rbb_62"
-                      />
-                    </span>
-                    <span
-                      class="_radio__label_h0rbb_119"
-                    >
-                      <span
-                        class="RadioSetting__text"
-                      >
-                        Option 2
-                      </span>
-                    </span>
-                  </label>
-                  <label
-                    class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_4_"
-                  >
-                    <input
-                      class="_radio__input_h0rbb_17"
-                      id="_r_4_"
-                      name="PluginSettings.Plugins.testplugin.settingd"
-                      type="radio"
-                      value="option3"
-                    />
-                    <span
-                      class="_radio__circle_h0rbb_36"
-                    >
-                      <span
-                        aria-hidden="true"
-                        class="_radio__dot_h0rbb_62"
-                      />
-                    </span>
-                    <span
-                      class="_radio__label_h0rbb_119"
-                    >
-                      <span
-                        class="RadioSetting__text"
-                      >
-                        Option 3
-                      </span>
-                    </span>
-                  </label>
-                  <div
-                    class="help-text"
-                    data-testid="PluginSettings.Plugins.testplugin.settingdhelp-text"
-                  >
-                    <span>
-                      This is some help text for the radio field.
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="form-group"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  for="PluginSettings.Plugins.testplugin.settinge"
-                >
-                  Setting Five
-                </label>
-                <div
-                  class="col-sm-8"
-                >
-                  <div
-                    class="form-control disabled"
-                    id="PluginSettings.Plugins.testplugin.settinge"
-                  >
-                    Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23
-                  </div>
-                  <div
-                    class="help-text"
-                  >
-                    <span>
-                      This is some help text for the generated field.
-                    </span>
-                  </div>
-                  <div
-                    class="help-text"
-                  >
-                    <button
-                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
-                      type="button"
-                    >
-                      <span
-                        class="_button__label_we8pe_31"
-                      >
-                        Regenerate
-                      </span>
-                    </button>
-                  </div>
-                  <div
-                    class="help-text"
-                  >
-                    This is help text for the regenerate button.
-                  </div>
-                </div>
-              </div>
-              <div
-                class="form-group"
-                data-testid="PluginSettings.Plugins.testplugin.settingf"
-              >
-                <label
-                  class="control-label col-sm-4"
-                  for="PluginSettings.Plugins.testplugin.settingf"
-                >
-                  Setting Six
-                </label>
-                <div
-                  class="col-sm-8"
-                >
-                  <div
-                    class="admin-setting-user__dropdown"
-                  >
-                    <div
-                      class=""
-                    >
-                      <div
-                        class="input-wrapper"
-                      >
-                        <input
-                          aria-autocomplete="list"
-                          aria-controls="suggestionList"
-                          aria-expanded="false"
-                          autocomplete="off"
-                          class="form-control"
-                          id="admin_user_setting_PluginSettings.Plugins.testplugin.settingf"
-                          placeholder="Type a username here"
-                          role="combobox"
-                          value="3xz3r6n7dtbbmgref3yw4zg7sr"
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
                         />
-                      </div>
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        <span
+                          class="RadioSetting__text"
+                        >
+                          Option 2
+                        </span>
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      for="_r_4_"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        id="_r_4_"
+                        name="PluginSettings.Plugins.testplugin.settingd"
+                        type="radio"
+                        value="option3"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        <span
+                          class="RadioSetting__text"
+                        >
+                          Option 3
+                        </span>
+                      </span>
+                    </label>
+                    <div
+                      class="help-text"
+                      data-testid="PluginSettings.Plugins.testplugin.settingdhelp-text"
+                    >
+                      <span>
+                        This is some help text for the radio field.
+                      </span>
                     </div>
                   </div>
-                  <div
-                    class="help-text"
-                    data-testid="PluginSettings.Plugins.testplugin.settingfhelp-text"
+                </div>
+                <div
+                  class="form-group"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    for="PluginSettings.Plugins.testplugin.settinge"
                   >
-                    <span>
-                      This is some help text for the user autocomplete field.
-                    </span>
+                    Setting Five
+                  </label>
+                  <div
+                    class="col-sm-8"
+                  >
+                    <div
+                      class="form-control disabled"
+                      id="PluginSettings.Plugins.testplugin.settinge"
+                    >
+                      Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23
+                    </div>
+                    <div
+                      class="help-text"
+                    >
+                      <span>
+                        This is some help text for the generated field.
+                      </span>
+                    </div>
+                    <div
+                      class="help-text"
+                    >
+                      <button
+                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                        type="button"
+                      >
+                        <span
+                          class="_button__label_we8pe_31"
+                        >
+                          Regenerate
+                        </span>
+                      </button>
+                    </div>
+                    <div
+                      class="help-text"
+                    >
+                      This is help text for the regenerate button.
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div
-                class="banner"
-              >
-                <span>
-                  <h1
-                    id="footer"
+                <div
+                  class="form-group"
+                  data-testid="PluginSettings.Plugins.testplugin.settingf"
+                >
+                  <label
+                    class="control-label col-sm-4"
+                    for="PluginSettings.Plugins.testplugin.settingf"
                   >
-                    Footer
-                  </h1>
-                  
+                    Setting Six
+                  </label>
+                  <div
+                    class="col-sm-8"
+                  >
+                    <div
+                      class="admin-setting-user__dropdown"
+                    >
+                      <div
+                        class=""
+                      >
+                        <div
+                          class="input-wrapper"
+                        >
+                          <input
+                            aria-autocomplete="list"
+                            aria-controls="suggestionList"
+                            aria-expanded="false"
+                            autocomplete="off"
+                            class="form-control"
+                            id="admin_user_setting_PluginSettings.Plugins.testplugin.settingf"
+                            placeholder="Type a username here"
+                            role="combobox"
+                            value="3xz3r6n7dtbbmgref3yw4zg7sr"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="help-text"
+                      data-testid="PluginSettings.Plugins.testplugin.settingfhelp-text"
+                    >
+                      <span>
+                        This is some help text for the user autocomplete field.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="banner"
+                >
+                  <span>
+                    <h1
+                      id="footer"
+                    >
+                      Footer
+                    </h1>
+                    
 
-                  <em>
-                    This
-                  </em>
-                   is the 
-                  <strong>
-                    footer
-                  </strong>
-                </span>
+                    <em>
+                      This
+                    </em>
+                     is the 
+                    <strong>
+                      footer
+                    </strong>
+                  </span>
+                </div>
               </div>
             </div>
           </div>

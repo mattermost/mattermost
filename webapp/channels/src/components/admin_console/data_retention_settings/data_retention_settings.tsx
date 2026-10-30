@@ -18,9 +18,9 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import JobsTable from 'components/admin_console/jobs';
-import Card from 'components/card/card';
-import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
@@ -64,6 +64,7 @@ const messages = defineMessages({
     globalPolicy_subTitle: {id: 'admin.data_retention.globalPolicy.subTitle', defaultMessage: 'Keep messages and files for a set amount of time.'},
     customPolicies_title: {id: 'admin.data_retention.customPolicies.title', defaultMessage: 'Custom retention policies'},
     customPolicies_subTitle: {id: 'admin.data_retention.customPolicies.subTitle', defaultMessage: 'Customize how long specific teams and channels will keep messages.'},
+    customPolicies_addPolicy: {id: 'admin.data_retention.customPolicies.addPolicy', defaultMessage: 'Add policy'},
     jobCreation_title: {id: 'admin.data_retention.jobCreation.title', defaultMessage: 'Policy log'},
     jobCreation_subTitle: {id: 'admin.data_retention.jobCreation.subTitle', defaultMessage: 'Daily log of messages and files removed based on the policies defined above.'},
     createJob_instructions: {id: 'admin.data_retention.createJob.instructions', defaultMessage: 'Daily time to check policies and run delete job:'},
@@ -517,149 +518,117 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
-                        <Card
-                            expanded={true}
-                            className={'console'}
+                        <AdminPanel
+                            id='global_policy'
+                            title={messages.globalPolicy_title}
+                            subtitle={messages.globalPolicy_subTitle}
                         >
-                            <Card.Header>
-                                <TitleAndButtonCardHeader
-                                    title={<FormattedMessage {...messages.globalPolicy_title}/>}
-                                    subtitle={<FormattedMessage {...messages.globalPolicy_subTitle}/>}
+                            <div id='global_policy_table'>
+                                <DataGrid
+                                    columns={this.getGlobalPolicyColumns()}
+                                    rows={this.getGlobalPolicyRows()}
+                                    loading={false}
+                                    nextPage={() => {}}
+                                    previousPage={() => {}}
+                                    startCount={1}
+                                    endCount={4}
+                                    total={0}
+                                    className={'customTable'}
                                 />
-                            </Card.Header>
-                            <Card.Body
-                                expanded={true}
-                            >
-                                <div id='global_policy_table'>
-                                    <DataGrid
-                                        columns={this.getGlobalPolicyColumns()}
-                                        rows={this.getGlobalPolicyRows()}
-                                        loading={false}
-                                        nextPage={() => {}}
-                                        previousPage={() => {}}
-                                        startCount={1}
-                                        endCount={4}
-                                        total={0}
-                                        className={'customTable'}
-                                    />
-                                </div>
-                            </Card.Body>
-                        </Card>
-                        <Card
-                            expanded={true}
-                            className={'console'}
+                            </div>
+                        </AdminPanel>
+                        <AdminPanelWithButton
+                            id='custom_policies'
+                            title={messages.customPolicies_title}
+                            subtitle={messages.customPolicies_subTitle}
+                            buttonText={messages.customPolicies_addPolicy}
+                            onButtonClick={() => {
+                                getHistory().push('/admin_console/compliance/data_retention_settings/custom_policy');
+                            }}
                         >
-                            <Card.Header>
-                                <TitleAndButtonCardHeader
-                                    title={<FormattedMessage {...messages.customPolicies_title}/>}
-                                    subtitle={<FormattedMessage {...messages.customPolicies_subTitle}/>}
-                                    buttonText={
-                                        <FormattedMessage
-                                            id='admin.data_retention.customPolicies.addPolicy'
-                                            defaultMessage='Add policy'
-                                        />
-                                    }
-                                    onClick={() => {
-                                        getHistory().push('/admin_console/compliance/data_retention_settings/custom_policy');
-                                    }}
+                            <div id='custom_policy_table'>
+                                <DataGrid
+                                    columns={this.getCustomPolicyColumns()}
+                                    rows={this.getCustomPolicyRows(startCount, endCount)}
+                                    loading={this.state.customPoliciesLoading}
+                                    nextPage={this.nextPage}
+                                    previousPage={this.previousPage}
+                                    startCount={startCount}
+                                    endCount={endCount}
+                                    total={total}
+                                    className={'customTable'}
                                 />
-                            </Card.Header>
-                            <Card.Body
-                                expanded={true}
-                            >
-                                <div id='custom_policy_table'>
-                                    <DataGrid
-                                        columns={this.getCustomPolicyColumns()}
-                                        rows={this.getCustomPolicyRows(startCount, endCount)}
-                                        loading={this.state.customPoliciesLoading}
-                                        nextPage={this.nextPage}
-                                        previousPage={this.previousPage}
-                                        startCount={startCount}
-                                        endCount={endCount}
-                                        total={total}
-                                        className={'customTable'}
-                                    />
-                                </div>
-                            </Card.Body>
-                        </Card>
-                        <Card
-                            expanded={true}
-                            className={'console'}
+                            </div>
+                        </AdminPanelWithButton>
+                        <AdminPanelWithButton
+                            id='policy_log'
+                            title={messages.jobCreation_title}
+                            subtitle={messages.jobCreation_subTitle}
+                            buttonText={messages.createJob_title}
+                            disabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true' && (this.props.customPoliciesCount === 0)}
+                            onButtonClick={this.handleCreateJob}
                         >
-                            <Card.Header>
-                                <TitleAndButtonCardHeader
-                                    title={<FormattedMessage {...messages.jobCreation_title}/>}
-                                    subtitle={<FormattedMessage {...messages.jobCreation_subTitle}/>}
-                                    buttonText={<FormattedMessage {...messages.createJob_title}/>}
-                                    isDisabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true' && (this.props.customPoliciesCount === 0)}
-                                    onClick={this.handleCreateJob}
-                                />
-                            </Card.Header>
-                            <Card.Body
-                                expanded={true}
-                            >
-                                <JobsTable
-                                    jobType={JobTypes.DATA_RETENTION as JobType}
-                                    hideJobCreateButton={true}
-                                    className={'job-table__data-retention'}
-                                    disabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true'}
-                                    createJobButtonText={<FormattedMessage {...messages.createJob_title}/>}
-                                    createJobHelpText={
-                                        <div>
-                                            <FormattedMessage {...messages.createJob_instructions}/>
-                                            {this.state.showEditJobTime ? (
-                                                <ReactSelect
-                                                    id={'JobSelectTime'}
-                                                    className={'JobSelectTime'}
-                                                    components={{
-                                                        DropdownIndicator: () => null,
-                                                        IndicatorSeparator: () => null,
-                                                    }}
-                                                    onChange={(e) => {
-                                                        this.changeJobTimeConfig((e as OptionType).value);
-                                                    }}
-                                                    styles={{
-                                                        control: (base) => ({
-                                                            ...base,
-                                                            height: 32,
-                                                            minHeight: 32,
-                                                        }),
-                                                        menu: (base) => ({
-                                                            ...base,
-                                                            width: 210,
-                                                        }),
-                                                    }}
-                                                    onBlur={() => {
-                                                        this.showEditJobTime(false);
-                                                    }}
-                                                    value={{label: this.getJobStartTime(), value: DataRetentionSettings?.DeletionJobStartTime} as OptionType}
-                                                    hideSelectedOptions={true}
-                                                    isSearchable={true}
-                                                    options={this.getJobTimes()}
-                                                    ref={this.inputRef}
-                                                    onFocus={() => {
-                                                        this.showEditJobTime(true);
-                                                    }}
-                                                    menuIsOpen={this.state.showEditJobTime}
-                                                />
-                                            ) : (
-                                                <span
-                                                    className='JobSelectedtime'
-                                                >
-                                                    <b>{this.getJobStartTime()}</b>
-                                                </span>
-                                            )}
-                                            <a
-                                                className='EditJobTime'
-                                                onClick={() => this.showEditJobTime(true)}
+                            <JobsTable
+                                jobType={JobTypes.DATA_RETENTION as JobType}
+                                hideJobCreateButton={true}
+                                className={'job-table__data-retention'}
+                                disabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true'}
+                                createJobButtonText={<FormattedMessage {...messages.createJob_title}/>}
+                                createJobHelpText={
+                                    <div>
+                                        <FormattedMessage {...messages.createJob_instructions}/>
+                                        {this.state.showEditJobTime ? (
+                                            <ReactSelect
+                                                id={'JobSelectTime'}
+                                                className={'JobSelectTime'}
+                                                components={{
+                                                    DropdownIndicator: () => null,
+                                                    IndicatorSeparator: () => null,
+                                                }}
+                                                onChange={(e) => {
+                                                    this.changeJobTimeConfig((e as OptionType).value);
+                                                }}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: 32,
+                                                        minHeight: 32,
+                                                    }),
+                                                    menu: (base) => ({
+                                                        ...base,
+                                                        width: 210,
+                                                    }),
+                                                }}
+                                                onBlur={() => {
+                                                    this.showEditJobTime(false);
+                                                }}
+                                                value={{label: this.getJobStartTime(), value: DataRetentionSettings?.DeletionJobStartTime} as OptionType}
+                                                hideSelectedOptions={true}
+                                                isSearchable={true}
+                                                options={this.getJobTimes()}
+                                                ref={this.inputRef}
+                                                onFocus={() => {
+                                                    this.showEditJobTime(true);
+                                                }}
+                                                menuIsOpen={this.state.showEditJobTime}
+                                            />
+                                        ) : (
+                                            <span
+                                                className='JobSelectedtime'
                                             >
-                                                {this.props.intl.formatMessage({id: 'admin.data_retention.globalPoliciesTable.edit', defaultMessage: 'Edit'})}
-                                            </a>
-                                        </div>
-                                    }
-                                />
-                            </Card.Body>
-                        </Card>
+                                                <b>{this.getJobStartTime()}</b>
+                                            </span>
+                                        )}
+                                        <a
+                                            className='EditJobTime'
+                                            onClick={() => this.showEditJobTime(true)}
+                                        >
+                                            {this.props.intl.formatMessage({id: 'admin.data_retention.globalPoliciesTable.edit', defaultMessage: 'Edit'})}
+                                        </a>
+                                    </div>
+                                }
+                            />
+                        </AdminPanelWithButton>
                     </div>
                 </div>
             </div>

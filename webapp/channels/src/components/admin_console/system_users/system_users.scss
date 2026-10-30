@@ -1,5 +1,22 @@
 @use 'utils/_mixins';
 
+// AdminPanel now supplies surface/border/radius/elevation itself, and (being
+// non-expandable) already defaults to overflow:visible, so filter, column,
+// duration, and row-action menus keep escaping without extra work.
+// The page was previously built on the plain admin-console__container (no
+// max-width), not admin-console__content's 920px-capped one, since the users
+// table is wide — AdminPanel caps itself at 920px regardless of ancestor, so
+// that still needs overriding here (same issue GlobalAttributes__panel hit).
+// Ambient body padding is stripped too: the filters row and table cells
+// already bring their own flush padding.
+.admin-console .SystemUsers .SystemUsers__panel {
+    max-width: none;
+
+    [class*='admin-panel__body'] {
+        padding: 0;
+    }
+}
+
 table.systemUsersTable {
     thead {
         tr {

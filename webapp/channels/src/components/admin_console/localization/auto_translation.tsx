@@ -2,23 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {defineMessage, defineMessages, FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import Setting from 'components/admin_console/setting';
-import {
-    AdminSection,
-    SectionContent,
-    SectionHeader,
-} from 'components/admin_console/system_properties/controls';
 import TextSetting from 'components/admin_console/text_setting';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
-import BetaTag from 'components/widgets/tag/beta_tag';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import * as I18n from 'i18n/i18n';
 
@@ -47,7 +41,6 @@ const messages = defineMessages({
 export const searchableStrings: SearchableStrings = Object.values(messages);
 
 export default function AutoTranslation(props: SystemConsoleCustomSettingsComponentProps) {
-    const {formatMessage} = useIntl();
     const {available: isAgentsBridgeEnabled, reason: agentsBridgeUnavailableReason} = useGetAgentsBridgeEnabled();
     const [autoTranslationSettings, setAutoTranslationSettings] = useState<AutoTranslationSettings>(() => {
         const settings = props.value as AutoTranslationSettings;
@@ -88,15 +81,14 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         handleChange(id, numValue);
     }, [handleChange]);
 
-    const handleToggle = useCallback(() => {
-        const newValue = !autoTranslationSettings.Enable;
+    const handleSwitchChange = useCallback((checked: boolean) => {
         const newSettings = {
             ...autoTranslationSettings,
-            Enable: newValue,
+            Enable: checked,
         };
 
         // Ensure provider is set when enabling
-        if (newValue && !newSettings.Provider) {
+        if (checked && !newSettings.Provider) {
             newSettings.Provider = 'libretranslate';
         }
 
@@ -134,13 +126,12 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         />
     ), []);
 
-    const on = (
+    const switchLabel = autoTranslationSettings.Enable ? (
         <FormattedMessage
             id='admin.site.localization.auto_translation.on'
             defaultMessage='On'
         />
-    );
-    const off = (
+    ) : (
         <FormattedMessage
             id='admin.site.localization.auto_translation.off'
             defaultMessage='Off'
@@ -150,45 +141,21 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
     const selectedLanguages = autoTranslationSettings.TargetLanguages || ['en'];
 
     return (
-        <AdminSection>
-            <SectionHeader>
-                <div
-                    data-testid='autotranslation-section-header'
-                    className='autotranslation-section-header'
-                >
-                    <hgroup>
-                        <h1 className='localization-section-title'>
-                            <FormattedMessage {...messages.enableAutoTranslationTitle}/>
-                            <BetaTag
-                                variant='default'
-                            />
-                        </h1>
-                        <h5 className='localization-section-description'>
-                            <FormattedMessage {...messages.enableAutoTranslationDescription}/>
-                        </h5>
-                    </hgroup>
-                    <div
-                        data-testid='autotranslation-section-toggle'
-                        className='autotranslation-section-toggle'
-                    >
-                        <span style={{marginRight: '12px'}}>
-                            {autoTranslationSettings.Enable ? on : off}
-                        </span>
-                        <Switch
-                            id='Enable'
-                            size='medium'
-                            disabled={props.disabled || props.setByEnv}
-                            checked={autoTranslationSettings.Enable}
-                            onChange={handleToggle}
-                            data-testid='Enable-button'
-                            tabIndex={-1}
-                            aria-label={formatMessage(messages.enableAutoTranslationTitle)}
-                        />
-                    </div>
-                </div>
-            </SectionHeader>
+        <AdminPanel
+            id='AutoTranslationSettings'
+            data-testid='autotranslation-section-header'
+            title={messages.enableAutoTranslationTitle}
+            subtitle={messages.enableAutoTranslationDescription}
+            showBeta={true}
+            betaLabel='BETA'
+            showSwitch={true}
+            switchLabel={switchLabel}
+            switchChecked={autoTranslationSettings.Enable}
+            switchDisabled={props.disabled || props.setByEnv}
+            onSwitchChange={handleSwitchChange}
+        >
             {autoTranslationSettings.Enable &&
-            <SectionContent $compact={true}>
+            <>
                 <AutoTranslationInfo/>
                 <div className={showAgentsError ? 'autotranslation-provider-error' : ''}>
                     <Setting
@@ -316,8 +283,8 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     disabled={props.disabled || props.setByEnv}
                     setByEnv={props.setByEnv}
                 />
-            </SectionContent>
+            </>
             }
-        </AdminSection>
+        </AdminPanel>
     );
 }

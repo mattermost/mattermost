@@ -2,27 +2,28 @@
     font-size: inherit;
     line-height: inherit;
 
+    // Spacing to the next sibling comes from `.admin-console__content` flex gap.
     &__settingsWrapper {
-        margin-bottom: 20px;
+        width: 100%;
+        max-width: 920px;
+        margin-bottom: 0;
     }
 
+    // AdminPanel now supplies surface/border/radius/elevation/padding/sizing
+    // itself; only the internal content layout (actionsRow + optional error,
+    // stacked with spacing-m between them) stays here.
     &__actionsPanel {
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        padding: 24px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
-        background: var(--center-channel-bg);
-        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
-        gap: 16px;
+        gap: var(--spacing-m);
     }
 
     &__actionsRow {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 32px;
+        gap: var(--spacing-xl);
     }
 
     &__identity {
@@ -30,25 +31,28 @@
         min-width: 0;
         flex: 1;
         flex-direction: column;
-        gap: 4px;
+        gap: var(--spacing-xxxxs);
     }
 
     &__details {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: var(--spacing-xxs);
 
         .PluginMetadataPanel__metadata {
             color: rgba(var(--center-channel-color-rgb), 0.75);
-            font-size: 12px;
-            line-height: 16px;
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-75);
+            font-weight: var(--font-weight-regular);
+            line-height: var(--line-height-75);
         }
 
         .PluginMetadataPanel__id {
             color: var(--center-channel-color);
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 20px;
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-200);
+            font-weight: var(--font-weight-semibold);
+            line-height: var(--line-height-200);
         }
     }
 
@@ -56,14 +60,14 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 3px 10px;
-        border-radius: 40px;
-        font-family: 'Open Sans', sans-serif;
-        font-size: 12px;
-        font-weight: 600;
-        gap: 4px;
+        padding: var(--spacing-xxxxs) var(--spacing-s);
+        border-radius: var(--radius-pill);
+        font-family: var(--font-family-body);
+        font-size: var(--font-size-75);
+        font-weight: var(--font-weight-semibold);
+        gap: var(--spacing-xxxxs);
         letter-spacing: normal;
-        line-height: 16px;
+        line-height: var(--line-height-75);
         white-space: nowrap;
 
         .admin-console__header & {
@@ -99,9 +103,11 @@
 
     &__description {
         margin: 0;
-        color: var(--center-channel-color);
-        font-size: 14px;
-        line-height: 20px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-family: var(--font-family-body);
+        font-size: var(--font-size-100);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--line-height-100);
     }
 
     &__controls {
@@ -118,16 +124,18 @@
         padding: 0;
         border: none;
         margin: 0;
-        gap: 8px;
+        gap: var(--spacing-xs);
     }
 
     &__enable {
         display: flex;
         align-items: center;
         color: var(--center-channel-color);
-        font-size: 14px;
-        gap: 12px;
-        line-height: 20px;
+        font-family: var(--font-family-body);
+        font-size: var(--font-size-100);
+        font-weight: var(--font-weight-regular);
+        gap: var(--spacing-s);
+        line-height: var(--line-height-100);
 
         // Compass Switch root is a <label>. Bootstrap form labels add
         // margin-bottom, and Switch defaults to width: 100%, which throws off
@@ -139,17 +147,20 @@
     }
 
     &__actionError {
-        margin-top: 8px;
+        margin-top: var(--spacing-xs);
         color: var(--error-text);
 
         .fa {
-            margin-right: 4px;
+            margin-right: var(--spacing-xxxxs);
         }
     }
 
     &__metadata {
         color: rgba(var(--center-channel-color-rgb), 0.75);
-        font-size: 0.9em;
+        font-family: var(--font-family-body);
+        font-size: var(--font-size-100);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--line-height-100);
 
         a {
             color: rgba(var(--center-channel-color-rgb), 0.75);
