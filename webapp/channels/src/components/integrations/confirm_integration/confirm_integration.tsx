@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, type JSX} from 'react';
+import React, {useEffect, useRef, useState, type JSX} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 
@@ -48,8 +48,16 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
     });
 
     const isBotConfirmation = type === Constants.Integrations.BOT && Boolean(bots[id]);
-    const [botToken] = useState(() => takePendingBotToken(id));
+    const takenBotToken = useRef<{token?: string}>(undefined);
+    const [botToken, setBotToken] = useState<{token?: string}>();
     const [botCreateWarnings, setBotCreateWarnings] = useState<BotCreateWarnings | undefined>(() => (isBotConfirmation ? parseBotCreateWarnings(location.search) : undefined));
+
+    useEffect(() => {
+        if (!takenBotToken.current) {
+            takenBotToken.current = {token: takePendingBotToken(id)};
+        }
+        setBotToken(takenBotToken.current);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         const search = isBotConfirmation ? stripBotCreateWarningsParam(location.search) : undefined;
@@ -420,6 +428,9 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
     } else if (type === Constants.Integrations.BOT && bot) {
         if (!botToken) {
+            return null;
+        }
+        if (!botToken.token) {
             history.replace(`/${team.name}/integrations/bots`);
             return null;
         }
@@ -456,13 +467,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_webhook.token'
                     defaultMessage='<b>Token</b>: {token}'
                     values={{
-                        token: <code>{botToken}</code>,
+                        token: <code>{botToken.token}</code>,
                         b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
                 <CopyText
                     label={messages.copyToken}
-                    value={botToken}
+                    value={botToken.token}
                 />
                 <br/>
                 <br/>

@@ -160,11 +160,14 @@ describe('bot_save_flow', () => {
             expect(takePendingBotToken('bot-user-id')).toBeUndefined();
         });
 
-        test.each([
+        type TokenStep = {userId: string; token?: string; error?: boolean};
+        type TokenCase = {name: string; creates: TokenStep[]; takes: Array<[string, string | undefined]>};
+
+        test.each<TokenCase>([
             {
                 name: 'is not stored when token creation fails',
-                creates: [{userId: 'bot-user-id', error: true as const}],
-                takes: [['bot-user-id', undefined]] as Array<[string, string | undefined]>,
+                creates: [{userId: 'bot-user-id', error: true}],
+                takes: [['bot-user-id', undefined]],
             },
             {
                 name: 'is not stored when the token is empty',
@@ -183,11 +186,11 @@ describe('bot_save_flow', () => {
             for (const step of creates) {
                 const actions = buildActions({
                     createBot: jest.fn().mockResolvedValue({data: TestHelper.getBotMock({user_id: step.userId})}),
-                    createUserAccessToken: 'error' in step && step.error
-                        ? jest.fn().mockResolvedValue({error: {message: 'x'}})
-                        : jest.fn().mockResolvedValue({data: TestHelper.getUserAccessTokenMock({token: step.token})}),
+                    createUserAccessToken: step.error ?
+                        jest.fn().mockResolvedValue({error: {message: 'x'}}) :
+                        jest.fn().mockResolvedValue({data: TestHelper.getUserAccessTokenMock({token: step.token})}),
                 });
-                await saveBotCreate(actions, base);
+                await saveBotCreate(actions, base); // eslint-disable-line no-await-in-loop
             }
             for (const [id, expected] of takes) {
                 expect(takePendingBotToken(id)).toBe(expected);

@@ -328,6 +328,14 @@ describe('components/integrations/ConfirmIntegration', () => {
             expect(replace).toHaveBeenCalledWith(botsListPath);
         });
 
+        test('the token is still shown when effects run twice on mount', () => {
+            seedBotToken();
+            renderWithContext(<React.StrictMode>{confirmElement(botSearch())}</React.StrictMode>, initialState);
+
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(replace).not.toHaveBeenCalledWith(botsListPath);
+        });
+
         test('a remount after the first visit goes to the bots list', () => {
             seedBotToken();
             const {unmount} = renderConfirm(botSearch());
