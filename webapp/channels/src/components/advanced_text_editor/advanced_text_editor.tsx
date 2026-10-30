@@ -48,6 +48,7 @@ import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
+import {useLatest} from 'hooks/useLatest';
 import Constants, {
     Locations,
     StoragePrefixes,
@@ -240,8 +241,9 @@ const AdvancedTextEditor = ({
     const wysiwygRef = useRef<WysiwygEditorHandle>(null);
     const formattingBarRef = useRef<FormattingBarHandle>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>(undefined);
-    const saveDraftFrame = useRef<NodeJS.Timeout>(undefined);
+    const pendingDraftSave = useRef<{key: string; save: () => void; timeout: NodeJS.Timeout}>(undefined);
     const draftRef = useRef(draftFromStore);
+    const locationRef = useLatest({channelId, rootId});
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
@@ -276,9 +278,30 @@ const AdvancedTextEditor = ({
     }, [channelId, rootId]);
 
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
-        if (saveDraftFrame.current) {
-            clearTimeout(saveDraftFrame.current);
+        let prefix = StoragePrefixes.DRAFT;
+        let suffix = draftToChange.channelId;
+        if (draftToChange.rootId) {
+            prefix = StoragePrefixes.COMMENT_DRAFT;
+            suffix = draftToChange.rootId;
         }
+        const key = storageKey || `${prefix}${suffix}`;
+
+        const pendingSave = pendingDraftSave.current;
+        if (pendingSave) {
+            clearTimeout(pendingSave.timeout);
+            pendingDraftSave.current = undefined;
+
+            // A save still pending for another channel or thread is the only copy of that draft.
+            if (pendingSave.key !== key) {
+                pendingSave.save();
+            }
+        }
+
+        // A draft for a channel or thread the user has left is saved right away, as leaving it does.
+        const location = locationRef.current;
+        const leftLocation = draftToChange.channelId !== location.channelId || draftToChange.rootId !== location.rootId;
+        const instant = options.instant || leftLocation;
+        const show = options.show || leftLocation;
 
         // A late async callback (slow submit, finished file upload) may call handleDraftChange
         // with the channelId/rootId captured when it started. If the user has since moved to
@@ -293,14 +316,6 @@ const AdvancedTextEditor = ({
         });
 
         const saveDraft = () => {
-            let prefix = StoragePrefixes.DRAFT;
-            let suffix = draftToChange.channelId;
-            if (draftToChange.rootId) {
-                prefix = StoragePrefixes.COMMENT_DRAFT;
-                suffix = draftToChange.rootId;
-            }
-            const key = storageKey || `${prefix}${suffix}`;
-
             if (isPostDraftEmpty(draftToChange)) {
                 dispatch(removeDraft(key, draftToChange.channelId, draftToChange.rootId));
                 return;
@@ -314,7 +329,7 @@ const AdvancedTextEditor = ({
                 return;
             }
 
-            if (options.show) {
+            if (show) {
                 dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
                 return;
             }
@@ -322,16 +337,18 @@ const AdvancedTextEditor = ({
             dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
         };
 
-        if (options.instant) {
+        if (instant) {
             saveDraft();
         } else {
-            saveDraftFrame.current = setTimeout(() => {
+            const timeout = setTimeout(() => {
+                pendingDraftSave.current = undefined;
                 saveDraft();
             }, Constants.SAVE_DRAFT_TIMEOUT);
+            pendingDraftSave.current = {key, save: saveDraft, timeout};
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch, isInEditMode, storageKey]);
+    }, [dispatch, isInEditMode, locationRef, storageKey]);
 
     const applyFormatting = useCallback((mode: MarkdownMode) => {
         if (showPreview) {
