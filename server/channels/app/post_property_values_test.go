@@ -232,7 +232,8 @@ func TestHydratePropertyValues(t *testing.T) {
 
 		require.Len(t, hydrated.Metadata.PropertyValues, 1)
 		assert.Equal(t, field.ID, hydrated.Metadata.PropertyValues[0].FieldID)
-		assert.False(t, hydrated.Metadata.PropertyValuesUnavailable)
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
 	})
 
 	t.Run("a deleted post is never hydrated", func(t *testing.T) {
