@@ -474,7 +474,10 @@ func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *mo
 		channel.Name = model.NewId()
 	}
 
-	return api.app.CreateChannel(api.ctx, channel, false)
+	// Tagged with the plugin's ID so the managed category and attribute value
+	// writes CreateChannel makes are attributed to the plugin; api.ctx carries
+	// no caller, which the property access control hook refuses.
+	return api.app.CreateChannel(api.psaPluginContext(), channel, false)
 }
 
 func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
@@ -1903,6 +1906,20 @@ func (api *PluginAPI) psaPluginContextWithOptions(options model.PropertyRequestO
 	return requestContextWithCallerIDAndOptions(api.ctx, api.manifest.Id, options)
 }
 
+// projectLegacyPermissionsForEach returns fields with each one's legacy
+// permission keys projected from its permissions object, so a plugin reading
+// a batch keeps seeing Protected/PermissionField/PermissionValues/
+// PermissionOptions/access_mode/owners computed from the same source a v2
+// caller's single-field read uses. Each linked template is read once.
+func (api *PluginAPI) projectLegacyPermissionsForEach(rctx request.CTX, fields []*model.PropertyField) []*model.PropertyField {
+	templates := make(map[string]*model.PropertyField)
+	projected := make([]*model.PropertyField, len(fields))
+	for i, field := range fields {
+		projected[i] = api.app.projectLegacyPermissions(rctx, field, templates)
+	}
+	return projected
+}
+
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
 	createdField, appErr := api.app.CreatePropertyField(api.psaPluginContext(), field, false, "")
 	if appErr != nil {
@@ -1912,19 +1929,21 @@ func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.Pr
 }
 
 func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
-	field, appErr := api.app.GetPropertyField(api.psaPluginContext(), groupID, fieldID)
+	rctx := api.psaPluginContext()
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return field, nil
+	return api.app.projectLegacyPermissions(rctx, field, make(map[string]*model.PropertyField)), nil
 }
 
 func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	fields, appErr := api.app.GetPropertyFields(api.psaPluginContext(), groupID, ids)
+	rctx := api.psaPluginContext()
+	fields, appErr := api.app.GetPropertyFields(rctx, groupID, ids)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return fields, nil
+	return api.projectLegacyPermissionsForEach(rctx, fields), nil
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
@@ -1943,11 +1962,12 @@ func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
 }
 
 func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	fields, appErr := api.app.SearchPropertyFields(api.psaPluginContext(), groupID, opts)
+	rctx := api.psaPluginContext()
+	fields, appErr := api.app.SearchPropertyFields(rctx, groupID, opts)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return fields, nil
+	return api.projectLegacyPermissionsForEach(rctx, fields), nil
 }
 
 func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
@@ -2094,11 +2114,12 @@ func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	field, appErr := api.app.GetPropertyFieldByName(api.psaPluginContext(), groupID, targetID, name)
+	rctx := api.psaPluginContext()
+	field, appErr := api.app.GetPropertyFieldByName(rctx, groupID, targetID, name)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return field, nil
+	return api.app.projectLegacyPermissions(rctx, field, make(map[string]*model.PropertyField)), nil
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
@@ -2140,15 +2161,23 @@ func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) erro
 }
 
 func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
-	return api.app.EvaluatePluginAccessRequest(api.ctx, api.id, userID, resourceType, resourceID, action)
+	// Tagged with the plugin's ID so the property reads the evaluation makes
+	// are attributed to the plugin; api.ctx carries no caller, which the
+	// property access control hook refuses.
+	return api.app.EvaluatePluginAccessRequest(api.psaPluginContext(), api.id, userID, resourceType, resourceID, action)
 }
 
 func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
-	return api.app.SavePluginAccessControlPolicy(api.ctx, api.id, actingUserID, policy)
+	// Tagged with the plugin's ID so the existence probe's policy read is
+	// attributed to the plugin; api.ctx carries no caller. The save itself runs
+	// as the acting user.
+	return api.app.SavePluginAccessControlPolicy(api.psaPluginContext(), api.id, actingUserID, policy)
 }
 
 func (api *PluginAPI) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
-	return api.app.GetPluginAccessControlPolicy(api.ctx, api.id, id)
+	// Tagged with the plugin's ID so the policy normalization's field lookups
+	// are attributed to the plugin; api.ctx carries no caller.
+	return api.app.GetPluginAccessControlPolicy(api.psaPluginContext(), api.id, id)
 }
 
 func (api *PluginAPI) DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError {

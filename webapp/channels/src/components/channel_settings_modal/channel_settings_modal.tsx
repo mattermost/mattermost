@@ -48,6 +48,13 @@ type ChannelSettingsModalProps = {
     onExited: () => void;
     isOpen: boolean;
     focusOriginElement?: string;
+
+    /**
+     * The tab to open on: a built-in tab ('info', 'configuration', …) or the id that
+     * registerChannelSettingsTab returned for a plugin's tab. A tab that isn't shown for the
+     * channel falls back to the first one, as a selection that becomes unavailable does.
+     */
+    initialTab?: string;
 };
 
 type ChannelSettingsModalBodyProps = Omit<ChannelSettingsModalProps, 'channelId'> & {
@@ -94,6 +101,13 @@ function getPreferredActiveTab(activeTab: string, visibleBuiltInTabs: SidebarTab
     return visibleBuiltInTabs[0]?.name ?? visiblePluginTabs[0]?.name ?? BuiltInTabIds.INFO;
 }
 
+function initialTabName(initialTab: string | undefined): string {
+    if (!initialTab || isBuiltInTabId(initialTab)) {
+        return initialTab || BuiltInTabIds.INFO;
+    }
+    return getPluginTabName(initialTab);
+}
+
 function ChannelSettingsModal(props: ChannelSettingsModalProps) {
     const channel = useSelector((state: GlobalState) => getChannel(state, props.channelId));
     const {onExited} = props;
@@ -116,7 +130,7 @@ function ChannelSettingsModal(props: ChannelSettingsModalProps) {
     );
 }
 
-function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement}: ChannelSettingsModalBodyProps) {
+function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement, initialTab}: ChannelSettingsModalBodyProps) {
     const {formatMessage} = useIntl();
     const channelId = channel.id;
     const visiblePluginTabRegistrations = useSelector((state: GlobalState) => {
@@ -240,7 +254,7 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
 
     // The user's selected tab. The tab actually shown is derived as `activeTab`
     // below so a selection that becomes unavailable falls back automatically.
-    const [selectedTab, setSelectedTab] = useState<string>(BuiltInTabIds.INFO);
+    const [selectedTab, setSelectedTab] = useState<string>(() => initialTabName(initialTab));
 
     // State for showing error in the save changes panel when trying to switch tabs with unsaved changes
     const [showTabSwitchError, setShowTabSwitchError] = useState(false);

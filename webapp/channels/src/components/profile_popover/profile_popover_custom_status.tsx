@@ -5,7 +5,9 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {UserProfile} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
@@ -94,8 +96,8 @@ const ProfilePopoverCustomStatus = ({
                 size='small'
                 className='user-popover__set-status'
                 onClick={showCustomStatusModal}
+                leadingIcon={<Icon glyph={<EmoticonPlusOutlineIcon/>}/>}
             >
-                <i className='icon icon-emoticon-plus-outline'/>
                 <FormattedMessage
                     id='user_profile.custom_status.set_status'
                     defaultMessage='Set a status'

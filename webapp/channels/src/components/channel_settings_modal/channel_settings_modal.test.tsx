@@ -897,6 +897,55 @@ describe('ChannelSettingsModal', () => {
         });
     });
 
+    describe('initialTab', () => {
+        it('opens on the plugin tab whose registration id it names', async () => {
+            const registration = makePluginTabRegistration();
+
+            renderWithContext(
+                <ChannelSettingsModal
+                    {...baseProps}
+                    initialTab={registration.id}
+                />,
+                makeTestState([registration]),
+            );
+
+            await waitFor(() => {
+                expect(screen.getByRole('tab', {name: /plugin tab/i})).toHaveAttribute('aria-selected', 'true');
+            });
+            expect(screen.getByTestId('channel-settings-pluggable')).toBeInTheDocument();
+        });
+
+        it('opens on a built-in tab it names', async () => {
+            renderWithContext(
+                <ChannelSettingsModal
+                    {...baseProps}
+                    initialTab='configuration'
+                />,
+                makeTestState(),
+            );
+
+            await waitFor(() => {
+                expect(getLatestSettingsSidebarProps().activeTab).toBe('configuration');
+            });
+        });
+
+        it('falls back to the first tab when the one it names is not shown', async () => {
+            const registration = makePluginTabRegistration({shouldRender: jest.fn(() => false)});
+
+            renderWithContext(
+                <ChannelSettingsModal
+                    {...baseProps}
+                    initialTab={registration.id}
+                />,
+                makeTestState([registration]),
+            );
+
+            await waitFor(() => {
+                expect(getLatestSettingsSidebarProps().activeTab).toBe('info');
+            });
+        });
+    });
+
     describe('plugin tab wiring', () => {
         it('renders registered plugin tabs', async () => {
             const registration = makePluginTabRegistration();

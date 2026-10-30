@@ -1440,6 +1440,9 @@ func TestHasPermissionToEditPropertyField(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		if tc.field != nil {
+			tc.field.Permissions = model.PermissionsFromLegacy(tc.field, model.LegacyConversionOpts{ConvertAttrs: true})
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, th.App.HasPermissionToEditPropertyField(th.Context, tc.userID, tc.field))
 		})
@@ -1683,6 +1686,9 @@ func TestHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	const unusedValueTargetID = ""
 
 	for _, tc := range testCases {
+		if tc.field != nil {
+			tc.field.Permissions = model.PermissionsFromLegacy(tc.field, model.LegacyConversionOpts{ConvertAttrs: true})
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, th.App.HasPermissionToSetPropertyFieldValues(th.Context, tc.userID, tc.field, unusedValueTargetID))
 		})
@@ -1822,6 +1828,9 @@ func TestHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		if tc.field != nil {
+			tc.field.Permissions = model.PermissionsFromLegacy(tc.field, model.LegacyConversionOpts{ConvertAttrs: true})
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, th.App.HasPermissionToManagePropertyFieldOptions(th.Context, tc.userID, tc.field))
 		})
@@ -1849,7 +1858,7 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:    "protected field returns false even for unrestricted session",
+			name:    "unconverted protected field returns false even for unrestricted session",
 			session: model.Session{UserId: th.SystemAdminUser.Id, Local: true},
 			field: &model.PropertyField{
 				GroupID:           groupID,
@@ -1864,7 +1873,7 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:    "nil permissions returns false even for unrestricted session",
+			name:    "unconverted field with nil permissions returns false even for unrestricted session",
 			session: model.Session{UserId: th.SystemAdminUser.Id, Local: true},
 			field: &model.PropertyField{
 				GroupID:    groupID,
@@ -1975,6 +1984,14 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		// A Local session bypasses the decision outright once the field
+		// carries Permissions (SessionPropertyFieldEditBasis stops short-
+		// circuiting on Protected/nil-Permissions and falls through to
+		// IsUnrestricted). A case that denies a Local session relies on the
+		// field staying unconverted to keep hitting that short circuit.
+		if tc.field != nil && (!tc.session.Local || tc.expected) {
+			tc.field.Permissions = model.PermissionsFromLegacy(tc.field, model.LegacyConversionOpts{ConvertAttrs: true})
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, th.App.SessionHasPermissionToEditPropertyField(th.Context, tc.session, tc.field))
 		})
@@ -2010,7 +2027,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:    "nil permissions returns false even for unrestricted session",
+			name:    "unconverted field with nil permissions returns false even for unrestricted session",
 			session: model.Session{UserId: th.SystemAdminUser.Id, Local: true},
 			field: &model.PropertyField{
 				GroupID:    groupID,
@@ -2216,6 +2233,11 @@ func TestSessionHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	const unusedValueTargetID = ""
 
 	for _, tc := range testCases {
+		// See TestSessionHasPermissionToEditPropertyField for why a Local
+		// session that must be denied needs the field left unconverted.
+		if tc.field != nil && (!tc.session.Local || tc.expected) {
+			tc.field.Permissions = model.PermissionsFromLegacy(tc.field, model.LegacyConversionOpts{ConvertAttrs: true})
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, tc.session, tc.field, unusedValueTargetID))
 		})
@@ -2243,7 +2265,7 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:    "nil permissions returns false even for unrestricted session",
+			name:    "unconverted field with nil permissions returns false even for unrestricted session",
 			session: model.Session{UserId: th.SystemAdminUser.Id, Local: true},
 			field: &model.PropertyField{
 				GroupID:    groupID,
@@ -2355,6 +2377,11 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		// See TestSessionHasPermissionToEditPropertyField for why a Local
+		// session that must be denied needs the field left unconverted.
+		if tc.field != nil && (!tc.session.Local || tc.expected) {
+			tc.field.Permissions = model.PermissionsFromLegacy(tc.field, model.LegacyConversionOpts{ConvertAttrs: true})
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, tc.session, tc.field))
 		})
@@ -2378,7 +2405,7 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 		// Edit and ManageOptions operate on the field definition; admin
 		// means admin of the field's TargetType+TargetID.
 		fieldFor := func(target model.PropertyFieldTargetLevel, targetID string) *model.PropertyField {
-			return &model.PropertyField{
+			field := &model.PropertyField{
 				GroupID:           groupID,
 				Name:              "admin only " + string(target),
 				Type:              model.PropertyFieldTypeText,
@@ -2389,6 +2416,8 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 				PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
 				PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 			}
+			field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
+			return field
 		}
 		fieldOps := func(t *testing.T, session model.Session, field *model.PropertyField, want bool) {
 			t.Helper()
@@ -2433,7 +2462,7 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 		// ObjectType + the value's TargetID — the channel classification
 		// shape: one global field, per-channel values.
 		fieldFor := func(objectType string) *model.PropertyField {
-			return &model.PropertyField{
+			field := &model.PropertyField{
 				GroupID:           groupID,
 				Name:              "values admin " + objectType,
 				Type:              model.PropertyFieldTypeText,
@@ -2443,6 +2472,8 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 				PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
 				PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 			}
+			field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
+			return field
 		}
 
 		t.Run("channel-object value: admin of the value's channel passes", func(t *testing.T) {
@@ -2524,6 +2555,7 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 				PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
 				PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 			}
+			field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
 
 			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
 				model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
@@ -2570,6 +2602,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostMember(t *testing.T) {
 		PermissionValues:  model.NewPointer(model.PermissionLevelMember),
 		PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 	}
+	field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
 
 	post := th.CreatePost(t, th.BasicChannel) // authored by BasicUser
 
@@ -2589,7 +2622,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues_DirectAndGroupChannels(t *
 	groupID := registerTestPropertyGroup(t, th)
 
 	fieldFor := func(objectType string, level model.PermissionLevel) *model.PropertyField {
-		return &model.PropertyField{
+		field := &model.PropertyField{
 			GroupID:           groupID,
 			Name:              objectType + " values " + string(level),
 			Type:              model.PropertyFieldTypeText,
@@ -2599,6 +2632,8 @@ func TestSessionHasPermissionToSetPropertyFieldValues_DirectAndGroupChannels(t *
 			PermissionValues:  model.NewPointer(level),
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
+		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
+		return field
 	}
 
 	memberField := fieldFor(model.PropertyFieldObjectTypeChannel, model.PermissionLevelMember)
@@ -2896,6 +2931,10 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 	session := func(u *model.User) model.Session {
 		return model.Session{UserId: u.Id, Roles: model.SystemUserRoleId}
 	}
+	converted := func(field *model.PropertyField) *model.PropertyField {
+		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
+		return field
+	}
 
 	// Both channel types have no channel-admin tier, so both must resolve the
 	// admin level to participation. GMs additionally carry no CreatorId, so
@@ -2914,7 +2953,7 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			// by its participants, so pinning permission_field=admin does not
 			// lock them out.
 			t.Run("field level", func(t *testing.T) {
-				field := &model.PropertyField{
+				field := converted(&model.PropertyField{
 					GroupID:           groupID,
 					Name:              "scoped " + model.NewId(),
 					Type:              model.PropertyFieldTypeText,
@@ -2924,7 +2963,7 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 					PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
 					PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
 					PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
-				}
+				})
 
 				assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, session(plainMember), field))
 				assert.True(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, session(plainMember), field))
@@ -2939,25 +2978,25 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			// Value-level admin dispatches on the value's own target, so both
 			// the channel-object and post-object arms need covering.
 			t.Run("value level", func(t *testing.T) {
-				channelField := &model.PropertyField{
+				channelField := converted(&model.PropertyField{
 					GroupID:          groupID,
 					Name:             "channel values " + model.NewId(),
 					Type:             model.PropertyFieldTypeText,
 					ObjectType:       model.PropertyFieldObjectTypeChannel,
 					TargetType:       string(model.PropertyFieldTargetLevelSystem),
 					PermissionValues: model.NewPointer(model.PermissionLevelAdmin),
-				}
+				})
 				assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), channelField, tc.channel.Id))
 				assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(outsider), channelField, tc.channel.Id))
 
-				postField := &model.PropertyField{
+				postField := converted(&model.PropertyField{
 					GroupID:          groupID,
 					Name:             "post values " + model.NewId(),
 					Type:             model.PropertyFieldTypeText,
 					ObjectType:       model.PropertyFieldObjectTypePost,
 					TargetType:       string(model.PropertyFieldTargetLevelSystem),
 					PermissionValues: model.NewPointer(model.PermissionLevelAdmin),
-				}
+				})
 				assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), postField, post.Id))
 				assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(outsider), postField, post.Id))
 
@@ -2985,7 +3024,7 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			// rename, retype, delete or re-option it by virtue of being in the
 			// conversation its values land on.
 			t.Run("system-scoped field is not administered by participants", func(t *testing.T) {
-				systemField := &model.PropertyField{
+				systemField := converted(&model.PropertyField{
 					GroupID:           groupID,
 					Name:              "system scoped " + model.NewId(),
 					Type:              model.PropertyFieldTypeText,
@@ -2994,7 +3033,7 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 					PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
 					PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
 					PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
-				}
+				})
 
 				// Precondition: the participant really does administer this
 				// conversation, so the denials below are the TargetType dispatch and
@@ -3031,7 +3070,7 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 		require.Nil(t, appErr)
 		guestSession := session(guest)
 
-		adminField := &model.PropertyField{
+		adminField := converted(&model.PropertyField{
 			GroupID:           groupID,
 			Name:              "guest dm admin " + model.NewId(),
 			Type:              model.PropertyFieldTypeText,
@@ -3041,7 +3080,7 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
 			PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
 			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
-		}
+		})
 
 		// Precondition: the guest really is in the channel, so the denials
 		// below are the guest check and not a missing membership.
@@ -3055,7 +3094,7 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 
 		// The member level is untouched: a guest still reaches a field scoped
 		// to a DM they belong to.
-		memberField := &model.PropertyField{
+		memberField := converted(&model.PropertyField{
 			GroupID:           groupID,
 			Name:              "guest dm member " + model.NewId(),
 			Type:              model.PropertyFieldTypeText,
@@ -3065,7 +3104,7 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			PermissionField:   model.NewPointer(model.PermissionLevelMember),
 			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
 			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
-		}
+		})
 		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, guestSession, memberField))
 		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, guestSession, memberField, guestDM.Id))
 	})
@@ -3080,7 +3119,7 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			model.SystemUserRoleId+" "+model.SystemReadOnlyAdminRoleId, false)
 		require.Nil(t, appErr)
 
-		field := &model.PropertyField{
+		field := converted(&model.PropertyField{
 			GroupID:           groupID,
 			Name:              "normal scoped " + model.NewId(),
 			Type:              model.PropertyFieldTypeText,
@@ -3090,19 +3129,19 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
 			PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
 			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
-		}
+		})
 
 		// A system-scoped post-object field: the value arm resolves against the
 		// post's channel rather than the field's target, so it needs its own
 		// assertion even though the channel is the same.
-		postField := &model.PropertyField{
+		postField := converted(&model.PropertyField{
 			GroupID:          groupID,
 			Name:             "normal post values " + model.NewId(),
 			Type:             model.PropertyFieldTypeText,
 			ObjectType:       model.PropertyFieldObjectTypePost,
 			TargetType:       string(model.PropertyFieldTargetLevelSystem),
 			PermissionValues: model.NewPointer(model.PermissionLevelAdmin),
-		}
+		})
 		basicPost := th.CreatePost(t, th.BasicChannel)
 
 		for _, tc := range []struct {
@@ -3152,6 +3191,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 		PermissionValues:  model.NewPointer(model.PermissionLevelCreator),
 		PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 	}
+	field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
 
 	// The author must hold no admin role in the post's channel, or this test
 	// would pass through the admin arm and prove nothing about the creator arm.
@@ -3343,6 +3383,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues_ChannelCreator(t *testing.
 		PermissionValues:  model.NewPointer(model.PermissionLevelCreator),
 		PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 	}
+	field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
 
 	require.Equal(t, th.BasicUser.Id, th.BasicChannel.CreatorId, "BasicChannel is expected to be created by BasicUser")
 
@@ -3519,7 +3560,7 @@ func TestPropertyFieldCreatorLevel_FieldAndOptions(t *testing.T) {
 	// scoped to. ObjectType stays post because validation only permits the
 	// creator level on post- and channel-object fields.
 	fieldFor := func(target model.PropertyFieldTargetLevel, targetID, createdBy string) *model.PropertyField {
-		return &model.PropertyField{
+		field := &model.PropertyField{
 			ID:                model.NewId(),
 			GroupID:           groupID,
 			Name:              "creator field " + string(target),
@@ -3532,6 +3573,8 @@ func TestPropertyFieldCreatorLevel_FieldAndOptions(t *testing.T) {
 			PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
 			PermissionOptions: model.NewPointer(model.PermissionLevelCreator),
 		}
+		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
+		return field
 	}
 
 	// The creator must hold no admin role in any of the three scopes, or the

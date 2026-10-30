@@ -275,7 +275,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec.AddEventResultState(np)
 
 	if shouldRedactExpressions(c) {
-		c.App.MaskPolicyExpressions(c.AppContext, np, c.AppContext.Session().UserId)
+		c.App.MaskPolicyExpressions(c.AppContext, np, sessionCallerID(c))
 	}
 
 	js, err := json.Marshal(np)
@@ -346,7 +346,7 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.App.PopulateAccessControlPolicyChildCounts(c.AppContext, policy)
 
 	if shouldRedactExpressions(c) {
-		c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
+		c.App.MaskPolicyExpressions(c.AppContext, policy, sessionCallerID(c))
 	}
 
 	js, err := json.Marshal(policy)
@@ -916,7 +916,7 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 
 	if shouldRedactExpressions(c) {
 		for _, p := range policies {
-			c.App.MaskPolicyExpressions(c.AppContext, p, c.AppContext.Session().UserId)
+			c.App.MaskPolicyExpressions(c.AppContext, p, sessionCallerID(c))
 		}
 	}
 
@@ -1093,7 +1093,7 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if shouldRedactExpressions(c) {
 		for _, p := range policies {
-			c.App.MaskPolicyExpressions(c.AppContext, p, c.AppContext.Session().UserId)
+			c.App.MaskPolicyExpressions(c.AppContext, p, sessionCallerID(c))
 		}
 	}
 
@@ -1499,7 +1499,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ac []*model.PropertyField
 	var appErr *model.AppError
 
-	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, c.AppContext.Session().UserId)
+	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, sessionCallerID(c))
 
 	if appErr != nil {
 		c.Err = appErr
@@ -1559,7 +1559,7 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Masking is attribute-based, not permission-based: all admins receive a
 	// filtered AST based on what they themselves hold, regardless of role.
 	if shouldRedactExpressions(c) {
-		visualAST, appErr = c.App.GetMaskedVisualAST(c.AppContext, cel.Expression, c.AppContext.Session().UserId)
+		visualAST, appErr = c.App.GetMaskedVisualAST(c.AppContext, cel.Expression, sessionCallerID(c))
 	} else {
 		visualAST, appErr = c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)
 	}
