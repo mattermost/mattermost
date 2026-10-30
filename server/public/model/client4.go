@@ -39,6 +39,7 @@ const (
 	HeaderRequestedWith             = "X-Requested-With"
 	HeaderRequestedWithXML          = "XMLHttpRequest"
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
+	// Deprecated: the server no longer sets this header.
 	HeaderFirstInaccessibleFileTime = "First-Inaccessible-File-Time"
 	HeaderRange                     = "Range"
 	HeaderRejectReason              = "X-Reject-Reason"
@@ -7476,33 +7477,6 @@ func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*Subscription](r)
-}
-
-func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("subscription", "invoices"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Invoice](r)
-}
-
-func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer"), customerInfo)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
-}
-
-func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Address) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer", "address"), address)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
 }
 
 func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) {

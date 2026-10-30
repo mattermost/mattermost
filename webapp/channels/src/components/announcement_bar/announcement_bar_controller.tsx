@@ -9,7 +9,6 @@ import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_clou
 
 import CloudPreviewAnnouncementBar from './cloud_preview_announcement_bar';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
-import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
 import AnnouncementBar from './default_announcement_bar';
 import NonProductionLicenseAnnouncementBar from './non_production_license_bar';
@@ -65,14 +64,10 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         }
 
         let cloudTrialAnnouncementBar = null;
-        let cloudTrialEndAnnouncementBar = null;
         let cloudPreviewAnnouncementBar = null;
         if (this.props.license?.Cloud === 'true') {
             cloudTrialAnnouncementBar = (
                 <CloudTrialAnnouncementBar/>
-            );
-            cloudTrialEndAnnouncementBar = (
-                <CloudTrialEndAnnouncementBar/>
             );
             cloudPreviewAnnouncementBar = (
                 <CloudPreviewAnnouncementBar/>
@@ -108,7 +103,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                     userIsAdmin={this.props.userIsAdmin}
                 />
                 {cloudTrialAnnouncementBar}
-                {cloudTrialEndAnnouncementBar}
                 {cloudPreviewAnnouncementBar}
                 {this.props.license?.Cloud !== 'true' && <OverageUsersBanner/>}
                 <SingleChannelGuestLimitBanner userIsAdmin={this.props.userIsAdmin}/>

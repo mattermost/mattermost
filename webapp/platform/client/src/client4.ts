@@ -34,11 +34,8 @@ import type {
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
 import {LogLevel} from '@mattermost/types/client4';
 import type {
-    Address,
     Product,
     CloudCustomer,
-    CloudCustomerPatch,
-    Invoice,
     Limits,
     NotifyAdminRequest,
     Subscription,
@@ -4710,20 +4707,6 @@ export default class Client4 {
         );
     };
 
-    updateCloudCustomer = (customerPatch: CloudCustomerPatch) => {
-        return this.doFetch<CloudCustomer>(
-            `${this.getCloudRoute()}/customer`,
-            {method: 'put', body: JSON.stringify(customerPatch)},
-        );
-    };
-
-    updateCloudCustomerAddress = (address: Address) => {
-        return this.doFetch<CloudCustomer>(
-            `${this.getCloudRoute()}/customer/address`,
-            {method: 'put', body: JSON.stringify(address)},
-        );
-    };
-
     notifyAdmin = (req: NotifyAdminRequest) => {
         return this.doFetchWithResponse<StatusOK>(
             `${this.getUsersRoute()}/notify-admin`,
@@ -4764,17 +4747,6 @@ export default class Client4 {
             `${this.getCloudRoute()}/preview/modal_data`,
             {method: 'get'},
         );
-    };
-
-    getInvoices = () => {
-        return this.doFetch<Invoice[]>(
-            `${this.getCloudRoute()}/subscription/invoices`,
-            {method: 'get'},
-        );
-    };
-
-    getInvoicePdfUrl = (invoiceId: string) => {
-        return `${this.getCloudRoute()}/subscription/invoices/${invoiceId}/pdf`;
     };
 
     getCloudLimits = () => {

@@ -94,7 +94,7 @@ func (s SqlTokenStore) ConsumeOnce(tokenType, tokenStr string) (*model.Token, er
 }
 
 func (s SqlTokenStore) Cleanup(expiryTime int64) {
-	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE CreateAt < ?", expiryTime); err != nil {
+	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE CreateAt < ? AND Type <> ?", expiryTime, model.TokenTypeCWSAccess); err != nil {
 		mlog.Error("Unable to cleanup token store.")
 	}
 }

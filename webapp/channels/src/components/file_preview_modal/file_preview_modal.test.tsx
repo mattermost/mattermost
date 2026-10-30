@@ -19,7 +19,6 @@ jest.mock('react-bootstrap', () => {
     return {Modal};
 });
 
-jest.mock('components/archived_preview', () => () => <div>{'Archived Preview'}</div>);
 jest.mock('components/audio_video_preview', () => () => <div>{'Audio Video Preview'}</div>);
 const mockCodePreview = jest.fn();
 jest.mock('components/code_preview', () => ({
