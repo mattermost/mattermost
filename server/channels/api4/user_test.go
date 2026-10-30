@@ -10168,6 +10168,68 @@ func TestReadThreads(t *testing.T) {
 		checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 1, 1, nil)
 	})
 
+	t.Run("invalid post id leaves thread state unchanged", func(t *testing.T) {
+		defer func() {
+			err := th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+			require.NoError(t, err)
+			err = th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.SystemAdminUser.Id)
+			require.NoError(t, err)
+		}()
+
+		rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsgC1"})
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + th.BasicUser.Username, RootId: rpost.Id})
+		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReplyC1", RootId: rpost.Id})
+		otherRoot, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsgC2"})
+		otherReply, _ := postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReplyC2", RootId: otherRoot.Id})
+
+		_, resp, err := th.Client.UpdateThreadReadForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, otherRoot.Id, otherReply.CreateAt+1)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 2, nil)
+
+		assertRejectedWithoutChanges := func(t *testing.T) {
+			before, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rpost.Id)
+			require.Nil(t, appErr)
+
+			_, resp, err := th.Client.SetThreadUnreadByPostId(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, otherReply.Id)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+
+			_, resp, err = th.Client.SetThreadUnreadByPostId(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, model.NewId())
+			require.Error(t, err)
+			CheckNotFoundStatus(t, resp)
+
+			after, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rpost.Id)
+			require.Nil(t, appErr)
+			require.Equal(t, before, after)
+		}
+
+		t.Run("followed thread", func(t *testing.T) {
+			membership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rpost.Id)
+			require.Nil(t, appErr)
+			require.True(t, membership.Following)
+			require.EqualValues(t, 1, membership.UnreadMentions)
+
+			assertRejectedWithoutChanges(t)
+
+			checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 2, nil)
+		})
+
+		t.Run("unfollowed thread", func(t *testing.T) {
+			resp, err := th.Client.UpdateThreadFollowForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			assertRejectedWithoutChanges(t)
+
+			membership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rpost.Id)
+			require.Nil(t, appErr)
+			require.False(t, membership.Following)
+			checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 0, 1, nil)
+		})
+	})
+
 	t.Run("should error when not a team member", func(t *testing.T) {
 		th.UnlinkUserFromTeam(t, th.BasicUser, th.BasicTeam)
 		defer th.LinkUserToTeam(t, th.BasicUser, th.BasicTeam)

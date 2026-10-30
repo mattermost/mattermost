@@ -3302,6 +3302,10 @@ func (a *App) UpdateThreadReadForUserByPost(rctx request.CTX, currentSessionId, 
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user_by_post.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if err := a.UpdateThreadFollowForUser(userID, teamID, threadID, true); err != nil {
+		return nil, err
+	}
+
 	return a.UpdateThreadReadForUser(rctx, currentSessionId, userID, teamID, threadID, post.CreateAt-1)
 }
 
