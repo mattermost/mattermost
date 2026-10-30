@@ -637,6 +637,33 @@ describe('components/integrations/bots/AddBot', () => {
                 expect(botActions.createBot).not.toHaveBeenCalled();
             });
 
+            test('Enter on a closed attribute dropdown does nothing, and Create still saves the picked value', async () => {
+                const {actions: botActions} = renderAddBot();
+
+                typeUsername();
+                await addAttribute('Clearance');
+                const combobox = await screen.findByRole('combobox', {name: 'Clearance'});
+                await userEvent.click(combobox);
+                await userEvent.click(await screen.findByRole('option', {name: 'Secret'}));
+                expect(combobox).toHaveValue('Secret');
+                expect(combobox).toHaveAttribute('aria-expanded', 'false');
+                expect(combobox).toHaveFocus();
+
+                // The form's first submit-capable button is the type-less Add attribute
+                // trigger, so an unguarded Enter here opens that menu rather than submitting.
+                const addTrigger = screen.getByRole('button', {name: 'Add attribute'});
+                await userEvent.keyboard('{Enter}');
+
+                expect(addTrigger).toHaveAttribute('aria-expanded', 'false');
+                expect(botActions.createBot).not.toHaveBeenCalled();
+
+                submit('Create Bot Account');
+
+                await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(CONFIRM_URL));
+                expect(botActions.createBot).toHaveBeenCalledTimes(1);
+                expect(botActions.updateUserCustomProfileAttributeValues).toHaveBeenCalledWith('bot-user-id', {clearance: 'c1'});
+            });
+
             test('an invalid username blocks createBot before any request', async () => {
                 const {actions: botActions} = renderAddBot();
 

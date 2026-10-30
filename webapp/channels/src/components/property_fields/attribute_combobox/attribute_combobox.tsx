@@ -11,6 +11,7 @@ import {
     attributeComboboxKeyGuard,
     attributeComboboxMouseDownGuard,
     clearButtonKeyGuard,
+    enterSubmitGuard,
     toComboboxOptions,
 } from './attribute_combobox_utils';
 
@@ -42,21 +43,18 @@ const messages = defineMessages({
     },
 });
 
-type SingleProps = {
-    multiple?: false;
-    value: string;
-    onChange: (value: string) => void;
-};
+export type AttributeComboboxProps = {
+    multiple?: boolean;
 
-type MultiProps = {
-    multiple: true;
-
-    /** A lone id, e.g. one stored before the field became multiselect, is treated as a one-item list. */
+    /**
+     * Option ids, in either shape whatever the mode, since a field's stored value
+     * can predate a change of its type: a multiple field treats a lone id as a
+     * one-item list, and a single field shows the first id of a list.
+     */
     value: string | string[];
-    onChange: (value: string[]) => void;
-};
 
-export type AttributeComboboxProps = (SingleProps | MultiProps) & {
+    /** Called with an id ('' when cleared), or with an id list in multiple mode. */
+    onChange: (value: string | string[]) => void;
 
     /** Field name: the input's accessible name, also used in the clear and selections labels. */
     label: string;
@@ -71,11 +69,34 @@ export type AttributeComboboxProps = (SingleProps | MultiProps) & {
 
     /** Stacking order for the portaled menu, e.g. ZIndex.MENU inside a modal. */
     zIndex?: number;
+
+    /** Class for the wrapper, the element a layout sizes. */
+    className?: string;
+    'aria-describedby'?: string;
+
+    /**
+     * Inside a form: prevents any Enter that doesn't pick an option, so it can't
+     * submit the form. That Enter then no longer reaches document listeners either.
+     */
+    preventEnterSubmit?: boolean;
 };
 
-export function AttributeCombobox(props: AttributeComboboxProps) {
-    const {label, options, id, testId, disabled, invalid, placeholder, zIndex} = props;
-
+export function AttributeCombobox({
+    multiple = false,
+    value,
+    onChange,
+    label,
+    options,
+    id,
+    testId,
+    disabled,
+    invalid,
+    placeholder,
+    zIndex,
+    className,
+    'aria-describedby': ariaDescribedBy,
+    preventEnterSubmit,
+}: AttributeComboboxProps) {
     const {formatMessage} = useIntl();
     const labels = useMemo(() => ({
         listboxLabel: formatMessage(messages.listbox),
@@ -87,30 +108,30 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
     const comboboxOptions = useMemo(() => toComboboxOptions(options, testId), [options, testId]);
 
     const values = useMemo(() => {
-        if (Array.isArray(props.value)) {
-            return props.value;
+        if (Array.isArray(value)) {
+            return value;
         }
-        return props.value ? [props.value] : [];
-    }, [props.value]);
+        return value ? [value] : [];
+    }, [value]);
 
     // Values found in options resolve from there first; the rest (e.g. deleted
     // options) still render, labelled with their raw id.
-    const selectedOptions = useMemo(() => values.map((value) => ({value, label: value})), [values]);
+    const selectedOptions = useMemo(() => values.map((v) => ({value: v, label: v})), [values]);
 
     const handleChange = (next: string | string[] | null) => {
-        if (props.multiple) {
-            props.onChange(Array.isArray(next) ? next : []);
+        if (multiple) {
+            onChange(Array.isArray(next) ? next : []);
         } else {
-            props.onChange(typeof next === 'string' ? next : '');
+            onChange(typeof next === 'string' ? next : '');
         }
     };
 
+    // Both guards are needed: without the mousedown guard, focus can leave the
+    // input and the key guard stops seeing Escape.
     return (
-
-        // Wrap only the Combobox. Both guards are needed: without the mousedown
-        // guard, focus can leave the input and the key guard stops seeing Escape.
         <div
             role='presentation'
+            className={className}
             onKeyDown={attributeComboboxKeyGuard}
             onMouseDown={attributeComboboxMouseDownGuard}
         >
@@ -118,9 +139,10 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
                 id={id}
                 data-testid={testId}
                 aria-label={label}
+                aria-describedby={ariaDescribedBy}
                 options={comboboxOptions}
-                multiple={props.multiple}
-                value={props.multiple ? values : props.value}
+                multiple={multiple}
+                value={multiple ? values : values[0] ?? ''}
                 selectedOptions={selectedOptions}
                 clearable={true}
                 clearButtonProps={{
@@ -133,6 +155,7 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
                 zIndex={zIndex}
                 {...labels}
                 onChange={handleChange}
+                onKeyDown={preventEnterSubmit ? enterSubmitGuard : undefined}
             />
         </div>
     );

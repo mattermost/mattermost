@@ -102,7 +102,12 @@ export default class UserDetail {
         await this.cancelButton.click();
     }
 
+    /**
+     * Wait for a confirmed save to finish. Save is also disabled while saving, so it can't signal completion;
+     * Cancel renders only while there are unsaved changes, which last until the save succeeds.
+     */
     async waitForSaveComplete() {
+        await expect(this.cancelButton).not.toBeVisible();
         await expect(this.saveButton).toBeDisabled();
     }
 }
@@ -189,25 +194,69 @@ class AdminUserCard {
     }
 
     /**
-     * Get the select inside a field column by exact label text.
-     */
-    getSelectByExactLabel(labelText: string): Locator {
-        return this.getFieldColumn(labelText).locator('select');
-    }
-
-    /**
      * Get the field-error validation message locator for a field by its exact label text.
      */
     getFieldError(labelText: string): Locator {
         return this.getFieldColumn(labelText).getByTestId('fieldError');
     }
 
+    // ── Select / multiselect CPA combobox ───────────────────────────────
+
+    /** The combobox input of a select or multiselect CPA field, located by its exact label. */
+    getCpaCombobox(labelText: string): Locator {
+        return this.getFieldColumn(labelText).getByRole('combobox', {name: labelText, exact: true});
+    }
+
+    /** The field-name <label> that points at a CPA combobox. */
+    getCpaFieldLabel(labelText: string): Locator {
+        return this.getFieldColumn(labelText)
+            .locator('label')
+            .filter({has: this.body.page().getByText(labelText, {exact: true})});
+    }
+
+    /** The combobox's option list. It is portaled to the page and only rendered while open. */
+    async getCpaComboboxListbox(labelText: string): Promise<Locator> {
+        const listboxId = await this.getCpaCombobox(labelText).getAttribute('aria-controls');
+        if (!listboxId) {
+            throw new Error(`Combobox "${labelText}" has no aria-controls`);
+        }
+        return this.body.page().locator(`#${listboxId}`);
+    }
+
+    /** Open a CPA combobox by clicking it (focus alone doesn't open it) and return its listbox. */
+    async openCpaCombobox(labelText: string): Promise<Locator> {
+        const combobox = this.getCpaCombobox(labelText);
+        await combobox.click();
+        await expect(combobox).toHaveAttribute('aria-expanded', 'true');
+        return this.getCpaComboboxListbox(labelText);
+    }
+
     /**
-     * Get the container for a multiselect CPA field by its exact label text.
-     * Returns the .field-column wrapper which holds the multiselect component.
+     * Open the combobox and pick an option by its exact label. The menu closes after the pick.
+     * In a multiselect, picking an already-selected option deselects it.
      */
-    getCpaMultiselectContainer(labelText: string): Locator {
-        return this.getFieldColumn(labelText);
+    async selectCpaOption(labelText: string, optionName: string): Promise<void> {
+        const listbox = await this.openCpaCombobox(labelText);
+        await listbox.getByRole('option', {name: optionName, exact: true}).click();
+        await expect(this.getCpaCombobox(labelText)).toHaveAttribute('aria-expanded', 'false');
+    }
+
+    /** The clear (×) button of a select CPA combobox. It renders only while the field has a value. */
+    getCpaComboboxClearButton(labelText: string): Locator {
+        return this.getFieldColumn(labelText).getByRole('button', {name: `Clear ${labelText}`, exact: true});
+    }
+
+    /** Selected-value chips of a multiselect CPA field, in display order. */
+    getCpaChips(labelText: string): Locator {
+        return this.getFieldColumn(labelText).locator('[data-chip]');
+    }
+
+    /** Remove a chip by its exact label. The remove icon is aria-hidden, so it's found by its data attribute. */
+    async removeCpaChip(labelText: string, chipText: string): Promise<void> {
+        await this.getCpaChips(labelText)
+            .filter({has: this.body.page().getByText(chipText, {exact: true})})
+            .locator('[data-chip-remove]')
+            .click();
     }
 
     // ── Ranked CPA picker ───────────────────────────────────────────────

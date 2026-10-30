@@ -6,7 +6,6 @@ import React from 'react';
 import {FormattedList, FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
-import ReactSelect from 'react-select';
 
 import {SyncIcon, PowerPlugOutlineIcon, CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
@@ -20,6 +19,7 @@ import {getPluginDisplayName} from 'selectors/plugins';
 
 import RankBadge from 'components/admin_console/system_properties/rank_badge';
 import * as Menu from 'components/menu';
+import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
 
@@ -31,67 +31,6 @@ import {canEditUserAttribute, isAdminManagedLocked} from './user_attribute_utils
 import type {UserAttributeValue} from './user_attribute_utils';
 
 import './user_attribute_fields.scss';
-
-// Private component for CPA multiselect fields
-type CPAMultiSelectProps = {
-    options: Array<{id: string; name: string}>;
-    selectedValues: string[];
-    onChange: (values: string[]) => void;
-    disabled: boolean;
-    placeholder: string;
-    noOptionsMessage: string;
-    errorId?: string;
-};
-
-const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
-    options,
-    selectedValues,
-    onChange,
-    disabled,
-    placeholder,
-    noOptionsMessage,
-    errorId,
-}) => {
-    // Transform options to ReactSelect format
-    const selectOptions = options.map((option) => ({
-        value: option.id,
-        label: option.name,
-    }));
-
-    // Keep assigned ids even when the option is gone; dropping them shrinks the saved value.
-    const selectedOptions = selectedValues.map((selectedId) => {
-        const option = options.find((opt) => opt.id === selectedId);
-        return {value: selectedId, label: option?.name ?? selectedId};
-    });
-
-    return (
-        <ReactSelect
-            isMulti={true}
-            options={selectOptions}
-            value={selectedOptions}
-            onChange={(selectedOptions) => {
-                const selectedIds = selectedOptions ? selectedOptions.map((opt) => opt.value) : [];
-                onChange(selectedIds);
-            }}
-            isDisabled={disabled}
-            aria-invalid={errorId ? true : undefined}
-            aria-errormessage={errorId}
-            isClearable={false}
-
-            // A disabled select keeps its values; a remove button on each would
-            // suggest otherwise.
-            components={disabled ? {MultiValueRemove: () => null} : undefined}
-            placeholder={placeholder}
-            noOptionsMessage={() => noOptionsMessage}
-            styles={{
-                container: (provided) => ({
-                    ...provided,
-                    maxWidth: '320px',
-                }),
-            }}
-        />
-    );
-};
 
 // Private component for CPA ranked fields. Renders a menu of the field's options
 // in descending rank order (highest first), each prefixed with its rank badge and
@@ -179,6 +118,22 @@ const syncSourceChipMessages: Record<PropertySyncSource, MessageDescriptor> = de
     saml: {id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'},
     openid: {id: 'admin.userManagement.userDetail.openid', defaultMessage: 'OpenID Connect: {propertyName}'},
 });
+
+const messages = defineMessages({
+    selectOption: {id: 'admin.userManagement.userDetail.selectOption', defaultMessage: 'Select an option'},
+    selectOptions: {id: 'admin.user.selectOptions', defaultMessage: 'Select options...'},
+    arrayValueSeparator: {id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '},
+});
+
+type FieldControl = {
+    control: React.ReactNode;
+
+    /** The element the field name labels. */
+    controlId: string;
+
+    /** For a control htmlFor can't activate, such as a div trigger. */
+    onNameClick?: () => void;
+};
 
 type CpaFieldManagementIndicatorProps = {
     field: UserPropertyField;
@@ -323,158 +278,136 @@ export default function UserAttributeField({
     const isDisabled = disabled || !canEditUserAttribute(field, lockOpts);
     const errorId = field.id + '-error';
     const describedErrorId = error ? errorId : undefined;
+    const fieldLabel = getUserPropertyFieldLabel(field);
+    const inputId = `${testIdPrefix}-input-${field.id}`;
+    const joinValues = (values: string[]) => values.join(intl.formatMessage(messages.arrayValueSeparator));
 
-    const fieldContent = (() => {
+    const {control, controlId, onNameClick} = ((): FieldControl => {
         if (omitLocksField && valueRefersToOptions(field)) {
-            const display = Array.isArray(value) ?
-                value.join(intl.formatMessage({
-                    id: 'admin.userManagement.userDetail.arrayValueSeparator',
-                    defaultMessage: ', ',
-                })) :
-                String(value);
-            return (
-                <input
-                    className='form-control'
-                    type='text'
-                    value={display}
-                    disabled={true}
-                    readOnly={true}
-                />
-            );
+            return {
+                controlId: inputId,
+                control: (
+                    <input
+                        id={inputId}
+                        className='form-control'
+                        type='text'
+                        value={Array.isArray(value) ? joinValues(value) : value}
+                        disabled={true}
+                        readOnly={true}
+                    />
+                ),
+            };
         }
 
         switch (field.type) {
-        case 'select': {
-            const options = field.attrs?.options || [];
-            return (
-                <select
-                    className='form-control'
-                    value={Array.isArray(value) ? value[0] || '' : value}
-                    onChange={(e) => onChange(field.id, e.target.value)}
-                    disabled={isDisabled}
-                    aria-invalid={error ? 'true' : undefined}
-                    aria-describedby={describedErrorId}
-                >
-                    <option value=''>
-                        {intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.selectOption',
-                            defaultMessage: 'Select an option',
-                        })}
-                    </option>
-                    {options.map((option) => (
-                        <option
-                            key={option.id}
-                            value={option.id}
-                        >
-                            {option.name}
-                        </option>
-                    ))}
-                </select>
-            );
-        }
-        case 'rank': {
-            const options = field.attrs?.options || [];
-            return (
-                <CPARankSelect
-                    fieldId={field.id}
-                    options={options}
-                    value={Array.isArray(value) ? value[0] || '' : value}
-                    onChange={(optionId) => onChange(field.id, optionId)}
-                    disabled={isDisabled}
-                    errorId={describedErrorId}
-                    placeholder={intl.formatMessage({
-                        id: 'admin.userManagement.userDetail.selectOption',
-                        defaultMessage: 'Select an option',
-                    })}
-                />
-            );
-        }
-        case 'graph': {
-            const selectedValues = asGraphValueIds(value);
-            return (
-                <AssignmentGraphPicker
-                    field={field}
-                    ids={selectedValues}
-                    onIdsChange={(values) => onChange(field.id, values)}
-                    disabled={isDisabled}
-                    menuId={`cpa-graph-menu-${field.id}`}
-                    buttonId={`cpa-graph-button-${field.id}`}
-                    buttonDataTestId={`cpa-graph-select-${field.id}`}
-                    placeholder={intl.formatMessage({
-                        id: 'admin.user.selectOptions',
-                        defaultMessage: 'Select options...',
-                    })}
-                    ariaLabel={getUserPropertyFieldLabel(field)}
-                />
-            );
-        }
+        case 'select':
         case 'multiselect': {
-            const options = field.attrs?.options || [];
-            const selectedValues = Array.isArray(value) ? value : [];
+            const comboboxId = `${testIdPrefix}-combobox-${field.id}`;
+            const multiple = field.type === 'multiselect';
+            return {
+                controlId: comboboxId,
+                control: (
+                    <AttributeCombobox
+                        multiple={multiple}
+                        id={comboboxId}
+                        testId={comboboxId}
+                        label={fieldLabel}
+                        options={field.attrs?.options || []}
+                        value={value}
+                        onChange={(next) => onChange(field.id, next)}
+                        disabled={isDisabled}
+                        invalid={Boolean(error)}
+                        aria-describedby={describedErrorId}
+                        placeholder={intl.formatMessage(multiple ? messages.selectOptions : messages.selectOption)}
+                        className='UserAttributeField__combobox'
+                        preventEnterSubmit={true}
+                    />
+                ),
+            };
+        }
+        case 'rank':
+            return {
+                controlId: `cpa-rank-button-${field.id}`,
+                control: (
+                    <CPARankSelect
+                        fieldId={field.id}
+                        options={field.attrs?.options || []}
+                        value={Array.isArray(value) ? value[0] || '' : value}
+                        onChange={(optionId) => onChange(field.id, optionId)}
+                        disabled={isDisabled}
+                        errorId={describedErrorId}
+                        placeholder={intl.formatMessage(messages.selectOption)}
+                    />
+                ),
+            };
+        case 'graph': {
+            const buttonId = `cpa-graph-button-${field.id}`;
+            return {
+                controlId: buttonId,
 
-            return (
-                <CPAMultiSelect
-                    options={options}
-                    selectedValues={selectedValues}
-                    onChange={(values) => onChange(field.id, values)}
-                    disabled={isDisabled}
-                    errorId={describedErrorId}
-                    placeholder={intl.formatMessage({
-                        id: 'admin.user.selectOptions',
-                        defaultMessage: 'Select options...',
-                    })}
-                    noOptionsMessage={intl.formatMessage({
-                        id: 'admin.userManagement.userDetail.noOptions',
-                        defaultMessage: 'No options available',
-                    })}
-                />
-            );
+                // Graph Menu triggers are <div role="button"> so chip removes
+                // can be real buttons. Divs are not labelable, so htmlFor alone
+                // does not open the menu.
+                onNameClick: () => document.getElementById(buttonId)?.click(),
+                control: (
+                    <AssignmentGraphPicker
+                        field={field}
+                        ids={asGraphValueIds(value)}
+                        onIdsChange={(values) => onChange(field.id, values)}
+                        disabled={isDisabled}
+                        menuId={`cpa-graph-menu-${field.id}`}
+                        buttonId={buttonId}
+                        buttonDataTestId={`cpa-graph-select-${field.id}`}
+                        placeholder={intl.formatMessage(messages.selectOptions)}
+                        ariaLabel={fieldLabel}
+                    />
+                ),
+            };
         }
         case 'text':
-        default: {
-            const inputType = getInputTypeFromValueType(field.attrs?.value_type);
-
-            return (
-                <input
-                    className={classNames('form-control', {
-                        error,
-                    })}
-                    type={inputType}
-                    value={Array.isArray(value) ? value.join(intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : value}
-                    onChange={(e) => onChange(field.id, e.target.value)}
-                    disabled={isDisabled}
-                    aria-describedby={describedErrorId}
-                    aria-invalid={error ? 'true' : 'false'}
-                />
-            );
-        }
+        default:
+            return {
+                controlId: inputId,
+                control: (
+                    <input
+                        id={inputId}
+                        className={classNames('form-control', {
+                            error,
+                        })}
+                        type={getInputTypeFromValueType(field.attrs?.value_type)}
+                        value={Array.isArray(value) ? joinValues(value) : value}
+                        onChange={(e) => onChange(field.id, e.target.value)}
+                        disabled={isDisabled}
+                        aria-describedby={describedErrorId}
+                        aria-invalid={error ? 'true' : 'false'}
+                    />
+                ),
+            };
         }
     })();
 
-    const fieldName = (
-        <FormattedMessage
-            id='admin.userManagement.userDetail.cpaField'
-            defaultMessage='{fieldName}'
-            values={{fieldName: getUserPropertyFieldLabel(field)}}
-        />
-    );
+    const testId = `${testIdPrefix}-label-${field.id}`;
 
-    const fieldBody = (
-        <>
-            {field.type === 'graph' ? (
-                <label
-                    htmlFor={`cpa-graph-button-${field.id}`}
-                    onClick={() => {
-                        // Graph Menu triggers are <div role="button"> so chip
-                        // removes can be real buttons. Divs are not labelable,
-                        // so htmlFor alone does not open the menu — click it.
-                        document.getElementById(`cpa-graph-button-${field.id}`)?.click();
-                    }}
-                >
-                    {fieldName}
-                </label>
-            ) : fieldName}
-            {fieldContent}
+    // The name is its own <label htmlFor> rather than a <label> root: a label
+    // forwards clicks inside it to its first labelable descendant, which would
+    // turn a click on a chip's remove button into a click on another element.
+    const root = (
+        <div
+            className={classNames('UserAttributeField cpa-field', `UserAttributeField--${field.type}`)}
+            data-testid={testId}
+        >
+            <label
+                className='UserAttributeField__name'
+                htmlFor={controlId}
+                onClick={onNameClick}
+            >
+                <FormattedMessage
+                    id='admin.userManagement.userDetail.cpaField'
+                    defaultMessage='{fieldName}'
+                    values={{fieldName: fieldLabel}}
+                />
+            </label>
+            {control}
             {error && (
                 <div
                     id={errorId}
@@ -491,29 +424,7 @@ export default function UserAttributeField({
                 omitLocksField={omitLocksField}
                 adminManagedLocked={isAdminManagedLocked(field, lockOpts)}
             />
-        </>
-    );
-
-    const testId = `${testIdPrefix}-label-${field.id}`;
-
-    // A graph picker is a div trigger with chip-remove buttons inside it.
-    // Wrapping that in <label> forwards chip clicks to the trigger, so the X
-    // opens the menu instead of removing the value. Point the name at the
-    // trigger instead (with a click forwarder — divs are not labelable).
-    const root = field.type === 'graph' ? (
-        <div
-            className='UserAttributeField cpa-field'
-            data-testid={testId}
-        >
-            {fieldBody}
         </div>
-    ) : (
-        <label
-            className='UserAttributeField cpa-field'
-            data-testid={testId}
-        >
-            {fieldBody}
-        </label>
     );
 
     if (!trailing) {

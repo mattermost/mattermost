@@ -13,6 +13,7 @@ import {
     attributeComboboxKeyGuard,
     attributeComboboxMouseDownGuard,
     clearButtonKeyGuard,
+    enterSubmitGuard,
 } from './attribute_combobox_utils';
 
 function makeKeyEvent(key: string, defaultPrevented: boolean) {
@@ -79,6 +80,43 @@ describe('clearButtonKeyGuard', () => {
 
         expect(e.stopPropagation).not.toHaveBeenCalled();
         expect(e.preventDefault).not.toHaveBeenCalled();
+    });
+});
+
+describe('enterSubmitGuard', () => {
+    function makeInputKeyEvent(key: string, isComposing = false) {
+        return {
+            key,
+            nativeEvent: {isComposing},
+            stopPropagation: jest.fn(),
+            preventDefault: jest.fn(),
+        } as unknown as KeyboardEvent<HTMLInputElement> & {stopPropagation: jest.Mock; preventDefault: jest.Mock};
+    }
+
+    test('prevents Enter without stopping it', () => {
+        const e = makeInputKeyEvent('Enter');
+
+        enterSubmitGuard(e);
+
+        expect(e.preventDefault).toHaveBeenCalledTimes(1);
+        expect(e.stopPropagation).not.toHaveBeenCalled();
+    });
+
+    test('leaves an Enter that commits IME composition alone', () => {
+        const e = makeInputKeyEvent('Enter', true);
+
+        enterSubmitGuard(e);
+
+        expect(e.preventDefault).not.toHaveBeenCalled();
+    });
+
+    test.each([' ', 'Escape'])('lets %s through', (key) => {
+        const e = makeInputKeyEvent(key);
+
+        enterSubmitGuard(e);
+
+        expect(e.preventDefault).not.toHaveBeenCalled();
+        expect(e.stopPropagation).not.toHaveBeenCalled();
     });
 });
 
@@ -256,8 +294,8 @@ describe('key guard with a real Combobox', () => {
         expect(documentKeys).toEqual(['ArrowDown', 'ArrowUp', 'Home', 'End', 'c', 'Backspace', 'Tab']);
     });
 
-    // Accepted residual risk: Combobox leaves Enter unhandled when the typed
-    // filter matches nothing, so a surrounding form sees it.
+    // Combobox leaves Enter unhandled when the typed filter matches nothing, so a
+    // surrounding form sees it. AttributeCombobox's preventEnterSubmit covers this.
     test('Enter with the menu open and no matching options reaches document and changes nothing', async () => {
         const user = userEvent.setup();
         const onChange = jest.fn();

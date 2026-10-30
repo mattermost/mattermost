@@ -85,7 +85,8 @@
             }
         }
 
-        svg {
+        // The leading icon of a built-in field, e.g. Username or Email.
+        label > svg {
             display: inline-block;
             width: 16px;
             height: 16px;

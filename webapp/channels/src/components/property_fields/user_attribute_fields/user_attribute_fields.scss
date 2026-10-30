@@ -8,7 +8,18 @@
         font-size: 12px;
     }
 
-    .hierarchical-value-menu {
+    .form-control {
+        width: 100%;
+        max-width: 320px;
+
+        &.error {
+            border-color: var(--error-text);
+            box-shadow: 0 0 0 1px var(--error-text);
+        }
+    }
+
+    .hierarchical-value-menu,
+    .UserAttributeField__combobox {
         max-width: 320px;
     }
 

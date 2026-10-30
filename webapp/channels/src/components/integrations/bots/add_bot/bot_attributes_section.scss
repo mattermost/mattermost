@@ -26,10 +26,6 @@
     .UserAttributeFields {
         margin-bottom: 8px;
 
-        > .UserAttributeField.cpa-field {
-            display: block;
-        }
-
         > .UserAttributeField.cpa-field,
         > .UserAttributeField__row {
             margin-bottom: 12px;
@@ -37,33 +33,19 @@
     }
 
     .UserAttributeField.cpa-field {
-        margin-bottom: 0;
-        font-weight: 600;
         line-height: 20px;
 
-        > * {
+        // The vertical margin only applies in the grid of a row with a trailing button.
+        .UserAttributeField__name {
+            display: inline;
+            margin: 4px 0 0;
             font-weight: normal;
         }
 
-        > :first-child {
-            margin-top: 4px;
-        }
-
-        > label:first-child {
+        &.UserAttributeField--graph .UserAttributeField__name {
             display: block;
             margin: 0 0 4px;
-            font-weight: 600; // graph fields put the name in a nested label
-        }
-
-        .form-control {
-            width: 100%;
-            max-width: 320px;
-
-            &.error,
-            &[aria-invalid='true'] {
-                border-color: var(--error-text);
-                box-shadow: 0 0 0 1px var(--error-text);
-            }
+            font-weight: 600;
         }
     }
 }

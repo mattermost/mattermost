@@ -445,6 +445,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             }
         }
 
+        if (attributeField.type === 'select' && Array.isArray(attributeValue)) {
+            attributeValue = attributeValue[0] ?? '';
+        }
+
         if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
             attributeValue = [];
         }
@@ -1487,36 +1491,21 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             const active = this.props.activeSection === sectionName;
             let max = null;
 
-            const getDisplayValue = (attributeValue: string | string[]) => {
-                if (!attributeValue || (!Array.isArray(attributeValue) && !attributeValue.length)) {
+            // Option ids map to their option names, or stay raw when the option is gone.
+            const getDisplayValue = (attributeValue: string | string[] | undefined): string | string[] => {
+                if (!attributeValue?.length) {
                     return '';
                 }
-
-                if (valueRefersToOptions(attribute)) {
-                    const attribOptions = attribute.attrs.options;
-                    const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
-                    if (!attribOptions) {
-                        if (optionsOmitted) {
-                            if (Array.isArray(attributeValue)) {
-                                return attributeValue.map((value) => ({label: value, value}));
-                            }
-                            return {label: attributeValue, value: attributeValue};
-                        }
-                        return '';
-                    }
-                    if (Array.isArray(attributeValue)) {
-                        return attributeValue.map((value) => {
-                            const option = attribOptions.find((o) => o.id === value);
-
-                            return {label: option?.name ?? value, value};
-                        });
-                    }
-
-                    const option = attribOptions.find((o) => o.id === attributeValue);
-                    return {label: option?.name ?? attributeValue, value: attributeValue};
+                if (!valueRefersToOptions(attribute)) {
+                    return attributeValue;
                 }
 
-                return attributeValue as string;
+                const options = attribute.attrs.options;
+                if (!options && !attribute.attrs.options_omitted) {
+                    return '';
+                }
+                const toName = (id: string) => options?.find((o) => o.id === id)?.name ?? id;
+                return Array.isArray(attributeValue) ? attributeValue.map(toName) : toName(attributeValue);
             };
 
             if (active) {
@@ -1622,7 +1611,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
                     if (valueRefersToOptions(attribute)) {
                         const comboboxId = 'customProfileAttribute_' + attribute.id;
-                        const draft = this.state.customAttributeValues[attribute.id];
 
                         inputs.push(
                             <AttributeCombobox
@@ -1636,8 +1624,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                     defaultMessage: 'Select',
                                 })}
                                 zIndex={ZIndex.MENU}
-                                {...(attribute.type === 'multiselect' ? {multiple: true, value: draft} : {value: typeof draft === 'string' ? draft : ''})}
-                                onChange={(value: string | string[]) => this.updateComboboxAttribute(attribute.id, value)}
+                                multiple={attribute.type === 'multiselect'}
+                                value={this.state.customAttributeValues[attribute.id]}
+                                onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
                             />,
                         );
                     } else {
@@ -1655,7 +1644,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                         autoFocus={true}
                                         type={inputType}
                                         onChange={this.updateAttribute}
-                                        value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
+                                        value={getDisplayValue(this.state.customAttributeValues[attribute.id])}
                                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                                         autoCapitalize='off'
                                         onFocus={Utils.moveCursorToEnd}
@@ -1695,21 +1684,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     />
                 );
             }
-            let describe: JSX.Element | string = '';
-            const storedValue = this.props.user.custom_profile_attributes?.[attribute.id];
-
-            if (storedValue) {
-                const attributeValue = getDisplayValue(storedValue);
-                if (attributeValue) {
-                    if (typeof attributeValue === 'string') {
-                        describe = attributeValue;
-                    } else if (Array.isArray(attributeValue) && attributeValue.length > 0) {
-                        describe = <FormattedList value={attributeValue.map((attrib) => attrib?.label || null)}/>;
-                    } else if (!Array.isArray(attributeValue) && Object.hasOwn(attributeValue, 'label')) {
-                        describe = attributeValue.label || '';
-                    }
-                }
-            }
+            const displayValue = getDisplayValue(this.props.user.custom_profile_attributes?.[attribute.id]);
+            let describe: JSX.Element | string = Array.isArray(displayValue) ? <FormattedList value={displayValue}/> : displayValue;
             if (!describe) {
                 describe = (
                     <FormattedMessage

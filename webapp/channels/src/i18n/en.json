@@ -17451,10 +17451,6 @@
     "defaultMessage": "MFA",
     "description": "Acronym for multi-factor authentication, appended to the authentication method value on the admin user configuration page when MFA is active."
   },
-  "admin.userManagement.userDetail.noOptions": {
-    "defaultMessage": "No options available",
-    "description": "Message shown in the multiselect dropdown for a custom profile attribute when there are no options to choose from; admin user configuration page."
-  },
   "admin.userManagement.userDetail.notFound": {
     "defaultMessage": "User not found",
     "description": "Placeholder message on the admin user detail card when the requested user does not exist."
