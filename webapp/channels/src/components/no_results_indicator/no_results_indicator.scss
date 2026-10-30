@@ -3,13 +3,6 @@
     width: 100%;
     height: 100%;
     place-content: center;
-
-    // The Compass empty state has no intrinsic width (SimpleBar positions its
-    // content absolutely), so a content-sized column collapses it. Give it a
-    // definite full-width column instead.
-    &:has(> .no-results__wrapper--compass) {
-        grid-template-columns: minmax(0, 1fr);
-    }
 }
 
 .no-results__wrapper {
