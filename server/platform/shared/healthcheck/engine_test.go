@@ -21,7 +21,7 @@ func TestEngineEvaluateContainsPanicsAndContinues(t *testing.T) {
 			Code:       "ALPHA",
 			Area:       model.AreaPlatform,
 			Severity:   SeverityWarning,
-			RuleText:   model.RuleText{SummaryID: "health.rule.alpha.summary", RemediationID: "health.rule.alpha.remediation"},
+			RuleText:   model.RuleText{TitleID: "health.rule.alpha.title", RemediationID: "health.rule.alpha.remediation"},
 			Surface:    SurfaceProduct,
 			Volatility: VolatilityStable,
 			Subject:    "ServiceSettings.SiteURL",
@@ -31,7 +31,7 @@ func TestEngineEvaluateContainsPanicsAndContinues(t *testing.T) {
 			Code:       "PANIC_RULE",
 			Area:       model.AreaPlatform,
 			Severity:   SeverityWarning,
-			RuleText:   model.RuleText{SummaryID: "health.rule.panic_rule.summary", RemediationID: "health.rule.panic_rule.remediation"},
+			RuleText:   model.RuleText{TitleID: "health.rule.panic_rule.title", RemediationID: "health.rule.panic_rule.remediation"},
 			Surface:    SurfaceProduct,
 			Volatility: VolatilityStable,
 			Subject:    "ServiceSettings.SiteURL",
@@ -71,9 +71,7 @@ func TestEngineEvaluateSkipsCloudByDefault(t *testing.T) {
 	registry.Register(validRule("CLOUD_GATED_DEFAULT"))
 
 	engine := NewEngine(EngineOpts{Registry: registry, Now: fixedNow})
-	evaluations := engine.Evaluate(&Snapshot{
-		Deployment: Deployment{IsCloud: true},
-	})
+	evaluations := engine.Evaluate(licensedSnapshot(model.SupportPacketLicense{IsCloud: true}))
 
 	require.Len(t, evaluations, 0)
 }

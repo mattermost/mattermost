@@ -10,7 +10,7 @@ Use this guide to create and manage organization-wide attribute-based access pol
 
 ## Prerequisites
 
-- [Attribute-based access controls (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) require defined user attributes. First [configure user attributes](/administration-guide/manage/admin/user-attributes) in the System Console.
+- [Attribute-based access controls (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) require defined user attributes. First configure user attributes in the System Console. See [Attribute management](/administration-guide/manage/admin/attribute-management) for Mattermost v12.0 and later, or [User attributes](/administration-guide/manage/admin/user-attributes) for earlier releases.
 - Then go to **System Console \> System Attributes \> Attribute-Based Access** to enable attribute-based access controls for your Mattermost instance. This functionality requires a Mattermost Enterprise Advanced license.
 
 From Mattermost v10.11, user-managed attributes are excluded from attribute-based access control (ABAC) rules by default for security reasons. This prevents access control policies from being circumvented by users editing their own profile attributes. To include user-managed attributes in ABAC rules, a system admin must explicitly enable the `EnableUserManagedAttributes` configuration setting. See the [user attribute](/administration-guide/manage/admin/user-attributes#before-you-begin) documentation for details on enabling this feature. This configuration setting is available only in Enterprise Edition Advanced and is disabled by default.
@@ -185,6 +185,8 @@ Permission policies are evaluated when a user acts through a Mattermost client o
 - [**Incoming webhooks**](/integrations-guide/incoming-webhooks) and [**custom slash commands**](/integrations-guide/slash-commands#custom-slash-commands) can post messages, including burn-on-read messages, without being evaluated against permission policies. A webhook message is attributed to the user who created the webhook, and a slash command response is attributed to the user who typed the command, including delayed responses sent to the command's response URL. Neither can upload file attachments.
 - **Scheduled messages** are evaluated when the message is scheduled, not when it's sent, so a message scheduled before a policy was tightened is still delivered.
 
+Unlike these integrations, **bot accounts are evaluated**. A bot that acts with its access token goes through the REST API and is subject to permission policies based on its own attributes, the same as a user. Set the [attributes a bot needs](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes) before relying on it in channels where permission policies apply.
+
 File download restrictions are also applied as messages are delivered to a user's client, so a restricted user doesn't receive file attachments through Mattermost even when a plugin posted the message. This doesn't cover a plugin reading file content on the server.
 
 In channels where you rely on permission policies, review which plugins you install, and control who can create incoming webhooks and custom slash commands using the [integration management permissions](/administration-guide/onboard/advanced-permissions) in the System Console.
@@ -195,7 +197,7 @@ The **Create burn-on-read message** restriction applies in addition to the [**En
 
 Permission policies follow the same unique-name requirement as access policies: each parent permission policy must have a unique name, and Mattermost surfaces a user-friendly error if a duplicate name is entered.
 
-From Mattermost v12, permission policy rules can also evaluate [session attributes](/administration-guide/manage/admin/session-attributes) - for example, restricting file downloads to devices on a corporate IP range or to MDM-enrolled devices. Because a rule that references a session attribute denies any session that doesn't report it, review the platform availability of each attribute before applying it to a file action your users depend on. Client-reported attributes such as `mdm_enrolled` are self-attested posture signals rather than proof; for stronger assurance, gate on server-measured values instead - `ip_address` with an IP range check, or `tls_device_id` asserted by your reverse proxy.
+From Mattermost v12, permission policy rules can also evaluate [session attributes](/administration-guide/manage/admin/session-attributes) - for example, restricting file downloads to devices on a corporate IP range or to MDM-enrolled devices. Because a rule that references a session attribute denies any session that doesn't report it, review the platform availability of each attribute before applying it to a file action your users depend on. Bot accounts authenticate with access tokens, which [don't report session attributes](/administration-guide/manage/admin/session-attributes#are-session-attributes-collected-for-bots-personal-access-tokens-or-integrations), so these rules also deny bots. Client-reported attributes such as `mdm_enrolled` are self-attested posture signals rather than proof; for stronger assurance, gate on server-measured values instead - `ip_address` with an IP range check, or `tls_device_id` asserted by your reverse proxy.
 
 ## Attribute value masking
 

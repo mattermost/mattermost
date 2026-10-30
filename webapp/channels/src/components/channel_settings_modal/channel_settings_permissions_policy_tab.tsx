@@ -6,7 +6,9 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
@@ -644,22 +646,44 @@ function ChannelSettingsPermissionsPolicyTab({
         }
 
         return (
-            <PermissionRuleEditor
-                key={editingKey}
-                initial={initial}
-                isNew={isNew}
-                channelId={channel.id}
-                actions={actions}
-                userAttributes={mergedAttributes}
-                attributesLoaded={attributesLoaded}
-                enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
-                isSystemAdmin={isSystemAdmin}
-                error={formError}
-                onCancel={cancelEditor}
-                onCommit={commitDraft}
-                buildSimulationPolicy={buildSimulationPolicy}
-                policySimulationEnabled={policySimulationEnabled}
-            />
+            <>
+                <PermissionRuleEditor
+                    key={editingKey}
+                    initial={initial}
+                    isNew={isNew}
+                    channelId={channel.id}
+                    actions={actions}
+                    userAttributes={mergedAttributes}
+                    attributesLoaded={attributesLoaded}
+                    enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
+                    isSystemAdmin={isSystemAdmin}
+                    error={formError}
+                    onCancel={cancelEditor}
+                    onCommit={commitDraft}
+                    buildSimulationPolicy={buildSimulationPolicy}
+                    policySimulationEnabled={policySimulationEnabled}
+                />
+
+                {/* An open rule editor counts as unsaved changes, so the modal
+                  * refuses section switches while it is open. The list view's
+                  * panel is not rendered here, so bring up the same floating
+                  * footer the rest of the modal uses to report that refusal.
+                  * Its Save is disabled in this state — the rule itself is
+                  * committed from the editor's own button. */}
+                {showTabSwitchError && (
+                    <SaveChangesPanel
+                        handleSubmit={handleSaveChanges}
+                        handleCancel={cancelEditor}
+                        handleClose={handleClose}
+                        tabChangeError={true}
+                        state={SAVE_RESULT_ERROR}
+                        cancelButtonText={formatMessage({
+                            id: 'channel_settings.permissions_policy.editor.cancel',
+                            defaultMessage: 'Cancel',
+                        })}
+                    />
+                )}
+            </>
         );
     }
 
@@ -691,12 +715,11 @@ function ChannelSettingsPermissionsPolicyTab({
                     />
                 </h3>
                 <Button
-                    className='ChannelSettingsModal__permissionsPolicyAddRule'
                     onClick={startNew}
                     disabled={!attributesLoaded}
                     data-testid='permissions-policy-add-rule'
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <i className='icon icon-plus'/>
                     <FormattedMessage
                         id='channel_settings.permissions_policy.add_rule'
                         defaultMessage='Add rule'
@@ -873,9 +896,10 @@ function ChannelSettingsPermissionsPolicyTab({
                             }}
                         />
                     </span>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
+                        className='ChannelSettingsModal__permissionsPolicyPaginationButton'
                         onClick={() => setPage(Math.max(0, safePage - 1))}
                         disabled={safePage === 0}
                         aria-label={formatMessage({
@@ -884,10 +908,11 @@ function ChannelSettingsPermissionsPolicyTab({
                         })}
                     >
                         <i className='icon icon-chevron-left'/>
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
+                        className='ChannelSettingsModal__permissionsPolicyPaginationButton'
                         onClick={() => setPage(Math.min(totalPages - 1, safePage + 1))}
                         disabled={safePage >= totalPages - 1}
                         aria-label={formatMessage({
@@ -896,7 +921,7 @@ function ChannelSettingsPermissionsPolicyTab({
                         })}
                     >
                         <i className='icon icon-chevron-right'/>
-                    </button>
+                    </Button>
                 </div>
             )}
 

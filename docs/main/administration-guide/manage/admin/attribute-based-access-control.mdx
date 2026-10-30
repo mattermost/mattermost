@@ -15,6 +15,18 @@ Attribute-based access control (ABAC) can be used with the following policy type
 - **Team-scoped channel membership policies** (managed by Team Admins): Channel membership policies that Team Admins can create, edit, and delete directly from the Channel Membership tab in Team Settings for channels in their team. See [Team-level channel membership policies](/administration-guide/manage/admin/abac-team-channel-policies).
 - **Channel-specific access rules** (managed by Channel Admins): Self-service access rules that Channel Admins can configure directly in Channel Settings for individual channels. See [Channel-specific access rules](/administration-guide/manage/admin/abac-channel-access-rules).
 
+<Important>
+
+**Membership policies and permission policies apply to bot accounts as well as users.** Bots are evaluated exactly like members, so a bot that's missing an attribute a rule checks, or has a value that doesn't match, doesn't qualify:
+
+- **Private channels and teams**: A bot that doesn't qualify can't be added, and is removed during synchronization.
+- **Public channels and teams**: A bot is auto-added or recommended only if it qualifies.
+- **Permission policies**: A bot that doesn't qualify can't perform actions a permission policy restricts, such as uploading or downloading files. See [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) for the actions you can restrict.
+
+Set the attributes a bot needs before you add it to channels or teams that use access policies. See [Bot attributes](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes) for details.
+
+</Important>
+
 From Mattermost v11.8, ABAC policies can be applied to **both private and public channels**, with deliberately different semantics for each:
 
 - **Private channels** are hard-gated by the policy. Non-matching members are removed during synchronization and only matching users can be added or invited.
@@ -26,9 +38,11 @@ From Mattermost v11.10, ABAC policies can also be applied to **teams**, with the
 
 ## Before you begin
 
-Attribute-based access controls require defined user attributes that are either synchronized from an external system (such as LDAP or SAML) or manually configured and enabled on your Mattermost server. You'll need to [configure user attributes](/administration-guide/manage/admin/user-attributes) in the System Console first before creating access policies.
+Attribute-based access controls require defined user attributes that are either synchronized from an external system (such as LDAP or SAML) or manually configured and enabled on your Mattermost server. You'll need to configure user attributes in the System Console first before creating access policies. See [Attribute management](/administration-guide/manage/admin/attribute-management) for Mattermost v12.0 and later, or [User attributes](/administration-guide/manage/admin/user-attributes) for earlier releases.
 
 Each attribute becomes a user profile option users can populate, unless you disable the **Editable by Users** option, available from Mattermost v11. Admin-managed attributes can be used in addition to the LDAP/SAML synchronized attributes for attribute-based access control rules.
+
+Bot accounts are evaluated against the same attributes, so populate attribute values for any bots that need access as well as for users. From Mattermost v12.1, you can set bot attribute values from **Integrations \> Bot Accounts**. See [Bot attributes](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes).
 
 Once user attributes are defined, go to **System Console \> System Attributes \> Attribute-Based Access** to enable attribute-based access controls for your Mattermost instance. This functionality requires a Mattermost Enterprise Advanced license.
 

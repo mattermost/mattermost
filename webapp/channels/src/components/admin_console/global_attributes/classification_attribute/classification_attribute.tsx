@@ -8,7 +8,8 @@ import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
@@ -36,8 +37,10 @@ import {useChannelResourceRemove} from './remove_channel_resource_modal';
 import AppliesToCard from '../applies_to/applies_to_card';
 import {buildChannelFieldPatch, buildChannelFieldPayload, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
+import type {ResourceObjectType} from '../attribute_details/attribute_applies_to_constants';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
-import {formatAttributeHeadingName} from '../utils';
+import useAllowedResourceTypes from '../use_allowed_resource_types';
+import {fetchLinkedFieldsForTemplate, formatAttributeHeadingName, isResourceObjectType} from '../utils';
 
 import './classification_attribute.scss';
 
@@ -72,6 +75,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const {promptRemove} = useChannelResourceRemove();
+    const allowedResourceTypes = useAllowedResourceTypes();
 
     const [loadState, setLoadState] = useState<LoadState>('loading');
     const [template, setTemplate] = useState<PropertyField | null>(null);
@@ -86,6 +90,12 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
 
     // null means classification does not apply to channels.
     const [channelResource, setChannelResource] = useState<ChannelResourceConfig | null>(null);
+
+    // The template's other linked fields. Classification Markings applies the
+    // template to Users under a different name (`clearance`), and Attribute
+    // Management lists no row for a linked field, so this page is the only
+    // place that name can be found.
+    const [otherLinkedResources, setOtherLinkedResources] = useState<Array<{type: ResourceObjectType; name: string}>>([]);
 
     const [saving, setSaving] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
@@ -147,6 +157,39 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
             }
         })();
     }, []);
+
+    // Kept out of the load above, whose catch replaces the whole page with an
+    // error screen. These rows only report which other resources the template
+    // reaches, so a scope that will not list costs the rows, not the page.
+    useEffect(() => {
+        if (!template) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const linkedFields = (await fetchLinkedFieldsForTemplate(template.id, allowedResourceTypes).catch(rethrowUnlessNotFound)) ?? [];
+                if (cancelled) {
+                    return;
+                }
+                const otherResources: Array<{type: ResourceObjectType; name: string}> = [];
+                for (const linked of linkedFields) {
+                    if (linked.object_type !== CHANNEL_OBJECT_TYPE && isResourceObjectType(linked.object_type)) {
+                        otherResources.push({type: linked.object_type, name: linked.name});
+                    }
+                }
+                setOtherLinkedResources(otherResources);
+            } catch (error) {
+                console.error('ClassificationAttribute-load-linked-resources: ', error); // eslint-disable-line no-console
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [allowedResourceTypes, template]);
 
     const levels = useMemo(() => {
         const options = (template?.attrs?.options ?? []) as PropertyFieldOption[];
@@ -439,20 +482,21 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                                 ))}
                                             </ul>
                                             <div className='ClassificationAttribute__markingsFooter'>
-                                                <p className='ClassificationAttribute__markingsCopy'>
+                                                <div className='ClassificationAttribute__markingsCopy'>
                                                     <FormattedMessage {...messages.markingsFooter}/>
-                                                    <Link
-                                                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
-                                                        className={buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'ClassificationAttribute__markingsOpen')}
+                                                    <Button
+                                                        asChild={true}
+                                                        emphasis='tertiary'
+                                                        size='small'
+                                                        className='ClassificationAttribute__markingsOpen'
                                                         data-testid='classificationAttributeMarkingsLink'
+                                                        trailingIcon={<Icon glyph={<OpenInNewIcon/>}/>}
                                                     >
-                                                        <FormattedMessage {...messages.openMarkings}/>
-                                                        <OpenInNewIcon
-                                                            size={12}
-                                                            aria-hidden={true}
-                                                        />
-                                                    </Link>
-                                                </p>
+                                                        <Link to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}>
+                                                            <FormattedMessage {...messages.openMarkings}/>
+                                                        </Link>
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -460,6 +504,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                             </Card>
                             <AppliesToCard
                                 ordered={true}
+                                readOnlyResources={otherLinkedResources}
                                 channelResource={channelResource}
                                 onChannelResourceChange={handleChannelResourceChange}
                                 onChannelResourceRemove={handleChannelResourceRemove}
@@ -477,13 +522,15 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                         onClick={handleSave}
                         defaultMessage={<FormattedMessage {...messages.save}/>}
                     />
-                    <BlockableLink
-                        className={buttonClassNames({emphasis: 'quaternary'})}
-                        to={GLOBAL_ATTRIBUTES_LIST_ROUTE}
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
                         data-testid='classificationAttributeCancelLink'
                     >
-                        <FormattedMessage {...messages.cancel}/>
-                    </BlockableLink>
+                        <BlockableLink to={GLOBAL_ATTRIBUTES_LIST_ROUTE}>
+                            <FormattedMessage {...messages.cancel}/>
+                        </BlockableLink>
+                    </Button>
                     {saveFailed && (
                         <span
                             className='ClassificationAttribute__error'

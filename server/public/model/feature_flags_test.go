@@ -27,17 +27,19 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 		require.Equal(t, "false", m["ClassificationMarkings"])
 	})
 
-	t.Run("ChannelAttributes should default to false and serialize correctly", func(t *testing.T) {
-		require.False(t, f.ChannelAttributes)
-		require.Equal(t, "false", f.ToMap()["ChannelAttributes"])
-
-		f.ChannelAttributes = true
+	t.Run("ChannelAttributes should default to true and serialize correctly", func(t *testing.T) {
+		require.True(t, f.ChannelAttributes)
 		require.Equal(t, "true", f.ToMap()["ChannelAttributes"])
 	})
 
 	t.Run("MmBlocksEnabled defaults to true", func(t *testing.T) {
 		require.True(t, f.MmBlocksEnabled)
 		require.Equal(t, "true", f.ToMap()["MmBlocksEnabled"])
+	})
+
+	t.Run("HealthDashboard defaults to false", func(t *testing.T) {
+		require.False(t, f.HealthDashboard)
+		require.Equal(t, "false", f.ToMap()["HealthDashboard"])
 	})
 }
 
@@ -237,4 +239,15 @@ func TestFeatureFlagsToMapBool(t *testing.T) {
 			require.Equal(t, tc.TestFeatureValue, tc.Flags.ToMap()["TestBoolFeature"])
 		})
 	}
+}
+
+func TestFeatureFlagsSetDefaults_EnforceLogPathRoot(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.EnforceLogPathRoot, "EnforceLogPathRoot should default to false")
+	require.Equal(t, "false", flags.ToMap()["EnforceLogPathRoot"])
+
+	flags.EnforceLogPathRoot = true
+	require.Equal(t, "true", flags.ToMap()["EnforceLogPathRoot"])
 }

@@ -1,0 +1,134 @@
+@use "utils/variables";
+
+.MentionFilters__floating {
+    z-index: 1100;
+}
+
+// Open and close follow Compass's popover animation: scale 90% to 100% plus a fade from the anchor
+// corner over --duration-quick, ease-out on entrance and ease-in on exit, no scale for reduced motion.
+.MentionFilters {
+
+    // Combobox portals its menu into this popover so Floating UI dismiss stays intact.
+    // A non-static position is required for portalContainer coordinate conversion.
+    position: relative;
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    padding: var(--spacing-l);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    color: var(--center-channel-color);
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.9);
+    transition: opacity var(--duration-quick) var(--ease-exit), transform var(--duration-quick) var(--ease-exit);
+
+    &.MentionFilters--visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: scale(1);
+        transition: opacity var(--duration-quick) var(--ease-entrance), transform var(--duration-quick) var(--ease-entrance);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &,
+        &.MentionFilters--visible {
+            transform: none;
+            transition: none;
+        }
+    }
+}
+
+// Doubled selector outranks Compass's single-class size padding regardless of CSS load order.
+.MentionFilters__trigger.MentionFilters__trigger {
+    margin-left: 4px;
+    padding-block: var(--spacing-xxs);
+    padding-inline: var(--spacing-m);
+
+    // The global `*:focus {outline: none}` reset removes the outline style and width that Compass's
+    // focus ring relies on, so restate the whole outline on keyboard focus.
+    &:focus-visible {
+        outline: 2px solid var(--link-color);
+        outline-offset: 3px;
+    }
+
+    // Compass Button has no open state; mirror its pressed style while the popover is open.
+    &[aria-expanded='true'] {
+        background-color: rgba(var(--link-color-rgb), 0.12);
+    }
+}
+
+.MentionFilters__popover {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xxl);
+}
+
+.MentionFilters__selectors {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.MentionFilters__field {
+    position: relative;
+}
+
+.MentionFilters__section {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    border: 0;
+    margin: 0;
+    gap: var(--spacing-xs);
+}
+
+.MentionFilters__choices {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.MentionFilters__sectionTitle {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    // A floated legend becomes a normal flex item, so the fieldset gap applies to it.
+    float: left;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 16px;
+    text-transform: uppercase;
+}
+
+.MentionFilters__choice {
+    display: flex;
+    margin: 0;
+}
+
+.MentionFilters__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    // Same as the trigger: restate the outline the global focus reset removes. The popover mounts in
+    // #root-portal, where the webapp's a11y--focused shadow is also turned off for Compass buttons,
+    // so without this Reset and Apply show no focus ring at all.
+    button:focus-visible {
+        outline: 2px solid var(--link-color);
+        outline-offset: 3px;
+    }
+}
+
+.MentionFilterChips {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    gap: 8px;
+}
