@@ -8701,11 +8701,6 @@
     "description": "Error during a bulk data export when adding a file to the export zip archive fails."
   },
   {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Cannot fetch the file as it is past the cloud plan's limit.",
-    "description": "Error when a file cannot be fetched because it exceeds the Mattermost Cloud plan's storage limit; end-user audience."
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Failed to remove the requested files from database",
     "description": "Internal error when deleting file attachment records for a set of posts fails; log/admin-facing."
@@ -9854,11 +9849,6 @@
     "id": "app.job.update_status.app_error",
     "translation": "Unable to update job status. Invalid status set",
     "description": "API error shown to admins when a background job's status cannot be changed because the requested status transition is invalid."
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Error fetching last accessible file",
-    "description": "Internal API error when reading the cloud plan's file-access cutoff (the oldest file accessible under message/file limits) fails."
   },
   {
     "id": "app.last_accessible_post.app_error",
