@@ -4,7 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export type ProfileSection = 'name' | 'username' | 'picture';
+export type ProfileSection = 'name' | 'username' | 'picture' | 'email';
 
 export default class ProfileModal {
     readonly container: Locator;
@@ -29,6 +29,11 @@ export default class ProfileModal {
     readonly pictureSaveButton;
     readonly pictureRemoveButton;
 
+    readonly primaryEmailInput;
+    readonly confirmEmailInput;
+    readonly currentPasswordInput;
+    readonly domainRestrictionError;
+
     constructor(container: Locator) {
         this.container = container;
 
@@ -40,7 +45,11 @@ export default class ProfileModal {
 
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.saveButton = container.getByRole('button', {name: 'Save'});
-        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        // getByTestId, not getByRole('button', {name: 'Cancel'}): a custom profile attribute whose
+        // display name contains "Cancel" gives its own Edit button an accessible name like "Cancel
+        // X Edit" (title + button text via aria-labelledby), which getByRole's substring name match
+        // would also pick up alongside the real Cancel button.
+        this.cancelButton = container.getByTestId('cancelButton');
         this.managedByAdminMessage = container.getByText(
             'This field is managed by your System Admin. Contact them to request a change.',
         );
@@ -53,6 +62,13 @@ export default class ProfileModal {
         this.pictureFileInput = container.getByTestId('uploadPicture');
         this.pictureSaveButton = container.getByTestId('saveSettingPicture');
         this.pictureRemoveButton = container.getByTestId('removeSettingPicture');
+
+        this.primaryEmailInput = container.locator('#primaryEmail');
+        this.confirmEmailInput = container.locator('#confirmEmail');
+        this.currentPasswordInput = container.locator('#currentPassword');
+        this.domainRestrictionError = container.getByText(
+            'The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.',
+        );
     }
 
     async toBeVisible() {
@@ -129,6 +145,14 @@ export default class ProfileModal {
 
         await expect(this.getSectionEditButton('picture')).toBeVisible();
     }
+
+    async changeEmail(email: string, password: string) {
+        await this.openSection('email');
+        await this.primaryEmailInput.fill(email);
+        await this.confirmEmailInput.fill(email);
+        await this.currentPasswordInput.fill(password);
+        await this.saveButton.click();
+    }
 }
 
 class ProfileSettingsTab {
@@ -145,12 +169,45 @@ class ProfileSettingsTab {
 
 class SecurityTab {
     readonly container: Locator;
+    readonly mfaHeading: Locator;
+    readonly signInHeading: Locator;
+    readonly switchToOpenId: Locator;
+    readonly switchToSaml: Locator;
+    readonly switchToLdap: Locator;
+    readonly switchToEmail: Locator;
+    readonly editSignInMethod: Locator;
 
     constructor(container: Locator) {
         this.container = container;
+        this.mfaHeading = container.getByText('Multi-factor Authentication', {exact: true});
+        this.signInHeading = container.getByText('Sign-in Method', {exact: true});
+        this.editSignInMethod = container.locator('#signinEdit');
+        this.switchToOpenId = container.getByRole('link', {name: 'Switch to Using OpenID SSO'});
+        this.switchToSaml = container.getByRole('link', {name: 'Switch to Using SAML SSO'});
+        this.switchToLdap = container.getByRole('link', {name: 'Switch to Using AD/LDAP'});
+        this.switchToEmail = container.getByRole('link', {name: 'Switch to Using Email and Password'});
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async openSignInMethod() {
+        await this.editSignInMethod.click();
+    }
+
+    async clickSwitchToOpenId() {
+        await this.openSignInMethod();
+        await this.switchToOpenId.click();
+    }
+
+    async clickSwitchToLdap() {
+        await this.openSignInMethod();
+        await this.switchToLdap.click();
+    }
+
+    async clickSwitchToEmail() {
+        await this.openSignInMethod();
+        await this.switchToEmail.click();
     }
 }

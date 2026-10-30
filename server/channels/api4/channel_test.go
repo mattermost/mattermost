@@ -701,6 +701,18 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 	})
 
+	t.Run("the field lookup names the caller", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, nil)
+		untaggedCalls := observeUntaggedPropertyCalls(t, th)
+
+		req, _ := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"SECRET"`)})
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Empty(t, untaggedCalls())
+	})
+
 	t.Run("a value for an unknown field is refused and creates nothing", func(t *testing.T) {
 		req, name := newRequest(model.PropertyValuePatchItem{FieldID: model.NewId(), Value: json.RawMessage(`"x"`)})
 		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
@@ -4037,7 +4049,9 @@ func TestSearchAllChannels(t *testing.T) {
 		},
 		{
 			"Name search",
-			&model.ChannelSearch{Term: "what"},
+			// Prefix of Name "whatever". Term "what" also matches InitBasic DisplayNames
+			// ("dn_"+NewId()); z-base32 includes w/h/a/t but not v.
+			&model.ChannelSearch{Term: "whatev"},
 			[]string{openChannel.Id},
 		},
 		{

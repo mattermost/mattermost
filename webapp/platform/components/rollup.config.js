@@ -21,6 +21,15 @@ const externals = [
     'reselect',
 ];
 
+function isExternal(id) {
+    if (externals.includes(id)) {
+        return true;
+    }
+
+    // Peer packages are often imported via subpaths (e.g. @mattermost/compass-ui/components/button).
+    return externals.some((external) => id === external || id.startsWith(`${external}/`));
+}
+
 export default [
     {
         input: 'src/index.tsx',
@@ -46,7 +55,7 @@ export default [
                 outputToFilesystem: true,
             }),
         ],
-        external: externals,
+        external: isExternal,
         watch: {
             clearScreen: false,
         },

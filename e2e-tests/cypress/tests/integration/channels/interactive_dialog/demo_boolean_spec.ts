@@ -248,7 +248,8 @@ describe('Interactive Dialogs', () => {
                         cy.wrap(doc).find('.react-select__option').first().click();
                     });
                 } else if (element.name === 'someradiooptionselector') {
-                    cy.wrap($elForm).find('input').first().click();
+                    // Compass Radio hides the native input; click the visible label.
+                    cy.wrap($elForm).find('label').first().click();
                 }
             });
 
