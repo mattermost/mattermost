@@ -97,8 +97,8 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
 	if len(scheduledPost.FileIds) > 0 {
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetPermissionError(model.PermissionUploadFile)
+		checkUploadFileAttachmentPermission(c, "Api4.createSchedulePost", scheduledPost.ChannelId)
+		if c.Err != nil {
 			return
 		}
 	}
@@ -235,6 +235,19 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		scheduledPost.RepeatType = existingScheduledPost.RepeatType
 		scheduledPost.RepeatTimezone = existingScheduledPost.RepeatTimezone
 	}
+
+	// The type is immutable; App.UpdateScheduledPost restores it from the stored record via
+	// RestoreNonUpdatableFields. Do it here as well so the checks below see the type the post
+	// will actually be sent with, rather than whatever the client echoed back — clients that
+	// omit type would otherwise skip the burn-on-read checks entirely.
+	scheduledPost.Type = existingScheduledPost.Type
+
+	// Likewise the channel and thread: the update is saved to the stored channel whatever the
+	// client sends, so the permission and channel-access checks below must run against it.
+	// Checking the client's channel_id would let a user denied writing to the stored channel
+	// keep editing the post by naming one they can write to.
+	scheduledPost.ChannelId = existingScheduledPost.ChannelId
+	scheduledPost.RootId = existingScheduledPost.RootId
 
 	if len(scheduledPost.FileIds) > 0 {
 		originalPost, err := existingScheduledPost.ToPost()

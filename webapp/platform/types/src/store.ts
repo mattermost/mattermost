@@ -14,6 +14,7 @@ import type {EmojisState} from './emojis';
 import type {FilesState} from './files';
 import type {GeneralState} from './general';
 import type {GroupsState} from './groups';
+import type {HealthState} from './health';
 import type {HostedCustomerState} from './hosted_customer';
 import type {IntegrationsState} from './integrations';
 import type {JobsState} from './jobs';
@@ -107,6 +108,7 @@ export type GlobalState = {
         contentFlagging: ContentFlaggingState;
         properties: PropertiesState;
         renderPermissions: RenderPermissionsState;
+        health: HealthState;
     };
     errors: any[];
     requests: {

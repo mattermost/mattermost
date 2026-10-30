@@ -102,9 +102,10 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     async function setToggle(page: Page, on: boolean): Promise<void> {
         const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
         await toggle.waitFor({state: 'visible', timeout: 10000});
-        const pressed = (await toggle.getAttribute('aria-pressed')) === 'true';
-        if (pressed !== on) {
-            await toggle.click();
+        if (on) {
+            await toggle.check({force: true});
+        } else {
+            await toggle.uncheck({force: true});
         }
     }
 
@@ -285,10 +286,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(disconnectModal).not.toBeVisible({timeout: 5000});
 
         // * Custom rule still governs, so enforcement stays on
-        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveAttribute(
-            'aria-pressed',
-            'true',
-        );
+        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toBeChecked();
 
         // * Save goes straight through: removal is not new criteria, so no apply modal
         await page.getByRole('button', {name: 'Save'}).click();
@@ -583,9 +581,12 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await enableTeamMembershipPolicies(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
-        // # Private team; admin is NOT a member, only a Marketing user (doesn't match Engineering)
+        // # Private team; admin is NOT a member, only a Marketing user (doesn't match Engineering).
+        // Remove the admin (auto-added on create). A shared system admin may have
+        // Department=Engineering from another worker, which would hide the empty-team warning.
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
+        await adminClient.removeFromTeam(team.id, adminUser.id).catch(() => {});
         const mktUser = await adminClient.createUser(
             {
                 email: `mkt${suffix}@sample.mattermost.com`,

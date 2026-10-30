@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -1212,10 +1213,15 @@ func (a *App) AddTeamMemberByInviteId(rctx request.CTX, inviteId, userID string)
 	return teamMember, nil
 }
 
-func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError) {
+func (a *App) GetTeamUnread(rctx request.CTX, teamID, userID string) (*model.TeamUnread, *model.AppError) {
 	channelUnreads, err := a.Srv().Store().Team().GetChannelUnreadsForTeam(teamID, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	denied, appErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	teamUnread := &model.TeamUnread{
@@ -1226,6 +1232,10 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 		TeamId:           teamID,
 	}
 	for _, cu := range channelUnreads {
+		if _, ok := denied[cu.ChannelId]; ok {
+			continue
+		}
+
 		teamUnread.MentionCount += cu.MentionCount
 		teamUnread.MentionCountRoot += cu.MentionCountRoot
 
@@ -1355,8 +1365,7 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	}); nErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			channelList = model.ChannelList{}
 		} else {
 			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -2003,16 +2012,25 @@ func (a *App) FindTeamByName(name string) bool {
 	return true
 }
 
-func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
+func (a *App) GetTeamsUnreadForUser(rctx request.CTX, excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
 	data, err := a.Srv().Store().Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	denied, appErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	members := []*model.TeamUnread{}
 	membersMap := make(map[string]*model.TeamUnread)
 
+	// A denied channel still lists its team, with nothing counted for it.
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
+		if _, ok := denied[cu.ChannelId]; ok {
+			return tu
+		}
 		tu.MentionCount += cu.MentionCount
 		tu.MentionCountRoot += cu.MentionCountRoot
 
@@ -2047,7 +2065,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled())
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled(), slices.Collect(maps.Keys(denied)))
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -2091,8 +2109,7 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 	}
 
 	if channels, err := a.Srv().Store().Channel().GetTeamChannels(team.Id); err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
@@ -2296,18 +2313,18 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 	if tokenID != "" {
 		token, err := a.Srv().Store().Token().GetByToken(tokenID)
 		if err != nil {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if !token.IsInvitationToken() {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if token.IsExpired() {
 			if err := a.DeleteToken(token); err != nil {
 				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
 			}
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
@@ -2403,6 +2420,12 @@ func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.Re
 	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Decode() reads the file to EOF; seek back to beginning so GetImageOrientation
+	// can read the EXIF data to determine the correct orientation.
+	if _, err = file.Seek(0, io.SeekStart); err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	orientation, err := imaging.GetImageOrientation(file, format)

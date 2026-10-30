@@ -975,6 +975,13 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// The in_team scope is evaluated once here rather than per branch, since
+	// several of the filter combinations below scope their listing by it.
+	if inTeamId != "" && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
 	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1088,11 +1095,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		}
 	} else if inTeamId != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
-			c.SetPermissionError(model.PermissionViewTeam)
-			return
-		}
-
 		if sort == "last_activity_at" {
 			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(c.AppContext, inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else if sort == "create_at" {
@@ -1548,8 +1550,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.AppContext.Session().UserId == c.Params.UserId {
-		err = c.App.DoubleCheckPassword(c.AppContext, ouser, user.Password)
-		if err != nil {
+		if err := c.App.DoubleCheckPassword(c.AppContext, ouser, user.Password); err != nil {
 			c.SetInvalidParam("password")
 			return
 		}
@@ -1638,8 +1639,8 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err = c.App.DoubleCheckPassword(c.AppContext, ouser, *patch.Password); err != nil {
-			c.Err = err
+		if err := c.App.DoubleCheckPassword(c.AppContext, ouser, *patch.Password); err != nil {
+			c.SetError(err)
 			return
 		}
 	}
@@ -2433,10 +2434,11 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	// For the time being, we only support getting the login type when
 	// guest magic link is enabled. We can consider adding support for other
 	// login methods in the future, and this check may be removed.
+	license := c.App.Channels().License()
 	if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink ||
 		!*c.App.Config().GuestAccountsSettings.Enable ||
-		!*c.App.Channels().License().Features.GuestAccounts {
-		w.WriteHeader(http.StatusNotFound)
+		license == nil || !*license.Features.GuestAccounts {
+		c.Err = model.NewAppError("getLoginType", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusNotFound)
 		return
 	}
 
@@ -3770,6 +3772,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 				if appErr != nil {
 					return nil, appErr
 				}
+				c.App.PrepareChannelReadAccessByIDs(c.AppContext, currentUserId, channelIDsOfMembers(m))
 				return m, nil
 			},
 			func(member model.ChannelMemberWithTeamData) bool {
@@ -3838,6 +3841,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		}
 
 		currentUserId := c.AppContext.Session().UserId
+		c.App.PrepareChannelReadAccessByIDs(c.AppContext, currentUserId, channelIDsOfMembers(members))
 		for _, member := range members {
 			// Filtered here, not in the app layer: the cursor advance and the
 			// short-page test below must see the raw page, or the whole list would
@@ -3859,6 +3863,14 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 
 		fromChannelID = members[len(members)-1].ChannelId
 	}
+}
+
+func channelIDsOfMembers(members []model.ChannelMemberWithTeamData) []string {
+	channelIDs := make([]string, 0, len(members))
+	for _, member := range members {
+		channelIDs = append(channelIDs, member.ChannelId)
+	}
+	return channelIDs
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -4008,6 +4020,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	} else {
@@ -4095,6 +4108,8 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Unread state changes constantly, so intermediaries must not replay these responses.
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 		return

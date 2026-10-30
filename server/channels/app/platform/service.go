@@ -6,6 +6,7 @@ package platform
 import (
 	"context"
 	"crypto/ecdsa"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"hash/maphash"
@@ -64,6 +65,7 @@ type PlatformService struct {
 	clientConfig         atomic.Value
 	clientConfigHash     atomic.Value
 	limitedClientConfig  atomic.Value
+	auditLoggingActive   atomic.Pointer[func() bool]
 
 	isFirstUserAccountLock sync.Mutex
 	isFirstUserAccount     atomic.Bool
@@ -144,7 +146,18 @@ type PlatformService struct {
 	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
 	logRootPathOverride string
 
+	// activeManagedDirs accumulates the managed directories of every config applied since startup.
+	activeManagedDirsMut sync.Mutex
+	activeManagedDirs    []string
+
+	// skipGlobalLogger suppresses this service's claim on the process-wide logging globals.
+	skipGlobalLogger bool
+
 	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
+
+	// prePublishHook runs on every event Publish sends, before the cluster copy is
+	// serialized. Set by the app layer, which platform can't call into directly.
+	prePublishHook func(message *model.WebSocketEvent)
 }
 
 // SetInstallTypeOverride sets the install type override for support packet diagnostics.
@@ -250,12 +263,18 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	if *cacheConfig.CacheType == model.CacheTypeLRU {
 		ps.cacheProvider = cache.NewProvider()
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
+		var tlsConfig *tls.Config
+		tlsConfig, err = cache.NewRedisTLSConfig(cacheConfig)
+		if err != nil {
+			return nil, fmt.Errorf("unable to configure Redis TLS: %w", err)
+		}
 		ps.cacheProvider, err = cache.NewRedisProvider(
 			&cache.RedisOptions{
 				RedisAddr:        *cacheConfig.RedisAddress,
 				RedisPassword:    *cacheConfig.RedisPassword,
 				RedisDB:          *cacheConfig.RedisDB,
 				RedisCachePrefix: *cacheConfig.RedisCachePrefix,
+				TLSConfig:        tlsConfig,
 				DisableCache:     *cacheConfig.DisableClientCache,
 			},
 		)
@@ -665,6 +684,13 @@ func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {
 
 func (ps *PlatformService) SetPostDeliveryRecorder(fn func(marker *model.PostDeliveryMarker, userID string)) {
 	ps.postDeliveryRecorder = fn
+}
+
+// SetPrePublishHook sets the function Publish runs on each event before delivering
+// it. It runs only on the originating node: the event it leaves behind is what the
+// cluster receives, so other nodes don't run it again.
+func (ps *PlatformService) SetPrePublishHook(fn func(message *model.WebSocketEvent)) {
+	ps.prePublishHook = fn
 }
 
 // GetPluginStatuses meant to be used by cluster implementation

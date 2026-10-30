@@ -6,14 +6,14 @@ import React from 'react';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
-import {clearMarks, mark} from 'actions/telemetry_actions';
+import {mark} from 'actions/telemetry_actions';
 import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
 
 import LoadingScreen from 'components/loading_screen';
 import VirtPostList from 'components/post_view/post_list_virtualized/post_list_virtualized';
 
 import {PostRequestTypes, Constants} from 'utils/constants';
-import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
+import {clearChannelSwitchMarks, Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getOldestPostId, getLatestPostId} from 'utils/post_utils';
 
 const MAX_NUMBER_OF_AUTO_RETRIES = 3;
@@ -48,12 +48,7 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
         canFail: true,
     });
 
-    // Clear all the metrics so that we can differentiate between a channel and team switch next time this is called
-    clearMarks([
-        Mark.ChannelLinkClicked,
-        Mark.TeamLinkClicked,
-        Mark.PostListLoaded,
-    ]);
+    clearChannelSwitchMarks();
 }
 
 export interface Props {

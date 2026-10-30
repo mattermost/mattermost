@@ -10,10 +10,22 @@ Enforcing strict access controls based on user attributes eliminates manual role
 Attribute-based access control (ABAC) can be used with the following policy types:
 
 - **System-wide access policies** (managed by System Admins): Centralized policies created in the System Console that can be applied across multiple channels and teams. See [System-wide attribute-based access policies](/administration-guide/manage/admin/abac-system-wide-policies).
-- **Permission policies** (managed by System Admins): Attribute-based restrictions on user actions such as file upload, file download, channel read access, and channel write access. Unlike membership policies, these are evaluated on every request and can reference session attributes. See [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) and [Channel read and write access actions](/administration-guide/manage/admin/abac-channel-read-write-access).
+- **Permission policies** (managed by System Admins): Attribute-based restrictions on user actions such as file upload, file download, and burn-on-read message creation. See [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies).
 - **Team membership policies** (managed by System Admins and Team Admins): Attribute-based rules that control who can join a team. On private teams, rules gate directory visibility, join evaluation, and removal at sync (strict mode). On public teams, rules drive a "Recommended" tag and optional auto-add without restricting access (advisory mode). See [Team membership access policies](/administration-guide/manage/admin/abac-team-membership).
 - **Team-scoped channel membership policies** (managed by Team Admins): Channel membership policies that Team Admins can create, edit, and delete directly from the Channel Membership tab in Team Settings for channels in their team. See [Team-level channel membership policies](/administration-guide/manage/admin/abac-team-channel-policies).
 - **Channel-specific access rules** (managed by Channel Admins): Self-service access rules that Channel Admins can configure directly in Channel Settings for individual channels. See [Channel-specific access rules](/administration-guide/manage/admin/abac-channel-access-rules).
+
+<Important>
+
+**Membership policies and permission policies apply to bot accounts as well as users.** Bots are evaluated exactly like members, so a bot that's missing an attribute a rule checks, or has a value that doesn't match, doesn't qualify:
+
+- **Private channels and teams**: A bot that doesn't qualify can't be added, and is removed during synchronization.
+- **Public channels and teams**: A bot is auto-added or recommended only if it qualifies.
+- **Permission policies**: A bot that doesn't qualify can't perform actions a permission policy restricts, such as uploading or downloading files. See [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) for the actions you can restrict.
+
+Set the attributes a bot needs before you add it to channels or teams that use access policies. See [Bot attributes](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes) for details.
+
+</Important>
 
 From Mattermost v11.8, ABAC policies can be applied to **both private and public channels**, with deliberately different semantics for each:
 
@@ -26,13 +38,17 @@ From Mattermost v11.10, ABAC policies can also be applied to **teams**, with the
 
 ## Before you begin
 
-Attribute-based access controls require defined user attributes that are either synchronized from an external system (such as LDAP or SAML) or manually configured and enabled on your Mattermost server. You'll need to [configure user attributes](/administration-guide/manage/admin/user-attributes) in the System Console first before creating access policies.
+Attribute-based access controls require defined user attributes that are either synchronized from an external system (such as LDAP or SAML) or manually configured and enabled on your Mattermost server. You'll need to configure user attributes in the System Console first before creating access policies. See [Attribute management](/administration-guide/manage/admin/attribute-management) for Mattermost v12.0 and later, or [User attributes](/administration-guide/manage/admin/user-attributes) for earlier releases.
 
 Each attribute becomes a user profile option users can populate, unless you disable the **Editable by Users** option, available from Mattermost v11. Admin-managed attributes can be used in addition to the LDAP/SAML synchronized attributes for attribute-based access control rules.
+
+Bot accounts are evaluated against the same attributes, so populate attribute values for any bots that need access as well as for users. From Mattermost v12.1, you can set bot attribute values from **Integrations \> Bot Accounts**. See [Bot attributes](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes).
 
 Once user attributes are defined, go to **System Console \> System Attributes \> Attribute-Based Access** to enable attribute-based access controls for your Mattermost instance. This functionality requires a Mattermost Enterprise Advanced license.
 
 From Mattermost v10.11, user-managed attributes are excluded from attribute-based access control (ABAC) rules by default for security reasons. This prevents access control policies from being circumvented by users editing their own profile attributes. To include user-managed attributes in ABAC rules, a system admin must explicitly enable the `EnableUserManagedAttributes` configuration setting. See the [user attribute](/administration-guide/manage/admin/user-attributes#before-you-begin) documentation for details on enabling this feature. This configuration setting is available only in Enterprise Edition Advanced and is disabled by default.
+
+From Mattermost v12, permission policies can also evaluate [session attributes](/administration-guide/manage/admin/session-attributes) - per-session context such as the client's IP address, network interface type, VPN status, and device posture - alongside user attributes. Each session attribute must be enabled in **System Console \> System Attributes \> Session Attributes** before a rule can reference it.
 
 ## Configure access policies
 
@@ -45,8 +61,7 @@ From Mattermost v11.8.0, admins can configure membership policies for both publi
 - Create [system-wide access policies](/administration-guide/manage/admin/abac-system-wide-policies) that can be assigned across multiple channels and teams in the System Console. Membership policies can be applied to both public and private channels, with [advisory behavior on public channels](/administration-guide/manage/admin/abac-channel-access-rules#public-and-private-channel-behavior).
 - Assign [individual channel policies](/administration-guide/manage/admin/abac-system-wide-policies#define-access-controls-per-channel) to specific channels in the System Console.
 - [Assign membership policies to teams](/administration-guide/manage/admin/abac-team-membership#assign-a-membership-policy-to-a-team) via the per-team System Console page, with advisory enforcement on public teams and strict enforcement on private teams.
-- Define [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) that restrict actions such as file upload and file download based on user attributes.
-- From Mattermost v12.1, restrict [channel read access and channel write access](/administration-guide/manage/admin/abac-channel-read-write-access) with permission policies.
+- Define [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) that restrict actions such as file upload, file download, and burn-on-read message creation based on user attributes.
 - [Simulate policy outcomes](/administration-guide/manage/admin/abac-system-wide-policies#simulate-access) to preview whether selected users can perform actions such as joining a channel or uploading and downloading files before saving policy changes.
 
 **Team Admins can:**
@@ -57,4 +72,3 @@ From Mattermost v11.8.0, admins can configure membership policies for both publi
 **Channel Admins can:**
 
 - Configure [channel-specific access rules](/administration-guide/manage/admin/abac-channel-access-rules) directly in Channel Settings without requiring a system admin.
-- Scope [channel read and write access rules](/administration-guide/manage/admin/abac-channel-read-write-access#channel-settings-channel-scoped-permission-rules) to a single channel, per channel role, from the **Permissions Policy** tab in Channel Settings.

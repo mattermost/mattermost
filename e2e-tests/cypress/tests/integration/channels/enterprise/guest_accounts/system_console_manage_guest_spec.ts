@@ -66,13 +66,13 @@ describe('Guest Account - Verify Manage Guest Users', () => {
         cy.get('#systemUsersTable-cell-0_actionsColumn').should('have.text', 'Guest').click();
 
         // * Verify the manage options which should be displayed for Guest User
-        const includeOptions = ['Deactivate', 'Manage roles', 'Manage teams', 'Reset password', 'Update email', 'Promote to member', 'Revoke sessions'];
+        const includeOptions = ['Deactivate', 'Manage teams', 'Reset password', 'Update email', 'Promote to member', 'Revoke sessions'];
         includeOptions.forEach((includeOption) => {
             cy.findByText(includeOption).should('be.visible');
         });
 
         // * Verify the manage options which should not be displayed for Guest user
-        const missingOptions = ['Demote to Guest'];
+        const missingOptions = ['Manage roles', 'Demote to guest'];
         missingOptions.forEach((missingOption) => {
             cy.findByText(missingOption).should('not.exist');
         });
@@ -87,7 +87,7 @@ describe('Guest Account - Verify Manage Guest Users', () => {
         const email = `temp-${getRandomId()}@mattermost.com`;
         cy.get('#resetEmailModal').should('be.visible').within(() => {
             cy.get('input[type="email"]').type(email);
-            cy.get('button.btn-primary.confirm').click();
+            cy.get('button.GenericModal__button.confirm').click();
         });
 
         // * Verify if Guest's email was updated

@@ -6,7 +6,7 @@ import moment from 'moment';
 import React from 'react';
 
 import {fakeDate} from 'tests/helpers/date';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext} from 'tests/react_testing_utils';
 
 /**
  * Helper to compute the expected dateTime attribute value.
@@ -322,5 +322,242 @@ describe('components/timestamp/Timestamp', () => {
             />,
         );
         expect(container.textContent).toBe('19:15');
+    });
+});
+
+// These use Jest's fake timers rather than the fakeDate helper above, because they need the
+// clock and the timer queue to advance together.
+describe('components/timestamp/Timestamp day rollover', () => {
+    const TEN_SECONDS_BEFORE_MIDNIGHT = new Date('2019-05-03T23:59:50Z');
+    const EARLIER_THAT_EVENING = new Date('2019-05-03T20:00:00Z');
+
+    const TODAY_YESTERDAY_RANGES = [
+        RelativeRanges.TODAY_TITLE_CASE,
+        RelativeRanges.YESTERDAY_TITLE_CASE,
+    ];
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(TEN_SECONDS_BEFORE_MIDNIGHT);
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    function advanceBy(millis: number) {
+        act(() => {
+            jest.advanceTimersByTime(millis);
+        });
+    }
+
+    test('should relabel Today as Yesterday once the local day changes', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useTime={false}
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Today');
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('Yesterday');
+    });
+
+    test('should relabel today as yesterday for day-relative ranges', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useTime={false}
+                ranges={[RelativeRanges.TODAY_YESTERDAY]}
+            />,
+        );
+
+        expect(container.textContent).toEqual('today');
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('yesterday');
+    });
+
+    test('should recount the days for a day-relative timestamp without any ranges', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={new Date('2019-04-30T20:00:00Z')}
+                timeZone='UTC'
+                useTime={false}
+                unit='day'
+            />,
+        );
+
+        expect(container.textContent).toEqual('3 days ago');
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('4 days ago');
+    });
+
+    // Each case sits on the last moment of a period, so the next day boundary is also that
+    // period's boundary.
+    test.each([
+        ['week', '2019-05-04T23:59:50Z', '2019-05-01T12:00:00Z'],
+        ['month', '2019-04-30T23:59:50Z', '2019-04-15T12:00:00Z'],
+        ['quarter', '2019-03-31T23:59:50Z', '2019-02-15T12:00:00Z'],
+        ['year', '2018-12-31T23:59:50Z', '2018-06-15T12:00:00Z'],
+    ] as const)('should recount whole %ss when the period ends', (unit, now, value) => {
+        jest.setSystemTime(new Date(now));
+
+        const {container} = renderWithContext(
+            <Timestamp
+                value={new Date(value)}
+                timeZone='UTC'
+                useTime={false}
+                units={[unit]}
+            />,
+        );
+
+        expect(container.textContent).toEqual(`this ${unit}`);
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual(`last ${unit}`);
+    });
+
+    // A refresh interval takes priority over the day boundary, which is what keeps the
+    // finer-grained ranges ticking at their own rate.
+    test('should keep refreshing a minute-relative timestamp on its own interval', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={new Date('2019-05-03T23:58:20Z')}
+                timeZone='UTC'
+                useTime={false}
+                units={['minute']}
+            />,
+        );
+
+        expect(container.textContent).toEqual('1 minute ago');
+
+        advanceBy(31 * 1000);
+
+        expect(container.textContent).toEqual('2 minutes ago');
+    });
+
+    test('should catch up after the machine was suspended past midnight', () => {
+        const {container, rerender} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useTime={false}
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Today');
+
+        // Time moves on without any timer getting a chance to fire.
+        jest.setSystemTime(new Date('2019-05-04T08:00:00Z'));
+
+        rerender(
+            <Timestamp
+                value={new Date(EARLIER_THAT_EVENING.getTime() + 1000)}
+                timeZone='UTC'
+                useTime={false}
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Yesterday');
+    });
+
+    // Covers the branch that refreshes an absolute date format rather than a relative label.
+    test('should drop the weekday format once the value is more than six days old', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={new Date('2019-04-27T12:00:00Z')}
+                timeZone='UTC'
+                useTime={false}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Saturday');
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('April 27');
+    });
+
+    test('should use the given timezone to decide where the day boundary falls', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='Asia/Tokyo'
+                useTime={false}
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Today');
+
+        // Midnight passes in UTC, but it is still the same day in Tokyo.
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('Today');
+
+        // Midnight in Tokyo.
+        advanceBy(15 * 60 * 60 * 1000);
+
+        expect(container.textContent).toEqual('Yesterday');
+    });
+
+    // Every post in a channel renders one of these, so a time-only timestamp must not take a timer.
+    test('should not schedule an update when only a time is rendered', () => {
+        const before = jest.getTimerCount();
+
+        renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useDate={false}
+            />,
+        );
+
+        expect(jest.getTimerCount()).toBe(before);
+    });
+
+    test('should leave no pending update behind after re-renders and unmount', () => {
+        const before = jest.getTimerCount();
+
+        const {rerender, unmount} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useTime={false}
+                className='first'
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(jest.getTimerCount()).toBe(before + 1);
+
+        for (const className of ['second', 'third']) {
+            rerender(
+                <Timestamp
+                    value={EARLIER_THAT_EVENING}
+                    timeZone='UTC'
+                    useTime={false}
+                    className={className}
+                    ranges={TODAY_YESTERDAY_RANGES}
+                />,
+            );
+        }
+
+        unmount();
+
+        expect(jest.getTimerCount()).toBe(before);
     });
 });

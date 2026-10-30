@@ -5,7 +5,7 @@ import React from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import Input from 'components/widgets/inputs/input/input';
 
@@ -87,7 +87,7 @@ export const AddTopLevelForm = ({
             <Button
                 type='button'
                 emphasis={isEmptyCanvas ? 'primary' : 'secondary'}
-                size={isEmptyCanvas ? 'sm' : 'md'}
+                size={isEmptyCanvas ? 'small' : 'medium'}
                 onClick={onCommit}
                 disabled={!canAdd}
                 data-testid={`${testIdPrefix}__addButton`}
@@ -127,7 +127,6 @@ export function ChildDraftRow({
                 aria-hidden={true}
             >
                 <span className='attribute-options-graph-values__collapse-spacer'/>
-                <span className='attribute-options-graph-values__draft-handle-spacer'/>
             </span>
             <Input
                 name='graph_child_option_name'
@@ -163,7 +162,7 @@ export function ChildDraftRow({
             <Button
                 type='button'
                 emphasis='secondary'
-                size='sm'
+                size='small'
                 onClick={onCommit}
                 disabled={!canAdd}
                 data-testid='attributeOptionsGraphRow__childAddButton'
@@ -173,7 +172,7 @@ export function ChildDraftRow({
             <Button
                 type='button'
                 emphasis='tertiary'
-                size='sm'
+                size='small'
                 onClick={onCancel}
                 data-testid='attributeOptionsGraphRow__childCancelButton'
             >

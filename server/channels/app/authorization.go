@@ -115,6 +115,8 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 		return a.EnforceChannelReadAccess(rctx, session.UserId, channel), isMember
 	case isChannelWritePermission(permission):
 		return a.EnforceChannelWriteAccess(rctx, session.UserId, channel), isMember
+	case isChannelManagementPermission(permission):
+		return a.EnforceChannelManagementAccess(rctx, session.UserId, channel), isMember
 	}
 
 	return hasPermission, isMember
@@ -255,7 +257,7 @@ func (a *App) SessionHasPermissionToChannelByPost(rctx request.CTX, session mode
 		if err != nil {
 			// No channel to evaluate against, so granting on a system-wide permission
 			// would bypass the policy.
-			return !a.channelAccessEnforcementActive()
+			return !a.ChannelAccessEnforcementActive()
 		}
 	}
 
@@ -291,7 +293,7 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 
 	channel, err := a.Srv().Store().Channel().GetForPost(postID)
 	if err != nil {
-		if a.channelAccessEnforcementActive() {
+		if a.ChannelAccessEnforcementActive() {
 			// The fallback below has no channel to evaluate against, so granting on
 			// a system-wide permission would bypass the policy.
 			return false, false
@@ -385,8 +387,8 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 //
 // This answers an RBAC question only: it deliberately does NOT evaluate the channel
 // access policy. Policy belongs to the API layer, where the request has a session to
-// evaluate rules against -- see requireChannelReadAccess / requireChannelWriteAccess in
-// channels/api4/channel.go. Most of this function's callers are sessionless (the recap
+// evaluate rules against -- see requireChannelReadAccess / requireChannelWriteAccess /
+// requireChannelManagementAccess in channels/api4/channel.go. Most of this function's callers are sessionless (the recap
 // job, incoming webhooks, invite-token signup) or ask about a third-party user, so a
 // gate here would either deny every one of them or evaluate against the wrong subject.
 // Do not reintroduce a channel-access check in this function; add one to the handler.
@@ -591,96 +593,123 @@ func (a *App) hasPermissionToChannelMemberCountRBAC(rctx request.CTX, userID str
 }
 
 // SessionHasPermissionToEditPropertyField checks if the session has permission to edit the field definition.
-// Returns false if the field is nil, protected, or if PermissionField is nil (legacy fields).
+// Returns false if the field is nil, protected on an unmigrated field, or if the field carries no permission
+// configuration at all (an unmigrated field with neither Permissions nor PermissionField set).
 func (a *App) SessionHasPermissionToEditPropertyField(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	return a.SessionPropertyFieldEditBasis(rctx, session, field).Allowed
+}
+
+// SessionPropertyFieldEditBasis decides the same question as
+// SessionHasPermissionToEditPropertyField, returning the full basis so a
+// caller that also audits the write can record it directly instead of
+// re-deriving it afterwards.
+func (a *App) SessionPropertyFieldEditBasis(rctx request.CTX, session model.Session, field *model.PropertyField) PropertyPermissionBasis {
+	basis := PropertyPermissionBasis{
+		Action:     model.PropertyActionFieldWrite,
+		CallerType: model.PropertyOwnerTypeUser,
+		CallerID:   session.UserId,
+	}
 	if field == nil {
-		return false
+		return basis
 	}
-	if field.Protected {
-		return false
+	// Protected denies unconditionally only on an unmigrated field: once
+	// converted, the cutover mapping has already encoded an equivalent
+	// restriction, and Protected's bool value on that field is inert.
+	if field.Protected && field.Permissions == nil {
+		return basis
 	}
-	if field.PermissionField == nil {
-		return false
+	if field.Permissions == nil && field.PermissionField == nil {
+		return basis
 	}
 	if session.IsUnrestricted() {
-		return true
+		// Bypasses the decision itself: a local-mode session has no user
+		// identity to resolve a tier or grant against.
+		basis.Unrestricted = true
+		basis.Allowed = true
+		return basis
 	}
-	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, *field.PermissionField)
+	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionFieldWrite, "")
 }
 
 // SessionHasPermissionToSetPropertyFieldValues checks if the session has
 // permission to set the given value on the field. The valueTargetID is the
 // specific object the value is attached to (the channel/post/user/team ID
 // for that ObjectType); admin and member levels are evaluated against it.
-// Returns false if the field is nil or if PermissionValues is nil (legacy fields).
+// Returns false if the field is nil or if the field carries no permission
+// configuration at all (an unmigrated field with neither Permissions nor
+// PermissionValues set).
 func (a *App) SessionHasPermissionToSetPropertyFieldValues(rctx request.CTX, session model.Session, field *model.PropertyField, valueTargetID string) bool {
 	if field == nil {
 		return false
 	}
-	if field.PermissionValues == nil {
+	if field.Permissions == nil && field.PermissionValues == nil {
 		return false
 	}
 	if session.IsUnrestricted() {
 		return true
 	}
-	return a.hasPropertyFieldValuePermissionLevel(rctx, session.UserId, field, valueTargetID, *field.PermissionValues)
+	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionValueWrite, valueTargetID).Allowed
 }
 
 // SessionHasPermissionToManagePropertyFieldOptions checks if the session has permission to manage field options.
-// Returns false if the field is nil or if PermissionOptions is nil (legacy fields).
+// Returns false if the field is nil or if the field carries no permission configuration at all (an unmigrated
+// field with neither Permissions nor PermissionOptions set).
 func (a *App) SessionHasPermissionToManagePropertyFieldOptions(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
-	if field == nil {
-		return false
+	return a.SessionPropertyFieldOptionsBasis(rctx, session, field).Allowed
+}
+
+// SessionPropertyFieldOptionsBasis decides the same question as
+// SessionHasPermissionToManagePropertyFieldOptions, returning the full basis
+// so a caller that also audits the write can record it directly instead of
+// re-deriving it afterwards.
+func (a *App) SessionPropertyFieldOptionsBasis(rctx request.CTX, session model.Session, field *model.PropertyField) PropertyPermissionBasis {
+	basis := PropertyPermissionBasis{
+		Action:     model.PropertyActionOptionWrite,
+		CallerType: model.PropertyOwnerTypeUser,
+		CallerID:   session.UserId,
 	}
-	if field.PermissionOptions == nil {
-		return false
+	if field == nil {
+		return basis
+	}
+	if field.Permissions == nil && field.PermissionOptions == nil {
+		return basis
 	}
 	if session.IsUnrestricted() {
-		return true
+		basis.Unrestricted = true
+		basis.Allowed = true
+		return basis
 	}
-	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, *field.PermissionOptions)
+	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionOptionWrite, "")
 }
 
 // HasPermissionToEditPropertyField checks if the user has permission to edit the field definition.
-// Returns false if the field is nil, protected, userID is empty, or if PermissionField is nil (legacy fields).
+// Returns false if the field is nil or userID is empty.
 func (a *App) HasPermissionToEditPropertyField(rctx request.CTX, userID string, field *model.PropertyField) bool {
 	if field == nil || userID == "" {
 		return false
 	}
-	if field.Protected {
-		return false
-	}
-	if field.PermissionField == nil {
-		return false
-	}
-	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionField)
+	return a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionFieldWrite, "").Allowed
 }
 
 // HasPermissionToSetPropertyFieldValues checks if the user has permission to
 // set the given value on the field. The valueTargetID is the specific object
 // the value is attached to (the channel/post/user/team ID for that
 // ObjectType); admin and member levels are evaluated against it.
-// Returns false if the field is nil, userID is empty, or if PermissionValues is nil (legacy fields).
+// Returns false if the field is nil or userID is empty.
 func (a *App) HasPermissionToSetPropertyFieldValues(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	if field == nil || userID == "" {
 		return false
 	}
-	if field.PermissionValues == nil {
-		return false
-	}
-	return a.hasPropertyFieldValuePermissionLevel(rctx, userID, field, valueTargetID, *field.PermissionValues)
+	return a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionValueWrite, valueTargetID).Allowed
 }
 
 // HasPermissionToManagePropertyFieldOptions checks if the user has permission to manage field options.
-// Returns false if the field is nil, userID is empty, or if PermissionOptions is nil (legacy fields).
+// Returns false if the field is nil or userID is empty.
 func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID string, field *model.PropertyField) bool {
 	if field == nil || userID == "" {
 		return false
 	}
-	if field.PermissionOptions == nil {
-		return false
-	}
-	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionOptions)
+	return a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionOptionWrite, "").Allowed
 }
 
 // SessionHasPermissionToAdministerPropertyFieldScope reports whether the session
@@ -747,6 +776,8 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 	switch level {
 	case model.PermissionLevelNone:
 		return false
+	case model.PermissionLevelEveryone:
+		return true
 	case model.PermissionLevelSysadmin:
 		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 	case model.PermissionLevelMember:
@@ -760,6 +791,20 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 		case string(model.PropertyFieldTargetLevelChannel):
 			return a.hasChannelPropertyAdmin(rctx, userID, field.TargetID)
 		}
+	case model.PermissionLevelCreator:
+		// The entity gated here is the field definition itself, so its creator
+		// is CreatedBy — not the creator of whatever the field is scoped to.
+		//
+		// Creating a field earns no standing to keep editing it after losing
+		// access to the scope it lives in, so the creator arm narrows the member
+		// arm rather than sitting beside it.
+		if field.CreatedBy != "" && field.CreatedBy == userID &&
+			a.hasPropertyFieldScopeAccess(rctx, userID, field) {
+			return true
+		}
+		// Falls back to the admin arm above rather than restating the
+		// per-TargetType cascade. Terminates: the admin case never recurses.
+		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, model.PermissionLevelAdmin)
 	}
 	return false
 }
@@ -770,14 +815,33 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 // so a value on a channel-object field is gated by the user's role on that
 // channel, regardless of how the field itself is scoped. "sysadmin" and
 // "none" behave identically to the field-level dispatch.
+//
+// An empty valueTargetID on a channel or post field asks about every object
+// the field's values hang off at once, as deleting all of a field's values
+// does. There is no single object to measure admin, creator or member
+// against, so those levels admit only a sysadmin, who passes each of them on
+// any channel or post; anyone else is refused. A non-empty valueTargetID is
+// always judged against that object.
 func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string, level model.PermissionLevel) bool {
+	if valueTargetID == "" &&
+		(field.ObjectType == model.PropertyFieldObjectTypeChannel || field.ObjectType == model.PropertyFieldObjectTypePost) {
+		switch level {
+		case model.PermissionLevelAdmin, model.PermissionLevelCreator, model.PermissionLevelMember:
+			return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
+		}
+	}
+
 	switch level {
 	case model.PermissionLevelSysadmin:
 		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 	case model.PermissionLevelAdmin:
 		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	case model.PermissionLevelCreator:
+		return a.hasPropertyFieldValueCreator(rctx, userID, field, valueTargetID)
 	case model.PermissionLevelMember:
 		return a.hasPropertyFieldValueScopeAccess(rctx, userID, field, valueTargetID)
+	case model.PermissionLevelEveryone:
+		return true
 	case model.PermissionLevelNone:
 		return false
 	}
@@ -813,6 +877,59 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, model.PermissionLevelAdmin)
 	}
 	return false
+}
+
+// hasPropertyFieldValueCreator reports whether the user created the value's
+// target object, or otherwise administers it. Only post- and channel-object
+// fields reach here; model validation rejects PermissionLevelCreator on every
+// other object type. The creator arm is checked first so an author tagging
+// their own post resolves with a single store read and no role evaluation.
+func (a *App) hasPropertyFieldValueCreator(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
+	// Each arm ends itself rather than falling out of the switch. A lookup
+	// failure returns false instead of deferring to the admin arm: if the
+	// target cannot be read here, the admin arm cannot resolve it either, so
+	// continuing would only buy a second failed lookup and a second warning.
+	// Every arm that does not match the creator must end in the admin call —
+	// a new object type that omits it is creator-only, not creator-or-admin.
+	switch field.ObjectType {
+	case model.PropertyFieldObjectTypePost:
+		post, err := a.Srv().Store().Post().GetSingle(rctx, valueTargetID, false)
+		if err != nil {
+			rctx.Logger().Warn("Failed to look up post for property value creator check",
+				mlog.String("post_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		if post.UserId != "" && post.UserId == userID {
+			return true
+		}
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	case model.PropertyFieldObjectTypeChannel:
+		channel, appErr := a.GetChannel(rctx, valueTargetID)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to look up channel for property value creator check",
+				mlog.String("channel_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+		// Group channels carry no CreatorId, so an empty userID must never
+		// match it. Direct channels DO have one: the store stamps the
+		// initiating user.
+		if channel.CreatorId != "" && channel.CreatorId == userID {
+			return true
+		}
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	default:
+		// Unreachable via validated fields. Deny rather than deferring to the
+		// admin arm, so a future object type must opt in consciously.
+		return false
+	}
 }
 
 // hasPropertyFieldValueScopeAccess reports whether the user can write the
@@ -871,11 +988,13 @@ func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field
 	return false
 }
 
-// HasPermissionToFileAction evaluates whether the user is allowed to perform the
-// given file action (e.g. upload_file_attachment, download_file_attachment) on
-// a channel, based on ABAC permission policies.
+// HasPermissionToChannelAction evaluates whether the user is allowed to perform
+// the given permission action against a channel, based on ABAC policies. The
+// action is passed through to the PDP untouched, so this serves every action
+// evaluated with a channel resource — the file actions, create_burn_on_read_post,
+// and any added later.
 // Returns true if allowed (or if ABAC is not active), false if denied.
-func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+func (a *App) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
 		return true
@@ -897,7 +1016,7 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 		subject, appErr = a.BuildAccessControlSubject(rctx, userID, roles, channelID)
 	}
 	if appErr != nil {
-		rctx.Logger().Info("Failed to build ABAC subject for file action evaluation",
+		rctx.Logger().Info("Failed to build ABAC subject for channel action evaluation",
 			mlog.String("user_id", userID),
 			mlog.String("action", action),
 			mlog.Err(appErr),
@@ -914,7 +1033,7 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 		Action: action,
 	})
 	if evalErr != nil {
-		rctx.Logger().Debug("ABAC file action evaluation failed, denying by default",
+		rctx.Logger().Debug("ABAC channel action evaluation failed, denying by default",
 			mlog.String("user_id", userID),
 			mlog.String("action", action),
 			mlog.String("channel_id", channelID),

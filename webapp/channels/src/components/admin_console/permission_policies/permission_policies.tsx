@@ -4,7 +4,7 @@
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -37,6 +37,8 @@ const ACTION_LABELS: Record<string, string> = {
     upload_file_attachment: 'Upload Files',
     channel_read_access: 'Channel Read Access',
     channel_write_access: 'Channel Write Access',
+    channel_management_access: 'Manage Channel',
+    create_burn_on_read_post: 'Create Burn on Read Message',
 };
 
 function getActionsLabel(policy: AccessControlPolicy): string {

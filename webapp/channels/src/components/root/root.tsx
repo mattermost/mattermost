@@ -16,7 +16,7 @@ import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
 import GlobalClassificationBanner from 'components/global_classification_banner';
-import GlobalHeader from 'components/global_header/global_header';
+import GlobalHeader from 'components/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
 import InitialLoadingScreen from 'components/initial_loading_screen';
@@ -72,6 +72,7 @@ const AnnouncementBarController = makeAsyncComponent('AnnouncementBarController'
 const SystemNotice = makeAsyncComponent('SystemNotice', lazy(() => import('components/system_notice')));
 const CloudEffects = makeAsyncComponent('CloudEffects', lazy(() => import('components/cloud_effects')));
 const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('components/team_sidebar')));
+const ProductRail = makeAsyncComponent('ProductRail', lazy(() => import('components/product_rail/product_rail')));
 const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
@@ -424,6 +425,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <GlobalHeader/>
                         <CloudEffects/>
                         <TeamSidebar/>
+                        <ProductRail/>
                         <div className='main-wrapper'>
                             <Switch>
                                 {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (

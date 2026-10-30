@@ -356,6 +356,11 @@ func updateViewSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("")
 
+	// The response lists every view in the channel, not just the one moved.
+	if !sessionCanReadChannel(c, c.Params.ChannelId) {
+		views = []*model.View{}
+	}
+
 	if err := json.NewEncoder(w).Encode(views); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -422,13 +427,18 @@ func getPostsForView(c *Context, w http.ResponseWriter, r *http.Request) {
 		UserId:    c.AppContext.Session().UserId,
 	}
 
+	propertyGroupID := resolvePropertyGroupParam(c, r)
+	if c.Err != nil {
+		return
+	}
+
 	list, appErr := c.App.GetPostsForView(c.AppContext, options)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, list, &model.PreparePostForClientOpts{PropertyGroupID: propertyGroupID})
 	clientPostList, isMemberForAllPreviews, appErr := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr

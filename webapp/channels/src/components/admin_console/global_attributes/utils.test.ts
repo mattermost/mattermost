@@ -3,8 +3,13 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 
+import {clearGraphOptionNameCache, commitGraphOptionNames, getGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
+
+import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
+import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
 import {
     ATTRIBUTE_FIELD_TYPES,
     appliedResourceTypesByTemplateId,
@@ -15,9 +20,12 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
+    findNameConflicts,
     formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
+    syncUserAttributeFieldDelete,
+    syncUserAttributeFieldUpsert,
     updateAttributeField,
 } from './utils';
 
@@ -153,6 +161,23 @@ describe('global_attributes/utils', () => {
 
             const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
             expect(attrs).not.toHaveProperty('options');
+            expect(attrs).not.toHaveProperty('value_type');
+        });
+
+        it('sends type text with attrs.value_type for phone and url', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('Work phone', 'work_phone', 'phone', []);
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                type: 'text',
+                attrs: {display_name: 'Work phone', value_type: 'phone'},
+            }));
+
+            await createAttributeField('Homepage', 'homepage', 'url', []);
+            expect(createPropertyField).toHaveBeenLastCalledWith('access_control', 'template', expect.objectContaining({
+                type: 'text',
+                attrs: {display_name: 'Homepage', value_type: 'url'},
+            }));
         });
 
         it('propagates a rejection from Client4', async () => {
@@ -190,10 +215,10 @@ describe('global_attributes/utils', () => {
             });
         });
 
-        it('omits ldap/saml when links is passed but both fields are empty', async () => {
+        it('omits every sync source when links is passed but none is set', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
-            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldapAttr: '', samlAttr: ''});
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldap: '', saml: '', openid: ''});
 
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', {
                 name: 'my_attribute',
@@ -204,20 +229,20 @@ describe('global_attributes/utils', () => {
             });
         });
 
-        it('includes only attrs.ldap when only ldapAttr is set', async () => {
+        it('includes only attrs.ldap when only ldap is set', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
-            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldapAttr: 'department'});
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldap: 'department'});
 
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
                 attrs: {display_name: 'My Attribute', ldap: 'department'},
             }));
         });
 
-        it('includes only attrs.saml when only samlAttr is set', async () => {
+        it('includes only attrs.saml when only saml is set', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
-            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {samlAttr: 'department'});
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {saml: 'department'});
 
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
                 attrs: {display_name: 'My Attribute', saml: 'department'},
@@ -227,11 +252,24 @@ describe('global_attributes/utils', () => {
         it('includes both attrs.ldap and attrs.saml when both are set', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
-            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldapAttr: 'department', samlAttr: 'dept'});
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldap: 'department', saml: 'dept'});
 
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
                 attrs: {display_name: 'My Attribute', ldap: 'department', saml: 'dept'},
             }));
+        });
+
+        it('includes attrs.openid when an OpenID Connect claim is linked', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('My Attribute', 'my_attribute', 'multiselect', [], {openid: 'groups'});
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                attrs: expect.objectContaining({display_name: 'My Attribute', openid: 'groups'}),
+            }));
+            const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
+            expect(attrs).not.toHaveProperty('ldap');
+            expect(attrs).not.toHaveProperty('saml');
         });
     });
 
@@ -306,6 +344,17 @@ describe('global_attributes/utils', () => {
 
             await expect(createLinkedAttributeField('user', 'name', 'text', 'Name', 'template-id')).rejects.toThrow('boom');
         });
+
+        it('sends attrs.value_type on a linked phone/url field because the server does not copy it from the template', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createLinkedAttributeField('user', 'work_phone', 'phone', 'Work phone', 'template-id');
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({
+                type: 'text',
+                attrs: {display_name: 'Work phone', value_type: 'phone'},
+            }));
+        });
     });
 
     describe('deleteLinkedAttributeField', () => {
@@ -335,8 +384,7 @@ describe('global_attributes/utils', () => {
                 type: 'select',
                 displayName: 'Renamed',
                 options: [{id: 'opt-1', name: 'Engineering'}, {id: '', name: 'Sales'}],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
@@ -347,6 +395,8 @@ describe('global_attributes/utils', () => {
                     options: [{id: 'opt-1', name: 'Engineering'}, {id: '', name: 'Sales'}],
                     ldap: null,
                     saml: null,
+                    openid: null,
+                    value_type: null,
                 },
             });
         });
@@ -358,8 +408,7 @@ describe('global_attributes/utils', () => {
                 type: 'text',
                 displayName: 'Cost center',
                 options: [{id: 'opt-1', name: ' leftover '}],
-                ldapAttr: 'department',
-                samlAttr: '',
+                externalLinks: {ldap: 'department', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
@@ -369,6 +418,8 @@ describe('global_attributes/utils', () => {
                     options: null,
                     ldap: 'department',
                     saml: null,
+                    openid: null,
+                    value_type: null,
                 },
             });
         });
@@ -383,8 +434,7 @@ describe('global_attributes/utils', () => {
                     {id: 'opt-1', name: 'Air'},
                     {id: '', name: 'Fighter', parents: ['Air']},
                 ],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
@@ -397,8 +447,39 @@ describe('global_attributes/utils', () => {
                     ],
                     ldap: null,
                     saml: null,
+                    openid: null,
+                    value_type: null,
                 },
             });
+        });
+
+        it('sends attrs.openid when an OpenID Connect claim is linked, nulling the other sources', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('template', 'field-id', {
+                type: 'text',
+                displayName: 'Country',
+                options: [],
+                externalLinks: {ldap: '', saml: '', openid: 'address.country'},
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', expect.objectContaining({
+                attrs: expect.objectContaining({ldap: null, saml: null, openid: 'address.country'}),
+            }));
+        });
+
+        it('leaves the options out of the PATCH when the patch carries none', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('template', 'field-id', {
+                type: 'multiselect',
+                displayName: 'Groups',
+                externalLinks: {ldap: 'memberOf', saml: '', openid: ''},
+            });
+
+            const attrs = patchPropertyField.mock.calls[0][3].attrs as Record<string, unknown>;
+            expect(attrs).not.toHaveProperty('options');
+            expect(attrs).toEqual(expect.objectContaining({display_name: 'Groups', ldap: 'memberOf'}));
         });
 
         it('passes a non-template object type through as the PATCH path segment', async () => {
@@ -408,11 +489,42 @@ describe('global_attributes/utils', () => {
                 type: 'text',
                 displayName: 'Cost center',
                 options: [],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', expect.anything());
+        });
+
+        it('sends resourceAttrs next to the definition attrs and permissionValues as permission_values', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('user', 'field-id', {
+                type: 'text',
+                displayName: 'Cost center',
+                options: [],
+                externalLinks: {ldap: '', saml: '', openid: ''},
+                resourceAttrs: {visibility: 'hidden', managed: 'admin'},
+                permissionValues: 'sysadmin',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', {
+                type: 'text',
+                attrs: expect.objectContaining({display_name: 'Cost center', visibility: 'hidden', managed: 'admin'}),
+                permission_values: 'sysadmin',
+            });
+        });
+
+        it('sends no permission_values without permissionValues', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('user', 'field-id', {
+                type: 'text',
+                displayName: 'Cost center',
+                options: [],
+                externalLinks: {ldap: '', saml: '', openid: ''},
+            });
+
+            expect(patchPropertyField.mock.calls[0][3]).not.toHaveProperty('permission_values');
         });
 
         it('preserves option metadata such as color when PATCHing a standalone channel select', async () => {
@@ -425,8 +537,7 @@ describe('global_attributes/utils', () => {
                     {id: 'opt-1', name: 'DARKBG', color: '#1e325c'},
                     {id: '', name: 'LIGHTBG', color: '#ffffff'},
                 ],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'field-id', {
@@ -439,6 +550,8 @@ describe('global_attributes/utils', () => {
                     ],
                     ldap: null,
                     saml: null,
+                    openid: null,
+                    value_type: null,
                 },
             });
         });
@@ -453,8 +566,7 @@ describe('global_attributes/utils', () => {
                     {id: 'opt-1', name: 'Low', rank: 1, color: '#007A33'},
                     {id: 'opt-2', name: 'High', rank: 2, color: '#C8102E'},
                 ],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'field-id', expect.objectContaining({
@@ -465,6 +577,41 @@ describe('global_attributes/utils', () => {
                         {id: 'opt-2', name: 'High', rank: 2, color: '#C8102E'},
                     ],
                 }),
+            }));
+        });
+
+        it('sends attrs.value_type for phone and url, and null when switching back to plain text', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('template', 'field-id', {
+                type: 'phone',
+                displayName: 'Work phone',
+                options: [],
+                externalLinks: {ldap: '', saml: '', openid: ''},
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
+                type: 'text',
+                attrs: {
+                    display_name: 'Work phone',
+                    options: null,
+                    ldap: null,
+                    saml: null,
+                    openid: null,
+                    value_type: 'phone',
+                },
+            });
+
+            await updateAttributeField('template', 'field-id', {
+                type: 'url',
+                displayName: 'Homepage',
+                options: [],
+                externalLinks: {ldap: '', saml: '', openid: ''},
+            });
+
+            expect(patchPropertyField).toHaveBeenLastCalledWith('access_control', 'template', 'field-id', expect.objectContaining({
+                type: 'text',
+                attrs: expect.objectContaining({value_type: 'url'}),
             }));
         });
     });
@@ -486,7 +633,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBe(live);
         });
 
         it('returns a matching live user/channel/post field', async () => {
@@ -498,7 +645,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBe(live);
         });
 
         it('ignores a user/channel/post field that is a linked child of a template', async () => {
@@ -509,23 +656,27 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBeUndefined();
         });
 
         it('returns undefined when the id is not in any object type', async () => {
             jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([{id: 'other', delete_at: 0} as PropertyField]);
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBeUndefined();
         });
 
-        it('does not query the channel scope when includeChannel is false', async () => {
+        it.each([
+            [['user'], ['template', 'user']],
+
+            // Deliberately out of canonical order: the scopes are queried in
+            // ALL_RESOURCE_TYPES order, not in the order they were allowed.
+            [['post', 'user'], ['template', 'user', 'post']],
+        ])('queries the template scope plus the allowed resource scopes %p', async (allowedTypes, expected) => {
             const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
 
-            await fetchAttributeField('field-1', false);
+            await fetchAttributeField('field-1', allowedTypes as ResourceObjectType[]);
 
-            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
-            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['template', 'user', 'post']));
-            expect(queriedObjectTypes).not.toContain('channel');
+            expect(getPropertyFields.mock.calls.map((call) => call[1])).toEqual(expected);
         });
     });
 
@@ -550,7 +701,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            const fields = await fetchLinkedFieldsForTemplate('template-id', true);
+            const fields = await fetchLinkedFieldsForTemplate('template-id', ALL_RESOURCE_TYPES);
 
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
@@ -558,14 +709,15 @@ describe('global_attributes/utils', () => {
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
         });
 
-        it('does not query the channel scope when includeChannel is false', async () => {
+        it.each([
+            [['user'], ['user']],
+            [['post', 'user'], ['user', 'post']],
+        ])('only queries the allowed resource scopes %p', async (allowedTypes, expected) => {
             const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
 
-            await fetchLinkedFieldsForTemplate('template-id', false);
+            await fetchLinkedFieldsForTemplate('template-id', allowedTypes as ResourceObjectType[]);
 
-            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
-            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['user', 'post']));
-            expect(queriedObjectTypes).not.toContain('channel');
+            expect(getPropertyFields.mock.calls.map((call) => call[1])).toEqual(expected);
         });
     });
 
@@ -632,6 +784,167 @@ describe('global_attributes/utils', () => {
             expect(byType.user?.id).toBe('u1');
             expect(byType.channel?.id).toBe('c1');
             expect(byType.post).toBeUndefined();
+        });
+    });
+
+    describe('syncUserAttributeFieldUpsert', () => {
+        beforeEach(() => {
+            clearGraphOptionNameCache();
+        });
+
+        it('dispatches a created action for a user-object field', () => {
+            const dispatch = jest.fn();
+            const field = {id: 'f1', object_type: 'user'} as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, true);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED, data: field});
+        });
+
+        it('dispatches a patched action when the write is an update', () => {
+            const dispatch = jest.fn();
+            const field = {id: 'f1', object_type: 'user'} as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED, data: field});
+        });
+
+        it.each(['channel', 'post', 'template'])('ignores a %s-object field', (objectType) => {
+            const dispatch = jest.fn();
+
+            syncUserAttributeFieldUpsert(dispatch, {id: 'f1', object_type: objectType} as PropertyField, true);
+
+            expect(dispatch).not.toHaveBeenCalled();
+        });
+
+        it('replaces cached graph option names from the returned field', () => {
+            commitGraphOptionNames('f1', {option_id_1: 'AURORA', option_id_gone: 'REMOVED'});
+            const dispatch = jest.fn();
+            const field = {
+                id: 'f1',
+                object_type: 'user',
+                type: 'graph',
+                attrs: {options: [{id: 'option_id_1', name: 'BOREALIS'}, {id: 'option_id_2', name: 'CIRRUS'}]},
+            } as unknown as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED, data: field});
+            expect(getGraphOptionNames('f1')).toEqual({
+                names: {option_id_1: 'BOREALIS', option_id_2: 'CIRRUS'},
+                didResolve: true,
+            });
+        });
+
+        it('clears cached graph names and leaves the field unresolved when the option list is withheld', () => {
+            commitGraphOptionNames('f1', {option_id_1: 'AURORA'});
+            const dispatch = jest.fn();
+            const field = {
+                id: 'f1',
+                object_type: 'user',
+                type: 'graph',
+                attrs: {options_omitted: true},
+            } as unknown as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED, data: field});
+            expect(getGraphOptionNames('f1')).toEqual({names: {}, didResolve: false});
+        });
+
+        it('leaves cached graph names untouched for a non-graph field', () => {
+            commitGraphOptionNames('f1', {option_id_1: 'AURORA'});
+            const dispatch = jest.fn();
+            const field = {id: 'f1', object_type: 'user', type: 'select'} as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(getGraphOptionNames('f1')).toEqual({
+                names: {option_id_1: 'AURORA'},
+                didResolve: true,
+            });
+        });
+
+        it.each(['channel', 'post', 'template'])('does not touch the graph name cache for a %s-object graph field', (objectType) => {
+            commitGraphOptionNames('f1', {option_id_1: 'AURORA'});
+            const dispatch = jest.fn();
+            const field = {
+                id: 'f1',
+                object_type: objectType,
+                type: 'graph',
+                attrs: {options: [{id: 'option_id_1', name: 'BOREALIS'}]},
+            } as unknown as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(dispatch).not.toHaveBeenCalled();
+            expect(getGraphOptionNames('f1')).toEqual({
+                names: {option_id_1: 'AURORA'},
+                didResolve: true,
+            });
+        });
+    });
+
+    describe('syncUserAttributeFieldDelete', () => {
+        it('dispatches a deleted action keyed by field id for a user-object field', () => {
+            const dispatch = jest.fn();
+
+            syncUserAttributeFieldDelete(dispatch, 'user', 'f1');
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED, data: 'f1'});
+        });
+
+        it.each(['channel', 'post', 'template'])('ignores a %s-object field', (objectType) => {
+            const dispatch = jest.fn();
+
+            syncUserAttributeFieldDelete(dispatch, objectType, 'f1');
+
+            expect(dispatch).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('findNameConflicts', () => {
+        it('matches ignoring case in both directions', () => {
+            const lower = {id: 'u1', object_type: 'user', name: 'clearance', delete_at: 0} as PropertyField;
+            expect(findNameConflicts('Clearance', [lower])).toEqual([lower]);
+
+            const upper = {id: 'u2', object_type: 'user', name: 'Clearance', delete_at: 0} as PropertyField;
+            expect(findNameConflicts('clearance', [upper])).toEqual([upper]);
+        });
+
+        it('never treats a soft-deleted field as a conflict', () => {
+            expect(findNameConflicts('clearance', [
+                {id: 'u1', object_type: 'user', name: 'clearance', delete_at: 123} as PropertyField,
+            ])).toEqual([]);
+        });
+
+        it('excludes the field whose id is templateId, since an attribute never conflicts with itself', () => {
+            expect(findNameConflicts('clearance', [
+                {id: 'template-id', object_type: 'user', name: 'clearance', delete_at: 0} as PropertyField,
+            ], 'template-id')).toEqual([]);
+        });
+
+        it("excludes a field linked to templateId, since a template's own child is not a conflict", () => {
+            expect(findNameConflicts('clearance', [
+                {id: 'u1', object_type: 'user', name: 'clearance', linked_field_id: 'template-id', delete_at: 0} as PropertyField,
+            ], 'template-id')).toEqual([]);
+        });
+
+        it('excludes nothing when no templateId is passed, as on the create form', () => {
+            const fields = [
+                {id: 'template-id', object_type: 'user', name: 'clearance', delete_at: 0} as PropertyField,
+                {id: 'u1', object_type: 'user', name: 'clearance', linked_field_id: 'template-id', delete_at: 0} as PropertyField,
+            ];
+
+            expect(findNameConflicts('clearance', fields)).toEqual(fields);
+        });
+
+        it('returns no conflicts for a name nothing shares', () => {
+            expect(findNameConflicts('clearance', [
+                {id: 'u1', object_type: 'user', name: 'department', delete_at: 0} as PropertyField,
+                {id: 'u2', object_type: 'user', name: 'clearance_level', delete_at: 0} as PropertyField,
+            ])).toEqual([]);
         });
     });
 });

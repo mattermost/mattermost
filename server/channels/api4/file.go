@@ -32,16 +32,16 @@ const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
-	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods(http.MethodGet, http.MethodHead)
-	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequesterGzip(getFile)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequesterGzip(getFileThumbnail)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods(http.MethodGet)
-	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequesterGzip(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Files.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchFilesInAllTeams)).Methods(http.MethodPost)
 
-	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.PublicFile.Handle("", api.APIHandlerGzip(getPublicFile)).Methods(http.MethodGet, http.MethodHead)
 }
 
 func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
@@ -142,13 +142,8 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
-		c.SetPermissionError(model.PermissionUploadFile)
-		return nil
-	}
-
-	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
-		c.Err = model.NewAppError("uploadFileSimple", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+	checkUploadFileAttachmentPermission(c, "uploadFileSimple", c.Params.ChannelId)
+	if c.Err != nil {
 		return nil
 	}
 
@@ -321,13 +316,8 @@ NextPart:
 		if c.Err != nil {
 			return nil
 		}
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetPermissionError(model.PermissionUploadFile)
-			return nil
-		}
-
-		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
-			c.Err = model.NewAppError("uploadFileMultipart", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		checkUploadFileAttachmentPermission(c, "uploadFileMultipart", c.Params.ChannelId)
+		if c.Err != nil {
 			return nil
 		}
 
@@ -439,13 +429,8 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if c.Err != nil {
 		return nil
 	}
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile); !ok {
-		c.SetPermissionError(model.PermissionUploadFile)
-		return nil
-	}
-
-	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, channelId, model.AccessControlPolicyActionUploadFileAttachment) {
-		c.Err = model.NewAppError("uploadFileMultipartLegacy", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+	checkUploadFileAttachmentPermission(c, "uploadFileMultipartLegacy", channelId)
+	if c.Err != nil {
 		return nil
 	}
 
@@ -609,7 +594,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, fileInfo.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, fileInfo.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 		c.Err = model.NewAppError("getFile", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -675,7 +660,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 		c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -754,7 +739,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 		c.Err = model.NewAppError("getFileLink", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -812,7 +797,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 		c.Err = model.NewAppError("getFilePreview", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -883,7 +868,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 		c.Err = model.NewAppError("getFileInfo", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 		return
 	}

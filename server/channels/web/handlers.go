@@ -340,7 +340,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.Logger = c.App.Log().With(loggerFields...)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
-	c.AppContext = app.WithChannelAccessMemo(c.AppContext)
+	// Nothing reads the memo while the gates are inert, so don't allocate it.
+	if c.App.ChannelAccessEnforcementActive() {
+		c.AppContext = app.WithChannelAccessMemo(c.AppContext)
+	}
 	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
 	if c.Err == nil && h.RequireSession {
@@ -557,7 +560,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+	if w.srv.Config().ServiceSettings.CompressResponses() {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
@@ -577,7 +580,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+	if w.srv.Config().ServiceSettings.CompressResponses() {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler
@@ -596,7 +599,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+	if w.srv.Config().ServiceSettings.CompressResponses() {
 		return gzhttp.GzipHandler(handler)
 	}
 	return handler

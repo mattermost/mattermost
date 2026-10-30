@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS} from '@mattermost/types/access_control';
+import {ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS} from '@mattermost/types/access_control';
 import type {GroupMembership, GroupPermissions} from '@mattermost/types/groups';
 import type {Role} from '@mattermost/types/roles';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Permissions} from 'mattermost-redux/constants';
-import {CHANNEL_WRITE_PERMISSIONS} from 'mattermost-redux/constants/permissions';
+import {CHANNEL_MANAGEMENT_PERMISSIONS, CHANNEL_WRITE_PERMISSIONS} from 'mattermost-redux/constants/permissions';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getRenderDecision} from 'mattermost-redux/selectors/entities/render_permissions';
 import type {PermissionsOptions} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {
     getMySystemPermissions as getMySystemPermissionsInternal,
@@ -216,18 +215,24 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     },
 );
 
-export function isChannelWriteDenied(state: GlobalState, channelId: string): boolean {
-    const decision = getRenderDecision(state, {
-        resourceType: 'channel',
-        resourceId: channelId,
-        action: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
-    });
+// Reads the cache directly rather than through getRenderDecision: haveIChannelPermission
+// runs this for every write and management check, and an identifier object per call adds up.
+function isChannelActionDenied(state: GlobalState, channelId: string, action: string): boolean {
+    const decision = state.entities.renderPermissions?.byResource?.channel?.[channelId]?.[action];
 
     return Boolean(decision?.evaluated && !decision.allowed);
 }
 
+export function isChannelWriteDenied(state: GlobalState, channelId: string): boolean {
+    return isChannelActionDenied(state, channelId, ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS);
+}
+
+export function isChannelManagementDenied(state: GlobalState, channelId: string): boolean {
+    return isChannelActionDenied(state, channelId, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS);
+}
+
 // The role grant alone, with no attribute-based policy applied. Mirrors the server's
-// HasPermissionToChannelRBACOnly, and exists for the same reason: a surface that needs to
+// HasPermissionToChannel, which is RBAC-only, and exists for the same reason: a surface that needs to
 // stay visible under a policy denial — rendering its controls disabled rather than
 // vanishing — has to ask what the user's roles allow, separately from what a policy does.
 // Prefer haveIChannelPermission for anything that gates an actual action.
@@ -244,6 +249,10 @@ export function haveIChannelPermission(state: GlobalState, teamId: string | unde
 
     if (channelId && CHANNEL_WRITE_PERMISSIONS.has(permission)) {
         return !isChannelWriteDenied(state, channelId);
+    }
+
+    if (channelId && CHANNEL_MANAGEMENT_PERMISSIONS.has(permission)) {
+        return !isChannelManagementDenied(state, channelId);
     }
 
     return true;

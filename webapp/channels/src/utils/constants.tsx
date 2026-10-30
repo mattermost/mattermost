@@ -128,6 +128,12 @@ export const Preferences = {
     CATEGORY_SYSTEM_NOTICE: 'system_notice',
     RECOMMENDED_NEXT_STEPS: 'recommended_next_steps',
     TEAMS_ORDER: 'teams_order',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail has folded the team sidebar into its team menu.
+    HIDE_TEAM_SIDEBAR: 'hide_team_sidebar',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail's Channels view also lists boards.
+    SHOW_BOARDS_IN_CHANNELS: 'show_boards_in_channels',
     CLOUD_UPGRADE_BANNER: 'cloud_upgrade_banner',
     CLOUD_TRIAL_BANNER: 'cloud_trial_banner',
     START_TRIAL_MODAL: 'start_trial_modal',
@@ -204,7 +210,6 @@ export const suitePluginIds = {
 };
 
 export const ActionTypes = keyMirror({
-    SET_PRODUCT_SWITCHER_OPEN: null,
     RECEIVED_FOCUSED_POST: null,
     SELECT_POST: null,
     HIGHLIGHT_REPLY: null,
@@ -216,6 +221,7 @@ export const ActionTypes = keyMirror({
     UPDATE_RHS_STATE: null,
     UPDATE_RHS_SEARCH_TERMS: null,
     UPDATE_RHS_SEARCH_TEAM: null,
+    UPDATE_RHS_MENTION_FILTERS: null,
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
     UPDATE_RHS_SEARCH_RESULTS_TYPE: null,
@@ -281,12 +287,6 @@ export const ActionTypes = keyMirror({
     SET_LHS_SIZE: null,
     SELECT_STATIC_PAGE: null,
 
-    SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
-    SET_SHOW_PREVIEW_ON_CREATE_POST: null,
-    SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL: null,
-    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL: null,
-    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL: null,
-
     TOGGLE_RHS_MENU: null,
     OPEN_RHS_MENU: null,
     CLOSE_RHS_MENU: null,
@@ -317,6 +317,9 @@ export const ActionTypes = keyMirror({
     POST_UNREAD_SUCCESS: null,
 
     SET_UNREAD_FILTER_ENABLED: null,
+    SET_PRODUCT_RAIL_SECTION: null,
+    PRODUCT_RAIL_PATH_VIEWED: null,
+    PRODUCT_RAIL_PATHS_LOADED: null,
     UPDATE_TOAST_STATUS: null,
     UPDATE_THREAD_TOAST_STATUS: null,
 
@@ -510,6 +513,7 @@ export const ModalIdentifiers = {
 
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
+    ATTRIBUTE_MODAL_OPENID: 'attribute_modal_openid',
     RANKED_SCHEMA_MODAL: 'ranked_schema_modal',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',

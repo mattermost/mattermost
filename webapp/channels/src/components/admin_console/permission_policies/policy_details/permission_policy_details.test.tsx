@@ -145,7 +145,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         // no-attributes gate.
         mockGetAccessControlFields.mockResolvedValue({
             data: [
-                {id: 'u1', name: 'teams', attrs: {ldap: true}},
+                {id: 'u1', name: 'teams', attrs: {ldap: 'teams'}},
                 {id: 'u2', name: 'department', group_id: 'custom_profile_attributes', object_type: 'user', attrs: {managed: 'admin'}},
             ],
         });
@@ -352,6 +352,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
+                    FeatureFlagChannelPermissionActions: 'true',
                 },
             },
         },
@@ -425,6 +426,18 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
     });
 
+    test('does not offer the channel access actions while the ChannelPermissionActions flag is off', async () => {
+        const flagOffState = {entities: {general: {config: {FeatureFlagPermissionPolicies: 'true'}}}};
+        renderWithContext(<PermissionPolicyDetails {...baseProps}/>, flagOffState);
+        await screen.findByText('Add permission');
+        await userEvent.click(document.getElementById('pp-add-permission-btn')!);
+
+        expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
+        expect(document.getElementById('pp-add-permission-channel_read_access')).toBeNull();
+        expect(document.getElementById('pp-add-permission-channel_write_access')).toBeNull();
+        expect(document.getElementById('pp-add-permission-channel_management_access')).toBeNull();
+    });
+
     test('confirms before saving a policy that carries channel_read_access', async () => {
         await renderAndOpenMenu();
         await pickPermission('Channel Read Access');
@@ -441,6 +454,26 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
         expect(mockCreatePolicy.mock.calls[0][0].rules[0].actions).toEqual(
             expect.arrayContaining(['download_file_attachment', 'channel_read_access']),
+        );
+    });
+
+    test('confirms before saving a policy that carries channel_management_access', async () => {
+        await renderAndOpenMenu();
+        await pickPermission('Manage Channel');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        expect(await screen.findByText('Save this policy?')).toBeInTheDocument();
+        expect(screen.getByText('This policy controls Manage Channel across every channel in the workspace, except direct messages and group messages.')).toBeInTheDocument();
+        expect(mockCreatePolicy).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
+
+        await waitFor(() => {
+            expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
+        });
+        expect(mockCreatePolicy.mock.calls[0][0].rules[0].actions).toEqual(
+            expect.arrayContaining(['channel_management_access']),
         );
     });
 

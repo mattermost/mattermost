@@ -30,7 +30,7 @@ type SuiteIFace interface {
 	RolesGrantPermission(roleNames []string, permissionId string) bool
 	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool)
 	HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool
-	HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool
+	HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool
 	HasChannelReadAccessByID(rctx request.CTX, userID string, channelID string) bool
 	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	MFARequired(rctx request.CTX, method string) *model.AppError
@@ -79,23 +79,24 @@ var hubSemaphoreCount = runtime.NumCPU() * 4
 type Hub struct {
 	// connectionCount should be kept first.
 	// See https://github.com/mattermost/mattermost-server/pull/7281
-	connectionCount int64
-	platform        *PlatformService
-	connectionIndex int
-	register        chan *webConnRegisterMessage
-	unregister      chan *WebConn
-	broadcast       chan *model.WebSocketEvent
-	stop            chan struct{}
-	didStop         chan struct{}
-	invalidateUser  chan string
-	invalidateAll   chan struct{}
-	activity        chan *webConnActivityMessage
-	directMsg       chan *webConnDirectMessage
-	explicitStop    bool
-	checkRegistered chan *webConnSessionMessage
-	checkConn       chan *webConnCheckMessage
-	connCount       chan *webConnCountMessage
-	broadcastHooks  map[string]BroadcastHook
+	connectionCount    int64
+	platform           *PlatformService
+	connectionIndex    int
+	register           chan *webConnRegisterMessage
+	unregister         chan *WebConn
+	broadcast          chan *model.WebSocketEvent
+	stop               chan struct{}
+	didStop            chan struct{}
+	invalidateUser     chan string
+	invalidateAll      chan struct{}
+	invalidateAllCache chan struct{}
+	activity           chan *webConnActivityMessage
+	directMsg          chan *webConnDirectMessage
+	explicitStop       bool
+	checkRegistered    chan *webConnSessionMessage
+	checkConn          chan *webConnCheckMessage
+	connCount          chan *webConnCountMessage
+	broadcastHooks     map[string]BroadcastHook
 
 	// Hub-specific semaphore for limiting concurrent goroutines
 	hubSemaphore chan struct{}
@@ -104,20 +105,21 @@ type Hub struct {
 // newWebHub creates a new Hub.
 func newWebHub(ps *PlatformService) *Hub {
 	return &Hub{
-		platform:        ps,
-		register:        make(chan *webConnRegisterMessage),
-		unregister:      make(chan *WebConn),
-		broadcast:       make(chan *model.WebSocketEvent, broadcastQueueSize),
-		stop:            make(chan struct{}),
-		didStop:         make(chan struct{}),
-		invalidateUser:  make(chan string),
-		invalidateAll:   make(chan struct{}),
-		activity:        make(chan *webConnActivityMessage),
-		directMsg:       make(chan *webConnDirectMessage),
-		checkRegistered: make(chan *webConnSessionMessage),
-		checkConn:       make(chan *webConnCheckMessage),
-		connCount:       make(chan *webConnCountMessage),
-		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
+		platform:           ps,
+		register:           make(chan *webConnRegisterMessage),
+		unregister:         make(chan *WebConn),
+		broadcast:          make(chan *model.WebSocketEvent, broadcastQueueSize),
+		stop:               make(chan struct{}),
+		didStop:            make(chan struct{}),
+		invalidateUser:     make(chan string),
+		invalidateAll:      make(chan struct{}),
+		invalidateAllCache: make(chan struct{}),
+		activity:           make(chan *webConnActivityMessage),
+		directMsg:          make(chan *webConnDirectMessage),
+		checkRegistered:    make(chan *webConnSessionMessage),
+		checkConn:          make(chan *webConnCheckMessage),
+		connCount:          make(chan *webConnCountMessage),
+		hubSemaphore:       make(chan struct{}, hubSemaphoreCount),
 	}
 }
 
@@ -476,6 +478,15 @@ func (h *Hub) InvalidateAll() {
 	}
 }
 
+// InvalidateAllCache is like InvalidateAll but keeps session tokens, so
+// each WebConn reloads its session on next use.
+func (h *Hub) InvalidateAllCache() {
+	select {
+	case h.invalidateAllCache <- struct{}{}:
+	case <-h.stop:
+	}
+}
+
 // UpdateActivity sets the LastUserActivityAt field for the connection
 // of the user.
 func (h *Hub) UpdateActivity(userID, sessionToken string, activityAt int64) {
@@ -544,25 +555,33 @@ func (h *Hub) recordPostDelivery(marker *model.PostDeliveryMarker, userID string
 
 // broadcastToConn delivers msg to a single web connection, if it is still registered and
 // should receive the event. A post delivery is recorded only when the event is actually
-// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, and
-// never on the default branch where the buffer is full and the connection is dropped.
+// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, never
+// for an event a broadcast hook rejected for this connection, and never on the default branch
+// where the buffer is full and the connection is dropped.
 func (h *Hub) broadcastToConn(connIndex *hubConnectionIndex, webConn *WebConn, msg *model.WebSocketEvent, marker *model.PostDeliveryMarker, broadcastHooks []string, broadcastHookArgs []map[string]any) {
 	if !connIndex.Has(webConn) {
 		return
 	}
-	if webConn.ShouldSendEvent(msg) {
-		select {
-		case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
-			h.recordPostDelivery(marker, webConn.UserId)
-		default:
-			// Don't log the warning if it's an inactive connection.
-			if webConn.Active.Load() {
-				mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
-					mlog.String("user_id", webConn.UserId),
-					mlog.String("conn_id", webConn.GetConnectionID()))
-			}
-			closeAndRemoveConn(connIndex, webConn)
+	if !webConn.ShouldSendEvent(msg) {
+		return
+	}
+
+	hooked := h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs)
+	if hooked.IsRejected() {
+		return
+	}
+
+	select {
+	case webConn.send <- hooked:
+		h.recordPostDelivery(marker, webConn.UserId)
+	default:
+		// Don't log the warning if it's an inactive connection.
+		if webConn.Active.Load() {
+			mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+				mlog.String("user_id", webConn.UserId),
+				mlog.String("conn_id", webConn.GetConnectionID()))
 		}
+		closeAndRemoveConn(connIndex, webConn)
 	}
 }
 
@@ -719,6 +738,10 @@ func (h *Hub) Start() {
 				}
 				if *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
 					connIndex.clearChannels()
+				}
+			case <-h.invalidateAllCache:
+				for webConn := range connIndex.All() {
+					webConn.InvalidateCache()
 				}
 			case activity := <-h.activity:
 				for webConn := range connIndex.ForUser(activity.userID) {

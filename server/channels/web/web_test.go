@@ -103,7 +103,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	require.NoError(tb, err, "failed to configure test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
-	options = append(options, app.SetLogger(testLogger))
+	options = append(options, app.SetLogger(testLogger), app.DisableGlobalLogger())
 
 	s, err := app.NewServer(options...)
 	require.NoError(tb, err)

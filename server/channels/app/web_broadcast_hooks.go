@@ -25,8 +25,11 @@ const (
 	broadcastBurnOnRead         = "burn_on_read"
 	broadcastBurnOnReadReaction = "burn_on_read_reaction"
 	broadcastAbacFiles          = "abac_files"
+	broadcastAbacBookmarks      = "abac_bookmarks"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
 	broadcastChannelReadAccess  = "channel_read_access"
+
+	broadcastChannelReadAccessRedact = "channel_read_access_redact"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -39,8 +42,11 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastBurnOnRead:         &burnOnReadBroadcastHook{},
 		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
 		broadcastAbacFiles:          &abacFilesBroadcastHook{},
+		broadcastAbacBookmarks:      &abacBookmarksBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
 		broadcastChannelReadAccess:  &channelReadAccessBroadcastHook{},
+
+		broadcastChannelReadAccessRedact: &channelReadAccessRedactBroadcastHook{},
 	}
 }
 
@@ -212,7 +218,7 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		stripFiles := true
 		if session != nil {
 			rctxWithSession := rctx.WithSession(session)
-			stripFiles = !webConn.Suite.HasPermissionToFileAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment)
+			stripFiles = !webConn.Suite.HasPermissionToChannelAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment)
 		}
 		if stripFiles {
 			postCopy := permalinkPreviewedPost.Post.Clone()
@@ -227,6 +233,22 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 			postCopy.Metadata.Files = nil
 			postCopy.FileIds = model.StringArray{}
 			previewCopy := *permalinkPreviewedPost
+			previewCopy.Post = postCopy
+			embedData = &previewCopy
+		}
+	}
+
+	// The previewed post is broadcast verbatim, so its channel mentions have to be filtered
+	// for this recipient as well. Clone before mutating for the same reason as above.
+	if embedData.Post != nil {
+		if mentions, ok := embedData.Post.GetProp(model.PostPropsChannelMentions).(map[string]any); ok {
+			postCopy := embedData.Post.Clone()
+			if filtered := filterChannelMentionsForWebConn(rctx, webConn, mentions); len(filtered) > 0 {
+				postCopy.AddProp(model.PostPropsChannelMentions, filtered)
+			} else {
+				postCopy.DelProp(model.PostPropsChannelMentions)
+			}
+			previewCopy := *embedData
 			previewCopy.Post = postCopy
 			embedData = &previewCopy
 		}
@@ -253,6 +275,35 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	}
 
 	return nil
+}
+
+// filterChannelMentionsForWebConn keeps only the channel mentions whose channel the recipient
+// may resolve. Mentions without a usable channel id can't be checked, so they are dropped.
+func filterChannelMentionsForWebConn(rctx request.CTX, webConn *platform.WebConn, channelMentions map[string]any) map[string]any {
+	filteredMentions := make(map[string]any, len(channelMentions))
+
+	for channelName, channelInfo := range channelMentions {
+		channelInfoMap, ok := channelInfo.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		channelID, ok := channelInfoMap["id"].(string)
+		if !ok || channelID == "" {
+			continue
+		}
+
+		channel, err := webConn.Platform.Store.Channel().Get(channelID, true)
+		if err != nil {
+			continue
+		}
+
+		if webConn.Suite.HasPermissionToResolveChannelMention(rctx, webConn.UserId, channel) {
+			filteredMentions[channelName] = channelInfo
+		}
+	}
+
+	return filteredMentions
 }
 
 func useChannelMentionsHook(message *model.WebSocketEvent, channelMentions map[string]any) {
@@ -285,31 +336,7 @@ func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEven
 
 	// Filter channel mentions based on recipient's permissions
 	rctx := request.EmptyContext(webConn.Platform.Log())
-	filteredMentions := make(map[string]any)
-
-	for channelName, channelInfo := range channelMentions {
-		// Extract channel ID from the channel info map
-		channelInfoMap, ok := channelInfo.(map[string]any)
-		if !ok {
-			continue
-		}
-
-		channelID, ok := channelInfoMap["id"].(string)
-		if !ok || channelID == "" {
-			continue
-		}
-
-		// Resolve the mention if the recipient may see the channel's name/link.
-		channel, appErr := webConn.Platform.Store.Channel().Get(channelID, true)
-		if appErr != nil {
-			// If we can't get the channel, don't include the mention
-			continue
-		}
-
-		if webConn.Suite.HasPermissionToResolveChannelMention(rctx, webConn.UserId, channel) {
-			filteredMentions[channelName] = channelInfo
-		}
-	}
+	filteredMentions := filterChannelMentionsForWebConn(rctx, webConn, channelMentions)
 
 	// Update the post with filtered channel mentions
 	if len(filteredMentions) > 0 {
@@ -398,7 +425,7 @@ func (h *burnOnReadReactionBroadcastHook) Process(msg *platform.HookedWebSocketE
 
 	// If no receipt or receipt expired, remove reaction data
 	if receipt == nil || receipt.ExpireAt < model.GetMillis() {
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
@@ -441,7 +468,7 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	session := webConn.GetSession()
 	if session != nil {
 		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-		if webConn.Suite.HasPermissionToFileAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
 			return nil
 		}
 	}
@@ -490,7 +517,7 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 	post, err := getPostFromMessage(msg)
 	if err != nil {
 		mlog.Warn("abacFilesBroadcastHook: failed to parse post in fallback strip; rejecting event", mlog.Err(err))
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 	if post.Metadata == nil {
@@ -503,9 +530,123 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 		msg.Add("post", postJSON)
 	} else {
 		mlog.Warn("abacFilesBroadcastHook: failed to marshal post in fallback strip; rejecting event", mlog.Err(jsonErr))
-		msg.Event().Reject()
+		msg.Reject()
 	}
 	return nil
+}
+
+type abacBookmarksBroadcastHook struct{}
+
+func useAbacBookmarksHook(message *model.WebSocketEvent, channelID, field string) {
+	message.GetBroadcast().AddHook(broadcastAbacBookmarks, map[string]any{
+		"channel_id": channelID,
+		"field":      field,
+	})
+}
+
+// abacFileActionsActive reports whether ABAC file action policies are evaluated on this server.
+// This is the same condition sanitizeFileAttachmentsForUser gates on; kept as a thin alias here
+// since callers in this file reason about broadcast hooks, not post sanitization.
+func (a *App) abacFileActionsActive() bool {
+	return a.fileAttachmentPoliciesActive()
+}
+
+// setupBroadcastHookForAbacBookmarks registers abacBookmarksBroadcastHook when ABAC is active
+// and at least one of the broadcast bookmarks carries file info.
+func (a *App) setupBroadcastHookForAbacBookmarks(message *model.WebSocketEvent, channelID, field string, bookmarks ...*model.ChannelBookmarkWithFileInfo) {
+	if !a.abacFileActionsActive() {
+		return
+	}
+
+	hasFileInfo := false
+	for _, bookmark := range bookmarks {
+		if bookmark != nil && bookmark.FileInfo != nil {
+			hasFileInfo = true
+			break
+		}
+	}
+	if !hasFileInfo {
+		return
+	}
+
+	useAbacBookmarksHook(message, channelID, field)
+}
+
+// Process strips bookmark file info for recipients denied the download_file_attachment action.
+// Once a deny decision is made, any serialisation failure rejects the event for that recipient.
+func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	channelID, err := getTypedArg[string](args, "channel_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_id value passed to abacBookmarksBroadcastHook")
+	}
+
+	field, err := getTypedArg[string](args, "field")
+	if err != nil {
+		return errors.Wrap(err, "Invalid field value passed to abacBookmarksBroadcastHook")
+	}
+
+	// The ABAC evaluator resolves role from rctx.Session(), not Subject.Role.
+	// Fail-secure: if the session is nil we cannot evaluate permissions, so strip file info.
+	session := webConn.GetSession()
+	if session != nil {
+		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+		if webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+			return nil
+		}
+	}
+
+	rawJSON, ok := msg.Get(field).(string)
+	if !ok {
+		mlog.Warn("abacBookmarksBroadcastHook: no bookmark payload in message; rejecting event",
+			mlog.String("user_id", webConn.UserId),
+			mlog.String("field", field),
+		)
+		msg.Reject()
+		return nil
+	}
+
+	var payload any
+	if jsonErr := json.Unmarshal([]byte(rawJSON), &payload); jsonErr != nil {
+		mlog.Warn("abacBookmarksBroadcastHook: failed to deserialise bookmark payload; rejecting event",
+			mlog.String("user_id", webConn.UserId),
+			mlog.Err(jsonErr),
+		)
+		msg.Reject()
+		return nil
+	}
+
+	stripBookmarkFileInfo(payload)
+
+	updatedJSON, jsonErr := json.Marshal(payload)
+	if jsonErr != nil {
+		mlog.Warn("abacBookmarksBroadcastHook: failed to marshal bookmark payload; rejecting event",
+			mlog.String("user_id", webConn.UserId),
+			mlog.Err(jsonErr),
+		)
+		msg.Reject()
+		return nil
+	}
+
+	msg.Add(field, string(updatedJSON))
+	return nil
+}
+
+// stripBookmarkFileInfo walks a decoded bookmark payload of any shape and clears every "file" entry.
+func stripBookmarkFileInfo(value any) {
+	switch typed := value.(type) {
+	case map[string]any:
+		for key, nested := range typed {
+			if key == "file" {
+				typed[key] = nil
+				continue
+			}
+			stripBookmarkFileInfo(nested)
+		}
+	case []any:
+		for _, item := range typed {
+			stripBookmarkFileInfo(item)
+		}
+	}
 }
 
 // onlyChannelAdminsBroadcastHook narrows a channel-scoped broadcast to the
@@ -531,7 +672,7 @@ func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEv
 	}
 
 	if !slices.Contains(adminUserIDs, webConn.UserId) {
-		msg.Event().Reject()
+		msg.Reject()
 	}
 	return nil
 }
@@ -544,6 +685,38 @@ func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEv
 // replay queue, so a dropped event leaves no gap for the client to notice.
 type channelReadAccessBroadcastHook struct{}
 
+// channelReadAccessExemptEvents are the channel-scoped events attachChannelReadAccessHook
+// leaves unfiltered:
+//   - membership and lifecycle events, which carry only ids and let a denied user's
+//     client drop or update the channel;
+//   - events that echo the recipient's own action back to them;
+//   - typing, which shows activity rather than content;
+//   - channel_access_control_updated, which denied users need and which strips the
+//     channel for them through channelReadAccessRedactBroadcastHook instead.
+var channelReadAccessExemptEvents = map[model.WebsocketEventType]struct{}{
+	model.WebsocketEventUserAdded:                           {},
+	model.WebsocketEventUserRemoved:                         {},
+	model.WebsocketEventChannelDeleted:                      {},
+	model.WebsocketEventChannelRestored:                     {},
+	model.WebsocketEventChannelSchemeUpdated:                {},
+	model.WebsocketEventReceivedGroupAssociatedToChannel:    {},
+	model.WebsocketEventReceivedGroupNotAssociatedToChannel: {},
+	model.WebsocketEventChannelAccessControlUpdated:         {},
+
+	model.WebsocketEventEphemeralMessage:      {},
+	model.WebsocketEventDraftCreated:          {},
+	model.WebsocketEventDraftUpdated:          {},
+	model.WebsocketEventDraftDeleted:          {},
+	model.WebsocketEventFileDownloadRejected:  {},
+	model.WebsocketEventFileUploadRejected:    {},
+	model.WebsocketEventPostUnread:            {},
+	model.WebsocketEventPostBurned:            {},
+	model.WebsocketEventBurnOnReadAllRevealed: {},
+	model.WebsocketEventThreadReadChanged:     {},
+
+	model.WebsocketEventTyping: {},
+}
+
 func useChannelReadAccessHook(message *model.WebSocketEvent, channelID string) {
 	message.GetBroadcast().AddHook(broadcastChannelReadAccess, map[string]any{
 		"channel_id": channelID,
@@ -553,6 +726,9 @@ func useChannelReadAccessHook(message *model.WebSocketEvent, channelID string) {
 func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	channelID, err := getTypedArg[string](args, "channel_id")
 	if err != nil {
+		// Without the channel there is no telling whom the policy allows; drop the event
+		// rather than deliver it to everyone the broadcast names.
+		msg.Reject()
 		return errors.Wrap(err, "Invalid channel_id value passed to channelReadAccessBroadcastHook")
 	}
 
@@ -560,14 +736,47 @@ func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEv
 	// this connection's session; without one there is nothing to evaluate.
 	session := webConn.GetSession()
 	if session == nil {
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
 	if !webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
-		msg.Event().Reject()
+		msg.Reject()
 	}
+	return nil
+}
+
+// channelReadAccessRedactBroadcastHook strips the channel from an event that has to reach
+// recipients the channel_read_access policy denies. channel_access_control_updated is how
+// a client learns its access changed, so a denied recipient still gets it, but without the
+// channel's content.
+type channelReadAccessRedactBroadcastHook struct{}
+
+func useChannelReadAccessRedactHook(message *model.WebSocketEvent, channelID string) {
+	message.GetBroadcast().AddHook(broadcastChannelReadAccessRedact, map[string]any{
+		"channel_id": channelID,
+	})
+}
+
+func (h *channelReadAccessRedactBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	channelID, err := getTypedArg[string](args, "channel_id")
+	if err != nil {
+		msg.Add("channel", "")
+		return errors.Wrap(err, "Invalid channel_id value passed to channelReadAccessRedactBroadcastHook")
+	}
+
+	// As in channelReadAccessBroadcastHook, the evaluation needs this connection's
+	// session; without one the channel stays out.
+	session := webConn.GetSession()
+	if session != nil {
+		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+		if webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
+			return nil
+		}
+	}
+
+	msg.Add("channel", "")
 	return nil
 }
 

@@ -70,8 +70,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 
 		savedRecap, storeErr = a.Srv().Store().Recap().SaveRecapIfUnderDailyLimit(recap, startOfDayMillis, limits.MaxRecapsPerDay)
 		if storeErr != nil {
-			var limitErr *store.ErrLimitExceeded
-			if errors.As(storeErr, &limitErr) {
+			if _, ok := errors.AsType[*store.ErrLimitExceeded](storeErr); ok {
 				return nil, recapMaxRecapsReachedError("CreateRecap", limits.MaxRecapsPerDay)
 			}
 			return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
@@ -190,10 +189,13 @@ func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Reca
 
 	recapID := recap.Id
 
-	// Get existing recap channels to extract channel IDs
-	channels, err := a.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
-	if err != nil {
-		return nil, model.NewAppError("RegenerateRecap", "app.recap.get_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	channels := recap.Channels
+	if channels == nil {
+		var err error
+		channels, err = a.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		if err != nil {
+			return nil, model.NewAppError("RegenerateRecap", "app.recap.get_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	// Extract channel IDs
@@ -305,6 +307,13 @@ func (a *App) ProcessRecapChannelWithOptions(rctx request.CTX, recapID, channelI
 	channel, err := a.GetChannel(rctx, channelID)
 	if err != nil {
 		return result, model.NewAppError("ProcessRecapChannel", "app.recap.get_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// HasPermissionToChannel is RBAC only, so the channel's read rules are checked
+	// here too. The job has no session, so the user is evaluated on their attributes
+	// alone, and a rule that needs session attributes denies.
+	if !a.HasChannelReadAccess(rctx, userID, channel) {
+		return result, model.NewAppError("ProcessRecapChannel", "app.recap.permission_denied", nil, "", http.StatusForbidden)
 	}
 
 	// Get user's last viewed timestamp

@@ -117,7 +117,8 @@ func channelScopedJSONL(t *testing.T, teamName, chanName string, postAuthors []s
 // against.
 func scopedBulkImport(t *testing.T, app *App, rctx request.CTX, r io.Reader, posture model.ImportedUsersPosture) (int, *model.AppError) {
 	t.Helper()
-	return app.BulkImportWithPathAndOpts(rctx, r, nil, false, true, 1, "", model.BulkImportOpts{ImportedUsers: posture})
+	lineNum, _, appErr := app.BulkImportWithPathAndOpts(rctx, r, nil, false, true, 1, "", model.BulkImportOpts{ImportedUsers: posture})
+	return lineNum, appErr
 }
 
 // createUserInDB creates a user directly in the test server's DB and returns it.
@@ -491,7 +492,7 @@ func TestDestinationTeamNameErrorsOnUnscopedMultiTeamExport(t *testing.T) {
 		Team: &imports.TeamImportData{Name: model.NewPointer(team2Name), DisplayName: model.NewPointer("Team Two"), Type: model.NewPointer("O")},
 	}))
 
-	_, appErr := th.App.BulkImportWithPathAndOpts(
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context, strings.NewReader(sb.String()), nil, false, false, 1, "",
 		model.BulkImportOpts{DestinationTeamName: "renamed-team"},
 	)
@@ -533,7 +534,7 @@ func TestChannelImportDestinationTeamRemap(t *testing.T) {
 	}
 
 	const destTeamName = "dst-remap-team"
-	_, appErr = th2.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		&buf,
 		nil,
@@ -584,7 +585,7 @@ func TestChannelImportDestinationChannelNameRequiresSingleChannelScope(t *testin
 	})
 	require.Nil(t, appErr)
 
-	_, appErr = th.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th.App.BulkImportWithPathAndOpts(
 		th.Context, &buf, nil, false, false, 1, "",
 		model.BulkImportOpts{DestinationChannelName: "renamed-channel"},
 	)
@@ -629,7 +630,7 @@ func TestTeamOnlyImportDestinationTeamRemap(t *testing.T) {
 	}
 
 	const destTeamName = "dst-team-only-remap"
-	_, appErr = th2.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		&buf,
 		nil,
@@ -1600,7 +1601,7 @@ func TestChannelMigrationWithAttachments(t *testing.T) {
 
 	// importPath must point to the data/ subdirectory; attachment paths in the
 	// JSONL are relative (e.g. "teams/.../file.txt") and are resolved against it.
-	_, appErr = th.App.BulkImportWithPathAndOpts(th.Context, jsonlFile, nil, false, true, 1, filepath.Join(importDir, "data"), model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
+	_, _, appErr = th.App.BulkImportWithPathAndOpts(th.Context, jsonlFile, nil, false, true, 1, filepath.Join(importDir, "data"), model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
 	require.Nil(t, appErr, "import with attachments must succeed")
 
 	// The post must exist and have a file attached.
@@ -1765,7 +1766,7 @@ func TestDestinationTeamNewTeamUsesSlugAsDisplayName(t *testing.T) {
 	}
 
 	const destTeamName = "engineering"
-	_, appErr = th2.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		&buf,
 		nil,
@@ -1817,7 +1818,7 @@ func TestDestinationTeamHyphenatedSlugDisplayName(t *testing.T) {
 	}
 
 	const destTeamName = "my-eng-team"
-	_, appErr = th2.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		&buf,
 		nil,
@@ -1881,7 +1882,7 @@ func TestDestinationTeamExistingTeamDisplayNamePreserved(t *testing.T) {
 	})
 	require.Nil(t, appErr, "must be able to create dest team before import")
 
-	_, appErr = th2.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		&buf,
 		nil,
@@ -1981,7 +1982,7 @@ func TestDestinationTeamDisplayNameIdempotentAfterRename(t *testing.T) {
 	const destTeamName = "engineering"
 
 	// First import creates the team with display name from the export ("Large Team (20k)").
-	_, appErr = th2.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		bytes.NewReader(exportBytes),
 		nil,
@@ -2002,7 +2003,7 @@ func TestDestinationTeamDisplayNameIdempotentAfterRename(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Second import of the same export — must not revert the customer's rename.
-	_, appErr = th2.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		bytes.NewReader(exportBytes),
 		nil,
@@ -2069,7 +2070,7 @@ func TestDestinationTeamInferredWhenAdditionalFieldAbsent(t *testing.T) {
 
 	const destTeamName = "inferred-dest-team"
 
-	_, appErr = th2.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		bytes.NewReader(stripped),
 		nil,
@@ -2328,7 +2329,7 @@ func TestDestinationChannelNameFailsWithNoMetadata(t *testing.T) {
 		Version: &version,
 	}))
 
-	_, appErr := th.App.BulkImportWithPathAndOpts(
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context,
 		strings.NewReader(sb.String()),
 		nil,
@@ -2356,7 +2357,7 @@ func TestDestinationChannelNameFailsWithTeamScopedExport(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	_, appErr = th.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th.App.BulkImportWithPathAndOpts(
 		th.Context,
 		&buf,
 		nil,
@@ -2396,7 +2397,7 @@ func TestDestinationChannelNameFailsWithMultiTeamExport(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	_, appErr = th.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th.App.BulkImportWithPathAndOpts(
 		th.Context,
 		&buf,
 		nil,
@@ -2443,7 +2444,7 @@ func TestDestinationTeamNameFailsWithInferredMultiTeamExport(t *testing.T) {
 		}))
 	}
 
-	_, appErr := th.App.BulkImportWithPathAndOpts(
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context,
 		strings.NewReader(sb.String()),
 		nil,
@@ -2516,7 +2517,7 @@ func TestBulkImportKeepsLinesAfterNonFatalWorkerError(t *testing.T) {
 		existing, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    "collide-" + model.NewId() + "@mig-test.example.com",
 			Username: "existing-" + model.NewId(),
-			Password: "Password1!",
+			Password: model.NewTestPassword(),
 		})
 		require.Nil(t, appErr)
 
@@ -2530,7 +2531,7 @@ func TestBulkImportKeepsLinesAfterNonFatalWorkerError(t *testing.T) {
 		userLine(t, survivor, survivor+"@mig-test.example.com")
 	}
 
-	_, appErr := th.App.BulkImportWithPathAndOpts(
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context, strings.NewReader(sb.String()), nil, false, false, 4, "",
 		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive},
 	)
@@ -2589,7 +2590,7 @@ func TestBulkImportDrainsWorkersOnEarlyReturn(t *testing.T) {
 		t.Helper()
 
 		before := liveImportWorkers()
-		_, appErr := th.App.BulkImportWithPathAndOpts(
+		_, _, appErr := th.App.BulkImportWithPathAndOpts(
 			th.Context, strings.NewReader(jsonl), nil, false, false, 4, "", opts,
 		)
 		require.NotNil(t, appErr, "this case is only meaningful if the import fails")
@@ -2703,7 +2704,7 @@ func TestDestinationChannelNameRemapsChannel(t *testing.T) {
 	}
 
 	const destChanName = "dst-remap-channel"
-	_, appErr = th2.App.BulkImportWithPathAndOpts(
+	_, _, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		&buf,
 		nil,

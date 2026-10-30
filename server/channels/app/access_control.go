@@ -172,6 +172,13 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		return nil, appErr
 	}
 
+	// The update event lists the actions the change touched, including any the save
+	// removes, so read the stored version before it is replaced. A new policy has none.
+	var previous *model.AccessControlPolicy
+	if policy.Type == model.AccessControlPolicyTypePermission && policy.ID != "" {
+		previous, _ = a.Srv().Store().AccessControlPolicy().Get(rctx, policy.ID)
+	}
+
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
 		return nil, appErr
@@ -186,7 +193,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
 		a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
 	case model.AccessControlPolicyTypePermission:
-		a.publishPermissionPolicyUpdate(rctx)
+		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(previous, policy))
 	}
 
 	return policy, nil
@@ -638,7 +645,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		a.publishChannelPolicyEnforcedUpdatesForChannels(rctx, affectedChannelIDs)
 		a.publishTeamPolicyEnforcedUpdatesForTeams(rctx, affectedTeamIDs)
 	case policy.Type == model.AccessControlPolicyTypePermission:
-		a.publishPermissionPolicyUpdate(rctx)
+		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(policy))
 	}
 
 	return nil
@@ -794,8 +801,7 @@ func (a *App) ValidatePolicySimulationUsersInScope(rctx request.CTX, teamID, cha
 				return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.context.invalid_param.app_error", map[string]any{"Name": "user_id"}, "", http.StatusBadRequest)
 			}
 			if _, err := a.Srv().Store().Channel().GetMember(rctx, channelID, u.UserID); err != nil {
-				var nfErr *store.ErrNotFound
-				if errors.As(err, &nfErr) {
+				if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 					return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.access_control_policy.simulate.users_out_of_scope.app_error", nil, "user_id="+u.UserID, http.StatusForbidden)
 				}
 				return model.NewAppError("ValidatePolicySimulationUsersInScope", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1955,7 +1961,6 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 				continue
 			}
 		}
-
 		switch field.GetAccessMode() {
 		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
 			delete(attributes, fieldName)
@@ -2009,7 +2014,9 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 		fields = append(model.NativeUserAttributeFields(group.ID), fields...)
 	}
 
-	return fields, nil
+	// This endpoint feeds policy authoring, which has no use for a field's
+	// grants or masking configuration -- only the field shape itself.
+	return a.ShapePropertyFieldsForCaller(rctx, model.Session{UserId: callerID}, fields, false), nil
 }
 
 func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
@@ -2063,7 +2070,8 @@ func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []mod
 		}
 	}
 	if permissionPolicyChanged {
-		a.publishPermissionPolicyUpdate(rctx)
+		// Auto-add only decides who joins a channel; no permission rule changed.
+		a.publishPermissionPolicyUpdate(rctx, []string{})
 	}
 
 	return policies, nil
@@ -2225,8 +2233,7 @@ func (a *App) HydrateChannelPolicyActions(rctx request.CTX, ch *model.Channel) *
 	}
 	actions, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicy(rctx, ch.Id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			// Policy was deleted between the channel read and this lookup;
 			// the channel row's PolicyEnforced flag will be reconciled on
 			// the next write. Treat as "no actions" rather than failing.
@@ -2289,8 +2296,7 @@ func (a *App) HydrateTeamPolicyActions(rctx request.CTX, team *model.Team) *mode
 	}
 	actions, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicy(rctx, team.Id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			// Policy was deleted between the team read and this lookup;
 			// treat as "no actions" rather than failing.
 			team.PolicyActions = map[string]bool{}
@@ -2385,17 +2391,50 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channel.Id, "", nil, "")
 	messageWs.Add("channel", string(channelJSON))
+	// Unlike other channel events this one has to reach members the channel's read rules
+	// deny, because it is how their client learns to drop the channel. They get it
+	// without the channel itself.
+	if a.ChannelAccessEnforcementActive() {
+		useChannelReadAccessRedactHook(messageWs, channel.Id)
+	}
 	a.Publish(messageWs)
 }
 
 // publishPermissionPolicyUpdate broadcasts a system-scoped permission policy change.
 // TypePermission policies are global, so no channel ID is included in the event.
-func (a *App) publishPermissionPolicyUpdate(rctx request.CTX) {
+//
+// actions lists the rule actions the change touched, so a client can skip work an action
+// it cares about isn't part of: every connected client gets this event, and refetching its
+// whole channel list is only needed when channel_read_access changed.
+func (a *App) publishPermissionPolicyUpdate(rctx request.CTX, actions []string) {
 	// Permission policies are system-scoped, so every channel's render-ETag epoch folds them in.
 	// Clear the whole epoch cache rather than a single channel key.
 	a.Srv().Store().AccessControlPolicy().ClearEtagCache()
+	if actions == nil {
+		// An empty list, not null: clients read a missing list as "anything may have changed".
+		actions = []string{}
+	}
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", "", nil, "")
+	messageWs.Add("actions", actions)
 	a.Publish(messageWs)
+}
+
+// policyRuleActions returns the distinct actions the policies' rules declare.
+func policyRuleActions(policies ...*model.AccessControlPolicy) []string {
+	actions := []string{}
+	seen := map[string]struct{}{}
+	for _, policy := range policies {
+		for _, rule := range policy.EffectiveRules() {
+			for _, action := range rule.Actions {
+				if _, ok := seen[action]; ok {
+					continue
+				}
+				seen[action] = struct{}{}
+				actions = append(actions, action)
+			}
+		}
+	}
+	return actions
 }
 
 // publishTeamPolicyEnforcedUpdate reloads the team, hydrates its policy
@@ -2732,15 +2771,16 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 
-	group, err := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	// Group is the cached lookup; GetPropertyGroup reads the store on every call,
+	// and subjects are built on hot paths such as websocket delivery.
+	group, err := a.Srv().propertyService.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	subject, storeErr := a.Srv().Store().Attributes().GetSubject(rctx, userID, group.ID, model.PropertyFieldObjectTypeUser)
 	if storeErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(storeErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](storeErr); ok {
 			subject = &model.Subject{
 				ID:         userID,
 				Type:       "user",
@@ -2824,9 +2864,13 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // the given channel.
 //
 // Resolution order:
-//  1. Look up ChannelMember; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
+//  1. Look up the membership's role fields; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
 //     SchemeGuest → channel_guest.
 //  2. Inspect the Roles tokens on the channel member for the channel role names.
+//
+// The role fields come from the cached membership of this one user in this one channel rather
+// than a ChannelMember read, because this runs on the websocket hub for every recipient of
+// every channel-scoped event.
 //
 // Returns ("", nil) when no channel role can be determined — either
 // because the user is not a member of the channel, or because the
@@ -2837,30 +2881,38 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // a fabricated role. Inconsistent-row cases are logged at WARN with the
 // row's flags and Roles for operator triage.
 func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) (string, *model.AppError) {
-	cm, err := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
+	memberRoles, err := a.Srv().Store().Channel().GetChannelMemberRoles(rctx, userID, []string{channelID}, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			// Not a member: return an empty role and let the caller
-			// decide what "no resource role" means for them. We used
-			// to fabricate a role from the user's system roles here,
-			// but that synthesised channel-scope information from
-			// data the user has no actual channel membership behind —
-			// callers (e.g. attachChannelScopedRole in file.go) now
-			// gate on the empty string and skip the channel scope
-			// rather than evaluating against a guess.
-			return "", nil
-		}
 		return "", model.NewAppError("GetSubjectChannelRole", "app.access_control.get_channel_role.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	cm, ok := memberRoles[channelID]
+	if !ok {
+		// Not a member: return an empty role and let the caller
+		// decide what "no resource role" means for them. We used
+		// to fabricate a role from the user's system roles here,
+		// but that synthesised channel-scope information from
+		// data the user has no actual channel membership behind —
+		// callers (e.g. attachChannelScopedRole in file.go) now
+		// gate on the empty string and skip the channel scope
+		// rather than evaluating against a guess.
+		return "", nil
+	}
 
+	return channelRoleForMember(rctx, userID, channelID, cm), nil
+}
+
+// channelRoleForMember maps a user's membership role fields in a channel to its
+// channel-scoped role, as GetSubjectChannelRole describes. It is shared with callers
+// that resolve many channels at once, so a batch resolves each exactly as a single
+// lookup would.
+func channelRoleForMember(rctx request.CTX, userID, channelID string, cm store.ChannelMemberRoles) string {
 	switch {
 	case cm.SchemeAdmin:
-		return model.ChannelAdminRoleId, nil
+		return model.ChannelAdminRoleId
 	case cm.SchemeGuest:
-		return model.ChannelGuestRoleId, nil
+		return model.ChannelGuestRoleId
 	case cm.SchemeUser:
-		return model.ChannelUserRoleId, nil
+		return model.ChannelUserRoleId
 	}
 
 	// Inspect the Roles tokens deterministically rather than returning
@@ -2883,13 +2935,13 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 	// and `channel_guest` is the sole recognised token in the row.
 	tokens := strings.Fields(cm.Roles)
 	if slices.Contains(tokens, model.ChannelAdminRoleId) {
-		return model.ChannelAdminRoleId, nil
+		return model.ChannelAdminRoleId
 	}
 	if slices.Contains(tokens, model.ChannelUserRoleId) {
-		return model.ChannelUserRoleId, nil
+		return model.ChannelUserRoleId
 	}
 	if slices.Contains(tokens, model.ChannelGuestRoleId) {
-		return model.ChannelGuestRoleId, nil
+		return model.ChannelGuestRoleId
 	}
 
 	// ChannelMember row exists but neither the scheme flags nor the
@@ -2911,7 +2963,7 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 		mlog.Bool("scheme_user", cm.SchemeUser),
 		mlog.Bool("scheme_guest", cm.SchemeGuest),
 	)
-	return "", nil
+	return ""
 }
 
 // ResolveSystemRole returns the highest-precedence base system role token

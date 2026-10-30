@@ -61,7 +61,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
                 {isEntryLicense ? (
                     formatMessage({
                         id: 'navbar_dropdown.entryVersionText',
-                        defaultMessage: 'Entry offers Enterprise Advance capabilities <link>with limits</link> designed to support evaluation.',
+                        defaultMessage: 'Entry offers Enterprise Advanced capabilities <link>with limits</link> designed to support evaluation.',
                     },
                     {
                         link: (msg: React.ReactNode) => (

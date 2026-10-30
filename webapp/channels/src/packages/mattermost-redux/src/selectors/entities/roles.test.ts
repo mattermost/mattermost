@@ -290,7 +290,7 @@ describe('Selectors.Roles.channelWriteAccess', () => {
     const channelId = 'channel_id';
     const otherChannelId = 'other_channel_id';
 
-    function makeState(decision?: {allowed: boolean; evaluated: boolean}, decisionChannelId = channelId) {
+    function makeState(decision?: {allowed: boolean; evaluated: boolean}, decisionChannelId = channelId, action = 'channel_write_access') {
         const channelRoles: Record<string, Set<string>> = {
             [channelId]: new Set(['channel_user']),
             [otherChannelId]: new Set(['channel_user']),
@@ -317,7 +317,7 @@ describe('Selectors.Roles.channelWriteAccess', () => {
                 renderPermissions: decision ? {
                     byResource: {
                         channel: {
-                            [decisionChannelId]: {channel_write_access: {...decision, generation: 1}},
+                            [decisionChannelId]: {[action]: {...decision, generation: 1}},
                         },
                     },
                 } : undefined,
@@ -349,7 +349,23 @@ describe('Selectors.Roles.channelWriteAccess', () => {
 
         expect(Selectors.isChannelWriteDenied(state, channelId)).toBe(true);
         expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.CREATE_POST)).toBe(false);
+    });
+
+    it('leaves management permissions to their own decision when the write policy denies', () => {
+        const state = makeState({allowed: false, evaluated: true});
+
+        expect(Selectors.isChannelManagementDenied(state, channelId)).toBe(false);
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.DELETE_PUBLIC_CHANNEL)).toBe(true);
+    });
+
+    it('denies management permissions, and only those, when the management policy denies', () => {
+        const state = makeState({allowed: false, evaluated: true}, channelId, 'channel_management_access');
+
+        expect(Selectors.isChannelManagementDenied(state, channelId)).toBe(true);
+        expect(Selectors.isChannelWriteDenied(state, channelId)).toBe(false);
         expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.DELETE_PUBLIC_CHANNEL)).toBe(false);
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.CREATE_POST)).toBe(true);
+        expect(Selectors.haveIChannelPermissionRBACOnly(state, teamId, channelId, Permissions.DELETE_PUBLIC_CHANNEL)).toBe(true);
     });
 
     it('leaves read permissions and policy administration alone when the policy denies', () => {

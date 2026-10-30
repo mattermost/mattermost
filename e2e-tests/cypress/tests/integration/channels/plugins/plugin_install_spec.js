@@ -106,7 +106,7 @@ describe('Plugins Management', () => {
         // * Verify the enable toggle reflects the running state
         cy.findByTestId('plugin-metadata-panel', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
         cy.findByTestId(pluginEnableToggleTestId(demoPlugin.id)).
-            should('have.attr', 'aria-pressed', 'true').
+            should('have.attr', 'aria-checked', 'true').
             and('have.attr', 'aria-label', 'Disable plugin');
 
         // # Disable the plugin from the settings page
@@ -115,7 +115,7 @@ describe('Plugins Management', () => {
         // * Verify it disables in place, without needing Save
         cy.findByTestId('plugin-metadata-status').should('contain.text', 'Not running');
         cy.findByTestId(pluginEnableToggleTestId(demoPlugin.id)).
-            should('have.attr', 'aria-pressed', 'false').
+            should('have.attr', 'aria-checked', 'false').
             and('have.attr', 'aria-label', 'Enable plugin');
 
         // # Re-enable the plugin from the settings page
@@ -151,7 +151,7 @@ describe('Plugins Management', () => {
 
         // * Verify the action is blocked with the expected warning, and the plugin stays enabled
         cy.findByText('Please save unsaved changes first').should('be.visible');
-        cy.findByTestId(pluginEnableToggleTestId(demoPlugin.id)).should('have.attr', 'aria-pressed', 'true');
+        cy.findByTestId(pluginEnableToggleTestId(demoPlugin.id)).should('have.attr', 'aria-checked', 'true');
 
         // # Attempt to uninstall the plugin while unsaved changes exist
         cy.get(`#plugin-actions-menu-button-${demoPlugin.id}`).click();

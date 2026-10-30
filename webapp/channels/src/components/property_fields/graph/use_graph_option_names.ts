@@ -4,7 +4,7 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {assignmentFallbackLabels, computeAssignmentPrefetch} from './assignment_prefetch';
-import {pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
+import {clearPropertyFieldOptionWalk, pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
 
 import {joinGraphOptions, type GraphOptionJoin} from '.';
@@ -28,7 +28,26 @@ type FieldNameCache = {
 };
 
 const nameCache = new Map<string, FieldNameCache>();
+
+// Fields whose walk failed, so it is not started again. The success guard is
+// didResolve, which a failure never sets, and readers re-run their walk on every
+// write to this cache -- which the picker performs on each selection. Without
+// this a field that cannot be paged is re-walked for the rest of the session.
+// Cleared with the field's names, so a property_field_updated retries it once.
+const failedWalks = new Set<string>();
+
 const cacheListeners = new Set<() => void>();
+
+// Bumped on clear so a walk started before the clear cannot commit.
+const fieldGenerations = new Map<string, number>();
+
+function currentGeneration(fieldId: string): number {
+    return fieldGenerations.get(fieldId) ?? 0;
+}
+
+export function getGraphOptionNameGeneration(fieldId: string): number {
+    return currentGeneration(fieldId);
+}
 
 function notifyCacheListeners() {
     for (const listener of cacheListeners) {
@@ -57,7 +76,65 @@ export function commitGraphOptionNames(fieldId: string, names: Record<string, st
 
 export function clearGraphOptionNameCache(): void {
     nameCache.clear();
+    failedWalks.clear();
+    fieldGenerations.clear();
     notifyCacheListeners();
+}
+
+export function clearGraphOptionNamesForField(fieldId: string): void {
+    fieldGenerations.set(fieldId, currentGeneration(fieldId) + 1);
+    nameCache.delete(fieldId);
+    failedWalks.delete(fieldId);
+    clearPropertyFieldOptionWalk(fieldId);
+    notifyCacheListeners();
+}
+
+export function subscribeGraphOptionNames(listener: () => void): () => void {
+    cacheListeners.add(listener);
+    return () => {
+        cacheListeners.delete(listener);
+    };
+}
+
+// Stable identity for a cache miss, so a caller memoizing on the result does
+// not see a new object every read.
+const EMPTY_FIELD_NAMES: FieldNameCache = {names: {}, didResolve: false};
+
+export function getGraphOptionNames(fieldId: string): {names: Record<string, string>; didResolve: boolean} {
+    return nameCache.get(fieldId) ?? EMPTY_FIELD_NAMES;
+}
+
+async function walkGraphOptionNames(field: GraphFieldRef, ids: readonly string[], signal?: AbortSignal): Promise<void> {
+    if (failedWalks.has(field.id) || nameCache.get(field.id)?.didResolve || !computeAssignmentPrefetch(field, [...ids])) {
+        return;
+    }
+
+    const generation = currentGeneration(field.id);
+    try {
+        const options = await pageAllAccessControlFieldOptions(field, {signal});
+        if (signal?.aborted || currentGeneration(field.id) !== generation) {
+            return;
+        }
+
+        const join = joinGraphOptions(options);
+        commitGraphOptionNames(field.id, graphJoinNames(join));
+    } catch (error) {
+        // Failed walk does not commit; didResolve stays false. An abort is this
+        // caller leaving rather than a walk that cannot succeed, so it is left
+        // unrecorded and the next caller may try again. A reject from a walk
+        // that started before the field was cleared is not a failure of the
+        // current generation, so it must not block the retry.
+        if (currentGeneration(field.id) !== generation) {
+            return;
+        }
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+            failedWalks.add(field.id);
+        }
+    }
+}
+
+export function ensureGraphOptionNames(field: GraphFieldRef, ids: readonly string[]): void {
+    walkGraphOptionNames(field, ids);
 }
 
 export function useGraphOptionNames(
@@ -97,28 +174,12 @@ export function useGraphOptionNames(
     const idsKey = ids.join('\0');
 
     useEffect(() => {
-        if (!walk || didResolve || !computeAssignmentPrefetch(field, [...ids])) {
+        if (!walk) {
             return undefined;
         }
 
         const controller = new AbortController();
-
-        (async () => {
-            try {
-                const options = await pageAllAccessControlFieldOptions(
-                    {id: field.id, object_type: field.object_type},
-                    {signal: controller.signal},
-                );
-                if (controller.signal.aborted) {
-                    return;
-                }
-
-                const join = joinGraphOptions(options);
-                commitGraphOptionNames(field.id, graphJoinNames(join));
-            } catch {
-                // Failed walk does not commit; didResolve stays false.
-            }
-        })();
+        walkGraphOptionNames(field, ids, controller.signal);
 
         return () => controller.abort();
 

@@ -9,6 +9,11 @@ import {batchActions} from 'redux-batched-actions';
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+    ACCESS_CONTROL_PERMISSION_ACTIONS,
+} from '@mattermost/types/access_control';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
@@ -19,11 +24,12 @@ import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import type {PropertyValue} from '@mattermost/types/properties';
-import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
+import {supportsHierarchy, type PropertyField, type PropertyValue} from '@mattermost/types/properties';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import type {GlobalState} from '@mattermost/types/store';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 
@@ -121,11 +127,11 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getPropertyFieldById, getPropertyGroupById} from 'mattermost-redux/selectors/entities/properties';
+import {getPropertyFieldById, getPropertyGroupById, getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
@@ -143,7 +149,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
 import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
-import {reconcileChannelReadAccess} from 'actions/channel_read_access';
+import {reconcileChannelReadAccess, reconcileChannelReadAccessWithJitter} from 'actions/channel_read_access';
 import {
     getTeamsUsage,
 } from 'actions/cloud';
@@ -174,6 +180,7 @@ import {
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
+import {clearGraphOptionNamesForField, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -576,7 +583,7 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
 
     case WebSocketEvents.PermissionPolicyUpdated:
-        dispatch(handlePermissionPolicyUpdatedEvent());
+        dispatch(handlePermissionPolicyUpdatedEvent(msg));
         break;
 
     case WebSocketEvents.TeamAccessControlUpdated:
@@ -904,7 +911,12 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
 
 export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
+        // The server leaves the channel out for a member its read rules deny. All that
+        // member needs is to drop the channel, which the reconcile does.
         if (!msg.data.channel) {
+            if (isPermissionPoliciesEnabled(doGetState())) {
+                doDispatch(reconcileChannelReadAccessWithJitter());
+            }
             return;
         }
 
@@ -927,7 +939,7 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
 
         doDispatch(invalidateRenderDecisionsForChannel(channel.id));
         doDispatch(refreshPostsAfterPolicyChange(channel.id));
-        doDispatch(reconcileChannelReadAccess());
+        doDispatch(reconcileChannelReadAccessWithJitter());
     };
 }
 
@@ -949,15 +961,34 @@ function refreshPostsAfterPolicyChange(channelId?: string): ThunkActionFunc<void
 }
 
 // Permission policies are system-scoped, hence no resource ID on the event and no narrower reset.
-export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
+export function handlePermissionPolicyUpdatedEvent(msg: WebSocketMessages.PermissionPolicyUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         if (!isPermissionPoliciesEnabled(doGetState())) {
             return;
         }
 
-        doDispatch(clearRenderDecisions());
-        doDispatch(refreshPostsAfterPolicyChange());
-        doDispatch(reconcileChannelReadAccess());
+        // Every connected client gets this event, so each step runs only when an action it
+        // depends on changed. A server that predates the action list sends none, and then any
+        // action may have.
+        const {actions} = msg.data;
+        const changed = (...dependsOn: string[]) => !actions || dependsOn.some((action) => actions.includes(action));
+
+        // Every permission policy action is answered as a render decision, the channel write
+        // and management gates included.
+        if (changed(...ACCESS_CONTROL_PERMISSION_ACTIONS)) {
+            doDispatch(clearRenderDecisions());
+        }
+
+        // Loaded posts carry file metadata sanitized under download_file_attachment, and
+        // lists that drop posts of channels channel_read_access denies.
+        if (changed(ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
+            doDispatch(refreshPostsAfterPolicyChange());
+        }
+
+        // Only a channel_read_access change can hide or reveal a channel.
+        if (changed(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
+            doDispatch(reconcileChannelReadAccessWithJitter());
+        }
     };
 }
 
@@ -1482,6 +1513,33 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
     };
 }
 
+/**
+ * User attributes reach the server two ways: the custom profile attribute REST
+ * API, which emits custom_profile_attributes_field_*, and Attribute Management,
+ * which writes the same fields through the generic property-fields API and emits
+ * only property_field_*. Everything that renders user attributes reads the
+ * custom profile attribute slice, so the generic events have to land there too.
+ *
+ * property_field_* events for a system-targeted field fan out to every connected
+ * client, not just admins, and the custom profile attribute slice only exists
+ * under an Enterprise license. Gate on the license the same way the reconnect
+ * refresh does so unlicensed servers never touch the slice off these events.
+ *
+ * The access_control group lives under a server-generated UUID. The property
+ * group cache only learns that mapping once something fetches the group by name,
+ * so fall back to the cached definitions, which all come from that group. While
+ * neither is known a user-object field cannot be told apart from a plugin's own,
+ * so treat it as not-a-CPA-field; the mount and reconnect fetches pick up
+ * anything missed rather than refetch on every unrelated event.
+ */
+function isUserAttributeField(state: GlobalState, field: PropertyField): boolean {
+    if (field.object_type !== USER_OBJECT_TYPE || !isEnterpriseLicense(getLicense(state))) {
+        return false;
+    }
+    const groupId = getPropertyGroupByName(state, ACCESS_CONTROL_PROPERTY_GROUP)?.id ?? getCustomProfileAttributes(state)[0]?.group_id;
+    return Boolean(groupId) && field.group_id === groupId;
+}
+
 export function handlePropertyFieldCreatedOrUpdated(
     msg:
     | WebSocketMessages.PropertyFieldCreated |
@@ -1500,7 +1558,8 @@ export function handlePropertyFieldCreatedOrUpdated(
         // Storing it as received would empty the list for every client, so the
         // cached options ride along on the dispatch and a refetch of the field's
         // scope brings back the authoritative, per-caller-filtered list.
-        if (field.attrs?.options_omitted === true) {
+        const optionsOmitted = field.attrs?.options_omitted === true;
+        if (optionsOmitted) {
             const state = doGetState();
             const cached = getPropertyFieldById(state, field.id);
             if (cached) {
@@ -1520,10 +1579,72 @@ export function handlePropertyFieldCreatedOrUpdated(
             }
         }
 
+        // A renamed or added graph option would otherwise show its stale cached
+        // name. An inline option list is authoritative for this caller, so it
+        // replaces the cache; a withheld list is caller-specific, so the next
+        // display fetches the names itself.
+        if (supportsHierarchy(field)) {
+            clearGraphOptionNamesForField(field.id);
+            if (!optionsOmitted && Array.isArray(field.attrs?.options)) {
+                const names: Record<string, string> = {};
+                for (const option of field.attrs.options) {
+                    if (option.id) {
+                        names[option.id] = option.name;
+                    }
+                }
+                commitGraphOptionNames(field.id, names);
+            }
+        }
+
         doDispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
             data: {fields: [field]},
         });
+
+        if (isUserAttributeField(doGetState(), field)) {
+            if (optionsOmitted) {
+                // The broadcast withheld this field's option list. The cached
+                // options restored above come from the properties slice, which a
+                // session that only loaded user attributes never populates, so
+                // restore them from the field's own custom profile attribute
+                // entry instead and patch it in place. Caching the stripped
+                // definition would blank the options for every reader; only fall
+                // back to a refetch when the slice has no prior copy to draw on.
+                const cached = doGetState().entities.general.customProfileAttributes[field.id];
+                if (cached) {
+                    doDispatch({
+                        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+                        data: {
+                            ...field,
+                            attrs: {
+                                ...field.attrs,
+                                options: cached.attrs?.options,
+                                options_count: cached.attrs?.options_count,
+                            },
+                        },
+                    });
+
+                    // User Management skips its mount fetch while this
+                    // slice is nonempty, so a restored list would otherwise
+                    // stay until reconnect. Follow with a refetch only for
+                    // admins who can open that page (the same
+                    // SYSCONSOLE_WRITE_USERMANAGEMENT_USERS gate as
+                    // getShowManageUserSettings; license is already required
+                    // to reach this branch). Other clients keep the restored
+                    // list.
+                    if (haveISystemPermission(doGetState(), {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS})) {
+                        doDispatch(getCustomProfileAttributeFields());
+                    }
+                } else {
+                    doDispatch(getCustomProfileAttributeFields());
+                }
+            } else {
+                doDispatch({
+                    type: msg.event === WebSocketEvents.PropertyFieldCreated ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+                    data: field,
+                });
+            }
+        }
 
         // Session attribute field changed; forward the updated field to the Desktop App.
         if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
@@ -1532,13 +1653,21 @@ export function handlePropertyFieldCreatedOrUpdated(
     };
 }
 
-function handlePropertyFieldDeleted(
+export function handlePropertyFieldDeleted(
     msg: WebSocketMessages.PropertyFieldDeleted,
 ): ThunkActionFunc<void> {
     return (doDispatch) => {
         doDispatch({
             type: PropertyTypes.PROPERTY_FIELD_DELETED,
             data: {fieldId: msg.data.field_id},
+        });
+
+        // The payload carries no field, so the group it belonged to is unknown
+        // here. The reducer leaves the slice alone for an id it doesn't hold,
+        // which is the same membership test a group check would make.
+        doDispatch({
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
+            data: msg.data.field_id,
         });
     };
 }

@@ -11,7 +11,11 @@ import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '.
 import type {GraphFieldRef} from './page_all_access_control_field_options';
 import {
     clearGraphOptionNameCache,
+    clearGraphOptionNamesForField,
     commitGraphOptionNames,
+    ensureGraphOptionNames,
+    getGraphOptionNames,
+    subscribeGraphOptionNames,
     useGraphOptionNames,
 } from './use_graph_option_names';
 import type {UseGraphOptionNamesResult} from './use_graph_option_names';
@@ -22,6 +26,21 @@ jest.mock('./page_all_access_control_field_options', () => ({
 }));
 
 const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
+
+function deferred<T>() {
+    let resolve!: (value: T) => void;
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+    return {promise, resolve, reject};
+}
+
+async function flushMicrotasks() {
+    await Promise.resolve();
+    await Promise.resolve();
+}
 
 const opt = (id: string, name: string, parents: string[] = []): PropertyFieldOption => ({
     id, name, parents, create_at: 1,
@@ -197,6 +216,93 @@ describe('useGraphOptionNames', () => {
         expect(latest?.labelForId('ghost-1')).toEqual({kind: 'id', text: 'ghost-1'});
     });
 
+    test('ensureGraphOptionNames on an options_omitted field pages once and commits', async () => {
+        mockPageAll.mockResolvedValue(REGIME_1);
+
+        ensureGraphOptionNames(fieldOf('ensure-field', {options_omitted: true}), ['a']);
+
+        await waitFor(() => expect(getGraphOptionNames('ensure-field').didResolve).toBe(true));
+        expect(getGraphOptionNames('ensure-field').names).toEqual({a: 'A', b: 'B', opt1: 'Option 1'});
+        expect(mockPageAll).toHaveBeenCalledTimes(1);
+    });
+
+    test('ensureGraphOptionNames does not fetch when the field already resolved', () => {
+        commitGraphOptionNames('resolved-field', {a: 'A'});
+
+        ensureGraphOptionNames(fieldOf('resolved-field', {options_omitted: true}), ['a', 'b']);
+
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('a failed walk is not retried when something else writes to the cache', async () => {
+        mockPageAll.mockRejectedValue(new Error('403'));
+
+        ensureGraphOptionNames(fieldOf('failing-field', {options_omitted: true}), ['a']);
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        // What a picker selection on any other field does.
+        commitGraphOptionNames('other-field', {x: 'X'});
+        ensureGraphOptionNames(fieldOf('failing-field', {options_omitted: true}), ['a']);
+
+        expect(mockPageAll).toHaveBeenCalledTimes(1);
+    });
+
+    test('clearGraphOptionNamesForField lets a failed field walk again', async () => {
+        mockPageAll.mockRejectedValue(new Error('403'));
+
+        ensureGraphOptionNames(fieldOf('retry-field', {options_omitted: true}), ['a']);
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        clearGraphOptionNamesForField('retry-field');
+        mockPageAll.mockResolvedValue(REGIME_1);
+        ensureGraphOptionNames(fieldOf('retry-field', {options_omitted: true}), ['a']);
+
+        await waitFor(() => expect(getGraphOptionNames('retry-field').didResolve).toBe(true));
+    });
+
+    test('an aborted walk is not a failure, so the next caller still walks', async () => {
+        mockPageAll.mockRejectedValueOnce(new DOMException('aborted', 'AbortError'));
+
+        ensureGraphOptionNames(fieldOf('abort-field', {options_omitted: true}), ['a']);
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        mockPageAll.mockResolvedValueOnce(REGIME_1);
+        ensureGraphOptionNames(fieldOf('abort-field', {options_omitted: true}), ['a']);
+
+        await waitFor(() => expect(getGraphOptionNames('abort-field').didResolve).toBe(true));
+    });
+
+    test('ensureGraphOptionNames does not fetch when every id is named inline and options_omitted is unset', () => {
+        ensureGraphOptionNames(fieldOf('inline-only-field', {options: [opt('a', 'Alpha')]}), ['a']);
+
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('subscribeGraphOptionNames fires on commit and the remover stops it', () => {
+        const listener = jest.fn();
+        const unsubscribe = subscribeGraphOptionNames(listener);
+
+        commitGraphOptionNames('sub-field', {a: 'A'});
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        unsubscribe();
+        commitGraphOptionNames('sub-field', {b: 'B'});
+        expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    test('clearGraphOptionNamesForField drops only that field and notifies subscribers', () => {
+        commitGraphOptionNames('field-a', {x: 'X'});
+        commitGraphOptionNames('field-b', {y: 'Y'});
+        const listener = jest.fn();
+        subscribeGraphOptionNames(listener);
+
+        clearGraphOptionNamesForField('field-a');
+
+        expect(getGraphOptionNames('field-a')).toEqual({names: {}, didResolve: false});
+        expect(getGraphOptionNames('field-b')).toEqual({names: {y: 'Y'}, didResolve: true});
+        expect(listener).toHaveBeenCalledTimes(1);
+    });
+
     test('two fields do not share a cache entry', () => {
         commitGraphOptionNames('field-a', {x: 'X'});
         let latest: UseGraphOptionNamesResult | undefined;
@@ -214,5 +320,76 @@ describe('useGraphOptionNames', () => {
 
         expect(latest?.names).toEqual({});
         expect(latest?.didResolve).toBe(false);
+    });
+
+    test('a stale walk does not commit after clearGraphOptionNamesForField', async () => {
+        const walk = deferred<PropertyFieldOption[]>();
+        mockPageAll.mockReturnValue(walk.promise);
+
+        const field = fieldOf('stale-walk-field', {options_omitted: true});
+        ensureGraphOptionNames(field, ['a']);
+
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        clearGraphOptionNamesForField(field.id);
+        commitGraphOptionNames(field.id, {a: 'NEW'});
+
+        walk.resolve([opt('a', 'OLD'), opt('gone', 'GONE')]);
+        await flushMicrotasks();
+
+        const cached = getGraphOptionNames(field.id);
+        expect(cached.names).toEqual({a: 'NEW'});
+        expect(cached.names).not.toHaveProperty('gone');
+        expect(cached.didResolve).toBe(true);
+    });
+
+    test('after clear, ensureGraphOptionNames starts a fresh walk', async () => {
+        const first = deferred<PropertyFieldOption[]>();
+        const second = deferred<PropertyFieldOption[]>();
+        mockPageAll.
+            mockReturnValueOnce(first.promise).
+            mockReturnValueOnce(second.promise);
+
+        const field = fieldOf('fresh-walk-field', {options_omitted: true});
+        ensureGraphOptionNames(field, ['a']);
+
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        clearGraphOptionNamesForField(field.id);
+        ensureGraphOptionNames(field, ['a']);
+
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(2));
+
+        first.resolve([opt('a', 'OLD'), opt('gone', 'GONE')]);
+        await flushMicrotasks();
+
+        expect(getGraphOptionNames(field.id)).toEqual({names: {}, didResolve: false});
+
+        second.resolve([opt('a', 'NEW')]);
+
+        await waitFor(() => expect(getGraphOptionNames(field.id).didResolve).toBe(true));
+        expect(getGraphOptionNames(field.id).names).toEqual({a: 'NEW'});
+        expect(getGraphOptionNames(field.id).names).not.toHaveProperty('gone');
+    });
+
+    test('a stale walk reject after clear does not block the next walk', async () => {
+        const first = deferred<PropertyFieldOption[]>();
+        mockPageAll.mockReturnValueOnce(first.promise);
+
+        const field = fieldOf('stale-reject-field', {options_omitted: true});
+        ensureGraphOptionNames(field, ['a']);
+
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        clearGraphOptionNamesForField(field.id);
+        first.reject(new Error('403'));
+        await flushMicrotasks();
+
+        mockPageAll.mockResolvedValueOnce([opt('a', 'NEW')]);
+        ensureGraphOptionNames(field, ['a']);
+
+        await waitFor(() => expect(getGraphOptionNames(field.id).didResolve).toBe(true));
+        expect(getGraphOptionNames(field.id).names).toEqual({a: 'NEW'});
+        expect(mockPageAll).toHaveBeenCalledTimes(2);
     });
 });

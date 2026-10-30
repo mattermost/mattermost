@@ -459,7 +459,7 @@ describe('useChannelClassificationBanner', () => {
 
             const {result} = renderHookWithContext(
                 () => useChannelClassificationBanner(CHANNEL_ID),
-                designatedState({enabled: false, text: '', background_color: '#ED1010'}),
+                designatedState({enabled: true, text: '{{marking}}', background_color: '#ED1010'}),
             );
 
             expect(result.current.classificationBanner?.background_color).toBe('#ED1010');
@@ -495,7 +495,7 @@ describe('useChannelClassificationBanner', () => {
                 const {result} = renderHookWithContext(
                     () => useChannelClassificationBanner(CHANNEL_ID),
                     designatedState(
-                        {enabled: true, text: '', background_color: '#ED1010'},
+                        {enabled: true, text: '{{classification}}', background_color: '#ED1010'},
                         {name: CLASSIFICATIONS_CHANNEL_FIELD_NAME},
                     ),
                 );
@@ -504,6 +504,37 @@ describe('useChannelClassificationBanner', () => {
 
                 // Authored color must not win: classification color is authoritative.
                 expect(result.current.classificationBanner?.background_color).toBe('#1E325C');
+            });
+
+            test('falls back to designation when banner_info.text is empty string (legacy settings-tab artifact)', () => {
+                mockClassification({available: false, channelField: null, levels: []});
+
+                const {result} = renderHookWithContext(
+                    () => useChannelClassificationBanner(CHANNEL_ID),
+                    designatedState(
+                        {enabled: true, text: '', background_color: '#ED1010'},
+                        {name: CLASSIFICATIONS_CHANNEL_FIELD_NAME},
+                    ),
+                );
+
+                expect(result.current.classificationIsBannerDesignated).toBe(true);
+                expect(result.current.classificationBanner?.background_color).toBe('#1E325C');
+            });
+
+            test('keeps leftover literal text when every attribute token is unset', () => {
+                mockClassification({available: false, channelField: null, levels: []});
+
+                const {result} = renderHookWithContext(
+                    () => useChannelClassificationBanner(CHANNEL_ID),
+                    designatedState(
+                        {enabled: true, text: '{{marking}} · {{gone}} Test', background_color: '#ED1010'},
+                        undefined,
+                        '',
+                    ),
+                );
+
+                expect(result.current.hasClassification).toBe(true);
+                expect(result.current.bannerText).toBe('Test');
             });
 
             test('uses DEFAULT_BANNER_COLOR when no classification value is set', () => {

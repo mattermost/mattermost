@@ -7,9 +7,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestJoinCommandNoChannel(t *testing.T) {
@@ -139,4 +142,50 @@ func TestJoinCommandPermissions(t *testing.T) {
 
 	actual = cmd.DoCommand(th.App, th.Context, args, "~"+channel3.Name).Text
 	assert.Equal(t, "api.command_join.fail.app_error", actual)
+}
+
+// Joining is a read-tier action: /join is refused for a channel the user's read rules
+// deny, as the REST self-join is, although the RBAC check alone would allow it.
+func TestJoinCommandChecksChannelReadAccess(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_CHANNELPERMISSIONACTIONS", "true")
+	th := setup(t).initBasic(t)
+
+	if testing.Short() {
+		t.SkipNow()
+	}
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Read denied",
+		Name:        "read-denied-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+		CreatorId:   th.BasicUser.Id,
+	}, false)
+	require.Nil(t, appErr)
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	original := th.App.Srv().Channels().AccessControl
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+		Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: false}, nil)
+
+	resp := (&JoinProvider{}).DoCommand(th.App, th.Context, &model.CommandArgs{
+		T:       i18n.IdentityTfunc(),
+		UserId:  th.BasicUser2.Id,
+		SiteURL: "http://test.url",
+		TeamId:  th.BasicTeam.Id,
+	}, channel.Name)
+
+	assert.Equal(t, "api.command_join.fail.app_error", resp.Text)
+	assert.Empty(t, resp.GotoLocation)
+	_, memberErr := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser2.Id)
+	require.NotNil(t, memberErr, "the denied user must not have joined")
 }

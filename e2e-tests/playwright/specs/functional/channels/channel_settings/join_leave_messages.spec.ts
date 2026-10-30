@@ -6,8 +6,8 @@
  * the Configuration tab toggle in Channel Settings.
  *
  * The toggle controls `DisableJoinLeaveMessages` on the channel:
- *   - Toggle ON  (active class)    → messages shown (DisableJoinLeaveMessages = false)
- *   - Toggle OFF (no active class) → messages hidden (DisableJoinLeaveMessages = true)
+ *   - Toggle ON  (aria-checked=true)  → messages shown (DisableJoinLeaveMessages = false)
+ *   - Toggle OFF (aria-checked=false) → messages hidden (DisableJoinLeaveMessages = true)
  *
  * Join system posts are generated server-side when a user is added to a
  * channel, so tests use `adminClient.addToChannel()` to produce them.
@@ -45,9 +45,8 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
         // * Toggle is visible
         await expect(configSettings.joinLeaveMessagesToggle).toBeVisible();
 
-        // * Toggle defaults to ON (active class present = messages shown)
-        const classes = await configSettings.joinLeaveMessagesToggle.getAttribute('class');
-        expect(classes).toContain('active');
+        // * Toggle defaults to ON (messages shown)
+        await expect(configSettings.joinLeaveMessagesToggle).toBeChecked();
 
         await channelSettings.close();
     });
@@ -72,11 +71,7 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             } as any);
 
             // # Create a second user, add to team and channel to produce a join system post
-            const secondUser = await pw.createNewUserProfile(adminClient, {
-                prefix: 'jl2',
-                disableTutorial: true,
-                disableOnboarding: true,
-            });
+            const secondUser = await pw.createNewUserProfile(adminClient, {prefix: 'jl2'});
             await adminClient.addToTeam(team.id, secondUser.id);
 
             // # Post a normal message to verify it stays visible when system posts are hidden
@@ -142,11 +137,7 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await adminClient.patchChannel(channel.id, {disable_join_leave_messages: true} as any);
 
             // # Create a second user and add them to the team (not the channel yet)
-            const secondUser = await pw.createNewUserProfile(adminClient, {
-                prefix: 'jl-badge',
-                disableTutorial: true,
-                disableOnboarding: true,
-            });
+            const secondUser = await pw.createNewUserProfile(adminClient, {prefix: 'jl-badge'});
             await adminClient.addToTeam(team.id, secondUser.id);
 
             // # Login as secondUser and navigate to a channel so the app fully loads and
@@ -195,11 +186,7 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
                 type: 'O',
             } as any);
 
-            const secondUser = await pw.createNewUserProfile(adminClient, {
-                prefix: 'jl-ws',
-                disableTutorial: true,
-                disableOnboarding: true,
-            });
+            const secondUser = await pw.createNewUserProfile(adminClient, {prefix: 'jl-ws'});
             await adminClient.addToTeam(team.id, secondUser.id);
             await adminClient.addToChannel(secondUser.id, channel.id);
 
@@ -253,11 +240,7 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             } as any);
 
             // # Create a second user, add to team and channel to produce a join system post
-            const secondUser = await pw.createNewUserProfile(adminClient, {
-                prefix: 'jl3',
-                disableTutorial: true,
-                disableOnboarding: true,
-            });
+            const secondUser = await pw.createNewUserProfile(adminClient, {prefix: 'jl3'});
             await adminClient.addToTeam(team.id, secondUser.id);
             await adminClient.addToChannel(secondUser.id, channel.id);
 
