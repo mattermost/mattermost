@@ -1474,6 +1474,25 @@ func testPluginListWithOptions(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, []string{`a\b_1`}, keys)
 	})
 
+	t.Run("asterisk in prefix is matched literally", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for _, key := range []string{"a*%_1", "a*%b", "ab_1"} {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      key,
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "a*%_"}, 0, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"a*%_1"}, keys)
+	})
+
 	t.Run("pagination with prefix", func(t *testing.T) {
 		pluginID := model.NewId()
 

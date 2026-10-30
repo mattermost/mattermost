@@ -304,11 +304,11 @@ func (ps SqlPluginStore) ListWithOptions(pluginId string, options model.PluginKV
 		})
 
 	if options.Prefix != "" {
-		prefix := strings.ReplaceAll(options.Prefix, `\`, `\\`)
+		prefix := strings.ReplaceAll(options.Prefix, "*", "**")
 		for _, c := range escapeLikeSearchChar {
-			prefix = strings.ReplaceAll(prefix, c, `\`+c)
+			prefix = strings.ReplaceAll(prefix, c, "*"+c)
 		}
-		query = query.Where(sq.Like{"PKey": prefix + "%"})
+		query = query.Where(sq.Expr("PKey LIKE ? ESCAPE '*'", prefix+"%"))
 	}
 
 	query = query.
