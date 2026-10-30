@@ -4,6 +4,7 @@
 package auth
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -24,17 +25,31 @@ func probeSnapshot(nodes []*healthcheck.NodeSnapshot, edit func(cfg *model.Confi
 	return s
 }
 
-func leaderWith(status, probeErr string) []*healthcheck.NodeSnapshot {
+// probeNode returns a node whose LDAP and SAML probes report status and probeErr.
+func probeNode(hostname, status, probeErr string) *healthcheck.NodeSnapshot {
 	diag := licensedDiag()
 	diag.LDAP.Status = status
 	diag.LDAP.Error = probeErr
 	diag.SAML.Status = status
 	diag.SAML.Error = probeErr
 
-	return []*healthcheck.NodeSnapshot{
-		{Hostname: "app-1.example.com"},
-		{Hostname: "app-2.example.com", IsLeader: true, Diagnostics: &model.NodeDiagnostics{Diagnostics: diag}},
+	return &healthcheck.NodeSnapshot{Hostname: hostname, Diagnostics: &model.NodeDiagnostics{Diagnostics: diag}}
+}
+
+func leaderWith(status, probeErr string) []*healthcheck.NodeSnapshot {
+	leader := probeNode("app-2.example.com", status, probeErr)
+	leader.IsLeader = true
+	return []*healthcheck.NodeSnapshot{{Hostname: "app-1.example.com", CollectErr: healthcheck.ErrNodeNoReply}, leader}
+}
+
+// threeNodes returns a cluster whose leader is app-1 and whose nodes report the given probe results.
+func threeNodes(results ...[2]string) []*healthcheck.NodeSnapshot {
+	var nodes []*healthcheck.NodeSnapshot
+	for i, result := range results {
+		nodes = append(nodes, probeNode(fmt.Sprintf("app-%d.example.com", i+1), result[0], result[1]))
 	}
+	nodes[0].IsLeader = true
+	return nodes
 }
 
 func TestProbeRules(t *testing.T) {
@@ -42,7 +57,9 @@ func TestProbeRules(t *testing.T) {
 
 	diagnosticsUnavailable := want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
 	licenseUnavailable := want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}
-	details := map[string]string{"error": "connection refused"}
+	details := map[string]string{"nodes": "app-2.example.com", "error": "connection refused"}
+	passed := [2]string{model.StatusOk, ""}
+	refused := [2]string{model.StatusFail, "connection refused"}
 
 	testCases := []struct {
 		name     string
@@ -56,6 +73,35 @@ func TestProbeRules(t *testing.T) {
 				"LDAP_PROBE_FAILED": firing("health.rule.ldap_probe_failed.message", details),
 				"SAML_PROBE_FAILED": firing("health.rule.saml_probe_failed.message", details),
 			},
+		},
+		{
+			name:     "every node fails",
+			snapshot: probeSnapshot(threeNodes(refused, refused, refused), nil),
+			want: map[string]want{
+				"LDAP_PROBE_FAILED": firing("health.rule.ldap_probe_failed.message", map[string]string{"nodes": "app-1.example.com, app-2.example.com, app-3.example.com", "error": "connection refused"}),
+				"SAML_PROBE_FAILED": firing("health.rule.saml_probe_failed.message", map[string]string{"nodes": "app-1.example.com, app-2.example.com, app-3.example.com", "error": "connection refused"}),
+			},
+		},
+		{
+			name:     "one node of three fails",
+			snapshot: probeSnapshot(threeNodes(passed, passed, refused), nil),
+			want: map[string]want{
+				"LDAP_PROBE_FAILED": firing("health.rule.ldap_probe_failed.message.partial", map[string]string{"nodes": "app-3.example.com", "error": "connection refused"}),
+				"SAML_PROBE_FAILED": firing("health.rule.saml_probe_failed.message.partial", map[string]string{"nodes": "app-3.example.com", "error": "connection refused"}),
+			},
+		},
+		{
+			name:     "a node that did not run the probe is left out",
+			snapshot: probeSnapshot(threeNodes(refused, [2]string{model.StatusDisabled, ""}, refused), nil),
+			want: map[string]want{
+				"LDAP_PROBE_FAILED": firing("health.rule.ldap_probe_failed.message", map[string]string{"nodes": "app-1.example.com, app-3.example.com", "error": "connection refused"}),
+				"SAML_PROBE_FAILED": firing("health.rule.saml_probe_failed.message", map[string]string{"nodes": "app-1.example.com, app-3.example.com", "error": "connection refused"}),
+			},
+		},
+		{
+			name:     "no node ran the probe",
+			snapshot: probeSnapshot(threeNodes([2]string{"", ""}, [2]string{"", ""}, [2]string{"", ""}), nil),
+			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_PROBE_FAILED": diagnosticsUnavailable},
 		},
 		{
 			name:     "ok",
@@ -87,7 +133,7 @@ func TestProbeRules(t *testing.T) {
 			name:     "expired IdP certificate",
 			snapshot: probeSnapshot(leaderWith(model.StatusFail, "SAML IdP certificate expired on 2026-01-01T00:00:00Z"), nil),
 			want: map[string]want{
-				"SAML_PROBE_FAILED": firing("health.rule.saml_probe_failed.message", map[string]string{"error": "SAML IdP certificate expired on 2026-01-01T00:00:00Z"}),
+				"SAML_PROBE_FAILED": firing("health.rule.saml_probe_failed.message", map[string]string{"nodes": "app-2.example.com", "error": "SAML IdP certificate expired on 2026-01-01T00:00:00Z"}),
 			},
 		},
 		{

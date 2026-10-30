@@ -31,7 +31,8 @@
 //
 // Reuse the shared helpers instead of local copies: healthcheck.Single, Gate and Licensed (and
 // their Node variants) to wire Eval, the healthcheck.Feature getters, internal/hosts.IsLocal
-// for loopback checks, and internal/versions.Major for version strings.
+// for loopback checks, internal/versions.Major for version strings, and internal/probes.Eval
+// for probes of external services, which every node runs.
 //
 // Every new code goes in its package's block in TestBuiltinRegistry.
 package rules

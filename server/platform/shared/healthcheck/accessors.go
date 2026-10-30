@@ -131,11 +131,11 @@ func (s *Snapshot) JobsFor(jobType string) ([]*model.Job, bool) {
 // LeaderDiag returns the leader's diagnostics, or ok=false when they were not collected or section recorded an error.
 func (s *Snapshot) LeaderDiag(section model.NodeSection) (*model.SupportPacketDiagnostics, bool) {
 	leader, ok := s.Leader()
-	if !ok || !leader.sectionOK(section) {
+	if !ok {
 		return nil, false
 	}
 
-	return leader.Diag()
+	return leader.SectionDiag(section)
 }
 
 // License reads the leader's diagnostics so live and packet snapshots see the same license fields.

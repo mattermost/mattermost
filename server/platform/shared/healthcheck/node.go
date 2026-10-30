@@ -89,6 +89,15 @@ func (n *NodeSnapshot) SchemaVersion() (string, bool) {
 	return "", false
 }
 
+// SectionDiag returns the node's diagnostics, or ok=false when they were not collected or section recorded an error.
+func (n *NodeSnapshot) SectionDiag(section model.NodeSection) (*model.SupportPacketDiagnostics, bool) {
+	if !n.sectionOK(section) {
+		return nil, false
+	}
+
+	return n.Diag()
+}
+
 // An absent section entry counts as clean; only a recorded error makes its data unusable.
 func (n *NodeSnapshot) sectionOK(section model.NodeSection) bool {
 	_, err := n.SectionErr(section)

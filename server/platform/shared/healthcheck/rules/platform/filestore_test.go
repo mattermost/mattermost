@@ -10,6 +10,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func filestoreConfig(clustered bool, driver, directory string) func(*model.Config) {
@@ -220,42 +222,79 @@ func withBucket(bucket string) func(*model.Config) {
 func TestFilestoreUnreachable(t *testing.T) {
 	t.Parallel()
 
+	failed := func(hostname, err string) *healthcheck.NodeSnapshot {
+		return diagNode(hostname, false, func(diag *model.SupportPacketDiagnostics) {
+			diag.FileStore.Status = model.StatusFail
+			diag.FileStore.Error = err
+		})
+	}
+	const permissionDenied = "unable to write to ./data/: permission denied"
+
 	testCases := []struct {
-		name string
-		node *healthcheck.NodeSnapshot
-		want want
+		name  string
+		nodes []*healthcheck.NodeSnapshot
+		want  want
 	}{
 		{
-			name: "connection test failed",
-			node: diagNode("app-2", false, func(diag *model.SupportPacketDiagnostics) {
-				diag.FileStore.Status = model.StatusFail
-				diag.FileStore.Error = "unable to write to ./data/: permission denied"
-			}),
-			want: firing("health.rule.filestore_unreachable.message", map[string]string{"error": "unable to write to ./data/: permission denied"}),
+			name:  "connection test failed",
+			nodes: []*healthcheck.NodeSnapshot{failed("app-2", permissionDenied)},
+			want:  firing("health.rule.filestore_unreachable.message", map[string]string{"nodes": "app-2", "error": permissionDenied}),
 		},
 		{
-			name: "connection test succeeded",
-			node: diagNode("app-2", false, nil),
-			want: resolved,
+			name:  "every node fails",
+			nodes: []*healthcheck.NodeSnapshot{failed("app-1", permissionDenied), failed("app-2", permissionDenied), failed("app-3", "timeout")},
+			want: firing("health.rule.filestore_unreachable.message", map[string]string{
+				"nodes": "app-1, app-2, app-3",
+				"error": "app-1: " + permissionDenied + "; app-2: " + permissionDenied + "; app-3: timeout",
+			}),
+		},
+		{
+			name:  "one node of three fails",
+			nodes: []*healthcheck.NodeSnapshot{diagNode("app-1", true, nil), failed("app-2", permissionDenied), diagNode("app-3", false, nil)},
+			want:  firing("health.rule.filestore_unreachable.message.partial", map[string]string{"nodes": "app-2", "error": permissionDenied}),
+		},
+		{
+			name:  "a node that did not reply is left out",
+			nodes: []*healthcheck.NodeSnapshot{failed("app-1", permissionDenied), {Hostname: "app-2", CollectErr: healthcheck.ErrNodeNoReply}},
+			want:  firing("health.rule.filestore_unreachable.message", map[string]string{"nodes": "app-1", "error": permissionDenied}),
+		},
+		{
+			name:  "connection test succeeded",
+			nodes: []*healthcheck.NodeSnapshot{diagNode("app-2", false, nil)},
+			want:  resolved,
 		},
 		{
 			name: "status not recorded",
-			node: diagNode("app-2", false, func(diag *model.SupportPacketDiagnostics) {
+			nodes: []*healthcheck.NodeSnapshot{diagNode("app-2", false, func(diag *model.SupportPacketDiagnostics) {
 				diag.FileStore.Status = ""
-			}),
+			})},
 			want: diagUnknown,
 		},
 		{
-			name: "nil diagnostics",
-			node: &healthcheck.NodeSnapshot{Hostname: "app-2"},
-			want: diagUnknown,
+			name:  "nil diagnostics",
+			nodes: []*healthcheck.NodeSnapshot{{Hostname: "app-2"}},
+			want:  diagUnknown,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertResult(t, tc.want, filestoreUnreachable.EvalNode(healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{tc.node}), tc.node))
+			assertResult(t, tc.want, filestoreUnreachable.Eval(healthcheck.NewSnapshot(tc.nodes)))
 		})
 	}
+
+	t.Run("one cluster-wide finding", func(t *testing.T) {
+		t.Parallel()
+
+		registry := healthcheck.NewRegistry()
+		registry.Register(filestoreUnreachable)
+		engine := healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry})
+		snapshot := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{failed("app-1", permissionDenied), failed("app-2", permissionDenied), diagNode("app-3", true, nil)})
+
+		evaluations := engine.Evaluate(snapshot)
+		require.Len(t, evaluations, 1)
+		assert.Equal(t, healthcheck.StateFiring, evaluations[0].Result.State)
+		assert.Empty(t, evaluations[0].Result.Scope)
+	})
 }

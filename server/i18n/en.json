@@ -14822,6 +14822,11 @@
     "description": "Health dashboard finding detail when the search engine connection test failed and SqlSettings.DisableDatabaseSearch is on; {{.error}} is the error the server reported, with URL credentials masked."
   },
   {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "The connection test to the search engine failed on {{.nodes}}, while the other nodes reach it, so search and indexing on those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the Elasticsearch or OpenSearch connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
+  },
+  {
     "id": "health.rule.es_server_error.remediation",
     "translation": "Verify ElasticsearchSettings.ConnectionURL reachability, TLS, and credentials. Check the search cluster health (GET /_cluster/health).",
     "description": "Health dashboard fix-it step for a failed search engine connection test; 'ElasticsearchSettings.ConnectionURL' is a config setting name and 'GET /_cluster/health' is a literal API call, neither should be translated."
@@ -14942,6 +14947,11 @@
     "description": "Health dashboard finding detail when the file storage connection test failed; {{.error}} is the error returned by the test, in English."
   },
   {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "The connection test to file storage failed on {{.nodes}}, while the other nodes reach it, so file uploads and downloads through those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. For local storage, also check that the shared directory is mounted on them. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the file storage connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
+  },
+  {
     "id": "health.rule.filestore_unreachable.remediation",
     "translation": "Check the file storage settings, then use Test Connection in System Console > Environment > File Storage. For local storage, check that FileSettings.Directory exists and the Mattermost user can write to it. For Amazon S3, check the bucket, endpoint and credentials.",
     "description": "Health dashboard fix-it step for a failed file storage connection test; 'Test Connection' and 'System Console > Environment > File Storage' name System Console elements; 'FileSettings.Directory' is a config setting path and should not be translated."
@@ -15048,8 +15058,13 @@
   },
   {
     "id": "health.rule.ldap_probe_failed.message",
-    "translation": "The leader node's LDAP test (connect, bind and a user search) failed, so LDAP sign-in and sync may be failing.",
+    "translation": "The LDAP test (connect, bind and a user search) failed, so LDAP sign-in and sync may be failing.",
     "description": "Health dashboard finding detail when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "The LDAP test (connect, bind and a user search) failed on {{.nodes}}, while the other nodes reach the LDAP server, so LDAP sign-in may fail on those nodes. Check the network, firewall, proxy and DNS settings on those nodes.",
+    "description": "Health dashboard finding detail when the LDAP connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames."
   },
   {
     "id": "health.rule.ldap_probe_failed.remediation",
@@ -15255,6 +15270,26 @@
     "id": "health.rule.node_fd_exhaustion.title",
     "translation": "File descriptors nearly exhausted",
     "description": "Health dashboard finding title when a server node uses 90% or more of its open file descriptor limit."
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "This node did not return its diagnostics for the health check. It may be down, overloaded, or cut off from the other nodes. Until it responds, its other findings keep their last known state.",
+    "description": "Health dashboard finding detail when a cluster node did not return its diagnostics; 'findings' are the health dashboard's reported problems."
+  },
+  {
+    "id": "health.rule.node_not_responding.message.older_version",
+    "translation": "This node did not return its diagnostics and runs an older Mattermost version that may not support the health check, so it could not be checked. This is expected during a rolling upgrade.",
+    "description": "Health dashboard reason shown when a cluster node that runs an older version did not return its diagnostics; a 'rolling upgrade' upgrades the cluster's nodes one at a time."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Check that Mattermost is running on this node, review its logs and its CPU and memory use, and confirm it can reach the other nodes on the gossip port (ClusterSettings.GossipPort).",
+    "description": "Health dashboard fix-it step for a cluster node that is not responding; 'ClusterSettings.GossipPort' is a config setting name and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "A cluster node is not responding",
+    "description": "Health dashboard finding title when a node of a high availability cluster did not return its diagnostics for the health check."
   },
   {
     "id": "health.rule.plugin_health_off.message",
@@ -15463,8 +15498,13 @@
   },
   {
     "id": "health.rule.saml_probe_failed.message",
-    "translation": "The leader node's SAML check of the IdP certificate and IdP URL failed, so SAML sign-in is likely broken.",
+    "translation": "The SAML check of the IdP certificate and IdP URL failed, so SAML sign-in is likely broken.",
     "description": "Health dashboard finding detail when the SAML configuration check run by the server failed: the IdP certificate is missing, invalid or expired, or the IdP URL is missing or invalid. 'IdpCertificateFile' and 'IdpURL' are config names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "The SAML check of the IdP certificate and IdP URL failed on {{.nodes}}, while it passes on the other nodes, so SAML sign-in may fail on those nodes. Check the network, firewall, proxy and DNS settings on those nodes.",
+    "description": "Health dashboard finding detail when the SAML check fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames, and 'IdP' means identity provider."
   },
   {
     "id": "health.rule.saml_probe_failed.remediation",
@@ -15650,6 +15690,11 @@
     "id": "health.rule.smtp_unreachable.message",
     "translation": "The connection test to the SMTP server failed: {{.error}}",
     "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "The connection test to the SMTP server failed on {{.nodes}}, while the other nodes reach it. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the SMTP connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
   },
   {
     "id": "health.rule.smtp_unreachable.remediation",
