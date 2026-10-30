@@ -232,6 +232,37 @@ describe('PostComponent', () => {
             expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
             expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
         });
+
+        test('should not show chips on a deleted post', () => {
+            renderWithContext(
+                <PostComponent
+                    {...props}
+                    post={{...props.post, state: Posts.POST_DELETED as 'DELETED'}}
+                    shouldDisplayBurnOnReadConcealed={false}
+                />,
+                state,
+            );
+
+            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
+        });
+
+        test('should not show the unavailable marker on a deleted post', () => {
+            renderWithContext(
+                <PostComponent
+                    {...props}
+                    post={{
+                        ...props.post,
+                        state: Posts.POST_DELETED as 'DELETED',
+                        metadata: {...props.post.metadata, property_values_unavailable: true},
+                    }}
+                    shouldDisplayBurnOnReadConcealed={false}
+                />,
+                state,
+            );
+
+            expect(screen.queryByTestId('post-attributes-chips-unavailable')).not.toBeInTheDocument();
+        });
     });
 
     describe('thread footer', () => {

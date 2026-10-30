@@ -258,6 +258,29 @@ function valuesFromPosts(posts: Post[] | Record<string, Post>): Array<PropertyVa
     return list.flatMap((post) => post?.metadata?.property_values ?? []);
 }
 
+function removeTargetValues(state: PropertyValuesState, targetId: string): PropertyValuesState {
+    const affectedFields = state.byTargetId[targetId];
+    if (!affectedFields) {
+        return state;
+    }
+
+    const nextByFieldId = {...state.byFieldId};
+    for (const fieldId of Object.keys(affectedFields)) {
+        if (nextByFieldId[fieldId]) {
+            nextByFieldId[fieldId] = {...nextByFieldId[fieldId]};
+            Reflect.deleteProperty(nextByFieldId[fieldId], targetId);
+            if (Object.keys(nextByFieldId[fieldId]).length === 0) {
+                Reflect.deleteProperty(nextByFieldId, fieldId);
+            }
+        }
+    }
+
+    const nextByTargetId = {...state.byTargetId};
+    Reflect.deleteProperty(nextByTargetId, targetId);
+
+    return {byTargetId: nextByTargetId, byFieldId: nextByFieldId};
+}
+
 function valuesReducer(
     state: PropertyValuesState = initialValuesState,
     action: MMReduxAction,
@@ -336,29 +359,15 @@ function valuesReducer(
         return {byTargetId: nextByTargetId, byFieldId: nextByFieldId};
     }
 
-    case PropertyTypes.PROPERTY_VALUES_DELETED_FOR_TARGET: {
-        const {targetId} = action.data;
-        const affectedFields = state.byTargetId[targetId];
-        if (!affectedFields) {
-            return state;
-        }
+    case PropertyTypes.PROPERTY_VALUES_DELETED_FOR_TARGET:
+        return removeTargetValues(state, action.data.targetId);
 
-        const nextByFieldId = {...state.byFieldId};
-        for (const fieldId of Object.keys(affectedFields)) {
-            if (nextByFieldId[fieldId]) {
-                nextByFieldId[fieldId] = {...nextByFieldId[fieldId]};
-                Reflect.deleteProperty(nextByFieldId[fieldId], targetId);
-                if (Object.keys(nextByFieldId[fieldId]).length === 0) {
-                    Reflect.deleteProperty(nextByFieldId, fieldId);
-                }
-            }
-        }
-
-        const nextByTargetId = {...state.byTargetId};
-        Reflect.deleteProperty(nextByTargetId, targetId);
-
-        return {byTargetId: nextByTargetId, byFieldId: nextByFieldId};
-    }
+    // A deleted post stays in the posts slice as a placeholder, but its values must
+    // not outlive it here, or anything reading by target id still finds them. Same
+    // as the files, reactions and acknowledgements slices do for their post data.
+    case PostTypes.POST_DELETED:
+    case PostTypes.POST_REMOVED:
+        return action.data ? removeTargetValues(state, action.data.id) : state;
 
     case UserTypes.LOGOUT_SUCCESS:
         return initialValuesState;

@@ -866,5 +866,47 @@ describe('propertiesReducer', () => {
 
             expect(state.values).toBe(initialState.values);
         });
+
+        test.each([
+            PostTypes.POST_DELETED,
+            PostTypes.POST_REMOVED,
+        ])('%s drops the post\'s values and keeps other posts\' values', (type) => {
+            const v1 = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1'});
+            const v2 = makeValue({id: 'v2', target_id: 'p1', field_id: 'f2'});
+            const v3 = makeValue({id: 'v3', target_id: 'p2', field_id: 'f1'});
+            const seeded = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1', [v1, v2]), p2: post('p2', [v3])}},
+            });
+
+            const state = propertiesReducer(seeded, {
+                type,
+                data: post('p1'),
+            });
+
+            expect(state.values.byTargetId.p1).toBeUndefined();
+            expect(state.values.byFieldId.f1.p1).toBeUndefined();
+            expect(state.values.byFieldId.f2).toBeUndefined();
+            expect(state.values.byTargetId.p2.f1).toEqual(v3);
+            expect(state.values.byFieldId.f1.p2).toEqual(v3);
+        });
+
+        test.each([
+            PostTypes.POST_DELETED,
+            PostTypes.POST_REMOVED,
+        ])('%s for a post with no values leaves the slice untouched, by reference', (type) => {
+            const v = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1'});
+            const seeded = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1', [v])}},
+            });
+
+            const state = propertiesReducer(seeded, {
+                type,
+                data: post('p2'),
+            });
+
+            expect(state.values).toBe(seeded.values);
+        });
     });
 });
