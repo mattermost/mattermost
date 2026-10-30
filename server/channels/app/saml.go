@@ -127,22 +127,32 @@ func (a *App) AddSamlIdpCertificate(rctx request.CTX, fileData *multipart.FileHe
 		return appErr
 	}
 
-	return a.setSamlIdpCertificate(rctx, data)
+	der, err := parseSamlIdpCertificate(data)
+	if err != nil {
+		return model.NewAppError("AddSamlIdpCertificate", "api.admin.saml.invalid_idp_certificate_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return a.setSamlIdpCertificate(rctx, der)
 }
 
-// setSamlIdpCertificate rejects data that doesn't parse as a certificate, since the SP would otherwise keep trusting the previous one.
-func (a *App) setSamlIdpCertificate(rctx request.CTX, pemData []byte) *model.AppError {
+// parseSamlIdpCertificate returns the DER bytes of a PEM-encoded X.509 certificate.
+// Invalid data must be rejected, since the SP would otherwise keep trusting the previous certificate.
+func parseSamlIdpCertificate(pemData []byte) ([]byte, error) {
 	block, _ := pem.Decode(pemData)
 	if block == nil {
-		return model.NewAppError("setSamlIdpCertificate", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, "invalid PEM data", http.StatusBadRequest)
+		return nil, errors.New("invalid PEM data")
 	}
 	if _, err := x509.ParseCertificate(block.Bytes); err != nil {
-		return model.NewAppError("setSamlIdpCertificate", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, err
 	}
 
+	return block.Bytes, nil
+}
+
+func (a *App) setSamlIdpCertificate(rctx request.CTX, der []byte) *model.AppError {
 	data := pem.EncodeToMemory(&pem.Block{
 		Type:  "CERTIFICATE",
-		Bytes: block.Bytes,
+		Bytes: der,
 	})
 	if err := a.Srv().platform.SetConfigFile(SamlIdpCertificateName, data); err != nil {
 		return model.NewAppError("setSamlIdpCertificate", "api.admin.saml.failure_save_idp_certificate_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -280,7 +290,12 @@ func (a *App) SetSamlIdpCertificateFromMetadata(rctx request.CTX, data []byte) *
 	const certPrefix = "-----BEGIN CERTIFICATE-----\n"
 	const certSuffix = "\n-----END CERTIFICATE-----"
 
-	return a.setSamlIdpCertificate(rctx, []byte(certPrefix+string(data)+certSuffix))
+	der, err := parseSamlIdpCertificate([]byte(certPrefix + string(data) + certSuffix))
+	if err != nil {
+		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return a.setSamlIdpCertificate(rctx, der)
 }
 
 func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError) {

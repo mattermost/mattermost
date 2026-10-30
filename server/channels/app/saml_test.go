@@ -258,7 +258,7 @@ func TestAddSamlIdpCertificate(t *testing.T) {
 			a := &App{}
 			appErr := a.AddSamlIdpCertificate(request.TestContext(t), samlFileHeader(t, data))
 			require.NotNil(t, appErr)
-			assert.Equal(t, "api.admin.saml.failure_parse_idp_certificate.app_error", appErr.Id)
+			assert.Equal(t, "api.admin.saml.invalid_idp_certificate_file.app_error", appErr.Id)
 			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		})
 	}
