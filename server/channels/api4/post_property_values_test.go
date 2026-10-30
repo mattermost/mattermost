@@ -73,6 +73,35 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		require.NotNil(t, post.Metadata)
 		require.Len(t, post.Metadata.PropertyValues, 1)
 		assert.Equal(t, field.ID, post.Metadata.PropertyValues[0].FieldID)
+		// A hydrated response always carries the flag, false on success, so a client can clear
+		// a true it stored from an earlier failed lookup.
+		require.NotNil(t, post.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *post.Metadata.PropertyValuesUnavailable)
+	})
+
+	// The server omits the flag when hydration was not requested, which decodes as nil. A client
+	// reads that as "no information" and keeps what it stored.
+	t.Run("an unhydrated response omits the unavailable flag", func(t *testing.T) {
+		th := setupPostPropertyTest(t)
+		field := th.createField(t, th.groupID, "sensitivity")
+		searchable := th.CreateMessagePost(t, "flagless"+model.NewId()[:8])
+		th.setValue(t, th.groupID, searchable.Id, field.ID, `"confidential"`)
+
+		post, resp, err := th.Client.GetPost(context.Background(), searchable.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, post.Metadata)
+		assert.Empty(t, post.Metadata.PropertyValues)
+		assert.Nil(t, post.Metadata.PropertyValuesUnavailable)
+
+		list, resp, err := th.Client.SearchPosts(context.Background(), th.BasicTeam.Id, searchable.Message, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		found, ok := list.Posts[searchable.Id]
+		require.True(t, ok, "the post should be found by search")
+		require.NotNil(t, found.Metadata)
+		assert.Empty(t, found.Metadata.PropertyValues)
+		assert.Nil(t, found.Metadata.PropertyValuesUnavailable)
 	})
 
 	t.Run("an etag is served only when values are not requested", func(t *testing.T) {
@@ -147,7 +176,7 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		require.Equal(t, th.BasicPost.Id, post.Id)
 		// A deleted post is never hydrated, and that is not an unavailability either.
 		assert.Empty(t, post.Metadata.PropertyValues)
-		assert.False(t, post.Metadata.PropertyValuesUnavailable)
+		assert.Nil(t, post.Metadata.PropertyValuesUnavailable)
 	})
 
 	t.Run("accepts any PSAv2 group", func(t *testing.T) {

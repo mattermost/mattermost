@@ -263,10 +263,14 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
         // without the post changing, so update_at cannot tell them apart. Without this a
         // post that failed once keeps saying its attributes are unavailable until it is
         // edited, and one that recovers keeps rendering the values it had when it broke.
-        // The flag is omitempty, so absent and false are the same answer — which is also
-        // why this never fires for a caller that did not ask for hydration.
-        if (storedPost.metadata && receivedPost.metadata &&
-            (storedPost.metadata.property_values_unavailable ?? false) !== (receivedPost.metadata.property_values_unavailable ?? false)
+        // The server sends the flag only on responses that asked for hydration: true when
+        // the lookup failed, false when it worked. A response without it (search, pinned,
+        // flagged, getPostsByIds) says nothing about the values, so it must not replace a
+        // stored post over this flag, least of all clear a stored true. A post stored
+        // without the flag counts as false.
+        const receivedUnavailable = receivedPost.metadata?.property_values_unavailable;
+        if (storedPost.metadata && receivedUnavailable !== undefined &&
+            (storedPost.metadata.property_values_unavailable ?? false) !== receivedUnavailable
         ) {
             return true;
         }

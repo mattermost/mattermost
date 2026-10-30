@@ -98,30 +98,46 @@ func TestHydratePropertyValues(t *testing.T) {
 		require.Len(t, hydrated.Metadata.PropertyValues, 1)
 		assert.Equal(t, field.ID, hydrated.Metadata.PropertyValues[0].FieldID)
 		assert.JSONEq(t, `"confidential"`, string(hydrated.Metadata.PropertyValues[0].Value))
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
 
 		// Absent group means no lookup and no values, and crucially no unavailability marker:
-		// the client must not read "not requested" as "failed to load".
+		// the client must not read "not requested" as "failed to load". Nil rather than false,
+		// so the client also keeps whatever it stored from an earlier hydrated response.
 		plain := th.prepare(t, post, "")
 		assert.Empty(t, plain.Metadata.PropertyValues)
-		assert.False(t, plain.Metadata.PropertyValuesUnavailable)
+		assert.Nil(t, plain.Metadata.PropertyValuesUnavailable)
 	})
 
-	t.Run("success with no values leaves the unavailable flag absent", func(t *testing.T) {
+	t.Run("success with no values sends the unavailable flag as false", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
 		th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
 		post := th.post(t, th.BasicChannel)
 
 		hydrated := th.prepare(t, post, th.groupID)
 		assert.Empty(t, hydrated.Metadata.PropertyValues)
-		assert.False(t, hydrated.Metadata.PropertyValuesUnavailable)
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
 
-		// omitempty must keep both keys off the wire entirely.
+		// No values keeps that key off the wire, but the flag is sent so a client that stored
+		// true from an earlier failed lookup clears it.
 		raw, err := json.Marshal(hydrated.Metadata)
 		require.NoError(t, err)
 		var decoded map[string]json.RawMessage
 		require.NoError(t, json.Unmarshal(raw, &decoded))
 		assert.NotContains(t, decoded, "property_values")
-		assert.NotContains(t, decoded, "property_values_unavailable")
+		require.Contains(t, decoded, "property_values_unavailable")
+		assert.JSONEq(t, "false", string(decoded["property_values_unavailable"]))
+	})
+
+	t.Run("a channel with no applicable fields sends the unavailable flag as false", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		post := th.post(t, th.BasicChannel)
+
+		hydrated := th.prepare(t, post, th.groupID)
+		assert.Empty(t, hydrated.Metadata.PropertyValues)
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
 	})
 
 	t.Run("applies system, team and channel fields but not another channel's", func(t *testing.T) {
@@ -211,7 +227,7 @@ func TestHydratePropertyValues(t *testing.T) {
 			&model.PreparePostForClientOpts{PropertyGroupID: th.groupID, IncludeDeleted: true})
 
 		assert.Empty(t, hydrated.Metadata.PropertyValues)
-		assert.False(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.Nil(t, hydrated.Metadata.PropertyValuesUnavailable)
 	})
 
 	t.Run("values survive sanitization", func(t *testing.T) {
@@ -275,8 +291,9 @@ func TestHydratePropertyValues(t *testing.T) {
 			hydrated := prepareAs(t, viewer.Id)
 			require.NotNil(t, hydrated.Metadata)
 			assert.Empty(t, hydrated.Metadata.PropertyValues)
-			// Not an unavailability either: the values were withheld, not unloadable.
-			assert.False(t, hydrated.Metadata.PropertyValuesUnavailable)
+			// Not an unavailability either: the values were withheld, not unloadable, and the
+			// post is not hydrated at all.
+			assert.Nil(t, hydrated.Metadata.PropertyValuesUnavailable)
 		})
 
 		t.Run("the author gets values in the same conditions", func(t *testing.T) {
@@ -345,7 +362,8 @@ func TestHydratePropertyValuesBoundGuards(t *testing.T) {
 		hydrated := th.prepare(t, post, th.groupID)
 
 		require.NotNil(t, hydrated.Metadata)
-		assert.True(t, hydrated.Metadata.PropertyValuesUnavailable)
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.True(t, *hydrated.Metadata.PropertyValuesUnavailable)
 		assert.Empty(t, hydrated.Metadata.PropertyValues)
 		// The post itself is unaffected: only its attributes are reported as unloadable.
 		assert.Equal(t, post.Message, hydrated.Message)
@@ -362,8 +380,53 @@ func TestHydratePropertyValuesBoundGuards(t *testing.T) {
 		hydrated := th.prepare(t, post, th.groupID)
 
 		require.NotNil(t, hydrated.Metadata)
-		assert.False(t, hydrated.Metadata.PropertyValuesUnavailable)
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
 		require.Len(t, hydrated.Metadata.PropertyValues, 1)
 		assert.Equal(t, fields[0].ID, hydrated.Metadata.PropertyValues[0].FieldID)
+	})
+
+	// Channels are hydrated in separate batches, so one channel's failed lookup marks only its own
+	// posts. The others still report how their hydration went.
+	t.Run("a list spanning channels reports each channel's result", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		healthyChannel := th.CreateChannel(t, th.BasicTeam)
+		emptyChannel := th.CreateChannel(t, th.BasicTeam)
+
+		failingPost := th.post(t, th.BasicChannel)
+		th.createFieldsPastCap(t, th.BasicChannel.Id, model.PostAttributesMaxApplicableFields+1)
+
+		healthyField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), healthyChannel.Id, "sensitivity")
+		healthyPost := th.post(t, healthyChannel)
+		th.setValue(t, healthyPost, healthyField, `"confidential"`)
+
+		emptyPost := th.post(t, emptyChannel)
+
+		list := model.NewPostList()
+		for _, post := range []*model.Post{failingPost, healthyPost, emptyPost} {
+			fresh, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+			require.Nil(t, appErr)
+			fresh.Metadata = nil
+			list.AddPost(fresh)
+			list.AddOrder(fresh.Id)
+		}
+
+		prepared := th.App.PreparePostListForClient(th.Context, list,
+			&model.PreparePostForClientOpts{PropertyGroupID: th.groupID})
+
+		failing := prepared.Posts[failingPost.Id]
+		require.NotNil(t, failing.Metadata.PropertyValuesUnavailable)
+		assert.True(t, *failing.Metadata.PropertyValuesUnavailable)
+		assert.Empty(t, failing.Metadata.PropertyValues)
+
+		healthy := prepared.Posts[healthyPost.Id]
+		require.NotNil(t, healthy.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *healthy.Metadata.PropertyValuesUnavailable)
+		assert.Equal(t, []string{healthyField.ID}, valueFieldIDs(healthy))
+
+		empty := prepared.Posts[emptyPost.Id]
+		require.NotNil(t, empty.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *empty.Metadata.PropertyValuesUnavailable)
+		assert.Empty(t, empty.Metadata.PropertyValues)
 	})
 }

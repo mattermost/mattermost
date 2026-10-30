@@ -749,16 +749,32 @@ describe('PostUtils', () => {
             });
             const post = TestHelper.getPostMock({
                 ...storedPost,
-                metadata: {} as Post['metadata'],
+                metadata: {property_values_unavailable: false} as Post['metadata'],
             });
 
             expect(shouldUpdatePost(post, stored)).toBe(true);
         });
 
-        // The flag is omitempty, so absent and false are the same answer. Every caller
-        // that never asked for hydration sits on this branch, which is what bounds the
-        // blast radius of the check.
-        it('should return false when neither post was hydrated', () => {
+        // Search, pinned, flagged and getPostsByIds never ask for hydration, so their
+        // posts carry no flag. That says nothing about the values and must not clear a
+        // stored true, or the chips go back to rendering the values left from before
+        // the lookup failed.
+        it('should return false when an unhydrated response meets a stored failure', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {property_values_unavailable: true} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(false);
+        });
+
+        // A post stored without the flag counts as false, so a hydrated response that
+        // loaded fine is the same answer.
+        it('should return false when hydration succeeds on a post stored without the flag', () => {
             const stored = TestHelper.getPostMock({
                 ...storedPost,
                 metadata: {} as Post['metadata'],
@@ -766,6 +782,21 @@ describe('PostUtils', () => {
             const post = TestHelper.getPostMock({
                 ...storedPost,
                 metadata: {property_values_unavailable: false} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(false);
+        });
+
+        // Every caller that never asked for hydration sits on this branch, which is what
+        // bounds the blast radius of the check.
+        it('should return false when neither post was hydrated', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
             });
 
             expect(shouldUpdatePost(post, stored)).toBe(false);
