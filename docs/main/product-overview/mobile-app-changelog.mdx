@@ -38,6 +38,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
  - Fixed an issue where an interactive message attachment image didn't update in place after an action button changed the image URL.
  - Fixed an issue where interactive dialog date and time fields didn't offer manual time entry when the integration uses the current ``manual_time_entry`` setting.
  - Fixed an issue with pre-authentication secrets being stored in a single shared entry rather than one per server, and being discarded by unrelated operations. Servers with no login form and exactly one SSO provider now go straight to that provider (reported on Android).
+ - Fixed an issue where the Edit Server screen could not save the pre-authentication secret on servers that redirect HTTP to HTTPS.
 
 ### Known Issues
  - Users are unable to adjust the font size via the OS font size setting.
