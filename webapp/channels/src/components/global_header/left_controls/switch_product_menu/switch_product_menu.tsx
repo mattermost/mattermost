@@ -13,9 +13,8 @@ import {getConfig, isCloudLicense} from 'mattermost-redux/selectors/entities/gen
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {isProductRailShown} from 'selectors/views/product_rail';
-
 import * as Menu from 'components/menu';
+import useProductRailShown from 'components/product_rail/use_product_rail_shown';
 
 import {isChannels} from 'utils/products';
 
@@ -73,8 +72,8 @@ export function SwitchProductMenu(props: Props) {
     const isChannelsProductActive = isChannels(props.productId);
 
     // The product rail lists Channels and every product, so the menu keeps only the rest. The rail
-    // needs a current team and isn't shown on mobile, so then the menu keeps them too.
-    const productRailShown = useSelector(isProductRailShown);
+    // needs a current team and isn't shown on mobile or backstage pages, so there the menu keeps them too.
+    const productRailShown = useProductRailShown();
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());

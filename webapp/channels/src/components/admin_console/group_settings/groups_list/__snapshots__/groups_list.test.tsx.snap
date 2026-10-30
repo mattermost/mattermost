@@ -568,6 +568,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -601,6 +602,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -887,6 +889,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -920,6 +923,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -1206,6 +1210,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -1239,6 +1244,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -1557,6 +1563,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -1590,6 +1597,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -2265,6 +2273,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -2298,6 +2307,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-next"
         type="button"
       >
         <span
@@ -2972,6 +2982,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         type="button"
       >
         <span
@@ -3005,6 +3016,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         aria-describedby="_r_1l_"
         aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-next"
         type="button"
       >
         <span
@@ -3322,6 +3334,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         type="button"
       >
         <span
@@ -3355,6 +3368,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         aria-describedby="_r_2t_"
         aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-next"
         type="button"
       >
         <span
@@ -3707,6 +3721,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -3740,6 +3755,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       <button
         aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >

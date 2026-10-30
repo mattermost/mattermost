@@ -157,6 +157,7 @@ class AbstractList extends React.PureComponent<Props, State> {
                         onNext={this.nextPage}
                         disablePrevious={firstPage}
                         disableNext={lastPage}
+                        previousButtonTestId='page-link-prev'
                         nextButtonTestId='page-link-next'
                     />
                 </div>}

@@ -5,9 +5,7 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {
-    SendIcon,
-} from '@mattermost/compass-icons/components';
+import {AccountOutlineIcon, SendIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
@@ -64,11 +62,8 @@ const ProfilePopoverSelfUserRow = ({
                 emphasis='primary'
                 size='small'
                 onClick={handleEditAccountSettings}
+                leadingIcon={<Icon glyph={<AccountOutlineIcon/>}/>}
             >
-                <i
-                    className='icon icon-account-outline'
-                    aria-hidden='true'
-                />
                 <FormattedMessage
                     id='user_profile.account.editProfile'
                     defaultMessage='Edit Profile'

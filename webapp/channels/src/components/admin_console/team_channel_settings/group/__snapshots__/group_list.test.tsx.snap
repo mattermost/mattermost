@@ -103,6 +103,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -779,6 +780,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       <button
         aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >

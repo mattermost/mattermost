@@ -517,6 +517,8 @@ class GroupsList extends React.PureComponent<Props, State> {
                             onNext={(e) => this.nextPage(e)}
                             disablePrevious={firstPage}
                             disableNext={lastPage}
+                            previousButtonTestId='page-link-prev'
+                            nextButtonTestId='page-link-next'
                         />
                     </div>
                 }

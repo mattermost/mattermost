@@ -24,6 +24,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+import {isBackstagePath} from 'utils/path';
 import {getCurrentProduct, getTeamScopedProductURL, isTeamScopedProduct} from 'utils/products';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
@@ -205,8 +206,11 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
         const {intl} = this.props;
         const root: Element | null = document.querySelector('#root');
 
+        // Backstage pages leave the rail out, and its team menu with it.
+        const productRailShown = this.props.isProductRailShown && !isBackstagePath(this.props.location.pathname);
+
         // The product rail's team menu stands in for a hidden team sidebar.
-        if (this.props.myTeams.length <= 1 || this.props.isHiddenByProductRail) {
+        if (this.props.myTeams.length <= 1 || (this.props.isHiddenByProductRail && productRailShown)) {
             root!.classList.remove('multi-teams');
             return null;
         }
@@ -216,7 +220,10 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
         const sortedTeams = filterAndSortTeamsByDisplayName(this.props.myTeams, this.props.locale, this.props.userTeamsOrderPreference);
 
         const currentProduct = getCurrentProduct(this.props.products, this.props.location.pathname);
-        if (currentProduct && !currentProduct.showTeamSidebar) {
+
+        // The rail keeps a team selected in every product, global ones (like Agents) included, so with
+        // it on screen the team sidebar stays too.
+        if (currentProduct && !currentProduct.showTeamSidebar && !productRailShown) {
             return null;
         }
 
@@ -302,7 +309,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
 
         // Not on mobile, where the rail (and the team menu that would bring the sidebar back) is hidden.
         let hideButton;
-        if (this.props.isProductRailShown) {
+        if (productRailShown) {
             const hideLabel = intl.formatMessage({
                 id: 'team_sidebar.hide',
                 defaultMessage: 'Hide team sidebar',
