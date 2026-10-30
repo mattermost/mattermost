@@ -19,6 +19,7 @@ import {isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
 
 import Markdown from 'components/markdown';
 
+import {isWrappedInParens, splitOutsideLiterals} from '../cel_lexer';
 import TestResultsModal from '../modals/policy_test/test_modal';
 
 import './shared.scss';
@@ -410,23 +411,28 @@ export function isSimpleCondition(s: string): boolean {
     return SIMPLE_CONDITION_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
+function isMultiselectGroupBody(body: string): boolean {
+    return splitOutsideLiterals(body, '||').every((part) => MULTISELECT_GROUP_PART.test(part.trim()));
+}
+
+// A "has any of" group, with or without one pair of enclosing parens.
 export function isMultiselectOrGroup(s: string): boolean {
     const trimmed = s.trim();
-    if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
-        return false;
-    }
-    const inner = trimmed.slice(1, -1);
-    return inner.split('||').every((part) => {
-        return MULTISELECT_GROUP_PART.test(part.trim());
-    });
+    return isMultiselectGroupBody(isWrappedInParens(trimmed) ? trimmed.slice(1, -1) : trimmed);
 }
 
 export function isSimpleExpression(expr: string): boolean {
-    if (!expr) {
+    if (!expr.trim()) {
         return true;
     }
-    return expr.split('&&').every((condition) => {
-        return isSimpleCondition(condition) || isMultiselectOrGroup(condition);
+    if (isMultiselectOrGroup(expr)) {
+        return true;
+    }
+
+    // && binds tighter than ||, so alongside other conditions a group must be parenthesized.
+    return splitOutsideLiterals(expr, '&&').every((condition) => {
+        const trimmed = condition.trim();
+        return isSimpleCondition(trimmed) || (isWrappedInParens(trimmed) && isMultiselectGroupBody(trimmed.slice(1, -1)));
     });
 }
 
@@ -452,6 +458,15 @@ export function hasUsableAttributes(
 // membership rules, so strip them before they reach the editors.
 export function excludeSessionAttributes(fields: UserPropertyField[]): UserPropertyField[] {
     return fields.filter((field) => !isSessionAttributeField(field));
+}
+
+// Only native fields are hidden, so a custom attribute sharing a name stays. Returns
+// the original array when nothing is hidden to preserve referential stability.
+export function excludeHiddenNativeFields(fields: UserPropertyField[], hiddenNames?: string[]): UserPropertyField[] {
+    if (!hiddenNames?.length) {
+        return fields;
+    }
+    return fields.filter((field) => !(isNativeField(field) && hiddenNames.includes(field.name)));
 }
 
 // CEL namespaces. CPA/user attributes are referenced as user.attributes.<name>;

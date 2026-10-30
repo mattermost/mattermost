@@ -53,6 +53,12 @@ const (
 
 	AccessControlPolicyScopeTeam = "team"
 
+	// AccessControlPolicyRoleSystemBot targets a permission policy at bot
+	// accounts. It is a permission-policy-only role, not an RBAC role: no Role
+	// row exists for it and it is never assigned to a user. The policy engine
+	// resolves it for bot subjects ahead of their system role.
+	AccessControlPolicyRoleSystemBot = "system_bot"
+
 	// AccessControlRuleMetadataAutoAdd opts a resource into the membership
 	// sync job's add pass. It lives on the membership rule rather than on the
 	// policy so the setting travels with the rule it governs. The value is one
@@ -625,6 +631,14 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_2() *AppError {
 	return nil
 }
 
+// validatePermissionPolicyRoles requires exactly one non-blank role.
+func validatePermissionPolicyRoles(roles []string) *AppError {
+	if len(roles) != 1 || strings.TrimSpace(roles[0]) == "" {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
+	}
+	return nil
+}
+
 func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission, AccessControlPolicyTypeTeam}, p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.type.app_error", nil, "", 400)
@@ -670,13 +684,8 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 
 		// Permissions are only allowed to be applied to a single role as of v0.3
 		// role hierarchy is resolved at the PDP
-		if len(p.Roles) != 1 {
-			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
-		}
-		for _, role := range p.Roles {
-			if strings.TrimSpace(role) == "" {
-				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
-			}
+		if err := validatePermissionPolicyRoles(p.Roles); err != nil {
+			return err
 		}
 
 		if len(p.Imports) > 0 {
@@ -773,13 +782,8 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_4() *AppError {
 		if len(p.Rules) == 0 && len(p.Imports) == 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
 		}
-		if len(p.Roles) != 1 {
-			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
-		}
-		for _, role := range p.Roles {
-			if strings.TrimSpace(role) == "" {
-				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
-			}
+		if err := validatePermissionPolicyRoles(p.Roles); err != nil {
+			return err
 		}
 		if len(p.Imports) > 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)

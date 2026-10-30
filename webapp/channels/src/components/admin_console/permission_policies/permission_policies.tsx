@@ -3,6 +3,7 @@
 
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
@@ -17,6 +18,8 @@ import * as Menu from 'components/menu';
 
 import {getHistory} from 'utils/browser_history';
 
+import {AVAILABLE_ROLES} from './roles';
+
 import '../access_control/policies.scss';
 
 type Props = {
@@ -27,12 +30,6 @@ type Props = {
 };
 
 const PAGE_SIZE = 10;
-
-const ROLE_LABELS: Record<string, string> = {
-    system_guest: 'Guest users',
-    system_user: 'Members',
-    system_admin: 'System administrators',
-};
 
 const ACTION_LABELS: Record<string, string> = {
     download_file_attachment: 'Download Files',
@@ -46,12 +43,13 @@ function getActionsLabel(policy: AccessControlPolicy): string {
     return unique.map((a) => ACTION_LABELS[a] || a).join(', ') || 'None';
 }
 
-function getRoleLabel(policy: AccessControlPolicy): string {
-    const role = policy.roles?.[0];
-    if (!role) {
+function getRoleLabel(policy: AccessControlPolicy, formatMessage: IntlShape['formatMessage']): string {
+    const roleValue = policy.roles?.[0];
+    if (!roleValue) {
         return 'None';
     }
-    return ROLE_LABELS[role] || role;
+    const role = AVAILABLE_ROLES.find((r) => r.value === roleValue);
+    return role ? formatMessage(role.label) : roleValue;
 }
 
 export default function PermissionPolicyList(props: Props): JSX.Element {
@@ -169,7 +167,7 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                     ),
                     role: (
                         <div className='policy-resources'>
-                            {getRoleLabel(policy)}
+                            {getRoleLabel(policy, intl.formatMessage)}
                         </div>
                     ),
                     policyActions: (
