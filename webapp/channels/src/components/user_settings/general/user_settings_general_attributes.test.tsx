@@ -220,6 +220,14 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toBeInTheDocument();
         });
 
+        test('saves the shown first id of an array draft on a single field when the user saves without changes', async () => {
+            const {saveCustomProfileAttribute} = renderEditor(buildField('select'), ['opt1', 'opt2']);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt1');
+        });
+
         test('shows a missing single id raw, like multiselect, and an untouched Save sends it back', async () => {
             const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'gone');
 

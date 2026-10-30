@@ -445,6 +445,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             }
         }
 
+        if (attributeField.type === 'select' && Array.isArray(attributeValue)) {
+            attributeValue = attributeValue[0] ?? '';
+        }
+
         if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
             attributeValue = [];
         }
