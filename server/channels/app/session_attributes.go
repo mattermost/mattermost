@@ -27,10 +27,32 @@ func (a *App) sessionAttributesEnabled() bool {
 	return model.MinimumEnterpriseAdvancedLicense(a.License())
 }
 
-func (a *App) getSessionAttributeFieldsByName(rctx request.CTX) (map[string]*model.PropertyField, *model.AppError) {
+// sessionAttributeField is parsed once per schema version and shared by every
+// request, so it must not be modified.
+type sessionAttributeField struct {
+	*model.SAField
+	validator *model.SessionAttributeValueValidator
+}
+
+type sessionAttributeSchema struct {
+	version string
+	fields  map[string]*sessionAttributeField
+}
+
+func (a *App) getSessionAttributeFieldsByName(rctx request.CTX) (map[string]*sessionAttributeField, *model.AppError) {
 	group, err := a.Srv().propertyService.Group(model.SessionAttributesPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("getSessionAttributeFieldsByName", "app.property_group.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Read the version before the fields: a change landing in between leaves
+	// newer fields under the older version, which the next call parses again.
+	version, err := a.Srv().Store().PropertyField().GetForGroupVersion(rctx, group.ID)
+	if err != nil {
+		return nil, model.NewAppError("getSessionAttributeFieldsByName", "app.property_field.get_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if schema := a.Srv().sessionAttributeSchema.Load(); schema != nil && schema.version == version {
+		return schema.fields, nil
 	}
 
 	fields, err := a.Srv().Store().PropertyField().GetForGroup(rctx, group.ID)
@@ -38,27 +60,25 @@ func (a *App) getSessionAttributeFieldsByName(rctx request.CTX) (map[string]*mod
 		return nil, model.NewAppError("getSessionAttributeFieldsByName", "app.property_field.get_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	fieldsByName := make(map[string]*model.PropertyField, len(fields))
+	fieldsByName := make(map[string]*sessionAttributeField, len(fields))
 	for _, field := range fields {
-		fieldsByName[field.Name] = field
+		saField, err := model.SAFieldFromPropertyField(field)
+		if err != nil {
+			continue
+		}
+		fieldsByName[field.Name] = &sessionAttributeField{SAField: saField, validator: model.NewSessionAttributeValueValidator(field)}
 	}
+	a.Srv().sessionAttributeSchema.Store(&sessionAttributeSchema{version: version, fields: fieldsByName})
 	return fieldsByName, nil
 }
 
 func validatedSessionAttributeField(
-	fieldsByName map[string]*model.PropertyField,
+	fieldsByName map[string]*sessionAttributeField,
 	name, platform string,
 	value any,
 ) bool {
 	field, ok := fieldsByName[name]
-	if !ok {
-		return false
-	}
-	saField, err := model.SAFieldFromPropertyField(field)
-	if err != nil || !saField.EnabledForPlatform(platform) {
-		return false
-	}
-	return model.IsValidSessionAttributeValue(field, value)
+	return ok && field.EnabledForPlatform(platform) && field.validator.IsValid(value)
 }
 
 func inferSessionAttributePlatform(r *http.Request) string {
@@ -163,13 +183,15 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 		}
 	}
 
-	if *a.Config().AccessControlSettings.EnforceDeviceIDConsistency {
-		cached, _, err := a.Srv().Store().SessionAttribute().Get(rctx.Session().Id)
-		if err != nil && !errors.Is(err, cache.ErrKeyNotFound) {
-			rctx.Logger().Warn("Failed to load cached session attributes for device ID consistency check", mlog.Err(err))
+	cached, timestamps, err := a.Srv().Store().SessionAttribute().Get(rctx.Session().Id)
+	if err != nil && !errors.Is(err, cache.ErrKeyNotFound) {
+		rctx.Logger().Warn("Failed to load cached session attributes", mlog.Err(err))
+		if *a.Config().AccessControlSettings.EnforceDeviceIDConsistency {
 			return
 		}
+	}
 
+	if *a.Config().AccessControlSettings.EnforceDeviceIDConsistency {
 		for name := range model.SessionAttributesDeviceIDFieldNames {
 			var incomingValue, cachedValue string
 			if v := attrsToMerge[name]; v != nil {
@@ -198,6 +220,15 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 			}
 
 			return
+		}
+	}
+
+	// Skip values that are unchanged and younger than half their TTL; the rest of
+	// the TTL plus the grace period covers a lost cluster broadcast.
+	now := model.GetMillis()
+	for name, value := range attrsToMerge {
+		if cached[name] == value && now-timestamps[name] < int64(fieldsByName[name].Attrs.TTLSeconds)*500 {
+			delete(attrsToMerge, name)
 		}
 	}
 
@@ -246,21 +277,20 @@ func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([
 
 	platform := inferSessionAttributePlatform(r)
 	manifest := make([]*model.SessionAttributeManifestEntry, 0, len(fieldsByName))
-	for _, field := range fieldsByName {
-		saField, err := model.SAFieldFromPropertyField(field)
-		if err != nil || !saField.EnabledForPlatform(platform) {
+	for name, field := range fieldsByName {
+		if !field.EnabledForPlatform(platform) {
 			continue
 		}
-		if _, isDerived := model.SessionAttributesRequestDerivedFieldNames[field.Name]; isDerived {
+		if _, isDerived := model.SessionAttributesRequestDerivedFieldNames[name]; isDerived {
 			continue
 		}
 		manifest = append(manifest, &model.SessionAttributeManifestEntry{
-			Name:               field.Name,
+			Name:               name,
 			Type:               string(field.Type),
-			TTLSeconds:         saField.Attrs.TTLSeconds,
-			GracePeriodSeconds: saField.Attrs.GracePeriodSeconds,
-			Platforms:          saField.Attrs.Platforms,
-			DisplayName:        saField.Attrs.DisplayName,
+			TTLSeconds:         field.Attrs.TTLSeconds,
+			GracePeriodSeconds: field.Attrs.GracePeriodSeconds,
+			Platforms:          field.Attrs.Platforms,
+			DisplayName:        field.Attrs.DisplayName,
 		})
 	}
 
@@ -288,7 +318,7 @@ func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[stri
 	return filterStaleSessionAttributes(attrs, timestamps, fieldsByName), nil
 }
 
-func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]int64, fieldsByName map[string]*model.PropertyField) map[string]any {
+func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]int64, fieldsByName map[string]*sessionAttributeField) map[string]any {
 	if len(attrs) == 0 {
 		return nil
 	}
@@ -300,15 +330,11 @@ func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]in
 		if !ok {
 			continue
 		}
-		saField, err := model.SAFieldFromPropertyField(field)
-		if err != nil {
-			continue
-		}
 		timestamp, ok := timestamps[name]
 		if !ok {
 			continue
 		}
-		expiry := time.Duration(saField.Attrs.TTLSeconds+saField.Attrs.GracePeriodSeconds) * time.Second
+		expiry := time.Duration(field.Attrs.TTLSeconds+field.Attrs.GracePeriodSeconds) * time.Second
 		if now.After(time.UnixMilli(timestamp).Add(expiry)) {
 			continue
 		}

@@ -2510,6 +2510,37 @@ func TestGetSubjectChannelRole(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, "", role)
 	})
+
+	// The role is read from the user's cached channel memberships, so each membership change
+	// must be visible on the very next read, not only once the cache expires.
+	t.Run("reflects membership changes made after the role was read", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+
+		requireRole := func(t *testing.T, expected string) {
+			t.Helper()
+			role, appErr := th.App.GetSubjectChannelRole(th.Context, user.Id, th.BasicChannel.Id)
+			require.Nil(t, appErr)
+			require.Equal(t, expected, role)
+		}
+
+		requireRole(t, "")
+
+		th.AddUserToChannel(t, user, th.BasicChannel)
+		requireRole(t, model.ChannelUserRoleId)
+
+		_, appErr := th.App.UpdateChannelMemberSchemeRoles(th.Context, th.BasicChannel.Id, user.Id, false, true, true)
+		require.Nil(t, appErr)
+		requireRole(t, model.ChannelAdminRoleId)
+
+		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, th.BasicChannel.Id, user.Id, false, true, false)
+		require.Nil(t, appErr)
+		requireRole(t, model.ChannelUserRoleId)
+
+		appErr = th.App.RemoveUserFromChannel(th.Context, user.Id, th.SystemAdminUser.Id, th.BasicChannel)
+		require.Nil(t, appErr)
+		requireRole(t, "")
+	})
 }
 
 func TestBuildAccessControlSubjectScopedRoles(t *testing.T) {

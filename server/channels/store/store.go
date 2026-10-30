@@ -207,6 +207,21 @@ type TeamStore interface {
 	GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error)
 }
 
+// ChannelMemberRoles holds the fields of a channel membership that decide the member's role in
+// the channel, resolved the same way GetMember resolves them: role names left in Roles by an
+// unmigrated row are folded into the scheme flags, and Roles also carries the roles the
+// channel's scheme implies.
+//
+// The scheme flags come from the membership row alone. The scheme roles in Roles come from the
+// channel's and team's schemes, and a cached value is not invalidated when those change, so
+// decide the member's role from the flags.
+type ChannelMemberRoles struct {
+	Roles       string
+	SchemeGuest bool
+	SchemeUser  bool
+	SchemeAdmin bool
+}
+
 type ChannelStore interface {
 	Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
@@ -263,6 +278,9 @@ type ChannelStore interface {
 	GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
+	// GetChannelMemberRoles returns userID's role fields in each of channelIDs it is a member
+	// of, keyed by channel ID. A channel it does not belong to is absent from the map.
+	GetChannelMemberRoles(rctx request.CTX, userID string, channelIDs []string, allowFromCache bool) (map[string]ChannelMemberRoles, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
 	InvalidateAllChannelMembersForUser(userID string)
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
@@ -1222,6 +1240,7 @@ type PropertyFieldStore interface {
 	GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error)
 	GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error)
 	GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error)
+	GetForGroupVersion(rctx request.CTX, groupID string) (string, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)

@@ -26,6 +26,10 @@ func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
+
+	if !requireChannelWriteAccessByID(c, channelId) {
+		return
+	}
 }
 
 func postHardenedModeCheckWithContext(where string, c *Context, props model.StringInterface) {

@@ -9,7 +9,11 @@ import {batchActions} from 'redux-batched-actions';
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
-import {ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS} from '@mattermost/types/access_control';
+import {
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+    ACCESS_CONTROL_PERMISSION_ACTIONS,
+} from '@mattermost/types/access_control';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
@@ -963,14 +967,26 @@ export function handlePermissionPolicyUpdatedEvent(msg: WebSocketMessages.Permis
             return;
         }
 
-        doDispatch(clearRenderDecisions());
-        doDispatch(refreshPostsAfterPolicyChange());
-
-        // Every connected client gets this event, and only a channel_read_access change can
-        // hide or reveal a channel. A server that predates the action list sends none, and
-        // then any change might have.
+        // Every connected client gets this event, so each step runs only when an action it
+        // depends on changed. A server that predates the action list sends none, and then any
+        // action may have.
         const {actions} = msg.data;
-        if (!actions || actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
+        const changed = (...dependsOn: string[]) => !actions || dependsOn.some((action) => actions.includes(action));
+
+        // Every permission policy action is answered as a render decision, the channel write
+        // and management gates included.
+        if (changed(...ACCESS_CONTROL_PERMISSION_ACTIONS)) {
+            doDispatch(clearRenderDecisions());
+        }
+
+        // Loaded posts carry file metadata sanitized under download_file_attachment, and
+        // lists that drop posts of channels channel_read_access denies.
+        if (changed(ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
+            doDispatch(refreshPostsAfterPolicyChange());
+        }
+
+        // Only a channel_read_access change can hide or reveal a channel.
+        if (changed(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
             doDispatch(reconcileChannelReadAccessWithJitter());
         }
     };

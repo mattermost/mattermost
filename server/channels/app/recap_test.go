@@ -10,10 +10,13 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestCreateRecap(t *testing.T) {
@@ -805,6 +808,58 @@ func TestProcessRecapChannel(t *testing.T) {
 		require.Len(t, recapChannels, 1)
 		assert.Empty(t, recapChannels[0].SourcePostIds)
 	})
+}
+
+// HasPermissionToChannel is RBAC only, so the job checks the channel's read rules
+// itself: a recap must not summarize a channel the user has since lost read access to.
+func TestProcessRecapChannelChecksChannelReadAccess(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	t.Setenv("MM_FEATUREFLAGS_CHANNELPERMISSIONACTIONS", "true")
+
+	bridge := &testAgentsBridge{
+		completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+			require.Fail(t, "bridge should not be called for a channel the read rules deny")
+			return "", nil
+		},
+	}
+
+	th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+	th.CreatePost(t, th.BasicChannel)
+
+	recapID := model.NewId()
+	agentID := "test-agent"
+	_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+		Id:       recapID,
+		UserId:   th.BasicUser.Id,
+		Title:    "Read-denied recap",
+		CreateAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+		Status:   model.RecapStatusProcessing,
+		BotID:    agentID,
+	})
+	require.NoError(t, storeErr)
+
+	mockACS := &eMocks.AccessControlServiceInterface{}
+	original := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().ch.AccessControl = original })
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+		Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelReadAccess && req.Subject.ID == th.BasicUser.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+
+	// The job runs without a session, as the scheduler does.
+	result, err := th.App.ProcessRecapChannel(th.Context, recapID, th.BasicChannel.Id, th.BasicUser.Id, agentID)
+	require.NotNil(t, err)
+	assert.Equal(t, "app.recap.permission_denied", err.Id)
+	require.NotNil(t, result)
+	assert.False(t, result.Success)
+	assert.Empty(t, bridge.completeCalls)
 }
 
 func TestProcessRecapChannelTokenLimit(t *testing.T) {
