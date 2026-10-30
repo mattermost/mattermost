@@ -3196,6 +3196,18 @@ func (s *SqlPostStore) deleteThreadFiles(transaction *sqlxTxWrapper, postID stri
 	return nil
 }
 
+// threadReplyStatsQuery selects a thread's LastReplyAt and ReplyCount in that order.
+// Selecting COUNT alongside MAX keeps Postgres from rewriting MAX as a backward scan of
+// idx_posts_create_at, which walks the whole index when no live reply remains.
+func threadReplyStatsQuery(rootId string) sq.SelectBuilder {
+	return sq.Select("COALESCE(MAX(CreateAt), 0) AS LastReplyAt", "COUNT(*) AS ReplyCount").
+		From("Posts").
+		Where(sq.Eq{
+			"RootId":   rootId,
+			"DeleteAt": 0,
+		})
+}
+
 // updateThreadAfterReplyDeletion decrements the thread reply count and adjusts the participants
 // list as necessary.
 func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper, rootId string, userId string) error {
@@ -3221,17 +3233,8 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 			updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
 		}
 
-		// Selecting COUNT alongside MAX keeps Postgres from rewriting MAX as a backward
-		// scan of idx_posts_create_at, which walks the whole index when no live reply remains.
-		replyStatsSubquery := sq.Select("COALESCE(MAX(CreateAt), 0)", "COUNT(*)").
-			From("Posts").
-			Where(sq.Eq{
-				"RootId":   rootId,
-				"DeleteAt": 0,
-			})
-
 		updateQuery = updateQuery.
-			Set("(LastReplyAt, ReplyCount)", replyStatsSubquery).
+			Set("(LastReplyAt, ReplyCount)", threadReplyStatsQuery(rootId)).
 			Where(sq.And{
 				sq.Eq{"PostId": rootId},
 				sq.Gt{"ReplyCount": 0},
@@ -3343,12 +3346,11 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				participants = append(participants, item.UserId)
 			}
 
-			// Computed together so the planner cannot turn MAX into a backward scan of idx_posts_create_at.
 			var replyStats struct {
-				Count       int64
 				LastReplyAt int64
+				ReplyCount  int64
 			}
-			err := transaction.Get(&replyStats, "SELECT COUNT(Posts.Id) AS Count, COALESCE(MAX(Posts.CreateAt), 0) AS LastReplyAt FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0", rootId)
+			err := transaction.GetBuilder(&replyStats, threadReplyStatsQuery(rootId))
 			if err != nil {
 				return err
 			}
@@ -3372,7 +3374,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`, &model.Thread{
 				PostId:       rootId,
 				ChannelId:    channelId,
-				ReplyCount:   replyStats.Count,
+				ReplyCount:   replyStats.ReplyCount,
 				LastReplyAt:  replyStats.LastReplyAt,
 				Participants: participants,
 				TeamId:       teamId,
