@@ -164,7 +164,10 @@ const CodePreview = ({
         return (
             <div className='code-preview code-preview--markdown code-preview--fixed-size'>
                 <div className='code-preview__markdown'>
-                    <Markdown message={codeInfo.code}/>
+                    <Markdown
+                        message={codeInfo.code}
+                        postId={fileInfo.post_id}
+                    />
                 </div>
             </div>
         );

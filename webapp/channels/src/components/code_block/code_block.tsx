@@ -5,7 +5,7 @@ import React, {lazy, Suspense, useCallback, useContext, useEffect, useMemo, useS
 import {useSelector} from 'react-redux';
 
 import CopyButton from 'components/copy_button';
-import MarkdownToggleContext from 'components/markdown_view_toggle/markdown_toggle_context';
+import MarkdownToggleContext, {MarkdownPostIdContext} from 'components/markdown_view_toggle/markdown_toggle_context';
 import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_toggle';
 import {useMarkdownView} from 'components/markdown_view_toggle/use_markdown_view';
 import WrappedCodeLines from 'components/wrapped_code_lines';
@@ -30,6 +30,7 @@ const Markdown = lazy(() => import('components/markdown'));
 
 const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
     const toggleAllowed = useContext(MarkdownToggleContext);
+    const postId = useContext(MarkdownPostIdContext);
 
     const getUsedLanguage = useCallback(() => {
         let usedLanguage = language || '';
@@ -152,7 +153,10 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
                 <div className='post-code__rendered'>
                     <MarkdownToggleContext.Provider value={false}>
                         <Suspense fallback={null}>
-                            <Markdown message={code}/>
+                            <Markdown
+                                message={code}
+                                postId={postId}
+                            />
                         </Suspense>
                     </MarkdownToggleContext.Provider>
                 </div>

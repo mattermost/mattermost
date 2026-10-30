@@ -9,7 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
-import MarkdownToggleContext from 'components/markdown_view_toggle/markdown_toggle_context';
+import MarkdownToggleContext, {MarkdownPostIdContext} from 'components/markdown_view_toggle/markdown_toggle_context';
 import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
 import {PostTypes} from 'utils/constants';
@@ -154,21 +154,23 @@ export default class PostMarkdown extends React.PureComponent<Props> {
 
         return (
             <MarkdownToggleContext.Provider value={true}>
-                <Markdown
-                    imageProps={this.props.imageProps}
-                    message={message}
-                    mentionKeys={this.props.mentionKeys}
-                    highlightKeys={highlightKeys}
-                    options={options}
-                    channelNamesMap={channelNamesMap}
-                    hasPluginTooltips={this.props.hasPluginTooltips}
-                    imagesMetadata={this.props.post?.metadata?.images}
-                    postId={this.props.post?.id}
-                    editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
-                    allowInlineActions={allowInlineActions}
-                    mmBlocksActionCookie={mmBlocksActionsCookie}
-                    integrationFormat={integrationFormat}
-                />
+                <MarkdownPostIdContext.Provider value={this.props.post?.id}>
+                    <Markdown
+                        imageProps={this.props.imageProps}
+                        message={message}
+                        mentionKeys={this.props.mentionKeys}
+                        highlightKeys={highlightKeys}
+                        options={options}
+                        channelNamesMap={channelNamesMap}
+                        hasPluginTooltips={this.props.hasPluginTooltips}
+                        imagesMetadata={this.props.post?.metadata?.images}
+                        postId={this.props.post?.id}
+                        editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
+                        allowInlineActions={allowInlineActions}
+                        mmBlocksActionCookie={mmBlocksActionsCookie}
+                        integrationFormat={integrationFormat}
+                    />
+                </MarkdownPostIdContext.Provider>
             </MarkdownToggleContext.Provider>
         );
     }
