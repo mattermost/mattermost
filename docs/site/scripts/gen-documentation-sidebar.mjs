@@ -79,6 +79,7 @@ const OVERVIEW_GROUPS = {
       'release-policy',
       {label: 'Server', landing: 'server', items: [
         'mattermost-server-releases',
+        'mattermost-v12-changelog',
         'mattermost-v11-changelog',
         'mattermost-v10-changelog',
         'unsupported-legacy-releases',
@@ -496,6 +497,7 @@ const ADMIN_MANAGE_GROUPS = {
       {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
         'admin/attribute-management',
         'admin/user-attributes',
+        'admin/channel-attributes',
         'admin/abac-system-wide-policies',
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
@@ -509,6 +511,7 @@ const ADMIN_MANAGE_GROUPS = {
     items: [
       'mmctl-command-line-tool',
       'command-line-tools',
+      'offline-documentation',
       'logging',
     ],
   },
@@ -565,11 +568,11 @@ const ADMIN_MANAGE_ORDER = [
 
 const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/server-maintenance',
-  'admin/user-management', 'admin/attribute-management', 'admin/user-attributes', 'team-channel-members',
+  'admin/user-management', 'admin/attribute-management', 'admin/user-attributes', 'admin/channel-attributes', 'team-channel-members',
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
   'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
   'admin/session-attributes',
-  'command-line-tools', 'mmctl-command-line-tool', 'logging',
+  'command-line-tools', 'mmctl-command-line-tool', 'offline-documentation', 'logging',
   'admin/self-hosted-billing', 'admin/installing-license-key',
   'cloud-workspace-management', 'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
   'cloud-byok',
@@ -584,7 +587,7 @@ const ADMIN_MANAGE_HIDDEN = new Set([
   'code-signing-custom-builds',
   // Listed under Monitor and troubleshoot.
   'admin/monitoring-and-performance', 'statistics', 'telemetry',
-  'configure-health-check-probes', 'request-server-health-check',
+  'site-health-dashboard', 'configure-health-check-probes', 'request-server-health-check',
   'admin/error-codes', 'admin/generating-support-packet',
 ]);
 
@@ -810,6 +813,7 @@ const ADMIN_SCALE_GROUPS = {
   health: {
     label: 'Health and diagnostics',
     items: [
+      {doc: 'administration-guide/manage/site-health-dashboard'},
       {doc: 'administration-guide/configure/optimize-your-workspace'},
       {doc: 'administration-guide/manage/statistics'},
       {doc: 'administration-guide/manage/configure-health-check-probes'},
@@ -852,6 +856,7 @@ const ADMIN_COMPLY_ORDER = [
   'legal-hold',
   'custom-terms-of-service',
   'embedded-json-audit-log-schema',
+  'post-delivery-audit-logging',
 ];
 
 const ADMIN_COMPLY_HIDDEN = new Set([]);

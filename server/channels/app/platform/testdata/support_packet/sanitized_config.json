@@ -358,7 +358,8 @@
         "DiscoveryEndpoint": null,
         "ButtonText": null,
         "ButtonColor": null,
-        "UsePreferredUsername": null
+        "UsePreferredUsername": null,
+        "AdditionalScopes": null
     },
     "GoogleSettings": {
         "Enable": null,
@@ -371,7 +372,8 @@
         "DiscoveryEndpoint": null,
         "ButtonText": null,
         "ButtonColor": null,
-        "UsePreferredUsername": null
+        "UsePreferredUsername": null,
+        "AdditionalScopes": null
     },
     "Office365Settings": {
         "Enable": null,
@@ -396,7 +398,8 @@
         "DiscoveryEndpoint": null,
         "ButtonText": null,
         "ButtonColor": null,
-        "UsePreferredUsername": null
+        "UsePreferredUsername": null,
+        "AdditionalScopes": null
     },
     "LdapSettings": {
         "Enable": null,
@@ -501,6 +504,11 @@
         "RedisPassword": null,
         "RedisDB": null,
         "RedisCachePrefix": null,
+        "RedisEnableTLS": null,
+        "RedisTLSSkipVerify": null,
+        "RedisTLSCA": null,
+        "RedisTLSClientCert": null,
+        "RedisTLSClientKey": null,
         "DisableClientCache": null
     },
     "ClusterSettings": {
@@ -569,7 +577,8 @@
         "ClientKey": null,
         "Trace": null,
         "IgnoredPurgeIndexes": null,
-        "EnableSearchPublicChannelsWithoutMembership": null
+        "EnableSearchPublicChannelsWithoutMembership": null,
+        "EnableFileIndexing": null
     },
     "DataRetentionSettings": {
         "EnableMessageDeletion": null,
@@ -736,6 +745,7 @@
         "EnableAIRecaps": false,
         "IntegratedBoards": false,
         "EnableDocs": false,
+        "ProductRail": false,
         "CJKSearch": false,
         "AggregatePluginMetrics": false,
         "ManagedChannelCategories": false,
@@ -745,6 +755,7 @@
         "MobileEphemeralMode": false,
         "PropertyFieldRank": false,
         "PropertyFieldGraph": false,
+        "PropertyFieldPermissionsV3": false,
         "TeamMembershipAccessControl": false,
         "ChannelAttributes": false,
         "ChannelAttributesRequired": false,
@@ -754,6 +765,9 @@
         "EnableMFIPluginSignaturePublicKey": false,
         "RecurringScheduledPosts": false,
         "PostDeliveryTracking": false,
-        "HealthDashboard": false
+        "EnforceLogPathRoot": false,
+        "HealthDashboard": false,
+        "EnableBrotliCompression": false,
+        "OpenIdAttributeSync": false
     }
 }

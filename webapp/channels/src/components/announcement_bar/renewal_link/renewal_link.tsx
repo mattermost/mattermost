@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
@@ -32,8 +32,8 @@ const RenewalLink = (props: RenewalLinkProps) => {
     return (
         <Button
             emphasis='tertiary'
-            size='xs'
-            variant='inverted'
+            size='x-small'
+            appearance='inverted'
             className='annnouncementBar__renewLicense'
             disabled={props.isDisabled}
             onClick={(e) => handleLinkClick(e)}

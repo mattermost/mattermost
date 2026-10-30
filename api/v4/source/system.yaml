@@ -1175,6 +1175,13 @@
         Get a page of server logs, selected with `page` and `logs_per_page`
         query parameters.
 
+        In a licensed, enabled cluster, each node's lines follow a separator
+        naming the node. If another node's logs can't be fetched, the request
+        still succeeds and that node's separator is followed by a single JSON
+        line with `level` set to `error`, `msg` set to
+        `Failed to fetch logs from node`, `failed_node` set to `true`, and an
+        `error` field describing the failure.
+
         ##### Permissions
 
         Must have `manage_system` permission.
@@ -1254,6 +1261,13 @@
       description: >
         Query server logs using filter criteria.
 
+        If another cluster node's logs can't be fetched (for example, it doesn't
+        respond in time), the request still succeeds and that node's array
+        contains a single entry with `level` set to `error`, `msg` set to
+        `Failed to fetch logs from node`, `failed_node` set to `true`, and an
+        `error` field describing the failure. This entry is returned regardless
+        of `log_levels`, `date_from` and `date_to`.
+
         ##### Permissions
         Must have `get_logs` permission.
       operationId: QueryLogs
@@ -1281,6 +1295,11 @@
                   type: array
                   items:
                     type: string
+                  description: >
+                    Names of the nodes to return logs from. Leave empty to return logs from
+                    every node. Node names are the keys of the response. `default` always
+                    refers to the node handling the request. Names that don't match a node
+                    are ignored.
                 log_levels:
                   type: array
                   items:
@@ -1300,7 +1319,13 @@
                   example: "2024-01-15 14:30:45.123 -05:00"
       responses:
         "200":
-          description: Log query successful
+          description: >
+            Log query successful. The response maps each node name to its log entries.
+            In a licensed, enabled cluster, node names are the cluster hostnames (or `default`
+            for this node if its cluster name is unavailable); otherwise the server's logs are
+            returned under `default`. Every node that was queried is included, with an
+            empty array if it has no matching entries. A node the cluster has
+            already marked as failed isn't queried and is omitted.
           content:
             application/json:
               schema:

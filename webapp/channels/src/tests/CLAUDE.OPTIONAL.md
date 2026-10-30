@@ -51,12 +51,12 @@ expect(container).toMatchSnapshot();
 ```
 
 ## Adding Helpers
-- Place reusable mocks under `helpers/` (e.g., `intl-test-helper.tsx`, `match_media.mock.ts`).
+- Place reusable mocks under `helpers/` (e.g., `intl-test-helper.tsx`, `match_media_mock.ts`).
 - Document custom utilities with inline comments.
 - If a helper becomes product-agnostic, consider moving it to `platform/components/testUtils.tsx`.
 
 ## Available Mocks
-- `helpers/match_media.mock.ts`: matchMedia mock
+- `helpers/match_media_mock.ts`: matchMedia mock
 - `helpers/localstorage.tsx`: localStorage mock
 - `react-intl_mock.ts`: React Intl mock
 - `react-router-dom_mock.ts`: React Router mock
