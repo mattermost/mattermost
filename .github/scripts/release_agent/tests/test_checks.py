@@ -350,6 +350,64 @@ class CherryPicksTest(unittest.TestCase):
         self.assertEqual((result.status, result.summary), (checks.PASS, "All 0 approved cherry-picks are on release-12.2"))
 
 
+def ent_pull(number, title="Private fix", labels=(), milestone=None, base="master", state="closed", merged=True,
+             head="fix-branch"):
+    return {"number": number, "title": title, "html_url": f"https://github.com/{ENT}/pull/{number}",
+            "labels": [{"name": name} for name in labels], "milestone": {"title": milestone} if milestone else None,
+            "base": {"ref": base}, "head": {"ref": head}, "state": state,
+            "merged_at": "2026-10-20T10:00:00Z" if merged else None}
+
+
+class CherryPicksToLabelTest(unittest.TestCase):
+    SUBMITTED = r'fixVersion = "v12\.2 \(November 2026\)" AND status = Submitted'
+
+    def check(self, links, pulls, tickets=("MM-1",)):
+        jira = FakeJira({self.SUBMITTED: [issue(key, status="Submitted") for key in tickets]})
+        jira.links = links
+        github = FakeGitHub()
+        github.pulls = {(ENT, p["number"]): p for p in pulls}
+        return checks.cherry_picks_to_label(context(github, jira), RULES["cherry-picks-to-label"]), jira, github
+
+    def test_lists_enterprise_prs_missing_the_label_or_the_milestone(self):
+        url = "https://github.com/mattermost/enterprise/pull/{}".format
+        result, jira, _ = self.check(
+            {"MM-1": [url(1), url(2), url(3), url(4), "https://github.com/mattermost/mattermost/pull/5"]},
+            [ent_pull(1), ent_pull(2, labels=["CherryPick/Approved"]),
+             ent_pull(3, labels=["CherryPick/Done"], milestone="v12.2.0"), ent_pull(4, milestone="v12.1.0")])
+        self.assertEqual(jira.queries, ['project = MM AND fixVersion = "v12.2 (November 2026)" AND status = Submitted'])
+        self.assertEqual(result.status, checks.FAIL)
+        self.assertEqual(result.summary, "3 cherry-pick PRs to label by hand (3 in a private repo)")
+        self.assertEqual([(i.label, i.url, i.note) for i in result.items], [
+            ("enterprise#1", url(1), "MM-1: add `CherryPick/Approved` and milestone v12.2.0"),
+            ("enterprise#2", url(2), "MM-1: add milestone v12.2.0"),
+            ("enterprise#4", url(4), "MM-1: add `CherryPick/Approved` and milestone v12.2.0 (it has v12.1.0)"),
+        ])
+        self.assertEqual({i.public_label for i in result.items}, {"(private repo)"})
+        self.assertNotIn("Private fix", result.summary)
+
+    def test_passes_when_every_enterprise_pr_is_labelled(self):
+        result, _, _ = self.check({"MM-1": ["https://github.com/mattermost/enterprise/pull/3"],
+                                   "MM-2": ["https://github.com/mattermost/enterprise/pull/3"]},
+                                  [ent_pull(3, labels=["CherryPick/Approved"], milestone="v12.2.0")], ("MM-1", "MM-2"))
+        self.assertEqual((result.status, result.summary), (checks.PASS, "No cherry-pick PRs to label by hand (1 PR checked)"))
+
+    def test_skips_prs_not_against_master_or_closed_unmerged(self):
+        result, _, _ = self.check({"MM-1": ["https://github.com/mattermost/enterprise/pull/1",
+                                            "https://github.com/mattermost/enterprise/pull/2"]},
+                                  [ent_pull(1, base="release-12.1"), ent_pull(2, merged=False)])
+        self.assertEqual(result.status, checks.PASS)
+
+    def test_falls_back_to_prs_naming_the_ticket(self):
+        jira = FakeJira({self.SUBMITTED: [issue("MM-1", status="Submitted")]})
+        github = FakeGitHub()
+        github.searches[r'repo:mattermost/enterprise is:pr "MM-1"'] = [{"number": 7}, {"number": 8}, {"number": 9}]
+        github.pulls = {(ENT, 7): ent_pull(7, title="[MM-1] Fix"), (ENT, 8): ent_pull(8, title="MM-12 other"),
+                        (ENT, 9): ent_pull(9, title="MM-1 earlier fix", milestone="v12.1.0")}
+        result = checks.cherry_picks_to_label(context(github, jira), RULES["cherry-picks-to-label"])
+        self.assertEqual([i.label for i in result.items], ["enterprise#7"])
+        self.assertEqual(github.queries, ['repo:mattermost/enterprise is:pr "MM-1"'])
+
+
 class E2EResultsTest(unittest.TestCase):
     def setUp(self):
         self.github = FakeGitHub()

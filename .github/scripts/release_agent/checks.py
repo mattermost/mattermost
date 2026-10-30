@@ -266,6 +266,65 @@ def open_release_items(ctx: Context, rule: dict) -> Result:
     return Result(INFO, summary, issues + prs, ctx.jira.filter_url(query["jql"]))
 
 
+REPO_PR_URL = re.compile(r"^https://github\.com/([\w.-]+/[\w.-]+)/pull/(\d+)(?:[/?#].*)?$", re.IGNORECASE)
+
+
+def _mentions_key(text: str, key: str) -> bool:
+    return re.search(rf"(?<![\w-]){re.escape(key)}(?!\d)", text or "", re.IGNORECASE) is not None
+
+
+def cherry_picks_to_label(ctx: Context, rule: dict) -> Result:
+    """Submitted tickets' PRs in ``repos`` that still need a cherry-pick label or the milestone.
+
+    These are the repos release-cherry-pick-labels.yml can't write to (its GITHUB_TOKEN only
+    reaches mattermost/mattermost), so the release manager labels them by hand. PRs are found
+    as that workflow finds them: the ticket's Jira links, else PRs naming the ticket in their
+    title or branch, leaving out by-title matches with another milestone (earlier fixes).
+    Only PRs against ``base_branch`` that weren't closed unmerged count.
+    """
+    query = ctx.query(rule)
+    repos = [repo.lower() for repo in query["repos"]]
+    done_labels, milestone = {label.casefold() for label in query["labels"]}, query["milestone"]
+    todo, seen = [], set()
+    for issue in ctx.jira.search(query["jql"]):
+        key = issue["key"]
+        linked = {}
+        for link in ctx.jira.remote_links(key):
+            match = REPO_PR_URL.match(((link.get("object") or {}).get("url") or "").strip())
+            if match:
+                linked.setdefault((match.group(1).lower(), int(match.group(2))), False)
+        if not linked:
+            for repo in repos:
+                for found in ctx.github.search_issues(f'repo:{repo} is:pr "{key}"', limit=20):
+                    linked.setdefault((repo, found["number"]), True)
+        for (repo, number), by_title in sorted(linked.items()):
+            if repo not in repos or (repo, number) in seen:
+                continue
+            pull = ctx.github.pull(repo, number)
+            if by_title and not (_mentions_key(pull.get("title"), key)
+                                 or _mentions_key((pull.get("head") or {}).get("ref"), key)):
+                continue
+            current = (pull.get("milestone") or {}).get("title") or ""
+            if ((pull.get("base") or {}).get("ref") != query["base_branch"]
+                    or (pull.get("state") == "closed" and not pull.get("merged_at"))
+                    or (by_title and current not in ("", milestone))):
+                continue
+            seen.add((repo, number))
+            needs = []
+            if not done_labels & {label["name"].casefold() for label in pull.get("labels") or []}:
+                needs.append(f"`{query['labels'][0]}`")
+            if not current:
+                needs.append(f"milestone {milestone}")
+            elif current != milestone:
+                needs.append(f"milestone {milestone} (it has {current})")
+            if needs:
+                todo.append(Item(f"{repo.split('/')[-1]}#{number}", pull.get("title", ""), pull.get("html_url", ""),
+                                 repo=repo, note=f"{key}: add {' and '.join(needs)}"))
+    if todo:
+        return Result(FAIL, f"{plural(len(todo), 'cherry-pick PR')} to label by hand{private_count(todo)}", todo)
+    return Result(PASS, f"No cherry-pick PRs to label by hand ({plural(len(seen), 'PR')} checked)")
+
+
 def new_regressions(ctx: Context, rule: dict) -> Result:
     """Regressions filed since the branch cut, which pass once every one has a fix version.
 
@@ -486,6 +545,7 @@ def changelog_labels(ctx: Context, rule: dict) -> Result:
 
 CHECKS = {
     "open_release_items": (open_release_items, "report_only"),
+    "cherry_picks_to_label": (cherry_picks_to_label, "none_missing"),
     "new_regressions": (new_regressions, "all_have_fix_version"),
     "hub_release_branch": (hub_release_branch, "versions_match"),
     "notice_txt": (notice_txt, "merged_and_on_release_branch"),

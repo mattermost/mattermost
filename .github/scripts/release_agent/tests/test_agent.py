@@ -77,6 +77,7 @@ class LiveRunTest(unittest.TestCase):
             "hub-on-release-branch": "ok",
             "notice-txt": "ok",
             "cherry-picks": "ok",
+            "cherry-picks-to-label": "ok",
             "e2e-results": "needs_attention",
             "rc-tags": "ok",
             "final-tags": "not_due",
@@ -133,7 +134,7 @@ class LiveRunTest(unittest.TestCase):
 
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)
-        self.assertEqual(self.body["totals"]["checks_run"], 22)
+        self.assertEqual(self.body["totals"]["checks_run"], 24)
         self.assertEqual(self.body["totals"]["ticked"], 3)
         self.assertEqual(self.body["totals"]["alarms_raised"], 3)
         self.assertEqual(self.body["totals"]["false_alarms"], 0)

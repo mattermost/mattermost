@@ -81,6 +81,7 @@
         "type": {
           "enum": [
             "open_release_items",
+            "cherry_picks_to_label",
             "new_regressions",
             "hub_release_branch",
             "notice_txt",

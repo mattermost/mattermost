@@ -66,7 +66,8 @@ rules:
   # Each person is @-mentioned once with their tickets. Unassigned tickets and the bot's are
   # routed to the dev lead of the ticket's Jira Team in dev_leads, else listed under
   # Unassigned. Submitted tickets show their linked PRs. The item's cherry-pick half is done by
-  # release-cherry-pick-labels.yml, which labels PRs as their tickets reach Submitted.
+  # release-cherry-pick-labels.yml, which labels mattermost/mattermost PRs as their tickets
+  # reach Submitted, and by the release manager for enterprise PRs (cherry-picks-to-label).
   - task: open-release-items
     title: Open release bugs and PRs
     playbook_item: Post a list of outstanding release bugs and PRs to the release playbook channel. Label approved cherry-pick PRs.
@@ -161,6 +162,26 @@ rules:
       # The bot swaps Approved for Done once it opens the cherry-pick, so both are checked.
       labels: [CherryPick/Approved, CherryPick/Done]
     pass_when: all_on_release_branch
+    on_fail: needs_attention
+
+  # The release manager's part of open-release-items' "Label approved cherry-pick PRs."
+  # release-cherry-pick-labels.yml labels mattermost/mattermost PRs with its GITHUB_TOKEN,
+  # which can't reach enterprise, so Submitted tickets' enterprise PRs without
+  # CherryPick/Approved (or Done) or the milestone are listed here, with links, until done.
+  - task: cherry-picks-to-label
+    title: Enterprise cherry-picks to label by hand
+    playbook_item: null
+    due: branch_cut
+    type: cherry_picks_to_label
+    source: [jira, github]
+    query:
+      jql: 'project = MM AND fixVersion = "{fix_version}" AND status = Submitted'
+      repos: [mattermost/enterprise]
+      # The first is the one to add; either means it's labelled.
+      labels: [CherryPick/Approved, CherryPick/Done]
+      milestone: "{milestone}"
+      base_branch: master
+    pass_when: none_missing
     on_fail: needs_attention
 
   # RC-1 is cut at T-15, a working day after Feature Complete.
