@@ -99,9 +99,25 @@
             outline-offset: 2px;
         }
 
+        &--busy,
+        &:disabled {
+            cursor: default;
+            opacity: 1;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             transition: none;
         }
+    }
+
+    &__download_error {
+        overflow: hidden;
+        min-width: 0;
+        margin-left: 8px;
+        color: var(--error-text);
+        font-weight: 400;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__rows {

@@ -21,7 +21,7 @@ export type AssignmentGraphPickerProps = {
 } & Pick<
     HierarchicalValueMenuProps,
 'menuId' | 'buttonId' | 'buttonDataTestId' | 'placeholder' | 'ariaLabel' |
-'className' | 'buttonClassName'
+'className' | 'buttonClassName' | 'variant'
 >;
 
 function namesForHeldIds(join: GraphOptionJoin, reportFor: string[]): Record<string, string> {

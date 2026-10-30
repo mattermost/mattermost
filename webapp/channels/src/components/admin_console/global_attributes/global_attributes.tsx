@@ -5,7 +5,8 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {MagnifyIcon, PlusIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
@@ -29,7 +30,11 @@ export const searchableStrings = [
     messages.searchPlaceholder,
 ];
 
-const GlobalAttributes: React.FC = () => {
+type Props = {
+    disabled?: boolean;
+};
+
+const GlobalAttributes = ({disabled = false}: Props) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -59,15 +64,14 @@ const GlobalAttributes: React.FC = () => {
                 <Button
                     className='GlobalAttributes__newAttribute'
                     emphasis='primary'
+                    disabled={disabled}
                     onClick={() => {
                         getHistory().push(ATTRIBUTE_DETAILS_ROUTE);
                     }}
                     data-testid='newAttributeButton'
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <PlusIcon size={18}/>
-                    <span>
-                        <FormattedMessage {...messages.newAttribute}/>
-                    </span>
+                    <FormattedMessage {...messages.newAttribute}/>
                 </Button>
             </AdminHeader>
             <div className='admin-console__wrapper'>
@@ -90,7 +94,10 @@ const GlobalAttributes: React.FC = () => {
                             data-testid='global-attributes-search'
                         />
                     </div>
-                    <GlobalAttributesTable searchQuery={searchQuery}/>
+                    <GlobalAttributesTable
+                        searchQuery={searchQuery}
+                        disabled={disabled}
+                    />
                 </div>
             </div>
         </div>

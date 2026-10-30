@@ -10,7 +10,7 @@
 
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {conventions, reviewContract} from './lib/personas.mjs';
+import {conventions, reviewContract, writerPrompt} from './lib/personas.mjs';
 
 test('conventions state the version anchoring rule', () => {
   // The requirement most likely to be silently dropped in an edit, and the
@@ -62,4 +62,33 @@ test('review contract names the fields the reviewer parses', () => {
     assert.match(contract, new RegExp(`"${field}"`), `contract omits the ${field} field`);
   }
   assert.match(contract, /At most three findings/);
+});
+
+test('writer prompt states the path= output contract and version rule', () => {
+  const prompt = writerPrompt();
+  assert.match(prompt, /path=/);
+  assert.match(prompt, /From Mattermost vX\.Y/);
+  assert.match(prompt, /From Mattermost \[NOT PRESENT — REQUIRES HUMAN JUDGMENT\]/);
+  assert.match(prompt, /milestone\.version/);
+  assert.match(prompt, /docs\/api\/reference/);
+});
+
+test('writer prompt states scope and observability guidance', () => {
+  const prompt = writerPrompt();
+  assert.match(prompt, /Parity/);
+  assert.match(prompt, /Net-new/);
+  assert.match(prompt, /Observability and diagnostics/);
+  assert.match(prompt, /USER_PASSWORD_CHANGED/);
+  assert.match(prompt, /processWidgets/);
+});
+
+test('writer prompt keeps a draft to the introduced change', () => {
+  const prompt = writerPrompt();
+  assert.match(prompt, /Copy every\nother line through unchanged/);
+  assert.match(prompt, /exact error strings/);
+  assert.match(prompt, /Related behaviours can share a section/);
+  assert.match(prompt, /```summary/);
+  assert.match(prompt, /Reviewer feedback is not evidence/);
+  assert.match(prompt, /Do not add a heading only because/);
+  assert.match(prompt, /blank line between the label and the fence/);
 });

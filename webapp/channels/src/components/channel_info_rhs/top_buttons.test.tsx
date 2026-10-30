@@ -26,7 +26,6 @@ describe('channel_info_rhs/top_buttons', () => {
         channelURL: 'https://test.com',
         isFavorite: false,
         isMuted: false,
-        isInvitingPeople: false,
         isInManagedCategory: false,
         canAddPeople: true,
         actions: {
@@ -39,7 +38,7 @@ describe('channel_info_rhs/top_buttons', () => {
     test('should display and toggle Favorite', async () => {
         const toggleFavorite = jest.fn();
 
-        // Favorite to Favorited
+        // Unpressed
         const testProps: Props = {
             ...topButtonDefaultProps,
             actions: {
@@ -48,34 +47,36 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithContext(
+        const {rerender} = renderWithContext(
             <TopButtons
                 {...testProps}
             />,
         );
 
         expect(screen.getByText('Favorite')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Favorite'})).toHaveAttribute('aria-pressed', 'false');
         await userEvent.click(screen.getByText('Favorite'));
         expect(toggleFavorite).toHaveBeenCalled();
 
-        // Favorited to Favorite
+        // Pressed: the name stays the same, only aria-pressed changes
         toggleFavorite.mockReset();
         testProps.isFavorite = true;
-        renderWithContext(
+        rerender(
             <TopButtons
                 {...testProps}
             />,
         );
 
-        expect(screen.getByText('Favorited')).toBeInTheDocument();
-        await userEvent.click(screen.getByText('Favorited'));
+        expect(screen.getByText('Favorite')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Favorite'})).toHaveAttribute('aria-pressed', 'true');
+        await userEvent.click(screen.getByText('Favorite'));
         expect(toggleFavorite).toHaveBeenCalled();
     });
 
     test('should display and toggle Mute', async () => {
         const toggleMute = jest.fn();
 
-        // Mute to Muted
+        // Unpressed
         const testProps: Props = {
             ...topButtonDefaultProps,
             actions: {
@@ -84,31 +85,33 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithContext(
+        const {rerender} = renderWithContext(
             <TopButtons
                 {...testProps}
             />,
         );
 
         expect(screen.getByText('Mute')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Mute'})).toHaveAttribute('aria-pressed', 'false');
         await userEvent.click(screen.getByText('Mute'));
         expect(toggleMute).toHaveBeenCalled();
 
-        // Muted to Mute
+        // Pressed: the name stays the same, only aria-pressed changes
         toggleMute.mockReset();
         testProps.isMuted = true;
-        renderWithContext(
+        rerender(
             <TopButtons
                 {...testProps}
             />,
         );
 
-        expect(screen.getByText('Muted')).toBeInTheDocument();
-        await userEvent.click(screen.getByText('Muted'));
+        expect(screen.getByText('Mute')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Mute'})).toHaveAttribute('aria-pressed', 'true');
+        await userEvent.click(screen.getByText('Mute'));
         expect(toggleMute).toHaveBeenCalled();
     });
 
-    test('should display and active call Add People', async () => {
+    test('should display Add People as a dialog trigger, not a toggle', async () => {
         const addPeople = jest.fn();
 
         const testProps = {
@@ -125,8 +128,12 @@ describe('channel_info_rhs/top_buttons', () => {
             />,
         );
 
-        expect(screen.getByText('Add People')).toBeInTheDocument();
-        await userEvent.click(screen.getByText('Add People'));
+        const addPeopleButton = screen.getByRole('button', {name: 'Add People'});
+        expect(addPeopleButton).toBeInTheDocument();
+        expect(addPeopleButton).toHaveAttribute('aria-haspopup', 'dialog');
+        expect(addPeopleButton).not.toHaveAttribute('aria-expanded');
+        expect(addPeopleButton).not.toHaveAttribute('aria-pressed');
+        await userEvent.click(addPeopleButton);
         expect(addPeople).toHaveBeenCalled();
     });
     test('should not Add People in DM', () => {

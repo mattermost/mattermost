@@ -313,6 +313,10 @@ func (c *Client4) deliveryTrackingRoute() clientRoute {
 	return newClientRoute("delivery_tracking")
 }
 
+func (c *Client4) healthFindingsRoute() clientRoute {
+	return newClientRoute("health").Join("findings")
+}
+
 func (c *Client4) postsEphemeralRoute() clientRoute {
 	return newClientRoute("posts").Join("ephemeral")
 }
@@ -371,10 +375,6 @@ func (c *Client4) testEmailRoute() clientRoute {
 
 func (c *Client4) testNotificationRoute() clientRoute {
 	return newClientRoute("notifications").Join("test")
-}
-
-func (c *Client4) usageRoute() clientRoute {
-	return newClientRoute("usage")
 }
 
 func (c *Client4) testSiteURLRoute() clientRoute {
@@ -7478,33 +7478,6 @@ func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response
 	return DecodeJSONFromResponse[*Subscription](r)
 }
 
-func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("subscription", "invoices"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Invoice](r)
-}
-
-func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer"), customerInfo)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
-}
-
-func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Address) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer", "address"), address)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
-}
-
 func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.importsRoute(), "")
 	if err != nil {
@@ -7917,39 +7890,6 @@ func (c *Client4) DeleteAIBridgeTestHelper(ctx context.Context) (*Response, erro
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
-}
-
-// Usage Section
-
-// GetPostsUsage returns rounded off total usage of posts for the instance
-func (c *Client4) GetPostsUsage(ctx context.Context) (*PostsUsage, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.usageRoute().Join("posts"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*PostsUsage](r)
-}
-
-// GetStorageUsage returns the file storage usage for the instance,
-// rounded down the most signigicant digit
-func (c *Client4) GetStorageUsage(ctx context.Context) (*StorageUsage, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.usageRoute().Join("storage"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*StorageUsage](r)
-}
-
-// GetTeamsUsage returns total usage of teams for the instance
-func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.usageRoute().Join("teams"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*TeamsUsage](r)
 }
 
 func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *Response, error) {
@@ -8644,6 +8584,42 @@ func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Respon
 // If the user is not the author, the post will be expired for that user by updating their read receipt expiration time.
 func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postID).Join("burn"))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// Health Dashboard Section
+
+// GetHealthFindings returns the stored health findings, rendered in the client's locale, and
+// when the server last evaluated them. Only filter.Muted is sent; the server decides which
+// surfaces are returned.
+func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFilter) (*HealthFindingList, *Response, error) {
+	query := url.Values{}
+	if filter.Muted != MutedExcluded {
+		query.Set("muted", string(filter.Muted))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute(), query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIPost(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UnmuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"))
 	if err != nil {
 		return BuildResponse(r), err
 	}

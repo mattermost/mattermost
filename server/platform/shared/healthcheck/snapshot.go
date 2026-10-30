@@ -4,6 +4,7 @@
 package healthcheck
 
 import (
+	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -13,27 +14,26 @@ type Snapshot struct {
 	CollectedAt time.Time
 
 	Config  *model.SupportPacketConfig
-	License *model.License
 	Stats   *model.SupportPacketStats
 	Jobs    *model.SupportPacketJobList
 	Plugins *model.SupportPacketPluginList
 
 	nodes []*NodeSnapshot
 
-	Deployment Deployment
-	Version    VersionInfo
-	Sections   map[model.WorkspaceSection]error
-}
-
-type Deployment struct {
-	IsCloud bool
+	Version  VersionInfo
+	Sections map[model.WorkspaceSection]error
 }
 
 type VersionInfo struct {
-	Current         string
-	Latest          string
-	LatestFetchedAt time.Time
-	BuildDate       time.Time
+	Current   string
+	Latest    string
+	BuildDate time.Time
+}
+
+// NewSnapshot returns a snapshot over nodes. The node list is fixed at construction, so
+// Nodes() and Leader() are consistent for the snapshot's lifetime.
+func NewSnapshot(nodes []*NodeSnapshot) *Snapshot {
+	return &Snapshot{nodes: slices.Clone(nodes)}
 }
 
 func (s *Snapshot) Nodes() []*NodeSnapshot {
@@ -47,7 +47,11 @@ func (s *Snapshot) Nodes() []*NodeSnapshot {
 }
 
 func (s *Snapshot) Leader() (*NodeSnapshot, bool) {
-	for _, node := range s.Nodes() {
+	if s == nil {
+		return nil, false
+	}
+
+	for _, node := range s.nodes {
 		if node != nil && node.IsLeader {
 			return node, true
 		}

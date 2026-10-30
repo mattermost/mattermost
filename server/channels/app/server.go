@@ -137,6 +137,8 @@ type Server struct {
 	userService      *users.UserService
 	teamService      *teams.TeamService
 	propertyService  *properties.PropertyService
+	// propertyAccessControlHook is kept so tests can observe it.
+	propertyAccessControlHook *properties.AccessControlHook
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -186,6 +188,13 @@ func (s *Server) Store() store.Store {
 
 func (s *Server) PropertyService() *properties.PropertyService {
 	return s.propertyService
+}
+
+// SetPropertyNoCallerObserverForTests installs observer on the property
+// access control hook, so a test can check that the calls it makes reach the
+// hook with a caller ID. See AccessControlHook.SetNoCallerObserverForTests.
+func (s *Server) SetPropertyNoCallerObserverForTests(observer properties.NoCallerObserver) {
+	s.propertyAccessControlHook.SetNoCallerObserverForTests(observer)
 }
 
 func (s *Server) SetStore(st store.Store) {
@@ -280,7 +289,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Register builtin property groups before creating hooks that reference them
 	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
-		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2, SchemaVersion: model.AccessControlPropertyGroupSchemaVersion},
+		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV3, SchemaVersion: model.AccessControlPropertyGroupSchemaVersion},
 		{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 		{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2},
@@ -335,8 +344,25 @@ func NewServer(options ...Option) (*Server, error) {
 		return err == nil
 	}
 
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, cpaGroup.ID)
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
+		// Local-mode (unrestricted) sessions are tagged with
+		// CallerIDLocalAdmin by the HTTP layer; grant them without a
+		// user lookup, as permChecker below does for its own case. A value
+		// write to a field that is itself synced, owner-managed or
+		// protected is the exception: local mode was never let write those
+		// values, so there it is judged like any other caller. The field's
+		// own attrs decide, as they did before conversion, so a late-linked
+		// field carrying no copy of its template's sync link stays open.
+		if userID == model.CallerIDLocalAdmin {
+			if action != model.PropertyActionValueWrite ||
+				(!model.IsPropertyFieldSynced(field) && !model.HasPropertyFieldOwners(field) && !model.IsPropertyFieldProtected(field)) {
+				return true
+			}
+		}
+		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
+	}, app.propertyCallerRoles)
 	s.propertyService.AddHook(accessControlHook)
+	s.propertyAccessControlHook = accessControlHook
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
 	// field-type constraints on values (options, user IDs, value_type), and
@@ -366,6 +392,9 @@ func NewServer(options ...Option) (*Server, error) {
 			DirectChannelChecker: directChannelChecker,
 			RequiredAttributeEnforcement: func() bool {
 				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
+			},
+			OpenIDAttributeSync: func() bool {
+				return s.Config().FeatureFlags.OpenIdAttributeSync
 			},
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
@@ -408,6 +437,11 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "failed to look up session attributes property group")
 	}
 	s.propertyService.AddHook(properties.NewSessionAttributesHook(s.propertyService, saGroup.ID))
+
+	// Value shape validation for the field types core checks in every group
+	// (number, checkbox). A pre-hook, so its place in the chain does not matter
+	// beyond running before the store write.
+	s.propertyService.AddHook(properties.NewValueTypeValidationHook(s.propertyService))
 
 	// Type-change value cleanup — registered last so the field write has
 	// passed every other gate (license, access control, validation, limit)
@@ -561,20 +595,24 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
 
 	license := s.License()
-	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
+	allowAdvancedLogging := license.HasAdvancedLogging()
 
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
+		if collector := s.platform.LoggerMetricsCollector(); collector != nil {
+			s.Audit.SetMetricsCollector(collector, mlog.DefaultMetricsUpdateFreqMillis)
+		}
 		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}
 	}
+	s.platform.SetAuditLoggingActiveFunc(s.Audit.IsActive)
 
 	if cfg := s.platform.Config(); cfg.AccessControlSettings.EnableAccessControlAuditLogging != nil &&
 		*cfg.AccessControlSettings.EnableAccessControlAuditLogging &&
-		!config.IsAuditLoggingActive(cfg.ExperimentalAuditSettings, allowAdvancedLogging) {
-		mlog.Warn("AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled or configure an advanced audit logging target bound to an audit level.")
+		!s.Audit.IsActive() {
+		s.Log().Warn(accessControlAuditTargetMissingWarning)
 	}
 
 	s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
@@ -591,7 +629,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
-		s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
 	})
 
 	// Keep the push notification server in sync with the license's HPNS entitlement, and let a
@@ -1208,10 +1245,7 @@ func (s *Server) Start() error {
 	go func() {
 		var err error
 		if *s.platform.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
-			tlsConfig := &tls.Config{
-				PreferServerCipherSuites: true,
-				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-			}
+			tlsConfig := &tls.Config{}
 
 			switch *s.platform.Config().ServiceSettings.TLSMinVer {
 			case "1.0":
@@ -2067,6 +2101,15 @@ func runLeaderTasks(a *App) {
 		}
 		fn := func() { a.ProcessScheduledPosts(rctx) }
 		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
+	})
+
+	a.ch.healthCheckTask.runOnLeader(a, "Health Check", func() *model.ScheduledTask {
+		fn := func() {
+			if err := a.RunHealthCheck(rctx); err != nil {
+				a.Log().Error("Health check failed", mlog.Err(err))
+			}
+		}
+		return model.CreateRecurringTask("Health Check", fn, healthCheckInterval)
 	})
 }
 

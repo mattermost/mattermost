@@ -946,6 +946,22 @@ func (mr *MockClientMockRecorder) GetGroupsByTeam(ctx, teamID, groupOpts any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupsByTeam", reflect.TypeOf((*MockClient)(nil).GetGroupsByTeam), ctx, teamID, groupOpts)
 }
 
+// GetHealthFindings mocks base method.
+func (m *MockClient) GetHealthFindings(ctx context.Context, filter model.HealthFindingFilter) (*model.HealthFindingList, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHealthFindings", ctx, filter)
+	ret0, _ := ret[0].(*model.HealthFindingList)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetHealthFindings indicates an expected call of GetHealthFindings.
+func (mr *MockClientMockRecorder) GetHealthFindings(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthFindings", reflect.TypeOf((*MockClient)(nil).GetHealthFindings), ctx, filter)
+}
+
 // GetIncomingWebhook mocks base method.
 func (m *MockClient) GetIncomingWebhook(ctx context.Context, hookID, etag string) (*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()

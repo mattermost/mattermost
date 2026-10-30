@@ -45,7 +45,3 @@ editor open and you will copy what you find directly into code.
   a deprecation with no replacement.
 - `APPROVE` when a developer could integrate from this page without guessing.
 - `COMMENT` for end-user guides, deployment content, and pricing or positioning.
-
-Nothing under `docs/api/` reaches you — the reference there is generated from the OpenAPI
-spec, and the tree is out of review scope. When a page's real problem is a wrong or
-missing reference entry, say the fix belongs in `api/v4/source/`.

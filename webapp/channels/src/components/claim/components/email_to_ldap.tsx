@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import {emailToLdap} from 'actions/admin_actions';

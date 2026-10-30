@@ -1,0 +1,113 @@
+---
+title: "Migrate from Slack"
+sidebar_label: "Migrate from Slack"
+description: "How Slack Enterprise Grid capabilities map to Mattermost across collaboration, integrations, access controls, workflow automation, security, AI, and deployment — and how to get support for a successful migration."
+---
+
+Most of what your teams rely on in Slack has a home in Mattermost, and the migration path is well established. Organizations across defense, government, and regulated industries have already made this transition when they needed collaboration data under their own control.
+
+This page maps the functions you’re familiar with in Slack Enterprise Grid (commercial enterprise plan that most large organizations run) to their Mattermost equivalents. See how the daily work you do in Slack translates directly to Mattermost features and capabilities.
+
+<Note>
+
+Looking for step-by-step instructions? See the [Slack migration guide](/administration-guide/onboard/migrate-from-slack) for preparation, export, transformation, import and validation steps.
+
+</Note>
+
+## Capability mapping
+
+<div className="capability-map">
+
+| Category | Slack / Enterprise Grid |  | Mattermost / Enterprise Advanced |
+| --- | --- | :---: | --- |
+| [Collaboration Essentials](#collaboration-essentials) | **Grid workspaces**<br/>Workspaces, channels, DMs, group messages, and Huddles (audio/video) | **→** | **Multi-team collaboration**<br/>Teams, channels, DMs, group messages, and Calls with screen share |
+| [Integrations](#integrations) | **Commercial app marketplace**<br/>Org-level app management, webhooks, bots, and a large marketplace | **→** | **Plugins and open extensibility**<br/>Fully customizable plugins, webhooks, slash commands, bots, and APIs |
+| [Access Controls & Permissions](#access-controls--permissions) | **Enterprise identity and roles**<br/>RBAC, SAML SSO, and SCIM / directory sync | **→** | **Enterprise identity and Zero Trust access**<br/>Roles, team/channel permissions, ABAC, SAML, AD/LDAP, and MFA |
+| [Workflow Automation](#workflow-automation) | **Workflow Builder**<br/>Built-in automation and conditional workflows | **→** | **No-Code Automation and Playbooks**<br/>No-code automation integrations combined with Playbooks for digital checklists and repeatable processes  |
+| [Security & Compliance](#security--compliance) | **Enterprise security controls**<br/>Encryption, admin controls, retention, and eDiscovery options | **→** | **Enterprise-grade security you control**<br/>Full server logs, source auditability, and compliance-ready deployment patterns |
+| [AI / LLM](#ai--llm) | **Slack AI**<br/>Built-in AI features that run on Slack’s infrastructure | **→** | **Sovereign AI**<br/>Agents with bring-your-own LLM inside your infrastructure |
+| [Deployment](#deployment) | **Publicly hosted SaaS**<br/>Slack-hosted SAAS; no self-hosted option | **→** | **On-prem and private cloud**<br/>Deploy on-premises, in private cloud, or air-gapped behind your firewall |
+
+</div>
+
+## Collaboration Essentials
+
+Day-to-day collaboration maps to Mattermost whether your organization runs a single Slack workspace or Enterprise Grid. People keep working in public and private channels, threads, direct messages, group messages, and file sharing, plus [voice calls with screen sharing](/end-user-guide/collaborate/audio-and-screensharing). The channel-and-thread model stays familiar, and you gain control over where that data lives.
+
+Slack workspaces — including the multiple workspaces in Enterprise Grid — map to Mattermost teams. Channels, direct messages, and group messages live inside those teams the same way they do today, and shared channels across workspaces are mapped into that same team-and-channel model during planning. Migration tooling can bring over users, channels, message history, direct messages, threads, and files.
+
+Mattermost Calls cover audio and screen share. If video is part of how your teams work, start those meetings from Mattermost with [video conferencing integrations](/end-user-guide/collaborate/audio-and-screensharing#video-conferencing-integrations) such as Zoom, Microsoft Teams, Webex, and Pexip.
+
+## Integrations
+
+The integrations your teams rely on in Slack are available in Mattermost in various forms: pre-built plugins, webhooks, slash commands, bots, and APIs. The [Integrations Guide](/integrations-guide/integrations-guide-index) is the full picture, organized by how much coding each option takes. In short:
+
+- **Pre-built plugins:** Install [integrations](/integrations-guide/popular-integrations) such as Jira, GitHub, GitLab, and Zoom from the App Marketplace. No coding required.
+- **Webhooks:** [Incoming webhooks](/integrations-guide/incoming-webhooks) post messages from external apps into channels, and the payload format is [compatible with Slack](/integrations-guide/incoming-webhooks#slack-compatibility). [Outgoing webhooks](/integrations-guide/outgoing-webhooks) send channel activity to other systems.
+- **Slash commands:** Recreate [built-in](/integrations-guide/built-in-slash-commands) and [custom slash commands](/integrations-guide/slash-commands) in Mattermost. They do not migrate automatically. The Slack-compatible format can let you reuse parts of an existing integration when you set them up again.
+- **APIs and custom plugins:** The [REST API](/integrations-guide/restful-api) supports bots and custom automation. [Custom plugins](/integrations-guide/plugins) extend the server, desktop, and web apps.
+
+Multi-step no-code workflows can be built with platforms like n8n, Zapier, and Make.
+
+## Access Controls & Permissions
+
+Mattermost applies a [Zero Trust architecture](/security-guide/zero-trust) to identity and access. Permissions are evaluated continuously against your policies, including advanced attribute-based access control (ABAC), so access follows the person, the device, and the current context.
+
+Organizations coming from Enterprise Grid can keep the model they already run — role-based permissions, SAML SSO, and directory sync — and add policy-driven controls on top of it:
+
+- [Single sign-on](/administration-guide/onboard/sso-saml) and [AD/LDAP sync](/administration-guide/onboard/ad-ldap) keep accounts and group membership aligned with your identity provider, and revoke Mattermost access when a user is disabled in the directory.
+- [Multifactor authentication](/administration-guide/onboard/multi-factor-authentication) and session controls limit how long a verified login remains trusted.
+- [Advanced access controls](/administration-guide/manage/admin/attribute-based-access-control) combine role-based permissions with attribute-based access control (ABAC) policies. Team and channel membership is re-evaluated as attributes such as clearance, program affiliation, or role change.
+- [Guest accounts](/administration-guide/onboard/guest-accounts) give external partners least-privilege access limited to specific channels.
+
+[Zero Trust with Mattermost](/security-guide/zero-trust) covers the full picture across identity, devices, networks, applications, and data.
+
+## Workflow Automation
+
+Mattermost supports [no-code automation](/integrations-guide/no-code-automation) through platforms such as [n8n](https://n8n.io/integrations/mattermost/), [Zapier](https://zapier.com/apps/mattermost/integrations), and [Make](https://www.make.com/en/integrations/mattermost). These platforms connect Mattermost to the rest of your tools so you can create complex multi-app workflows without writing code. This is a powerful replacement for automations built in Slack Workflow Builder, including conditional workflows on Enterprise+ plans. 
+
+[Playbooks](/end-user-guide/workflow-automation/workflow-automation-index) cover repeatable work that stays in the channel: shared checklists, runs, and status updates for processes such as incident response and release management.
+
+## Security & Compliance
+
+Mattermost includes the security and compliance controls your teams need:
+
+- Full access to server logs, infrastructure changes, and user activity
+- Source code access for independent auditability
+- Deployment patterns that support [HIPAA](/security-guide/hipaa-compliance), [FINRA](/security-guide/finra-compliance), and FedRAMP-adjacent environments — including air-gapped and classified networks
+
+More detail: [Certifications and Compliance](/product-overview/certifications-and-compliance) and the [Federal Procurement FAQ](/product-overview/faq-federal-procurement).
+
+For regulated or classified environments, Professional Services has experience deploying into air-gapped, FedRAMP-adjacent, and compliance-sensitive setups — see [Services](https://mattermost.com/resources/help/services/).
+
+## AI / LLM
+
+Enterprise Grid includes Slack AI features that run on Slack’s infrastructure. Mattermost Agents support AI-assisted search, summarization, and workflows, with a [bring your own LLM model](/agents/docs/sovereign_ai) so prompts and conversation data stay inside your environment.
+
+## Deployment
+
+Mattermost runs in an environment you control: on-premises, private cloud, or [air-gapped](/deployment-guide/deployment-scenarios/air-gapped-deployment). Your IT team (or a partner) deploys and maintains it. For organizations that need that control for security, compliance, or data sovereignty, this is often the driver of the move.
+
+Slack Enterprise Grid is managed SaaS. Nothing to install or maintain — you trust Slack’s infrastructure.
+
+## Next steps
+
+You're not expected to figure it out alone. Mattermost's [Professional Services](https://mattermost.com/resources/help/services/) team works alongside your team to plan and execute your migration.
+
+<CardGrid columns={3} cards={[
+  {
+    title: 'Talk to an expert',
+    description: 'Whether you need to map out your migration options or discuss a deployment plan, start with a conversation to explore what’s possible.',
+    to: 'https://mattermost.com/contact-sales/',
+  },
+  {
+    title: 'Professional services',
+    description: 'Get support for complex migrations, deployment, and integration help from our Professional Services team.',
+    to: 'https://mattermost.com/resources/help/services/',
+  },
+  {
+    title: 'Slack migration guide',
+    description: 'Preparation, export, transformation, import, and validation steps for teams ready to execute.',
+    to: '/administration-guide/onboard/migrate-from-slack',
+  },
+]} />

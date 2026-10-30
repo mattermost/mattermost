@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {upsertStickyComment} from './github.mjs';
+import {addLabel, issueLabels, removeLabel, upsertStickyComment} from './github.mjs';
 
 const MARKER = '<!-- docs-ai-review:v1 -->';
 const REPO = 'mattermost/mattermost';
@@ -99,6 +99,19 @@ test('a marker planted by a human is skipped on every page', async () => {
   assert.deepEqual(result, {action: 'updated', id: 500});
 });
 
+test('a marker planted by a different bot is skipped', async () => {
+  const planted = {
+    id: 3,
+    body: `${MARKER} overwrite me`,
+    user: {type: 'Bot', login: 'some-other[bot]'},
+  };
+  const s = stub([[planted, bot(500)]]);
+
+  const result = await upsertStickyComment(REPO, PR, {marker: MARKER, body: 'fresh', request: s.request});
+
+  assert.deepEqual(result, {action: 'updated', id: 500});
+});
+
 test('a human marker alone yields a new comment rather than an edit', async () => {
   const planted = {id: 3, body: `${MARKER} overwrite me`, user: {type: 'User', login: 'attacker'}};
   const s = stub([[human(1), planted]]);
@@ -115,4 +128,47 @@ test('comments without a body do not throw', async () => {
   const result = await upsertStickyComment(REPO, PR, {marker: MARKER, body: 'fresh', request: s.request});
 
   assert.deepEqual(result, {action: 'updated', id: 3});
+});
+
+test('labels come back as bare names', async () => {
+  const request = async () => [{name: 'Docs/Needed', color: 'ededed'}, {name: 'release-note-none'}];
+
+  assert.deepEqual(await issueLabels(REPO, PR, {request}), ['Docs/Needed', 'release-note-none']);
+});
+
+test('adding a label posts one name', async () => {
+  const calls = [];
+  const request = async (path, opts) => calls.push({path, ...opts});
+
+  await addLabel(REPO, PR, 'Docs/Needed', {request});
+
+  assert.deepEqual(calls, [
+    {path: `/repos/${REPO}/issues/${PR}/labels`, method: 'POST', body: {labels: ['Docs/Needed']}},
+  ]);
+});
+
+test('a label name with a slash is encoded into the delete path', async () => {
+  // Unencoded, the slash reads as another path segment and the delete misses.
+  const calls = [];
+  const request = async (path, opts) => calls.push({path, ...opts});
+
+  await removeLabel(REPO, PR, 'Docs/Needed', {request});
+
+  assert.deepEqual(calls, [{path: `/repos/${REPO}/issues/${PR}/labels/Docs%2FNeeded`, method: 'DELETE'}]);
+});
+
+test('removing a label a human already removed is not an error', async () => {
+  const request = async () => {
+    throw new Error(`GitHub DELETE /x -> 404: {"message":"Label does not exist"}`);
+  };
+
+  await removeLabel(REPO, PR, 'Docs/Needed', {request});
+});
+
+test('any other failure to remove a label still throws', async () => {
+  const request = async () => {
+    throw new Error(`GitHub DELETE /x -> 403: {"message":"Resource not accessible"}`);
+  };
+
+  await assert.rejects(() => removeLabel(REPO, PR, 'Docs/Needed', {request}), /403/);
 });

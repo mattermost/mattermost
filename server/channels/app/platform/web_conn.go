@@ -98,7 +98,7 @@ type WebConn struct {
 	PostedAck         bool
 	DisconnectErrCode string
 
-	allChannelMembers         map[string]string
+	allChannelMembers         channelSet
 	lastAllChannelMembersTime int64
 	lastUserActivityAt        int64
 	send                      chan model.WebSocketMessage
@@ -121,7 +121,7 @@ type WebConn struct {
 	// leave that as an edge-case.
 	reuseCount   int
 	sessionToken atomic.Value
-	session      atomic.Pointer[model.Session]
+	session      atomic.Pointer[webConnSession]
 	connectionID atomic.Value
 
 	// The client type behind the connection (i.e. web, desktop or mobile)
@@ -389,18 +389,63 @@ func (wc *WebConn) isSet(val string) bool {
 	return val != UnsetPresenceIndicator
 }
 
-// GetSession returns the session of the connection.
+// webConnSession bundles the connection's session with the values that are derived
+// from it and needed on every broadcast: the parsed role names and a request context
+// carrying the session. They are computed once in SetSession instead of on every
+// ShouldSendEvent call, which keeps the hub's per-connection filtering allocation-free.
+// A bundle is immutable once stored; SetSession replaces it as a whole.
+type webConnSession struct {
+	session *model.Session
+	// roles is session.GetUserRoles(), split once.
+	roles []string
+	// rctx is request.EmptyContext(logger).WithSession(session), built once.
+	// request.Context is immutable (every With* method clones), so sharing it
+	// across calls and goroutines is safe. It is shared by the hub goroutine
+	// (ShouldSendEvent) and the readPump goroutine (IsAuthenticated) for the life
+	// of the session, and its Session() returns an interior pointer into it, so
+	// callees must treat rctx.Session() as read-only.
+	rctx request.CTX
+}
+
+// GetSession returns the session of the connection. The returned session must not
+// be mutated: it is a copy taken at SetSession time and is shared with the cached
+// request context, so a write here would diverge from what Suite.MFARequired sees.
 func (wc *WebConn) GetSession() *model.Session {
-	return wc.session.Load()
+	if s := wc.session.Load(); s != nil {
+		return s.session
+	}
+	return nil
 }
 
 // SetSession sets the session of the connection.
-func (wc *WebConn) SetSession(v *model.Session) {
-	if v != nil {
-		v = v.DeepCopy()
+func (wc *WebConn) SetSession(s *model.Session) {
+	if s == nil {
+		wc.session.Store(nil)
+		return
 	}
 
-	wc.session.Store(v)
+	s = s.DeepCopy()
+
+	var logger mlog.LoggerIFace
+	if wc.Platform != nil {
+		logger = wc.Platform.logger
+	}
+
+	wc.session.Store(&webConnSession{
+		session: s,
+		roles:   s.GetUserRoles(),
+		rctx:    request.EmptyContext(logger).WithSession(s),
+	})
+}
+
+// getSessionRoles returns the role names of the connection's session, parsed once at SetSession time.
+// The slice is handed read-only to Suite.RolesGrantPermission on every call; implementations
+// must not sort or append to it in place.
+func (wc *WebConn) getSessionRoles() []string {
+	if s := wc.session.Load(); s != nil {
+		return s.roles
+	}
+	return nil
 }
 
 // Pump starts the WebConn instance. After this, the websocket
@@ -810,14 +855,21 @@ func (wc *WebConn) IsBasicAuthenticated() bool {
 	return true
 }
 
+// getRCtx returns the request context built in SetSession, or an empty one when there is no
+// session. IsMFAAuthenticated runs for every broadcast event on every connection, and building
+// a context there would allocate on each call.
+func (wc *WebConn) getRCtx() request.CTX {
+	if s := wc.session.Load(); s != nil {
+		return s.rctx
+	}
+	return request.EmptyContext(wc.Platform.logger).WithSession(nil)
+}
+
 // IsMFAAuthenticated returns whether the user has completed MFA when required.
 func (wc *WebConn) IsMFAAuthenticated() bool {
-	session := wc.GetSession()
-	c := request.EmptyContext(wc.Platform.logger).WithSession(session)
-
 	// Check if MFA is required and user has NOT completed MFA
 	// WebSocket connections are established via an HTTP GET upgrade request.
-	if appErr := wc.Suite.MFARequired(c, http.MethodGet); appErr != nil {
+	if appErr := wc.Suite.MFARequired(wc.getRCtx(), http.MethodGet); appErr != nil {
 		return false
 	}
 
@@ -884,8 +936,10 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	return canSee
 }
 
-// ShouldSendEvent returns whether the message should be sent or not.
-func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
+// ShouldSendEvent returns whether the message should be sent or not. channelKey
+// is the event's channel ID decoded by model.DecodeId; the hub decodes it once
+// per broadcast and drops events whose ID does not decode.
+func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byte) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session and completed MFA
 	if !wc.IsAuthenticated() {
 		return false
@@ -923,7 +977,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
-	sessionRoles := wc.GetSession().GetUserRoles()
+	sessionRoles := wc.getSessionRoles()
 	sessionHasPermission := func(permissionId string) bool {
 		if permissionId == model.PermissionManageSystem.Id {
 			// Cache the manage_system lookup because multiple broadcast filters can require it.
@@ -1015,14 +1069,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false
 			}
-			wc.allChannelMembers = result
+			wc.allChannelMembers = newChannelSet(result)
 			wc.lastAllChannelMembersTime = model.GetMillis()
 		}
 
-		if _, ok := wc.allChannelMembers[chID]; ok {
-			return true
-		}
-		return false
+		return wc.allChannelMembers.has(channelKey)
 	}
 
 	// Only report events to users who are in the team for the event

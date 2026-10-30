@@ -5,7 +5,7 @@ import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
@@ -58,20 +58,17 @@ export default function EmojiPage({
                     />
                 </h1>
                 <AnyTeamPermissionGate permissions={CREATE_EMOJIS_PERMISSIONS}>
-                    <Link
-                        className='add-link'
-                        to={'/' + teamName + '/emoji/add'}
+                    <Button
+                        asChild={true}
+                        emphasis='primary'
                     >
-                        <Button
-                            type='button'
-                            emphasis='primary'
-                        >
+                        <Link to={'/' + teamName + '/emoji/add'}>
                             <FormattedMessage
                                 id='emoji_list.add'
                                 defaultMessage='Add Custom Emoji'
                             />
-                        </Button>
-                    </Link>
+                        </Link>
+                    </Button>
                 </AnyTeamPermissionGate>
             </div>
             <EmojiList scrollToTop={scrollToTop}/>
