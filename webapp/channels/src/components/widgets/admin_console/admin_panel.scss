@@ -50,7 +50,9 @@
             align-self: flex-end;
             margin-left: 10px;
 
-            svg {
+            // Only the accordion toggle (a bare svg in a span) rotates. Targeting every svg
+            // would override the translate that centres compass-ui Icon glyphs in a Button.
+            > span > svg {
                 transform: rotate(0deg);
                 transition: transform 300ms;
             }
@@ -60,7 +62,7 @@
     &.closed {
         .header {
             .button {
-                svg {
+                > span > svg {
                     transform: rotate(90deg);
                     transition: transform 300ms;
                 }

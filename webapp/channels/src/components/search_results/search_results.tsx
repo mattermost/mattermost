@@ -16,7 +16,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
-import {getSearchTeam} from 'selectors/rhs';
+import {getExplicitSearchTeam, getMentionFilters, getSearchTeam} from 'selectors/rhs';
 
 import Scrollbars from 'components/common/scrollbars';
 import FileSearchResultItem from 'components/file_search_results';
@@ -32,11 +32,13 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
 import {canSearchFiles} from 'utils/file_utils';
+import {hasMentionFilters, mentionFiltersToSearchParams} from 'utils/mention_search';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 
 import type {RhsState, SearchType} from 'types/store/rhs';
 
 import FilesFilterMenu from './files_filter_menu';
+import MentionFiltersButton, {MentionFilterChips} from './mention_filters';
 import MessageOrFileSelector from './messages_or_files_selector';
 import PostSearchResultsItem from './post_search_results_item';
 import SearchLimitsBanner from './search_limits_banner';
@@ -81,6 +83,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const currentChannel = useSelector(getCurrentChannel);
     const currentTeam = useSelector(getCurrentTeam);
     const searchTeamId = useSelector(getSearchTeam);
+    const explicitSearchTeamId = useSelector(getExplicitSearchTeam);
+    const mentionFilters = useSelector(getMentionFilters);
     const intl = useIntl();
 
     useEffect(() => {
@@ -196,7 +200,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     };
 
     if (isMentionSearch) {
-        noResultsProps.variant = NoResultsVariant.Mentions;
+        noResultsProps.variant = hasMentionFilters(mentionFilters, explicitSearchTeamId) ? NoResultsVariant.MentionsFiltered : NoResultsVariant.Mentions;
 
         titleDescriptor = defineMessage({
             id: 'search_header.title2',
@@ -286,6 +290,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         const needsChannel = isPinnedPosts || isChannelFiles;
         const popoutTitle = getSearchPopoutTitle(mode);
 
+        // Recent mentions search every team unless the panel was scoped to one, so the popout is
+        // told the team the search actually ran against rather than the team being looked at, and
+        // is handed the filters it has no other way of knowing about.
         popoutRhsSearch(
             intl.formatMessage(popoutTitle, {serverName: '{serverName}', channelName: '{channelName}', searchTerms}),
             currentTeam?.name ?? '',
@@ -293,9 +300,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             mode,
             searchType as SearchType,
             needsChannel ? currentChannel?.name : undefined,
-            searchTeamId,
+            isMentionSearch ? (explicitSearchTeamId ?? '') : searchTeamId,
+            isMentionSearch ? mentionFiltersToSearchParams(mentionFilters) : undefined,
         );
-    }, [isMentionSearch, isFlaggedPosts, isPinnedPosts, isChannelFiles, intl, searchTerms, searchType, currentTeam?.name, currentChannel?.name, searchTeamId]);
+    }, [isMentionSearch, isFlaggedPosts, isPinnedPosts, isChannelFiles, intl, searchTerms, searchType, currentTeam?.name, currentChannel?.name, searchTeamId, explicitSearchTeamId, mentionFilters]);
 
     switch (true) {
     case isLoading:
@@ -411,8 +419,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 <h2 id='rhsPanelTitle'>
                     {formattedTitle}
                 </h2>
+                {isMentionSearch && <MentionFiltersButton/>}
                 {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
             </SearchResultsHeader>
+            {isMentionSearch && <MentionFilterChips/>}
             {isMessagesSearch &&
                 <MessageOrFileSelector
                     selected={searchType}

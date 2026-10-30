@@ -5,8 +5,11 @@ import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {LinkVariantIcon, LinkVariantOffIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
-import {Button} from '@mattermost/shared/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {Button as SharedButton} from '@mattermost/shared/components/button';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -164,8 +167,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     emphasis='primary'
                     onClick={() => this.linkSelectedGroups()}
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantIcon/>}/>}
                 >
-                    <i className='icon fa fa-link'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
@@ -179,8 +182,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     emphasis='primary'
                     onClick={() => this.unlinkSelectedGroups()}
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantOffIcon/>}/>}
                 >
-                    <i className='icon fa fa-unlink'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.unlink_selected'
                         defaultMessage='Unlink Selected Groups'
@@ -193,8 +196,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     type='button'
                     emphasis='primary'
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantIcon/>}/>}
                 >
-                    <i className='icon icon-link-variant'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
@@ -512,24 +515,28 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <Button
+                        <SharedButton
                             type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: firstPage})}
+                            emphasis='quaternary'
+                            size='sm'
+                            className={classNames('btn-icon ml-2', 'prev', {disabled: firstPage})}
                             onClick={(e: any) => this.previousPage(e)}
                             disabled={firstPage}
+                            data-testid='page-link-prev'
                         >
                             <PreviousIcon/>
-                        </Button>
-                        <Button
+                        </SharedButton>
+                        <SharedButton
                             type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: lastPage})}
+                            emphasis='quaternary'
+                            size='sm'
+                            className={classNames('btn-icon', 'next', {disabled: lastPage})}
                             onClick={(e: any) => this.nextPage(e)}
                             disabled={lastPage}
+                            data-testid='page-link-next'
                         >
                             <NextIcon/>
-                        </Button>
+                        </SharedButton>
                     </div>
                 }
             </div>

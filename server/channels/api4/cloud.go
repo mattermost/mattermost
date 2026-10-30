@@ -23,11 +23,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/limits", api.APISessionRequired(getCloudLimits)).Methods(http.MethodGet)
 
 	// GET /api/v4/cloud/customer
-	// PUT /api/v4/cloud/customer
-	// PUT /api/v4/cloud/customer/address
 	api.BaseRoutes.Cloud.Handle("/customer", api.APISessionRequired(getCloudCustomer)).Methods(http.MethodGet)
-	api.BaseRoutes.Cloud.Handle("/customer", api.APISessionRequired(updateCloudCustomer)).Methods(http.MethodPut)
-	api.BaseRoutes.Cloud.Handle("/customer/address", api.APISessionRequired(updateCloudCustomerAddress)).Methods(http.MethodPut)
 
 	// GET /api/v4/cloud/subscription
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods(http.MethodGet)
@@ -373,96 +369,6 @@ func getInstallation(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(installation); err != nil {
 		c.Err = model.NewAppError("Api4.getInstallation", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
-	}
-}
-
-func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
-	ensured := ensureCloudInterface(c, "Api4.updateCloudCustomer")
-	if !ensured {
-		return
-	}
-
-	if !c.App.Channels().License().IsCloud() {
-		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
-		return
-	}
-
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	var customerInfo *model.CloudCustomerInfo
-	if err = json.Unmarshal(bodyBytes, &customerInfo); err != nil || customerInfo == nil {
-		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	customer, appErr := c.App.Cloud().UpdateCloudCustomer(c.AppContext.Session().UserId, customerInfo)
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-		return
-	}
-
-	json, err := json.Marshal(customer)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(json); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Request) {
-	ensured := ensureCloudInterface(c, "Api4.updateCloudCustomerAddress")
-	if !ensured {
-		return
-	}
-
-	if !c.App.Channels().License().IsCloud() {
-		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
-		return
-	}
-
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	var address *model.Address
-	if err = json.Unmarshal(bodyBytes, &address); err != nil || address == nil {
-		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	customer, appErr := c.App.Cloud().UpdateCloudCustomerAddress(c.AppContext.Session().UserId, address)
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-		return
-	}
-
-	json, err := json.Marshal(customer)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(json); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
