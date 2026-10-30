@@ -75,6 +75,7 @@ func TestThreadReplyStatsQueryPlan(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
+	t.Cleanup(func() { storetest.CleanupSqlSettings(settings) })
 
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
