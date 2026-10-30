@@ -16,3 +16,16 @@ updates:
       interval: "weekly"
     cooldown:
       default-days: 15  # 15 days of cooldown for dependency updates (only version updates)
+  - package-ecosystem: docker
+    directory: /server/build
+    open-pull-requests-limit: 3
+    schedule:
+      day: monday
+      time: "09:00"
+      interval: weekly
+      timezone: Etc/UTC
+    cooldown:
+      default-days: 15
+    commit-message:
+      prefix: chore
+      include: scope
