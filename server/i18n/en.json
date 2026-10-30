@@ -10326,6 +10326,11 @@
     "description": "API error for admins when restoring rank-comparison operators in an access control policy expression fails; technical failure, not user mistake."
   },
   {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Only a System Admin can change membership rules that use advanced logic. Edit them in the System Console.",
+    "description": "API error when a team or channel admin tries to save, or replace, a membership rule that can only be edited in the System Console's Advanced (CEL) editor."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy.",
     "description": "Generic API error shown to system admins when saving an attribute-based access control policy fails."
@@ -10349,6 +10354,16 @@
     "id": "app.pap.save_policy.masked_token_in_expression",
     "translation": "The policy expression contains a placeholder value that could not be resolved. Please reload the policy and try again.",
     "description": "API error when a saved access control policy expression still contains an unresolved masked-value placeholder; asks the admin to reload the policy and retry."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "This membership rule uses an expression that membership sync cannot evaluate. Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
+    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule uses allowed functions in a shape that cannot be converted to the database query used by membership sync (for example has()). Without this error the rule would be stored but never add or remove members."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "This membership rule uses {{.Function}}, which membership sync cannot evaluate. Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
+    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule uses an operator or function that only works outside membership sync. {{.Function}} is the operator or function name, for example \"the conditional operator (?:)\" or \"inCIDR\"."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",

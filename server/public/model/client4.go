@@ -8476,11 +8476,23 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 }
 
 func (c *Client4) CheckExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, false, channelId...)
+}
+
+// CheckMembershipExpression is CheckExpression for a membership rule: it also
+// rejects what the membership sync can't evaluate.
+func (c *Client4) CheckMembershipExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, true, channelId...)
+}
+
+func (c *Client4) checkExpression(ctx context.Context, expression string, membership bool, channelId ...string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
+		Membership bool   `json:"membership,omitempty"`
 	}{
 		Expression: expression,
+		Membership: membership,
 	}
 	if len(channelId) > 0 && channelId[0] != "" {
 		checkExpressionRequest.ChannelId = channelId[0]
