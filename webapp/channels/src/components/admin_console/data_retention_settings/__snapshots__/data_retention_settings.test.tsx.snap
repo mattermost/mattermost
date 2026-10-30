@@ -209,8 +209,9 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 class="_admin-panel-header__actions_19tix_75"
               >
                 <button
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 disabled"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                   data-testid="run-deletion-job-now"
+                  disabled=""
                   type="button"
                 >
                   <span

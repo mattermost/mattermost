@@ -761,6 +761,7 @@ function PermissionPolicyDetails({
                                     button={
                                         <Button
                                             emphasis='primary'
+                                            destructive={true}
                                             onClick={() => setShowDeleteConfirmationModal(true)}
                                         >
                                             <FormattedMessage {...panelMessages.deleteButton}/>
