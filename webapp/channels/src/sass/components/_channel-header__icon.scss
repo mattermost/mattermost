@@ -8,7 +8,6 @@
     height: 32px;
     align-items: center;
     justify-content: center;
-    padding: 0;
     border: none;
     border-radius: 4px;
     margin: 0 0 0 4px;
@@ -17,6 +16,11 @@
     cursor: pointer;
     fill: rgba(var(--center-channel-color-rgb), 0.64);
     text-align: center;
+
+    // Wide IconButtons (icon + count) get their padding from Compass --has-count.
+    &:not(.channel-header__icon--wide) {
+        padding: 0;
+    }
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
