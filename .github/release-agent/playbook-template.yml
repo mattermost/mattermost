@@ -11,8 +11,7 @@ checklists:
       - title: Check that Hub was updated to the latest release branch.
   - title: (T-16) Feature Complete
     items:
-      - title: Post a list of outstanding release bugs and PRs to the release playbook channel (done by the release agent).
-      - title: Label approved cherry-pick PRs.
+      - title: Post a list of outstanding release bugs and PRs to the release playbook channel. Label approved cherry-pick PRs.
       - title: Ensure that all Resolved tickets for the release get Closed.
       - title: Fill in the QA feature tracking spreadsheet with all Epics and Story tickets in Resolved status.
       - title: Run the workflow to create a changelog draft.

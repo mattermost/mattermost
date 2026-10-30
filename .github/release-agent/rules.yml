@@ -65,10 +65,11 @@ rules:
   # the run's channel at Feature Complete; the post keeps it up to date every run after.
   # Each person is @-mentioned once with their tickets. Unassigned tickets and the bot's are
   # routed to the dev lead of the ticket's first component in dev_leads, else listed under
-  # Unassigned. Submitted tickets show their linked PRs.
+  # Unassigned. Submitted tickets show their linked PRs. The item's cherry-pick half is done by
+  # release-cherry-pick-labels.yml, which labels PRs as their tickets reach Submitted.
   - task: open-release-items
     title: Open release bugs and PRs
-    playbook_item: Post a list of outstanding release bugs and PRs to the release playbook channel (done by the release agent).
+    playbook_item: Post a list of outstanding release bugs and PRs to the release playbook channel. Label approved cherry-pick PRs.
     # Runs started before the playbook text changed still have this title.
     former_playbook_items:
       - Post a list of outstanding release bugs and PRs to the release playbook channel using /release-bugs vX.X in Claude Cowork.
