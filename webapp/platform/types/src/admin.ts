@@ -13,26 +13,38 @@ import type {Team} from './teams';
 import type {UserAccessToken, UserProfile} from './users';
 import type {RelationOneToOne, IDMappedObjects} from './utilities';
 
+// The levels the server writes to its log file
 export enum LogLevelEnum {
-    SILLY = 'silly',
-    DEBUG = 'debug',
-    INFO = 'info',
-    WARN = 'warn',
+    PANIC = 'panic',
+    FATAL = 'fatal',
+    CRITICAL = 'critical',
     ERROR = 'error',
+    WARN = 'warn',
+    INFO = 'info',
+    STDLOG = 'stdlog',
+    DEBUG = 'debug',
+    TRACE = 'trace',
+
+    /** @deprecated The server never logs this level. */
+    SILLY = 'silly',
 }
 
 export type LogServerNames = string[];
 export type LogLevels = LogLevelEnum[];
-export type LogDateFrom = string; // epoch
-export type LogDateTo = string; // epoch
+
+// "YYYY-MM-DD HH:mm:ss.SSS ±hh:mm", the server's LogFilterDateLayout. Empty leaves the range open.
+export type LogDateFrom = string;
+export type LogDateTo = string;
 
 export type LogObject = {
     caller: string;
-    job_id: string;
     level: LogLevelEnum;
     msg: string;
     timestamp: string;
-    worker: string;
+
+    // Only on entries logged by background jobs
+    job_id?: string;
+    worker?: string;
 };
 
 // The node an entry came from. A symbol, so it can't clash with a field the server logged
@@ -43,11 +55,17 @@ export type LogObjectWithNode = LogObject & {
     [LogNodeKey]: string;
 };
 
+// The POST /logs/query response: each node's entries, keyed by node name
+export type LogsByNode = Record<string, LogObject[]>;
+
 export type LogFilter = {
     serverNames: LogServerNames;
     logLevels: LogLevels;
     dateFrom: LogDateFrom;
     dateTo: LogDateTo;
+
+    // Matched case-insensitively against every field except level and timestamp
+    search?: string;
 };
 
 export type LogFilterQuery = {
@@ -55,10 +73,11 @@ export type LogFilterQuery = {
     log_levels: LogLevels;
     date_from: LogDateFrom;
     date_to: LogDateTo;
+    search?: string;
 };
 
 export type AdminState = {
-    logs: LogObject[];
+    logs: LogsByNode;
     plainLogs: string[];
     audits: Record<string, Audit>;
     config: Partial<AdminConfig>;

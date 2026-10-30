@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/logr/v2"
@@ -136,6 +138,7 @@ const logDateFromStopEntries = 100
 
 func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	var lines []string
+	search := newLogSearch(logFilter)
 
 	if *ps.Config().LogSettings.EnableFile {
 		ps.Log().Flush()
@@ -198,7 +201,12 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 				continue
 			}
 
-			filtered := false
+			// A line that can't hold the search term needs no decoding, unless the date scan counts it
+			filtered := search.rejectsRaw(line)
+			if filtered && !hasDateFrom {
+				continue
+			}
+
 			var entry *model.LogEntry
 			err = json.Unmarshal(line, &entry)
 			if err != nil || entry == nil {
@@ -220,6 +228,7 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 				filtered = isLogFilteredByLevel(logFilter, entry) || filtered
 				filtered = isLogFilteredByDate(rctx, logFilter, entry) || filtered
 			}
+			filtered = filtered || isLogFilteredBySearch(search, line)
 
 			if !filtered {
 				lines = append(lines, string(line))
@@ -443,6 +452,103 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 	}
 	if timestamp.After(dateFrom) && timestamp.Before(dateTo) {
 		return false
+	}
+
+	return true
+}
+
+// logSearch is a LogFilter's search term, lowercased once for every line a query scans.
+type logSearch struct {
+	term []byte
+
+	// The longest part of the term that the log encoders never escape. A line whose raw bytes
+	// don't contain it can't contain the term in any value either.
+	raw []byte
+}
+
+func newLogSearch(logFilter *model.LogFilter) *logSearch {
+	if logFilter == nil || logFilter.Search == "" {
+		return nil
+	}
+
+	term := strings.ToLower(logFilter.Search)
+	var raw string
+	for part := range strings.FieldsFuncSeq(term, func(r rune) bool {
+		return r < 0x20 || strings.ContainsRune("\"\\<>&\u2028\u2029", r)
+	}) {
+		if len(part) > len(raw) {
+			raw = part
+		}
+	}
+
+	return &logSearch{term: []byte(term), raw: []byte(raw)}
+}
+
+// rejectsRaw reports whether the line's raw bytes show it can't contain the term.
+func (s *logSearch) rejectsRaw(line []byte) bool {
+	return s != nil && len(s.raw) > 0 && !containsFold(line, s.raw)
+}
+
+// containsFold reports whether b, lowercased, contains the lowercased term.
+func containsFold(b, term []byte) bool {
+	if !isASCII(b) {
+		return bytes.Contains(bytes.ToLower(b), term)
+	}
+
+	// ASCII lowercases byte by byte, so comparing in place gives the same result without a copy
+	for i := 0; i+len(term) <= len(b); i++ {
+		j := 0
+		for j < len(term) && toLowerASCII(b[i+j]) == term[j] {
+			j++
+		}
+		if j == len(term) {
+			return true
+		}
+	}
+	return false
+}
+
+func isASCII(b []byte) bool {
+	for _, c := range b {
+		if c >= utf8.RuneSelf {
+			return false
+		}
+	}
+	return true
+}
+
+func toLowerASCII(c byte) byte {
+	if 'A' <= c && c <= 'Z' {
+		return c + ('a' - 'A')
+	}
+	return c
+}
+
+// isLogFilteredBySearch reports whether no value except level and timestamp contains the search
+// term. Values that aren't strings are compared as their JSON.
+func isLogFilteredBySearch(search *logSearch, line []byte) bool {
+	if search == nil {
+		return false
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(line, &fields); err != nil {
+		return true
+	}
+
+	for key, raw := range fields {
+		if key == "level" || key == "timestamp" {
+			continue
+		}
+
+		value := []byte(raw)
+		var s string
+		if len(raw) > 0 && raw[0] == '"' && json.Unmarshal(raw, &s) == nil {
+			value = []byte(s)
+		}
+		if containsFold(value, search.term) {
+			return false
+		}
 	}
 
 	return true

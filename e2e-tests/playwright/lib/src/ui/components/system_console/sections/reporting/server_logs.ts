@@ -22,6 +22,8 @@ export default class ServerLogs {
     // Filter row selectors
     readonly logFormatMenuButton: Locator;
     readonly logFormatValue: Locator;
+    readonly nodeMenuButton: Locator;
+    readonly nodeValue: Locator;
     readonly levelsMenuButton: Locator;
     readonly durationMenuButton: Locator;
     readonly durationValue: Locator;
@@ -34,6 +36,7 @@ export default class ServerLogs {
     readonly list: Locator;
     readonly rows: Locator;
     readonly reloadButton: Locator;
+    readonly truncationNotice: Locator;
 
     // Plain text viewer
     readonly lineNumbersButton: Locator;
@@ -43,6 +46,8 @@ export default class ServerLogs {
 
         this.logFormatMenuButton = container.getByLabel('Open menu to select the log format');
         this.logFormatValue = container.getByLabel('Log format', {exact: true});
+        this.nodeMenuButton = container.getByLabel('Open menu to select a node');
+        this.nodeValue = container.getByLabel('Node', {exact: true});
         this.levelsMenuButton = container.getByLabel('Open menu to select which log levels to show');
         this.durationMenuButton = container.getByLabel('Open menu to select a time range');
         this.durationValue = container.getByLabel('Duration', {exact: true});
@@ -54,6 +59,7 @@ export default class ServerLogs {
         this.list = container.getByRole('list', {name: 'Server log entries'});
         this.rows = this.list.getByRole('listitem');
         this.reloadButton = container.getByRole('button', {name: 'Reload'});
+        this.truncationNotice = container.getByText(/^Only the latest [\d,]+ entries/);
 
         this.lineNumbersButton = container.getByRole('button', {name: 'Lines'});
     }
@@ -71,6 +77,14 @@ export default class ServerLogs {
         return this.rows.filter({hasText: text});
     }
 
+    /**
+     * The level badge of a row. It shows the entry's own level, e.g. 'Error' or 'fatal', and
+     * has no role or label to locate it by.
+     */
+    levelBadge(row: Locator): Locator {
+        return row.locator('.LogRow__level');
+    }
+
     async search(term: string) {
         await this.searchInput.fill(term);
     }
@@ -82,6 +96,24 @@ export default class ServerLogs {
     async selectLiveTailInterval(interval: string) {
         await this.liveTailMenuButton.click();
         await this.page().getByRole('menuitemradio', {name: interval}).click();
+    }
+
+    /**
+     * Show a single node, or 'All nodes'. The node menu is only shown on a cluster.
+     */
+    async selectNode(node: string) {
+        await this.nodeMenuButton.click();
+        await this.page().getByRole('menuitemradio', {name: node, exact: true}).click();
+    }
+
+    /**
+     * Check or uncheck a level in the levels menu, e.g. 'Debug', then close the menu.
+     * Each item's name also holds its checkbox icon and entry count, so it is matched by text.
+     */
+    async toggleLevel(level: string) {
+        await this.levelsMenuButton.click();
+        await this.page().getByRole('menuitemcheckbox').filter({hasText: level}).click();
+        await this.page().keyboard.press('Escape');
     }
 
     /**

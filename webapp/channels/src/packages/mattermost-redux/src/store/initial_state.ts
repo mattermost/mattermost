@@ -123,7 +123,7 @@ const state: GlobalState = {
             accounts: {},
         },
         admin: {
-            logs: [],
+            logs: {},
             plainLogs: [],
             audits: {},
             config: {},

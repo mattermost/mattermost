@@ -18182,6 +18182,11 @@
     "description": "API error (400) returned to a system admin filtering server logs in the System Console when the end-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
   },
   {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Invalid search filter. It must be at most {{.MaxLength}} characters.",
+    "description": "API error (400) returned to a system admin searching server logs in the System Console when the search term is too long. {{.MaxLength}} is the maximum number of characters."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Channel name is not valid",
     "description": "API error returned when a member invitation includes a channel ID with an invalid format; 'Channel name' refers to a chat channel identifier."

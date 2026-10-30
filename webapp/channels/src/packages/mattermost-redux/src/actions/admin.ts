@@ -35,12 +35,13 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter) {
+export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo, search = ''}: LogFilter) {
     const logFilter = {
         server_names: serverNames,
         log_levels: logLevels,
         date_from: dateFrom,
         date_to: dateTo,
+        search,
     };
     return bindClientFunc({
         clientFunc: Client4.getLogs,

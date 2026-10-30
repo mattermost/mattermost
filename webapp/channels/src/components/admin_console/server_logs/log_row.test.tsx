@@ -98,6 +98,18 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(screen.getByText(label)).toHaveClass(`LogRow__level--${level}`);
         });
 
+        test.each([
+            [LogLevelEnum.PANIC, 'error'],
+            [LogLevelEnum.FATAL, 'error'],
+            [LogLevelEnum.CRITICAL, 'error'],
+            [LogLevelEnum.STDLOG, 'info'],
+            [LogLevelEnum.TRACE, 'debug'],
+        ])('should show the %s level by name in its group\'s color', (level, group) => {
+            renderLogRow({log: {...baseLog, level}});
+
+            expect(screen.getByText(level)).toHaveClass(`LogRow__level--${group}`);
+        });
+
         test('should fall back to the raw level for levels without a config entry', () => {
             renderLogRow({log: {...baseLog, level: LogLevelEnum.SILLY}});
 
@@ -114,6 +126,12 @@ describe('components/admin_console/server_logs/LogRow', () => {
             const row = getRow();
             expect(row).toHaveClass('LogRow--error-bg');
             expect(row).not.toHaveClass('LogRow--warn-bg');
+        });
+
+        test('should add the error background class for fatal rows', () => {
+            renderLogRow({log: {...baseLog, level: LogLevelEnum.FATAL}});
+
+            expect(getRow()).toHaveClass('LogRow--error-bg');
         });
 
         test('should add the warn background class for warn rows', () => {
@@ -522,10 +540,11 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(getRow()).toHaveClass('LogRow--with-node');
         });
 
-        test('should highlight the search term in the node', () => {
+        // The search doesn't match node names
+        test('should not highlight the search term in the node', () => {
             renderLogRow({log: nodeLog, showNode: true, searchTerm: 'node'});
 
-            expect(document.querySelector('.LogRow__node mark')).toHaveTextContent('node');
+            expect(document.querySelector('.LogRow__node mark')).not.toBeInTheDocument();
         });
 
         test('should not list the node among the extra fields', () => {

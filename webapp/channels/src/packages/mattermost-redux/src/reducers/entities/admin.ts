@@ -4,7 +4,7 @@
 import {combineReducers} from 'redux';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
-import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState, LogsByNode} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -20,13 +20,13 @@ import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Stats} from 'mattermost-redux/constants';
 import PluginState from 'mattermost-redux/constants/plugins';
 
-function logs(state: string[] = [], action: MMReduxAction) {
+function logs(state: LogsByNode = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_LOGS: {
         return action.data;
     }
     case UserTypes.LOGOUT_SUCCESS:
-        return [];
+        return {};
 
     default:
         return state;

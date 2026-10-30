@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {LogNodeKey} from '@mattermost/types/admin';
-import type {LogObject, LogObjectWithNode} from '@mattermost/types/admin';
+import type {LogObjectWithNode} from '@mattermost/types/admin';
 import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import type {PluginStatusRedux} from '@mattermost/types/plugins';
 import type {GlobalState} from '@mattermost/types/store';
 
+import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 export function getLogs(state: GlobalState) {
@@ -17,28 +18,12 @@ export function getPlainLogs(state: GlobalState) {
     return state.entities.admin.plainLogs;
 }
 
-export const getAllLogs = createSelector(
-    'getAllLogs',
-    getLogs,
-    (logs) => {
-        return Object.values(logs).reduce<LogObject[]>((acc, log) => {
-            // @ts-expect-error: object that is returned from the server contains an array of logs but ts gets confused that its one log object
-            acc.push(...log);
-            return acc;
-        }, []);
-    },
-);
-
 export const getAllLogsWithNode = createSelector(
     'getAllLogsWithNode',
     getLogs,
-    (logs) => {
-        // The reducer stores the query response unchanged: entries keyed by node name
-        const logsByNode = logs as unknown as Record<string, LogObject[]>;
-        return Object.entries(logsByNode).flatMap(([node, entries]) =>
-            entries.map((entry): LogObjectWithNode => ({...entry, [LogNodeKey]: node})),
-        );
-    },
+    (logsByNode) => Object.entries(logsByNode).flatMap(([node, entries]) =>
+        entries.map((entry): LogObjectWithNode => ({...entry, [LogNodeKey]: node})),
+    ),
 );
 
 // Includes nodes that returned no entries, which the flattened entries can't show
@@ -46,6 +31,13 @@ export const getLogNodes = createSelector(
     'getLogNodes',
     getLogs,
     (logs) => Object.keys(logs),
+);
+
+// Nodes that returned a full page, so older matching entries were left out
+export const getTruncatedLogNodes = createSelector(
+    'getTruncatedLogNodes',
+    getLogs,
+    (logsByNode) => Object.keys(logsByNode).filter((node) => logsByNode[node].length >= General.LOGS_PAGE_SIZE_DEFAULT),
 );
 
 export function getAudits(state: GlobalState) {

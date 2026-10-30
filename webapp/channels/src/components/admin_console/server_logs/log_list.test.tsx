@@ -49,6 +49,7 @@ function makeLogs(count: number, level = LogLevelEnum.INFO): LogObjectWithAdditi
 
 const baseProps = {
     loading: false,
+    truncatedNodes: [] as string[],
     onSearchChange: jest.fn(),
     search: '',
     onReload: jest.fn(),
@@ -267,6 +268,23 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(levelMenuItem('Debug')).toHaveTextContent('Debug1');
         });
 
+        test('should count and filter the levels each group covers', () => {
+            renderList([
+                ...mixedLevels,
+                makeLog('a fatal error', '2026-03-12T10:00:05.000Z', LogLevelEnum.FATAL),
+                makeLog('a trace line', '2026-03-12T10:00:06.000Z', LogLevelEnum.TRACE),
+                makeLog('a std log line', '2026-03-12T10:00:07.000Z', LogLevelEnum.STDLOG),
+            ]);
+            openLevelsMenu();
+
+            expect(levelMenuItem('Error')).toHaveTextContent('Error2');
+            expect(levelMenuItem('Info')).toHaveTextContent('Info2');
+            expect(levelMenuItem('Debug')).toHaveTextContent('Debug2');
+
+            fireEvent.click(levelMenuItem('Debug'));
+            expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a fatal error', 'a std log line']);
+        });
+
         test('should hide and restore a level when it is unchecked', () => {
             renderList(mixedLevels);
             openLevelsMenu();
@@ -318,17 +336,89 @@ describe('components/admin_console/server_logs/LogList', () => {
     });
 
     describe('footer', () => {
-        test('should count every loaded entry as the total while searching', () => {
+        // The server searches, so the loaded entries are no longer a meaningful total
+        test('should count the matching entries while searching', () => {
             renderWithContext(
                 <StatefulLogList
                     {...baseProps}
-                    logs={[first, second, third]}
+                    logs={[second]}
                     search='msg 2'
                 />,
             );
 
             expect(rowMessages()).toEqual(['msg 2']);
-            expect(screen.getByText(/of 1 entries matching your filters \(3 total\)/)).toBeInTheDocument();
+            expect(screen.getByText(/of 1 entries matching your filters$/)).toBeInTheDocument();
+        });
+    });
+
+    describe('searching', () => {
+        // The server searches, so an entry without the term is still listed
+        test('should list the entries the server returned for a search', () => {
+            renderListWith({logs: [first, second], search: 'msg 2'});
+
+            expect(rowMessages().sort()).toEqual(['msg 1', 'msg 2']);
+        });
+
+        test('should keep the list in place rather than show the spinner while a search loads', () => {
+            renderListWith({logs: [], loading: true, search: 'missing'});
+
+            expect(screen.queryByText('Loading logs')).not.toBeInTheDocument();
+            expect(screen.getByText('Refreshing…')).toBeInTheDocument();
+            expect(screen.queryByText(/No logs match your filters/)).not.toBeInTheDocument();
+        });
+
+        test('should show the spinner while the first load has no entries', () => {
+            renderListWith({logs: [], loading: true});
+
+            expect(screen.getByText('Loading logs')).toBeInTheDocument();
+        });
+
+        test('should limit the search to the length the server accepts', () => {
+            renderListWith({logs: []});
+
+            expect(screen.getByLabelText('Search logs')).toHaveAttribute('maxlength', '256');
+        });
+    });
+
+    describe('truncation notice', () => {
+        test('should not show the notice when every node returned less than the limit', () => {
+            renderListWith({logs: [first]});
+
+            expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
+        });
+
+        test('should show the limit when the server returned a full page', () => {
+            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default'], truncatedNodes: ['default']});
+
+            expect(screen.getByText('Only the latest 10,000 entries are shown')).toBeInTheDocument();
+            expect(screen.getByText(/Download the log file to see them/)).toBeInTheDocument();
+        });
+
+        test('should name the limit per node when several nodes are listed', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')],
+                nodes: ['node-a', 'node-b'],
+                truncatedNodes: ['node-b'],
+            });
+
+            expect(screen.getByText('Only the latest 10,000 entries from each node are shown')).toBeInTheDocument();
+            expect(screen.getByText("Older entries aren't loaded or counted.")).toBeInTheDocument();
+        });
+
+        test('should only show the notice for the selected node, and name its limit', () => {
+            const props = {logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')], nodes: ['node-a', 'node-b'], truncatedNodes: ['node-b']};
+
+            const {rerender} = renderListWith({...props, selectedNode: 'node-a'});
+            expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
+
+            rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    {...props}
+                    selectedNode='node-b'
+                />,
+            );
+            expect(screen.getByText('Only the latest 10,000 entries are shown')).toBeInTheDocument();
         });
     });
 
@@ -614,38 +704,6 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(levelMenuItem('Error')).toHaveTextContent('Error1');
         });
 
-        test('should search the node name with two or more nodes', () => {
-            renderListWith({
-                logs: [makeNodeLog('node-a', 'a', '2026-03-12T10:00:01.000Z'), makeNodeLog('node-b', 'b', '2026-03-12T10:00:02.000Z')],
-                nodes: ['node-a', 'node-b'],
-                search: 'node-b',
-            });
-
-            expect(rowMessages()).toEqual(['b']);
-            expect(document.querySelector('.LogRow__node mark')).toHaveTextContent('node-b');
-        });
-
-        test('should search a node field the server logged', () => {
-            renderListWith({
-                logs: [
-                    {...makeNodeLog('node-a', 'A node has joined the cluster'), node: 'node-b'},
-                    makeNodeLog('node-a', 'other'),
-                ],
-                nodes: ['node-a', 'node-b'],
-                selectedNode: 'node-a',
-                search: 'node-b',
-            });
-
-            expect(rowMessages()).toEqual(['A node has joined the cluster']);
-        });
-
-        test('should not search the node name with a single node', () => {
-            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default'], search: 'default'});
-
-            expect(rowMessages()).toEqual([]);
-            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
-        });
-
         test('should offer to clear the selected node when it has no entries', () => {
             const onSelectedNodeChange = jest.fn();
             renderListWith({logs: [], nodes: ['node-a', 'node-b'], selectedNode: 'node-b', onSelectedNodeChange});
@@ -743,10 +801,10 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(levelMenuItem('Error')).toHaveTextContent('Error1');
         });
 
-        test('should count only entries in the time range as the search total', () => {
-            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, search: 'recent'});
+        test('should count only entries in the time range as search matches', () => {
+            renderListWith({logs: timeRangeLogs, activeTimePreset: 5, search: 'e'});
 
-            expect(screen.getByText(/of 1 entries matching your filters \(3 total\)/)).toBeInTheDocument();
+            expect(screen.getByText(/of 3 entries matching your filters$/)).toBeInTheDocument();
         });
 
         test('should show every entry without a time range', () => {
