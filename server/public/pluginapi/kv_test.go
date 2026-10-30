@@ -695,16 +695,34 @@ func TestListKeys(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("multiple prefixes must all match", func(t *testing.T) {
+	t.Run("prefixes that cannot both match return no keys", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-		api.On("KVListWithOptions", 0, 100, model.PluginKVListOptions{Prefix: "user_"}).Return([]string{"user_1", "user_2"}, nil)
-
-		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("user_"), pluginapi.WithPrefix("other_"))
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("user_"), pluginapi.WithPrefix("other_"), pluginapi.WithPrefix("user_"))
 		require.NoError(t, err)
+		assert.NotNil(t, keys)
 		assert.Empty(t, keys)
+	})
+
+	t.Run("nested prefixes use the longest one on the server", func(t *testing.T) {
+		for name, prefixes := range map[string][]string{
+			"short first": {"user_", "user_admin_"},
+			"long first":  {"user_admin_", "user_"},
+		} {
+			t.Run(name, func(t *testing.T) {
+				api := &plugintest.API{}
+				defer api.AssertExpectations(t)
+				client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+				api.On("KVListWithOptions", 1, 2, model.PluginKVListOptions{Prefix: "user_admin_"}).Return([]string{"user_admin_3", "user_admin_4"}, nil)
+
+				keys, err := client.KV.ListKeys(1, 2, pluginapi.WithPrefix(prefixes[0]), pluginapi.WithPrefix(prefixes[1]))
+				require.NoError(t, err)
+				assert.Equal(t, []string{"user_admin_3", "user_admin_4"}, keys)
+			})
+		}
 	})
 
 	t.Run("not implemented text in a 500 error does not fall back", func(t *testing.T) {

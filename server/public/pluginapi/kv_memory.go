@@ -178,6 +178,9 @@ func (s *MemoryStore) ListKeys(page int, count int, options ...ListKeysOption) (
 			o(&opt)
 		}
 	}
+	if opt.noMatch {
+		return []string{}, nil
+	}
 
 	allKeys := make([]string, 0)
 	s.mux.RLock()

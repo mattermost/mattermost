@@ -361,6 +361,32 @@ func TestMemoryStoreListKeys(t *testing.T) {
 		assert.Empty(t, keys)
 	})
 
+	t.Run("with prefixes that cannot both match", func(t *testing.T) {
+		store := pluginapi.MemoryStore{}
+		for _, key := range []string{"alpha_1", "beta_1"} {
+			ok, err := store.Set(key, "foo")
+			require.NoError(t, err)
+			require.True(t, ok)
+		}
+
+		keys, err := store.ListKeys(0, 200, pluginapi.WithPrefix("alpha_"), pluginapi.WithPrefix("beta_"))
+		assert.NoError(t, err)
+		assert.Empty(t, keys)
+	})
+
+	t.Run("with nested prefixes", func(t *testing.T) {
+		store := pluginapi.MemoryStore{}
+		for _, key := range []string{"user_1", "user_admin_1", "user_admin_2"} {
+			ok, err := store.Set(key, "foo")
+			require.NoError(t, err)
+			require.True(t, ok)
+		}
+
+		keys, err := store.ListKeys(0, 200, pluginapi.WithPrefix("user_admin_"), pluginapi.WithPrefix("user_"))
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"user_admin_1", "user_admin_2"}, keys)
+	})
+
 	t.Run("with prefix and checker", func(t *testing.T) {
 		store := pluginapi.MemoryStore{}
 		for _, key := range []string{"p_1", "p_2", "p_3", "other_1"} {

@@ -200,6 +200,7 @@ type ListKeysOption func(*listKeysOptions)
 // listKeysOptions holds configurations of a ListKeys() operation.
 type listKeysOptions struct {
 	prefix   string
+	noMatch  bool
 	checkers []func(key string) (keep bool, err error)
 }
 
@@ -219,17 +220,16 @@ func (o *listKeysOptions) checkAll(key string) (keep bool, err error) {
 }
 
 // WithPrefix only return keys that start with the given string.
-// The first prefix is pushed down to the SQL query for efficient filtering;
-// each additional prefix is applied as a checker, so all prefixes must match.
+// All prefixes must match. They are combined into one prefix that the server
+// filters on, so page and count apply to the matching keys.
 func WithPrefix(prefix string) ListKeysOption {
 	return func(args *listKeysOptions) {
-		if args.prefix == "" {
+		switch {
+		case strings.HasPrefix(prefix, args.prefix):
 			args.prefix = prefix
-			return
+		case !strings.HasPrefix(args.prefix, prefix):
+			args.noMatch = true
 		}
-		args.checkers = append(args.checkers, func(key string) (bool, error) {
-			return strings.HasPrefix(key, prefix), nil
-		})
 	}
 }
 
@@ -252,6 +252,9 @@ func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]stri
 	}
 	for _, opt := range options {
 		opt(args)
+	}
+	if args.noMatch {
+		return []string{}, nil
 	}
 
 	// get our keys a batch at a time, filter out the ones we don't want based on our args
