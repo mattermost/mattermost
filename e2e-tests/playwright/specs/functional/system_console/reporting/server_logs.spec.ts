@@ -81,17 +81,77 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await serverLogs.toBeVisible();
 
             // # Turn on live tail at the shortest poll interval
+            const pollRequest = systemConsolePage.page.waitForRequest(
+                (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
+            );
             await serverLogs.selectLiveTailInterval('Every 10 seconds');
 
             // * Verify live tail is on
             await expect(serverLogs.liveTailValue).toHaveValue('Every 10 seconds');
 
+            // * Verify the poll asks every node at once, only for what was logged since the page loaded
+            const body = (await pollRequest).postDataJSON();
+            expect(body.server_names).toEqual([]);
+            expect(body.date_from).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/);
+
             // # Write an entry only after the page has loaded, so it can only arrive by polling
             const marker = `pw-log-${pw.random.id()}`;
             await writeServerLogEntry(adminClient, marker);
 
-            // * Verify the entry appears without the reload button being used
+            // * Verify the entry appears without the reload button being used, highlighted as new
             await expect(serverLogs.row(marker)).toBeVisible({timeout: 30000});
+            await expect(serverLogs.row(marker)).toHaveClass(/LogRow--new/);
+        },
+    );
+
+    /**
+     * @objective Verify live tail holds new entries back while an entry is expanded, so the list
+     * doesn't move, and shows them from the new entries button.
+     */
+    test(
+        'holds new entries while an entry is expanded and shows them from the new entries button',
+        {tag: ['@system_console', '@server_logs']},
+        async ({pw}) => {
+            test.setTimeout(pw.duration.two_min);
+
+            const {adminUser, adminClient} = await pw.initSetup();
+            const expandedMarker = `pw-log-${pw.random.id()}`;
+
+            // # Write an entry to expand later
+            await writeServerLogEntry(adminClient, expandedMarker);
+
+            // # Log in as admin and go to the server logs page
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.gotoServerLogs();
+            await systemConsolePage.toBeVisible();
+
+            const serverLogs = systemConsolePage.serverLogs;
+            await serverLogs.toBeVisible();
+
+            // # Wait for the entry to reach the page, then expand it
+            await expect(async () => {
+                await serverLogs.reloadButton.click();
+                await expect(serverLogs.row(expandedMarker)).toBeVisible({timeout: 2000});
+            }).toPass({timeout: 30000});
+            await serverLogs.row(expandedMarker).click();
+            await expect(serverLogs.row(expandedMarker)).toHaveClass(/LogRow--expanded/);
+
+            // # Turn on live tail and write an entry that can only arrive by polling
+            await serverLogs.selectLiveTailInterval('Every 10 seconds');
+            const heldMarker = `pw-log-${pw.random.id()}`;
+            await writeServerLogEntry(adminClient, heldMarker);
+
+            // * Verify the new entry is held back behind the new entries button until it's clicked.
+            // Other server activity can arrive in an earlier poll, so repeat until it's the marker.
+            await expect(async () => {
+                await expect(serverLogs.newEntriesButton).toBeVisible({timeout: 15000});
+                await expect(serverLogs.row(heldMarker)).toHaveCount(0);
+                await serverLogs.newEntriesButton.click();
+                await expect(serverLogs.row(heldMarker)).toBeVisible({timeout: 1000});
+            }).toPass({timeout: 45000});
+
+            // * Verify the expanded entry is still expanded
+            await expect(serverLogs.row(expandedMarker)).toHaveClass(/LogRow--expanded/);
         },
     );
 

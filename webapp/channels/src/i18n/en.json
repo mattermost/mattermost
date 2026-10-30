@@ -9927,6 +9927,10 @@
     "defaultMessage": "Log format",
     "description": "Label of the log format menu on the System Console Server Logs page; switches between structured and plain text views."
   },
+  "admin.logs.newEntries": {
+    "defaultMessage": "{count, plural, one {# new entry} other {# new entries}}",
+    "description": "Button over the structured log list on the System Console Server Logs page, shown when live tail holds back newly arrived entries because the admin is reading elsewhere in the list; clicking it shows them and jumps to the newest."
+  },
   "admin.logs.newestFirst": {
     "defaultMessage": "Newest",
     "description": "Sort button label in the plain text log viewer on the System Console Server Logs page; shown while the newest lines are listed first."

@@ -61,6 +61,22 @@ describe('Actions.Admin', () => {
         expect(Object.keys(logs).length > 0).toBeTruthy();
     });
 
+    it('getNewLogs merges the response into the loaded entries', async () => {
+        const entry = (msg: string) => ({caller: '', job_id: '', level: 'info', msg, timestamp: '2026-10-28 10:00:01.000 Z', worker: ''});
+        nock(Client4.getBaseRoute()).
+            post('/logs/query').
+            reply(200, {'node-a': [entry('a1')]});
+        nock(Client4.getBaseRoute()).
+            post('/logs/query').
+            reply(200, {'node-a': [entry('a1'), entry('a2')], 'node-b': [entry('b1')]});
+
+        const filter = {serverNames: [], logLevels: [], dateFrom: '', dateTo: ''};
+        await store.dispatch(Actions.getLogs(filter));
+        await store.dispatch(Actions.getNewLogs(filter));
+
+        expect(store.getState().entities.admin.logs).toEqual({'node-a': [entry('a1'), entry('a2')], 'node-b': [entry('b1')]});
+    });
+
     it('getAudits', async () => {
         nock(Client4.getBaseRoute()).
             get('/audits').

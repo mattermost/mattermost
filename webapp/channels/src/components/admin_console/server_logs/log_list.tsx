@@ -2,25 +2,29 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import {DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
+import {ArrowDownIcon, ArrowUpIcon, DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {LogNodeKey} from '@mattermost/types/admin';
+
+import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
 
 import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {useLatest} from 'hooks/useLatest';
+
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {LogObjectWithAdditionalInfo} from './types';
-import {formatLogValue, presetStartMs} from './utils';
+import {formatLogValue, newestLogTimes} from './utils';
 
 import './log_list.scss';
 
@@ -54,6 +58,9 @@ type Props = {
 
     timePresets: readonly TimePreset[];
     activeTimePreset: number | null;
+
+    // Where the active time range starts, moved on by the parent with every fetch
+    timeRangeStart: number | null;
     onTimePreset: (minutes: number) => void;
     onClearTimePreset: () => void;
 
@@ -133,11 +140,10 @@ export function loadPrefs(): StoredPrefs {
     };
 }
 
-// Every field counts: concurrent requests log the same message, caller and millisecond.
-// The node is a symbol, which Object.keys skips, so it's added for nodes logging the same line
+// The node is a symbol, which Object.keys skips, so it's added for nodes logging the same line.
+// A node's failed-node entry is replaced on every poll, so it's keyed by the node alone to keep its row
 function logKey(log: LogObjectWithAdditionalInfo): string {
-    const fields = Object.keys(log).sort().map((field) => `${field}=${formatLogValue(log[field])}`).join('|');
-    return `${log[LogNodeKey] ?? ''}|${fields}`;
+    return `${log[LogNodeKey] ?? ''}|${log.failed_node === true ? 'failed_node' : logEntryKey(log)}`;
 }
 
 // Content keys keep rows mounted across reloads; identical entries get a suffix
@@ -151,9 +157,51 @@ function getRowKeys(rows: LogObjectWithAdditionalInfo[]): string[] {
     });
 }
 
-// "2026-10-20 11:39:58.721 +02:00" isn't ISO 8601, and Safari can't parse it
-function parseTimestamp(timestamp: string): number {
-    return Date.parse(timestamp.replace(' ', 'T').replace(' ', ''));
+type NodeTimes = Record<string, number>;
+
+// A node missing from the times had no entries then, so every entry it has now is newer
+function isNewerThan(log: LogObjectWithAdditionalInfo, times: NodeTimes): boolean {
+    const time = logEntryTime(log);
+    const since = times[log[LogNodeKey] ?? ''];
+    return log.failed_node !== true && !Number.isNaN(time) && (since === undefined || time > since);
+}
+
+// Older nodes ignore the server's date filter, and a node switch shows before its fetch returns.
+// Returns the same array when nothing is dropped, so a moved cutoff only re-sorts when it matters
+function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, cutoff: number | null) {
+    if (!selectedNode && cutoff === null) {
+        return logs;
+    }
+    const scoped = logs.filter((log) => {
+        if (selectedNode && log[LogNodeKey] !== selectedNode) {
+            return false;
+        }
+
+        // The server sets failed_node on the entry it returns in place of a node it could not reach
+        if (cutoff === null || log.failed_node === true) {
+            return true;
+        }
+        const time = logEntryTime(log);
+        return Number.isNaN(time) || time >= cutoff;
+    });
+    return scoped.length === logs.length ? logs : scoped;
+}
+
+function filterLogs(logs: LogObjectWithAdditionalInfo[], enabledLevels: Set<string>, search: string, showNodes: boolean) {
+    let filtered = logs;
+
+    if (!LEVEL_ORDER.every((level) => enabledLevels.has(level))) {
+        filtered = filtered.filter((log) => enabledLevels.has(log.level));
+    }
+
+    if (search) {
+        const lowerSearch = search.toLowerCase();
+        filtered = filtered.filter((log) => (showNodes && log[LogNodeKey]?.toLowerCase().includes(lowerSearch)) || Object.entries(log).some(([key, value]) =>
+            key !== 'level' && key !== 'timestamp' && formatLogValue(value).toLowerCase().includes(lowerSearch),
+        ));
+    }
+
+    return filtered;
 }
 
 function savePrefs(prefs: StoredPrefs) {
@@ -171,7 +219,7 @@ export default function LogList({
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
     pollIntervals, pollIntervalLabels,
-    timePresets, activeTimePreset, onTimePreset, onClearTimePreset,
+    timePresets, activeTimePreset, timeRangeStart, onTimePreset, onClearTimePreset,
     logFormatMenu,
 }: Props) {
     const intl = useIntl();
@@ -225,25 +273,45 @@ export default function LogList({
         });
     }, [pageSize, wrapText, enabledLevels, sortAsc, selectedNode]);
 
-    // Older nodes ignore the server's date filter, and a node switch shows before its fetch returns
-    const scopedLogs = useMemo(() => {
-        const cutoff = activeTimePreset === null ? null : presetStartMs(activeTimePreset);
-        if (!selectedNode && cutoff === null) {
-            return logs;
-        }
-        return logs.filter((log) => {
-            if (selectedNode && log[LogNodeKey] !== selectedNode) {
-                return false;
-            }
+    // Live tail entries newer than `shown` are held back until the admin is ready for them, and
+    // those newer than `highlight` just arrived on that page. Null during a full load, which is shown as is
+    const [tail, setTail] = useState<{shown: NodeTimes; highlight: {since: NodeTimes; page: number} | null} | null>(null);
 
-            // The server sets failed_node on the entry it returns in place of a node it could not reach
-            if (cutoff === null || log.failed_node === true) {
-                return true;
+    // New rows only go straight in where the admin is watching for them: the top of the first page, newest first
+    const isWatchingNewestRef = useLatest(() => page === 0 && !sortAsc && expandedKey === null && (listRef.current?.scrollTop ?? 0) < 1);
+
+    // A layout effect, so held entries never flash the new entries pill before they're applied
+    useLayoutEffect(() => {
+        if (loading) {
+            setTail(null);
+            return;
+        }
+        setTail((prev) => {
+            if (prev === null) {
+                return {shown: newestLogTimes(logs), highlight: null};
             }
-            const time = parseTimestamp(log.timestamp);
-            return Number.isNaN(time) || time >= cutoff;
+            return isWatchingNewestRef.current() ? {shown: newestLogTimes(logs), highlight: {since: prev.shown, page: 0}} : prev;
         });
-    }, [logs, selectedNode, activeTimePreset]);
+    }, [logs, loading, isWatchingNewestRef]);
+
+    // Highlighted rows would flash again when they remount on coming back to their page
+    useEffect(() => {
+        setTail((prev) => (prev?.highlight && prev.highlight.page !== page ? {...prev, highlight: null} : prev));
+    }, [page]);
+
+    const inRangeLogs = useMemo(() => scopeLogs(logs, selectedNode, activeTimePreset === null ? null : timeRangeStart), [logs, selectedNode, activeTimePreset, timeRangeStart]);
+
+    const {scopedLogs, heldLogs} = useMemo(() => {
+        if (!tail) {
+            return {scopedLogs: inRangeLogs, heldLogs: []};
+        }
+        const shown: LogObjectWithAdditionalInfo[] = [];
+        const held: LogObjectWithAdditionalInfo[] = [];
+        for (const log of inRangeLogs) {
+            (isNewerThan(log, tail.shown) ? held : shown).push(log);
+        }
+        return {scopedLogs: shown, heldLogs: held};
+    }, [inRangeLogs, tail]);
 
     const levelCounts = useMemo(() => {
         const counts: Record<string, number> = {error: 0, warn: 0, info: 0, debug: 0};
@@ -258,26 +326,16 @@ export default function LogList({
     const allLevelsEnabled = useMemo(() => LEVEL_ORDER.every((level) => enabledLevels.has(level)), [enabledLevels]);
 
     const processedLogs = useMemo(() => {
-        let filtered = scopedLogs;
-
-        if (!allLevelsEnabled) {
-            filtered = filtered.filter((log) => enabledLevels.has(log.level));
-        }
-
-        if (search) {
-            const lowerSearch = search.toLowerCase();
-            filtered = filtered.filter((log) => (showNodes && log[LogNodeKey]?.toLowerCase().includes(lowerSearch)) || Object.entries(log).some(([key, value]) =>
-                key !== 'level' && key !== 'timestamp' && formatLogValue(value).toLowerCase().includes(lowerSearch),
-            ));
-        }
-
         // Ties fall back to file order so same-millisecond entries reverse too
         const direction = sortAsc ? 1 : -1;
-        return filtered.
-            map((log, index) => ({log, index, time: parseTimestamp(log.timestamp)})).
+        return filterLogs(scopedLogs, enabledLevels, search, showNodes).
+            map((log, index) => ({log, index, time: logEntryTime(log)})).
             sort((a, b) => direction * ((a.time - b.time) || (a.index - b.index))).
             map(({log}) => log);
-    }, [scopedLogs, allLevelsEnabled, enabledLevels, search, sortAsc, showNodes]);
+    }, [scopedLogs, enabledLevels, search, sortAsc, showNodes]);
+
+    // Only held entries the current filters would show are worth announcing
+    const heldCount = useMemo(() => filterLogs(heldLogs, enabledLevels, search, showNodes).length, [heldLogs, enabledLevels, search, showNodes]);
 
     const matchCount = search ? processedLogs.length : null;
     const totalCount = scopedLogs.length;
@@ -363,6 +421,23 @@ export default function LogList({
         const idx = visibleLogsRef.current.indexOf(log);
         setFocusedKey(idx === -1 ? null : rowKeysRef.current[idx]);
     }, []);
+
+    const scrollToNewestRef = useRef(false);
+    useEffect(() => {
+        const list = listRef.current;
+        if (scrollToNewestRef.current && list) {
+            scrollToNewestRef.current = false;
+            list.scrollTo({top: sortAsc ? list.scrollHeight : 0});
+        }
+    });
+
+    const showHeldLogs = useCallback(() => {
+        // The newest entries are at the top of the first page, or the bottom of the last one when sorted oldest first
+        const newestPage = sortAsc ? Math.ceil((processedLogs.length + heldCount) / pageSize) - 1 : 0;
+        setTail((prev) => prev && {shown: newestLogTimes(logs), highlight: {since: prev.shown, page: newestPage}});
+        setPage(newestPage);
+        scrollToNewestRef.current = true;
+    }, [logs, sortAsc, processedLogs.length, heldCount, pageSize]);
 
     const goNextPage = useCallback(() => {
         setPage((p) => Math.min(p + 1, totalPages - 1));
@@ -798,25 +873,47 @@ export default function LogList({
                 </div>
             )}
 
-            <div
-                className='LogViewer__list'
-                ref={listRef}
-                role='list'
-                aria-label={intl.formatMessage({id: 'admin.logs.listLabel', defaultMessage: 'Server log entries'})}
-            >
-                {visibleLogs.map((log, idx) => (
-                    <LogRow
-                        key={rowKeys[idx]}
-                        log={log}
-                        isExpanded={expandedKey === rowKeys[idx]}
-                        isFocused={focusedIndex === idx}
-                        onToggleExpand={handleToggleExpand}
-                        onFocus={handleFocus}
-                        searchTerm={search}
-                        wrapText={wrapText}
-                        showNode={showNodes}
-                    />
-                ))}
+            <div className='LogViewer__list-container'>
+                <div
+                    className='LogViewer__new-entries'
+                    aria-live='polite'
+                >
+                    {heldCount > 0 && (
+                        <Button
+                            emphasis='primary'
+                            size='x-small'
+                            onClick={showHeldLogs}
+                            leadingIcon={<Icon glyph={sortAsc ? <ArrowDownIcon/> : <ArrowUpIcon/>}/>}
+                        >
+                            <FormattedMessage
+                                id='admin.logs.newEntries'
+                                defaultMessage='{count, plural, one {# new entry} other {# new entries}}'
+                                values={{count: heldCount}}
+                            />
+                        </Button>
+                    )}
+                </div>
+                <div
+                    className='LogViewer__list'
+                    ref={listRef}
+                    role='list'
+                    aria-label={intl.formatMessage({id: 'admin.logs.listLabel', defaultMessage: 'Server log entries'})}
+                >
+                    {visibleLogs.map((log, idx) => (
+                        <LogRow
+                            key={rowKeys[idx]}
+                            log={log}
+                            isExpanded={expandedKey === rowKeys[idx]}
+                            isFocused={focusedIndex === idx}
+                            isNew={tail?.highlight?.page === page && isNewerThan(log, tail.highlight.since)}
+                            onToggleExpand={handleToggleExpand}
+                            onFocus={handleFocus}
+                            searchTerm={search}
+                            wrapText={wrapText}
+                            showNode={showNodes}
+                        />
+                    ))}
+                </div>
             </div>
 
             <div className='LogViewer__footer'>
