@@ -4,7 +4,7 @@ sidebar_label: "Channel permission actions"
 ---
 <PlanAvailability slug="entry-adv" />
 
-From Mattermost v12.2, attribute-based [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) can control three channel actions: **Channel Read Access**, **Channel Write Access**, and **Manage Channel**. A membership policy decides who belongs to a channel; these actions decide what a session can do in a channel, and they're evaluated on every request rather than once per synchronization.
+From Mattermost v12.2, attribute-based [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) can control three channel actions: **Channel Read Access**, **Channel Write Access**, and **Manage Channel**. A membership policy decides who belongs to a channel; these actions decide what a user can do in a channel, and they're evaluated on every request rather than once per synchronization.
 
 Like any permission policy, rules for these actions can reference custom profile attributes (`user.attributes.<name>`), native user fields such as `user.isbot`, or [session attributes](/administration-guide/manage/admin/session-attributes) such as IP address and user agent (`user.session.<name>`). Because a rule can reference session attributes, access can change from one session to the next without any change to the user's profile or channel membership. For example, a channel can be readable only from a managed device on the corporate network, or readable but not writable for users holding a particular clearance attribute.
 
@@ -15,7 +15,7 @@ Like any permission policy, rules for these actions can reference custom profile
 
 <Note>
 
-Channel permission actions are gated by the `ChannelPermissionActions` feature flag (`MM_FEATUREFLAGS_CHANNELPERMISSIONACTIONS`), which is disabled by default. While the flag is disabled, the actions aren't offered in the System Console or Channel Settings, saving a policy that uses one is rejected, and rules already saved aren't enforced. Rules in Channel Settings also need the `PermissionPolicies` and `ChannelPermissionPolicies` feature flags. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
+Channel permission actions are gated by the `ChannelPermissionActions` feature flag (`MM_FEATUREFLAGS_CHANNELPERMISSIONACTIONS`), which is disabled by default. While the flag is disabled, the actions aren't offered in the System Console or Channel Settings, saving a policy that uses one is rejected, and rules already saved aren't enforced. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
 
 </Note>
 
@@ -54,7 +54,7 @@ Joining a channel also requires read access: self-joining a public channel, usin
 
 ## What Channel Write Access covers
 
-`channel_write_access` gates the operations that add to or change a channel's content. When a session is denied write access:
+`channel_write_access` gates the operations that add to or change a channel's content. When write access is denied:
 
 - **Posting** is blocked. This covers creating posts and replies, scheduled posts, editing and deleting posts (including others' posts), and moving a thread into or out of the channel.
 - **Drafts and typing indicators** for the channel are rejected.
@@ -106,8 +106,8 @@ In Channel Settings, rules apply to a channel role: **Channel guest**, **Channel
 
 ## Bots and integrations
 
-- **Bots aren't evaluated for Channel Write Access.** A bot session is allowed to write without any write rule being evaluated, because a bot has no interactive session for a rule on session attributes to check.
-- **Bots are evaluated for Channel Read Access and Manage Channel.** Bots authenticate with access tokens, which [don't report session attributes](/administration-guide/manage/admin/session-attributes#are-session-attributes-collected-for-bots-personal-access-tokens-or-integrations), so a read rule that references a session attribute hides the channel from every bot.
+- **Bots aren't evaluated for Channel Write Access.** Posting is how bots and integrations do their job, and write rules commonly check session attributes such as network or device, which a bot's access token never reports. Evaluating them would deny every bot post in a governed channel. Webhooks and plugins already post without a permission check, so bots are exempt for consistency with them. This applies whatever attribute a write rule checks, including `user.isbot`. To stop a bot posting in a channel, remove it from the channel. Denying it read access hides the channel from the bot but doesn't stop it posting.
+- **Bots are evaluated for Channel Read Access and Manage Channel.** Bots authenticate with access tokens, which [don't report session attributes](/administration-guide/manage/admin/session-attributes#are-session-attributes-collected-for-bots-personal-access-tokens-or-integrations), so a read rule that references a session attribute hides the channel from every bot. A bot is also denied when it's missing a user attribute the rule checks.
 - **Plugins, incoming webhooks, and custom slash command responses** aren't evaluated, as with other [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies). Setting up an incoming webhook does require write access to its channel.
 - **Direct messages and group messages** are out of scope. These actions never apply to DM or GM channels, regardless of policy.
 
@@ -135,7 +135,7 @@ The policy editor shows the evaluation order it participates in: *Permission pol
 
 <Important>
 
-A workspace-wide **Channel Read Access** policy applies to every channel in the workspace except direct messages and group messages. Any session that doesn't meet its conditions loses access to all of them. Always [simulate the policy](/administration-guide/manage/admin/abac-system-wide-policies#simulate-access) against real users before saving.
+A workspace-wide **Channel Read Access** policy applies to every channel in the workspace except direct messages and group messages. Any user who doesn't meet its conditions loses access to all of them. Always [simulate the policy](/administration-guide/manage/admin/abac-system-wide-policies#simulate-access) against real users before saving.
 
 </Important>
 
@@ -150,7 +150,7 @@ The tab is available on public and private channels when ABAC is enabled. Defaul
 Because these actions take effect immediately and can apply to the admin who configures them, Mattermost blocks the most common self-lockout mistakes:
 
 - **On save, every rule that carries a condition must still match its author**, unless the author has the `manage_system` permission. A policy that would exclude its own author is rejected with **You do not satisfy one or more conditions in this policy.**
-- **In Channel Settings**, rules that include **Channel read access** or **Manage channel** are simulated against the current user before they're saved. If the simulation denies read access, the save is blocked with **Cannot save permission rules — You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.** If it denies Manage channel, the save is blocked with **You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.** System Admins skip the Manage channel check, since that action never binds them. The save is also blocked if the check can't be completed. The check requires the `PolicySimulation` feature flag, which is enabled by default.
+- **In Channel Settings**, rules that include **Channel read access** or **Manage channel** are simulated against the current user before they're saved. If the simulation denies read access, the save is blocked with **Cannot save permission rules — You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.** If it denies Manage channel, the save is blocked with **You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.** System Admins skip the Manage channel check, since that action never binds them. The save is also blocked if the check can't be completed.
 
 <Tip>
 
