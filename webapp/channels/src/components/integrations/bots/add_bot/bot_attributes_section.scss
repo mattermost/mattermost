@@ -52,7 +52,13 @@
         > label:first-child {
             display: block;
             margin: 0 0 4px;
-            font-weight: 600; // graph fields put the name in a nested label
+            font-weight: 600; // graph names; combobox names also nest a label and are reset below
+
+            &:has(+ .UserAttributeField__combobox) {
+                display: inline; // lay out like the bare text-field name span
+                margin: 4px 0 0;
+                font-weight: normal;
+            }
         }
 
         .form-control {
