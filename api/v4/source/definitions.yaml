@@ -4931,8 +4931,7 @@ components:
           items:
             type: string
           description: |
-            Permission actions to simulate (e.g. `upload_file_attachment`,
-            `download_file_attachment`). At least one action is required —
+            Permission actions to simulate. At least one action is required —
             the picker UX only makes sense once an action is in scope. The
             backend rejects empty arrays with `app.pap.simulate.missing_actions`
             (HTTP 400); `minItems` lets OpenAPI tooling catch that earlier
@@ -5675,7 +5674,9 @@ components:
           description: >
             Actions to evaluate (max 16). Omit or leave empty for discovery mode:
             the server evaluates all registered actions for the resource type and
-            returns the permitted set.
+            returns the permitted set. Actions behind a disabled feature flag are
+            rejected with 400 when named explicitly, and are omitted from
+            discovery mode.
           maxItems: 16
           items:
             type: string

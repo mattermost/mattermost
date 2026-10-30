@@ -7,7 +7,9 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -16,6 +18,17 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
+
+// newMockAccessControlService returns an AccessControl mock that answers the channel read-access
+// check made for every published post once ABAC is on. A mock installed by one subtest is still in
+// place during the next subtest's setup posts, so every mock needs it, not only those in tests that
+// post. Tests asserting on ActionHasPermissionPolicy must build a bare mock instead.
+func newMockAccessControlService() *mocks.AccessControlServiceInterface {
+	m := &mocks.AccessControlServiceInterface{}
+	// A channel with its own policy is also asked whether that policy governs the action.
+	ungovernedChannelAccess(m)
+	return m
+}
 
 // allowSelfInclusion stubs QueryUsersForExpression so checkSelfInclusion
 // succeeds for userID. Maybe() so tests whose expressions skip the check
@@ -26,10 +39,40 @@ func allowSelfInclusion(mockACS *mocks.AccessControlServiceInterface, userID str
 		Maybe()
 }
 
+func ungovernedChannelAccess(mockACS *mocks.AccessControlServiceInterface) {
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+		Return(false, nil).
+		Maybe()
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).
+		Return(false, nil).
+		Maybe()
+}
+
 // maskingOffTestConfig disables attribute-value masking for policy-endpoint
 // tests that do not cover masking. ABAC and other ABAC sub-flags default on.
 func maskingOffTestConfig(cfg *model.Config) {
 	cfg.FeatureFlags.AttributeValueMasking = false
+}
+
+// setupMaskingOff is SetupConfig(t, maskingOffTestConfig) shielded from the developer's environment.
+func setupMaskingOff(t *testing.T) *TestHelper {
+	t.Helper()
+	clearFeatureFlagEnv(t)
+	return SetupConfig(t, maskingOffTestConfig)
+}
+
+// clearFeatureFlagEnv unsets every MM_FEATUREFLAGS_* variable until the test ends. Env overrides
+// win over config on every load, so a flag exported in a developer's shell would otherwise cancel
+// the flags the test sets. Must run before Setup; not usable from parallel tests.
+func clearFeatureFlagEnv(t *testing.T) {
+	t.Helper()
+	for _, kv := range os.Environ() {
+		key, _, _ := strings.Cut(kv, "=")
+		if strings.HasPrefix(strings.ToUpper(key), "MM_FEATUREFLAGS_") {
+			t.Setenv(key, "") // registers restoring the original value on cleanup
+			require.NoError(t, os.Unsetenv(key))
+		}
+	}
 }
 
 func allowTestFeatureFlagUpdates(t *testing.T, th *TestHelper) {
@@ -47,11 +90,12 @@ func restoreABACFeatureFlagDefaults(cfg *model.Config) {
 	cfg.FeatureFlags.PermissionPolicies = true
 	cfg.FeatureFlags.ChannelPermissionPolicies = true
 	cfg.FeatureFlags.PolicySimulation = true
+	cfg.FeatureFlags.ChannelPermissionActions = true
 	cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 }
 
 func TestCreateAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
@@ -107,8 +151,9 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		}
 
 		// Create and set up the mock
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -152,8 +197,9 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		}
 
 		// Create and set up the mock
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil, notFound)
 		allowSelfInclusion(mockAccessControlService, channelAdmin.Id)
@@ -251,8 +297,9 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create and set up the mock
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		// Set up mock expectations
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(samplePolicy, nil).Times(1)
@@ -273,8 +320,9 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create and set up the mock
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		ch := th.CreatePrivateChannel(t)
 
@@ -355,8 +403,9 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			},
 		}
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(permissionPolicy, nil).Times(1)
 
 		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
@@ -396,8 +445,9 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 				},
 			}
 
-			mockAccessControlService := &mocks.AccessControlServiceInterface{}
+			mockAccessControlService := newMockAccessControlService()
 			th.App.Srv().Channels().AccessControl = mockAccessControlService
+			ungovernedChannelAccess(mockAccessControlService)
 			mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(policy, nil).Times(1)
 
 			_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
@@ -509,8 +559,9 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			},
 		}
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		// We only care that the gate let the request through to the
 		// PAP; the validation chain past this point is exercised by
 		// other tests, so the mock returns success straight away.
@@ -536,8 +587,9 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		// SavePolicy should never be reached — the guard rejects before that.
 		mockAccessControlService.On("SavePolicy", mock.Anything, mock.Anything).
 			Return(nil, model.NewAppError("SavePolicy", "should.not.be.called", nil, "", http.StatusInternalServerError)).Maybe()
@@ -570,7 +622,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 // A channel/team admin can't change a policy's parent imports or team-scope through the general
 // update endpoint — those belong to the assign/unassign paths. System admins still can.
 func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	parentID := model.NewId()
 
@@ -587,8 +639,9 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 	}
 
 	enableABAC := func() *mocks.AccessControlServiceInterface {
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
@@ -835,7 +888,7 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 }
 
 func TestGetAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -861,8 +914,9 @@ func TestGetAccessControlPolicy(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create and set up the mock
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -896,8 +950,9 @@ func TestGetAccessControlPolicy(t *testing.T) {
 
 		// No policy exists yet for this channel.
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil, notFound)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -930,8 +985,9 @@ func TestGetAccessControlPolicy(t *testing.T) {
 		require.NoError(t, err)
 
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), otherChannel.Id).Return(nil, notFound)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -948,8 +1004,9 @@ func TestGetAccessControlPolicy(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create and set up the mock
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -963,7 +1020,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 }
 
 func TestDeleteAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	samplePolicyID := model.NewId()
 
@@ -977,8 +1034,9 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		// Mock the GetPolicy call that happens in ValidateAccessControlPolicyPermission
 		channelPolicy := &model.AccessControlPolicy{
@@ -1008,8 +1066,9 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       samplePolicyID,
@@ -1041,8 +1100,9 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		// DeleteAccessControlPolicy resolves the policy first to decide whether
 		// to broadcast a channel access-control update after deletion.
@@ -1072,7 +1132,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 }
 
 func TestCheckExpression(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	t.Run("CheckExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.CheckExpression(context.Background(), "true")
@@ -1084,8 +1144,9 @@ func TestCheckExpression(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -1100,8 +1161,9 @@ func TestCheckExpression(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("CheckExpression", mock.AnythingOfType("*request.Context"), "true").Return([]model.CELExpressionError{}, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1118,8 +1180,9 @@ func TestCheckExpression(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("CheckExpression", mock.AnythingOfType("*request.Context"), "true").Return([]model.CELExpressionError{
 			{
 				Line:    1,
@@ -1159,8 +1222,9 @@ func TestCheckExpression(t *testing.T) {
 		_, _, err = channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 		require.NoError(t, err)
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("CheckExpression", mock.AnythingOfType("*request.Context"), "true").Return([]model.CELExpressionError{}, nil).Times(1)
 
 		// Channel admin should be able to check expressions for their channel
@@ -1207,7 +1271,7 @@ func TestCheckExpression(t *testing.T) {
 }
 
 func TestTestExpression(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	t.Run("TestExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.TestExpression(context.Background(), model.QueryExpressionParams{})
@@ -1219,8 +1283,9 @@ func TestTestExpression(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -1235,8 +1300,9 @@ func TestTestExpression(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", model.SubjectSearchOptions{}).Return([]*model.User{}, int64(0), nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1254,7 +1320,7 @@ func TestTestExpression(t *testing.T) {
 }
 
 func TestSearchAccessControlPolicies(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	t.Run("SearchAccessControlPolicies without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{})
@@ -1266,8 +1332,9 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -1282,8 +1349,9 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("SearchPolicies", mock.AnythingOfType("*request.Context"), model.AccessControlPolicySearch{
 			Term: "engineering",
 		}).Return([]*model.AccessControlPolicy{}, int64(0), nil).Times(1)
@@ -1322,8 +1390,9 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("SearchPolicies", mock.AnythingOfType("*request.Context"), model.AccessControlPolicySearch{
 			Term: "test",
 			Type: model.AccessControlPolicyTypePermission,
@@ -1354,8 +1423,9 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -1424,7 +1494,7 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 }
 
 func TestAssignAccessPolicy(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -1449,8 +1519,9 @@ func TestAssignAccessPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -1484,8 +1555,9 @@ func TestAssignAccessPolicy(t *testing.T) {
 		//   2. Per channel: GetPolicy(channelId) — checks for an existing child policy
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", 404)
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Once()
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateCh.Id).Return(nil, notFound).Once()
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(child, nil).Once()
@@ -1501,7 +1573,7 @@ func TestAssignAccessPolicy(t *testing.T) {
 }
 
 func TestUnassignAccessPolicy(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -1526,8 +1598,9 @@ func TestUnassignAccessPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -1554,8 +1627,9 @@ func TestUnassignAccessPolicy(t *testing.T) {
 		appErr := child.Inherit(samplePolicy)
 		require.Nil(t, appErr)
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Times(1)
 		mockAccessControlService.On("SearchPolicies", mock.AnythingOfType("*request.Context"), model.AccessControlPolicySearch{
 			Type:     model.AccessControlPolicyTypeChannel,
@@ -1574,7 +1648,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 }
 
 func TestGetChannelsForAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -1599,8 +1673,9 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -1615,8 +1690,9 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1632,7 +1708,7 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 }
 
 func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	newSamplePolicy := func() *model.AccessControlPolicy {
 		return &model.AccessControlPolicy{
@@ -1656,8 +1732,9 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -1846,7 +1923,7 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 }
 
 func TestSetActiveStatus(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
@@ -1895,8 +1972,9 @@ func TestSetActiveStatus(t *testing.T) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		policies, resp, err := client.SetAccessControlPolicyActive(context.Background(), updateReq)
 		require.NoError(t, err)
@@ -1954,9 +2032,10 @@ func TestSetActiveStatus(t *testing.T) {
 			},
 		}
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(channelPolicy, nil)
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 
 		// Channel admin should be able to set active status for their channel
 		policies, resp, err := channelAdminClient.SetAccessControlPolicyActive(context.Background(), channelUpdateReq)
@@ -2012,8 +2091,9 @@ func TestSetActiveStatus(t *testing.T) {
 		_, _, err = channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 		require.NoError(t, err)
 
-		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		mockAccessControlService := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelB.Id).Return(channelBPolicy, nil)
 
 		// Attempt to update the policy for channel B (which the admin doesn't have access to)
@@ -2042,7 +2122,7 @@ func wirePolicyStore(t *testing.T, th *TestHelper) {
 
 	policies := th.App.Srv().Store().AccessControlPolicy()
 
-	mockACS := &mocks.AccessControlServiceInterface{}
+	mockACS := newMockAccessControlService()
 	mockACS.On("SavePolicy", mock.Anything, mock.Anything).Return(
 		func(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 			saved, err := policies.Save(rctx, policy)
@@ -2060,12 +2140,13 @@ func wirePolicyStore(t *testing.T, th *TestHelper) {
 			return policy, nil
 		})
 	th.App.Srv().Channels().AccessControl = mockACS
+	ungovernedChannelAccess(mockACS)
 }
 
 // TestAccessControlPolicyAutoAddWire pins the wire contract for auto-add now
 // that it lives on the membership rule instead of the policy's Active flag.
 func TestAccessControlPolicyAutoAddWire(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 	wirePolicyStore(t, th)
 
 	client := th.SystemAdminClient
@@ -2190,8 +2271,9 @@ func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServic
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.True(t, ok, "SetLicense should return true")
 
-	mockACS := &mocks.AccessControlServiceInterface{}
+	mockACS := newMockAccessControlService()
 	th.App.Srv().Channels().AccessControl = mockACS
+	ungovernedChannelAccess(mockACS)
 
 	updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -2286,8 +2368,9 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 		// validatePolicyExpressionValues rejects unknown-field references before
 		// MaskPolicyExpressions ever runs, and we can't seed a real shared_only
 		// CPA field without plugin context. End-to-end paths are covered by E2E.
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
 		stored := newPolicy(th.BasicChannel.Id)
 		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), stored.ID).Return(stored, nil)
 		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(unknownFieldAST, nil).Maybe()
@@ -3149,7 +3232,7 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 // proxies to the access-control service which we mock here so the test
 // stays focused on the API surface (auth + payload validation).
 func TestSimulatePolicyForUsers(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	t.Run("returns 501 when umbrella PermissionPolicies flag is disabled", func(t *testing.T) {
 		// Set the Enterprise Advanced license up-front so any future
@@ -3246,8 +3329,9 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		})
 		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
 
 		body := mustMarshal(t, model.PolicySimulationByUsersParams{
 			Policy: &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel},
@@ -3270,12 +3354,13 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		})
 		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := newMockAccessControlService()
 		mockACS.On("SimulatePolicyForUsers", mock.Anything, mock.Anything).Return(
 			&model.PolicySimulationResponse{Results: []model.PolicySimulationUserResult{}, Total: 0},
 			(*model.AppError)(nil),
 		)
 		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
 
 		body := mustMarshal(t, model.PolicySimulationByUsersParams{
 			Policy:  &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel, Version: model.AccessControlPolicyVersionV0_4},
@@ -3300,8 +3385,9 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		})
 		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := newMockAccessControlService()
 		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
 
 		th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
 		teamAdminUser := th.CreateUser(t)
@@ -3356,7 +3442,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			Kind:    model.PolicySimulationEvaluationKindAnd,
 			Outcome: model.PolicySimulationEvaluationOutcomeFalse,
 		}
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := newMockAccessControlService()
 		mockACS.On("SimulatePolicyForUsers", mock.Anything, mock.Anything).Return(
 			&model.PolicySimulationResponse{
 				Results: []model.PolicySimulationUserResult{{
@@ -3378,6 +3464,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			(*model.AppError)(nil),
 		)
 		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
 
 		th.AddUserToChannel(t, th.BasicUser, privateChannel)
 
@@ -3415,7 +3502,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			Kind:    model.PolicySimulationEvaluationKindAnd,
 			Outcome: model.PolicySimulationEvaluationOutcomeFalse,
 		}
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := newMockAccessControlService()
 		mockACS.On("SimulatePolicyForUsers", mock.Anything, mock.Anything).Return(
 			&model.PolicySimulationResponse{
 				Results: []model.PolicySimulationUserResult{{
@@ -3437,6 +3524,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			(*model.AppError)(nil),
 		)
 		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
 
 		body := mustMarshal(t, model.PolicySimulationByUsersParams{
 			Policy:  &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel, Version: model.AccessControlPolicyVersionV0_4},
@@ -3580,10 +3668,11 @@ func TestGetChannelAccessControlAttributes(t *testing.T) {
 
 		// Provide a mock that would return values if queried, to prove the
 		// gate short-circuits before any attribute values are read.
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := newMockAccessControlService()
 		mockACS.On("GetPolicyRuleAttributes", mock.Anything, mock.Anything, mock.Anything).
 			Return(map[string][]string{"team": {"engineering"}}, (*model.AppError)(nil))
 		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
 		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
 
 		resp, err := th.Client.DoAPIGet(context.Background(), url, "")
@@ -3604,10 +3693,11 @@ func TestGetChannelAccessControlAttributes(t *testing.T) {
 			cfg.AccessControlSettings.EnableChannelPolicyIndicators = model.NewPointer(true)
 		})
 
-		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS := newMockAccessControlService()
 		mockACS.On("GetPolicyRuleAttributes", mock.Anything, th.BasicChannel.Id, model.AccessControlPolicyActionMembership).
 			Return(map[string][]string{}, (*model.AppError)(nil)).Once()
 		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
 		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
 
 		resp, err := th.Client.DoAPIGet(context.Background(), url, "")
@@ -3619,10 +3709,163 @@ func TestGetChannelAccessControlAttributes(t *testing.T) {
 	})
 }
 
+// Policies carrying channel_read_access. The action is a permission action, so
+// a channel policy still has to clear the ChannelPermissionPolicies gate, while
+// a system permission policy only needs the PermissionPolicies umbrella.
+//
+// Every subtest installs a mock access-control service. Without one,
+// Srv().ch.AccessControl is nil and CreateOrUpdateAccessControlPolicy returns
+// its own 501 ("Policy Administration Point is not initialized"), which is
+// indistinguishable from a gate's 501 — a status-only assertion would then
+// pass even with the gate deleted. So assert the error ID, not just the status.
+func TestCreateAccessControlPolicyChannelReadAccess(t *testing.T) {
+	th := setupMaskingOff(t).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+
+	const channelPermissionsDisabledID = "api.access_control_policy.channel_permission_policies.feature_disabled"
+
+	// installMockACS lets the ungated path reach a real 200, so any 501 can
+	// only have come from a feature-flag gate.
+	installMockACS := func(t *testing.T) {
+		t.Helper()
+		mockACS := newMockAccessControlService()
+		mockACS.On("SavePolicy", mock.Anything, mock.Anything).
+			Return(&model.AccessControlPolicy{ID: th.BasicChannel.Id}, (*model.AppError)(nil))
+		mockACS.On("NormalizePolicy", mock.Anything, mock.Anything).
+			Return(&model.AccessControlPolicy{ID: th.BasicChannel.Id}, (*model.AppError)(nil))
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		ungovernedChannelAccess(mockACS)
+		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+	}
+
+	setFlags := func(t *testing.T, fn func(cfg *model.Config)) {
+		t.Helper()
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			restoreABACFeatureFlagDefaults(cfg)
+			fn(cfg)
+		})
+		t.Cleanup(func() { updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults) })
+	}
+
+	systemPolicy := func() *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Channel read access policy " + model.NewId(),
+			Type:     model.AccessControlPolicyTypePermission,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Roles:    []string{model.SystemUserRoleId},
+			Rules: []model.AccessControlPolicyRule{{
+				Expression: "user.attributes.team == 'engineering'",
+				Actions:    []string{model.AccessControlPolicyActionChannelReadAccess},
+			}},
+		}
+	}
+
+	channelPolicy := func() *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:       th.BasicChannel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_4,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{{
+				Name:       "Members only",
+				Role:       model.ChannelUserRoleId,
+				Expression: "user.attributes.team == 'engineering'",
+				Actions:    []string{model.AccessControlPolicyActionChannelReadAccess},
+			}},
+		}
+	}
+
+	t.Run("both policy types are accepted by default", func(t *testing.T) {
+		installMockACS(t)
+		setFlags(t, func(cfg *model.Config) {})
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("umbrella off rejects both policy types", func(t *testing.T) {
+		installMockACS(t)
+		setFlags(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		// A permission-type policy hits the umbrella gate at the top of the
+		// handler.
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
+		CheckErrorID(t, err, "api.access_control_policy.permission_policies.feature_disabled")
+		CheckNotImplementedStatus(t, resp)
+
+		// A channel policy skips that one, so it lands on the channel-scope
+		// gate, whose helper also requires the umbrella.
+		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
+		CheckErrorID(t, err, channelPermissionsDisabledID)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("ChannelPermissionActions off rejects both policy types", func(t *testing.T) {
+		installMockACS(t)
+		setFlags(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelPermissionActions = false
+		})
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
+		CheckErrorID(t, err, "api.access_control_policy.channel_permission_actions.feature_disabled")
+		CheckNotImplementedStatus(t, resp)
+
+		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
+		CheckErrorID(t, err, "api.access_control_policy.channel_permission_actions.feature_disabled")
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("ChannelPermissionActions off also rejects write and management access", func(t *testing.T) {
+		// The three channel-access actions share the one flag.
+		installMockACS(t)
+		setFlags(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelPermissionActions = false
+		})
+
+		for _, action := range []string{model.AccessControlPolicyActionChannelWriteAccess, model.AccessControlPolicyActionChannelManagementAccess} {
+			policy := systemPolicy()
+			policy.Rules[0].Actions = []string{action}
+			_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
+			CheckErrorID(t, err, "api.access_control_policy.channel_permission_actions.feature_disabled")
+			CheckNotImplementedStatus(t, resp)
+		}
+	})
+
+	t.Run("channel policy still needs ChannelPermissionPolicies", func(t *testing.T) {
+		// channel_read_access is a permission action, so the channel-scope gate
+		// applies. A channel policy needs that flag; a system permission policy
+		// only needs the umbrella.
+		installMockACS(t)
+		setFlags(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelPermissionPolicies = false
+		})
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
+		CheckErrorID(t, err, channelPermissionsDisabledID)
+		CheckNotImplementedStatus(t, resp)
+
+		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
+
 // TestCreateAccessControlPolicyBurnOnRead ensures create_burn_on_read_post action
 // is gated by the umbrella feature flag for Permission Policies.
 func TestCreateAccessControlPolicyBurnOnRead(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	th := setupMaskingOff(t).InitBasic(t)
 
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.True(t, ok, "SetLicense should return true")

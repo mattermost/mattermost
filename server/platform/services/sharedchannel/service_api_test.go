@@ -69,6 +69,11 @@ func TestUnshareChannel_systemPostsForEachRemoteWorkspace(t *testing.T) {
 	var postedWorkspaces []string
 	mockApp.On("GetSystemBot", mock.Anything).Return(bot, (*model.AppError)(nil))
 	mockApp.On("Publish", mock.Anything).Return()
+	// The channel_updated broadcast carries the full channel, so it must be gated on
+	// channel_read_access for that channel.
+	mockApp.On("SetupBroadcastHookForChannelReadAccess", channelID, mock.MatchedBy(func(message *model.WebSocketEvent) bool {
+		return message.EventType() == model.WebsocketEventChannelUpdated
+	})).Return().Once()
 	mockApp.On("CreatePost", mock.Anything, mock.AnythingOfType("*model.Post"), mock.AnythingOfType("*model.Channel"), mock.Anything).
 		Run(func(args mock.Arguments) {
 			post := args.Get(1).(*model.Post)
@@ -126,6 +131,7 @@ func TestUnshareChannel_whenListRemotesFails_stillUnsharesWithoutSystemPosts(t *
 
 	mockApp := &MockAppIface{}
 	mockApp.On("Publish", mock.Anything).Return()
+	mockApp.On("SetupBroadcastHookForChannelReadAccess", mock.Anything, mock.Anything).Return()
 
 	scs := &Service{
 		server:   mockServer,
@@ -176,6 +182,7 @@ func TestUnshareChannel_whenRemoteClusterMissingUsesRemoteIdInPost(t *testing.T)
 	bot := &model.Bot{UserId: model.NewId()}
 	mockApp.On("GetSystemBot", mock.Anything).Return(bot, (*model.AppError)(nil))
 	mockApp.On("Publish", mock.Anything).Return()
+	mockApp.On("SetupBroadcastHookForChannelReadAccess", mock.Anything, mock.Anything).Return()
 	mockApp.On("CreatePost", mock.Anything, mock.AnythingOfType("*model.Post"), mock.AnythingOfType("*model.Channel"), mock.Anything).
 		Run(func(args mock.Arguments) {
 			post := args.Get(1).(*model.Post)
@@ -305,6 +312,7 @@ func TestUninviteRemoteFromChannel_whenLastRemoteUnsharesChannel(t *testing.T) {
 	bot := &model.Bot{UserId: model.NewId()}
 	mockApp.On("GetSystemBot", mock.Anything).Return(bot, (*model.AppError)(nil))
 	mockApp.On("Publish", mock.Anything).Return()
+	mockApp.On("SetupBroadcastHookForChannelReadAccess", mock.Anything, mock.Anything).Return()
 	mockApp.On("CreatePost", mock.Anything, mock.AnythingOfType("*model.Post"), mock.AnythingOfType("*model.Channel"), mock.Anything).
 		Return(&model.Post{}, false, (*model.AppError)(nil))
 

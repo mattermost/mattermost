@@ -25,6 +25,10 @@ type Props = {
     onRemotesChange: React.Dispatch<React.SetStateAction<WorkspaceWithStatus[]>>;
     enabled: boolean;
     onToggle?: (enabled: boolean) => void;
+
+    /** Renders the section read-only: the toggle, the add button and every remove
+     *  button are disabled, but the current workspace list stays legible. */
+    disabled?: boolean;
 };
 
 const emptyRemotes: RemoteClusterInfo[] = [];
@@ -35,6 +39,7 @@ export default function ShareChannelWithWorkspaces({
     onRemotesChange,
     enabled,
     onToggle,
+    disabled = false,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -127,10 +132,10 @@ export default function ShareChannelWithWorkspaces({
                         id='shareChannelWithWorkspacesToggle'
                         size='medium'
                         checked={enabled && hasAvailableWorkspaces}
-                        disabled={!hasAvailableWorkspaces}
+                        disabled={disabled || !hasAvailableWorkspaces}
                         onChange={handleToggle}
                         data-testid='shareChannelWithWorkspacesToggle-button'
-                        tabIndex={hasAvailableWorkspaces ? 0 : -1}
+                        tabIndex={hasAvailableWorkspaces && !disabled ? 0 : -1}
                         semiBold={true}
                         secondaryLabel={subheading}
                     >
@@ -170,12 +175,14 @@ export default function ShareChannelWithWorkspaces({
                     <WorkspaceList
                         workspaces={remotes}
                         onRemove={handleRemove}
+                        disabled={disabled}
                     />
 
                     <AddWorkspaceDropdown
                         currentRemoteIds={currentRemoteIds}
                         onAdd={handleAdd}
                         remoteClusters={availableRemoteClusters}
+                        disabled={disabled}
                     />
                 </div>
             )}

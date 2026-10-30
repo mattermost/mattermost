@@ -6,10 +6,13 @@ import React from 'react';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
 } from '@mattermost/types/access_control';
 import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
+import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
@@ -638,6 +641,39 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(screen.getByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
     });
 
+    describe('when the channel is read-only', () => {
+        // A channel_management_access denial refuses the policy fetch too, so this tab used
+        // to surface the raw 403 in an error style no other tab uses. It has to show the
+        // same notice the rest of the modal shows.
+        const managementDenied = {status_code: 403, message: 'You do not currently have permission to manage this channel.'};
+
+        it('shows the shared read-only notice instead of the refused fetch', async () => {
+            mockActions.getChannelPolicy.mockResolvedValue({error: managementDenied});
+
+            renderWithContext(
+                <ChannelSettingsPermissionsPolicyTab
+                    {...baseProps}
+                    isReadOnly={true}
+                />,
+                initialState,
+            );
+
+            expect(await screen.findByTestId('permissions-policy-read-only')).toBeInTheDocument();
+            expect(screen.getByText('Editing is restricted')).toBeInTheDocument();
+            expect(screen.queryByTestId('permissions-policy-load-error')).not.toBeInTheDocument();
+            expect(screen.queryByText(managementDenied.message)).not.toBeInTheDocument();
+        });
+
+        it('still reports a genuine load failure when not read-only', async () => {
+            mockActions.getChannelPolicy.mockResolvedValue({error: {status_code: 500, message: 'boom'}});
+
+            renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+            expect(await screen.findByTestId('permissions-policy-load-error')).toBeInTheDocument();
+            expect(screen.queryByTestId('permissions-policy-read-only')).not.toBeInTheDocument();
+        });
+    });
+
     test('reports unsaved changes to the modal while a rule is open in the editor', async () => {
         const setAreThereUnsavedChanges = jest.fn();
 
@@ -759,5 +795,409 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
 
         expect(screen.getByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
         expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+    });
+});
+
+describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab — Channel Read Access', () => {
+    const baseProps = {
+        channel: TestHelper.getChannelMock({
+            id: 'channel_id',
+            name: 'test-channel',
+            display_name: 'Test Channel',
+            type: 'P',
+        }),
+        setAreThereUnsavedChanges: jest.fn(),
+        showTabSwitchError: false,
+    };
+
+    const baseState = {
+        entities: {
+            general: {
+                config: {
+                    FeatureFlagPermissionPolicies: 'true',
+                    FeatureFlagChannelPermissionActions: 'true',
+                },
+            },
+            users: {
+                currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: TestHelper.getUserMock({id: 'current_user_id', roles: 'system_admin'}),
+                },
+            },
+        },
+    };
+
+    const mockActions = {
+        getAccessControlFields: jest.fn(),
+        getVisualAST: jest.fn(),
+        searchUsers: jest.fn(),
+        getChannelPolicy: jest.fn(),
+        saveChannelPolicy: jest.fn(),
+        deleteChannelPolicy: jest.fn(),
+        getChannelMembers: jest.fn(),
+        createJob: jest.fn(),
+        createAccessControlSyncJob: jest.fn(),
+        validateExpressionAgainstRequester: jest.fn(),
+        simulatePolicyForUsers: jest.fn(),
+        updateAccessControlPoliciesActive: jest.fn(),
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        (useChannelAccessControlActions as jest.Mock).mockReturnValue(mockActions);
+        (useChannelSystemPolicies as jest.Mock).mockReturnValue({policies: [], loading: false, error: null});
+        (useEnabledSessionAttributeFields as jest.Mock).mockReturnValue([]);
+        mockActions.getAccessControlFields.mockResolvedValue({
+            data: [{id: 'u1', name: 'department', group_id: 'custom_profile_attributes', object_type: 'user', attrs: {managed: 'admin'}}],
+        });
+        mockActions.getChannelPolicy.mockResolvedValue({error: {status_code: 404}});
+        mockActions.saveChannelPolicy.mockResolvedValue({data: {rules: []}});
+
+        mockActions.simulatePolicyForUsers.mockResolvedValue({
+            data: {
+                results: [{
+                    user: {id: 'current_user_id'},
+                    decisions: {[ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: {decision: true}},
+                }],
+                total: 1,
+            },
+        });
+
+        console.error = jest.fn();
+        console.warn = jest.fn();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    const openEditor = async (state: typeof baseState = baseState) => {
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, state);
+        const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
+        await waitFor(() => expect(addRuleButton).toBeEnabled());
+        await userEvent.click(addRuleButton);
+        await screen.findByTestId('permissions-policy-editor');
+        await screen.findByTestId('table-editor');
+    };
+
+    test('offers the Channel Read Access row in the permission picker', async () => {
+        await openEditor();
+
+        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`)).toBeInTheDocument();
+        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+    });
+
+    test('does not offer the channel access actions while the ChannelPermissionActions flag is off', async () => {
+        await openEditor({
+            ...baseState,
+            entities: {...baseState.entities, general: {config: {FeatureFlagPermissionPolicies: 'true', FeatureFlagChannelPermissionActions: 'false'}}},
+        });
+
+        expect(screen.queryByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`)).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cpp-add-permission-channel_write_access')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cpp-add-permission-channel_management_access')).not.toBeInTheDocument();
+        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+    });
+
+    test('a channel_read_access rule requires confirmation before saving', async () => {
+        await openEditor();
+
+        act(() => {
+            const {calls} = (TableEditor as unknown as jest.Mock).mock;
+            calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
+        });
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Managed devices only');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        // Nothing is persisted until the dialog is confirmed.
+        expect(await screen.findByText('Save this policy?')).toBeInTheDocument();
+        expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+        const saved = mockActions.saveChannelPolicy.mock.calls[0][0];
+        expect(saved.rules[0].actions).toContain(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS);
+    });
+
+    test('cancelling the confirmation leaves the policy unsaved', async () => {
+        await openEditor();
+
+        act(() => {
+            const {calls} = (TableEditor as unknown as jest.Mock).mock;
+            calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
+        });
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Managed devices only');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+        await screen.findByText('Save this policy?');
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+    });
+
+    test('a file-only rule saves without the confirmation', async () => {
+        await openEditor();
+
+        act(() => {
+            const {calls} = (TableEditor as unknown as jest.Mock).mock;
+            calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
+        });
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_DOWNLOAD_FILE}`));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Downloads');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+        expect(screen.queryByText('Save this policy?')).not.toBeInTheDocument();
+    });
+
+    // ── Pre-save self-lockout guard ───────────────────────────────────────
+    describe('self-lockout guard', () => {
+        const stateWith = ({simulation = true, roles = 'system_admin'} = {}) => ({
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagPermissionPolicies: 'true',
+                        FeatureFlagPolicySimulation: simulation ? 'true' : 'false',
+                        FeatureFlagChannelPermissionActions: 'true',
+                    },
+                },
+                users: {
+                    currentUserId: 'current_user_id',
+                    profiles: {
+                        current_user_id: TestHelper.getUserMock({id: 'current_user_id', roles}),
+                    },
+                },
+            },
+        });
+
+        const selfDecision = (decision: boolean, action = ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS) => ({
+            data: {
+                results: [{
+                    user: {id: 'current_user_id'},
+                    decisions: {[action]: {decision}},
+                }],
+                total: 1,
+            },
+        });
+
+        // Authors a rule carrying the given channel-access actions (channel_read_access
+        // by default) and clicks through to the confirmation.
+        const authorAccessChannelRule = async (state: object, channel?: Channel, ruleActions = [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]) => {
+            const props = channel ? {...baseProps, channel} : baseProps;
+            renderWithContext(<ChannelSettingsPermissionsPolicyTab {...props}/>, state);
+
+            const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
+            await waitFor(() => expect(addRuleButton).toBeEnabled());
+            await userEvent.click(addRuleButton);
+            await screen.findByTestId('table-editor');
+
+            act(() => {
+                const {calls} = (TableEditor as unknown as jest.Mock).mock;
+                calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
+            });
+            for (const action of ruleActions) {
+                // eslint-disable-next-line no-await-in-loop
+                await userEvent.click(screen.getByTestId(`cpp-add-permission-${action}`));
+            }
+            await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Managed devices only');
+            await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+            await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+            await screen.findByText('Save this policy?');
+            await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
+        };
+
+        test('blocks the save when the author would lose access', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(false));
+
+            await authorAccessChannelRule(stateWith());
+
+            expect(await screen.findByText('Cannot save permission rules')).toBeInTheDocument();
+            expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+            expect(screen.queryByText('Save this policy?')).not.toBeInTheDocument();
+        });
+
+        // evaluation_scope must be 'all'. With the server's default of 'this_rule'
+        // and no rule_name, the response filter flips a deny back to allowed and the
+        // guard can never fire.
+        test('asks the simulator about channel_read_access across the whole policy', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(true));
+
+            await authorAccessChannelRule(stateWith());
+
+            await waitFor(() => expect(mockActions.simulatePolicyForUsers).toHaveBeenCalled());
+            const params = mockActions.simulatePolicyForUsers.mock.calls[0][0];
+            expect(params.evaluation_scope).toBe('all');
+            expect(params.rule_name).toBeUndefined();
+            expect(params.actions).toEqual([ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]);
+            expect(params.users).toEqual([{user_id: 'current_user_id'}]);
+            expect(params.policy.type).toBe('channel');
+        });
+
+        test('simulates the same rules the save would persist', async () => {
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    rules: [{actions: ['membership'], expression: 'user.attributes.team == "eng"'}],
+                    imports: ['parent_policy_id'],
+                    active: true,
+                },
+            });
+            mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(true));
+
+            await authorAccessChannelRule(stateWith());
+
+            await waitFor(() => expect(mockActions.simulatePolicyForUsers).toHaveBeenCalled());
+            const {policy} = mockActions.simulatePolicyForUsers.mock.calls[0][0];
+            expect(policy.imports).toEqual(['parent_policy_id']);
+            expect(policy.rules.some((r: AccessControlPolicyRule) => r.actions?.includes('membership'))).toBe(true);
+            expect(policy.rules.some((r: AccessControlPolicyRule) => r.actions?.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS))).toBe(true);
+        });
+
+        test('saves when the author keeps access', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(true));
+
+            await authorAccessChannelRule(stateWith());
+
+            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+            expect(mockActions.simulatePolicyForUsers).toHaveBeenCalledTimes(1);
+            expect(screen.queryByText('Cannot save permission rules')).not.toBeInTheDocument();
+        });
+
+        // Deliberate regression guard: the Membership tab skips its self-check for public
+        // channels (channel_settings_access_rules_tab.tsx), since membership rules never
+        // remove anyone from one. Copying that exemption here would let an author hide a
+        // public channel from themselves.
+        test('guards a public channel too', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(false));
+
+            await authorAccessChannelRule(stateWith(), TestHelper.getChannelMock({
+                id: 'channel_id',
+                type: 'O',
+                display_name: 'Public Channel',
+            }));
+
+            expect(await screen.findByText('Cannot save permission rules')).toBeInTheDocument();
+            expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+        });
+
+        test('does not simulate for a policy without channel_read_access', async () => {
+            renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, stateWith());
+
+            const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
+            await waitFor(() => expect(addRuleButton).toBeEnabled());
+            await userEvent.click(addRuleButton);
+            await screen.findByTestId('table-editor');
+
+            act(() => {
+                const {calls} = (TableEditor as unknown as jest.Mock).mock;
+                calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
+            });
+            await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_DOWNLOAD_FILE}`));
+            await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Downloads');
+            await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+            await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+            expect(mockActions.simulatePolicyForUsers).not.toHaveBeenCalled();
+        });
+
+        // A check that ran and failed is not evidence of safety.
+        test('blocks the save when the simulation fails', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue({error: {status_code: 500, message: 'boom'}});
+
+            await authorAccessChannelRule(stateWith());
+
+            expect(await screen.findByText('Could not confirm that you would keep access to this channel. Please try again.')).toBeInTheDocument();
+            expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+        });
+
+        // 501 is a configuration answer, not a failure: blocking would leave the
+        // admin no way to save at all.
+        test('allows the save when simulation is unavailable', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue({error: {status_code: 501}});
+
+            await authorAccessChannelRule(stateWith());
+
+            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText('Cannot save permission rules')).not.toBeInTheDocument();
+        });
+
+        test('does not call the simulator at all when the flag is off', async () => {
+            await authorAccessChannelRule(stateWith({simulation: false}));
+
+            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+            expect(mockActions.simulatePolicyForUsers).not.toHaveBeenCalled();
+        });
+
+        // A transient failure must leave Save usable: the admin has nothing in the
+        // form to fix, so blocking through an inline error would strand them.
+        test('leaves the save retryable after a failed check', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue({error: {status_code: 500}});
+
+            await authorAccessChannelRule(stateWith());
+            await screen.findByText('Could not confirm that you would keep access to this channel. Please try again.');
+            await userEvent.click(screen.getByRole('button', {name: 'Back to editing'}));
+
+            mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(true));
+            await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+            await userEvent.click(await screen.findByRole('button', {name: 'Save policy'}));
+
+            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+        });
+
+        // A Manage channel rule the author fails locks them out of this very tab.
+        test('blocks the save when a channel_management_access rule would lock the author out', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(false, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS));
+
+            await authorAccessChannelRule(stateWith({roles: 'system_user'}), undefined, [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+
+            expect(await screen.findByText('You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.')).toBeInTheDocument();
+            expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+            const params = mockActions.simulatePolicyForUsers.mock.calls[0][0];
+            expect(params.actions).toEqual([ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+        });
+
+        test('checks both actions in one simulation when the rules carry both', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue({
+                data: {
+                    results: [{
+                        user: {id: 'current_user_id'},
+                        decisions: {
+                            [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: {decision: true},
+                            [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]: {decision: true},
+                        },
+                    }],
+                    total: 1,
+                },
+            });
+
+            await authorAccessChannelRule(stateWith({roles: 'system_user'}), undefined, [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+
+            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+            expect(mockActions.simulatePolicyForUsers).toHaveBeenCalledTimes(1);
+            const params = mockActions.simulatePolicyForUsers.mock.calls[0][0];
+            expect(params.actions).toEqual([ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+        });
+
+        // channel_management_access never binds system admins, so there is nothing to
+        // lock them out of; the confirmation still shows.
+        test('does not simulate channel_management_access for a system admin', async () => {
+            await authorAccessChannelRule(stateWith(), undefined, [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+
+            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+            expect(mockActions.simulatePolicyForUsers).not.toHaveBeenCalled();
+        });
     });
 });

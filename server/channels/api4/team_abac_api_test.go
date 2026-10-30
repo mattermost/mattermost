@@ -29,6 +29,7 @@ func enableTeamABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInt
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	})
 	m := &mocks.AccessControlServiceInterface{}
+	ungovernedChannelAccess(m)
 	th.App.Srv().Channels().AccessControl = m
 	t.Cleanup(func() {
 		th.App.Srv().Channels().AccessControl = nil

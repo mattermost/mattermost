@@ -45,6 +45,36 @@ func (_m *AccessControlServiceInterface) AccessEvaluation(rctx request.CTX, acce
 	return r0, r1
 }
 
+// ActionHasPermissionPolicy provides a mock function with given fields: rctx, action
+func (_m *AccessControlServiceInterface) ActionHasPermissionPolicy(rctx request.CTX, action string) (bool, *model.AppError) {
+	ret := _m.Called(rctx, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActionHasPermissionPolicy")
+	}
+
+	var r0 bool
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (bool, *model.AppError)); ok {
+		return rf(rctx, action)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) bool); ok {
+		r0 = rf(rctx, action)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, action)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CheckExpression provides a mock function with given fields: rctx, expression
 func (_m *AccessControlServiceInterface) CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError) {
 	ret := _m.Called(rctx, expression)
@@ -524,6 +554,36 @@ func (_m *AccessControlServiceInterface) QueryUsersForResource(rctx request.CTX,
 	}
 
 	return r0, r1, r2
+}
+
+// ResourcePolicyGovernsAction provides a mock function with given fields: rctx, resourceID, action
+func (_m *AccessControlServiceInterface) ResourcePolicyGovernsAction(rctx request.CTX, resourceID string, action string) (bool, *model.AppError) {
+	ret := _m.Called(rctx, resourceID, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResourcePolicyGovernsAction")
+	}
+
+	var r0 bool
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (bool, *model.AppError)); ok {
+		return rf(rctx, resourceID, action)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) bool); ok {
+		r0 = rf(rctx, resourceID, action)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
+		r1 = rf(rctx, resourceID, action)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SavePolicy provides a mock function with given fields: rctx, policy

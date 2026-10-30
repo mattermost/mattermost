@@ -751,7 +751,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	threadStoreCreateReply(t, rctx, ss, channel1.Id, post.Id, post.UserId, model.GetMillis())
 	createThreadMembership(userID, post.Id)
 
-	teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true)
+	teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true, nil)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(1), teamsUnread[team1.Id].ThreadCount)
@@ -765,7 +765,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	threadStoreCreateReply(t, rctx, ss, channel1.Id, post.Id, post.UserId, model.GetMillis())
 	createThreadMembership(userID, post.Id)
 
-	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true)
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true, nil)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
@@ -807,7 +807,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	threadStoreCreateReply(t, rctx, ss, channel2.Id, post2.Id, post2.UserId, model.GetMillis())
 	createThreadMembership(userID, post2.Id)
 
-	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id}, true)
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id}, true, nil)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 2)
 	assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
@@ -820,12 +820,41 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Thread().MaintainMembership(userID, post2.Id, opts)
 	require.NoError(t, err)
 
-	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team2.Id}, true)
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team2.Id}, true, nil)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadCount)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadMentionCount)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadUrgentMentionCount)
+
+	t.Run("excluded channels are not counted", func(t *testing.T) {
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id}, true, []string{channel2.Id})
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
+		assert.Nil(t, teamsUnread[team2.Id], "team2's only channel is excluded")
+
+		opts := model.GetUserThreadsOpts{ExcludeChannelIds: []string{channel2.Id}}
+		total, err := ss.Thread().GetTotalThreads(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), total)
+		unread, err := ss.Thread().GetTotalUnreadThreads(userID, "", opts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), unread)
+		mentions, err := ss.Thread().GetTotalUnreadMentions(userID, "", opts)
+		require.NoError(t, err)
+		assert.Zero(t, mentions)
+		urgent, err := ss.Thread().GetTotalUnreadUrgentMentions(userID, "", opts)
+		require.NoError(t, err)
+		assert.Zero(t, urgent)
+
+		// The same totals without the exclusion, so the zeros above are the exclusion's doing.
+		mentions, err = ss.Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), mentions)
+		urgent, err = ss.Thread().GetTotalUnreadUrgentMentions(userID, "", model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), urgent)
+	})
 }
 
 func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1397,7 +1426,7 @@ func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store)
 	assertThreadReplyCount := func(t *testing.T, userID string, count int64) {
 		t.Helper()
 
-		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, false)
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, false, nil)
 		require.NoError(t, err)
 		require.Len(t, teamsUnread, 1, "unexpected unread teams count")
 		assert.Equal(t, count, teamsUnread[team1.Id].ThreadCount, "unexpected thread count")
@@ -1513,7 +1542,7 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	assertThreadReplyCount := func(t *testing.T, userID, teamID string, count int64, message string) {
 		t.Helper()
 
-		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{teamID}, true)
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{teamID}, true, nil)
 		require.NoError(t, err)
 		require.Lenf(t, teamsUnread, 1, "unexpected unread teams count: %s", message)
 		assert.Equalf(t, count, teamsUnread[teamID].ThreadCount, "unexpected thread count: %s", message)
