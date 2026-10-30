@@ -199,7 +199,7 @@ test.describe('Shared channel configuration', () => {
 
         await expect(configurationTab.shareWithWorkspacesToggle).toBeVisible();
         // When sharing is disabled and no workspaces are configured, the toggle is simply off.
-        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'false');
+        await expect(configurationTab.shareWithWorkspacesToggle).not.toBeChecked();
         await channelSettingsModal.close();
     });
 
@@ -311,7 +311,7 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.toBeVisible();
         channelSettingsModal = await channelsPage.openChannelSettings();
         configurationTab = await channelSettingsModal.openConfigurationTab();
-        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'true');
+        await expect(configurationTab.shareWithWorkspacesToggle).toBeChecked();
         await channelSettingsModal.close();
 
         // Disable sharing via API (uninvite workspaces) to avoid async UI race conditions.
@@ -331,7 +331,7 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.toBeVisible();
         channelSettingsModal = await channelsPage.openChannelSettings();
         configurationTab = await channelSettingsModal.openConfigurationTab();
-        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'false');
+        await expect(configurationTab.shareWithWorkspacesToggle).not.toBeChecked();
         await channelSettingsModal.close();
     });
 

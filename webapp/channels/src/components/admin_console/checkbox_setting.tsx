@@ -3,6 +3,8 @@
 
 import React, {memo} from 'react';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+
 import SetByEnv from './set_by_env';
 
 type Props = {
@@ -28,18 +30,17 @@ const CheckboxSetting = ({
 
     return (
         <div>
-            <label className='checkbox-inline'>
-                <input
-                    data-testid={id}
-                    type='checkbox'
-                    id={id}
-                    name={id}
-                    defaultChecked={defaultChecked}
-                    onChange={handleChange}
-                    disabled={disabled || setByEnv}
-                />
+            <Checkbox
+                className='checkbox-inline'
+                data-testid={id}
+                id={id}
+                name={id}
+                defaultChecked={defaultChecked}
+                onChange={handleChange}
+                disabled={disabled || setByEnv}
+            >
                 {label}
-            </label>
+            </Checkbox>
             {setByEnv ? <SetByEnv/> : null}
         </div>
     );

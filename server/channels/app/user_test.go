@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	_ "image/jpeg"
 	_ "image/png"
 	"net/http"
@@ -22,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
@@ -1728,6 +1730,563 @@ func TestPermanentDeleteUser(t *testing.T) {
 	fetchedScheduledPost, scheduledPostErr = th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost2.Id)
 	require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
 	require.Nil(t, fetchedScheduledPost)
+}
+
+func countRowsForUser(t *testing.T, th *TestHelper, table, column, userID string) int {
+	t.Helper()
+
+	var count int
+	err := th.SQLStore.GetMaster().Get(&count, "SELECT COUNT(*) FROM "+table+" WHERE "+column+" = ?", userID)
+	require.NoError(t, err)
+
+	return count
+}
+
+// userMetadataTables lists the tables PermanentDeleteUser is expected to clean up.
+var userMetadataTables = []string{
+	"Status",
+	"ChannelMemberHistory",
+	"SidebarCategories",
+	"SidebarChannels",
+	"ProductNoticeViewState",
+	"ThreadMemberships",
+	"PostAcknowledgements",
+	"ReadReceipts",
+	"PostReminders",
+	"UploadSessions",
+	"NotifyAdmin",
+	"UserTermsOfService",
+	"CommandWebhooks",
+	"DesktopTokens",
+	"SharedChannelUsers",
+	"OAuthAuthData",
+	"PropertyValues",
+	"ScheduledRecaps",
+	"Recaps",
+	"RecapChannels",
+	"ChannelJoinRequests",
+}
+
+// userMetadataQueries counts a user's rows in the userMetadataTables that are not keyed by UserId.
+var userMetadataQueries = map[string]string{
+	"PropertyValues": "SELECT COUNT(*) FROM PropertyValues WHERE TargetType = 'user' AND TargetID = ?",
+	"RecapChannels":  "SELECT COUNT(*) FROM RecapChannels WHERE ChannelName = ?",
+}
+
+func countUserMetadataRows(t *testing.T, th *TestHelper, table, userID string) int {
+	t.Helper()
+
+	if query, ok := userMetadataQueries[table]; ok {
+		return countRows(t, th, query, userID)
+	}
+	return countRowsForUser(t, th, table, "UserId", userID)
+}
+
+// seedUserMetadata writes one row into every table in userMetadataTables for the given user.
+// postID must be a root post the user did not author, so that the rows survive the deletion of
+// the user's own posts and only disappear because they were explicitly cleaned up.
+func seedUserMetadata(t *testing.T, th *TestHelper, userID, postID, termsOfServiceID string) {
+	t.Helper()
+
+	ss := th.App.Srv().Store()
+
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{
+		UserId:         userID,
+		Status:         model.StatusOnline,
+		LastActivityAt: model.GetMillis(),
+	}))
+
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(userID, th.BasicChannel.Id, model.GetMillis()))
+
+	// Creating the category with a channel in it covers both SidebarCategories and SidebarChannels.
+	_, appErr := th.App.CreateSidebarCategory(th.Context, userID, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+		SidebarCategory: model.SidebarCategory{
+			UserId:      userID,
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Custom category",
+		},
+		Channels: []string{th.BasicChannel.Id},
+	})
+	require.Nil(t, appErr)
+
+	require.NoError(t, ss.ProductNotices().View(userID, []string{model.NewId(), model.NewId()}))
+
+	_, nErr := ss.Thread().MaintainMembership(userID, postID, store.ThreadMembershipOpts{
+		Following:       true,
+		UpdateFollowing: true,
+	})
+	require.NoError(t, nErr)
+
+	_, nErr = ss.PostAcknowledgement().SaveWithModel(&model.PostAcknowledgement{
+		UserId:         userID,
+		PostId:         postID,
+		ChannelId:      th.BasicChannel.Id,
+		AcknowledgedAt: model.GetMillis(),
+	})
+	require.NoError(t, nErr)
+
+	_, nErr = ss.ReadReceipt().Save(th.Context, &model.ReadReceipt{
+		PostID:   postID,
+		UserID:   userID,
+		ExpireAt: model.GetMillis() + 100000,
+	})
+	require.NoError(t, nErr)
+
+	require.NoError(t, ss.Post().SetPostReminder(&model.PostReminder{
+		PostId:     postID,
+		UserId:     userID,
+		TargetTime: model.GetMillis()/1000 + 1000,
+	}))
+
+	_, nErr = ss.UploadSession().Save(&model.UploadSession{
+		Type:      model.UploadTypeAttachment,
+		UserId:    userID,
+		ChannelId: th.BasicChannel.Id,
+		Filename:  "upload.txt",
+		Path:      "/tmp/upload.txt",
+		FileSize:  1024,
+	})
+	require.NoError(t, nErr)
+
+	_, nErr = ss.NotifyAdmin().Save(&model.NotifyAdminData{
+		UserId:          userID,
+		RequiredPlan:    model.LicenseShortSkuProfessional,
+		RequiredFeature: model.PaidFeatureGuestAccounts,
+	})
+	require.NoError(t, nErr)
+
+	_, nErr = ss.UserTermsOfService().Save(&model.UserTermsOfService{
+		UserId:           userID,
+		TermsOfServiceId: termsOfServiceID,
+	})
+	require.NoError(t, nErr)
+
+	_, nErr = ss.CommandWebhook().Save(&model.CommandWebhook{
+		CommandId: model.NewId(),
+		UserId:    userID,
+		ChannelId: th.BasicChannel.Id,
+	})
+	require.NoError(t, nErr)
+
+	require.NoError(t, ss.DesktopTokens().Insert(model.NewId(), model.GetMillis(), userID))
+
+	_, nErr = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+		UserId:    userID,
+		ChannelId: th.BasicChannel.Id,
+		RemoteId:  model.NewId(),
+	})
+	require.NoError(t, nErr)
+
+	_, nErr = ss.OAuth().SaveAuthData(&model.AuthData{
+		ClientId:    model.NewId(),
+		UserId:      userID,
+		Code:        model.NewId(),
+		RedirectUri: "https://example.com/callback",
+		ExpiresIn:   model.AuthCodeExpireTime,
+	})
+	require.NoError(t, nErr)
+
+	for range 2 {
+		_, nErr = ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   userID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"attribute value"`),
+		})
+		require.NoError(t, nErr)
+	}
+
+	scheduledRecap, nErr := ss.ScheduledRecap().Save(&model.ScheduledRecap{
+		Id:          model.NewId(),
+		UserId:      userID,
+		Title:       "Scheduled recap",
+		DaysOfWeek:  model.Weekdays,
+		TimeOfDay:   "09:00",
+		Timezone:    "UTC",
+		TimePeriod:  model.TimePeriodLast24h,
+		NextRunAt:   model.GetMillis() + time.Hour.Milliseconds(),
+		ChannelMode: model.ChannelModeSpecific,
+		ChannelIds:  []string{th.BasicChannel.Id},
+		IsRecurring: true,
+		Enabled:     true,
+		CreateAt:    model.GetMillis(),
+		UpdateAt:    model.GetMillis(),
+	})
+	require.NoError(t, nErr)
+
+	recap, nErr := ss.Recap().SaveRecap(&model.Recap{
+		Id:               model.NewId(),
+		UserId:           userID,
+		Title:            "Recap",
+		CreateAt:         model.GetMillis(),
+		UpdateAt:         model.GetMillis(),
+		Status:           model.RecapStatusCompleted,
+		ScheduledRecapId: scheduledRecap.Id,
+	})
+	require.NoError(t, nErr)
+	// Named after the user so the row can still be found once its recap is gone.
+	require.NoError(t, ss.Recap().SaveRecapChannel(&model.RecapChannel{
+		Id:          model.NewId(),
+		RecapId:     recap.Id,
+		ChannelId:   th.BasicChannel.Id,
+		ChannelName: userID,
+		Highlights:  []string{"highlight"},
+		CreateAt:    model.GetMillis(),
+	}))
+
+	_, nErr = ss.ChannelJoinRequest().Save(&model.ChannelJoinRequest{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    userID,
+		Message:   "please let me in",
+	})
+	require.NoError(t, nErr)
+
+	for _, table := range userMetadataTables {
+		require.NotZero(t, countUserMetadataRows(t, th, table, userID),
+			"test setup should have left rows in %s", table)
+	}
+	require.Equal(t, 2, countUserMetadataRows(t, th, "PropertyValues", userID), "test setup should have left property values in two groups")
+}
+
+func TestPermanentDeleteUserRemovesUserMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	deletedUser := th.BasicUser
+	survivingUser := th.BasicUser2
+	ss := th.App.Srv().Store()
+
+	// A root post by a third user, so that neither of the two users under test loses it when
+	// their own posts are deleted.
+	rootPost, nErr := ss.Post().Save(th.Context, &model.Post{
+		UserId:    th.SystemAdminUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "root post by a third user",
+	})
+	require.NoError(t, nErr)
+	_, nErr = ss.Post().Save(th.Context, &model.Post{
+		UserId:    th.SystemAdminUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    rootPost.Id,
+		Message:   "reply",
+	})
+	require.NoError(t, nErr)
+
+	tos, nErr := ss.TermsOfService().Save(&model.TermsOfService{
+		Text:   "the terms",
+		UserId: th.SystemAdminUser.Id,
+	})
+	require.NoError(t, nErr)
+
+	seedUserMetadata(t, th, deletedUser.Id, rootPost.Id, tos.Id)
+	seedUserMetadata(t, th, survivingUser.Id, rootPost.Id, tos.Id)
+
+	appErr := th.App.PermanentDeleteUser(th.Context, deletedUser)
+	require.Nil(t, appErr)
+
+	assert.Zero(t, countRowsForUser(t, th, "Users", "Id", deletedUser.Id))
+
+	for _, table := range userMetadataTables {
+		assert.Zero(t, countUserMetadataRows(t, th, table, deletedUser.Id),
+			"%s still holds rows for the deleted user", table)
+		assert.NotZero(t, countUserMetadataRows(t, th, table, survivingUser.Id),
+			"%s lost rows belonging to a user that was not deleted", table)
+	}
+}
+
+func insertPosts(t *testing.T, th *TestHelper, userID, channelID, rootID string, count int) {
+	t.Helper()
+
+	posts := make([]*model.Post, count)
+	for i := range posts {
+		posts[i] = &model.Post{ChannelId: channelID, UserId: userID, RootId: rootID, Message: "bulk post"}
+	}
+	_, _, err := th.App.Srv().Store().Post().SaveMultiple(th.Context, posts)
+	require.NoError(t, err)
+}
+
+func countRows(t *testing.T, th *TestHelper, query string, args ...any) int {
+	t.Helper()
+
+	var count int
+	require.NoError(t, th.SQLStore.GetMaster().Get(&count, query, args...))
+
+	return count
+}
+
+// permanentDeleteFixture is a user with data in every table PermanentDeleteUser cleans up,
+// including data other users attached to the user's posts.
+type permanentDeleteFixture struct {
+	user      *model.User
+	rootPost  *model.Post
+	fileInfos []*model.FileInfo
+}
+
+func newPermanentDeleteFixture(t *testing.T, th *TestHelper, otherRootPost *model.Post, termsOfServiceID string) permanentDeleteFixture {
+	t.Helper()
+
+	ss := th.App.Srv().Store()
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	th.AddUserToChannel(t, user, th.BasicChannel)
+	require.Nil(t, th.App.SetDefaultProfileImage(th.Context, user))
+
+	rootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: user.Id, ChannelId: th.BasicChannel.Id, Message: "root"})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(th.Context, &model.Post{UserId: user.Id, ChannelId: th.BasicChannel.Id, RootId: otherRootPost.Id, Message: "reply"})
+	require.NoError(t, err)
+	otherReply, err := ss.Post().Save(th.Context, &model.Post{UserId: th.BasicUser2.Id, ChannelId: th.BasicChannel.Id, RootId: rootPost.Id, Message: "reply by someone else"})
+	require.NoError(t, err)
+
+	for _, postID := range []string{rootPost.Id, otherReply.Id} {
+		_, err = ss.Reaction().Save(&model.Reaction{UserId: th.BasicUser2.Id, PostId: postID, EmojiName: "smile", ChannelId: th.BasicChannel.Id})
+		require.NoError(t, err)
+	}
+
+	// A file the user already deleted, and one someone else attached to a reply to the user's post.
+	ownFile, appErr := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, user.Id, "own.txt", []byte("own"), true)
+	require.Nil(t, appErr)
+	require.NoError(t, ss.FileInfo().AttachToPost(th.Context, ownFile.Id, rootPost.Id, th.BasicChannel.Id, user.Id))
+	_, err = ss.FileInfo().DeleteForPost(th.Context, rootPost.Id)
+	require.NoError(t, err)
+
+	otherFile, appErr := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser2.Id, "other.txt", []byte("other"), true)
+	require.Nil(t, appErr)
+	require.NoError(t, ss.FileInfo().AttachToPost(th.Context, otherFile.Id, otherReply.Id, th.BasicChannel.Id, th.BasicUser2.Id))
+
+	seedUserMetadata(t, th, user.Id, otherRootPost.Id, termsOfServiceID)
+
+	return permanentDeleteFixture{user: user, rootPost: rootPost, fileInfos: []*model.FileInfo{ownFile, otherFile}}
+}
+
+func (f permanentDeleteFixture) requireFullyDeleted(t *testing.T, th *TestHelper) {
+	t.Helper()
+
+	userID := f.user.Id
+	for _, table := range []string{"Posts", "Preferences", "ChannelMembers", "TeamMembers", "Sessions", "Reactions", "Audits"} {
+		require.Zero(t, countRowsForUser(t, th, table, "UserId", userID), "%s still holds rows for the deleted user", table)
+	}
+	for _, table := range userMetadataTables {
+		require.Zero(t, countUserMetadataRows(t, th, table, userID), "%s still holds rows for the deleted user", table)
+	}
+	require.Zero(t, countRowsForUser(t, th, "Users", "Id", userID))
+	require.Zero(t, countRowsForUser(t, th, "FileInfo", "CreatorId", userID))
+	require.Zero(t, countRowsForUser(t, th, "Posts", "RootId", f.rootPost.Id), "replies to the user's posts were left behind")
+	for _, table := range []string{"Reactions", "ReadReceipts", "PostAcknowledgements", "PostReminders", "PostsPriority", "PersistentNotifications", "TemporaryPosts", "Threads", "ThreadMemberships", "FileInfo"} {
+		require.Zero(t, countRows(t, th, "SELECT COUNT(*) FROM "+table+" t WHERE t.PostId != '' AND NOT EXISTS (SELECT 1 FROM Posts p WHERE p.Id = t.PostId)"),
+			"%s still holds rows for deleted posts", table)
+	}
+
+	for _, info := range f.fileInfos {
+		require.Zero(t, countRowsForUser(t, th, "FileInfo", "Id", info.Id))
+		exists, appErr := th.App.FileExists(info.Path)
+		require.Nil(t, appErr)
+		require.False(t, exists, "file %s was left in storage", info.Path)
+	}
+
+	exists, appErr := th.App.FileExists(getProfileImageDirectory(userID))
+	require.Nil(t, appErr)
+	require.False(t, exists, "profile image directory was left in storage")
+}
+
+// injectDeleteFailures adds a trigger to every table that makes the nth DELETE statement after
+// failNthDelete(n) fail, with n = 0 disabling it. deletesRun reports how many DELETE statements
+// have run since failNthDelete was last called.
+func injectDeleteFailures(t *testing.T, th *TestHelper) (failNthDelete func(n int), deletesRun func() int) {
+	t.Helper()
+
+	db := th.SQLStore.GetMaster()
+	_, err := db.Exec(`
+		CREATE SEQUENCE test_delete_count;
+		CREATE TABLE test_delete_fail_at (n bigint NOT NULL);
+		INSERT INTO test_delete_fail_at VALUES (0);
+		CREATE FUNCTION test_fail_nth_delete() RETURNS trigger LANGUAGE plpgsql AS $$
+		BEGIN
+			IF nextval('test_delete_count') = (SELECT n FROM test_delete_fail_at) THEN
+				RAISE EXCEPTION 'injected failure of DELETE on %', TG_TABLE_NAME;
+			END IF;
+			RETURN NULL;
+		END $$;
+		DO $$
+		DECLARE t regclass;
+		BEGIN
+			FOR t IN SELECT oid::regclass FROM pg_class
+				WHERE relkind = 'r' AND relnamespace = 'public'::regnamespace AND relname NOT IN ('db_migrations', 'test_delete_fail_at')
+			LOOP
+				EXECUTE format('CREATE TRIGGER test_fail_nth_delete BEFORE DELETE ON %s FOR EACH STATEMENT EXECUTE FUNCTION test_fail_nth_delete()', t);
+			END LOOP;
+		END $$;`)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err := db.Exec(`
+			DROP FUNCTION test_fail_nth_delete CASCADE;
+			DROP TABLE test_delete_fail_at;
+			DROP SEQUENCE test_delete_count;`)
+		require.NoError(t, err)
+	})
+
+	failNthDelete = func(n int) {
+		_, err := db.Exec("UPDATE test_delete_fail_at SET n = ?", n)
+		require.NoError(t, err)
+		_, err = db.Exec("SELECT setval('test_delete_count', 1, false)")
+		require.NoError(t, err)
+	}
+	deletesRun = func() int {
+		var count struct {
+			LastValue int  `db:"last_value"`
+			IsCalled  bool `db:"is_called"`
+		}
+		require.NoError(t, db.Get(&count, "SELECT last_value, is_called FROM test_delete_count"))
+		if !count.IsCalled {
+			return 0
+		}
+		return count.LastValue
+	}
+
+	return failNthDelete, deletesRun
+}
+
+func TestPermanentDeleteUserCanBeResumedAfterAnyFailedDelete(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	ss := th.App.Srv().Store()
+	otherRootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: th.SystemAdminUser.Id, ChannelId: th.BasicChannel.Id, Message: "root by someone else"})
+	require.NoError(t, err)
+	tos, err := ss.TermsOfService().Save(&model.TermsOfService{Text: "the terms", UserId: th.SystemAdminUser.Id})
+	require.NoError(t, err)
+
+	failNthDelete, deletesRun := injectDeleteFailures(t, th)
+
+	n := 1
+	for ; ; n++ {
+		finished := false
+		t.Run(fmt.Sprintf("DELETE statement %d fails", n), func(t *testing.T) {
+			fixture := newPermanentDeleteFixture(t, th, otherRootPost, tos.Id)
+
+			failNthDelete(n)
+			appErr := th.App.PermanentDeleteUser(th.Context, fixture.user)
+			finished = deletesRun() < n
+			failNthDelete(0)
+
+			if appErr != nil {
+				require.ErrorContains(t, appErr, "injected failure")
+				user, getErr := th.App.GetUser(th.Context, fixture.user.Id)
+				require.Nil(t, getErr, "the user must still be found so the delete can be run again")
+
+				require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
+			}
+			fixture.requireFullyDeleted(t, th)
+		})
+		if t.Failed() {
+			return
+		}
+		if finished {
+			break
+		}
+	}
+	require.Greater(t, n, 1, "no DELETE statement was made to fail")
+}
+
+func TestPermanentDeleteUserFailureCanBeRetried(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	ss := th.App.Srv().Store()
+	otherRootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: th.SystemAdminUser.Id, ChannelId: th.BasicChannel.Id, Message: "root by someone else"})
+	require.NoError(t, err)
+	tos, err := ss.TermsOfService().Save(&model.TermsOfService{Text: "the terms", UserId: th.SystemAdminUser.Id})
+	require.NoError(t, err)
+	fixture := newPermanentDeleteFixture(t, th, otherRootPost, tos.Id)
+
+	// A non-empty directory cannot be removed as a file, so removing this file fails.
+	blockedPath := "blocked/" + model.NewId()
+	_, appErr := th.App.WriteFile(strings.NewReader("x"), blockedPath+"/inner.txt")
+	require.Nil(t, appErr)
+	blocked, err := ss.FileInfo().Save(th.Context, &model.FileInfo{CreatorId: fixture.user.Id, Path: blockedPath, Name: "blocked.txt"})
+	require.NoError(t, err)
+
+	appErr = th.App.PermanentDeleteUser(th.Context, fixture.user)
+	require.NotNil(t, appErr)
+	require.Equal(t, "app.user.permanent_delete.incomplete.app_error", appErr.Id)
+
+	user, appErr := th.App.GetUser(th.Context, fixture.user.Id)
+	require.Nil(t, appErr)
+	require.NotZero(t, user.DeleteAt)
+	require.Equal(t, 1, countRowsForUser(t, th, "FileInfo", "Id", blocked.Id), "a file info must only be deleted once its file is gone")
+
+	require.Nil(t, th.App.RemoveFile(blockedPath+"/inner.txt"))
+
+	require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
+	fixture.fileInfos = append(fixture.fileInfos, blocked)
+	fixture.requireFullyDeleted(t, th)
+}
+
+func TestPermanentDeleteUserRemovesHalfRemovedProfileImageDirectory(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	ss := th.App.Srv().Store()
+	otherRootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: th.SystemAdminUser.Id, ChannelId: th.BasicChannel.Id, Message: "root by someone else"})
+	require.NoError(t, err)
+	tos, err := ss.TermsOfService().Save(&model.TermsOfService{Text: "the terms", UserId: th.SystemAdminUser.Id})
+	require.NoError(t, err)
+	fixture := newPermanentDeleteFixture(t, th, otherRootPost, tos.Id)
+
+	// The state an earlier removal leaves behind when it deletes the image but cannot remove
+	// the directory it sits in.
+	require.Nil(t, th.App.RemoveFile(getProfileImagePath(fixture.user.Id)))
+
+	require.Nil(t, th.App.PermanentDeleteUser(th.Context, fixture.user))
+	fixture.requireFullyDeleted(t, th)
+}
+
+func TestPermanentDeleteUserOverPostLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	ss := th.App.Srv().Store()
+	otherRootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: th.SystemAdminUser.Id, ChannelId: th.BasicChannel.Id, Message: "root by someone else"})
+	require.NoError(t, err)
+	tos, err := ss.TermsOfService().Save(&model.TermsOfService{Text: "the terms", UserId: th.SystemAdminUser.Id})
+	require.NoError(t, err)
+	fixture := newPermanentDeleteFixture(t, th, otherRootPost, tos.Id)
+	user := fixture.user
+
+	insertPosts(t, th, user.Id, th.BasicChannel.Id, "", store.MaxPostsPerUserPermanentDelete+500)
+	insertPosts(t, th, user.Id, th.BasicChannel.Id, otherRootPost.Id, 1500)
+	insertPosts(t, th, th.BasicUser2.Id, th.BasicChannel.Id, fixture.rootPost.Id, 1500)
+	postCount := countRowsForUser(t, th, "Posts", "UserId", user.Id)
+
+	appErr := th.App.PermanentDeleteUser(th.Context, user)
+	require.NotNil(t, appErr)
+	require.Equal(t, "app.user.permanent_delete.post_limit.app_error", appErr.Id)
+	require.Equal(t, postCount-store.MaxPostsPerUserPermanentDelete, countRowsForUser(t, th, "Posts", "UserId", user.Id))
+
+	user, appErr = th.App.GetUser(th.Context, user.Id)
+	require.Nil(t, appErr)
+	require.NotZero(t, user.DeleteAt)
+
+	require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
+	fixture.requireFullyDeleted(t, th)
+}
+
+func TestPermanentDeleteAllUsersReportsIncompleteUsers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	insertPosts(t, th, th.BasicUser.Id, th.BasicChannel.Id, "", store.MaxPostsPerUserPermanentDelete+1)
+
+	appErr := th.App.PermanentDeleteAllUsers(th.Context)
+	require.NotNil(t, appErr)
+	require.Equal(t, "app.user.permanent_delete_all.incomplete.app_error", appErr.Id)
+	appErr.Translate(i18n.GetUserTranslations("en"))
+	require.Contains(t, appErr.Message, "Unable to finish deleting 1 users: "+th.BasicUser.Username+".")
+	require.Equal(t, 1, countRows(t, th, "SELECT COUNT(*) FROM Users"))
+
+	require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
+	require.Zero(t, countRows(t, th, "SELECT COUNT(*) FROM Users"))
 }
 
 func TestPasswordRecovery(t *testing.T) {

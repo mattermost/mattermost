@@ -4,7 +4,9 @@
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -329,8 +331,8 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                     onClick={() => {
                         history.push('/admin_console/system_attributes/permission_policies/edit_policy');
                     }}
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <i className='icon icon-plus'/>
                     <span>
                         <FormattedMessage
                             id='admin.permission_policies.add_policy'
