@@ -3,7 +3,7 @@
 
 import type {Dispatch} from 'redux';
 
-import {supportsHierarchy, type PropertyField, type PropertyFieldOption, type PropertyPermissionLevel} from '@mattermost/types/properties';
+import {supportsHierarchy, type ChannelAttributeComplianceSummary, type ChannelAttributeNotifyResult, type ChannelsMissingAttributeValueList, type PropertyField, type PropertyFieldOption, type PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -414,4 +414,24 @@ export function formatAttributeHeadingName(name: string): string {
         return trimmed;
     }
     return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
+}
+
+// --- Required-channel-attribute compliance (MM-70717) ---
+//
+// fieldId is undefined in create mode: the channel-linked field has no ID yet
+// (nothing has been saved), so the server treats every active channel as
+// missing a value.
+
+const CHANNEL_MISSING_VALUES_PER_PAGE = 20;
+
+export function fetchChannelsMissingValueSummary(fieldId?: string): Promise<ChannelAttributeComplianceSummary> {
+    return Client4.getChannelAttributeComplianceSummary(GLOBAL_ATTRIBUTES_GROUP_NAME, fieldId);
+}
+
+export function fetchChannelsMissingValue(fieldId: string | undefined, page: number, perPage: number = CHANNEL_MISSING_VALUES_PER_PAGE): Promise<ChannelsMissingAttributeValueList> {
+    return Client4.getChannelsMissingAttributeValue(GLOBAL_ATTRIBUTES_GROUP_NAME, fieldId, page, perPage);
+}
+
+export function notifyChannelAdminsOfMissingValue(fieldId: string): Promise<ChannelAttributeNotifyResult> {
+    return Client4.notifyChannelAdminsOfMissingAttributeValue(GLOBAL_ATTRIBUTES_GROUP_NAME, fieldId);
 }

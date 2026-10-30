@@ -130,6 +130,47 @@ export function patchPropertyField(
 }
 
 /**
+ * Patches one or more property values for a target, then reconciles the result
+ * into Redux. A null-valued patch is a clear: the server upserts a null-valued
+ * row rather than emitting a delete, so this dispatches PROPERTY_VALUE_DELETED
+ * itself for each cleared field rather than storing the null value verbatim.
+ */
+export function patchPropertyValues(
+    groupName: string,
+    objectType: string,
+    targetId: string,
+    patches: Array<{field_id: string; value: unknown}>,
+): ActionFuncAsync<Array<PropertyValue<unknown>>> {
+    return async (dispatch) => {
+        let values: Array<PropertyValue<unknown>>;
+        try {
+            values = await Client4.patchPropertyValues(groupName, objectType, targetId, patches);
+        } catch (error) {
+            return {error};
+        }
+
+        const clearedFieldIds = new Set(patches.filter((patch) => patch.value === null).map((patch) => patch.field_id));
+
+        for (const fieldId of clearedFieldIds) {
+            dispatch({
+                type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                data: {targetId, fieldId},
+            });
+        }
+
+        const kept = values.filter((value) => !clearedFieldIds.has(value.field_id));
+        if (kept.length > 0) {
+            dispatch({
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values: kept},
+            });
+        }
+
+        return {data: values};
+    };
+}
+
+/**
  * Fetches all system-scoped property values for a given group via the
  * dedicated `/system/values` endpoint, then stores them in Redux.
  */
