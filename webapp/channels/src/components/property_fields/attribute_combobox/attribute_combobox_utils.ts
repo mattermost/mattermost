@@ -16,10 +16,10 @@ export function toComboboxOptions(options: readonly PropertyFieldOption[], testI
     });
 }
 
-// Combobox calls preventDefault() on the Enter and Escape presses it handles
-// (picking an option, closing the menu). Stopping those here keeps them from
-// reaching document listeners that would otherwise submit a form or close the
-// surrounding modal.
+// Stops any Enter or Escape whose default was prevented: by Combobox (picking an
+// option, closing the menu) or by enterSubmitGuard. This keeps them from reaching
+// document listeners that would otherwise submit a form or close the surrounding
+// modal.
 export function attributeComboboxKeyGuard(e: KeyboardEvent<HTMLElement>): void {
     if ((e.key === 'Enter' || e.key === 'Escape') && e.defaultPrevented) {
         e.stopPropagation();
@@ -45,5 +45,14 @@ export function attributeComboboxMouseDownGuard(e: MouseEvent<HTMLElement>): voi
 export function clearButtonKeyGuard(e: KeyboardEvent<HTMLButtonElement>): void {
     if (e.key === 'Enter') {
         e.stopPropagation();
+    }
+}
+
+// Combobox only prevents the Enter that picks an option. Any other Enter on the
+// input (menu closed, or no matching rows) would implicitly submit a surrounding
+// form. An Enter that commits IME composition must stay untouched.
+export function enterSubmitGuard(e: KeyboardEvent<HTMLInputElement>): void {
+    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+        e.preventDefault();
     }
 }

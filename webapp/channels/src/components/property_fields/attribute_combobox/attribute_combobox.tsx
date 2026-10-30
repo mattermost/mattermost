@@ -11,6 +11,7 @@ import {
     attributeComboboxKeyGuard,
     attributeComboboxMouseDownGuard,
     clearButtonKeyGuard,
+    enterSubmitGuard,
     toComboboxOptions,
 } from './attribute_combobox_utils';
 
@@ -71,10 +72,36 @@ export type AttributeComboboxProps = (SingleProps | MultiProps) & {
 
     /** Stacking order for the portaled menu, e.g. ZIndex.MENU inside a modal. */
     zIndex?: number;
+
+    /** Class for the wrapper, the element a layout sizes. */
+    className?: string;
+    'aria-describedby'?: string;
+
+    /** Only takes effect with `invalid`, which sets aria-invalid. */
+    'aria-errormessage'?: string;
+
+    /**
+     * Inside a form: prevents any Enter that doesn't pick an option, so it can't
+     * submit the form. That Enter then no longer reaches document listeners either.
+     */
+    preventEnterSubmit?: boolean;
 };
 
 export function AttributeCombobox(props: AttributeComboboxProps) {
-    const {label, options, id, testId, disabled, invalid, placeholder, zIndex} = props;
+    const {
+        label,
+        options,
+        id,
+        testId,
+        disabled,
+        invalid,
+        placeholder,
+        zIndex,
+        className,
+        'aria-describedby': ariaDescribedBy,
+        'aria-errormessage': ariaErrorMessage,
+        preventEnterSubmit,
+    } = props;
 
     const {formatMessage} = useIntl();
     const labels = useMemo(() => ({
@@ -111,6 +138,7 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
         // guard, focus can leave the input and the key guard stops seeing Escape.
         <div
             role='presentation'
+            className={className}
             onKeyDown={attributeComboboxKeyGuard}
             onMouseDown={attributeComboboxMouseDownGuard}
         >
@@ -118,6 +146,8 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
                 id={id}
                 data-testid={testId}
                 aria-label={label}
+                aria-describedby={ariaDescribedBy}
+                aria-errormessage={ariaErrorMessage}
                 options={comboboxOptions}
                 multiple={props.multiple}
                 value={props.multiple ? values : props.value}
@@ -133,6 +163,7 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
                 zIndex={zIndex}
                 {...labels}
                 onChange={handleChange}
+                onKeyDown={preventEnterSubmit ? enterSubmitGuard : undefined}
             />
         </div>
     );
