@@ -79,9 +79,12 @@ turndownService.addRule('mattermostCodeBlock', {
         const element = node as HTMLElement;
         const code = element.getAttribute(MARKDOWN_SOURCE_ATTRIBUTE) ?? getCodeText(element);
 
-        // Only the block's own overlay holds its language; a code block rendered inside Markdown has one of its own
-        const overlay = Array.from(element.children).find((child) => child.classList.contains('post-code__overlay'));
-        const languageLabel = overlay?.querySelector('.post-code__language')?.textContent ?? '';
+        // Only the block's own label counts: a code block rendered inside Markdown has one of its own. A quoted selection
+        // carries the label as a direct child instead of inside the overlay.
+        const ownChildren = Array.from(element.children);
+        const overlay = ownChildren.find((child) => child.classList.contains('post-code__overlay'));
+        const label = [...ownChildren, ...Array.from(overlay?.children ?? [])].find((child) => child.classList.contains('post-code__language'));
+        const languageLabel = label?.textContent ?? '';
         const fence = codeBlockFence(code);
 
         return `\n\n${fence}${getLanguageFromDisplayName(languageLabel)}\n${code}\n${fence}\n\n`;
