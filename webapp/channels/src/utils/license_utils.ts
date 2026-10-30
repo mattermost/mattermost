@@ -109,7 +109,7 @@ export const licenseSKUWithFirstLetterCapitalized = (license: ClientLicense) => 
     return sku.charAt(0).toUpperCase() + sku.slice(1);
 };
 
-export function isEnterpriseOrCloudOrSKUStarterFree(license: ClientLicense, isEnterpriseReady: boolean) {
+export function isEnterpriseOrSKUStarterFree(license: ClientLicense, isEnterpriseReady: boolean) {
     const isSelfHostedStarter = isEnterpriseReady && (license.IsLicensed === 'false');
 
     const isStarterSKULicense = license.IsLicensed === 'true' && license.SelfHostedProducts === SelfHostedProducts.STARTER;

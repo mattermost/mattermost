@@ -52,7 +52,6 @@ export default function InviteAs(props: Props) {
 
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
     const isSelfHostedStarter = isEnterpriseReady && license.IsLicensed === 'false';
-    const isStarter = isSelfHostedStarter;
 
     let extraGuestLegend = true;
     let guestDisabledClass = '';
@@ -68,7 +67,7 @@ export default function InviteAs(props: Props) {
     const hasSelfHostedPriorTrial = prevTrialLicense.IsLicensed === 'true';
     const hasPriorTrial = hasCloudPriorTrial || hasSelfHostedPriorTrial;
 
-    const isPaidSubscription = !isStarter && !isFreeTrial;
+    const isPaidSubscription = !isSelfHostedStarter && !isFreeTrial;
 
     // show the badge logic (the restricted indicator takes care of the look when it is trial or not)
     if (isSystemAdmin && !isPaidSubscription) {
@@ -137,7 +136,7 @@ export default function InviteAs(props: Props) {
     }
 
     // disable the radio button logic (is disabled when is starter - pre and post trial)
-    if (isStarter || !props.canInviteGuests) {
+    if (isSelfHostedStarter || !props.canInviteGuests) {
         guestDisabled = (id: string) => {
             return (id === InviteType.GUEST);
         };

@@ -15,7 +15,7 @@ import {
 
 import {isCallsEnabled, isCallsRingingEnabledOnServer} from 'selectors/calls';
 
-import {isEnterpriseOrCloudOrSKUStarterFree} from 'utils/license_utils';
+import {isEnterpriseOrSKUStarterFree} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -47,7 +47,7 @@ const mapStateToProps = (state: GlobalState, props: OwnProps) => {
         enableAutoResponder,
         isCollapsedThreadsEnabled: props.adminMode && props.userPreferences ? isCollapsedThreadsEnabledForUser(state, props.userPreferences) : isCollapsedThreadsEnabled(state),
         isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabledOnServer(state),
-        isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, isEnterpriseReady),
+        isEnterpriseOrSKUStarterFree: isEnterpriseOrSKUStarterFree(license, isEnterpriseReady),
         isEnterpriseReady,
     };
 };

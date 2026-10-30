@@ -20,7 +20,7 @@ import {getCurrentUserMentionKeys, getHighlightWithoutNotificationKeys} from 'ma
 
 import {canManageMembers} from 'utils/channel_utils';
 import {Preferences} from 'utils/constants';
-import {isEnterpriseOrCloudOrSKUStarterFree} from 'utils/license_utils';
+import {isEnterpriseOrSKUStarterFree} from 'utils/license_utils';
 import type {MentionKey} from 'utils/text_formatting';
 
 import type {GlobalState} from 'types/store';
@@ -82,7 +82,7 @@ function makeMapStateToProps() {
             isMilitaryTime: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
             timezone: getCurrentTimezone(state),
             hideGuestTags: getConfig(state).HideGuestTags === 'true',
-            isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, isEnterpriseReady),
+            isEnterpriseOrSKUStarterFree: isEnterpriseOrSKUStarterFree(license, isEnterpriseReady),
             isEnterpriseReady,
             renderEmoticonsAsEmoji: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.RENDER_EMOTICONS_AS_EMOJI, Preferences.RENDER_EMOTICONS_AS_EMOJI_DEFAULT === 'true'),
         };
