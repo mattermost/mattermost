@@ -9,6 +9,11 @@ import {batchActions} from 'redux-batched-actions';
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+    ACCESS_CONTROL_PERMISSION_ACTIONS,
+} from '@mattermost/types/access_control';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
@@ -60,7 +65,6 @@ import {
     markMultipleChannelsAsRead,
     getChannelMemberCountsByGroup,
     fetchAllMyChannelMembers,
-    fetchAllMyTeamsChannels,
     fetchChannelsAndMembers,
 } from 'mattermost-redux/actions/channels';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
@@ -145,6 +149,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
 import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
+import {reconcileChannelReadAccess, reconcileChannelReadAccessWithJitter} from 'actions/channel_read_access';
 import {
     getTeamsUsage,
 } from 'actions/cloud';
@@ -303,7 +308,11 @@ export function reconnect() {
             dispatch(handleRefreshAppsBindings());
         }
 
-        dispatch(fetchAllMyTeamsChannels());
+        // Access can change while disconnected, and fetchAllMyTeamsChannels adds
+        // what is visible but never drops what no longer is. reconcileChannelReadAccess
+        // does that fetch itself and then drops what the server stopped returning, so
+        // it stands in for the plain refresh rather than running alongside it.
+        dispatch(reconcileChannelReadAccess());
         if (isScheduledPostsEnabled(state)) {
             dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
         }
@@ -574,7 +583,7 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
 
     case WebSocketEvents.PermissionPolicyUpdated:
-        dispatch(handlePermissionPolicyUpdatedEvent());
+        dispatch(handlePermissionPolicyUpdatedEvent(msg));
         break;
 
     case WebSocketEvents.TeamAccessControlUpdated:
@@ -902,7 +911,12 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
 
 export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
+        // The server leaves the channel out for a member its read rules deny. All that
+        // member needs is to drop the channel, which the reconcile does.
         if (!msg.data.channel) {
+            if (isPermissionPoliciesEnabled(doGetState())) {
+                doDispatch(reconcileChannelReadAccessWithJitter());
+            }
             return;
         }
 
@@ -925,6 +939,7 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
 
         doDispatch(invalidateRenderDecisionsForChannel(channel.id));
         doDispatch(refreshPostsAfterPolicyChange(channel.id));
+        doDispatch(reconcileChannelReadAccessWithJitter());
     };
 }
 
@@ -946,14 +961,34 @@ function refreshPostsAfterPolicyChange(channelId?: string): ThunkActionFunc<void
 }
 
 // Permission policies are system-scoped, hence no resource ID on the event and no narrower reset.
-export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
+export function handlePermissionPolicyUpdatedEvent(msg: WebSocketMessages.PermissionPolicyUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         if (!isPermissionPoliciesEnabled(doGetState())) {
             return;
         }
 
-        doDispatch(clearRenderDecisions());
-        doDispatch(refreshPostsAfterPolicyChange());
+        // Every connected client gets this event, so each step runs only when an action it
+        // depends on changed. A server that predates the action list sends none, and then any
+        // action may have.
+        const {actions} = msg.data;
+        const changed = (...dependsOn: string[]) => !actions || dependsOn.some((action) => actions.includes(action));
+
+        // Every permission policy action is answered as a render decision, the channel write
+        // and management gates included.
+        if (changed(...ACCESS_CONTROL_PERMISSION_ACTIONS)) {
+            doDispatch(clearRenderDecisions());
+        }
+
+        // Loaded posts carry file metadata sanitized under download_file_attachment, and
+        // lists that drop posts of channels channel_read_access denies.
+        if (changed(ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
+            doDispatch(refreshPostsAfterPolicyChange());
+        }
+
+        // Only a channel_read_access change can hide or reveal a channel.
+        if (changed(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
+            doDispatch(reconcileChannelReadAccessWithJitter());
+        }
     };
 }
 

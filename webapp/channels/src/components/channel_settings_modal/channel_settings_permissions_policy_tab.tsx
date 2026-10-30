@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -13,7 +13,11 @@ import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/typ
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+    ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -29,12 +33,14 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {getFeatureFlagValue, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getFeatureFlagValue, isChannelPermissionActionsEnabled, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
+import ChannelAccessConfirmModal from 'components/admin_console/permission_policies/modals/channel_access_confirm_modal';
+import ConfirmModal from 'components/confirm_modal';
 import * as Menu from 'components/menu';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
@@ -43,6 +49,8 @@ import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
 
 import type {GlobalState} from 'types/store';
+
+import ChannelSettingsReadOnlyNotice from './channel_settings_read_only_notice';
 
 import './channel_settings_access_rules_tab.scss';
 import './channel_settings_permissions_policy_tab.scss';
@@ -53,10 +61,27 @@ type SaveResult = typeof SAVE_RESULT_SAVED | typeof SAVE_RESULT_ERROR;
 
 const PAGE_SIZE = 10;
 
+// 'denied' is a channel_read_access denial, 'denied_management' a channel_management_access one.
+type SelfAccessCheck = 'allowed' | 'denied' | 'denied_management' | 'skipped' | 'failed';
+
+// The actions whose rules can lock the author out of this channel, so a save carrying one
+// is confirmed first and then checked against the author.
+const SELF_CHECKED_ACTIONS = [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS];
+
 type ChannelSettingsPermissionsPolicyTabProps = {
     channel: Channel;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     showTabSwitchError?: boolean;
+
+    /**
+     * A channel_management_access denial. The rule list stays legible — name, role and
+     * permission count — but the editor never opens.
+     *
+     * Deliberately not "open the editor read-only": the editor has a name field, a role
+     * menu, a condition table, an add-permission menu, per-chip remove buttons and a save
+     * button, and one control left enabled there would be worse than not opening it.
+     */
+    isReadOnly?: boolean;
 };
 
 const roleMessages = defineMessages({
@@ -107,6 +132,30 @@ const actionMessages = defineMessages({
         id: 'channel_settings.permissions_policy.action.download.description',
         defaultMessage: 'Allow users to download attached files from this channel',
     },
+    channelReadAccessLabel: {
+        id: 'channel_settings.permissions_policy.action.channel_read_access',
+        defaultMessage: 'Channel read access',
+    },
+    channelReadAccessDescription: {
+        id: 'channel_settings.permissions_policy.action.channel_read_access.description',
+        defaultMessage: 'Allow users to read the channel and its content',
+    },
+    channelWriteAccessLabel: {
+        id: 'channel_settings.permissions_policy.action.channel_write_access',
+        defaultMessage: 'Channel write access',
+    },
+    channelWriteAccessDescription: {
+        id: 'channel_settings.permissions_policy.action.channel_write_access.description',
+        defaultMessage: 'Allow users to post in this channel and change its content',
+    },
+    channelManagementAccessLabel: {
+        id: 'channel_settings.permissions_policy.action.channel_management_access',
+        defaultMessage: 'Manage channel',
+    },
+    channelManagementAccessDescription: {
+        id: 'channel_settings.permissions_policy.action.channel_management_access.description',
+        defaultMessage: "Allow users to change this channel's settings, bookmarks, members and access rules",
+    },
     createBorLabel: {
         id: 'channel_settings.permissions_policy.action.create_bor',
         defaultMessage: 'Create burn-on-read message',
@@ -138,12 +187,18 @@ const AVAILABLE_ROLES: RoleDefinition[] = [
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {value: ACCESS_CONTROL_ACTION_UPLOAD_FILE, label: actionMessages.uploadLabel, description: actionMessages.uploadDescription},
     {value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, label: actionMessages.downloadLabel, description: actionMessages.downloadDescription},
+    {value: ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, label: actionMessages.channelReadAccessLabel, description: actionMessages.channelReadAccessDescription},
+    {value: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS, label: actionMessages.channelWriteAccessLabel, description: actionMessages.channelWriteAccessDescription},
+    {value: ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS, label: actionMessages.channelManagementAccessLabel, description: actionMessages.channelManagementAccessDescription},
     {value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, label: actionMessages.createBorLabel, description: actionMessages.createBorDescription},
 ];
 
 const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
     [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: actionMessages.uploadLabel,
     [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: actionMessages.downloadLabel,
+    [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: actionMessages.channelReadAccessLabel,
+    [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS]: actionMessages.channelWriteAccessLabel,
+    [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]: actionMessages.channelManagementAccessLabel,
     [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: actionMessages.createBorLabel,
 };
 
@@ -184,6 +239,7 @@ function ChannelSettingsPermissionsPolicyTab({
     channel,
     setAreThereUnsavedChanges,
     showTabSwitchError,
+    isReadOnly = false,
 }: ChannelSettingsPermissionsPolicyTabProps) {
     const {formatMessage} = useIntl();
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
@@ -195,6 +251,16 @@ function ChannelSettingsPermissionsPolicyTab({
     // hiding the UI here keeps the author from clicking a button
     // that would only surface a backend error.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
+
+    const currentUserId = useSelector(getCurrentUserId);
+
+    const [showChannelAccessConfirmModal, setShowChannelAccessConfirmModal] = useState(false);
+    const [selfCheckBlock, setSelfCheckBlock] = useState<'denied' | 'denied_management' | 'failed' | null>(null);
+    const [isSavingPolicy, setIsSavingPolicy] = useState(false);
+
+    // Guards against a second save while the first request is in flight; a
+    // duplicate save would race the same channel policy.
+    const saveInProgress = useRef(false);
 
     const actions = useChannelAccessControlActions(channel.id);
     const {policies: systemPolicies} = useChannelSystemPolicies(channel);
@@ -470,6 +536,21 @@ function ChannelSettingsPermissionsPolicyTab({
         return true;
     }, [validateDraft]);
 
+    const buildFinalRules = useCallback((permissionRules: AccessControlPolicyRule[]): AccessControlPolicyRule[] => {
+        const baseRules = buildRulesWithMembership(originalAllRules, originalMembershipExpression);
+        return buildRulesWithPermissionRules(baseRules, permissionRules);
+    }, [originalAllRules, originalMembershipExpression]);
+
+    const buildCandidatePolicy = useCallback((permissionRules: AccessControlPolicyRule[]): AccessControlPolicy => ({
+        id: channel.id,
+        name: channel.display_name,
+        type: 'channel',
+        version: ACCESS_CONTROL_POLICY_VERSION_V0_4,
+        revision: 0,
+        rules: buildFinalRules(permissionRules),
+        imports: originalImports,
+    }), [buildFinalRules, originalImports, channel.id, channel.display_name]);
+
     // ── Simulation: build the synthetic draft sent to /cel/simulate ──────
     //
     // The editor's Test button needs to preview how the rule being authored
@@ -482,30 +563,14 @@ function ChannelSettingsPermissionsPolicyTab({
         const otherRules = rules.
             filter((r) => r.key !== draftRule.key).
             map(fromEditable);
-        const draftAsRule = fromEditable(draftRule);
 
-        // Preserve the existing membership rule (and any non-permission
-        // entries the backend may have added) so the simulator sees a
-        // coherent draft.
-        const baseRules = buildRulesWithMembership(originalAllRules, originalMembershipExpression);
-        const finalRules = buildRulesWithPermissionRules(baseRules, [...otherRules, draftAsRule]);
-
-        return {
-            id: channel.id,
-            name: channel.display_name,
-            type: 'channel',
-            version: ACCESS_CONTROL_POLICY_VERSION_V0_4,
-            revision: 0,
-            rules: finalRules,
-            imports: originalImports,
-        };
-    }, [rules, originalAllRules, originalMembershipExpression, originalImports, channel.id, channel.display_name]);
+        return buildCandidatePolicy([...otherRules, fromEditable(draftRule)]);
+    }, [rules, buildCandidatePolicy]);
 
     // ── Persist to backend ────────────────────────────────────────────────
     const persistRules = useCallback(async (next: EditableRule[]): Promise<SaveResult> => {
         const persistedPermissionRules = next.map(fromEditable);
-        const rulesWithMembership = buildRulesWithMembership(originalAllRules, originalMembershipExpression);
-        const finalRules = buildRulesWithPermissionRules(rulesWithMembership, persistedPermissionRules);
+        const finalRules = buildFinalRules(persistedPermissionRules);
 
         // Deleting the last permission rule can leave the channel policy with no
         // rules and no imports (a channel that only ever had permission rules and
@@ -576,12 +641,92 @@ function ChannelSettingsPermissionsPolicyTab({
             }));
             return SAVE_RESULT_ERROR;
         }
-    }, [actions, originalAllRules, originalMembershipExpression, originalImports, channel.id, channel.display_name, formatMessage]);
+    }, [actions, buildFinalRules, originalImports, channel.id, channel.display_name, formatMessage]);
+
+    const confirmableActions = useMemo(
+        () => SELF_CHECKED_ACTIONS.filter((action) => rules.some((r) => r.actions.includes(action))),
+        [rules],
+    );
+
+    const checkSelfChannelAccess = useCallback(async (): Promise<SelfAccessCheck> => {
+        // channel_management_access never binds system admins, so for them only the read
+        // rules can lock them out.
+        const checkedActions = confirmableActions.filter((action) =>
+            action !== ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS || !isSystemAdmin,
+        );
+        if (checkedActions.length === 0) {
+            return 'skipped';
+        }
+
+        if (!policySimulationEnabled || !currentUserId) {
+            return 'skipped';
+        }
+
+        let result;
+        try {
+            result = await actions.simulatePolicyForUsers({
+                policy: buildCandidatePolicy(rules.map(fromEditable)),
+                actions: checkedActions,
+                users: [{user_id: currentUserId}],
+
+                evaluation_scope: 'all',
+            });
+        } catch {
+            return 'failed';
+        }
+
+        if (result?.error) {
+            return (result.error as {status_code?: number}).status_code === 501 ? 'skipped' : 'failed';
+        }
+
+        const mine = result?.data?.results?.find((r) => r.user?.id === currentUserId);
+
+        // Read first: losing sight of the channel is the denial worth reporting.
+        let outcome: SelfAccessCheck = 'allowed';
+        for (const action of checkedActions) {
+            const decision = mine?.decisions?.[action];
+            if (!decision) {
+                return 'failed';
+            }
+            if (!decision.decision && outcome === 'allowed') {
+                outcome = action === ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS ? 'denied' : 'denied_management';
+            }
+        }
+
+        return outcome;
+    }, [actions, buildCandidatePolicy, rules, confirmableActions, isSystemAdmin, policySimulationEnabled, currentUserId]);
+
+    const commitSave = useCallback(async () => {
+        if (saveInProgress.current) {
+            return;
+        }
+        saveInProgress.current = true;
+        setIsSavingPolicy(true);
+
+        try {
+            const selfCheck = await checkSelfChannelAccess();
+
+            if (selfCheck === 'denied' || selfCheck === 'denied_management' || selfCheck === 'failed') {
+                setShowChannelAccessConfirmModal(false);
+                setSelfCheckBlock(selfCheck);
+                return;
+            }
+
+            const result = await persistRules(rules);
+            setSaveChangesPanelState(result);
+        } finally {
+            setIsSavingPolicy(false);
+            saveInProgress.current = false;
+        }
+    }, [persistRules, rules, checkSelfChannelAccess]);
 
     const handleSaveChanges = useCallback(async () => {
-        const result = await persistRules(rules);
-        setSaveChangesPanelState(result);
-    }, [persistRules, rules]);
+        if (confirmableActions.length > 0) {
+            setShowChannelAccessConfirmModal(true);
+            return;
+        }
+        await commitSave();
+    }, [commitSave, confirmableActions]);
 
     const handleCancel = useCallback(() => {
         try {
@@ -604,7 +749,31 @@ function ChannelSettingsPermissionsPolicyTab({
     }, [rules, originalRulesJSON]);
 
     const hasErrors = Boolean(formError) || Boolean(showTabSwitchError);
-    const shouldShowPanel = (hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED) && editingKey === null;
+    const shouldShowPanel = !isReadOnly && (hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED) && editingKey === null;
+
+    let selfCheckBlockMessage;
+    if (selfCheckBlock === 'failed') {
+        selfCheckBlockMessage = (
+            <FormattedMessage
+                id='channel_settings.permissions_policy.error.self_exclusion_check_failed'
+                defaultMessage='Could not confirm that you would keep access to this channel. Please try again.'
+            />
+        );
+    } else if (selfCheckBlock === 'denied_management') {
+        selfCheckBlockMessage = (
+            <FormattedMessage
+                id='channel_settings.permissions_policy.error.self_exclusion_management_message'
+                defaultMessage='You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.'
+            />
+        );
+    } else if (selfCheckBlock === 'denied') {
+        selfCheckBlockMessage = (
+            <FormattedMessage
+                id='channel_settings.permissions_policy.error.self_exclusion_message'
+                defaultMessage='You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.'
+            />
+        );
+    }
 
     // ── Render: load error (defensive — replaces both list and editor) ───
     // Block all editing affordances when the initial policy load failed
@@ -612,6 +781,21 @@ function ChannelSettingsPermissionsPolicyTab({
     // editor would let an author save an empty `rules` state on top of
     // an existing policy that simply couldn't be fetched.
     if (loadError) {
+        // A channel_management_access denial also refuses the policy fetch, so the load
+        // "failure" is the gate working as intended, not a fault. Show the same notice
+        // the other tabs show rather than surfacing the raw 403 in an error style no
+        // other tab uses.
+        if (isReadOnly) {
+            return (
+                <div
+                    className='ChannelSettingsModal__permissionsPolicyTab'
+                    data-testid='permissions-policy-read-only'
+                >
+                    <ChannelSettingsReadOnlyNotice/>
+                </div>
+            );
+        }
+
         return (
             <div
                 className='ChannelSettingsModal__permissionsPolicyTab'
@@ -690,6 +874,8 @@ function ChannelSettingsPermissionsPolicyTab({
     // ── Render: list view ────────────────────────────────────────────────
     return (
         <div className='ChannelSettingsModal__permissionsPolicyTab'>
+            {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
+
             {/* One-line system-policy banner: signal that policies defined
               * higher up may also influence file action decisions. */}
             {systemPolicies.length > 0 && (
@@ -716,7 +902,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 </h3>
                 <Button
                     onClick={startNew}
-                    disabled={!attributesLoaded}
+                    disabled={!attributesLoaded || isReadOnly}
                     data-testid='permissions-policy-add-rule'
                     leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
@@ -812,7 +998,8 @@ function ChannelSettingsPermissionsPolicyTab({
                                     key={rule.key}
                                     data-testid={`permissions-policy-row-${rule.key}`}
                                     className='ChannelSettingsModal__permissionsPolicyRow'
-                                    onClick={() => startEdit(rule.key)}
+                                    onClick={isReadOnly ? undefined : () => startEdit(rule.key)}
+                                    aria-disabled={isReadOnly || undefined}
                                 >
                                     <td className='ChannelSettingsModal__permissionsPolicyRowName'>
                                         {rule.name || (
@@ -843,6 +1030,7 @@ function ChannelSettingsPermissionsPolicyTab({
                                                     defaultMessage: 'Rule actions',
                                                 }),
                                                 class: 'ChannelSettingsModal__permissionsPolicyRowMenuButton',
+                                                disabled: isReadOnly,
                                                 children: <i className='icon icon-dots-horizontal'/>,
                                             }}
                                             menu={{
@@ -942,6 +1130,44 @@ function ChannelSettingsPermissionsPolicyTab({
                     })}
                 />
             )}
+
+            {showChannelAccessConfirmModal && (
+                <ChannelAccessConfirmModal
+                    show={true}
+                    targetScope='channel'
+                    actions={confirmableActions}
+                    isStacked={true}
+                    isSaving={isSavingPolicy}
+                    onHide={() => setShowChannelAccessConfirmModal(false)}
+                    onConfirm={async () => {
+                        // Close after the request, not before, so the dialog's
+                        // buttons are disabled while it runs.
+                        await commitSave();
+                        setShowChannelAccessConfirmModal(false);
+                    }}
+                />
+            )}
+
+            <ConfirmModal
+                show={selfCheckBlock !== null}
+                title={
+                    <FormattedMessage
+                        id='channel_settings.permissions_policy.error.self_exclusion_title'
+                        defaultMessage='Cannot save permission rules'
+                    />
+                }
+                message={selfCheckBlockMessage}
+                confirmButtonText={
+                    <FormattedMessage
+                        id='channel_settings.permissions_policy.error.back_to_editing'
+                        defaultMessage='Back to editing'
+                    />
+                }
+                onConfirm={() => setSelfCheckBlock(null)}
+                onCancel={() => setSelfCheckBlock(null)}
+                hideCancel={true}
+                isStacked={true}
+            />
         </div>
     );
 }
@@ -1020,9 +1246,12 @@ function PermissionRuleEditor({
         setDraft((prev) => ({...prev, actions: prev.actions.filter((a) => a !== action)}));
     }, []);
 
+    const channelPermissionActionsEnabled = useSelector(isChannelPermissionActionsEnabled);
+
     const selectedRoleDef = AVAILABLE_ROLES.find((r) => r.value === draft.role);
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !draft.actions.includes(p.value),
+        (p) => !draft.actions.includes(p.value) &&
+            (channelPermissionActionsEnabled || !ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS.includes(p.value)),
     );
 
     return (

@@ -236,9 +236,14 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
-		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
+		// RBAC only: a field definition is channel schema, so the channel's
+		// management rules govern it rather than its write rules.
+		hasPermission, _ := c.App.SessionHasPermissionToChannelRBACOnly(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
 		if !hasPermission {
 			c.SetPermissionError(model.PermissionCreatePost)
+			return
+		}
+		if !requireChannelManagementAccessByID(c, field.TargetID) {
 			return
 		}
 	case "team":
@@ -664,6 +669,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireFieldTargetChannelManagementAccess(c, existingField) {
+		return
+	}
+
 	// PermissionValues is only patchable on a linked field (any object type),
 	// and only to Member or Sysadmin. Requiring LinkedFieldID keeps this off
 	// standalone fields, which can have a weaker (Member-level) PermissionField
@@ -852,6 +861,10 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, existingField, "deletePropertyField") {
+		return
+	}
+
+	if !requireFieldTargetChannelManagementAccess(c, existingField) {
 		return
 	}
 
@@ -1140,6 +1153,16 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 	if err := json.NewEncoder(w).Encode(upserted); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// requireFieldTargetChannelManagementAccess gates a channel-scoped field definition and its
+// options on the channel's management rules: both are the channel's schema.
+func requireFieldTargetChannelManagementAccess(c *Context, field *model.PropertyField) bool {
+	if field.TargetType != string(model.PropertyFieldTargetLevelChannel) || field.TargetID == "" {
+		return true
+	}
+
+	return requireChannelManagementAccessByID(c, field.TargetID)
 }
 
 // hasTargetAccess checks that the caller has access to the target entity

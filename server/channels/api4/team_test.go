@@ -5323,6 +5323,7 @@ func TestGetAllTeamsDirectoryHiding(t *testing.T) {
 	})
 
 	mockACS := &mocks.AccessControlServiceInterface{}
+	ungovernedChannelAccess(mockACS)
 	th.App.Srv().Channels().AccessControl = mockACS
 	defer func() { th.App.Srv().Channels().AccessControl = nil }()
 	// The requesting system admin does not satisfy the policy.

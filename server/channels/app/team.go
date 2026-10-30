@@ -9,9 +9,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -1137,10 +1139,15 @@ func (a *App) AddTeamMemberByInviteId(rctx request.CTX, inviteId, userID string)
 	return teamMember, nil
 }
 
-func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError) {
+func (a *App) GetTeamUnread(rctx request.CTX, teamID, userID string) (*model.TeamUnread, *model.AppError) {
 	channelUnreads, err := a.Srv().Store().Team().GetChannelUnreadsForTeam(teamID, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	denied, appErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	teamUnread := &model.TeamUnread{
@@ -1151,6 +1158,10 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 		TeamId:           teamID,
 	}
 	for _, cu := range channelUnreads {
+		if _, ok := denied[cu.ChannelId]; ok {
+			continue
+		}
+
 		teamUnread.MentionCount += cu.MentionCount
 		teamUnread.MentionCountRoot += cu.MentionCountRoot
 
@@ -1927,16 +1938,25 @@ func (a *App) FindTeamByName(name string) bool {
 	return true
 }
 
-func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
+func (a *App) GetTeamsUnreadForUser(rctx request.CTX, excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
 	data, err := a.Srv().Store().Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	denied, appErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	members := []*model.TeamUnread{}
 	membersMap := make(map[string]*model.TeamUnread)
 
+	// A denied channel still lists its team, with nothing counted for it.
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
+		if _, ok := denied[cu.ChannelId]; ok {
+			return tu
+		}
 		tu.MentionCount += cu.MentionCount
 		tu.MentionCountRoot += cu.MentionCountRoot
 
@@ -1971,7 +1991,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled())
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled(), slices.Collect(maps.Keys(denied)))
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

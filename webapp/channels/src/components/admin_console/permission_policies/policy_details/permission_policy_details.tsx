@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {forwardRef, useState, useEffect, useCallback, useMemo, type JSX} from 'react';
+import React, {forwardRef, useState, useEffect, useCallback, useMemo, useRef, type JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -11,16 +11,26 @@ import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
-import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, type AccessControlPolicy, type AccessControlPolicyRule} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {
+    ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+    ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+    ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS,
+} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isChannelPermissionActionsEnabled, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import BlockableLink from 'components/admin_console/blockable_link';
+import ChannelAccessConfirmModal from 'components/admin_console/permission_policies/modals/channel_access_confirm_modal';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import * as Menu from 'components/menu';
@@ -77,20 +87,41 @@ const permissionMessages = defineMessages({
     downloadDescription: {id: 'admin.permission_policies.permission.download_file.description', defaultMessage: 'Allow users to download files to their device'},
     uploadLabel: {id: 'admin.permission_policies.permission.upload_file.label', defaultMessage: 'Upload Files'},
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
+    channelReadAccessLabel: {id: 'admin.permission_policies.permission.channel_read_access.label', defaultMessage: 'Channel Read Access'},
+    channelReadAccessDescription: {id: 'admin.permission_policies.permission.channel_read_access.description', defaultMessage: 'Allow users to read the channel and its content'},
+    channelWriteAccessLabel: {id: 'admin.permission_policies.permission.channel_write_access.label', defaultMessage: 'Channel Write Access'},
+    channelWriteAccessDescription: {id: 'admin.permission_policies.permission.channel_write_access.description', defaultMessage: 'Allow users to post in the channel and change its content'},
+    channelManagementAccessLabel: {id: 'admin.permission_policies.permission.channel_management_access.label', defaultMessage: 'Manage Channel'},
+    channelManagementAccessDescription: {id: 'admin.permission_policies.permission.channel_management_access.description', defaultMessage: "Allow users to change the channel's settings, bookmarks, members and access rules"},
     createBorLabel: {id: 'admin.permission_policies.permission.create_bor.label', defaultMessage: 'Create Burn-on-Read Message'},
     createBorDescription: {id: 'admin.permission_policies.permission.create_bor.description', defaultMessage: 'Allow users to send burn-on-read messages'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {
-        value: 'download_file_attachment',
+        value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
         label: permissionMessages.downloadLabel,
         description: permissionMessages.downloadDescription,
     },
     {
-        value: 'upload_file_attachment',
+        value: ACCESS_CONTROL_ACTION_UPLOAD_FILE,
         label: permissionMessages.uploadLabel,
         description: permissionMessages.uploadDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+        label: permissionMessages.channelReadAccessLabel,
+        description: permissionMessages.channelReadAccessDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+        label: permissionMessages.channelWriteAccessLabel,
+        description: permissionMessages.channelWriteAccessDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+        label: permissionMessages.channelManagementAccessLabel,
+        description: permissionMessages.channelManagementAccessDescription,
     },
     {
         value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
@@ -164,6 +195,7 @@ function PermissionPolicyDetails({
     const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
+    const [showChannelAccessConfirmModal, setShowChannelAccessConfirmModal] = useState(false);
     const [pageLoaded, setPageLoaded] = useState(false);
     const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
@@ -177,6 +209,7 @@ function PermissionPolicyDetails({
     // that would only surface a backend error. Mirror gate exists on
     // the channel-settings Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
+    const channelPermissionActionsEnabled = useSelector(isChannelPermissionActionsEnabled);
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
     // and the accessed channel's attributes (resource.attributes.*), tagged by
@@ -286,11 +319,17 @@ function PermissionPolicyDetails({
         return true;
     };
 
-    const handleSubmit = async () => {
-        if (!preSaveCheck()) {
+    // Guards against a second save while the first request is in flight. The
+    // Save button stays clickable during a save (SaveButton only uses `saving`
+    // for its label), and a duplicate POST would come back as a spurious
+    // "name already exists".
+    const saveInProgress = useRef(false);
+
+    const savePolicy = async () => {
+        if (saveInProgress.current) {
             return;
         }
-
+        saveInProgress.current = true;
         setSaving(true);
         try {
             const result = await actions.createPolicy({
@@ -318,7 +357,29 @@ function PermissionPolicyDetails({
             getHistory().push('/admin_console/system_attributes/permission_policies');
         } finally {
             setSaving(false);
+            saveInProgress.current = false;
         }
+    };
+
+    // Channel Read Access hides channels from users without telling them, and Manage
+    // Channel can take editing away from the people maintaining them, so either gets a
+    // confirmation step. Other policies save straight through.
+    const confirmableActions = useMemo(() => selectedPermissions.filter((permission) =>
+        permission === ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS ||
+        permission === ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ), [selectedPermissions]);
+
+    const handleSubmit = async () => {
+        if (!preSaveCheck()) {
+            return;
+        }
+
+        if (confirmableActions.length > 0) {
+            setShowChannelAccessConfirmModal(true);
+            return;
+        }
+
+        await savePolicy();
     };
 
     const handleDelete = async () => {
@@ -357,7 +418,8 @@ function PermissionPolicyDetails({
     };
 
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !selectedPermissions.includes(p.value),
+        (p) => !selectedPermissions.includes(p.value) &&
+            (channelPermissionActionsEnabled || !ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS.includes(p.value)),
     );
 
     return (
@@ -861,13 +923,32 @@ function PermissionPolicyDetails({
                             actions={selectedPermissions}
                             ruleName={policyName}
                             actionLabels={{
-                                upload_file_attachment: formatMessage(permissionMessages.uploadLabel),
-                                download_file_attachment: formatMessage(permissionMessages.downloadLabel),
+                                [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: formatMessage(permissionMessages.uploadLabel),
+                                [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: formatMessage(permissionMessages.downloadLabel),
+                                [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: formatMessage(permissionMessages.channelReadAccessLabel),
+                                [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS]: formatMessage(permissionMessages.channelWriteAccessLabel),
+                                [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]: formatMessage(permissionMessages.channelManagementAccessLabel),
                                 [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: formatMessage(permissionMessages.createBorLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'
                             accessControlFields={mergedAttributes}
+                        />
+                    )}
+
+                    {showChannelAccessConfirmModal && (
+                        <ChannelAccessConfirmModal
+                            show={true}
+                            targetScope='system'
+                            actions={confirmableActions}
+                            isSaving={saving}
+                            onHide={() => setShowChannelAccessConfirmModal(false)}
+                            onConfirm={async () => {
+                                // Close after the request, not before, so the
+                                // dialog's buttons are disabled while it runs.
+                                await savePolicy();
+                                setShowChannelAccessConfirmModal(false);
+                            }}
                         />
                     )}
 

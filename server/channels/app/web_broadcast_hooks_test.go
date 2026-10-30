@@ -1231,6 +1231,116 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 	})
 }
 
+func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &channelReadAccessBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", channelID, "", nil, "")
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool, withSession bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasChannelReadAccessByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		if withSession {
+			wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		}
+		return wc
+	}
+
+	t.Run("allowed recipient receives the event", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+	})
+
+	t.Run("denied recipient has the event dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, false, true), map[string]any{"channel_id": channelID}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("a connection with no session is dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, false), map[string]any{"channel_id": channelID}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("a malformed arg is an error, not a silent delivery", func(t *testing.T) {
+		msg := makeMessage()
+		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+}
+
+func TestChannelReadAccessRedactBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &channelReadAccessRedactBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+	channelJSON := `{"id":"` + channelID + `","display_name":"Secret plans"}`
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channelID, "", nil, "")
+		event.Add("channel", channelJSON)
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool, withSession bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasChannelReadAccessByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		if withSession {
+			wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		}
+		return wc
+	}
+
+	// The event must still arrive in every case: it is how a denied member's client
+	// learns to drop the channel.
+	t.Run("an allowed recipient gets the channel", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, channelJSON, msg.Get("channel"))
+	})
+
+	t.Run("a denied recipient gets the event without the channel", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, false, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, "", msg.Get("channel"))
+	})
+
+	t.Run("a connection with no session gets the event without the channel", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, false), map[string]any{"channel_id": channelID}))
+		assert.Equal(t, "", msg.Get("channel"))
+	})
+
+	t.Run("a malformed arg leaves the channel out", func(t *testing.T) {
+		msg := makeMessage()
+		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
+		assert.Equal(t, "", msg.Get("channel"))
+	})
+}
+
 func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 	mainHelper.Parallel(t)
 	hook := &abacBookmarksBroadcastHook{}

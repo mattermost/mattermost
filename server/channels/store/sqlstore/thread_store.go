@@ -80,6 +80,14 @@ func channelMembershipPredicate() sq.Sqlizer {
 	}
 }
 
+// excludeThreadChannels leaves out threads in channelIDs, if there are any.
+func excludeThreadChannels(query sq.SelectBuilder, channelIDs []string) sq.SelectBuilder {
+	if len(channelIDs) == 0 {
+		return query
+	}
+	return query.Where(sq.NotEq{"Threads.ChannelId": channelIDs})
+}
+
 func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 	s := SqlThreadStore{
 		SqlStore: sqlStore,
@@ -161,7 +169,7 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
 	}
 
-	return query
+	return excludeThreadChannels(query, opts.ExcludeChannelIds)
 }
 
 // GetTotalUnreadThreads counts the number of unread threads for the given user, optionally
@@ -229,6 +237,8 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
 	}
 
+	query = excludeThreadChannels(query, opts.ExcludeChannelIds)
+
 	err := s.GetReplica().GetBuilder(&totalUnreadMentions, query)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count unread mentions for user id=%s", userId)
@@ -271,6 +281,8 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 		query = query.
 			Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
 	}
+
+	query = excludeThreadChannels(query, opts.ExcludeChannelIds)
 
 	err := s.GetReplica().GetBuilder(&totalUnreadUrgentMentions, query)
 	if err != nil {
@@ -409,14 +421,17 @@ func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId stri
 }
 
 // GetTeamsUnreadForUser returns the total unread threads and unread mentions
-// for a user from all teams.
-func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
+// for a user from all teams, leaving out threads in excludeChannelIDs.
+func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string) (map[string]*model.TeamUnread, error) {
 	fetchConditions := sq.And{
 		sq.Eq{"ThreadMemberships.UserId": userID},
 		sq.Eq{"ThreadMemberships.Following": true},
 		sq.Eq{"Threads.ThreadTeamId": teamIDs},
 		sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0},
 		channelMembershipPredicate(),
+	}
+	if len(excludeChannelIDs) > 0 {
+		fetchConditions = append(fetchConditions, sq.NotEq{"Threads.ChannelId": excludeChannelIDs})
 	}
 
 	var eg errgroup.Group

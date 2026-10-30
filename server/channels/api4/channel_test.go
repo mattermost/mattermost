@@ -3071,6 +3071,7 @@ func TestGetRecommendedChannelsForTeam(t *testing.T) {
 		// PermanentDeleteChannel during cleanup calls DeletePolicy on the ACS.
 		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
 			Return((*model.AppError)(nil)).Maybe()
+		ungovernedChannelAccess(mockACS)
 
 		included, _, _ := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
 			TeamId:      th.BasicTeam.Id,
@@ -3806,6 +3807,12 @@ func TestSearchAllChannels(t *testing.T) {
 			[]string{openChannel.Id},
 		},
 		{
+			// The term has to contain a character model.NewId and
+			// model.NewRandomString cannot emit ('l' and 'v' are absent from
+			// their base32 alphabet). These cases assert an exact result count,
+			// so a term spelled only from that alphabet - "what" was one - is
+			// occasionally matched by a randomly generated Name or DisplayName
+			// belonging to another channel in the fixture.
 			"Name search",
 			// Prefix of Name "whatever". Term "what" also matches InitBasic DisplayNames
 			// ("dn_"+NewId()); z-base32 includes w/h/a/t but not v.
@@ -8000,7 +8007,7 @@ func TestRootMentionsCount(t *testing.T) {
 	require.EqualValues(t, int64(1), channelMember.MentionCountRoot)
 
 	// validate that Team level counts are calculated
-	counts, appErr := th.App.GetTeamUnread(channel.TeamId, user.Id)
+	counts, appErr := th.App.GetTeamUnread(th.Context, channel.TeamId, user.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(1), counts.MentionCountRoot)
 	require.Equal(t, int64(2), counts.MentionCount)
