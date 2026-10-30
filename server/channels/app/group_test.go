@@ -737,7 +737,7 @@ func TestReceivedGroupEventDelivery(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
 			wc := connForRoles(t, tc.user, tc.roles)
-			require.Equal(t, tc.expected, wc.ShouldSendEvent(restricted))
+			require.Equal(t, tc.expected, shouldSendEvent(wc, restricted))
 		})
 	}
 }

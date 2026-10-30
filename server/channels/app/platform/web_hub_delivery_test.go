@@ -73,7 +73,7 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 1)
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
-		hub.broadcastToConn(connIndex, wc, newEvent(), marker, nil, nil)
+		deliver(hub, connIndex, wc, newEvent(), marker)
 
 		require.Len(t, spy.calls, 1)
 		require.Equal(t, marker, spy.calls[0].marker)
@@ -91,7 +91,7 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		connIndex.Remove(wc)
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
-		hub.broadcastToConn(connIndex, wc, newEvent(), marker, nil, nil)
+		deliver(hub, connIndex, wc, newEvent(), marker)
 
 		require.Empty(t, spy.calls)
 	})
@@ -106,7 +106,7 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 0)
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
-		hub.broadcastToConn(connIndex, wc, newEvent(), marker, nil, nil)
+		deliver(hub, connIndex, wc, newEvent(), marker)
 
 		require.Empty(t, spy.calls)
 	})
@@ -124,7 +124,7 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		authorEvent.Add("post", "{}")
 
 		hub := th.Service.GetHubForUserId(th.BasicUser.Id)
-		hub.broadcastToConn(connIndex, wc, authorEvent, marker, nil, nil)
+		deliver(hub, connIndex, wc, authorEvent, marker)
 
 		require.Empty(t, spy.calls, "the author's own post echo is not a delivery")
 		require.Len(t, wc.send, 1, "the event still reaches the author")
@@ -139,7 +139,7 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 1)
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
-		hub.broadcastToConn(connIndex, wc, newEvent(), nil, nil, nil)
+		deliver(hub, connIndex, wc, newEvent(), nil)
 
 		require.Empty(t, spy.calls)
 		require.Len(t, wc.send, 1)
@@ -153,7 +153,7 @@ func TestHubBroadcastDelivery(t *testing.T) {
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
 		require.NotPanics(t, func() {
-			hub.broadcastToConn(connIndex, wc, newEvent(), marker, nil, nil)
+			deliver(hub, connIndex, wc, newEvent(), marker)
 		})
 	})
 }
@@ -212,7 +212,7 @@ func TestHubBroadcastRejectedByHook(t *testing.T) {
 				order = []*WebConn{denied, allowed}
 			}
 			for _, wc := range order {
-				hub.broadcastToConn(connIndex, wc, event, marker, []string{hookID}, []map[string]any{{}})
+				hub.broadcastToConn(connIndex, wc, event, decodeChannelID(event.GetBroadcast().ChannelId), marker, []string{hookID}, []map[string]any{{}})
 			}
 
 			require.Empty(t, denied.send, "a rejected event must not be queued")
@@ -226,4 +226,9 @@ func TestHubBroadcastRejectedByHook(t *testing.T) {
 			require.Equal(t, th.SystemAdminUser.Id, spy.calls[0].userID)
 		})
 	}
+}
+
+// deliver calls broadcastToConn with the event's channel decoded, as the hub's broadcast arm does.
+func deliver(hub *Hub, connIndex *hubConnectionIndex, wc *WebConn, ev *model.WebSocketEvent, marker *model.PostDeliveryMarker) {
+	hub.broadcastToConn(connIndex, wc, ev, decodeChannelID(ev.GetBroadcast().ChannelId), marker, nil, nil)
 }
