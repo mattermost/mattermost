@@ -449,14 +449,17 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
-		if appErr := c.App.ValidateOutgoingWebhookUserChannelAccess(c.AppContext, oldHook.CreatorId, channel); appErr != nil {
+		hookUser, appErr := c.App.GetUser(c.AppContext, oldHook.CreatorId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if appErr := c.App.ValidateOutgoingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, updatedHook.TeamId, channel); appErr != nil {
 			c.LogAudit("fail - invalid webhook user")
 			c.Err = appErr
 			return
 		}
 	}
-
-	updatedHook.CreatorId = c.AppContext.Session().UserId
 
 	rhook, err := c.App.UpdateOutgoingWebhook(c.AppContext, oldHook, &updatedHook)
 	if err != nil {

@@ -381,6 +381,46 @@ func TestOutgoingWebhookValidateUser(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("update cannot move a hook owned by a user with higher privileges than the requester", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+
+		created, appErr := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
+			ChannelId:    th.BasicChannel.Id,
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://nowhere.com"},
+			CreatorId:    th.SystemAdminUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		otherChannel := th.CreatePublicChannel(t)
+		th.AddUserToChannel(t, th.SystemAdminUser, otherChannel)
+		created.ChannelId = otherChannel.Id
+
+		_, resp, err := th.Client.UpdateOutgoingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("update can move another user's hook to a channel they can access", func(t *testing.T) {
+		hook := &model.OutgoingWebhook{
+			ChannelId:    th.BasicChannel.Id,
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://nowhere.com"},
+			CreatorId:    th.BasicUser2.Id,
+		}
+		created, _, err := th.Client.CreateOutgoingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+
+		otherChannel := th.CreatePublicChannel(t)
+		th.AddUserToChannel(t, th.BasicUser2, otherChannel)
+		created.ChannelId = otherChannel.Id
+
+		updated, _, err := th.Client.UpdateOutgoingWebhook(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, otherChannel.Id, updated.ChannelId)
+		require.Equal(t, th.BasicUser2.Id, updated.CreatorId)
+	})
 }
 
 func TestGetIncomingWebhooks(t *testing.T) {
