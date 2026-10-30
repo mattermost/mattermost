@@ -200,6 +200,7 @@ describe('components/integrations/ConfirmIntegration', () => {
             takePendingBotToken('other-id');
             takePendingBotToken(userId.slice(0, -1));
             takePendingBotToken(`${userId}x`);
+            takePendingBotToken('c5tpgt4iepf45jt768jz84djhd');
         });
 
         test('bot without warnings shows token and no banner', () => {
@@ -334,6 +335,31 @@ describe('components/integrations/ConfirmIntegration', () => {
 
             expect(screen.getByText(token)).toBeInTheDocument();
             expect(replace).not.toHaveBeenCalledWith(botsListPath);
+        });
+
+        test('a different bot id on the same mount shows that bot\'s own token', () => {
+            const secondUserId = 'c5tpgt4iepf45jt768jz84djhd';
+            const secondToken = 'zzzzzzzzzzzzzzzzzzzzzzzzzz';
+            const twoBots = {
+                [userId]: bot,
+                [secondUserId]: TestHelper.getBotMock({user_id: secondUserId, display_name: 'second bot'}),
+            };
+            const element = (search: string) => (
+                <ConfirmIntegration
+                    {...props}
+                    bots={twoBots}
+                    location={{pathname: CONFIRM_PATH, search}}
+                />
+            );
+            seedBotToken();
+
+            const {rerender} = renderWithContext(element(confirmQuery), initialState);
+            expect(screen.getByText(token)).toBeInTheDocument();
+
+            setPendingBotToken(secondUserId, secondToken);
+            rerender(element(`?type=bots&id=${secondUserId}`));
+            expect(screen.getByText(secondToken)).toBeInTheDocument();
+            expect(screen.queryByText(token)).not.toBeInTheDocument();
         });
 
         test('a remount after the first visit goes to the bots list', () => {

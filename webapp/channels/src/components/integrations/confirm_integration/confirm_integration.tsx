@@ -48,16 +48,17 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
     });
 
     const isBotConfirmation = type === Constants.Integrations.BOT && Boolean(bots[id]);
-    const takenBotToken = useRef<{token?: string}>(undefined);
-    const [botToken, setBotToken] = useState<{token?: string}>();
+    const takenBotToken = useRef<{id: string; token?: string}>(undefined);
+    const [takenToken, setTakenToken] = useState<{id: string; token?: string}>();
+    const botToken = takenToken?.id === id ? takenToken : undefined;
     const [botCreateWarnings, setBotCreateWarnings] = useState<BotCreateWarnings | undefined>(() => (isBotConfirmation ? parseBotCreateWarnings(location.search) : undefined));
 
     useEffect(() => {
-        if (!takenBotToken.current) {
-            takenBotToken.current = {token: takePendingBotToken(id)};
+        if (takenBotToken.current?.id !== id) {
+            takenBotToken.current = {id, token: takePendingBotToken(id)};
         }
-        setBotToken(takenBotToken.current);
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        setTakenToken(takenBotToken.current);
+    }, [id]);
 
     useEffect(() => {
         const search = isBotConfirmation ? stripBotCreateWarningsParam(location.search) : undefined;
