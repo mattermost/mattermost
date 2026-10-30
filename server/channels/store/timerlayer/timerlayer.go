@@ -9104,6 +9104,22 @@ func (s *TimerLayerPropertyFieldStore) GetForGroup(rctx request.CTX, groupID str
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetForGroupVersion(rctx request.CTX, groupID string) (string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetForGroupVersion(rctx, groupID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetForGroupVersion", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error) {
 	start := time.Now()
 
