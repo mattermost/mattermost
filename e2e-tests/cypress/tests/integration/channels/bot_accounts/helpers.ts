@@ -21,7 +21,7 @@ export function createBotInteractive(team: Team, username = `bot-${getRandomId()
     // * Verify confirmation page
     cy.url({timeout: TIMEOUTS.ONE_MIN}).
         should('include', `/${team.name}/integrations/confirm`).
-        should('match', /token=[a-zA-Z0-9]{26}/);
+        should('not.match', /[?&]token=/);
 
     // * Verify confirmation form/token
     cy.get('div.backstage-form').
