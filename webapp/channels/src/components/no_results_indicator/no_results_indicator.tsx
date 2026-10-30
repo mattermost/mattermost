@@ -43,6 +43,10 @@ const titleMap = defineMessages({
         id: 'no_results.mentions.title',
         defaultMessage: 'No mentions yet',
     },
+    [NoResultsVariant.MentionsFiltered]: {
+        id: 'no_results.mentions_filtered.title',
+        defaultMessage: 'No mentions match your filters',
+    },
     [NoResultsVariant.FlaggedPosts]: {
         id: 'no_results.flagged_posts.title',
         defaultMessage: 'No saved messages yet',
@@ -90,6 +94,10 @@ const subtitleMap = defineMessages({
         id: 'no_results.mentions.subtitle',
         defaultMessage: 'Messages where someone mentions you or includes your trigger words are saved here.',
     },
+    [NoResultsVariant.MentionsFiltered]: {
+        id: 'no_results.mentions_filtered.subtitle',
+        defaultMessage: 'Try removing or changing a filter to see more of your mentions.',
+    },
     [NoResultsVariant.FlaggedPosts]: {
         id: 'no_results.flagged_posts.subtitle',
         defaultMessage: 'To save something for later, open the context menu on a message and choose {buttonText}. Saved messages are only visible to you',
@@ -104,7 +112,7 @@ const subtitleMap = defineMessages({
     },
     [NoResultsVariant.ChannelFilesFiltered]: {
         id: 'no_results.channel_files_filtered.subtitle',
-        defaultMessage: "This channel doesn't contains any file with the selected file format.",
+        defaultMessage: "This channel doesn't contain any files with the selected file format.",
     },
     [NoResultsVariant.UserGroups]: {
         id: 'no_results.user_groups.subtitle',

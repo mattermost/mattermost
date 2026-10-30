@@ -10,10 +10,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -551,6 +553,26 @@ func TestQueryLogs(t *testing.T) {
 		require.Contains(t, nodes, "default")
 	})
 
+	t.Run("a filter matching nothing keeps the node key with an empty array", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "2100-01-01 00:00:00.000 +00:00"})
+		require.NoError(t, err)
+		require.Contains(t, nodes, "default")
+		assert.NotNil(t, nodes["default"], "expected [] rather than null")
+		assert.Empty(t, nodes["default"])
+	})
+
+	t.Run("server_names without the local node returns no entries", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{ServerNames: []string{"unknown"}})
+		require.NoError(t, err)
+		assert.Empty(t, nodes)
+	})
+
+	t.Run("server_names default returns only the local node", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{ServerNames: []string{"default", "unknown"}})
+		require.NoError(t, err)
+		assert.Equal(t, []string{"default"}, slices.Collect(maps.Keys(nodes)))
+	})
+
 	t.Run("malformed date_from is rejected with 400", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "not-a-date", DateTo: ""})
 		CheckErrorID(t, err, "model.log_filter.is_valid.date_from.app_error")
@@ -561,6 +583,19 @@ func TestQueryLogs(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "", DateTo: "also-not-a-date"})
 		CheckErrorID(t, err, "model.log_filter.is_valid.date_to.app_error")
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("null filter is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, nil)
+		CheckErrorID(t, err, "api.system.logs.invalidFilter")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("undecodable filter is rejected with 400", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/logs/query", "{")
+		CheckErrorID(t, err, "api.system.logs.invalidFilter")
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
 	t.Run("non-admin is forbidden", func(t *testing.T) {

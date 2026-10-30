@@ -3,7 +3,7 @@
 exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should match snapshot 1`] = `
 <div>
   <div
-    class="CompletedWrapper-byXeYZ caqIuy"
+    class="CompletedWrapper-dwaXBa dLGNaJ"
   >
     <img
       alt="completed tasks image"
@@ -25,12 +25,17 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
       <br />
       Start your free Enterprise trial now!
     </span>
-    <a
-      class="btn btn-secondary"
+    <button
+      class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
       id="start_trial_btn"
+      type="button"
     >
-      Start trial
-    </a>
+      <span
+        class="_button__label_we8pe_31"
+      >
+        Start trial
+      </span>
+    </button>
     <button
       class="no-thanks-link style-link"
     >

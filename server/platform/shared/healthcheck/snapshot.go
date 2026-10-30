@@ -14,20 +14,14 @@ type Snapshot struct {
 	CollectedAt time.Time
 
 	Config  *model.SupportPacketConfig
-	License *model.License
 	Stats   *model.SupportPacketStats
 	Jobs    *model.SupportPacketJobList
 	Plugins *model.SupportPacketPluginList
 
 	nodes []*NodeSnapshot
 
-	Deployment Deployment
-	Version    VersionInfo
-	Sections   map[model.WorkspaceSection]error
-}
-
-type Deployment struct {
-	IsCloud bool
+	Version  VersionInfo
+	Sections map[model.WorkspaceSection]error
 }
 
 type VersionInfo struct {
@@ -53,7 +47,11 @@ func (s *Snapshot) Nodes() []*NodeSnapshot {
 }
 
 func (s *Snapshot) Leader() (*NodeSnapshot, bool) {
-	for _, node := range s.Nodes() {
+	if s == nil {
+		return nil, false
+	}
+
+	for _, node := range s.nodes {
 		if node != nil && node.IsLeader {
 			return node, true
 		}

@@ -6,7 +6,6 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
     deleteClassificationMarkingsFieldIfExists,
-    setClassificationMarkingsFeatureFlag,
 } from '../site_configuration/classification_markings_helpers';
 
 import {
@@ -40,7 +39,6 @@ test.describe('System Console - Global Attributes listing (Classification Markin
             // would leave an adminClient obtained earlier pointing at a removed container.
             await pw.ensureFeatureFlag('ClassificationMarkings', true);
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
 
             const timestamp = Date.now();
             const classificationDisplayName = `E2E Classification Attribute ${timestamp}`;
@@ -104,7 +102,7 @@ test.describe('System Console - Global Attributes listing (Classification Markin
                 // Classification Markings admin page — no Edit/More-actions menu
                 const openInNewLink = classificationRow.getByRole('link', {name: 'Open Classification Markings'});
                 await expect(openInNewLink).toBeVisible();
-                await expect(openInNewLink).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_PATH);
+                await expect(openInNewLink).toHaveHrefPath(CLASSIFICATION_MARKINGS_ADMIN_PATH);
                 await expect(classificationRow.getByRole('button', {name: 'More actions'})).toHaveCount(0);
 
                 // # Clicking the link actually navigates to the Classification Markings page

@@ -24,6 +24,7 @@ const compassVariantIllustrations: Partial<Record<NoResultsVariant, Illustration
     [NoResultsVariant.Files]: FileSearchEmptyIllustration,
     [NoResultsVariant.ChannelSearch]: SearchIllustration,
     [NoResultsVariant.Mentions]: MentionsEmptyIllustration,
+    [NoResultsVariant.MentionsFiltered]: MentionsEmptyIllustration,
     [NoResultsVariant.FlaggedPosts]: SavedEmptyIllustration,
     [NoResultsVariant.PinnedPosts]: PinnedEmptyIllustration,
     [NoResultsVariant.ChannelFiles]: FileSearchEmptyIllustration,

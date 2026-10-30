@@ -507,7 +507,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                       <span
                         class=""
                       >
-                        This channel doesn't contains any file with the selected file format.
+                        This channel doesn't contain any files with the selected file format.
                       </span>
                     </p>
                   </div>

@@ -8,7 +8,8 @@ import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
@@ -481,20 +482,21 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                                 ))}
                                             </ul>
                                             <div className='ClassificationAttribute__markingsFooter'>
-                                                <p className='ClassificationAttribute__markingsCopy'>
+                                                <div className='ClassificationAttribute__markingsCopy'>
                                                     <FormattedMessage {...messages.markingsFooter}/>
-                                                    <Link
-                                                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
-                                                        className={buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'ClassificationAttribute__markingsOpen')}
+                                                    <Button
+                                                        asChild={true}
+                                                        emphasis='tertiary'
+                                                        size='small'
+                                                        className='ClassificationAttribute__markingsOpen'
                                                         data-testid='classificationAttributeMarkingsLink'
+                                                        trailingIcon={<Icon glyph={<OpenInNewIcon/>}/>}
                                                     >
-                                                        <FormattedMessage {...messages.openMarkings}/>
-                                                        <OpenInNewIcon
-                                                            size={12}
-                                                            aria-hidden={true}
-                                                        />
-                                                    </Link>
-                                                </p>
+                                                        <Link to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}>
+                                                            <FormattedMessage {...messages.openMarkings}/>
+                                                        </Link>
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -520,13 +522,15 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                         onClick={handleSave}
                         defaultMessage={<FormattedMessage {...messages.save}/>}
                     />
-                    <BlockableLink
-                        className={buttonClassNames({emphasis: 'quaternary'})}
-                        to={GLOBAL_ATTRIBUTES_LIST_ROUTE}
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
                         data-testid='classificationAttributeCancelLink'
                     >
-                        <FormattedMessage {...messages.cancel}/>
-                    </BlockableLink>
+                        <BlockableLink to={GLOBAL_ATTRIBUTES_LIST_ROUTE}>
+                            <FormattedMessage {...messages.cancel}/>
+                        </BlockableLink>
+                    </Button>
                     {saveFailed && (
                         <span
                             className='ClassificationAttribute__error'

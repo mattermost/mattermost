@@ -39,13 +39,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           class="Filter"
         >
           <button
-            class="Filter_button"
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            <i
-              class="Icon icon-filter-variant"
-            />
-            Filters
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
           <div
             class="Filter_content"
@@ -162,51 +189,88 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
                   Channels
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="public"
-                        name="public"
-                        type="checkbox"
-                      />
-                      Public
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="public"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="public"
+                          name="public"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Public
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="private"
-                        name="private"
-                        type="checkbox"
-                      />
-                      Private
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="private"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="private"
+                          name="private"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Private
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="deleted"
-                        name="deleted"
-                        type="checkbox"
-                      />
-                      Archived
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="deleted"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="deleted"
+                          name="deleted"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Archived
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -219,61 +283,102 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
                   Management
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="group_constrained"
-                        name="group_constrained"
-                        type="checkbox"
-                      />
-                      Group Sync
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="group_constrained"
+                          name="group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Group Sync
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="exclude_group_constrained"
-                        name="exclude_group_constrained"
-                        type="checkbox"
-                      />
-                      Manual Invites
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="exclude_group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="exclude_group_constrained"
+                          name="exclude_group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Manual Invites
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="access_control_policy_enforced"
-                        name="access_control_policy_enforced"
-                        type="checkbox"
-                      />
-                      Attribute Based
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="access_control_policy_enforced"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="access_control_policy_enforced"
+                          name="access_control_policy_enforced"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Attribute Based
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -473,13 +578,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           class="Filter"
         >
           <button
-            class="Filter_button"
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            <i
-              class="Icon icon-filter-variant"
-            />
-            Filters
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
           <div
             class="Filter_content"
@@ -596,51 +728,88 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
                   Channels
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="public"
-                        name="public"
-                        type="checkbox"
-                      />
-                      Public
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="public"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="public"
+                          name="public"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Public
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="private"
-                        name="private"
-                        type="checkbox"
-                      />
-                      Private
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="private"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="private"
+                          name="private"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Private
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="deleted"
-                        name="deleted"
-                        type="checkbox"
-                      />
-                      Archived
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="deleted"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="deleted"
+                          name="deleted"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Archived
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -653,61 +822,102 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
                   Management
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="group_constrained"
-                        name="group_constrained"
-                        type="checkbox"
-                      />
-                      Group Sync
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="group_constrained"
+                          name="group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Group Sync
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="exclude_group_constrained"
-                        name="exclude_group_constrained"
-                        type="checkbox"
-                      />
-                      Manual Invites
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="exclude_group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="exclude_group_constrained"
+                          name="exclude_group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Manual Invites
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="access_control_policy_enforced"
-                        name="access_control_policy_enforced"
-                        type="checkbox"
-                      />
-                      Attribute Based
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="access_control_policy_enforced"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="access_control_policy_enforced"
+                          name="access_control_policy_enforced"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Attribute Based
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -1662,13 +1872,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           class="Filter"
         >
           <button
-            class="Filter_button"
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            <i
-              class="Icon icon-filter-variant"
-            />
-            Filters
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
           <div
             class="Filter_content"
@@ -1785,51 +2022,88 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
                   Channels
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="public"
-                        name="public"
-                        type="checkbox"
-                      />
-                      Public
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="public"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="public"
+                          name="public"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Public
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="private"
-                        name="private"
-                        type="checkbox"
-                      />
-                      Private
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="private"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="private"
+                          name="private"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Private
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="deleted"
-                        name="deleted"
-                        type="checkbox"
-                      />
-                      Archived
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="deleted"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="deleted"
+                          name="deleted"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Archived
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1842,61 +2116,102 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
                   Management
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="group_constrained"
-                        name="group_constrained"
-                        type="checkbox"
-                      />
-                      Group Sync
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="group_constrained"
+                          name="group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Group Sync
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="exclude_group_constrained"
-                        name="exclude_group_constrained"
-                        type="checkbox"
-                      />
-                      Manual Invites
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="exclude_group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="exclude_group_constrained"
+                          name="exclude_group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Manual Invites
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="access_control_policy_enforced"
-                        name="access_control_policy_enforced"
-                        type="checkbox"
-                      />
-                      Attribute Based
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="access_control_policy_enforced"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="access_control_policy_enforced"
+                          name="access_control_policy_enforced"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Attribute Based
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -2100,13 +2415,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           class="Filter"
         >
           <button
-            class="Filter_button"
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            <i
-              class="Icon icon-filter-variant"
-            />
-            Filters
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
           <div
             class="Filter_content"
@@ -2223,51 +2565,88 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
                   Channels
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="public"
-                        name="public"
-                        type="checkbox"
-                      />
-                      Public
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="public"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="public"
+                          name="public"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Public
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="private"
-                        name="private"
-                        type="checkbox"
-                      />
-                      Private
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="private"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="private"
+                          name="private"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Private
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="deleted"
-                        name="deleted"
-                        type="checkbox"
-                      />
-                      Archived
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="deleted"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="deleted"
+                          name="deleted"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Archived
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2280,61 +2659,102 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
                   Management
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="group_constrained"
-                        name="group_constrained"
-                        type="checkbox"
-                      />
-                      Group Sync
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="group_constrained"
+                          name="group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Group Sync
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="exclude_group_constrained"
-                        name="exclude_group_constrained"
-                        type="checkbox"
-                      />
-                      Manual Invites
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="exclude_group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="exclude_group_constrained"
+                          name="exclude_group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Manual Invites
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="access_control_policy_enforced"
-                        name="access_control_policy_enforced"
-                        type="checkbox"
-                      />
-                      Attribute Based
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="access_control_policy_enforced"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="access_control_policy_enforced"
+                          name="access_control_policy_enforced"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Attribute Based
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -2526,13 +2946,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           class="Filter"
         >
           <button
-            class="Filter_button"
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            <i
-              class="Icon icon-filter-variant"
-            />
-            Filters
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
           <div
             class="Filter_content"
@@ -2649,51 +3096,88 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
                   Channels
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="public"
-                        name="public"
-                        type="checkbox"
-                      />
-                      Public
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="public"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="public"
+                          name="public"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Public
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="private"
-                        name="private"
-                        type="checkbox"
-                      />
-                      Private
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="private"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="private"
+                          name="private"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Private
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="deleted"
-                        name="deleted"
-                        type="checkbox"
-                      />
-                      Archived
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="deleted"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="deleted"
+                          name="deleted"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Archived
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2706,61 +3190,102 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
                   Management
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="group_constrained"
-                        name="group_constrained"
-                        type="checkbox"
-                      />
-                      Group Sync
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="group_constrained"
+                          name="group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Group Sync
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="exclude_group_constrained"
-                        name="exclude_group_constrained"
-                        type="checkbox"
-                      />
-                      Manual Invites
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="exclude_group_constrained"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="exclude_group_constrained"
+                          name="exclude_group_constrained"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Manual Invites
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="access_control_policy_enforced"
-                        name="access_control_policy_enforced"
-                        type="checkbox"
-                      />
-                      Attribute Based
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="access_control_policy_enforced"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="access_control_policy_enforced"
+                          name="access_control_policy_enforced"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Attribute Based
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
