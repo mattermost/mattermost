@@ -19,7 +19,6 @@ import FileTypes from './files';
 import GeneralTypes from './general';
 import GroupTypes from './groups';
 import HealthTypes from './health';
-import HostedCustomerTypes from './hosted_customer';
 import IntegrationTypes from './integrations';
 import JobTypes from './jobs';
 import LimitsTypes from './limits';
@@ -65,7 +64,6 @@ export {
     CloudTypes,
     AppsTypes,
     ThreadTypes,
-    HostedCustomerTypes,
     DraftTypes,
     PlaybookType,
     ChannelBookmarkTypes,

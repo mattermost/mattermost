@@ -166,7 +166,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v5.0.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.1
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0
-PLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0
+PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v3.0.0
@@ -182,7 +182,7 @@ PLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.12.1%2Bf370c05-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0%2Bc234d17-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0%2B05efecf-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0%2B23ece5d-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -306,7 +306,7 @@ else
 	docker compose down -v
 	docker compose rm -v
 
-	docker volume rm mattermost-server_postgres-14-data || true
+	docker volume rm mattermost-server_postgres-15-data || true
 endif
 
 .PHONY: plugin-checker
@@ -1015,7 +1015,7 @@ endif
 vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
-vet-api: setup-go-work install-govet ## Run mattermost go vet to verify api4 documentation, currently not passing
+vet-api: setup-go-work install-govet ## Run mattermost go vet to verify api4 documentation
 	make -C ../api build
 	./scripts/vet-api-check.sh
 

@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 
 import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
@@ -218,10 +219,18 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label, mmB
 
     return (
         <>
-            <button
+            <Button
                 type='button'
+                emphasis='tertiary'
+                size='x-small'
                 className={classNames('InlineActionButton', {'InlineActionButton--executing': executing})}
                 onClick={handleClick}
+
+                // Not the Button's own `loading` prop: that sets native
+                // `disabled`, which drops focus/announcement for an
+                // in-flight action. aria-disabled + aria-busy keeps this
+                // control focusable and announced while executingRef (above)
+                // still blocks a second dispatch.
                 aria-disabled={executing || undefined}
                 aria-busy={executing || undefined}
                 aria-label={executing ? executingLabel : label}
@@ -233,7 +242,7 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label, mmB
                 >
                     {children}
                 </LoadingWrapper>
-            </button>
+            </Button>
             {actionError && (
                 <div className='has-error'>
                     <span

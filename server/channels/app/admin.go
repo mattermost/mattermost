@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"slices"
 	"time"
@@ -31,17 +32,18 @@ const LatestVersionURL = "https://api.github.com/repos/mattermost/mattermost-ser
 func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
+	cluster := s.platform.Cluster()
 	license := s.License()
-	if license != nil && *license.Features.Cluster && s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
-		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-			lines = append(lines, info.Hostname)
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+	clustered := license != nil && *license.Features.Cluster && cluster != nil && *s.platform.Config().ClusterSettings.Enable
+
+	if clustered {
+		localName := "default"
+		if info := cluster.GetMyClusterInfo(); info != nil {
+			localName = info.Hostname
 		} else {
 			rctx.Logger().Error("Could not get cluster info")
 		}
+		lines = appendNodeSeparator(lines, localName)
 	}
 
 	melines, err := s.GetLogsSkipSend(rctx, page, perPage, &model.LogFilter{})
@@ -51,16 +53,31 @@ func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.
 
 	lines = append(lines, melines...)
 
-	if s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
-		clines, err := s.platform.Cluster().GetLogs(rctx, page, perPage)
-		if err != nil {
-			return nil, err
-		}
+	if !clustered {
+		return lines, nil
+	}
 
-		lines = append(lines, clines...)
+	clusterLogs, appErr := cluster.QueryLogs(rctx, page, perPage, &model.LogFilter{})
+	if appErr != nil {
+		return nil, appErr
+	}
+	for _, name := range slices.Sorted(maps.Keys(clusterLogs)) {
+		lines = append(lines, "", "")
+		lines = appendNodeSeparator(lines, name)
+		if nodeLogs := clusterLogs[name]; nodeLogs.Err != nil {
+			lines = append(lines, failedNodeLogLine(nodeLogs.Err))
+		} else {
+			lines = append(lines, nodeLogs.Lines...)
+		}
 	}
 
 	return lines, nil
+}
+
+// appendNodeSeparator appends the banner that precedes a node's lines in the plain-text logs.
+func appendNodeSeparator(lines []string, name string) []string {
+	const rule = "-----------------------------------------------------------------------------------------------------------"
+	return append(lines, rule, rule, name, rule, rule)
 }
 
 func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
@@ -121,17 +138,20 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 }
 
 // failedNodeLogLine returns an mlog-style JSON log line reporting that a node's logs could not be fetched.
+// failed_node marks it so clients can tell it apart from lines the node logged itself.
 func failedNodeLogLine(appErr *model.AppError) string {
 	return string(model.ToJSON(struct {
-		Timestamp string `json:"timestamp"`
-		Level     string `json:"level"`
-		Msg       string `json:"msg"`
-		Error     string `json:"error"`
+		Timestamp  string `json:"timestamp"`
+		Level      string `json:"level"`
+		Msg        string `json:"msg"`
+		Error      string `json:"error"`
+		FailedNode bool   `json:"failed_node"`
 	}{
-		Timestamp: time.Now().Format(logr.DefTimestampFormat),
-		Level:     mlog.LvlError.Name,
-		Msg:       "Failed to fetch logs from node",
-		Error:     appErr.Error(),
+		Timestamp:  time.Now().Format(logr.DefTimestampFormat),
+		Level:      mlog.LvlError.Name,
+		Msg:        "Failed to fetch logs from node",
+		Error:      appErr.Error(),
+		FailedNode: true,
 	}))
 }
 

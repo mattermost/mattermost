@@ -1,0 +1,9 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Confirmation that the link reached the clipboard. The old `btn-success`
+// class is nested under `.btn.btn-primary` in _buttons.scss, so it no longer
+// reaches the Compass button.
+.GetLinkModal__copied {
+    --button-bg: var(--online-indicator);
+}
