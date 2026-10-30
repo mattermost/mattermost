@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify a valid email and password logs in and lands on a team channel.
  */
-test('logs in with email and password and lands on a channel', {tag: '@authentication'}, async ({pw}) => {
+test('logs in with email and password and lands on a channel', {tag: ['@authentication', '@core']}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
 
     // # Log in with the user's email
@@ -22,7 +22,7 @@ test('logs in with email and password and lands on a channel', {tag: '@authentic
 /**
  * @objective Verify a valid username and password logs in and lands on a team channel.
  */
-test('logs in with username and password and lands on a channel', {tag: '@authentication'}, async ({pw}) => {
+test('logs in with username and password and lands on a channel', {tag: ['@authentication', '@core']}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
 
     // # Log in with the user's username
@@ -38,7 +38,7 @@ test('logs in with username and password and lands on a channel', {tag: '@authen
 /**
  * @objective Verify invalid credentials show an error and do not create a session.
  */
-test('rejects invalid credentials with a generic error', {tag: '@authentication'}, async ({pw}) => {
+test('rejects invalid credentials with a generic error', {tag: ['@authentication', '@core']}, async ({pw}) => {
     const {user} = await pw.initSetup();
 
     // # Submit the correct username with the wrong password
