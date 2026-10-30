@@ -299,11 +299,15 @@ func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]stri
 	return ret, nil
 }
 
+// fallbackScanBatchSize is the number of keys each KVList call reads during the
+// fallback scan, independent of the page size the caller asks for.
+const fallbackScanBatchSize = 1000
+
 // listKeysWithPrefixFallback emulates KVListWithOptions on servers that lack it:
 // page and count apply to the prefix-filtered keys, as they do server-side.
 //
 // ponytail: scans from the first key on every call, O(total keys) per page;
-// only servers older than 12.2 take this path.
+// delete when the minimum supported server version is 12.2 or later.
 func (k *KVService) listKeysWithPrefixFallback(page, count int, prefix string) ([]string, *model.AppError) {
 	// Mirrors the store: a negative offset becomes 0, a non-positive limit becomes 10.
 	skip := max(page*count, 0)
@@ -311,9 +315,9 @@ func (k *KVService) listKeysWithPrefixFallback(page, count int, prefix string) (
 		count = 10
 	}
 
-	matched := make([]string, 0, count)
+	matched := make([]string, 0, min(count, fallbackScanBatchSize))
 	for rawPage := 0; ; rawPage++ {
-		keys, appErr := k.api.KVList(rawPage, count)
+		keys, appErr := k.api.KVList(rawPage, fallbackScanBatchSize)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -330,7 +334,7 @@ func (k *KVService) listKeysWithPrefixFallback(page, count int, prefix string) (
 				return matched, nil
 			}
 		}
-		if len(keys) < count {
+		if len(keys) < fallbackScanBatchSize {
 			return matched, nil
 		}
 	}

@@ -674,7 +674,7 @@ func TestListKeys(t *testing.T) {
 
 		api.On("KVListWithOptions", 0, 100, model.PluginKVListOptions{Prefix: "key1"}).
 			Return([]string(nil), model.NewAppError("test", "test.not_implemented", nil, "", http.StatusNotImplemented))
-		api.On("KVList", 0, 100).Return([]string{"key1", "key10", "key2", "other1", "other2"}, nil)
+		api.On("KVList", 0, 1000).Return([]string{"key1", "key10", "key2", "other1", "other2"}, nil)
 
 		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("key1"))
 		require.NoError(t, err)
@@ -688,7 +688,7 @@ func TestListKeys(t *testing.T) {
 
 		api.On("KVListWithOptions", 0, 100, model.PluginKVListOptions{Prefix: "key"}).
 			Return([]string(nil), model.NewAppError("test", "test.not_implemented", nil, "", http.StatusNotImplemented))
-		api.On("KVList", 0, 100).Return([]string(nil), model.NewAppError("test", "test.error", nil, "", http.StatusInternalServerError))
+		api.On("KVList", 0, 1000).Return([]string(nil), model.NewAppError("test", "test.error", nil, "", http.StatusInternalServerError))
 
 		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("key"))
 		assert.Empty(t, keys)
@@ -745,14 +745,29 @@ func TestListKeys(t *testing.T) {
 
 		api.On("KVListWithOptions", 1, 2, model.PluginKVListOptions{Prefix: "p_"}).
 			Return([]string(nil), model.NewAppError("test", "test.not_implemented", nil, "", http.StatusNotImplemented))
-		api.On("KVList", 0, 2).Return([]string{"a", "p_1"}, nil)
-		api.On("KVList", 1, 2).Return([]string{"b", "p_2"}, nil)
-		api.On("KVList", 2, 2).Return([]string{"p_3", "c"}, nil)
-		api.On("KVList", 3, 2).Return([]string{"p_4"}, nil)
+		firstBatch := getKeys(1000)
+		firstBatch[10], firstBatch[500] = "p_1", "p_2"
+		api.On("KVList", 0, 1000).Return(firstBatch, nil)
+		api.On("KVList", 1, 1000).Return([]string{"a", "p_3", "b", "p_4", "p_5"}, nil)
 
 		keys, err := client.KV.ListKeys(1, 2, pluginapi.WithPrefix("p_"))
 		require.NoError(t, err)
 		assert.Equal(t, []string{"p_3", "p_4"}, keys)
+	})
+
+	t.Run("fallback stops on an empty batch after a full one", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("KVListWithOptions", 0, 100, model.PluginKVListOptions{Prefix: "key99"}).
+			Return([]string(nil), model.NewAppError("test", "test.not_implemented", nil, "", http.StatusNotImplemented))
+		api.On("KVList", 0, 1000).Return(getKeys(1000), nil)
+		api.On("KVList", 1, 1000).Return([]string{}, nil)
+
+		keys, err := client.KV.ListKeys(0, 100, pluginapi.WithPrefix("key99"))
+		require.NoError(t, err)
+		assert.Equal(t, []string{"key99", "key990", "key991", "key992", "key993", "key994", "key995", "key996", "key997", "key998", "key999"}, keys)
 	})
 }
 
