@@ -149,6 +149,7 @@ import {
     getTeamsUsage,
 } from 'actions/cloud';
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
+import {handleEntitiesDictionaryChanged} from 'actions/entity_websocket';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions';
 import {handleNewPost} from 'actions/post_actions';
@@ -458,6 +459,10 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.PostEdited:
         handlePostEditEvent(msg);
+        break;
+
+    case 'entities_dictionary_changed':
+        dispatch(handleEntitiesDictionaryChanged());
         break;
 
     case WebSocketEvents.PostDeleted:

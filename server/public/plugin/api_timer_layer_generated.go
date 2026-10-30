@@ -1902,3 +1902,80 @@ func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, 
 	api.recordTime(startTime, "GetAccessControlVisualAST", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) RegisterEntityType(t *model.EntityType) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityType(t)
+	api.recordTime(startTime, "RegisterEntityType", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityMatcher(m)
+	api.recordTime(startTime, "RegisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterEntityMatcher(id string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterEntityMatcher(id)
+	api.recordTime(startTime, "UnregisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityProvider(p)
+	api.recordTime(startTime, "RegisterEntityProvider", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityTerms(typeID, terms)
+	api.recordTime(startTime, "RegisterEntityTerms", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterAutomationGroup(group model.AutomationGroupDescriptor) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterAutomationGroup(group)
+	api.recordTime(startTime, "RegisterAutomationGroup", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterAutomationSignal(signal model.AutomationSignalDescriptor) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterAutomationSignal(signal)
+	api.recordTime(startTime, "RegisterAutomationSignal", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterAutomationAction(action model.AutomationActionDescriptor) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterAutomationAction(action)
+	api.recordTime(startTime, "RegisterAutomationAction", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) EmitAutomationSignal(name string, payload map[string]model.AutomationValue, traceToken string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.EmitAutomationSignal(name, payload, traceToken)
+	api.recordTime(startTime, "EmitAutomationSignal", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) ExecuteAutomationAction(req *model.AutomationActionRequest) (*model.AutomationActionResponse, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ExecuteAutomationAction(req)
+	api.recordTime(startTime, "ExecuteAutomationAction", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListAutomationContributions() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsC, _returnsD := api.apiImpl.ListAutomationContributions()
+	api.recordTime(startTime, "ListAutomationContributions", _returnsD == nil)
+	return _returnsA, _returnsB, _returnsC, _returnsD
+}

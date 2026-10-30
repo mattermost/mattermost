@@ -13,7 +13,7 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {CommandArgs} from '@mattermost/types/integrations';
 import type {ClientPluginManifest, NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
-import type {Post, PostEmbed} from '@mattermost/types/posts';
+import type {EntityCard, Post, PostEmbed} from '@mattermost/types/posts';
 import type {ProductScope} from '@mattermost/types/products';
 import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
@@ -78,6 +78,7 @@ export type PluginsState = {
         ChannelIconOverride: ChannelIconOverrideRegistration[];
         ChannelKind: ChannelKindRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
+        EntityCardPart: EntityCardPartComponent[];
         ChannelIntro: ChannelIntroRegistration[];
         ChannelView: ChannelViewRegistration[];
         PostHeader: PostHeaderComponent[];
@@ -512,6 +513,11 @@ export type ChannelKindRegistration = PluginComponent & {
 
 export type ChannelComposerBannerComponent = PluginComponent & {
     component: React.ComponentType<{channel: Channel}>;
+};
+
+export type EntityCardPartComponent = PluginComponent & {
+    part: string;
+    component: React.ComponentType<{card: EntityCard; reload?: () => void}>;
 };
 
 export type ChannelIntroRegistration = PluginComponent & {

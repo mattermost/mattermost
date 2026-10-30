@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
 )
@@ -214,6 +215,7 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 		ch.srv.Log().Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
+	env.SetDeactivated(entities.RemovePlugin)
 	ch.pluginsLock.Lock()
 	ch.pluginsEnvironment = env
 	ch.pluginsLock.Unlock()

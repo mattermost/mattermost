@@ -108,6 +108,19 @@ type Store interface {
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
 	HealthFinding() HealthFindingStore
+	PostEntity() PostEntityStore
+	EntityTerm() EntityTermStore
+}
+
+type EntityTermStore interface {
+	Replace(pluginID, typeID string, terms []model.EntityTerm, generation int64) error
+	List() ([]model.EntityTermRow, error)
+}
+
+type PostEntityStore interface {
+	Save(row *model.PostEntityRow) error
+	Get(postID string) (*model.PostEntityRow, error)
+	GetMany(postIDs []string) (map[string]*model.PostEntityRow, error)
 }
 
 type HealthFindingStore interface {

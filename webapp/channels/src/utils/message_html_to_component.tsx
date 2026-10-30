@@ -8,6 +8,7 @@ import React from 'react';
 import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 
 import AtMention from 'components/at_mention';
+import EntityMention from 'components/entity_mention/entity_mention';
 import CodeBlock from 'components/code_block/code_block';
 import InlineActionButton from 'components/inline_action_button';
 import InlineEntityLink from 'components/inline_entity_link';
@@ -214,6 +215,27 @@ export default function messageHtmlToComponent(html: string, options: Options = 
             },
         });
     }
+
+    processingInstructions.push({
+        replaceChildren: true,
+        shouldProcessNode: (node) => node.attribs && node.attribs['data-entity'],
+        processNode: (node: any, children: any) => {
+            return (
+                <EntityMention
+                    typeId={node.attribs['data-entity-type'] || ''}
+                    value={node.attribs['data-entity-value'] || ''}
+                    occurrence={node.attribs['data-entity'] || ''}
+                    postId={options.postId}
+                    url={node.attribs['data-entity-url']}
+                    label={node.attribs['data-entity-label']}
+                    title={node.attribs['data-entity-title']}
+                    hasCard={node.attribs['data-entity-card'] === '1'}
+                >
+                    {children}
+                </EntityMention>
+            );
+        },
+    });
 
     if (!('mentions' in options) || options.mentions) {
         const mentionHighlight = 'mentionHighlight' in options ? options.mentionHighlight : true;

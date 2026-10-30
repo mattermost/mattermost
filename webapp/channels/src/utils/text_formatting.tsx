@@ -5,6 +5,7 @@ import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
+import type {PostEntity} from '@mattermost/types/posts';
 import {isRecordOf} from '@mattermost/types/utilities';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
@@ -206,6 +207,11 @@ export interface TextFormattingOptionsBase {
      * Whether or not to render text emoticons (:D) as emojis
      */
     renderEmoticonsAsEmoji: boolean;
+
+    /**
+     * Entities detected in the raw post message. Offsets are UTF-16 code units.
+     */
+    entities: PostEntity[];
 }
 
 export type TextFormattingOptions = Partial<TextFormattingOptionsBase>;
@@ -254,6 +260,44 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
 // eslint-disable-next-line no-misleading-character-class
 export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff\u0e00-\u0e7f]/;
 
+function applyEntitySentinels(text: string, entities: PostEntity[]): string {
+    const indexed = entities.map((entity, index) => ({entity, index}));
+    indexed.sort((a, b) => b.entity.start - a.entity.start);
+    let output = text;
+    for (const {entity, index} of indexed) {
+        if (entity.start < 0 || entity.end > output.length || entity.start >= entity.end) {
+            continue;
+        }
+        if (output.slice(entity.start, entity.end) !== entity.value) {
+            continue;
+        }
+        output = `${output.slice(0, entity.start)}\uE000${index}\uE001${output.slice(entity.end)}`;
+    }
+    return output;
+}
+
+function replaceEntitySentinels(text: string, tokens: Tokens, entities?: PostEntity[]): string {
+    if (!entities || entities.length === 0 || !text.includes('\uE000')) {
+        return text;
+    }
+    return text.replace(/\uE000(\d+)\uE001/g, (_match: string, index: string) => {
+        const entity = entities[Number(index)];
+        if (!entity) {
+            return '';
+        }
+        const alias = `$MM_ENTITY${index}$`;
+        const urlAttr = entity.url ? ` data-entity-url="${escapeHtml(entity.url)}"` : '';
+        const labelAttr = entity.display_name ? ` data-entity-label="${escapeHtml(entity.display_name)}"` : '';
+        const titleAttr = entity.title ? ` data-entity-title="${escapeHtml(entity.title)}"` : '';
+        const cardAttr = entity.has_card ? ' data-entity-card="1"' : '';
+        tokens.set(alias, {
+            value: `<span data-entity="${escapeHtml(entity.id)}" data-entity-type="${escapeHtml(entity.type_ids[0] || '')}" data-entity-value="${escapeHtml(entity.value)}"${urlAttr}${labelAttr}${titleAttr}${cardAttr}>${escapeHtml(entity.value)}</span>`,
+            originalText: entity.value,
+        });
+        return alias;
+    });
+}
+
 export function formatText(
     text: string,
     inputOptions: TextFormattingOptions = DEFAULT_OPTIONS,
@@ -265,6 +309,9 @@ export function formatText(
 
     let output = text;
     const options = Object.assign({}, inputOptions);
+    if (options.entities && options.entities.length > 0) {
+        output = applyEntitySentinels(output, options.entities);
+    }
     const hasPhrases = (/"([^"]*)"/).test(options.searchTerm || '');
 
     if (options.searchMatches && !hasPhrases) {
@@ -329,6 +376,13 @@ export function formatText(
         output = `<span class="all-emoji">${output.trim()}</span>`;
     }
 
+    if (options.entities && options.entities.length > 0) {
+        output = output.replace(/\uE000(\d+)\uE001/g, (_match: string, index: string) => {
+            const entity = options.entities?.[Number(index)];
+            return entity ? escapeHtml(entity.value) : '';
+        });
+    }
+
     if (options.postId) {
         // unwrap the output from the closing p tag and add a span that will serve as a
         // palceholder for `messageToHtmlComponent` function later on
@@ -349,6 +403,8 @@ export function doFormatText(text: string, options: TextFormattingOptions, emoji
     const tokens = new Tokens();
 
     try {
+        output = replaceEntitySentinels(output, tokens, options.entities);
+
         // replace important words and phrases with tokens
         if (options.atMentions) {
             output = autolinkAtMentions(output, tokens);

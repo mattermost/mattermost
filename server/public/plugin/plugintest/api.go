@@ -5235,6 +5235,195 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 	return r0
 }
 
+// RegisterEntityMatcher provides a mock function with given fields: m
+func (_m *API) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	ret := _m.Called(m)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityMatcher")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.EntityMatcher) *model.AppError); ok {
+		r0 = rf(m)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// UnregisterEntityMatcher provides a mock function with given fields: id
+func (_m *API) UnregisterEntityMatcher(id string) *model.AppError {
+	ret := _m.Called(id)
+	if len(ret) == 0 {
+		panic("no return value specified for UnregisterEntityMatcher")
+	}
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(id)
+	} else if ret.Get(0) != nil {
+		r0 = ret.Get(0).(*model.AppError)
+	}
+	return r0
+}
+
+// RegisterEntityProvider provides a mock function with given fields: p
+func (_m *API) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	ret := _m.Called(p)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityProvider")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.EntityProvider) *model.AppError); ok {
+		r0 = rf(p)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+func (_m *API) RegisterAutomationGroup(group model.AutomationGroupDescriptor) error {
+	ret := _m.Called(group)
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterAutomationGroup")
+	}
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.AutomationGroupDescriptor) error); ok {
+		r0 = rf(group)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+func (_m *API) RegisterAutomationSignal(signal model.AutomationSignalDescriptor) error {
+	ret := _m.Called(signal)
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterAutomationSignal")
+	}
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.AutomationSignalDescriptor) error); ok {
+		r0 = rf(signal)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+func (_m *API) RegisterAutomationAction(action model.AutomationActionDescriptor) error {
+	ret := _m.Called(action)
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterAutomationAction")
+	}
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.AutomationActionDescriptor) error); ok {
+		r0 = rf(action)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+func (_m *API) EmitAutomationSignal(name string, payload map[string]model.AutomationValue, traceToken string) error {
+	ret := _m.Called(name, payload, traceToken)
+	if len(ret) == 0 {
+		panic("no return value specified for EmitAutomationSignal")
+	}
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]model.AutomationValue, string) error); ok {
+		r0 = rf(name, payload, traceToken)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+func (_m *API) ExecuteAutomationAction(req *model.AutomationActionRequest) (*model.AutomationActionResponse, error) {
+	ret := _m.Called(req)
+	if len(ret) == 0 {
+		panic("no return value specified for ExecuteAutomationAction")
+	}
+	var r0 *model.AutomationActionResponse
+	if rf, ok := ret.Get(0).(func(*model.AutomationActionRequest) (*model.AutomationActionResponse, error)); ok {
+		return rf(req)
+	}
+	if ret.Get(0) != nil {
+		r0 = ret.Get(0).(*model.AutomationActionResponse)
+	}
+	return r0, ret.Error(1)
+}
+
+func (_m *API) ListAutomationContributions() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error) {
+	ret := _m.Called()
+	if len(ret) == 0 {
+		panic("no return value specified for ListAutomationContributions")
+	}
+	var r0 []model.AutomationGroupDescriptor
+	var r1 []model.AutomationSignalDescriptor
+	var r2 []model.AutomationActionDescriptor
+	if rf, ok := ret.Get(0).(func() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error)); ok {
+		return rf()
+	}
+	if ret.Get(0) != nil {
+		r0 = ret.Get(0).([]model.AutomationGroupDescriptor)
+	}
+	if ret.Get(1) != nil {
+		r1 = ret.Get(1).([]model.AutomationSignalDescriptor)
+	}
+	if ret.Get(2) != nil {
+		r2 = ret.Get(2).([]model.AutomationActionDescriptor)
+	}
+	return r0, r1, r2, ret.Error(3)
+}
+
+// RegisterEntityTerms provides a mock function with given fields: typeID, terms
+func (_m *API) RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError {
+	ret := _m.Called(typeID, terms)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityTerms")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []model.EntityTerm) *model.AppError); ok {
+		r0 = rf(typeID, terms)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RegisterEntityType provides a mock function with given fields: t
+func (_m *API) RegisterEntityType(t *model.EntityType) *model.AppError {
+	ret := _m.Called(t)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityType")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.EntityType) *model.AppError); ok {
+		r0 = rf(t)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // RegisterPluginForSharedChannels provides a mock function with given fields: opts
 func (_m *API) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (string, error) {
 	ret := _m.Called(opts)

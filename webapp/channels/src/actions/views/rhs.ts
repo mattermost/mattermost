@@ -46,7 +46,7 @@ import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {ActionFunc, ActionFuncAsync, GlobalState, ThunkActionFunc} from 'types/store';
-import type {MentionFilters, MentionType, RhsState} from 'types/store/rhs';
+import type {EntitySelection, MentionFilters, MentionType, RhsState} from 'types/store/rhs';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -526,6 +526,18 @@ export function showChannelInfo(channelId: string) {
         type: ActionTypes.UPDATE_RHS_STATE,
         channelId,
         state: RHSStates.CHANNEL_INFO,
+    };
+}
+
+export function showEntity(entity: EntitySelection): ActionFunc<boolean> {
+    return (dispatch) => {
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            state: RHSStates.ENTITY,
+            entity,
+        });
+
+        return {data: true};
     };
 }
 
