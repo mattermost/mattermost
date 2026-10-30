@@ -3734,6 +3734,21 @@
     "description": "API error shown to a system admin when downloading a plugin from a URL or the Marketplace fails."
   },
   {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "Exactly one plugin public key file must be uploaded in the public_key field.",
+    "description": "Error returned by the local-mode API when a plugin-signing public key upload is missing its file; 'public_key' is the literal form field name and must not be translated."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Plugin public key {{.Name}} is not configured.",
+    "description": "Error returned by the local-mode API when the requested plugin-signing public key is not in PluginSettings.SignaturePublicKeyFiles."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Unable to parse the uploaded plugin public key.",
+    "description": "Error returned by the local-mode API when the multipart request uploading a plugin-signing public key cannot be parsed or is too large."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request.",
     "description": "API error when a plugin upload request's multipart form contains an empty file array; technical message aimed at admins/integrators."
@@ -10479,6 +10494,21 @@
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
     "translation": "Failed to evaluate permission policy.",
     "description": "Error when the server fails to evaluate a permission policy while checking a user's access."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "A configuration file named {{.Name}} already exists.",
+    "description": "Error when adding a plugin-signing public key would overwrite an existing configuration file of the same name."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "The file is not a valid OpenPGP public key.",
+    "description": "Error when the uploaded plugin-signing public key cannot be parsed as an OpenPGP public key, or contains a private key."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Invalid plugin public key name {{.Name}}. Names may contain only letters, numbers, '.', '_' and '-'.",
+    "description": "Error when adding a plugin-signing public key whose file name contains disallowed characters or is reserved."
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",

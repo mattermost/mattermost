@@ -6782,6 +6782,66 @@ func (c *Client4) RemovePlugin(ctx context.Context, id string) (*Response, error
 	return BuildResponse(r), nil
 }
 
+// GetPluginPublicKeys returns the names of the configured plugin signature public keys.
+// Only available in local mode.
+func (c *Client4) GetPluginPublicKeys(ctx context.Context) ([]string, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.pluginsRoute().Join("public_keys"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]string](r)
+}
+
+// GetPluginPublicKey returns the contents of a configured plugin signature public key.
+// Only available in local mode.
+func (c *Client4) GetPluginPublicKey(ctx context.Context, name string) ([]byte, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.pluginsRoute().Join("public_keys", name), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
+}
+
+// AddPluginPublicKey adds a plugin signature public key with the given name.
+// Only available in local mode.
+func (c *Client4) AddPluginPublicKey(ctx context.Context, name string, key io.Reader) (*Response, error) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("public_key", name)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = io.Copy(part, key); err != nil {
+		return nil, err
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, err
+	}
+
+	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.pluginsRoute().Join("public_keys"), writer.FormDataContentType(), body, nil)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// DeletePluginPublicKey removes a configured plugin signature public key.
+// Only available in local mode.
+func (c *Client4) DeletePluginPublicKey(ctx context.Context, name string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.pluginsRoute().Join("public_keys", name))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // GetWebappPlugins will return a list of plugins that the webapp should download.
 func (c *Client4) GetWebappPlugins(ctx context.Context) ([]*Manifest, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.pluginsRoute().Join("webapp"), "")

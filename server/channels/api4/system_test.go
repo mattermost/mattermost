@@ -1307,7 +1307,7 @@ func TestCompleteOnboarding(t *testing.T) {
 		*cfg.PluginSettings.AllowInsecureDownloadURL = true
 	})
 
-	key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+	key, err := os.Open(filepath.Join(path, "development-public-key.asc"))
 	require.NoError(t, err)
 	appErr := th.App.AddPublicKey("pub_key", key)
 	require.Nil(t, appErr)

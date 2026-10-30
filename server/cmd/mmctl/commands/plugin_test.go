@@ -5,8 +5,10 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -615,5 +617,119 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal("Unable to delete plugin: "+args[1]+". Error: "+mockErrors[0].Error(), printer.GetErrorLines()[0])
 		s.Require().Equal("Unable to delete plugin: "+args[2]+". Error: "+mockErrors[1].Error(), printer.GetErrorLines()[1])
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestPluginPublicKeysCmd() {
+	s.Run("List public key names", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			GetPluginPublicKeys(context.TODO()).
+			Return([]string{"key1.asc", "key2.gpg"}, &model.Response{}, nil).
+			Times(1)
+
+		err := pluginPublicKeysCmdF(s.client, newTestCmd(s.T(), PluginPublicKeysCmd), []string{})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{"key1.asc", "key2.gpg"}, printer.GetLines())
+	})
+
+	s.Run("List public keys verbosely", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			GetPluginPublicKeys(context.TODO()).
+			Return([]string{"key1.asc", "key2.gpg"}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetPluginPublicKey(context.TODO(), "key1.asc").
+			Return([]byte("key one"), &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetPluginPublicKey(context.TODO(), "key2.gpg").
+			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, errors.New("mock error")).
+			Times(1)
+
+		cmd := newTestCmd(s.T(), PluginPublicKeysCmd)
+		s.Require().NoError(cmd.Flags().Set("verbose", "true"))
+
+		err := pluginPublicKeysCmdF(s.client, cmd, []string{})
+		s.Require().Error(err)
+		s.Require().Equal([]any{"Plugin public key: key1.asc\nkey one"}, printer.GetLines())
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(`Unable to get plugin public key "key2.gpg". Error: mock error`, printer.GetErrorLines()[0])
+	})
+
+	s.Run("Fail to list public keys", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			GetPluginPublicKeys(context.TODO()).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
+			Times(1)
+
+		err := pluginPublicKeysCmdF(s.client, newTestCmd(s.T(), PluginPublicKeysCmd), []string{})
+		s.Require().EqualError(err, "unable to list plugin public keys: mock error")
+		s.Require().Empty(printer.GetLines())
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestPluginAddPublicKeyCmd() {
+	s.Run("Add public keys named after their file", func() {
+		printer.Clean()
+		dir := s.T().TempDir()
+		path1 := filepath.Join(dir, "key1.asc")
+		path2 := filepath.Join(dir, "key2.gpg")
+		s.Require().NoError(os.WriteFile(path1, []byte("key one"), 0600))
+		s.Require().NoError(os.WriteFile(path2, []byte("key two"), 0600))
+
+		s.client.
+			EXPECT().
+			AddPluginPublicKey(context.TODO(), "key1.asc", gomock.Any()).
+			Return(&model.Response{StatusCode: http.StatusCreated}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			AddPluginPublicKey(context.TODO(), "key2.gpg", gomock.Any()).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
+			Times(1)
+
+		err := pluginAddPublicKeyCmdF(s.client, &cobra.Command{}, []string{path1, path2})
+		s.Require().Error(err)
+		s.Require().Equal([]any{"Added plugin public key: key1.asc"}, printer.GetLines())
+		s.Require().Equal([]string{fmt.Sprintf("Unable to add plugin public key %q. Error: mock error", path2)}, printer.GetErrorLines())
+	})
+
+	s.Run("Fail to open a key file", func() {
+		printer.Clean()
+		path := filepath.Join(s.T().TempDir(), "missing.asc")
+
+		err := pluginAddPublicKeyCmdF(s.client, &cobra.Command{}, []string{path})
+		s.Require().Error(err)
+		s.Require().Empty(printer.GetLines())
+		s.Require().Len(printer.GetErrorLines(), 1)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestPluginDeletePublicKeyCmd() {
+	s.Run("Delete public keys", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			DeletePluginPublicKey(context.TODO(), "key1.asc").
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			DeletePluginPublicKey(context.TODO(), "key2.gpg").
+			Return(&model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
+			Times(1)
+
+		err := pluginDeletePublicKeyCmdF(s.client, &cobra.Command{}, []string{"key1.asc", "key2.gpg"})
+		s.Require().Error(err)
+		s.Require().Equal([]any{"Deleted plugin public key: key1.asc"}, printer.GetLines())
+		s.Require().Equal([]string{`Unable to delete plugin public key "key2.gpg". Error: mock error`}, printer.GetErrorLines())
 	})
 }
