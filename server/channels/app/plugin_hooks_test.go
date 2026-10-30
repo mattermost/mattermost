@@ -1624,6 +1624,118 @@ func TestHookOnLicenseChanged(t *testing.T) {
 	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 }
 
+func TestHookOnPluginActivatedAndDeactivated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// The listener records each notification, and on activation calls back
+	// into the activated plugin to prove it is already serving requests.
+	listener := `
+		package main
+
+		import (
+			"io"
+			"net/http"
+
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) record(key, value string) {
+			existing, _ := p.API.KVGet(key)
+			if len(existing) > 0 {
+				existing = append(existing, ',')
+			}
+			p.API.KVSet(key, append(existing, value...))
+		}
+
+		func (p *MyPlugin) OnPluginActivated(manifest *model.Manifest) {
+			p.record("activated", manifest.Id)
+
+			req, _ := http.NewRequest(http.MethodGet, "/"+manifest.Id+"/ping", nil)
+			resp := p.API.PluginHTTP(req)
+			if resp == nil {
+				p.record("ping", "nil")
+				return
+			}
+			defer resp.Body.Close()
+			body, _ := io.ReadAll(resp.Body)
+			p.record("ping", string(body))
+		}
+
+		func (p *MyPlugin) OnPluginDeactivated(manifest *model.Manifest) {
+			p.record("deactivated", manifest.Id)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+	target := `
+		package main
+
+		import (
+			"net/http"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/ping" {
+				w.Write([]byte("pong"))
+				return
+			}
+			http.NotFound(w, r)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{listener, target}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.Len(t, pluginIDs, 2)
+	require.NoError(t, activationErrors[0])
+	require.NoError(t, activationErrors[1])
+	listenerID, targetID := pluginIDs[0], pluginIDs[1]
+	env := th.App.GetPluginsEnvironment()
+
+	getKey := func(key string) string {
+		value, appErr := th.App.GetPluginKey(listenerID, key)
+		require.Nil(t, appErr)
+		return string(value)
+	}
+
+	require.Equal(t, targetID, getKey("activated"), "listener is notified of the target, not of its own activation")
+	require.Equal(t, "pong", getKey("ping"), "the activated plugin serves requests when the hook fires")
+	require.Empty(t, getKey("deactivated"))
+
+	require.True(t, env.Deactivate(targetID))
+	require.Equal(t, targetID, getKey("deactivated"))
+
+	require.False(t, env.Deactivate(targetID), "deactivating an inactive plugin does not notify again")
+	require.Equal(t, targetID, getKey("deactivated"))
+
+	_, activated, err := env.Activate(targetID)
+	require.NoError(t, err)
+	require.True(t, activated)
+	require.Equal(t, targetID+","+targetID, getKey("activated"))
+
+	require.NoError(t, env.RestartPlugin(targetID))
+	require.Equal(t, targetID+","+targetID+","+targetID, getKey("activated"))
+	require.Equal(t, targetID+","+targetID, getKey("deactivated"))
+	require.Equal(t, "pong,pong,pong", getKey("ping"))
+}
+
 //go:embed test_templates/hook_notification_will_be_pushed.tmpl
 var hookNotificationWillBePushedTmpl string
 

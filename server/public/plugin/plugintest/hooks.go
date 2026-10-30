@@ -577,9 +577,19 @@ func (_m *Hooks) OnLicenseChanged(oldLicense *model.License, newLicense *model.L
 	_m.Called(oldLicense, newLicense)
 }
 
+// OnPluginActivated provides a mock function with given fields: manifest
+func (_m *Hooks) OnPluginActivated(manifest *model.Manifest) {
+	_m.Called(manifest)
+}
+
 // OnPluginClusterEvent provides a mock function with given fields: c, ev
 func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterEvent) {
 	_m.Called(c, ev)
+}
+
+// OnPluginDeactivated provides a mock function with given fields: manifest
+func (_m *Hooks) OnPluginDeactivated(manifest *model.Manifest) {
+	_m.Called(manifest)
 }
 
 // OnSAMLLogin provides a mock function with given fields: c, user, assertion

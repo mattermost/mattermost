@@ -1435,6 +1435,108 @@ func (s *hooksRPCServer) OnLicenseChanged(args *Z_OnLicenseChangedArgs, returns 
 }
 
 func init() {
+	hookNameToId["OnPluginActivated"] = OnPluginActivatedID
+}
+
+type Z_OnPluginActivatedArgs struct {
+	A *model.Manifest
+}
+
+type Z_OnPluginActivatedReturns struct {
+}
+
+func (g *hooksRPCClient) OnPluginActivated(manifest *model.Manifest) {
+	_args := &Z_OnPluginActivatedArgs{manifest}
+	_returns := &Z_OnPluginActivatedReturns{}
+	if g.implemented[OnPluginActivatedID] {
+		if err := g.client.Call("Plugin.OnPluginActivated", _args, _returns); err != nil {
+			g.log.Error("RPC call OnPluginActivated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// OnPluginActivatedWithRPCErr returns the same values as OnPluginActivated, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) OnPluginActivatedWithRPCErr(manifest *model.Manifest) error {
+	_args := &Z_OnPluginActivatedArgs{manifest}
+	_returns := &Z_OnPluginActivatedReturns{}
+	var _err error
+	if g.implemented[OnPluginActivatedID] {
+		_err = g.client.Call("Plugin.OnPluginActivated", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_OnPluginActivatedReturns{}
+			g.log.Debug("RPC call OnPluginActivated to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) OnPluginActivated(args *Z_OnPluginActivatedArgs, returns *Z_OnPluginActivatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnPluginActivated(manifest *model.Manifest)
+	}); ok {
+		hook.OnPluginActivated(args.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnPluginActivated called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnPluginDeactivated"] = OnPluginDeactivatedID
+}
+
+type Z_OnPluginDeactivatedArgs struct {
+	A *model.Manifest
+}
+
+type Z_OnPluginDeactivatedReturns struct {
+}
+
+func (g *hooksRPCClient) OnPluginDeactivated(manifest *model.Manifest) {
+	_args := &Z_OnPluginDeactivatedArgs{manifest}
+	_returns := &Z_OnPluginDeactivatedReturns{}
+	if g.implemented[OnPluginDeactivatedID] {
+		if err := g.client.Call("Plugin.OnPluginDeactivated", _args, _returns); err != nil {
+			g.log.Error("RPC call OnPluginDeactivated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// OnPluginDeactivatedWithRPCErr returns the same values as OnPluginDeactivated, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) OnPluginDeactivatedWithRPCErr(manifest *model.Manifest) error {
+	_args := &Z_OnPluginDeactivatedArgs{manifest}
+	_returns := &Z_OnPluginDeactivatedReturns{}
+	var _err error
+	if g.implemented[OnPluginDeactivatedID] {
+		_err = g.client.Call("Plugin.OnPluginDeactivated", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_OnPluginDeactivatedReturns{}
+			g.log.Debug("RPC call OnPluginDeactivated to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) OnPluginDeactivated(args *Z_OnPluginDeactivatedArgs, returns *Z_OnPluginDeactivatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnPluginDeactivated(manifest *model.Manifest)
+	}); ok {
+		hook.OnPluginDeactivated(args.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnPluginDeactivated called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["ConfigurationWillBeSaved"] = ConfigurationWillBeSavedID
 }
 
@@ -2304,6 +2406,10 @@ type HooksWithRPCErrGenerated interface {
 	OnCloudLimitsUpdatedWithRPCErr(limits *model.ProductLimits) error
 
 	OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error
+
+	OnPluginActivatedWithRPCErr(manifest *model.Manifest) error
+
+	OnPluginDeactivatedWithRPCErr(manifest *model.Manifest) error
 
 	ConfigurationWillBeSavedWithRPCErr(newCfg *model.Config) (*model.Config, error, error)
 
