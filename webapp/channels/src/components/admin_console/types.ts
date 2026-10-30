@@ -10,7 +10,7 @@ import type {
     IntlShape,
 } from 'react-intl';
 
-import type {CloudState, Product} from '@mattermost/types/cloud';
+import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {JobType} from '@mattermost/types/jobs';
 
@@ -108,7 +108,6 @@ export type AdminDefinitionSettingDropdownOption = {
 type AdminDefinitionSettingDropdown = AdminDefinitionSettingBase & {
     type: 'dropdown';
     options: AdminDefinitionSettingDropdownOption[];
-    isHelpHidden?: Check;
 };
 
 export type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
@@ -214,7 +213,7 @@ export type AdminDefinitionConfigSchemaSection = {
 
 type RestrictedIndicatorType = {
     value: (cloud: CloudState) => JSX.Element;
-    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product | undefined) => boolean;
+    shouldDisplay: () => boolean;
 };
 
 export type AdminDefinitionSubSectionSchema = AdminDefinitionConfigSchemaComponent | AdminDefinitionConfigSchemaSettings;

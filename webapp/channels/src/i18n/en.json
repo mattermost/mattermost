@@ -10363,14 +10363,6 @@
     "defaultMessage": "User API Endpoint:",
     "description": "Setting label for a text field in the Entra ID (Office 365) OAuth admin settings; the API endpoint used to fetch the user profile. Ends with a colon."
   },
-  "admin.openid_custom_feature_discovery.copy": {
-    "defaultMessage": "Use OpenID Connect for authentication and single sign-on (SSO) with any service that supports the OIDC specification such as Apple, Okta, OneLogin, and more.",
-    "description": "Body copy on the feature discovery (upsell) page for custom OpenID Connect providers; lists provider product names."
-  },
-  "admin.openid_custom_feature_discovery.title": {
-    "defaultMessage": "Integrate OpenID Connect with Mattermost Professional",
-    "description": "Headline on the feature discovery (upsell) page for custom OpenID Connect providers; mentions the required plan."
-  },
   "admin.openid_feature_discovery.copy": {
     "defaultMessage": "Use OpenID Connect for authentication and single sign-on (SSO) with any service that supports the OIDC specification such as Google, Entra ID, Apple, Okta, OneLogin, and more.",
     "description": "Body copy on the feature discovery (upsell) page for OpenID Connect SSO; lists provider product names that should not be translated."
@@ -23703,14 +23695,6 @@
     "defaultMessage": "Your trial is active until {trialEndDay}. Discover our top Enterprise features.",
     "description": "Second line of the trial item in the product menu on Cloud workspaces during a free trial. {trialEndDay} is the trial end date formatted in the user's locale, for example 'March 05, 2026'. Clicking opens trial benefits (admins) or pricing (others)."
   },
-  "globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.primaryLabel": {
-    "defaultMessage": "Interested in a limitless plan with high-security features?",
-    "description": "First line of a product menu item shown to admins of Cloud workspaces on the free plan, promoting an upgrade."
-  },
-  "globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.secondaryLabel": {
-    "defaultMessage": "See plans",
-    "description": "Second line of the upgrade item in the product menu for Cloud free-plan admins. Clicking the item opens the pricing dialog. 'See' is an imperative verb."
-  },
   "globalHeader.productSwitcherMenu.userGroupsMenuItem.label": {
     "defaultMessage": "User Groups",
     "description": "Menu item in the product menu at the top left of the global header. It opens the User Groups dialog for custom groups of users that can be mentioned. Feature name."
@@ -26070,10 +26054,6 @@
   "menu.cloudFree.enterpriseTrialTitle": {
     "defaultMessage": "Enterprise Advanced Trial",
     "description": "Title of the main menu item shown while an Enterprise Advanced trial is active; plan name, do not translate 'Enterprise Advanced'."
-  },
-  "menu.cloudFree.postTrial.tryEnterprise": {
-    "defaultMessage": "Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>",
-    "description": "Main menu text shown after a trial ends encouraging viewing paid plans; <openModalLink> wraps the 'See plans' link."
   },
   "message_submit_error.invalidCommand": {
     "defaultMessage": "Command with a trigger of ''{command}'' not found. ",

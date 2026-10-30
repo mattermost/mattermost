@@ -814,22 +814,9 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             }
         }
 
-        // used to hide help in case of cloud-starter and open-id selection to show upgrade notice.
-        let hideHelp = false;
-        if (setting.isHelpHidden) {
-            if (typeof (setting.isHelpHidden) === 'function') {
-                hideHelp = setting.isHelpHidden(this.props.config, this.state, this.props.license, this.props.enterpriseReady);
-            } else {
-                hideHelp = setting.isHelpHidden;
-            }
-        }
-
         const label = renderLabel(setting, this.props.schema, this.props.intl);
 
-        let helpText: string | JSX.Element = '';
-        if (!hideHelp) {
-            helpText = selectedOptionForHelpText ? renderDropdownOptionHelpText(selectedOptionForHelpText) : renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
-        }
+        const helpText = selectedOptionForHelpText ? renderDropdownOptionHelpText(selectedOptionForHelpText) : renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
         return (
             <DropdownSetting
                 key={this.props.schema.id + '_dropdown_' + setting.key}
@@ -1017,13 +1004,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
     };
 
     handleChange = (id: string, value: any, confirm = false, doSubmit = false, warning = false) => {
-        let saveNeeded: State['saveNeeded'] = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
-
-        // Exception: Since OpenId-Custom is treated as feature discovery for Cloud Starter licenses, save button is disabled.
-        const isCloudStarter = this.props.license.Cloud === 'true' && this.props.license.SkuShortName === 'starter';
-        if (id === 'openidType' && value === 'openid' && isCloudStarter) {
-            saveNeeded = false;
-        }
+        const saveNeeded: State['saveNeeded'] = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
 
         const clientWarning = warning === false ? this.state.clientWarning : warning;
 
