@@ -1368,6 +1368,35 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	}, "RetainCreateAt")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		hook := &model.OutgoingWebhook{
+			ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
+			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"mice"},
+		}
+
+		createdHook, _, err := th.SystemAdminClient.CreateOutgoingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+		require.NotEmpty(t, createdHook.Token)
+		defer func() {
+			_, err = client.DeleteOutgoingWebhook(context.Background(), createdHook.Id)
+			require.NoError(t, err)
+		}()
+
+		for _, token := range []string{"", model.NewId()} {
+			payload := *createdHook
+			payload.Token = token
+			payload.DisplayName = "Token " + token
+
+			updatedHook, _, err := client.UpdateOutgoingWebhook(context.Background(), &payload)
+			require.NoError(t, err)
+			require.Equal(t, createdHook.Token, updatedHook.Token)
+
+			storedHook, _, err := th.SystemAdminClient.GetOutgoingWebhook(context.Background(), createdHook.Id)
+			require.NoError(t, err)
+			require.Equal(t, createdHook.Token, storedHook.Token)
+		}
+	}, "RetainToken")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		rcreatedHook, _, err := th.SystemAdminClient.CreateOutgoingWebhook(context.Background(), createdHook)
 		require.NoError(t, err)
 		defer func() {

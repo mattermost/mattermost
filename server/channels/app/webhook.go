@@ -806,6 +806,7 @@ func (a *App) UpdateOutgoingWebhook(rctx request.CTX, oldHook, updatedHook *mode
 	updatedHook.CreateAt = oldHook.CreateAt
 	updatedHook.DeleteAt = oldHook.DeleteAt
 	updatedHook.TeamId = oldHook.TeamId
+	updatedHook.Token = oldHook.Token
 	updatedHook.UpdateAt = model.GetMillis()
 
 	webhook, err := a.Srv().Store().Webhook().UpdateOutgoing(updatedHook)
