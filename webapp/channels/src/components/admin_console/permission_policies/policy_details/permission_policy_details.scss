@@ -14,50 +14,11 @@
     }
 
     .admin-console__warning-notice {
-        h4 {
-            margin-bottom: 0;
-        }
-
         margin-bottom: 16px;
     }
 
-    // Info Banner
-    .pp-info-banner {
-        display: flex;
-        align-items: flex-start;
-        padding: 16px;
-        border-radius: 4px;
+    .pp-info-notice {
         margin-bottom: 20px;
-        background-color: rgba(var(--button-bg-rgb), 0.08);
-        gap: 12px;
-
-        > .icon {
-            color: var(--button-bg);
-            font-size: 20px;
-            line-height: 1;
-        }
-
-        .pp-info-banner-content {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-
-            .pp-info-banner-title {
-                color: var(--center-channel-color);
-                font-size: 14px;
-                font-weight: 600;
-            }
-
-            .pp-info-banner-link {
-                color: var(--button-bg);
-                text-decoration: underline;
-            }
-
-            .pp-info-banner-subtitle {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
-                font-size: 13px;
-            }
-        }
     }
 
     // Role Selector
@@ -158,29 +119,6 @@
             .icon {
                 font-size: 16px;
             }
-        }
-    }
-
-    // Add Permission Button
-    .pp-add-permission-button {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 12px;
-        border: 1px solid var(--button-bg);
-        border-radius: 4px;
-        background: transparent;
-        color: var(--button-bg);
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        gap: 6px;
-
-        .icon {
-            font-size: 16px;
-        }
-
-        &:hover {
-            background: rgba(var(--button-bg-rgb), 0.08);
         }
     }
 

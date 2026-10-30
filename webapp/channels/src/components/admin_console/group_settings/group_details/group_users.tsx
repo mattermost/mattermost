@@ -136,19 +136,23 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                 </div>
                 <Button
                     type='button'
-                    emphasis='tertiary'
-                    className={classNames('prev', {disabled: firstPage})}
+                    emphasis='quaternary'
+                    size='sm'
+                    className={classNames('btn-icon ml-2', 'prev', {disabled: firstPage})}
                     onClick={this.previousPage}
                     disabled={firstPage}
+                    data-testid='page-link-prev'
                 >
                     <PreviousIcon/>
                 </Button>
                 <Button
                     type='button'
-                    emphasis='tertiary'
-                    className={classNames('next', {disabled: lastPage})}
+                    emphasis='quaternary'
+                    size='sm'
+                    className={classNames('btn-icon', 'next', {disabled: lastPage})}
                     onClick={this.nextPage}
                     disabled={lastPage}
+                    data-testid='page-link-next'
                 >
                     <NextIcon/>
                 </Button>

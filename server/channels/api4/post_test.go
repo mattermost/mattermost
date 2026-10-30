@@ -8772,3 +8772,159 @@ func TestPostMutationHandlersReadFromMaster(t *testing.T) {
 	// app.UpdatePost and app.PatchPost pin their own lookups; that is covered by
 	// TestPostMutationsReadFromMaster in the app package.
 }
+
+func TestCreatePostUploadFileAttachmentABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupUploadFileAttachmentABAC(t)
+
+	newPost := func(channelID string, fileIDs ...string) *model.Post {
+		return &model.Post{
+			ChannelId: channelID,
+			Message:   "post with files",
+			FileIds:   fileIDs,
+		}
+	}
+
+	t.Run("rejected when the policy denies the upload action", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		post, resp, err := th.Client.CreatePost(context.Background(), newPost(th.BasicChannel.Id, fileID))
+		require.Error(t, err)
+		require.Nil(t, post)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("rejected when a file uploaded in an allowed channel is attached in a denied one", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel2.Id)
+
+		post, resp, err := th.Client.CreatePost(context.Background(), newPost(th.BasicChannel2.Id, fileID))
+		require.Error(t, err)
+		require.Nil(t, post)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("succeeds when the policy allows the upload action", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th)
+
+		post, _, err := th.Client.CreatePost(context.Background(), newPost(th.BasicChannel.Id, fileID))
+		require.NoError(t, err)
+		require.Equal(t, model.StringArray{fileID}, post.FileIds)
+	})
+
+	t.Run("posts without files are unaffected by the policy", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		post, _, err := th.Client.CreatePost(context.Background(), newPost(th.BasicChannel.Id))
+		require.NoError(t, err)
+		require.NotNil(t, post)
+	})
+
+	t.Run("unaffected when ABAC is disabled", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+		disableABACForTest(t, th)
+
+		post, _, err := th.Client.CreatePost(context.Background(), newPost(th.BasicChannel.Id, fileID))
+		require.NoError(t, err)
+		require.Equal(t, model.StringArray{fileID}, post.FileIds)
+	})
+}
+
+func TestEditPostUploadFileAttachmentABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupUploadFileAttachmentABAC(t)
+
+	createPost := func(t *testing.T, fileIDs ...string) *model.Post {
+		t.Helper()
+
+		post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			FileIds:   fileIDs,
+		})
+		require.NoError(t, err)
+		return post
+	}
+
+	// updatePost and patchPost share checkUploadFilePermissionForNewFiles, so each
+	// case runs against both endpoints.
+	edits := map[string]func(post *model.Post, message string, fileIDs model.StringArray) (*model.Post, *model.Response, error){
+		"update": func(post *model.Post, message string, fileIDs model.StringArray) (*model.Post, *model.Response, error) {
+			return th.Client.UpdatePost(context.Background(), post.Id, &model.Post{
+				Id:        post.Id,
+				ChannelId: post.ChannelId,
+				Message:   message,
+				FileIds:   fileIDs,
+			})
+		},
+		"patch": func(post *model.Post, message string, fileIDs model.StringArray) (*model.Post, *model.Response, error) {
+			return th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{
+				Message: &message,
+				FileIds: &fileIDs,
+			})
+		},
+	}
+
+	for name, edit := range edits {
+		t.Run(name, func(t *testing.T) {
+			t.Run("adding a file is rejected when the policy denies the upload action", func(t *testing.T) {
+				post := createPost(t)
+				fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+				mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+				edited, resp, err := edit(post, post.Message, model.StringArray{fileID})
+				require.Error(t, err)
+				require.Nil(t, edited)
+				CheckForbiddenStatus(t, resp)
+				CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+			})
+
+			t.Run("swapping a file for another is rejected when the policy denies the upload action", func(t *testing.T) {
+				post := createPost(t, uploadUnattachedFile(t, th, th.BasicChannel.Id))
+				otherFileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+				mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+				edited, resp, err := edit(post, post.Message, model.StringArray{otherFileID})
+				require.Error(t, err)
+				require.Nil(t, edited)
+				CheckForbiddenStatus(t, resp)
+				CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+			})
+
+			t.Run("adding a file succeeds when the policy allows the upload action", func(t *testing.T) {
+				post := createPost(t)
+				fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+				mockUploadFileAttachmentPolicy(t, th)
+
+				edited, _, err := edit(post, post.Message, model.StringArray{fileID})
+				require.NoError(t, err)
+				require.Equal(t, model.StringArray{fileID}, edited.FileIds)
+			})
+
+			t.Run("editing the text with unchanged files is allowed when the policy denies the upload action", func(t *testing.T) {
+				fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+				post := createPost(t, fileID)
+				mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+				edited, _, err := edit(post, "edited message", model.StringArray{fileID})
+				require.NoError(t, err)
+				require.Equal(t, "edited message", edited.Message)
+				require.Equal(t, model.StringArray{fileID}, edited.FileIds)
+			})
+
+			t.Run("removing files is allowed when the policy denies the upload action", func(t *testing.T) {
+				post := createPost(t, uploadUnattachedFile(t, th, th.BasicChannel.Id))
+				mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+				edited, _, err := edit(post, post.Message, model.StringArray{})
+				require.NoError(t, err)
+				require.Empty(t, edited.FileIds)
+			})
+		})
+	}
+}

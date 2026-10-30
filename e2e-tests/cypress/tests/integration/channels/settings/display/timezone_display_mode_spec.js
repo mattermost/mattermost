@@ -166,14 +166,15 @@ function setTimezoneDisplayTo(isAutomatic, value) {
     navigateToTimezoneDisplaySettings();
 
     // # Uncheck the automatic timezone checkbox and verify unchecked
+    // Compass Checkbox hides the native input (opacity: 0); force interactions.
     cy.get('.setting-list-item').as('settingItems');
-    cy.get('@settingItems').find('#automaticTimezoneInput').should('be.visible').uncheck().should('be.not.checked');
+    cy.get('@settingItems').find('#automaticTimezoneInput').should('exist').uncheck({force: true}).should('not.be.checked');
 
     // * Verify Change timezone is enabled
     cy.get('@settingItems').find('#displayTimezone').should('be.visible').find('input').as('changeTimezone').should('be.enabled');
     if (isAutomatic) {
         // # Check automatic timezone checkbox and verify checked
-        cy.get('@settingItems').find('#automaticTimezoneInput').check().should('be.checked');
+        cy.get('@settingItems').find('#automaticTimezoneInput').check({force: true}).should('be.checked');
 
         // * Verify timezone text is visible
         cy.get('@changeTimezone').invoke('text').then((timezoneDesc) => {
@@ -230,8 +231,9 @@ function verifyUnchangedTimezoneOnInvalidInput(userId) {
         navigateToTimezoneDisplaySettings();
 
         // # Uncheck the automatic timezone checkbox and verify unchecked
+        // Compass Checkbox hides the native input (opacity: 0); force interactions.
         cy.get('.setting-list-item').as('settingItems');
-        cy.get('@settingItems').find('#automaticTimezoneInput').should('be.visible').uncheck().should('be.not.checked');
+        cy.get('@settingItems').find('#automaticTimezoneInput').should('exist').uncheck({force: true}).should('not.be.checked');
 
         // * Enter invalid input as timezone
         cy.get('@settingItems').find('#displayTimezone').find('input').
