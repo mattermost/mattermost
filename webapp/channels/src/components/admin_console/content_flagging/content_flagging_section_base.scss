@@ -32,6 +32,13 @@
             width: auto;
         }
     }
+
+    // Compass Checkbox keeps Bootstrap's `.checkbox-inline` class, whose 20px
+    // left padding made room for a native input that Compass doesn't use. Drop
+    // it so the box lines up with the inputs above and below it.
+    .checkbox-inline {
+        padding-left: 0;
+    }
 }
 
 .helpText {

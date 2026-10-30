@@ -799,7 +799,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                                     setByEnv={false}
                                 >
                                     <Checkbox
-                                        className='checkbox-inline'
                                         data-testid='clearanceAttributeCheckbox'
                                         checked={clearanceEnabled}
                                         onChange={handleClearanceChange}
