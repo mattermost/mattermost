@@ -205,6 +205,11 @@
     "description": "Admin console error when the SAML Identity Provider certificate obtained from metadata cannot be written to disk."
   },
   {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "The uploaded Identity Provider certificate is not a valid PEM-encoded X.509 certificate.",
+    "description": "Admin console error when an uploaded SAML Identity Provider certificate file cannot be parsed; 'PEM' and 'X.509' are certificate format names."
+  },
+  {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
     "translation": "Missing Identity Provider SSO Descriptors node in the XML.",
     "description": "Admin console error when SAML Identity Provider metadata XML lacks the IDPSSODescriptor element; technical XML node name."

@@ -1117,6 +1117,69 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             expect(mockPatchConfig).toHaveBeenCalled();
         });
     });
+
+    describe('fileupload setting', () => {
+        const renderFileUpload = (uploadAction: jest.Mock) => {
+            const fileUploadSchema = {
+                id: 'Config',
+                name: 'config',
+                name_default: 'Configuration',
+                settings: [
+                    {
+                        key: 'SamlSettings.IdpCertificateFile',
+                        label: 'label-file',
+                        label_default: 'Certificate',
+                        type: 'fileupload',
+                        remove_button_text: 'Remove Certificate',
+                        upload_action: uploadAction,
+                        remove_action: jest.fn(),
+                    },
+                ],
+            } as unknown as AdminDefinitionSubSectionSchema;
+
+            const {container} = renderWithContext(
+                <SchemaAdminSettings
+                    {...DefaultProps}
+                    config={config}
+                    environmentConfig={environmentConfig}
+                    schema={fileUploadSchema}
+                    patchConfig={jest.fn()}
+                />,
+            );
+
+            return container.querySelector('input[type="file"]') as HTMLInputElement;
+        };
+
+        test('should show the server error when an upload is rejected', async () => {
+            const uploadAction = jest.fn((file, success, error) => error({message: 'Invalid certificate'}));
+            const fileInput = renderFileUpload(uploadAction);
+
+            await userEvent.upload(fileInput, new File(['junk'], 'junk.crt'));
+            await userEvent.click(screen.getByRole('button', {name: 'Upload'}));
+
+            expect(uploadAction).toHaveBeenCalled();
+            expect(screen.getByText('Invalid certificate')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Remove Certificate'})).not.toBeInTheDocument();
+        });
+
+        test('should clear the error after a successful upload', async () => {
+            const uploadAction = jest.fn().
+                mockImplementationOnce((file, success, error) => error({message: 'Invalid certificate'})).
+                mockImplementationOnce((file, success) => success('saml-idp.crt'));
+            const fileInput = renderFileUpload(uploadAction);
+
+            await userEvent.upload(fileInput, new File(['junk'], 'junk.crt'));
+            await userEvent.click(screen.getByRole('button', {name: 'Upload'}));
+            expect(screen.getByText('Invalid certificate')).toBeInTheDocument();
+
+            await userEvent.upload(fileInput, new File(['cert'], 'valid.crt'));
+            await userEvent.click(screen.getByRole('button', {name: 'Upload'}));
+
+            expect(screen.queryByText('Invalid certificate')).not.toBeInTheDocument();
+            expect(screen.getByText('saml-idp.crt')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Remove Certificate'})).toBeInTheDocument();
+        });
+    });
 });
 
 describe('components/admin_console/SchemaAdminSettings/getConfigFromState', () => {

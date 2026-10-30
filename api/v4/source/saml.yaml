@@ -53,7 +53,8 @@
       description: >
         Upload the IDP certificate to be used with your SAML configuration. The
         server will pick a hard-coded filename for the IdpCertificateFile
-        setting in your `config.json`.
+        setting in your `config.json`. The file must contain a PEM-encoded
+        X.509 certificate; anything else is rejected with a 400 status.
 
         ##### Permissions
 

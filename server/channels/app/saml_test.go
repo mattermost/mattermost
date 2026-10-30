@@ -4,10 +4,29 @@
 package app
 
 import (
+	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
+	"errors"
+	"math/big"
+	"mime/multipart"
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 const (
@@ -121,4 +140,211 @@ func TestBuildSamlMetadataObject(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, "api.admin.saml.invalid_xml_missing_keydescriptor.app_error", appErr.Id)
 	})
+}
+
+func registerMockSaml(t *testing.T, configureErr error) *mocks.SamlInterface {
+	saml := &mocks.SamlInterface{}
+	saml.On("ConfigureSP", mock.AnythingOfType("*request.Context")).Return(configureErr)
+	RegisterSamlInterface(func(_ *App) einterfaces.SamlInterface { return saml })
+	t.Cleanup(func() { RegisterSamlInterface(nil) })
+	return saml
+}
+
+type samlTestCluster interface {
+	einterfaces.ClusterInterface
+	ClearMessages()
+	SelectMessages(func(*model.ClusterMessage) bool) []*model.ClusterMessage
+}
+
+func setupSamlReload(t *testing.T, cluster samlTestCluster, configureErr error) (*TestHelper, *mocks.SamlInterface) {
+	t.Helper()
+	saml := registerMockSaml(t, configureErr)
+	th := SetupWithClusterMock(t, cluster)
+	// A rotation keeps the filename, so the config listener doesn't reconfigure the SP.
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
+
+	// Discard the ConfigureSP calls and cluster messages from startup.
+	saml.Calls = nil
+	cluster.ClearMessages()
+	return th, saml
+}
+
+func assertSamlReloaded(t *testing.T, saml *mocks.SamlInterface, cluster samlTestCluster) *model.ClusterMessage {
+	t.Helper()
+	saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
+	msgs := cluster.SelectMessages(func(m *model.ClusterMessage) bool {
+		return m.Event == model.ClusterEventReloadSaml
+	})
+	require.Len(t, msgs, 1)
+	return msgs[0]
+}
+
+func TestReloadSaml(t *testing.T) {
+	t.Run("no-op when no SAML interface is registered", func(t *testing.T) {
+		a := &App{ch: &Channels{}}
+		require.NotPanics(t, func() {
+			a.reloadSaml(request.TestContext(t))
+		})
+	})
+
+	for name, configureErr := range map[string]error{
+		"reloads the SP and broadcasts to the cluster":      nil,
+		"swallows a ConfigureSP error and still broadcasts": errors.New("partial certificate set"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			cluster := &testlib.FakeClusterInterface{}
+			th, saml := setupSamlReload(t, cluster, configureErr)
+
+			th.App.reloadSaml(request.TestContext(t))
+
+			msg := assertSamlReloaded(t, saml, cluster)
+			assert.Equal(t, model.ClusterSendReliable, msg.SendType)
+			assert.False(t, msg.WaitForAllToSend)
+		})
+	}
+
+	t.Run("registered cluster handler reconfigures the SP", func(t *testing.T) {
+		saml := registerMockSaml(t, nil)
+
+		cluster := &handlerCapturingCluster{handlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{}}
+		th := SetupWithClusterMock(t, cluster)
+		// The test helper doesn't join the cluster, so handlers aren't registered on startup.
+		th.Server.registerClusterHandlers()
+		saml.Calls = nil
+
+		handler, ok := cluster.handlers[model.ClusterEventReloadSaml]
+		require.True(t, ok, "no handler registered for %s", model.ClusterEventReloadSaml)
+		handler(&model.ClusterMessage{Event: model.ClusterEventReloadSaml})
+
+		saml.AssertNumberOfCalls(t, "ConfigureSP", 1)
+	})
+}
+
+type handlerCapturingCluster struct {
+	testlib.FakeClusterInterface
+	handlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
+}
+
+func (c *handlerCapturingCluster) RegisterClusterMessageHandler(event model.ClusterEvent, h einterfaces.ClusterMessageHandler) {
+	c.handlers[event] = h
+}
+
+func TestSetSamlIdpCertificateFromMetadata(t *testing.T) {
+	t.Run("rejects data that isn't PEM-encodable", func(t *testing.T) {
+		a := &App{}
+		appErr := a.SetSamlIdpCertificateFromMetadata(request.TestContext(t), []byte("not base64!"))
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.admin.saml.failure_parse_idp_certificate.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("rotating the certificate reloads the SP and broadcasts to the cluster", func(t *testing.T) {
+		cluster := &testlib.FakeClusterInterface{}
+		th, saml := setupSamlReload(t, cluster, nil)
+
+		appErr := th.App.SetSamlIdpCertificateFromMetadata(request.TestContext(t), []byte(base64.StdEncoding.EncodeToString(testCertificateDER(t))))
+		require.Nil(t, appErr)
+
+		assertSamlReloaded(t, saml, cluster)
+	})
+}
+
+func TestAddSamlIdpCertificate(t *testing.T) {
+	for name, data := range map[string][]byte{
+		"rejects a file that isn't PEM":                []byte("not a certificate"),
+		"rejects a PEM block that isn't a certificate": pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: []byte("garbage")}),
+	} {
+		t.Run(name, func(t *testing.T) {
+			a := &App{}
+			appErr := a.AddSamlIdpCertificate(request.TestContext(t), samlFileHeader(t, data))
+			require.NotNil(t, appErr)
+			assert.Equal(t, "api.admin.saml.invalid_idp_certificate_file.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		})
+	}
+
+	t.Run("stores the certificate, reloads the SP and broadcasts to the cluster", func(t *testing.T) {
+		cluster := &testlib.FakeClusterInterface{}
+		th, saml := setupSamlReload(t, cluster, nil)
+
+		certPEM := testCertificatePEM(t)
+		appErr := th.App.AddSamlIdpCertificate(request.TestContext(t), samlFileHeader(t, certPEM))
+		require.Nil(t, appErr)
+
+		stored, err := th.App.GetConfigFile(SamlIdpCertificateName)
+		require.NoError(t, err)
+		assert.Equal(t, certPEM, stored)
+		assertSamlReloaded(t, saml, cluster)
+	})
+
+	t.Run("reloads the SP even if the config can't be sent to the other nodes", func(t *testing.T) {
+		cluster := &configChangeCapturingCluster{}
+		th, saml := setupSamlReload(t, cluster, nil)
+		cluster.err = model.NewAppError("ConfigChanged", "test.peer_unreachable", nil, "", http.StatusInternalServerError)
+
+		appErr := th.App.AddSamlIdpCertificate(request.TestContext(t), samlFileHeader(t, testCertificatePEM(t)))
+		require.NotNil(t, appErr)
+		assert.Equal(t, "test.peer_unreachable", appErr.Id)
+
+		assertSamlReloaded(t, saml, cluster)
+	})
+}
+
+func TestRemoveSamlIdpCertificate(t *testing.T) {
+	cluster := &configChangeCapturingCluster{}
+	th := SetupWithClusterMock(t, cluster)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
+	require.NoError(t, th.App.Srv().platform.SetConfigFile(SamlIdpCertificateName, []byte("certificate")))
+	cluster.sent = nil
+
+	require.Nil(t, th.App.RemoveSamlIdpCertificate())
+
+	assert.Empty(t, *th.App.Config().SamlSettings.IdpCertificateFile)
+	assert.False(t, *th.App.Config().SamlSettings.Enable)
+	assert.Equal(t, []bool{true}, cluster.sent, "the config change should be sent to the other nodes")
+}
+
+type configChangeCapturingCluster struct {
+	testlib.FakeClusterInterface
+	sent []bool
+	err  *model.AppError
+}
+
+func (c *configChangeCapturingCluster) ConfigChanged(_, _ *model.Config, sendToOtherServer bool) *model.AppError {
+	c.sent = append(c.sent, sendToOtherServer)
+	return c.err
+}
+
+func testCertificateDER(t *testing.T) []byte {
+	t.Helper()
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().Add(time.Hour),
+	}
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	require.NoError(t, err)
+	return certDER
+}
+
+func testCertificatePEM(t *testing.T) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: testCertificateDER(t)})
+}
+
+func samlFileHeader(t *testing.T, data []byte) *multipart.FileHeader {
+	t.Helper()
+	var buf bytes.Buffer
+	w := multipart.NewWriter(&buf)
+	part, err := w.CreateFormFile("certificate", "certificate.crt")
+	require.NoError(t, err)
+	_, err = part.Write(data)
+	require.NoError(t, err)
+	require.NoError(t, w.Close())
+
+	form, err := multipart.NewReader(&buf, w.Boundary()).ReadForm(1 << 20)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = form.RemoveAll() })
+	return form.File["certificate"][0]
 }
