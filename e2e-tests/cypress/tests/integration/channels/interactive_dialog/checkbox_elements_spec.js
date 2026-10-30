@@ -66,12 +66,14 @@ describe('Interactive Dialog - Checkbox Elements', () => {
                 cy.get('[data-testid="waiver_group_label_before"]').within(() => {
                     cy.get('label.control-label').should('contain', 'Group A: label before');
                     cy.get('.checkbox').should('have.length', 3);
-                    cy.get('.checkbox').each(($checkbox) => {
-                        cy.wrap($checkbox).find('label').then(($label) => {
-                            const textNode = $label.find('.inline-choice-setting__text')[0];
-                            const inputNode = $label.find('input[type="checkbox"]')[0];
-                            expect(textNode.compareDocumentPosition(inputNode)).to.equal(Node.DOCUMENT_POSITION_FOLLOWING);
-                        });
+
+                    // Compass Checkbox keeps input-then-label in DOM order and uses
+                    // flex-direction: row-reverse for visual label_position "before".
+                    cy.get('.checkbox label').each(($label) => {
+                        cy.wrap($label).should('have.class', 'inline-choice-setting--label-before');
+                        cy.wrap($label).should('have.css', 'flex-direction', 'row-reverse');
+                        cy.wrap($label).find('.inline-choice-setting__text').should('exist');
+                        cy.wrap($label).find('input[type="checkbox"]').should('exist');
                     });
                     cy.get('input[type="checkbox"]').eq(0).should('be.checked');
                     cy.get('input[type="checkbox"]').eq(1).should('not.be.checked');
@@ -81,12 +83,10 @@ describe('Interactive Dialog - Checkbox Elements', () => {
                 cy.get('[data-testid="waiver_group_label_after"]').within(() => {
                     cy.get('label.control-label').should('contain', 'Group B: label after');
                     cy.get('.checkbox').should('have.length', 3);
-                    cy.get('.checkbox').each(($checkbox) => {
-                        cy.wrap($checkbox).find('label').then(($label) => {
-                            const textNode = $label.find('.inline-choice-setting__text')[0];
-                            const inputNode = $label.find('input[type="checkbox"]')[0];
-                            expect(textNode.compareDocumentPosition(inputNode)).to.equal(Node.DOCUMENT_POSITION_PRECEDING);
-                        });
+                    cy.get('.checkbox label').each(($label) => {
+                        cy.wrap($label).should('not.have.class', 'inline-choice-setting--label-before');
+                        cy.wrap($label).find('.inline-choice-setting__text').should('exist');
+                        cy.wrap($label).find('input[type="checkbox"]').should('exist');
                     });
                     cy.get('input[type="checkbox"]').eq(1).should('be.checked');
                 });

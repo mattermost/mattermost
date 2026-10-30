@@ -76,6 +76,7 @@ export type PluginsState = {
         ChannelIconOverride: ChannelIconOverrideRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
+        ChannelView: ChannelViewRegistration[];
         PostHeader: PostHeaderComponent[];
         ComposerPlaceholder: ComposerPlaceholderRegistration[];
         ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
@@ -466,6 +467,9 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
     text: PluggableText;
     action: (teamId: string) => void;
     icon: React.ReactNode;
+
+    /** Where the item sits: 'afterCreateChannel' puts it right below "Create new channel"; by default it follows the built-in items. */
+    placement?: 'default' | 'afterCreateChannel';
 };
 
 export type ChannelIconOverrideRegistration = PluginComponent & {
@@ -480,6 +484,25 @@ export type ChannelComposerBannerComponent = PluginComponent & {
 export type ChannelIntroRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     component: React.ComponentType<{channel: Channel}>;
+};
+
+export type ChannelViewPluginComponentProps = {
+    channel: Channel;
+    channelId: string;
+
+    /** The current team's id. Differs from channel.team_id, which is empty for DMs and GMs. */
+    teamId: string;
+
+    /**
+     * Post id the channel was opened focused on via a permalink. Stays set after that id is
+     * removed from the URL, until the user switches channels. The component shows that post.
+     */
+    focusedPostId?: string;
+};
+
+export type ChannelViewRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    component: React.ComponentType<ChannelViewPluginComponentProps>;
 };
 
 export type PostHeaderComponent = PluginComponent & {
@@ -502,6 +525,13 @@ export type ChannelTypeOptionComponent = PluginComponent & {
     description: PluggableText;
     icon: React.ReactNode;
     createButtonText?: PluggableText;
+
+    /**
+     * Whether "Create a new channel" lists the option; true when unset. An option that is not listed
+     * is offered only when the plugin opens the modal for its own channel types (new_channel_modal
+     * with channelTypePluginId).
+     */
+    showInNewChannelModal?: boolean;
 
     /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
     isAvailable: (state: GlobalState) => boolean;

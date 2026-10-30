@@ -38,10 +38,11 @@ func evalAuditLogOff(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved()
 	}
 
-	if _, ok = s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ExperimentalAuditSettings.FileEnabled }); !ok {
+	active, ok := auditLoggingActive(s)
+	if !ok {
 		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
-	if config.IsAuditLoggingActive(s.Config.Config.ExperimentalAuditSettings, allowAdvancedLogging(s)) {
+	if active {
 		return healthcheck.Resolved()
 	}
 
@@ -58,8 +59,23 @@ func evalAuditLogOff(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
+// Prefers the server's recorded result: checking the config here would use the environment and
+// platform of whatever machine evaluates a packet. Packets from older servers fall back to the config,
+// which is unavailable (ok=false) when its audit settings are missing. The recorded value cannot fail to
+// collect, so it is not tied to any section's error.
+func auditLoggingActive(s *healthcheck.Snapshot) (bool, bool) {
+	leader, _ := s.Leader()
+	if diag, found := leader.Diag(); found && diag.Config.AuditLoggingConfigured != nil {
+		return *diag.Config.AuditLoggingConfigured, true
+	}
+	if _, found := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ExperimentalAuditSettings.FileEnabled }); !found {
+		return false, false
+	}
+	return config.IsAuditLoggingActive(s.Config.Config.ExperimentalAuditSettings, allowAdvancedLogging(s)), true
+}
+
 // An unknown license, as in packets from older servers, cannot rule out advanced audit targets.
 func allowAdvancedLogging(s *healthcheck.Snapshot) bool {
-	allowed, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.AdvancedLogging })
+	allowed, ok := s.LicenseFeature(healthcheck.FeatureAdvancedLogging)
 	return !ok || allowed
 }

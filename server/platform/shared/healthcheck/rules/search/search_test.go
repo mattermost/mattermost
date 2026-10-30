@@ -320,6 +320,7 @@ func TestSearchUnavailable(t *testing.T) {
 	t.Parallel()
 
 	firing := searchWant{state: healthcheck.StateFiring, messageID: "health.rule.search_unavailable.message"}
+	unlicensedFiring := searchWant{state: healthcheck.StateFiring, messageID: "health.rule.search_unavailable.message.unlicensed"}
 
 	esOff := enterpriseLicense()
 	esOff.Features.Elasticsearch = new(false)
@@ -335,8 +336,9 @@ func TestSearchUnavailable(t *testing.T) {
 		{name: "database search on, elasticsearch on", dbDisabled: new(false), searching: new(true), want: resolvedWant},
 		{name: "database search off, elasticsearch on", dbDisabled: new(true), searching: new(true), want: resolvedWant},
 		{name: "database search off, elasticsearch off", dbDisabled: new(true), searching: new(false), want: firing},
-		{name: "database search off, elasticsearch on but unlicensed", dbDisabled: new(true), searching: new(true), license: &model.SupportPacketLicense{}, want: firing},
-		{name: "database search off, elasticsearch on but feature off", dbDisabled: new(true), searching: new(true), license: &esOff, want: firing},
+		{name: "database search off, elasticsearch on but unlicensed", dbDisabled: new(true), searching: new(true), license: &model.SupportPacketLicense{}, want: unlicensedFiring},
+		{name: "database search off, elasticsearch off, unlicensed", dbDisabled: new(true), searching: new(false), license: &model.SupportPacketLicense{}, want: unlicensedFiring},
+		{name: "database search off, elasticsearch on but feature off", dbDisabled: new(true), searching: new(true), license: &esOff, want: unlicensedFiring},
 		{name: "database search off, elasticsearch on, packet predates features", dbDisabled: new(true), searching: new(true), license: &model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise}, want: resolvedWant},
 		{name: "database search on, unlicensed", dbDisabled: new(false), searching: new(true), license: &model.SupportPacketLicense{}, want: resolvedWant},
 		{name: "database search setting absent", dbDisabled: nil, searching: new(false), want: unknownConfigWant},
@@ -456,6 +458,18 @@ func TestScaleES(t *testing.T) {
 			}, nil, new(int64(6_000_000))),
 			required:    unknownConfigWant,
 			recommended: unknownConfigWant,
+		},
+		{
+			name:        "unlicensed at 6M",
+			snapshot:    withLicense(searchSnapshot(searchingOff, nil, new(int64(6_000_000))), model.SupportPacketLicense{}),
+			required:    resolvedWant,
+			recommended: resolvedAt(6_000_000),
+		},
+		{
+			name:        "unlicensed at 3M",
+			snapshot:    withLicense(searchSnapshot(searchingOff, nil, new(int64(3_000_000))), model.SupportPacketLicense{}),
+			required:    resolvedAt(3_000_000),
+			recommended: resolvedWant,
 		},
 	}
 
