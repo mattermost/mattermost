@@ -323,6 +323,28 @@ func TestUploadPluginConflictDetails(t *testing.T) {
 	assert.Equal(t, model.PluginInstallConflictVersionDirectionSame, appErr.Props[model.PluginInstallConflictPropVersionDirection])
 }
 
+func TestUploadPluginRemovesMultipartTempFiles(t *testing.T) {
+	// Not parallel: t.Setenv redirects the multipart temp files for the whole process.
+	tmpDir := t.TempDir()
+	th := Setup(t)
+	t.Setenv("TMPDIR", tmpDir)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	bundle := make([]byte, MaxPluginMemory+1024*1024)
+	_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(bundle))
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "app.plugin.extract.app_error")
+
+	leftovers, err := filepath.Glob(filepath.Join(tmpDir, "multipart-*"))
+	require.NoError(t, err)
+	assert.Empty(t, leftovers)
+}
+
 func TestPluginInstallDirectoryConflict(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

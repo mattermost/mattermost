@@ -6,7 +6,9 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -131,6 +133,29 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err = http.Post(url, "", strings.NewReader("{\"text\":\""+text+"\"}"))
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("MultipartTempFilesRemoved", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		t.Setenv("TMPDIR", tmpDir)
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		require.NoError(t, writer.WriteField("text", "multipart with file part"))
+		part, err := writer.CreateFormFile("attachment", "attachment.txt")
+		require.NoError(t, err)
+		_, err = part.Write([]byte("file contents"))
+		require.NoError(t, err)
+		require.NoError(t, writer.Close())
+
+		resp, err := http.Post(url, writer.FormDataContentType(), body)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		leftovers, err := filepath.Glob(filepath.Join(tmpDir, "multipart-*"))
+		require.NoError(t, err)
+		assert.Empty(t, leftovers)
 	})
 
 	t.Run("WebhookAttachments", func(t *testing.T) {
