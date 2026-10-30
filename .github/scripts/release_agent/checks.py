@@ -259,8 +259,9 @@ def open_release_items(ctx: Context, rule: dict) -> Result:
             item.links = linked_prs(ctx.jira, issue["key"])
         issues.append(item)
     prs = []
+    excluded = "".join(f" -author:{author}" for author in query.get("exclude_authors", []))
     for repo in query.get("repos", []):
-        search = f'repo:{repo} is:pr is:open milestone:"{ctx.vars["milestone"]}"'
+        search = f'repo:{repo} is:pr is:open milestone:"{ctx.vars["milestone"]}"{excluded}'
         prs += [pr_item(repo, pr) for pr in ctx.github.search_issues(search)]
     summary = f"{plural(len(issues), 'open Jira issue')} and {plural(len(prs), 'open PR')}{private_count(prs)}"
     return Result(INFO, summary, issues + prs, ctx.jira.filter_url(query["jql"]))
@@ -372,27 +373,51 @@ def hub_release_branch(ctx: Context, rule: dict) -> Result:
     return Result(PASS, f"Hub runs {ctx.release.short_version} from {branch}", [], proof)
 
 
+def _labels(items: list) -> str:
+    return ", ".join(item.public_label for item in items)
+
+
 def notice_txt(ctx: Context, rule: dict) -> Result:
-    """The latest NOTICE.txt bot PR is merged and its commit is on the release branch."""
+    """Every NOTICE.txt bot PR with the release's milestone is merged and on the release branch.
+
+    PRs with another milestone don't count: the next release's is merged to master after the
+    cut and needn't be on this branch. An open one fails; one closed unmerged is ignored.
+    """
     branch = ctx.vars["branch"]
     if not ctx.has_branch:
         return Result(SKIPPED, f"{branch} doesn't exist yet")
     query = ctx.query(rule)
-    repo = query["repo"]
-    search = f'repo:{repo} is:pr author:{query["author"]} in:title "{query["title"]}"'
-    found = ctx.github.search_issues(search, limit=1, sort="created")
-    if not found:
-        return Result(FAIL, "No NOTICE.txt PR found")
-    latest = pr_item(repo, found[0])
-    number = found[0]["number"]
-    pull = ctx.github.pull(repo, number)
-    if not pull.get("merged_at"):
-        return Result(FAIL, f"The latest NOTICE.txt PR, {latest.public_label}, isn't merged", [latest], latest.url)
-    sha = pull.get("merge_commit_sha", "")
-    commits = ctx.github.commits(repo, branch, path="NOTICE.txt", limit=100)
-    if any(c.get("sha") == sha or _references(c["commit"]["message"], number) for c in commits):
-        return Result(PASS, f"{latest.public_label} is merged and on {branch}", [], latest.url)
-    return Result(FAIL, f"{latest.public_label} is merged but not on {branch}", [latest], latest.url)
+    repo, milestone = query["repo"], query["milestone"]
+    search = f'repo:{repo} is:pr author:{query["author"]} in:title "{query["title"]}" milestone:"{milestone}"'
+    found = ctx.github.search_issues(search, sort="created")
+    unmerged, missing, on_branch, commits = [], [], [], None
+    for pr in found:
+        item = pr_item(repo, pr)
+        if pr.get("state") == "open":
+            unmerged.append(item)
+            continue
+        pull = ctx.github.pull(repo, pr["number"])
+        if not pull.get("merged_at"):
+            continue
+        if commits is None:
+            commits = ctx.github.commits(repo, branch, path="NOTICE.txt", limit=100)
+        sha = pull.get("merge_commit_sha", "")
+        landed = any(c.get("sha") == sha or _references(c["commit"]["message"], pr["number"]) for c in commits)
+        (on_branch if landed else missing).append(item)
+    problems = []
+    if unmerged:
+        problems.append(f"{_labels(unmerged)} {'isn' if len(unmerged) == 1 else 'aren'}'t merged")
+    if missing:
+        problems.append(f"{_labels(missing)} {'is' if len(missing) == 1 else 'are'} merged but not on {branch}")
+    if problems:
+        bad = unmerged + missing
+        return Result(FAIL, "; ".join(problems), bad, bad[0].url)
+    if not on_branch:
+        return Result(SKIPPED, f"No NOTICE.txt PR has the {milestone} milestone")
+    if len(on_branch) == 1:
+        return Result(PASS, f"{on_branch[0].public_label} is merged and on {branch}", [], on_branch[0].url)
+    return Result(PASS, f"All {len(on_branch)} NOTICE.txt PRs with the {milestone} milestone are merged and on {branch}",
+                  [], on_branch[0].url)
 
 
 def cherry_picks(ctx: Context, rule: dict) -> Result:
@@ -501,6 +526,35 @@ def version_go_prs(ctx: Context, rule: dict) -> Result:
     return Result(PASS, f"All {plural(len(batch), 'version.go PR')} merged")
 
 
+# A holiday on the Confluence page, as in "(11/11/2026)": month/day/year.
+HOLIDAY_DATE = re.compile(r"(?<![\d/])(\d{1,2})/(\d{1,2})/(\d{4})(?!\d)")
+
+
+def page_holidays(text: str, heading: str, years) -> set[date]:
+    """Every M/DD/YYYY date in each year's section of the holidays page.
+
+    ``heading`` has a ``{year}`` placeholder. A section runs from its heading to the next
+    heading of that form, whatever its year.
+    """
+    text, heading = " ".join(text.split()), " ".join(heading.split())
+    before, _, after = heading.partition("{year}")
+    any_heading = re.compile(re.escape(before) + r"\d{4}" + re.escape(after), re.IGNORECASE)
+    starts = [(m.start(), m.end(), m.group(0)) for m in any_heading.finditer(text)]
+    wanted = {heading.format(year=year).casefold() for year in years}
+    days = set()
+    for index, (_, end, found) in enumerate(starts):
+        if " ".join(found.split()).casefold() not in wanted:
+            continue
+        stop = starts[index + 1][0] if index + 1 < len(starts) else len(text)
+        for match in HOLIDAY_DATE.finditer(text[end:stop]):
+            month, day, year = (int(g) for g in match.groups())
+            try:
+                days.add(date(year, month, day))
+            except ValueError:
+                continue
+    return days
+
+
 def holidays_page(ctx: Context, rule: dict) -> Result:
     """In October, the Confluence holidays page has next year's heading and holiday list.
 
@@ -523,7 +577,7 @@ def holidays_page(ctx: Context, rule: dict) -> Result:
     if start < 0:
         problem = f"The holidays page has no “{heading}” heading yet"
     else:
-        dates = len(re.findall(rf"(?<![\d/])\d{{1,2}}/\d{{1,2}}/{year}(?!\d)", text[start:]))
+        dates = sum(1 for m in HOLIDAY_DATE.finditer(text[start:]) if int(m.group(3)) == year)
         if dates >= wanted:
             return Result(PASS, f"The holidays page lists {dates} holidays in {year}", [], url)
         problem = f"The holidays page lists {dates} of at least {wanted} holidays in {year}"

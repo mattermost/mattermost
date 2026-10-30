@@ -7,7 +7,7 @@ afresh; the only memory is the status post itself, found again by its hidden mar
 import os
 import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -69,7 +69,7 @@ def public_error(err: Exception) -> str:
 
 def private_error(err: Exception) -> str:
     public = public_error(err)
-    detail = getattr(err, "detail", "") if isinstance(err, ServiceError) else str(err)
+    detail = (err.message or err.detail) if isinstance(err, ServiceError) else str(err)
     return (f"{public}: {detail}" if detail and detail != public else public)[:300]
 
 
@@ -103,7 +103,8 @@ def evaluate(ctx: checks.Context, rule: dict, due: date | None, today: date) -> 
         result = function(ctx, rule)
     except Exception as err:  # noqa: BLE001 - one failing check must not stop the rest
         print(f"::warning::{ctx.release.short_version} {rule['task']}: {public_error(err)}")
-        return posting.Outcome(rule, posting.ERROR, None, due, public_error(err), private_error(err))
+        return posting.Outcome(rule, posting.ERROR, None, due, public_error(err), private_error(err),
+                               err.message if isinstance(err, ServiceError) else "")
     if result.status == checks.INFO:
         state = posting.REPORT
     elif result.status == checks.SKIPPED:
@@ -232,16 +233,46 @@ def public_result(outcome: posting.Outcome) -> dict:
     return entry
 
 
+class PageCache:
+    """Reads each Confluence page once per run, for the holidays and the holidays_page check."""
+
+    def __init__(self, confluence):
+        self.confluence, self.pages = confluence, {}
+
+    def page(self, page_id: str) -> tuple[str, str]:
+        if page_id not in self.pages:
+            self.pages[page_id] = self.confluence.page(page_id)
+        return self.pages[page_id]
+
+
+def page_holidays(rules: dict, settings: Settings, services: Services, today: date,
+                  flags: list, details: list) -> set:
+    """This year's and next year's holidays from the Confluence page, if it's configured."""
+    heading = rules.get("holidays_page_heading")
+    if not (settings.holidays_page_id and heading and services.confluence):
+        return set()
+    try:
+        text, _ = services.confluence.page(settings.holidays_page_id)
+    except Exception as err:  # noqa: BLE001 - the calendar's holidays still count
+        flags.append("Couldn't read the holidays page, so T-days may count a holiday as a working day.")
+        details.append(f"holidays page: {private_error(err)}")
+        return set()
+    return checks.page_holidays(text, heading, (today.year, today.year + 1))
+
+
 def run(rules: dict, settings: Settings, services: Services, today: date) -> tuple[dict, list]:
     """Run once. Returns (run.json body, private log details)."""
     events = release_calendar.parse_ics(services.fetch_calendar())
     calendar = rules["calendar"]
     releases, notes = release_calendar.releases_from_events(events, calendar["milestones"])
+    flags, details = list(notes), []
+    if services.confluence:
+        services = replace(services, confluence=PageCache(services.confluence))
     holidays = release_calendar.holidays_from(events, calendar.get("holiday_markers", []), rules.get("holidays", []))
+    holidays |= page_holidays(rules, settings, services, today, flags, details)
     ls_remote = services.ls_remote()
     branches, tags, _ = changelog_release.parse_ls_remote(ls_remote)
 
-    flags = list(notes)
     if settings.release_override:
         key = changelog_release.parse_version(settings.release_override)[:2]
         selected = [releases[key]] if key in releases else []
@@ -251,8 +282,8 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
         selected = release_calendar.active_releases(releases, today, calendar["active_days_after_release"])
         flags += release_calendar.untracked_branches(releases, branches, tags)
 
-    body = {"mode": settings.mode, "date": today.isoformat(), "releases": [], "flags": flags}
-    details = []
+    body = {"mode": settings.mode, "date": today.isoformat(), "releases": [], "flags": flags,
+            "holidays_used": len(holidays)}
     lead_flags = checks.dev_lead_flags(rules, services.hub) if selected else []
     for index, release in enumerate(selected):
         report = check_release(release, rules, settings, services, today, holidays, branches, tags, ls_remote,

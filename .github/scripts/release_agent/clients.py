@@ -15,9 +15,29 @@ import urllib.request
 
 
 class ServiceError(Exception):
-    def __init__(self, service: str, status: int | None, detail: str = ""):
+    """``detail`` is the raw response and ``message`` the service's own error text, such as
+    Jira's "The value 'X' does not exist for the field 'resolution'." Both can be private,
+    so they go to Hub only, never into the exception text."""
+
+    def __init__(self, service: str, status: int | None, detail: str = "", message: str = ""):
         self.service, self.status, self.detail = service, status, detail
+        self.message = message or error_message(detail)
         super().__init__(f"{service} request failed" + (f" (HTTP {status})" if status else ""))
+
+
+def error_message(body: str) -> str:
+    """The error text in a JSON error body: Jira's errorMessages and errors, or a "message"."""
+    try:
+        data = json.loads(body)
+    except (TypeError, ValueError):
+        return ""
+    if not isinstance(data, dict):
+        return ""
+    parts = [str(m) for m in data.get("errorMessages") or []]
+    parts += [f"{field}: {text}" for field, text in (data.get("errors") or {}).items()]
+    if not parts and isinstance(data.get("message"), str):
+        parts.append(data["message"])
+    return " ".join(parts)[:300]
 
 
 class Http:
@@ -43,7 +63,8 @@ class Http:
                 if err.code >= 500 and attempt < self.retries:
                     time.sleep(2 ** attempt)
                     continue
-                raise ServiceError(self.service, err.code, err.read().decode(errors="replace")[:500]) from None
+                body = err.read().decode(errors="replace")
+                raise ServiceError(self.service, err.code, body[:500], error_message(body)) from None
             except (urllib.error.URLError, TimeoutError) as err:
                 if attempt < self.retries:
                     time.sleep(2 ** attempt)

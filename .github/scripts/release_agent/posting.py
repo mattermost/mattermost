@@ -42,6 +42,8 @@ class Outcome:
     due: date | None = None
     error: str = ""
     error_detail: str = ""
+    # The service's own error text, e.g. Jira's reason for rejecting a JQL. Hub only.
+    error_message: str = ""
 
     @property
     def title(self) -> str:
@@ -183,7 +185,8 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
         lines += ["", "**Needs attention**"]
         for outcome in attention:
             if outcome.state == ERROR:
-                lines.append(f"- :warning: **{outcome.title}** — couldn't check: {outcome.error}")
+                said = f": “{outcome.error_message}”" if outcome.error_message else ""
+                lines.append(f"- :warning: **{outcome.title}** — couldn't check: {outcome.error}{said}")
                 continue
             lines.append(f"- :x: **{outcome.title}** — {outcome.result.summary}{_proof(outcome.result)}")
             lines += _items(outcome.result.items)

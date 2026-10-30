@@ -1,6 +1,10 @@
+import io
+import json
 import unittest
+import urllib.error
+from unittest import mock
 
-from release_agent.clients import Confluence, GitHub, Http, Jira, Mattermost, Playbooks
+from release_agent.clients import Confluence, GitHub, Http, Jira, Mattermost, Playbooks, ServiceError, error_message
 
 
 class RecordingHttp(Http):
@@ -52,6 +56,26 @@ class JiraTest(unittest.TestCase):
         self.assertEqual([i["key"] for i in issues], ["MM-1", "MM-2"])
         self.assertEqual(http.calls[1][3]["nextPageToken"], "n")
         self.assertEqual(http.calls[0][:2], ("POST", "/rest/api/3/search/jql"))
+
+
+class ErrorMessageTest(unittest.TestCase):
+    JQL_ERROR = json.dumps({"errorMessages": ["The value 'Won't Fix' does not exist for the field 'resolution'."],
+                            "warningMessages": []})
+
+    def test_a_rejected_jql_keeps_jiras_reason(self):
+        error = urllib.error.HTTPError("https://jira/rest/api/3/search/jql", 400, "Bad Request", {},
+                                       io.BytesIO(self.JQL_ERROR.encode()))
+        with mock.patch("urllib.request.urlopen", side_effect=error):
+            with self.assertRaises(ServiceError) as raised:
+                Jira("https://jira", "e", "t").search('resolution not in ("Won\'t Fix")')
+        self.assertEqual(str(raised.exception), "Jira request failed (HTTP 400)")
+        self.assertEqual(raised.exception.message, "The value 'Won't Fix' does not exist for the field 'resolution'.")
+
+    def test_error_message_forms(self):
+        self.assertEqual(error_message(json.dumps({"errorMessages": [], "errors": {"jql": "Bad JQL"}})), "jql: Bad JQL")
+        self.assertEqual(error_message(json.dumps({"message": "Not Found", "status": 404})), "Not Found")
+        self.assertEqual(error_message("<html>502</html>"), "")
+        self.assertEqual(error_message("[1]"), "")
 
 
 class MattermostTest(unittest.TestCase):

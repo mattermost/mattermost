@@ -42,6 +42,11 @@ calendar:
 
 # Non-working days that are not on the calendar, as YYYY-MM-DD.
 holidays: []
+# Company holidays also come from the Confluence holidays page
+# (RELEASE_AGENT_HOLIDAYS_PAGE_ID): every M/DD/YYYY date from each of these headings, for
+# this year and next, up to the next one. The page lists the US and Canada days off,
+# including regional ones, and a day off in either is a non-working day.
+holidays_page_heading: "Entity and EOR locations holidays for {year}"
 
 naming:
   milestone: "v{major}.{minor}.0"
@@ -80,6 +85,8 @@ rules:
     query:
       jql: 'project = MM AND fixVersion = "{fix_version}" AND issuetype in (Bug, Story, Task, "Sub-task") AND status not in (Resolved, Closed) ORDER BY assignee ASC, priority ASC'
       repos: [mattermost/mattermost, mattermost/enterprise]
+      # Bot PRs that carry the milestone until Release Day, such as the changelog PR.
+      exclude_authors: [app/changelog-automation-docs]
       linked_prs_status: Submitted
       bot_assignees: [Matty Code]
       # Unassigned and bot tickets go to the first route naming the ticket's Jira Team, else
@@ -104,7 +111,8 @@ rules:
   # release-12.1 (phrase searches, so the quotes are escaped).
   # JQL has no comments, and "resolution not in" alone would drop every unresolved bug, so
   # an empty resolution is allowed explicitly. The check also skips the
-  # excluded_resolutions itself.
+  # excluded_resolutions itself. Only name resolutions that exist on the Jira site (Done,
+  # Duplicate, Won't Do, Cannot Reproduce, Invalid): Jira rejects the whole JQL otherwise.
   - task: new-regressions
     title: New regressions have a fix version
     playbook_item: null
@@ -121,8 +129,8 @@ rules:
           OR text ~ "\"{major}.{minor}\""
           OR text ~ "\"{branch}\""
         )
-        AND (resolution is EMPTY OR resolution not in (Duplicate, "Won't Fix", "Cannot Reproduce"))
-      excluded_resolutions: [Duplicate, "Won't Fix", "Cannot Reproduce"]
+        AND (resolution is EMPTY OR resolution not in (Duplicate, "Won't Do", "Cannot Reproduce", Invalid))
+      excluded_resolutions: [Duplicate, "Won't Do", "Cannot Reproduce", Invalid]
     pass_when: all_have_fix_version
     on_fail: needs_attention
 
@@ -137,6 +145,9 @@ rules:
     pass_when: versions_match
     on_fail: needs_attention
 
+  # Every NOTICE.txt bot PR with the release's milestone must be merged and on the release
+  # branch. PRs for later releases, merged to master after the cut, don't count; with none
+  # for this release the check is skipped.
   - task: notice-txt
     title: NOTICE.txt on the release branch
     playbook_item: Ensure that new NOTICE.txt for any new libraries are cherry-picked to the release branch as needed - example PR.
@@ -147,6 +158,7 @@ rules:
       repo: mattermost/mattermost
       author: app/unified-ci-app
       title: "Update NOTICE.txt file with updated dependencies"
+      milestone: "{milestone}"
     pass_when: merged_and_on_release_branch
     on_fail: needs_attention
 

@@ -1,10 +1,12 @@
 import json
+import re
 import unittest
 from datetime import date
 from pathlib import Path
 
 from release_agent import checks, rules
 from release_agent.agent import template_vars
+from release_agent.clients import Confluence
 from release_agent.release_calendar import Release
 from release_agent.tests.fakes import FakeConfluence, FakeGitHub, FakeHub, FakeJira
 
@@ -12,6 +14,8 @@ MM, ENT = "mattermost/mattermost", "mattermost/enterprise"
 RULES = {rule["task"]: rule for rule in rules.load_yaml(rules.RULES_PATH)["rules"]}
 NAMING = rules.load_yaml(rules.RULES_PATH)["naming"]
 TEAM_FIELD = "customfield_10800"
+# The resolutions on mattermost.atlassian.net (Oct 30, 2026). "Won't Fix" isn't one.
+JIRA_RESOLUTIONS = frozenset({"Done", "Duplicate", "Won't Do", "Cannot Reproduce", "Invalid"})
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
@@ -91,6 +95,18 @@ class OpenReleaseItemsTest(unittest.TestCase):
                                           '(Bug, Story, Task, "Sub-task") AND status not in (Resolved, Closed) '
                                           'ORDER BY assignee ASC, priority ASC')
 
+    def test_the_changelog_pr_is_left_out(self):
+        class AuthorAwareGitHub(FakeGitHub):
+            def search_issues(self, query, limit=1000, sort=None):
+                self.queries.append(query)
+                prs = [pr(39286, "v12.1.0 Changelogs", login="changelog-automation-docs[bot]", state="open"),
+                       pr(10, login="alice", state="open")]
+                return [p for p in prs if f"-author:app/{p['user']['login'].removesuffix('[bot]')}" not in query]
+        github = AuthorAwareGitHub()
+        result = checks.open_release_items(context(github), RULES["open-release-items"])
+        self.assertEqual([i.label for i in result.items], ["mattermost#10", "enterprise#10"])
+        self.assertTrue(all(q.endswith(' milestone:"v12.2.0" -author:app/changelog-automation-docs') for q in github.queries))
+
 
 class NewRegressionsTest(unittest.TestCase):
     def test_fails_when_a_regression_has_no_fix_version(self):
@@ -111,7 +127,21 @@ class NewRegressionsTest(unittest.TestCase):
         self.assertEqual(" ".join(jira.queries[0].split()), 'project = MM AND issuetype = Bug AND created >= "2026-10-19" AND ( '
                          'labels in (rc1, rc2, rc3, rc4, rc5, regression) OR summary ~ "Regression" '
                          'OR text ~ "\\"v12.2\\"" OR text ~ "\\"12.2\\"" OR text ~ "\\"release-12.2\\"" ) '
-                         'AND (resolution is EMPTY OR resolution not in (Duplicate, "Won\'t Fix", "Cannot Reproduce"))')
+                         'AND (resolution is EMPTY OR resolution not in (Duplicate, "Won\'t Do", "Cannot Reproduce", Invalid))')
+
+    def test_rules_name_only_resolutions_that_exist(self):
+        # Jira rejects a whole JQL (HTTP 400) that names an unknown resolution.
+        for task, rule in RULES.items():
+            query = context().query(rule)
+            named = set(query.get("excluded_resolutions", []))
+            for clause in re.findall(r"resolution\s+(?:not\s+)?in\s*\(([^)]*)\)", query.get("jql", ""), re.IGNORECASE):
+                named |= {name.strip().strip('"') for name in clause.split(",")}
+            for value in re.findall(r'resolution\s*!?=\s*("[^"]*"|\w+)', query.get("jql", ""), re.IGNORECASE):
+                named.add(value.strip('"'))
+            with self.subTest(task=task):
+                self.assertLessEqual(named, JIRA_RESOLUTIONS)
+        self.assertEqual(set(RULES["new-regressions"]["query"]["excluded_resolutions"]),
+                         {"Duplicate", "Won't Do", "Cannot Reproduce", "Invalid"})
 
     def test_a_bug_mentioning_only_the_release_branch_is_picked_up(self):
         v121 = Release(12, 1, {"branch_cut": date(2026, 9, 16), "release_day": date(2026, 10, 16)})
@@ -122,12 +152,13 @@ class NewRegressionsTest(unittest.TestCase):
         self.assertEqual([i.label for i in result.items], ["MM-7"])
         self.assertIn('created >= "2026-09-16"', jira.queries[0])
 
-    def test_duplicate_and_wont_fix_bugs_are_not_flagged(self):
+    def test_duplicate_wont_do_and_invalid_bugs_are_not_flagged(self):
         jira = FakeJira({"labels in": [
             issue("MM-1", labels=["regression"], fix_versions=["v12.2"]),
             issue("MM-2", summary="Regression: duplicate report", resolution="Duplicate"),
-            issue("MM-3", labels=["rc1"], resolution="Won't Fix"),
+            issue("MM-3", labels=["rc1"], resolution="Won't Do"),
             issue("MM-4", labels=["rc1"], resolution="Cannot Reproduce"),
+            issue("MM-5", labels=["rc1"], resolution="Invalid"),
         ]})
         result = checks.new_regressions(context(jira=jira), RULES["new-regressions"])
         self.assertEqual((result.status, result.summary), (checks.PASS, "All 1 new regression have a fix version"))
@@ -312,25 +343,48 @@ class HubReleaseBranchTest(unittest.TestCase):
 
 
 class NoticeTxtTest(unittest.TestCase):
-    def github(self, merged=True, on_branch=True):
+    NOTICE = "chore: Update NOTICE.txt file with updated dependencies"
+
+    def github(self, prs=((39103, True, True),), next_release=()):
+        """``prs`` are this release's (number, merged, on the branch); ``next_release`` the
+        numbers of merged NOTICE PRs with the next milestone, which aren't on the branch."""
         github = FakeGitHub()
-        github.searches["NOTICE"] = [pr(39103)]
-        github.pulls[(MM, 39103)] = {"merged_at": "2026-10-20T10:00:00Z" if merged else None, "merge_commit_sha": "n1"}
-        message = "chore: Update NOTICE.txt file with updated dependencies (#39103)" if on_branch else "Other (#1)"
-        github.branch_commits[(MM, "release-12.2")] = [commit(message, "n2")]
+        github.searches[r'NOTICE.* milestone:"v12\.2\.0"'] = [
+            pr(n, self.NOTICE, state="closed" if merged else "open") for n, merged, _ in prs]
+        github.searches[r'NOTICE.* milestone:"v12\.3\.0"'] = [pr(n, self.NOTICE) for n in next_release]
+        for n, merged, _ in prs:
+            github.pulls[(MM, n)] = {"merged_at": "2026-10-20T10:00:00Z" if merged else None, "merge_commit_sha": f"m{n}"}
+        github.branch_commits[(MM, "release-12.2")] = [
+            commit(f"{self.NOTICE} (#{n})", f"b{n}") for n, _, on_branch in prs if on_branch] + [commit("Other (#1)")]
         return github
 
     def test_passes_when_merged_and_on_branch(self):
         result = checks.notice_txt(context(self.github()), RULES["notice-txt"])
         self.assertEqual((result.status, result.summary), (checks.PASS, "mattermost#39103 is merged and on release-12.2"))
 
-    def test_fails_when_not_merged(self):
-        result = checks.notice_txt(context(self.github(merged=False)), RULES["notice-txt"])
-        self.assertEqual(result.summary, "The latest NOTICE.txt PR, mattermost#39103, isn't merged")
+    def test_the_next_releases_newer_pr_is_ignored(self):
+        github = self.github(next_release=[39417])
+        result = checks.notice_txt(context(github), RULES["notice-txt"])
+        self.assertEqual((result.status, result.summary), (checks.PASS, "mattermost#39103 is merged and on release-12.2"))
+        self.assertEqual(len(github.queries), 1)
+        self.assertIn('milestone:"v12.2.0"', github.queries[0])
 
-    def test_fails_when_not_on_branch(self):
-        result = checks.notice_txt(context(self.github(on_branch=False)), RULES["notice-txt"])
-        self.assertEqual(result.summary, "mattermost#39103 is merged but not on release-12.2")
+    def test_no_pr_with_the_milestone_is_skipped(self):
+        github = self.github(prs=(), next_release=[39417])
+        result = checks.notice_txt(context(github), RULES["notice-txt"])
+        self.assertEqual((result.status, result.summary), (checks.SKIPPED, "No NOTICE.txt PR has the v12.2.0 milestone"))
+
+    def test_every_pr_with_the_milestone_must_be_on_the_branch(self):
+        result = checks.notice_txt(context(self.github(prs=((39103, True, True), (38997, True, False)))), RULES["notice-txt"])
+        self.assertEqual((result.status, result.summary), (checks.FAIL, "mattermost#38997 is merged but not on release-12.2"))
+        self.assertEqual([i.label for i in result.items], ["mattermost#38997"])
+        both = checks.notice_txt(context(self.github(prs=((39103, True, True), (38676, True, True)))), RULES["notice-txt"])
+        self.assertEqual((both.status, both.summary),
+                         (checks.PASS, "All 2 NOTICE.txt PRs with the v12.2.0 milestone are merged and on release-12.2"))
+
+    def test_an_open_pr_fails(self):
+        result = checks.notice_txt(context(self.github(prs=((39103, False, False),))), RULES["notice-txt"])
+        self.assertEqual((result.status, result.summary), (checks.FAIL, "mattermost#39103 isn't merged"))
 
     def test_search_is_for_the_bot(self):
         github = self.github()
@@ -551,6 +605,39 @@ class HolidaysPageTest(unittest.TestCase):
     def test_needs_the_page_id(self):
         with self.assertRaisesRegex(checks.CheckError, "RELEASE_AGENT_HOLIDAYS_PAGE_ID isn't set"):
             self.check(page_id="")
+
+
+def holidays_page_text():
+    """The holidays page fixture as the Confluence client returns it."""
+    page = json.loads((FIXTURES / "confluence-holidays-page.json").read_text())
+
+    class PageHttp:
+        def get(self, path, **params):
+            return page
+    return Confluence("https://mattermost.atlassian.net", "a@b.c", "t", PageHttp()).page("2928869382")[0]
+
+
+class PageHolidaysTest(unittest.TestCase):
+    HEADING = rules.load_yaml(rules.RULES_PATH)["holidays_page_heading"]
+
+    def test_each_years_section_up_to_the_next_heading(self):
+        days = checks.page_holidays(holidays_page_text(), self.HEADING, (2026, 2027))
+        self.assertEqual(len({d for d in days if d.year == 2026}), 20)  # 25 rows: US and Canada share 5 days
+        self.assertEqual(len({d for d in days if d.year == 2027}), 20)
+        self.assertEqual(len(days), 40)
+        self.assertIn(date(2026, 11, 11), days)  # Canada only (Remembrance Day, regional)
+        self.assertIn(date(2026, 11, 26), days)  # US only
+        self.assertNotIn(date(2025, 12, 25), days)  # 2025's section isn't asked for
+
+    def test_only_the_years_asked_for(self):
+        days = checks.page_holidays(holidays_page_text(), self.HEADING, (2027,))
+        self.assertEqual({d.year for d in days}, {2027})
+        self.assertEqual(checks.page_holidays("No headings here (1/01/2026)", self.HEADING, (2026,)), set())
+
+    def test_a_section_stops_at_the_next_heading_and_skips_bad_dates(self):
+        text = ("entity and EOR  locations holidays for 2026 (1/01/2026) (2/30/2026) (13/01/2026) "
+                "Entity and EOR locations holidays for 2025 (12/25/2025) (7/04/2026)")
+        self.assertEqual(checks.page_holidays(text, self.HEADING, (2026,)), {date(2026, 1, 1)})
 
 
 class ChangelogLabelsTest(unittest.TestCase):
