@@ -1,0 +1,42 @@
+{
+  "_source": "POST /rest/api/3/search/jql response shape for an MM ticket with the Atlassian Team field (customfield_10800, schema com.atlassian.jira.plugin.system.customfieldtypes:atlassian-team). Replace with a recorded response from mattermost.atlassian.net to pin the real values.",
+  "isLast": true,
+  "issues": [
+    {
+      "id": "171234",
+      "key": "MM-68700",
+      "fields": {
+        "summary": "Calls: screen share freezes after reconnect",
+        "status": {"name": "Open", "statusCategory": {"key": "new"}},
+        "assignee": null,
+        "labels": [],
+        "fixVersions": [{"id": "20117", "name": "v12.2 (November 2026)", "released": false}],
+        "resolution": null,
+        "components": [{"id": "10703", "name": "Webapp"}],
+        "customfield_10800": {
+          "id": "9b4c3e8a-1f2d-4c6b-8a7e-2d5f0c1b3a94",
+          "name": "Calls",
+          "avatarUrl": "",
+          "isVisible": true,
+          "isVerified": false,
+          "title": "Calls",
+          "isShared": true
+        }
+      }
+    },
+    {
+      "id": "171235",
+      "key": "MM-68701",
+      "fields": {
+        "summary": "Bookmarks bar overflows on narrow screens",
+        "status": {"name": "Open", "statusCategory": {"key": "new"}},
+        "assignee": {"accountId": "5b10ac8d82e05b22cc7d4ef5", "displayName": "Matty Code", "accountType": "app"},
+        "labels": [],
+        "fixVersions": [{"id": "20117", "name": "v12.2 (November 2026)", "released": false}],
+        "resolution": null,
+        "components": [{"id": "10812", "name": "Bookmarks Bar"}],
+        "customfield_10800": null
+      }
+    }
+  ]
+}

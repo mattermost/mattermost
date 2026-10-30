@@ -253,9 +253,11 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
 
     body = {"mode": settings.mode, "date": today.isoformat(), "releases": [], "flags": flags}
     details = []
+    lead_flags = checks.dev_lead_flags(rules, services.hub) if selected else []
     for index, release in enumerate(selected):
         report = check_release(release, rules, settings, services, today, holidays, branches, tags, ls_remote,
                                primary=index == 0)
+        report.flags += lead_flags
         try:
             post = post_report(report, rules, settings, services, today)
         except Exception as err:  # noqa: BLE001 - still record the run

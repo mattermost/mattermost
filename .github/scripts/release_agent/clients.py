@@ -126,10 +126,11 @@ class Jira:
         auth = base64.b64encode(f"{email}:{token}".encode()).decode()
         self.http = http or Http("Jira", self.base_url, {"Authorization": f"Basic {auth}"})
 
-    def search(self, jql: str, limit: int = 1000) -> list[dict]:
+    def search(self, jql: str, limit: int = 1000, extra_fields: list | tuple = ()) -> list[dict]:
         issues, token = [], None
+        fields = self.FIELDS + [f for f in extra_fields if f not in self.FIELDS]
         while len(issues) < limit:
-            body = {"jql": jql, "fields": self.FIELDS, "maxResults": 100}
+            body = {"jql": jql, "fields": fields, "maxResults": 100}
             if token:
                 body["nextPageToken"] = token
             result = self.http.request("POST", "/rest/api/3/search/jql", body=body)[1] or {}

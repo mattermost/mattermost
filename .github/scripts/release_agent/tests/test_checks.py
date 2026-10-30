@@ -1,5 +1,7 @@
+import json
 import unittest
 from datetime import date
+from pathlib import Path
 
 from release_agent import checks, rules
 from release_agent.agent import template_vars
@@ -9,6 +11,8 @@ from release_agent.tests.fakes import FakeConfluence, FakeGitHub, FakeHub, FakeJ
 MM, ENT = "mattermost/mattermost", "mattermost/enterprise"
 RULES = {rule["task"]: rule for rule in rules.load_yaml(rules.RULES_PATH)["rules"]}
 NAMING = rules.load_yaml(rules.RULES_PATH)["naming"]
+TEAM_FIELD = "customfield_10800"
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def release():
@@ -38,14 +42,15 @@ def commit(message, sha="s"):
 
 
 def issue(key, summary="Bug", labels=(), fix_versions=(), assignee=None, resolution=None, description="",
-          components=(), status="Open", email=None):
+          components=(), status="Open", email=None, team=None):
     person = {"displayName": assignee, **({"emailAddress": email} if email else {})} if assignee else None
     return {"key": key, "fields": {"summary": summary, "labels": list(labels),
                                    "fixVersions": [{"name": v} for v in fix_versions],
                                    "assignee": person, "status": {"name": status},
                                    "components": [{"name": c} for c in components],
                                    "resolution": {"name": resolution} if resolution else None,
-                                   "description": description}}
+                                   "description": description,
+                                   TEAM_FIELD: {"id": f"team-{team}", "name": team, "title": team} if team else None}}
 
 
 class TemplateTest(unittest.TestCase):
@@ -143,23 +148,69 @@ class NewRegressionsTest(unittest.TestCase):
         hub.users = [{"username": u, "first_name": f, "last_name": l, "email": f"{u}@example.com"} for u, f, l in users]
         return checks.open_release_items(context(jira=jira, hub=hub), RULES["open-release-items"]), jira, hub
 
-    def test_routes_unassigned_and_bot_tickets_to_the_dev_lead_of_the_first_matching_component(self):
-        result, _, _ = self.routed(
-            issue("MM-1", components=["Calls"]),
-            issue("MM-2", assignee="Matty Code", components=["Webapp", "Agents", "Calls"]),
-            issue("MM-3", components=["Webapp"]),
-            issue("MM-4", assignee="Matty Code"),
-            users=[("jesse.hallam", "Jesse", "Hallam"), ("christopher.speller", "Christopher", "Speller")])
+    def test_routes_unassigned_and_bot_tickets_to_the_dev_lead_of_their_jira_team(self):
+        result, jira, _ = self.routed(
+            issue("MM-1", team="Calls"),
+            issue("MM-2", assignee="Matty Code", team="Agents", components=["Calls"]),
+            issue("MM-3", team="Integrations"),
+            issue("MM-4", components=["Calls"]),  # components aren't teams
+            issue("MM-5", team="Mobile"),
+            issue("MM-6", assignee="Matty Code"),
+            users=[("jesse.hallam", "Jesse", "Hallam"), ("christopher", "Christopher", "Speller"),
+                   ("doug.lauder", "Doug", "Lauder")])
         self.assertEqual([(i.label, i.owner, i.reason) for i in result.items], [
             ("MM-1", "@jesse.hallam", "unassigned"),
-            ("MM-2", "@christopher.speller", "Matty Code"),
-            ("MM-3", "", "unassigned"),
-            ("MM-4", "", "Matty Code"),
+            ("MM-2", "@christopher", "Matty Code"),
+            ("MM-3", "@doug.lauder", "unassigned"),
+            ("MM-4", "", "unassigned"),
+            ("MM-5", "", "unassigned"),
+            ("MM-6", "", "Matty Code"),
+        ])
+        self.assertEqual(jira.extra_fields, [TEAM_FIELD])
+
+    def test_component_routes_are_a_fallback_when_no_team_route_matches(self):
+        result, _, _ = self.routed(
+            issue("MM-1", components=["Webapp", "Bookmarks Bar"]),
+            issue("MM-2", team="Calls", components=["Bookmarks Bar"]),
+            users=[("jg.heithcock", "JG", "Heithcock"), ("jesse.hallam", "Jesse", "Hallam")])
+        self.assertEqual([i.owner for i in result.items], ["@jg.heithcock", "@jesse.hallam"])
+
+    def test_a_real_ticket_shaped_team_field(self):
+        jira = FakeJira({"fixVersion": json.loads((FIXTURES / "jira-search-team-field.json").read_text())["issues"]})
+        hub = FakeHub()
+        hub.users = [{"username": "jesse.hallam", "first_name": "Jesse", "last_name": "Hallam"},
+                     {"username": "jg.heithcock", "first_name": "JG", "last_name": "Heithcock"}]
+        result = checks.open_release_items(context(jira=jira, hub=hub), RULES["open-release-items"])
+        self.assertEqual([(i.label, i.owner, i.reason) for i in result.items], [
+            ("MM-68700", "@jesse.hallam", "unassigned"),  # Team "Calls"; its component Webapp has no route
+            ("MM-68701", "@jg.heithcock", "Matty Code"),  # no Team; component Bookmarks Bar
         ])
 
+    def test_team_field_values(self):
+        self.assertEqual(checks.team_names({"id": "u1", "name": "Calls", "title": "Calls"}), ["Calls"])
+        self.assertEqual(checks.team_names({"id": "u1", "title": " Agents "}), ["Agents"])
+        self.assertEqual(checks.team_names({"id": "1", "value": "Reliability"}), ["Reliability"])
+        self.assertEqual(checks.team_names([{"value": "Calls"}, "Agents"]), ["Calls", "Agents"])
+        self.assertEqual(checks.team_names(None), [])
+        self.assertEqual(checks.team_names({"id": "u1"}), [])
+
+    def test_components_only_when_match_field_is_components(self):
+        leads = checks.DevLeads({"match_field": "components", "team_field": TEAM_FIELD,
+                                 "routes": [{"teams": ["Calls"], "username": "a"}, {"components": ["Calls"], "username": "b"}]})
+        self.assertEqual(leads.fields, [])
+        self.assertEqual(leads.lead_for(issue("MM-1", team="Calls", components=["Calls"])["fields"])["username"], "b")
+
     def test_a_dev_lead_missing_on_hub_is_named_and_marked(self):
-        result, _, _ = self.routed(issue("MM-1", components=["Information Control"]))
+        result, _, _ = self.routed(issue("MM-1", team="Information Control"))
         self.assertEqual(result.items[0].owner, "Maria Nunez (no Hub user found)")
+
+    def test_a_deactivated_hub_user_is_not_mentioned(self):
+        jira = FakeJira({"fixVersion": [issue("MM-1", team="Calls"), issue("MM-2", assignee="Ann Lee", email="ann@example.com")]})
+        hub = FakeHub()
+        hub.users = [{"username": "jesse.hallam", "first_name": "Jesse", "last_name": "Hallam", "delete_at": 1761800000000},
+                     {"username": "ann", "first_name": "Ann", "last_name": "Lee", "email": "ann@example.com", "delete_at": 1}]
+        result = checks.open_release_items(context(jira=jira, hub=hub), RULES["open-release-items"])
+        self.assertEqual([i.owner for i in result.items], ["Jesse Hallam (no Hub user found)", "Ann Lee (no Hub user found)"])
 
     def test_mentions_assignees_found_on_hub_by_email_or_unique_full_name(self):
         result, _, hub = self.routed(
@@ -187,13 +238,46 @@ class NewRegressionsTest(unittest.TestCase):
         self.assertEqual(result.items[1].links, [])
 
     def test_dev_lead_table(self):
-        leads = {c: lead["name"] for lead in RULES["open-release-items"]["query"]["dev_leads"] for c in lead["components"]}
-        self.assertEqual(leads, {
-            "Reliability": "Jesse Hallam", "Calls": "Jesse Hallam", "Sustained Engineering": "Jesse Hallam",
-            "Information Control": "Maria Nunez",
-            "Workflows": "JG Heithcock", "Bookmarks Bar": "JG Heithcock", "Integrations": "JG Heithcock",
-            "Agents": "Christopher Speller", "Platform Integration": "Doug Lauder",
+        config = RULES["open-release-items"]["query"]["dev_leads"]
+        self.assertEqual((config["match_field"], config["team_field"]), ("team", TEAM_FIELD))
+        leads = checks.DevLeads(config)
+        self.assertEqual({team: lead["username"] for team, lead in leads.by_team.items()}, {
+            "reliability": "jesse.hallam", "calls": "jesse.hallam", "sustained engineering": "jesse.hallam",
+            "information control": "maria.nunez",
+            "agents": "christopher",
+            "platform integration": "doug.lauder", "integrations": "doug.lauder",
         })
+        self.assertEqual({c: lead["username"] for c, lead in leads.by_component.items()}, {"bookmarks bar": "jg.heithcock"})
+
+
+class DevLeadFlagsTest(unittest.TestCase):
+    RULES_DOC = {"rules": [{"query": {"dev_leads": {"routes": [
+        {"teams": ["Calls"], "username": "jesse.hallam", "name": "Jesse Hallam"},
+        {"teams": ["Agents"], "username": "christopher", "name": "Christopher Speller"},
+        {"teams": ["Integrations"], "username": "gone.person", "name": "Gone Person"},
+        {"components": ["Bookmarks Bar"], "username": "jesse.hallam", "name": "Jesse Hallam"},
+    ]}}}, {"query": {}}]}
+
+    def test_flags_leads_missing_or_deactivated_on_hub(self):
+        hub = FakeHub()
+        hub.users = [{"username": "jesse.hallam", "first_name": "Jesse", "last_name": "Hallam", "delete_at": 0},
+                     {"username": "christopher", "first_name": "Christopher", "last_name": "Speller", "delete_at": 1761800000000}]
+        self.assertEqual(checks.dev_lead_flags(self.RULES_DOC, hub), [
+            "Dev lead Christopher Speller (`christopher`) in rules.yml is deactivated on Hub, so their tickets name them without a mention.",
+            "Dev lead Gone Person (`gone.person`) in rules.yml has no Hub account, so their tickets name them without a mention.",
+        ])
+
+    def test_no_flags_when_every_lead_is_active(self):
+        hub = FakeHub()
+        hub.users = [{"username": u, "first_name": "", "last_name": ""} for u in ("jesse.hallam", "christopher", "gone.person")]
+        self.assertEqual(checks.dev_lead_flags(self.RULES_DOC, hub), [])
+
+    def test_a_hub_error_is_reported_not_raised(self):
+        class BrokenHub(FakeHub):
+            def user_by_username(self, username):
+                raise RuntimeError("Hub is down")
+        flags = checks.dev_lead_flags({"rules": [{"query": {"dev_leads": {"routes": [{"teams": ["X"], "username": "a"}]}}}]}, BrokenHub())
+        self.assertEqual(flags, ["Couldn't check that dev lead a (`a`) is on Hub."])
 
 
 class HubReleaseBranchTest(unittest.TestCase):

@@ -15,6 +15,7 @@ LS_REMOTE = "\n".join(f"0\t{ref}" for ref in [
     "refs/tags/v12.1.0", "refs/tags/v12.2.0-rc1", "refs/tags/v12.2.0-rc2",
 ])
 SECRET = "Top secret enterprise fix"
+DEV_LEADS = next(r for r in rules.load_rules()["rules"] if r["task"] == "open-release-items")["query"]["dev_leads"]
 
 
 def template_items():
@@ -35,6 +36,7 @@ def services(jira=None, confluence=None):
     github.tags = {MM: ["v12.2.0-rc1", "v12.2.0-rc2"], ENT: ["v12.2.0-rc1", "v12.2.0-rc2"]}
     github.dates[(MM, "v12.2.0-rc2")] = "2026-11-02T12:00:00Z"
     hub = FakeHub(("12.2.0", "abc"))
+    hub.users = [{"username": route["username"], "first_name": "", "last_name": ""} for route in DEV_LEADS["routes"]]
     hub.channels = [{"id": "c122", "display_name": "Release: v12.2"}, {"id": "c123", "display_name": "Release: v12.3"}]
     hub.runs = [checklist_run("run122", "Release: v12.2", "c122", template_items()),
                 checklist_run("run123", "Release: v12.3", "c123", template_items())]
@@ -115,6 +117,19 @@ class LiveRunTest(unittest.TestCase):
         self.assertEqual(len(self.svc.hub.closed), closed)
         self.assertEqual(len(self.svc.hub.created), created)
         self.assertEqual([r["post"] for r in body["releases"]], ["unchanged", "unchanged"])
+
+    def test_a_dev_lead_who_left_hub_is_flagged_in_each_post(self):
+        svc = services()
+        svc.hub.users = [u for u in svc.hub.users if u["username"] != "maria.nunez"]
+        svc.hub.users[0]["delete_at"] = 1761800000000
+        body, _ = run(svc)
+        left = ["Dev lead Jesse Hallam (`jesse.hallam`) in rules.yml is deactivated on Hub, so their tickets name them without a mention.",
+                "Dev lead Maria Nunez (`maria.nunez`) in rules.yml has no Hub account, so their tickets name them without a mention."]
+        self.assertEqual([r["flags"] for r in body["releases"]], [left, left])
+        self.assertEqual(self.body["releases"][0]["flags"], [])
+        post = next(p for p in svc.hub.created if p["channel_id"] == "c122" and not p["root_id"])
+        self.assertIn(f":triangular_flag_on_post: {left[1]}", post["message"])
+        self.assertNotIn("@maria.nunez", post["message"])
 
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)

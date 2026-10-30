@@ -98,7 +98,38 @@
           "uniqueItems": true,
           "items": {"enum": ["jira", "github", "hub", "confluence"]}
         },
-        "query": {"type": "object"},
+        "query": {
+          "type": "object",
+          "properties": {
+            "dev_leads": {
+              "description": "Who unassigned and bot tickets go to: the first route naming the ticket's Jira Team, else the first naming one of its components.",
+              "type": "object",
+              "required": ["routes"],
+              "additionalProperties": false,
+              "properties": {
+                "match_field": {"enum": ["team", "components"]},
+                "team_field": {"description": "The Jira Team field, e.g. customfield_10800.", "type": "string", "pattern": "^customfield_\\d+$"},
+                "routes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["username"],
+                    "anyOf": [{"required": ["teams"]}, {"required": ["components"]}],
+                    "additionalProperties": false,
+                    "properties": {
+                      "teams": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+                      "components": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+                      "username": {"description": "Hub username, without @.", "type": "string", "pattern": "^[a-z0-9._-]+$"},
+                      "name": {"type": "string"}
+                    }
+                  }
+                }
+              },
+              "if": {"properties": {"match_field": {"const": "team"}}, "required": ["match_field"]},
+              "then": {"required": ["team_field"]}
+            }
+          }
+        },
         "pass_when": {
           "enum": [
             "report_only",

@@ -64,7 +64,7 @@ rules:
   # The status post is that list, so the item is ticked when the post first carries it in
   # the run's channel at Feature Complete; the post keeps it up to date every run after.
   # Each person is @-mentioned once with their tickets. Unassigned tickets and the bot's are
-  # routed to the dev lead of the ticket's first component in dev_leads, else listed under
+  # routed to the dev lead of the ticket's Jira Team in dev_leads, else listed under
   # Unassigned. Submitted tickets show their linked PRs. The item's cherry-pick half is done by
   # release-cherry-pick-labels.yml, which labels PRs as their tickets reach Submitted.
   - task: open-release-items
@@ -81,13 +81,19 @@ rules:
       repos: [mattermost/mattermost, mattermost/enterprise]
       linked_prs_status: Submitted
       bot_assignees: [Matty Code]
-      # Hub usernames. Changes to who leads what go through a PR.
+      # Unassigned and bot tickets go to the first route naming the ticket's Jira Team, else
+      # the first naming one of its components, else Unassigned. Usernames are Hub
+      # usernames; every run flags any that isn't an active Hub user. Changes go through a PR.
       dev_leads:
-        - {components: [Reliability, Calls, Sustained Engineering], username: jesse.hallam, name: Jesse Hallam}
-        - {components: [Information Control], username: maria.nunez, name: Maria Nunez}
-        - {components: [Workflows, Bookmarks Bar, Integrations], username: jg.heithcock, name: JG Heithcock}
-        - {components: [Agents], username: christopher.speller, name: Christopher Speller}
-        - {components: [Platform Integration], username: doug.lauder, name: Doug Lauder}
+        match_field: team
+        team_field: customfield_10800  # Jira "Team" (Atlassian team field)
+        routes:
+          - {teams: [Reliability, Calls, Sustained Engineering], username: jesse.hallam, name: Jesse Hallam}
+          - {teams: [Information Control], username: maria.nunez, name: Maria Nunez}
+          - {teams: [Agents], username: christopher, name: Christopher Speller}
+          - {teams: [Platform Integration, Integrations], username: doug.lauder, name: Doug Lauder}
+          # "Bookmarks Bar" is a component, not a team.
+          - {components: [Bookmarks Bar], username: jg.heithcock, name: JG Heithcock}
     pass_when: report_only
     on_fail: report
 

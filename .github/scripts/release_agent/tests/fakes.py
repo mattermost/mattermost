@@ -54,12 +54,14 @@ class FakeJira:
         self.issues = issues or {}  # regex on the JQL -> issues
         self.queries = []
         self.links = {}  # issue key -> [remote link URL]
+        self.extra_fields = []
 
     def remote_links(self, key):
         return [{"id": n, "object": {"url": url, "title": url}} for n, url in enumerate(self.links.get(key, []))]
 
-    def search(self, jql, limit=1000):
+    def search(self, jql, limit=1000, extra_fields=()):
         self.queries.append(jql)
+        self.extra_fields = list(extra_fields)
         for pattern, issues in self.issues.items():
             if re.search(pattern, jql):
                 return issues
@@ -94,7 +96,7 @@ class FakeHub:
         self.closed = []
         self.channels = []   # channels the bot is in: {"id", "display_name"}
         self.post_reactions = {}  # post id -> [reaction]
-        self.users = []  # {"username", "first_name", "last_name", "email"}
+        self.users = []  # {"username", "first_name", "last_name", "email", optional "delete_at"}
         self.user_searches = []
         self._next = 0
 

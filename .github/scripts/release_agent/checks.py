@@ -151,13 +151,75 @@ class HubPeople:
     @staticmethod
     def _lookup(find):
         try:
-            return find() or None
+            found = find()
         except Exception:  # noqa: BLE001 - an unknown person is shown by name instead
             return None
+        return found if found and not found.get("delete_at") else None
 
     @staticmethod
     def not_found(name: str) -> str:
         return f"{name} (no Hub user found)"
+
+
+def team_names(value) -> list[str]:
+    """The team names in a Jira Team field value: an Atlassian team ({"id", "name", "title"}),
+    a select option ({"value"}), a plain string, or a list of these."""
+    if isinstance(value, list):
+        return [name for entry in value for name in team_names(entry)]
+    if isinstance(value, dict):
+        value = value.get("name") or value.get("title") or value.get("value") or ""
+    return [" ".join(value.split())] if isinstance(value, str) and value.strip() else []
+
+
+class DevLeads:
+    """Who leads a ticket's team: the first route naming its Jira Team, else (with
+    ``match_field: team``, as a fallback) the first naming one of its components."""
+
+    def __init__(self, config: dict | None):
+        config = config or {}
+        self.routes = config.get("routes", [])
+        self.team_field = config.get("team_field", "") if config.get("match_field", "team") == "team" else ""
+        self.by_team, self.by_component = {}, {}
+        for route in self.routes:
+            for team in route.get("teams", []):
+                self.by_team.setdefault(team.casefold(), route)
+            for component in route.get("components", []):
+                self.by_component.setdefault(component.casefold(), route)
+
+    @property
+    def fields(self) -> list[str]:
+        return [self.team_field] if self.team_field else []
+
+    def lead_for(self, fields: dict) -> dict | None:
+        teams = team_names(fields.get(self.team_field)) if self.team_field else []
+        components = [c.get("name") or "" for c in fields.get("components") or []]
+        for name, routes in [(t, self.by_team) for t in teams] + [(c, self.by_component) for c in components]:
+            if name.casefold() in routes:
+                return routes[name.casefold()]
+        return None
+
+
+def dev_lead_flags(rules: dict, hub) -> list[str]:
+    """A flag for each dev lead in rules.yml who isn't an active Hub user, so a lead who has
+    left shows up instead of their tickets quietly losing the mention."""
+    flags, seen = [], set()
+    for rule in rules.get("rules", []):
+        for route in DevLeads((rule.get("query") or {}).get("dev_leads")).routes:
+            username = route["username"]
+            if username in seen:
+                continue
+            seen.add(username)
+            who = f"{route.get('name') or username} (`{username}`)"
+            try:
+                user = hub.user_by_username(username)
+            except Exception:  # noqa: BLE001 - reported, the run goes on
+                flags.append(f"Couldn't check that dev lead {who} is on Hub.")
+                continue
+            if not user:
+                flags.append(f"Dev lead {who} in rules.yml has no Hub account, so their tickets name them without a mention.")
+            elif user.get("delete_at"):
+                flags.append(f"Dev lead {who} in rules.yml is deactivated on Hub, so their tickets name them without a mention.")
+    return flags
 
 
 def linked_prs(jira, key: str) -> list[tuple[str, str]]:
@@ -175,18 +237,15 @@ def open_release_items(ctx: Context, rule: dict) -> Result:
     """Jira issues with the release's fix version that aren't Closed, and open milestone PRs.
 
     Each issue's ``owner`` is who the post mentions: its assignee, or for an unassigned or
-    bot ticket the dev lead of its first component in ``dev_leads``, else nobody.
+    bot ticket the dev lead of its Jira Team (or component) in ``dev_leads``, else nobody.
     """
     query = ctx.query(rule)
     people = HubPeople(ctx.hub)
     bots = {name.casefold() for name in query.get("bot_assignees", [])}
-    leads = {}
-    for lead in query.get("dev_leads", []):
-        for component in lead["components"]:
-            leads.setdefault(component.casefold(), lead)
+    leads = DevLeads(query.get("dev_leads"))
     with_links = query.get("linked_prs_status", "").casefold()
     issues = []
-    for issue in ctx.jira.search(query["jql"]):
+    for issue in ctx.jira.search(query["jql"], extra_fields=leads.fields):
         item, fields = jira_item(ctx.jira, issue), issue.get("fields") or {}
         assignee = fields.get("assignee") or {}
         name = assignee.get("displayName") or ""
@@ -194,8 +253,7 @@ def open_release_items(ctx: Context, rule: dict) -> Result:
             item.owner = people.by_assignee(assignee)
         else:
             item.reason = name or "unassigned"
-            components = [(c.get("name") or "").casefold() for c in fields.get("components") or []]
-            lead = next((leads[c] for c in components if c in leads), None)
+            lead = leads.lead_for(fields)
             item.owner = people.by_username(lead["username"], lead.get("name", "")) if lead else ""
         if with_links and ((fields.get("status") or {}).get("name") or "").casefold() == with_links:
             item.links = linked_prs(ctx.jira, issue["key"])

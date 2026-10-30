@@ -80,6 +80,18 @@ class RulesFileTest(unittest.TestCase):
         broken["rules"][0]["on_fail"] = "needs_attention"
         self.assertTrue(rules.problems(broken, self.schema, self.titles))
 
+    def test_rejects_bad_dev_leads(self):
+        def problems(**leads):
+            broken = copy.deepcopy(self.rules)
+            broken["rules"][0]["query"]["dev_leads"] = leads
+            return rules.problems(broken, self.schema, self.titles)
+        good = {"teams": ["Calls"], "username": "jesse.hallam"}
+        self.assertEqual(problems(match_field="team", team_field="customfield_10800", routes=[good]), [])
+        self.assertTrue(problems(match_field="team", routes=[good]))  # no team_field
+        self.assertTrue(problems(routes=[{"username": "jesse.hallam"}]))  # neither teams nor components
+        self.assertTrue(problems(routes=[{"teams": ["Calls"], "username": "@jesse.hallam"}]))
+        self.assertTrue(problems(routes=[{"team": ["Calls"], "username": "jesse.hallam"}]))  # misspelt key
+
     def test_rejects_duplicate_task(self):
         broken = copy.deepcopy(self.rules)
         broken["rules"].append(copy.deepcopy(broken["rules"][1]))
