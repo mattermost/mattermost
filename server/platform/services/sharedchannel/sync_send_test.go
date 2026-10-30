@@ -492,6 +492,108 @@ func TestSendSyncMsgToRemote_EnqueueErrorDoesNotHang(t *testing.T) {
 	assert.Zero(t, notifyCount, "no sync-failed notification should fire when the enqueue itself failed")
 }
 
+func TestRemoveOldestTask_CatchUpYieldsToLiveTasks(t *testing.T) {
+	t.Run("ready live task is processed before older catch-up tasks", func(t *testing.T) {
+		scs := newTestService()
+		for _, channelID := range []string{"catchup-1", "catchup-2"} {
+			task := newSyncTask(channelID, "", "remote-1", nil, nil)
+			task.catchUp = true
+			scs.addTask(task)
+		}
+		time.Sleep(time.Millisecond)
+		scs.addTask(newSyncTask("live", "", "remote-1", nil, nil))
+
+		var order []string
+		for {
+			task, ok, _ := scs.removeOldestTask()
+			if !ok {
+				break
+			}
+			order = append(order, task.channelID)
+		}
+
+		require.Len(t, order, 3)
+		assert.Equal(t, "live", order[0])
+		assert.ElementsMatch(t, []string{"catchup-1", "catchup-2"}, order[1:])
+	})
+
+	t.Run("catch-up task is processed when no live task is ready", func(t *testing.T) {
+		scs := newTestService()
+		catchUp := newSyncTask("catchup", "", "remote-1", nil, nil)
+		catchUp.catchUp = true
+		scs.addTask(catchUp)
+		live := newSyncTask("live", "", "remote-1", nil, nil)
+		live.schedule = time.Now().Add(time.Hour)
+		scs.addTask(live)
+
+		task, ok, wait := scs.removeOldestTask()
+
+		require.True(t, ok)
+		assert.Equal(t, "catchup", task.channelID)
+		assert.Positive(t, wait, "the delayed live task should still be reported as pending")
+	})
+}
+
+func TestAddTask_MergeCatchUpFlag(t *testing.T) {
+	tests := []struct {
+		name          string
+		queuedCatchUp bool
+		addedCatchUp  bool
+		expected      bool
+	}{
+		{name: "live task merged into catch-up task clears the flag", queuedCatchUp: true, addedCatchUp: false, expected: false},
+		{name: "catch-up task merged into live task does not set the flag", queuedCatchUp: false, addedCatchUp: true, expected: false},
+		{name: "catch-up task merged into catch-up task keeps the flag", queuedCatchUp: true, addedCatchUp: true, expected: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			scs := newTestService()
+
+			queued := newSyncTask("channel-1", "", "remote-1", nil, nil)
+			queued.catchUp = tc.queuedCatchUp
+			scs.addTask(queued)
+
+			added := newSyncTask("channel-1", "", "remote-1", nil, nil)
+			added.catchUp = tc.addedCatchUp
+			scs.addTask(added)
+
+			require.Len(t, scs.tasks, 1)
+			assert.Equal(t, tc.expected, scs.tasks[queued.id].catchUp)
+		})
+	}
+}
+
+func TestDoSync_CatchUpRetryKeepsFlag(t *testing.T) {
+	remoteID := model.NewId()
+	rc := &model.RemoteCluster{RemoteId: remoteID, LastPingAt: model.GetMillis()}
+
+	rcStoreMock := &mocks.RemoteClusterStore{}
+	rcStoreMock.On("Get", remoteID, false).Return(rc, nil)
+	mockStore := &mocks.Store{}
+	mockStore.On("RemoteCluster").Return(rcStoreMock)
+
+	mockServer := &MockServerIface{}
+	mockServer.On("GetStore").Return(mockStore)
+	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs causes syncForRemote to fail
+
+	scs := newTestService()
+	scs.server = mockServer
+
+	task := newSyncTask(model.NewId(), "", remoteID, nil, nil)
+	task.catchUp = true
+	scs.addTask(task)
+
+	scs.doSync()
+
+	require.Len(t, scs.tasks, 1, "failed task should be re-enqueued for retry")
+	for _, retried := range scs.tasks {
+		assert.Equal(t, 1, retried.retryCount)
+		assert.True(t, retried.catchUp, "retry of a catch-up task should stay a catch-up task")
+	}
+}
+
 func TestStripSharedChannelStatePostsForSync(t *testing.T) {
 	sd := &syncData{
 		posts: []*model.Post{

@@ -35,6 +35,9 @@ type syncTask struct {
 	// originRemoteID is the remote that initiated this change; it will be
 	// skipped when syncing to prevent echo-back.
 	originRemoteID string
+	// catchUp marks tasks queued when this node becomes leader. They are processed
+	// only when no other task is ready, so a large catch-up does not delay live changes.
+	catchUp bool
 }
 
 func newSyncTask(channelID, userID string, remoteID string, existingMsg, retryMsg *model.SyncMsg) syncTask {
@@ -222,6 +225,10 @@ func (scs *Service) SendPendingInvitesForRemote(rc *model.RemoteCluster) {
 
 // ForceSyncForRemote causes all channels shared with the remote to be synchronized.
 func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
+	scs.forceSyncForRemote(rc, false)
+}
+
+func (scs *Service) forceSyncForRemote(rc *model.RemoteCluster, catchUp bool) {
 	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
 		return
 	}
@@ -243,6 +250,7 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 	for _, scr := range scrs {
 		task := newSyncTask(scr.ChannelId, "", rc.RemoteId, nil, nil)
 		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		task.catchUp = catchUp
 		scs.addTask(task)
 	}
 }
@@ -266,6 +274,10 @@ func (scs *Service) addTask(task syncTask) {
 		// idempotent, so the worst case is a redundant sync to the originating remote.
 		if task.originRemoteID != originalTask.originRemoteID {
 			originalTask.originRemoteID = ""
+		}
+
+		if !task.catchUp {
+			originalTask.catchUp = false
 		}
 		scs.tasks[task.id] = originalTask
 	} else {
@@ -360,13 +372,14 @@ func (scs *Service) doSync() time.Duration {
 // removeOldestTask removes and returns the oldest task in the task map.
 // A task coming in via NotifyChannelChanged must stay in queue for at least
 // `NotifyMinimumDelay` to ensure we don't go nuts trying to sync during a bulk update.
+// Catch-up tasks are returned only when no other task is ready.
 // If no tasks are available then false is returned.
 func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 	scs.mux.Lock()
 	defer scs.mux.Unlock()
 
-	var oldestTask syncTask
-	var oldestKey string
+	var oldestTask, oldestCatchUpTask syncTask
+	var oldestKey, oldestCatchUpKey string
 	var shortestWait time.Duration
 
 	for key, task := range scs.tasks {
@@ -377,11 +390,23 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 			}
 			continue
 		}
-		// task is ready; check if it's the oldest ready task
-		if task.AddedAt.Before(oldestTask.AddedAt) || oldestTask.AddedAt.IsZero() {
+		// task is ready; check if it's the oldest ready task of its kind
+		if task.catchUp {
+			if oldestCatchUpKey == "" || task.AddedAt.Before(oldestCatchUpTask.AddedAt) {
+				oldestCatchUpKey = key
+				oldestCatchUpTask = task
+			}
+			continue
+		}
+		if oldestKey == "" || task.AddedAt.Before(oldestTask.AddedAt) {
 			oldestKey = key
 			oldestTask = task
 		}
+	}
+
+	if oldestKey == "" {
+		oldestKey = oldestCatchUpKey
+		oldestTask = oldestCatchUpTask
 	}
 
 	if oldestKey != "" {
@@ -553,7 +578,9 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 	syncMsg := model.NewSyncMsg(task.channelID)
 	syncMsg.Posts = []*model.Post{post}
 
-	scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, syncMsg))
+	retry := newSyncTask(task.channelID, task.userID, task.remoteID, nil, syncMsg)
+	retry.catchUp = task.catchUp
+	scs.addTask(retry)
 }
 
 func (scs *Service) handleStatusError(userId string, task syncTask, rc *model.RemoteCluster) {
@@ -584,7 +611,9 @@ func (scs *Service) handleStatusError(userId string, task syncTask, rc *model.Re
 	syncMsg := model.NewSyncMsg(task.channelID)
 	syncMsg.Statuses = []*model.Status{status}
 
-	scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, syncMsg))
+	retry := newSyncTask(task.channelID, task.userID, task.remoteID, nil, syncMsg)
+	retry.catchUp = task.catchUp
+	scs.addTask(retry)
 }
 
 // notifyRemoteOffline creates an ephemeral post to the author for any posts created recently to remotes
