@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mattermost/mattermost/.github/release-agent/rules.schema.json",
+  "title": "Release agent rules",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "calendar", "naming", "false_alarm_emoji", "rules"],
+  "properties": {
+    "version": {"const": 1},
+    "calendar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["milestones", "active_days_after_release"],
+      "properties": {
+        "milestones": {
+          "description": "Milestone key to the substring that identifies its calendar event title.",
+          "type": "object",
+          "required": ["branch_cut", "release_day"],
+          "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
+          "additionalProperties": {"type": "string", "minLength": 1}
+        },
+        "holiday_markers": {
+          "description": "Substrings that mark a calendar event as a non-working day.",
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "active_days_after_release": {"type": "integer", "minimum": 0}
+      }
+    },
+    "holidays": {
+      "description": "Extra non-working days, as YYYY-MM-DD.",
+      "type": "array",
+      "items": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}
+    },
+    "holidays_page_heading": {
+      "description": "Heading of each year's list on the Confluence holidays page, with {year}.",
+      "type": "string",
+      "pattern": "\\{year\\}"
+    },
+    "naming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["milestone", "fix_version", "release_channels"],
+      "properties": {
+        "milestone": {"type": "string", "minLength": 1},
+        "fix_version": {"type": "string", "minLength": 1},
+        "release_channels": {
+          "description": "Display names a release's channel can have, such as the ESR one.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "false_alarm_emoji": {"type": "string", "pattern": "^[a-z0-9_+-]+$"},
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/rule"}
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task", "title", "playbook_item", "due", "type", "source", "query", "pass_when", "on_fail"],
+      "properties": {
+        "task": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+        "title": {"description": "What the status post calls the check.", "type": "string", "minLength": 1},
+        "playbook_item": {
+          "description": "The checklist item title in the Cloud & Self-Hosted playbook as it reads on screen, or null to tick nothing.",
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "former_playbook_items": {
+          "description": "Earlier titles of playbook_item, still on runs started before it was renamed.",
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "due": {
+          "description": "T-N / T+N in working days from Release Day, or a calendar milestone key with an optional working-day offset.",
+          "type": "string",
+          "pattern": "^(T[-+]\\d+|[a-z][a-z0-9_]*([-+]\\d+)?)$"
+        },
+        "type": {
+          "enum": [
+            "open_release_items",
+            "cherry_picks_to_label",
+            "new_regressions",
+            "hub_release_branch",
+            "notice_txt",
+            "cherry_picks",
+            "e2e_results",
+            "release_tags",
+            "version_go_prs",
+            "changelog_labels",
+            "holidays_page"
+          ]
+        },
+        "source": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["jira", "github", "hub", "confluence"]}
+        },
+        "query": {
+          "type": "object",
+          "properties": {
+            "dev_leads": {
+              "description": "Who unassigned and bot tickets go to: the first route naming the ticket's Jira Team, else the first naming one of its components.",
+              "type": "object",
+              "required": ["routes"],
+              "additionalProperties": false,
+              "properties": {
+                "match_field": {"enum": ["team", "components"]},
+                "team_field": {"description": "The Jira Team field, e.g. customfield_10800.", "type": "string", "pattern": "^customfield_\\d+$"},
+                "routes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["username"],
+                    "anyOf": [{"required": ["teams"]}, {"required": ["components"]}],
+                    "additionalProperties": false,
+                    "properties": {
+                      "teams": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+                      "components": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+                      "username": {"description": "Hub username, without @.", "type": "string", "pattern": "^[a-z0-9._-]+$"},
+                      "name": {"type": "string"}
+                    }
+                  }
+                }
+              },
+              "if": {"properties": {"match_field": {"const": "team"}}, "required": ["match_field"]},
+              "then": {"required": ["team_field"]}
+            }
+          }
+        },
+        "pass_when": {
+          "enum": [
+            "report_only",
+            "all_have_fix_version",
+            "versions_match",
+            "merged_and_on_release_branch",
+            "all_on_release_branch",
+            "found",
+            "present",
+            "merged",
+            "none_missing",
+            "next_year_listed"
+          ]
+        },
+        "on_fail": {"enum": ["needs_attention", "log_only", "report"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"pass_when": {"const": "report_only"}}},
+          "then": {"properties": {"on_fail": {"const": "report"}}}
+        }
+      ]
+    }
+  }
+}

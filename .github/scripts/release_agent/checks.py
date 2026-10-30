@@ -1,0 +1,613 @@
+"""The Phase 1 checks, one function per rule ``type``.
+
+Each takes the run context and its rule and returns a Result. A Result's ``summary`` is
+written to the public Actions log and run.json, so it carries counts and public refs only;
+titles, owners and links go in ``items``, which are posted to Hub. Items in a private repo
+are shown publicly as "(private repo)".
+"""
+
+import re
+from calendar import month_name
+from dataclasses import dataclass, field
+from datetime import date, datetime, timedelta
+
+PUBLIC_REPOS = frozenset({"mattermost/mattermost"})
+
+PASS = "pass"
+FAIL = "fail"
+INFO = "info"
+SKIPPED = "skipped"
+
+
+@dataclass
+class Item:
+    label: str
+    title: str = ""
+    url: str = ""
+    owner: str = ""
+    repo: str = ""
+    note: str = ""
+    reason: str = ""  # why ``owner`` was chosen, such as "unassigned"
+    links: list = field(default_factory=list)  # [(label, url)] shown after the item
+
+    @property
+    def public_label(self) -> str | None:
+        """How the item may appear in public output, or None when it may not."""
+        if not self.repo:
+            return None
+        return self.label if self.repo in PUBLIC_REPOS else "(private repo)"
+
+
+@dataclass
+class Result:
+    status: str
+    summary: str
+    items: list = field(default_factory=list)
+    proof_url: str = ""
+    hidden: bool = False  # left out of the status post, as when a yearly task is out of season
+
+
+@dataclass
+class Context:
+    release: object
+    today: date
+    vars: dict
+    has_branch: bool
+    rc_numbers: list
+    github: object = None
+    jira: object = None
+    hub: object = None
+    testing_alerts_channel: str = ""
+    confluence: object = None
+    primary: bool = True  # the first active release, which checks the yearly tasks
+
+    def query(self, rule: dict) -> dict:
+        return format_values(rule.get("query") or {}, self.vars)
+
+
+class CheckError(Exception):
+    """A check that can't run, with a message safe for public output."""
+
+
+def format_values(value, variables: dict):
+    if isinstance(value, str):
+        try:
+            return value.format_map(variables)
+        except KeyError as err:
+            raise CheckError(f"{{{err.args[0]}}} isn't known for this release") from None
+    if isinstance(value, list):
+        return [format_values(v, variables) for v in value]
+    if isinstance(value, dict):
+        return {k: format_values(v, variables) for k, v in value.items()}
+    return value
+
+
+def private_count(items: list) -> str:
+    private = sum(1 for item in items if item.repo and item.repo not in PUBLIC_REPOS)
+    return f" ({private} in a private repo)" if private else ""
+
+
+def pr_item(repo: str, pr: dict) -> Item:
+    assignees = pr.get("assignees") or []
+    owner = assignees[0]["login"] if assignees else (pr.get("user") or {}).get("login", "")
+    short = repo.split("/")[-1]
+    return Item(f"{short}#{pr['number']}", pr.get("title", ""), pr.get("html_url", ""), owner, repo)
+
+
+def jira_item(jira, issue: dict) -> Item:
+    fields = issue.get("fields") or {}
+    owner = (fields.get("assignee") or {}).get("displayName") or "Unassigned"
+    return Item(issue["key"], fields.get("summary", ""), jira.browse_url(issue["key"]), owner)
+
+
+def plural(count: int, word: str, plural_word: str | None = None) -> str:
+    return f"{count} {word if count == 1 else (plural_word or word + 's')}"
+
+
+def _first_line(message: str) -> str:
+    return (message or "").split("\n", 1)[0]
+
+
+def _references(message: str, number: int) -> bool:
+    return re.search(rf"#{number}\b", _first_line(message)) is not None
+
+
+def _parse_time(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+# ── Checks ──────────────────────────────────────────────────────────────────────────
+
+GITHUB_PR_URL = re.compile(r"https://github\.com/[\w.-]+/([\w.-]+)/pull/(\d+)")
+
+
+class HubPeople:
+    """Who to mention on Hub: "@username", or a plain name marked as not found there."""
+
+    def __init__(self, hub):
+        self.hub, self.cache = hub, {}
+
+    def by_username(self, username: str, name: str = "") -> str:
+        if ("username", username) not in self.cache:
+            self.cache[("username", username)] = self._lookup(lambda: self.hub.user_by_username(username))
+        found = self.cache[("username", username)]
+        return f"@{found['username']}" if found else self.not_found(name or username)
+
+    def by_assignee(self, assignee: dict) -> str:
+        name = " ".join((assignee.get("displayName") or "").split())
+        email = assignee.get("emailAddress") or ""
+        key = ("assignee", email or name.casefold())
+        if key not in self.cache:
+            self.cache[key] = self._lookup(lambda: (email and self.hub.user_by_email(email)) or self._by_name(name))
+        found = self.cache[key]
+        return f"@{found['username']}" if found else self.not_found(name)
+
+    def _by_name(self, name: str) -> dict | None:
+        wanted = name.casefold()
+        matches = [user for user in self.hub.search_users(name)
+                   if " ".join(f"{user.get('first_name', '')} {user.get('last_name', '')}".split()).casefold() == wanted]
+        return matches[0] if len(matches) == 1 else None
+
+    @staticmethod
+    def _lookup(find):
+        try:
+            found = find()
+        except Exception:  # noqa: BLE001 - an unknown person is shown by name instead
+            return None
+        return found if found and not found.get("delete_at") else None
+
+    @staticmethod
+    def not_found(name: str) -> str:
+        return f"{name} (no Hub user found)"
+
+
+def team_names(value) -> list[str]:
+    """The team names in a Jira Team field value: an Atlassian team ({"id", "name", "title"}),
+    a select option ({"value"}), a plain string, or a list of these."""
+    if isinstance(value, list):
+        return [name for entry in value for name in team_names(entry)]
+    if isinstance(value, dict):
+        value = value.get("name") or value.get("title") or value.get("value") or ""
+    return [" ".join(value.split())] if isinstance(value, str) and value.strip() else []
+
+
+class DevLeads:
+    """Who leads a ticket's team: the first route naming its Jira Team, else (with
+    ``match_field: team``, as a fallback) the first naming one of its components."""
+
+    def __init__(self, config: dict | None):
+        config = config or {}
+        self.routes = config.get("routes", [])
+        self.team_field = config.get("team_field", "") if config.get("match_field", "team") == "team" else ""
+        self.by_team, self.by_component = {}, {}
+        for route in self.routes:
+            for team in route.get("teams", []):
+                self.by_team.setdefault(team.casefold(), route)
+            for component in route.get("components", []):
+                self.by_component.setdefault(component.casefold(), route)
+
+    @property
+    def fields(self) -> list[str]:
+        return [self.team_field] if self.team_field else []
+
+    def lead_for(self, fields: dict) -> dict | None:
+        teams = team_names(fields.get(self.team_field)) if self.team_field else []
+        components = [c.get("name") or "" for c in fields.get("components") or []]
+        for name, routes in [(t, self.by_team) for t in teams] + [(c, self.by_component) for c in components]:
+            if name.casefold() in routes:
+                return routes[name.casefold()]
+        return None
+
+
+def dev_lead_flags(rules: dict, hub) -> list[str]:
+    """A flag for each dev lead in rules.yml who isn't an active Hub user, so a lead who has
+    left shows up instead of their tickets quietly losing the mention."""
+    flags, seen = [], set()
+    for rule in rules.get("rules", []):
+        for route in DevLeads((rule.get("query") or {}).get("dev_leads")).routes:
+            username = route["username"]
+            if username in seen:
+                continue
+            seen.add(username)
+            who = f"{route.get('name') or username} (`{username}`)"
+            try:
+                user = hub.user_by_username(username)
+            except Exception:  # noqa: BLE001 - reported, the run goes on
+                flags.append(f"Couldn't check that dev lead {who} is on Hub.")
+                continue
+            if not user:
+                flags.append(f"Dev lead {who} in rules.yml has no Hub account, so their tickets name them without a mention.")
+            elif user.get("delete_at"):
+                flags.append(f"Dev lead {who} in rules.yml is deactivated on Hub, so their tickets name them without a mention.")
+    return flags
+
+
+def linked_prs(jira, key: str) -> list[tuple[str, str]]:
+    """The ticket's GitHub PR remote links, as ("pr-mattermost-36558", url)."""
+    found = {}
+    for link in jira.remote_links(key):
+        url = (link.get("object") or {}).get("url") or ""
+        match = GITHUB_PR_URL.match(url)
+        if match:
+            found.setdefault(f"pr-{match.group(1)}-{match.group(2)}", url)
+    return list(found.items())
+
+
+def open_release_items(ctx: Context, rule: dict) -> Result:
+    """Jira issues with the release's fix version that aren't Closed, and open milestone PRs.
+
+    Each issue's ``owner`` is who the post mentions: its assignee, or for an unassigned or
+    bot ticket the dev lead of its Jira Team (or component) in ``dev_leads``, else nobody.
+    """
+    query = ctx.query(rule)
+    people = HubPeople(ctx.hub)
+    bots = {name.casefold() for name in query.get("bot_assignees", [])}
+    leads = DevLeads(query.get("dev_leads"))
+    with_links = query.get("linked_prs_status", "").casefold()
+    issues = []
+    for issue in ctx.jira.search(query["jql"], extra_fields=leads.fields):
+        item, fields = jira_item(ctx.jira, issue), issue.get("fields") or {}
+        assignee = fields.get("assignee") or {}
+        name = assignee.get("displayName") or ""
+        if name and name.casefold() not in bots:
+            item.owner = people.by_assignee(assignee)
+        else:
+            item.reason = name or "unassigned"
+            lead = leads.lead_for(fields)
+            item.owner = people.by_username(lead["username"], lead.get("name", "")) if lead else ""
+        if with_links and ((fields.get("status") or {}).get("name") or "").casefold() == with_links:
+            item.links = linked_prs(ctx.jira, issue["key"])
+        issues.append(item)
+    prs = []
+    excluded = "".join(f" -author:{author}" for author in query.get("exclude_authors", []))
+    for repo in query.get("repos", []):
+        search = f'repo:{repo} is:pr is:open milestone:"{ctx.vars["milestone"]}"{excluded}'
+        prs += [pr_item(repo, pr) for pr in ctx.github.search_issues(search)]
+    summary = f"{plural(len(issues), 'open Jira issue')} and {plural(len(prs), 'open PR')}{private_count(prs)}"
+    return Result(INFO, summary, issues + prs, ctx.jira.filter_url(query["jql"]))
+
+
+REPO_PR_URL = re.compile(r"^https://github\.com/([\w.-]+/[\w.-]+)/pull/(\d+)(?:[/?#].*)?$", re.IGNORECASE)
+
+
+def _mentions_key(text: str, key: str) -> bool:
+    return re.search(rf"(?<![\w-]){re.escape(key)}(?!\d)", text or "", re.IGNORECASE) is not None
+
+
+def cherry_picks_to_label(ctx: Context, rule: dict) -> Result:
+    """Submitted tickets' PRs in ``repos`` that still need a cherry-pick label or the milestone.
+
+    These are the repos release-cherry-pick-labels.yml can't write to (its GITHUB_TOKEN only
+    reaches mattermost/mattermost), so the release manager labels them by hand. PRs are found
+    as that workflow finds them: the ticket's Jira links, else PRs naming the ticket in their
+    title or branch, leaving out by-title matches with another milestone (earlier fixes).
+    Only PRs against ``base_branch`` that weren't closed unmerged count.
+    """
+    query = ctx.query(rule)
+    repos = [repo.lower() for repo in query["repos"]]
+    done_labels, milestone = {label.casefold() for label in query["labels"]}, query["milestone"]
+    todo, seen = [], set()
+    for issue in ctx.jira.search(query["jql"]):
+        key = issue["key"]
+        linked = {}
+        for link in ctx.jira.remote_links(key):
+            match = REPO_PR_URL.match(((link.get("object") or {}).get("url") or "").strip())
+            if match:
+                linked.setdefault((match.group(1).lower(), int(match.group(2))), False)
+        if not linked:
+            for repo in repos:
+                for found in ctx.github.search_issues(f'repo:{repo} is:pr "{key}"', limit=20):
+                    linked.setdefault((repo, found["number"]), True)
+        for (repo, number), by_title in sorted(linked.items()):
+            if repo not in repos or (repo, number) in seen:
+                continue
+            pull = ctx.github.pull(repo, number)
+            if by_title and not (_mentions_key(pull.get("title"), key)
+                                 or _mentions_key((pull.get("head") or {}).get("ref"), key)):
+                continue
+            current = (pull.get("milestone") or {}).get("title") or ""
+            if ((pull.get("base") or {}).get("ref") != query["base_branch"]
+                    or (pull.get("state") == "closed" and not pull.get("merged_at"))
+                    or (by_title and current not in ("", milestone))):
+                continue
+            seen.add((repo, number))
+            needs = []
+            if not done_labels & {label["name"].casefold() for label in pull.get("labels") or []}:
+                needs.append(f"`{query['labels'][0]}`")
+            if not current:
+                needs.append(f"milestone {milestone}")
+            elif current != milestone:
+                needs.append(f"milestone {milestone} (it has {current})")
+            if needs:
+                todo.append(Item(f"{repo.split('/')[-1]}#{number}", pull.get("title", ""), pull.get("html_url", ""),
+                                 repo=repo, note=f"{key}: add {' and '.join(needs)}"))
+    if todo:
+        return Result(FAIL, f"{plural(len(todo), 'cherry-pick PR')} to label by hand{private_count(todo)}", todo)
+    return Result(PASS, f"No cherry-pick PRs to label by hand ({plural(len(seen), 'PR')} checked)")
+
+
+def new_regressions(ctx: Context, rule: dict) -> Result:
+    """Regressions filed since the branch cut, which pass once every one has a fix version.
+
+    The JQL decides what counts as a regression, including bugs that only mention the release
+    in their text. Duplicates and other ``excluded_resolutions`` are skipped here too.
+    """
+    query = ctx.query(rule)
+    excluded = {name.casefold() for name in query.get("excluded_resolutions", [])}
+    regressions, missing = [], []
+    for issue in ctx.jira.search(query["jql"]):
+        fields = issue.get("fields") or {}
+        if ((fields.get("resolution") or {}).get("name") or "").casefold() in excluded:
+            continue
+        regressions.append(issue)
+        if not fields.get("fixVersions"):
+            missing.append(jira_item(ctx.jira, issue))
+    proof = ctx.jira.filter_url(query["jql"])
+    if missing:
+        return Result(FAIL, f"{len(missing)} of {plural(len(regressions), 'new regression')} have no fix version", missing, proof)
+    return Result(PASS, f"All {plural(len(regressions), 'new regression')} have a fix version", [], proof)
+
+
+def hub_release_branch(ctx: Context, rule: dict) -> Result:
+    """Hub runs a build of the release branch: its version and build commit both match."""
+    branch = ctx.vars["branch"]
+    if not ctx.has_branch:
+        return Result(SKIPPED, f"{branch} doesn't exist yet")
+    repo = ctx.query(rule).get("repo", "mattermost/mattermost")
+    version, build_hash = ctx.hub.server_version()
+    match = re.match(r"(\d+)\.(\d+)", version or "")
+    if not match or (int(match.group(1)), int(match.group(2))) != ctx.release.key:
+        return Result(FAIL, f"Hub isn't running {ctx.release.short_version}",
+                      [Item("Hub", note=f"Hub reports version {version or 'unknown'}")])
+    if build_hash and build_hash.lower() not in ("none", "dev"):
+        try:
+            on_branch = ctx.github.is_on_branch(repo, build_hash, branch)
+        except Exception:  # noqa: BLE001 - an unknown commit means it isn't on the branch
+            on_branch = False
+        if not on_branch:
+            return Result(FAIL, f"Hub's build isn't from {branch}",
+                          [Item("Hub", note=f"Hub runs {version}, build {build_hash[:12]}, which isn't on {branch}")])
+        proof = f"https://github.com/{repo}/commit/{build_hash}"
+    else:
+        proof = ""
+    return Result(PASS, f"Hub runs {ctx.release.short_version} from {branch}", [], proof)
+
+
+def _labels(items: list) -> str:
+    return ", ".join(item.public_label for item in items)
+
+
+def notice_txt(ctx: Context, rule: dict) -> Result:
+    """Every NOTICE.txt bot PR with the release's milestone is merged and on the release branch.
+
+    PRs with another milestone don't count: the next release's is merged to master after the
+    cut and needn't be on this branch. An open one fails; one closed unmerged is ignored.
+    """
+    branch = ctx.vars["branch"]
+    if not ctx.has_branch:
+        return Result(SKIPPED, f"{branch} doesn't exist yet")
+    query = ctx.query(rule)
+    repo, milestone = query["repo"], query["milestone"]
+    search = f'repo:{repo} is:pr author:{query["author"]} in:title "{query["title"]}" milestone:"{milestone}"'
+    found = ctx.github.search_issues(search, sort="created")
+    unmerged, missing, on_branch, commits = [], [], [], None
+    for pr in found:
+        item = pr_item(repo, pr)
+        if pr.get("state") == "open":
+            unmerged.append(item)
+            continue
+        pull = ctx.github.pull(repo, pr["number"])
+        if not pull.get("merged_at"):
+            continue
+        if commits is None:
+            commits = ctx.github.commits(repo, branch, path="NOTICE.txt", limit=100)
+        sha = pull.get("merge_commit_sha", "")
+        landed = any(c.get("sha") == sha or _references(c["commit"]["message"], pr["number"]) for c in commits)
+        (on_branch if landed else missing).append(item)
+    problems = []
+    if unmerged:
+        problems.append(f"{_labels(unmerged)} {'isn' if len(unmerged) == 1 else 'aren'}'t merged")
+    if missing:
+        problems.append(f"{_labels(missing)} {'is' if len(missing) == 1 else 'are'} merged but not on {branch}")
+    if problems:
+        bad = unmerged + missing
+        return Result(FAIL, "; ".join(problems), bad, bad[0].url)
+    if not on_branch:
+        return Result(SKIPPED, f"No NOTICE.txt PR has the {milestone} milestone")
+    if len(on_branch) == 1:
+        return Result(PASS, f"{on_branch[0].public_label} is merged and on {branch}", [], on_branch[0].url)
+    return Result(PASS, f"All {len(on_branch)} NOTICE.txt PRs with the {milestone} milestone are merged and on {branch}",
+                  [], on_branch[0].url)
+
+
+def cherry_picks(ctx: Context, rule: dict) -> Result:
+    """Every approved cherry-pick in the milestone that's merged to master is on the release branch."""
+    branch = ctx.vars["branch"]
+    if not ctx.has_branch:
+        return Result(SKIPPED, f"{branch} doesn't exist yet")
+    query = ctx.query(rule)
+    labels = ",".join(f'"{label}"' for label in query["labels"])
+    total, missing = 0, []
+    for repo in query["repos"]:
+        search = f'repo:{repo} is:pr is:merged base:master label:{labels} milestone:"{ctx.vars["milestone"]}"'
+        prs = ctx.github.search_issues(search)
+        if not prs:
+            continue
+        total += len(prs)
+        earliest = min(pr["pull_request"]["merged_at"] for pr in prs)
+        messages = [c["commit"]["message"] for c in ctx.github.commits(repo, branch, since=earliest, limit=3000)]
+        for pr in prs:
+            if any(_references(message, pr["number"]) for message in messages):
+                continue
+            sha = ctx.github.pull(repo, pr["number"]).get("merge_commit_sha")
+            if sha and ctx.github.is_on_branch(repo, sha, branch):
+                continue
+            missing.append(pr_item(repo, pr))
+    if missing:
+        return Result(FAIL, f"{len(missing)} of {plural(total, 'approved cherry-pick')} aren't on {branch}{private_count(missing)}", missing)
+    return Result(PASS, f"All {plural(total, 'approved cherry-pick')} are on {branch}")
+
+
+def _post_text(post: dict) -> str:
+    parts = [post.get("message", "")]
+    for attachment in (post.get("props") or {}).get("attachments") or []:
+        parts += [attachment.get(key) or "" for key in ("pretext", "title", "text", "fallback")]
+        for item in attachment.get("fields") or []:
+            parts += [str(item.get("title") or ""), str(item.get("value") or "")]
+    return "\n".join(parts).lower()
+
+
+def e2e_results(ctx: Context, rule: dict) -> Result:
+    """E2E results for the latest RC are posted in the Release: Testing Alerts channel."""
+    if not ctx.rc_numbers:
+        return Result(SKIPPED, f"No {ctx.release.short_version} RC is tagged yet")
+    rc_tag = ctx.vars["rc_tag"]
+    since = _parse_time(ctx.github.commit_date("mattermost/mattermost", rc_tag))
+    since_ms = int(since.timestamp() * 1000)
+    patterns = [p.lower() for p in ctx.query(rule)["match_any"]]
+    posts = [p for p in ctx.hub.posts_since(ctx.testing_alerts_channel, since_ms)
+             if p.get("create_at", 0) >= since_ms and not p.get("delete_at")]
+    found = sorted((p for p in posts if any(pattern in _post_text(p) for pattern in patterns)),
+                   key=lambda p: p["create_at"])
+    if not found:
+        return Result(FAIL, f"No E2E results posted for {rc_tag} yet")
+    proof = f"{ctx.hub.base_url}/_redirect/pl/{found[-1]['id']}"
+    return Result(PASS, f"E2E results posted for {rc_tag}", [], proof)
+
+
+def release_tags(ctx: Context, rule: dict) -> Result:
+    """The RC (``tag_prefix``) or final (``tag``) tag exists in every repo."""
+    query = ctx.query(rule)
+    wanted = query.get("tag") or f"{query['tag_prefix']}*"
+    missing = []
+    for repo in query["repos"]:
+        if query.get("tag"):
+            present = query["tag"] in ctx.github.tags_with_prefix(repo, query["tag"])
+        else:
+            present = bool(ctx.github.tags_with_prefix(repo, query["tag_prefix"]))
+        if not present:
+            missing.append(Item(repo.split("/")[-1], f"No {wanted} tag", f"https://github.com/{repo}/tags", repo=repo))
+    if missing:
+        where = ", ".join(item.public_label for item in missing)
+        return Result(FAIL, f"{wanted} isn't tagged in {where}", missing)
+    return Result(PASS, f"{wanted} is tagged in {plural(len(query['repos']), 'repo')}")
+
+
+BATCH_WINDOW = timedelta(hours=12)
+# The X.Y.0 title is unique to the release, so searching from before the final build is
+# safe, and it allows for a calendar date that's a little late.
+VERSION_GO_LOOKBACK = timedelta(days=7)
+
+
+def version_go_prs(ctx: Context, rule: dict) -> Result:
+    """The bot's "Update latest … version" PRs opened with the final build are all merged.
+
+    The batch is the PR updating to this release's X.Y.0 and every other "Update latest" PR
+    opened with it, such as the patch versions of older releases.
+    """
+    query = ctx.query(rule)
+    repo, since = query["repo"], date.fromisoformat(query["created_since"])
+    version = ctx.release.version.lstrip("v")
+    if ctx.today < since:
+        return Result(SKIPPED, f"The version.go PRs are opened on {since.isoformat()}")
+    search_from = (since - VERSION_GO_LOOKBACK).isoformat()
+    search = f'repo:{repo} is:pr author:{query["author"]} in:title "Update latest" created:>={search_from}'
+    prs = ctx.github.search_issues(search)
+    # Search indexes "12.2.0" as one token but drops the dots, so match the title here.
+    title = re.compile(rf"version to {re.escape(version)}\s*$")
+    targets = [_parse_time(pr["created_at"]) for pr in prs if title.search(pr.get("title", ""))]
+    if not targets:
+        return Result(FAIL, f"No “Update latest … version to {version}” PR since {search_from}")
+    batch = [pr for pr in prs if any(abs(_parse_time(pr["created_at"]) - t) <= BATCH_WINDOW for t in targets)]
+    unmerged = [pr_item(repo, pr) for pr in batch if pr.get("state") == "open"]
+    if unmerged:
+        labels = ", ".join(item.public_label for item in unmerged)
+        return Result(FAIL, f"{len(unmerged)} of {plural(len(batch), 'version.go PR')} not merged: {labels}", unmerged)
+    return Result(PASS, f"All {plural(len(batch), 'version.go PR')} merged")
+
+
+# A holiday on the Confluence page, as in "(11/11/2026)": month/day/year.
+HOLIDAY_DATE = re.compile(r"(?<![\d/])(\d{1,2})/(\d{1,2})/(\d{4})(?!\d)")
+
+
+def page_holidays(text: str, heading: str, years) -> set[date]:
+    """Every M/DD/YYYY date in each year's section of the holidays page.
+
+    ``heading`` has a ``{year}`` placeholder. A section runs from its heading to the next
+    heading of that form, whatever its year.
+    """
+    text, heading = " ".join(text.split()), " ".join(heading.split())
+    before, _, after = heading.partition("{year}")
+    any_heading = re.compile(re.escape(before) + r"\d{4}" + re.escape(after), re.IGNORECASE)
+    starts = [(m.start(), m.end(), m.group(0)) for m in any_heading.finditer(text)]
+    wanted = {heading.format(year=year).casefold() for year in years}
+    days = set()
+    for index, (_, end, found) in enumerate(starts):
+        if " ".join(found.split()).casefold() not in wanted:
+            continue
+        stop = starts[index + 1][0] if index + 1 < len(starts) else len(text)
+        for match in HOLIDAY_DATE.finditer(text[end:stop]):
+            month, day, year = (int(g) for g in match.groups())
+            try:
+                days.add(date(year, month, day))
+            except ValueError:
+                continue
+    return days
+
+
+def holidays_page(ctx: Context, rule: dict) -> Result:
+    """In October, the Confluence holidays page has next year's heading and holiday list.
+
+    The list is at least ``min_dates`` dates in next year, such as "(1/01/2028)", after the
+    heading. It's a yearly task rather than a release one, so only the first active release
+    checks it. The page is private: its URL is the proof, and only counts go in the summary.
+    """
+    query = ctx.query(rule)
+    month = int(query["month"])
+    if ctx.today.month != month or not ctx.primary:
+        why = "it's checked by the earlier active release" if ctx.today.month == month else f"it's checked in {month_name[month]}"
+        return Result(SKIPPED, f"Not checked: {why}", hidden=True)
+    page_id = str(query.get("page_id") or "").strip()
+    if not page_id:
+        raise CheckError("RELEASE_AGENT_HOLIDAYS_PAGE_ID isn't set")
+    year, heading, wanted = ctx.today.year + 1, " ".join(query["heading"].split()), int(query["min_dates"])
+    text, url = ctx.confluence.page(page_id)
+    text = " ".join(text.split())
+    start = text.casefold().find(heading.casefold())
+    if start < 0:
+        problem = f"The holidays page has no “{heading}” heading yet"
+    else:
+        dates = sum(1 for m in HOLIDAY_DATE.finditer(text[start:]) if int(m.group(3)) == year)
+        if dates >= wanted:
+            return Result(PASS, f"The holidays page lists {dates} holidays in {year}", [], url)
+        problem = f"The holidays page lists {dates} of at least {wanted} holidays in {year}"
+    return Result(FAIL, problem, [Item("Holidays page", "Add next year's holidays", url)], url)
+
+
+def changelog_labels(ctx: Context, rule: dict) -> Result:
+    """Every merged milestone PR has one of the changelog labels."""
+    query = ctx.query(rule)
+    exclusions = " ".join(f'-label:"{label}"' for label in query["labels"])
+    missing = []
+    for repo in query["repos"]:
+        search = f'repo:{repo} is:pr is:merged milestone:"{ctx.vars["milestone"]}" {exclusions}'
+        missing += [pr_item(repo, pr) for pr in ctx.github.search_issues(search)]
+    if missing:
+        return Result(FAIL, f"{plural(len(missing), 'merged PR')} without a changelog label{private_count(missing)}", missing)
+    return Result(PASS, "Every merged milestone PR has a changelog label")
+
+
+CHECKS = {
+    "open_release_items": (open_release_items, "report_only"),
+    "cherry_picks_to_label": (cherry_picks_to_label, "none_missing"),
+    "new_regressions": (new_regressions, "all_have_fix_version"),
+    "hub_release_branch": (hub_release_branch, "versions_match"),
+    "notice_txt": (notice_txt, "merged_and_on_release_branch"),
+    "cherry_picks": (cherry_picks, "all_on_release_branch"),
+    "e2e_results": (e2e_results, "found"),
+    "release_tags": (release_tags, "present"),
+    "version_go_prs": (version_go_prs, "merged"),
+    "changelog_labels": (changelog_labels, "none_missing"),
+    "holidays_page": (holidays_page, "next_year_listed"),
+}
+

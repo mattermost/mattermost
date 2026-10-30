@@ -1,0 +1,142 @@
+name: Release Agent
+
+# Phase 1 of self-hosted release automation. Every weekday it works out the active
+# releases from the Release Dates calendar (cross-checked against release branches and
+# tags), runs the checks in .github/release-agent/rules.yml, ticks the matching items in
+# each release's Cloud & Self-Hosted playbook run, keeps one status post per release up
+# to date on Hub, and writes one line to release-agent-log. Nothing is kept between runs.
+#
+# This repo is public, so its Actions logs are too: check details, Hub content and
+# anything from mattermost/enterprise go to Hub only. The log, step summary and run.json
+# artifact carry statuses, counts and public refs, with private-repo items shown as
+# "(private repo)".
+#
+# Modes (RELEASE_AGENT_MODE, or the dispatch input):
+#   test (default) — posts only to the test channel and ticks nothing
+#   live           — posts in each release channel and ticks playbook items
+#
+# A release's channel is the one named "Release: vX.Y" (ESRs: "Release: vX.Y (ESR)" or
+# "Release: vX.Y ESR") that the bot is a member of; its playbook run is the in-progress
+# run in that channel. A person's :no_entry_sign: reaction on the status post marks what
+# it raised so far as false alarms (counted in run.json).
+#
+# Secrets:
+#   RELEASE_AGENT_MM_TOKEN      — Hub bot token (posts, playbook runs, Testing Alerts channel)
+#   RELEASE_AGENT_JIRA_TOKEN    — read-only Atlassian API token for Jira, and for Confluence
+#                                 to read the holidays page
+#   CHANGELOG_READ_PRIVATE_KEY  — the changelog workflow's read app, which can read
+#                                 mattermost/mattermost and mattermost/enterprise
+#   RELEASE_AGENT_CALENDAR_ICS_URL — optional; use instead of the variable when the feed
+#                                    URL embeds a secret token
+# Variables:
+#   RELEASE_AGENT_MODE                     — test | live
+#   RELEASE_AGENT_CALENDAR_ICS_URL         — the Release Dates calendar's ICS feed
+#   RELEASE_AGENT_LOG_CHANNEL_ID           — release-agent-log
+#   RELEASE_AGENT_TEST_CHANNEL_ID          — where test mode posts
+#   RELEASE_AGENT_TESTING_ALERTS_CHANNEL_ID — Release: Testing Alerts
+#   RELEASE_AGENT_JIRA_EMAIL               — the Jira token's account
+#   RELEASE_AGENT_HOLIDAYS_PAGE_ID         — the Confluence holidays page, checked in October
+#                                            for next year's holidays
+#   RELEASE_AGENT_PLAYBOOK_ID              — optional; the Cloud & Self-Hosted playbook
+#   RELEASE_AGENT_RELEASE_CHANNEL_IDS      — optional JSON, {"v12.2": "<channel id>"}, to post
+#                                            somewhere other than "Release: v12.2"
+#   RELEASE_AGENT_MM_URL                   — optional; defaults to https://hub.mattermost.com
+#   CHANGELOG_READ_CLIENT_ID               — the read app's client ID
+on:
+  schedule:
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Check only this release (e.g. v12.2), even outside its calendar window'
+        required: false
+        type: string
+      mode:
+        description: 'repository-variable uses RELEASE_AGENT_MODE'
+        required: false
+        default: repository-variable
+        type: choice
+        options:
+          - repository-variable
+          - test
+          - live
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-agent
+  cancel-in-progress: false
+
+jobs:
+  release-agent:
+    if: github.repository == 'mattermost/mattermost'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      MM_URL: ${{ vars.RELEASE_AGENT_MM_URL || 'https://hub.mattermost.com' }}
+      RELEASE_AGENT_MODE: ${{ vars.RELEASE_AGENT_MODE }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    # Checkout and Python come first so the log step can still report a later failure.
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install --quiet -r .github/release-agent/requirements.txt
+
+      - name: Get read token (mattermost and enterprise)
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: readToken
+        with:
+          client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost,enterprise
+
+      - name: Run checks
+        working-directory: .github/scripts
+        env:
+          INPUT_RELEASE: ${{ inputs.release }}
+          INPUT_MODE: ${{ inputs.mode }}
+          GH_TOKEN: ${{ steps.readToken.outputs.token }}
+          MM_TOKEN: ${{ secrets.RELEASE_AGENT_MM_TOKEN }}
+          JIRA_EMAIL: ${{ vars.RELEASE_AGENT_JIRA_EMAIL }}
+          JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
+          CALENDAR_ICS_URL: ${{ secrets.RELEASE_AGENT_CALENDAR_ICS_URL || vars.RELEASE_AGENT_CALENDAR_ICS_URL }}
+          TEST_CHANNEL_ID: ${{ vars.RELEASE_AGENT_TEST_CHANNEL_ID }}
+          TESTING_ALERTS_CHANNEL_ID: ${{ vars.RELEASE_AGENT_TESTING_ALERTS_CHANNEL_ID }}
+          PLAYBOOK_ID: ${{ vars.RELEASE_AGENT_PLAYBOOK_ID }}
+          RELEASE_CHANNEL_IDS: ${{ vars.RELEASE_AGENT_RELEASE_CHANNEL_IDS }}
+          HOLIDAYS_PAGE_ID: ${{ vars.RELEASE_AGENT_HOLIDAYS_PAGE_ID }}
+          OUT_DIR: ${{ runner.temp }}/release-agent
+        run: python3 -m release_agent run --out-dir "$OUT_DIR"
+
+      # run.json only: details.txt can hold private details and is posted to Hub instead.
+      - name: Upload run.json
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: release-agent-run
+          path: ${{ runner.temp }}/release-agent/run.json
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Write to release-agent-log
+        if: always()
+        working-directory: .github/scripts
+        env:
+          JOB_STATUS: ${{ job.status }}
+          MM_TOKEN: ${{ secrets.RELEASE_AGENT_MM_TOKEN }}
+          LOG_CHANNEL_ID: ${{ vars.RELEASE_AGENT_LOG_CHANNEL_ID }}
+          OUT_DIR: ${{ runner.temp }}/release-agent
+        run: python3 -m release_agent log --out-dir "$OUT_DIR"
