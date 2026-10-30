@@ -2299,74 +2299,6 @@
     "defaultMessage": "Contact Support",
     "description": "Tertiary button on the workspace deletion result modal that opens a support form."
   },
-  "admin.billing.history.allPaymentsShowHere": {
-    "defaultMessage": "All of your invoices will be shown here",
-    "description": "Subtitle under the 'Transactions' heading on the Billing History page in the System Console."
-  },
-  "admin.billing.history.date": {
-    "defaultMessage": "Date",
-    "description": "Column header for the invoice date in the billing history table; compact space."
-  },
-  "admin.billing.history.description": {
-    "defaultMessage": "Description",
-    "description": "Column header for the invoice description in the billing history table; compact space."
-  },
-  "admin.billing.history.fractionalAndRatedSeats": {
-    "defaultMessage": "{fractionalSeats} metered seats, {fullSeats} seats at full rate, {partialSeats} seats with partial charges",
-    "description": "Invoice user-count summary mixing metered and rated seats; {fractionalSeats}, {fullSeats} and {partialSeats} are seat counts. 'Seats' means billed user licenses."
-  },
-  "admin.billing.history.fractionalSeats": {
-    "defaultMessage": "{fractionalSeats} seats",
-    "description": "Invoice user-count summary for metered billing; {fractionalSeats} is a possibly fractional seat count. 'Seats' means billed user licenses."
-  },
-  "admin.billing.history.noBillingHistory": {
-    "defaultMessage": "In the future, this is where your billing history will show.",
-    "description": "Empty-state message on the Billing History page when no invoices exist yet."
-  },
-  "admin.billing.history.onPremSeats": {
-    "defaultMessage": "{num} seats",
-    "description": "Invoice user-count summary for self-hosted purchases; {num} is the whole number of licensed seats."
-  },
-  "admin.billing.history.pageInfo": {
-    "defaultMessage": "{startRecord} - {endRecord} of {totalRecords}",
-    "description": "Pagination summary under the billing history table; {startRecord} and {endRecord} are the visible row range, {totalRecords} the total invoice count."
-  },
-  "admin.billing.history.paid": {
-    "defaultMessage": "Paid",
-    "description": "Payment status badge in the billing history table for a settled invoice; adjective, compact space."
-  },
-  "admin.billing.history.paymentFailed": {
-    "defaultMessage": "Payment failed",
-    "description": "Payment status badge in the billing history table for an invoice whose charge failed; compact space."
-  },
-  "admin.billing.history.pending": {
-    "defaultMessage": "Pending",
-    "description": "Payment status badge in the billing history table for an invoice awaiting payment; adjective, compact space."
-  },
-  "admin.billing.history.seatsAndRates": {
-    "defaultMessage": "{fullSeats} seats at full rate, {partialSeats} seats with partial charges",
-    "description": "Invoice user-count summary; {fullSeats} are seats billed at full rate and {partialSeats} seats billed prorated. 'Seats' means billed user licenses."
-  },
-  "admin.billing.history.seeHowBillingWorks": {
-    "defaultMessage": "See how billing works",
-    "description": "Link under the billing history empty state pointing to external billing documentation."
-  },
-  "admin.billing.history.status": {
-    "defaultMessage": "Status",
-    "description": "Column header for the payment status in the billing history table; compact space."
-  },
-  "admin.billing.history.title": {
-    "defaultMessage": "Billing History",
-    "description": "Page title of the Billing History section in the System Console."
-  },
-  "admin.billing.history.total": {
-    "defaultMessage": "Total",
-    "description": "Column header for the invoice total amount in the billing history table; compact space."
-  },
-  "admin.billing.history.transactions": {
-    "defaultMessage": "Transactions",
-    "description": "Card heading above the invoice table on the Billing History page."
-  },
   "admin.billing.subscription.cloudMonthlyBadge": {
     "defaultMessage": "Monthly",
     "description": "Small badge next to the plan name on the Subscription page indicating monthly billing; very compact."
@@ -2426,10 +2358,6 @@
   "admin.billing.subscription.freeTrial.title": {
     "defaultMessage": "You're currently on a free trial",
     "description": "Heading of the free-trial card in the billing summary while the trial is active."
-  },
-  "admin.billing.subscription.invoice.next": {
-    "defaultMessage": "Next Invoice",
-    "description": "Card heading in the billing summary for the upcoming (not yet issued) invoice."
   },
   "admin.billing.subscription.planDetails.currentPlan": {
     "defaultMessage": "Current Plan",
@@ -2559,54 +2487,6 @@
     "defaultMessage": "Subscription",
     "description": "Page title of the Subscription section under Billing in the System Console; noun."
   },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.monthlyFlatFee": {
-    "defaultMessage": "Monthly Flat Fee",
-    "description": "Line item description on the invoice summary card for flat-fee billing plans."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.paid": {
-    "defaultMessage": "Paid",
-    "description": "Status badge on the invoice summary card for a settled invoice; adjective, compact space."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.partialCharges": {
-    "defaultMessage": "Partial charges",
-    "description": "Sub-heading on the invoice summary card above prorated line items; has an info tooltip next to it."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.seatCount": {
-    "defaultMessage": " x {seats} seats",
-    "description": "Fragment concatenated directly after a currency amount on the invoice summary card (e.g. '$10 x 25 seats'); {seats} is the seat quantity; keep the leading space."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.seatCountPartial": {
-    "defaultMessage": "{seats} seats",
-    "description": "Line item in the last-invoice billing summary showing partially charged seats; {seats} is a number of user seats."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.seeBillingHistory": {
-    "defaultMessage": "See Billing History",
-    "description": "Link at the bottom of the invoice summary card leading to the full Billing History page."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.taxes": {
-    "defaultMessage": "Taxes",
-    "description": "Line item label on the invoice summary card for the tax amount; compact space."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.title": {
-    "defaultMessage": "Last Invoice",
-    "description": "Card heading in the billing summary for the most recent issued invoice."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.total": {
-    "defaultMessage": "Total",
-    "description": "Label of the total amount row on the invoice summary card; compact space."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.viewInvoice": {
-    "defaultMessage": "View Invoice",
-    "description": "Link/button on the invoice summary card that opens the invoice PDF preview."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges": {
-    "defaultMessage": "What are partial charges?",
-    "description": "Tooltip title on the info icon next to 'Partial charges' on the invoice summary card."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message": {
-    "defaultMessage": "Users who have not been enabled for the full duration of the month are charged at a prorated monthly rate.",
-    "description": "Tooltip explaining partial charges on the last-invoice billing summary, shown to workspace admins."
-  },
   "admin.billing.subscriptions.billing_summary.noBillingHistory.description": {
     "defaultMessage": "In the future, this is where your most recent bill summary will show.",
     "description": "Body of the billing summary empty state when no invoices exist yet."
@@ -2618,10 +2498,6 @@
   "admin.billing.subscriptions.billing_summary.noBillingHistory.title": {
     "defaultMessage": "No billing history yet",
     "description": "Heading of the billing summary empty state when no invoices exist yet."
-  },
-  "admin.billing.subscriptions.billing_summary.upcomingInvoice.has_more_line_items": {
-    "defaultMessage": "And {count} more items",
-    "description": "Clickable line at the end of a truncated invoice summary; {count} is the number of line items not shown."
   },
   "admin.board_attributes.add_attribute": {
     "defaultMessage": "Add attribute",
@@ -15051,10 +14927,6 @@
     "defaultMessage": "Billing & Account",
     "description": "Category heading in the System Console left navigation sidebar, grouping billing and subscription pages; compact space."
   },
-  "admin.sidebar.billing_history": {
-    "defaultMessage": "Billing History",
-    "description": "Navigation item in the System Console left sidebar linking to the billing history page (Cloud)."
-  },
   "admin.sidebar.board_attributes": {
     "defaultMessage": "Board Attributes",
     "description": "Navigation item in the System Console sidebar; opens the Boards product attributes page; compact space."
@@ -21215,10 +21087,6 @@
     "defaultMessage": "Message Archived",
     "description": "Title of the error page shown when a linked message was archived due to Cloud free plan message limits."
   },
-  "cloud_billing_history_modal.title": {
-    "defaultMessage": "Invoice(s)",
-    "description": "Title of the modal listing one or more cloud invoices; '(s)' marks an optional plural."
-  },
   "cloud_preview_modal.aria_label": {
     "defaultMessage": "Cloud Preview Introduction",
     "description": "Accessible label (aria-label) of the whole cloud preview walkthrough modal shown to trial users."
@@ -21474,10 +21342,6 @@
   "cloud.fetch_error.retry": {
     "defaultMessage": "Retry",
     "description": "Button label to retry loading when cloud subscription/billing data fails to fetch; verb, compact button."
-  },
-  "cloud.invoice_pdf_preview.download": {
-    "defaultMessage": "<downloadLink>Download</downloadLink> this page for your records",
-    "description": "Subtitle in the cloud invoice preview modal header; <downloadLink> tags wrap the clickable word that downloads the invoice PDF."
   },
   "collapsed_reply_threads_modal.confirm": {
     "defaultMessage": "Got it",

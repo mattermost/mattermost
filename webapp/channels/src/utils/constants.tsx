@@ -437,8 +437,6 @@ export const ModalIdentifiers = {
     FEATURE_RESTRICTED_MODAL: 'feature_restricted_modal',
     FORWARD_POST_MODAL: 'forward_post_modal',
     JOIN_PUBLIC_CHANNEL_MODAL: 'join_public_channel_modal',
-    CLOUD_INVOICE_PREVIEW: 'cloud_invoice_preview',
-    BILLING_HISTORY: 'billing_history',
     RESTORE_POST_MODAL: 'restore_post',
     INFO_TOAST: 'info_toast',
     MARK_ALL_THREADS_AS_READ: 'mark_all_threads_as_read_modal',
@@ -2098,7 +2096,6 @@ export const ConsolePages = {
     WEB_SERVER: '/admin_console/environment/web_server',
     PUSH_NOTIFICATION_CENTER: '/admin_console/environment/push_notification_server',
     SMTP: '/admin_console/environment/smtp',
-    BILLING_HISTORY: '/admin_console/billing/billing_history',
 };
 
 export const WindowSizes = {

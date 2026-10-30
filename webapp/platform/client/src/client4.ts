@@ -36,7 +36,6 @@ import {LogLevel} from '@mattermost/types/client4';
 import type {
     Product,
     CloudCustomer,
-    Invoice,
     Limits,
     NotifyAdminRequest,
     Subscription,
@@ -4748,17 +4747,6 @@ export default class Client4 {
             `${this.getCloudRoute()}/preview/modal_data`,
             {method: 'get'},
         );
-    };
-
-    getInvoices = () => {
-        return this.doFetch<Invoice[]>(
-            `${this.getCloudRoute()}/subscription/invoices`,
-            {method: 'get'},
-        );
-    };
-
-    getInvoicePdfUrl = (invoiceId: string) => {
-        return `${this.getCloudRoute()}/subscription/invoices/${invoiceId}/pdf`;
     };
 
     getCloudLimits = () => {
