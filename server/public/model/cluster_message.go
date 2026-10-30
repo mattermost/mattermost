@@ -62,6 +62,8 @@ const (
 	ClusterEventInvalidateCacheForUserAttributes            ClusterEvent = "inv_user_attributes"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
+	ClusterEventHealthCollect                               ClusterEvent = "health_collect"
+	ClusterEventHealthCollectReply                          ClusterEvent = "health_collect_reply"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.
 

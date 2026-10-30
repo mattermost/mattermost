@@ -9,36 +9,25 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
-// BuildHealthSnapshot assembles a health snapshot from live server state. A failed workspace
-// collector is recorded in Snapshot.Sections rather than failing the call; the error return
-// is for a snapshot that cannot be built at all.
-//
-// It must only be called on the cluster leader: the local node is reported as the leader and
-// is the only node that carries diagnostics.
+// healthCollectDeadline bounds how long a run waits for the other nodes' diagnostics. It must
+// cover the probes' own timeouts: OAuth and push are 10 s each, the pg_stat queries 10 s each,
+// plus SMTP, LDAP, Elasticsearch and S3.
+const healthCollectDeadline = 3 * time.Minute
+
+// BuildHealthSnapshot assembles a health snapshot from live server state, with every connected
+// node's diagnostics. A failed workspace collector is recorded in Snapshot.Sections rather than
+// failing the call; the error return is for a snapshot that cannot be built at all.
 func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, error) {
 	return a.buildHealthSnapshotWithLatestVersionURL(rctx, LatestVersionURL)
 }
 
 func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVersionURL string) (*healthcheck.Snapshot, error) {
-	nodes, err := clusterNodes(a.Cluster())
+	nodes, err := a.Srv().Platform().CollectHealthNodes(rctx, healthCollectDeadline)
 	if err != nil {
 		return nil, err
-	}
-
-	// Failures are already recorded per section in the envelope.
-	diagnostics, _ := a.Srv().Platform().GetSupportPacketDiagnostics(rctx)
-	for _, node := range nodes {
-		if node.IsLeader {
-			node.Diagnostics = diagnostics
-			// A standalone node has no cluster hostname; the packet reader takes it from diagnostics too.
-			if diag, ok := node.Diag(); ok && node.Hostname == "" {
-				node.Hostname = model.SafeDereference(diag.Server.Hostname)
-			}
-		}
 	}
 
 	sections := map[model.WorkspaceSection]error{}
@@ -71,35 +60,4 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 	}
 
 	return snapshot, nil
-}
-
-func clusterNodes(cluster einterfaces.ClusterInterface) ([]*healthcheck.NodeSnapshot, error) {
-	if cluster == nil {
-		return []*healthcheck.NodeSnapshot{{IsLeader: true}}, nil
-	}
-
-	clusterInfos, err := cluster.GetClusterInfos()
-	if err != nil {
-		return nil, err
-	}
-	if len(clusterInfos) == 0 {
-		return []*healthcheck.NodeSnapshot{{IsLeader: true}}, nil
-	}
-
-	localClusterID := cluster.GetClusterId()
-	nodes := make([]*healthcheck.NodeSnapshot, 0, len(clusterInfos))
-	for _, clusterInfo := range clusterInfos {
-		node := &healthcheck.NodeSnapshot{
-			ClusterInfo: clusterInfo,
-		}
-
-		if clusterInfo != nil {
-			node.Hostname = clusterInfo.Hostname
-			node.IsLeader = clusterInfo.Id == localClusterID
-		}
-
-		nodes = append(nodes, node)
-	}
-
-	return nodes, nil
 }
