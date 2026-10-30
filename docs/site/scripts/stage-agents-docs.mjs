@@ -12,20 +12,21 @@
 // sidebar is generated — same effect as Sphinx's conf.py exclude/redirect
 // rules on its own full-repo submodule checkout.
 //
-// Navigation mirrors Sphinx exactly (source/end-user-guide/agents.rst,
-// source/administration-guide/configure/agents-admin-guide.rst): no
-// top-level Agents nav section. admin_guide.md/user_guide.md are `..
-// include::`d into the two curated pages; providers/aws_bedrock_setup/
-// sovereign_ai/usage_tips get their own nested pages via a small hidden
-// toctree; everything else (load-testing, upgrading_to_2.0, features/*) is
-// direct-URL-only, never in any toctree. Reproduced as a three-way split:
+// Navigation: no top-level Agents nav section. admin_guide.md/user_guide.md
+// are inlined into the two curated pages (as Sphinx's `.. include::` did).
+// Every other page is either a listed child or unlisted:
 //   - INLINE_PARTIALS: staged as an unlisted doc (direct-link parity) AND
 //     as a Markdown partial (leading underscore) the curated pages
 //     `import` and render inline, reproducing `.. include::`.
-//   - NAV_CHILDREN: normal listed docs, nested under the curated pages by
-//     gen-documentation-sidebar.mjs via cross-directory {doc: ...} items.
-//   - Everything else: unlisted docs — built and linkable, absent from
-//     the sidebar.
+//   - NAV_CHILDREN: normal listed (indexable) docs, placed in the sidebar by
+//     gen-documentation-sidebar.mjs via cross-directory {doc: ...} items
+//     (the admin "AI agents" group and the End User Guide Agents category).
+//     Listing here only controls `unlisted`/noindex; keep the sidebar script
+//     in sync. Ids that are not staged (the pinned submodule may lag the
+//     plugin repo) are skipped there with a warning.
+//   - Everything else (currently just load-testing, which is for plugin
+//     contributors): unlisted docs — built and linkable, but `noindex` and
+//     absent from the sidebar.
 //
 // Re-run safely at any time (e.g. after `git submodule update --remote`) —
 // it fully regenerates its output directories.
@@ -53,7 +54,21 @@ const INLINE_PARTIALS = new Set(['admin_guide', 'user_guide']);
 
 // Files that get their own listed page, nested under a curated page by
 // gen-documentation-sidebar.mjs. Everything else staged ends up unlisted.
-const NAV_CHILDREN = new Set(['providers', 'aws_bedrock_setup', 'sovereign_ai', 'usage_tips']);
+// Keyed by path relative to the plugin's docs/ folder, without extension, so
+// same-named files in different folders can never be listed by accident.
+const NAV_CHILDREN = new Set([
+  'providers',
+  'aws_bedrock_setup',
+  'sovereign_ai',
+  'usage_tips',
+  'mcp_server',
+  'personal_agent',
+  'upgrading_to_2.0',
+  'features/managing_agents',
+  'features/custom_prompts',
+  'features/channel_summaries',
+  'features/multiplayer_tool_calling',
+]);
 
 function rmrf(p) {
   if (existsSync(p)) rmSync(p, {recursive: true, force: true});
@@ -139,7 +154,7 @@ function stageDocs() {
     const dest = join(DEST_DOCS, rel);
     mkdirSync(dirname(dest), {recursive: true});
 
-    const listed = NAV_CHILDREN.has(baseName);
+    const listed = NAV_CHILDREN.has(rel.replace(/\\/g, '/').replace(/\.md$/, ''));
     const inlined = INLINE_PARTIALS.has(baseName);
     const frontmatterLines = [];
     if (title) frontmatterLines.push(`title: "${title.replace(/"/g, '\\"')}"`);
