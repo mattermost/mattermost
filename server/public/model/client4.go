@@ -7478,24 +7478,6 @@ func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response
 	return DecodeJSONFromResponse[*Subscription](r)
 }
 
-func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer"), customerInfo)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
-}
-
-func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Address) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer", "address"), address)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
-}
-
 func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.importsRoute(), "")
 	if err != nil {

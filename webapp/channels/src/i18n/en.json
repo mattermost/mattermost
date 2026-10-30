@@ -2279,77 +2279,17 @@
     "defaultMessage": "There is currently no company information on file.",
     "description": "Empty-state message on the Company Information page when nothing has been entered yet."
   },
-  "admin.billing.company_info_display.provideDetails": {
-    "defaultMessage": "Provide your company name and address",
-    "description": "Subtitle under the 'Company Details' heading prompting the admin to enter company information."
-  },
-  "admin.billing.company_info_edit.cancel": {
-    "defaultMessage": "Cancel",
-    "description": "Cancel link at the bottom of the company information edit form; discards changes and returns to the display page."
-  },
-  "admin.billing.company_info_edit.company_address": {
-    "defaultMessage": "Company Address",
-    "description": "Section heading in the company information edit form above the address fields."
-  },
-  "admin.billing.company_info_edit.companyDetails": {
-    "defaultMessage": "Company Details",
-    "description": "Section heading in the company information edit form above the name and employee-count fields."
-  },
-  "admin.billing.company_info_edit.sameAsBillingAddress": {
-    "defaultMessage": "Same as Billing Address",
-    "description": "Checkbox label in the company information edit form; reuses the billing address as the company address."
-  },
-  "admin.billing.company_info_edit.save": {
-    "defaultMessage": "Save info",
-    "description": "Save button at the bottom of the company information edit form."
-  },
-  "admin.billing.company_info_edit.title": {
-    "defaultMessage": "Edit Company Information",
-    "description": "Page title of the form for editing billing company information. 'Edit' is a verb."
-  },
-  "admin.billing.company_info.add": {
-    "defaultMessage": "Add Company Information",
-    "description": "Button/link on the Company Information page that opens the form to enter company details for billing."
-  },
-  "admin.billing.company_info.address": {
-    "defaultMessage": "Address",
-    "description": "Form field label for the first address line on the billing Company Information edit page in the System Console."
-  },
-  "admin.billing.company_info.address_2": {
-    "defaultMessage": "Address 2",
-    "description": "Form field label for the optional second address line on the billing Company Information edit page."
-  },
-  "admin.billing.company_info.billingAddress": {
-    "defaultMessage": "Billing Address",
-    "description": "Heading above the read-only billing address block in the company information edit form."
-  },
-  "admin.billing.company_info.city": {
-    "defaultMessage": "City",
-    "description": "Placeholder of the city input in the company address form for billing."
-  },
   "admin.billing.company_info.companyAddress": {
     "defaultMessage": "Company Address",
     "description": "Section heading on the Company Information display page above the stored company address."
-  },
-  "admin.billing.company_info.companyName": {
-    "defaultMessage": "Company name",
-    "description": "Placeholder of the company name input in the billing company information form."
   },
   "admin.billing.company_info.employees": {
     "defaultMessage": "{employees} employees",
     "description": "Line under the company name on the Company Information page; {employees} is the number of employees."
   },
-  "admin.billing.company_info.numEmployees": {
-    "defaultMessage": "Number of employees (optional)",
-    "description": "Placeholder of an optional numeric input for company size in the billing company information form."
-  },
   "admin.billing.company_info.title": {
     "defaultMessage": "Company Information",
     "description": "Page title of the Company Information section under Billing in the System Console."
-  },
-  "admin.billing.company_info.zipcode": {
-    "defaultMessage": "Zip/Postal Code",
-    "description": "Placeholder of the postal code input in the company address form for billing."
   },
   "admin.billing.deleteWorkspace.failureModal.buttonText": {
     "defaultMessage": "Try Again",
@@ -28503,6 +28443,10 @@
     "defaultMessage": "Type to find a channel. Use <b>UP/DOWN</b> to browse, <b>ENTER</b> to select, <b>ESC</b> to dismiss.",
     "description": "Help text under the search box in the channel switcher modal (Ctrl+K); <b> tags render the key names in bold; UP/DOWN, ENTER and ESC are keyboard keys."
   },
+  "quote_selection_button.label": {
+    "defaultMessage": "Quote selection",
+    "description": "Tooltip and accessible name of the floating button shown next to text selected in a message, which inserts the selected text as a quote into the message box."
+  },
   "reaction_limit_reached_modal.body": {
     "defaultMessage": "Oops! It looks like we've hit a ceiling on emoji reactions for this message. Please contact your system administrator for any adjustments to this limit.",
     "description": "Body of the dialog shown when a message has reached the maximum number of unique emoji reactions; addressed to end users."
@@ -28970,14 +28914,6 @@
   "recaps.scheduled.delete.title": {
     "defaultMessage": "Delete scheduled recap?",
     "description": "Title of the confirmation dialog asked before deleting a recurring scheduled recap."
-  },
-  "recaps.scheduled.emptyState.cta": {
-    "defaultMessage": "Create a recap",
-    "description": "Call-to-action button on the empty scheduled-recaps tab that starts creating a recap; 'recap' is a noun."
-  },
-  "recaps.scheduled.emptyState.description": {
-    "defaultMessage": "Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.",
-    "description": "Empty-state description on the scheduled-recaps tab; 'Copilot' is the AI assistant product name."
   },
   "recaps.scheduled.emptyState.title": {
     "defaultMessage": "Set up your first recap",

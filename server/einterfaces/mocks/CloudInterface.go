@@ -436,66 +436,6 @@ func (_m *CloudInterface) RemoveAuditLoggingCert(userID string) error {
 	return r0
 }
 
-// UpdateCloudCustomer provides a mock function with given fields: userID, customerInfo
-func (_m *CloudInterface) UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error) {
-	ret := _m.Called(userID, customerInfo)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateCloudCustomer")
-	}
-
-	var r0 *model.CloudCustomer
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *model.CloudCustomerInfo) (*model.CloudCustomer, error)); ok {
-		return rf(userID, customerInfo)
-	}
-	if rf, ok := ret.Get(0).(func(string, *model.CloudCustomerInfo) *model.CloudCustomer); ok {
-		r0 = rf(userID, customerInfo)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.CloudCustomer)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, *model.CloudCustomerInfo) error); ok {
-		r1 = rf(userID, customerInfo)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UpdateCloudCustomerAddress provides a mock function with given fields: userID, address
-func (_m *CloudInterface) UpdateCloudCustomerAddress(userID string, address *model.Address) (*model.CloudCustomer, error) {
-	ret := _m.Called(userID, address)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateCloudCustomerAddress")
-	}
-
-	var r0 *model.CloudCustomer
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *model.Address) (*model.CloudCustomer, error)); ok {
-		return rf(userID, address)
-	}
-	if rf, ok := ret.Get(0).(func(string, *model.Address) *model.CloudCustomer); ok {
-		r0 = rf(userID, address)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.CloudCustomer)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, *model.Address) error); ok {
-		r1 = rf(userID, address)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // ValidateBusinessEmail provides a mock function with given fields: userID, email
 func (_m *CloudInterface) ValidateBusinessEmail(userID string, email string) error {
 	ret := _m.Called(userID, email)
