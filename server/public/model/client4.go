@@ -39,6 +39,7 @@ const (
 	HeaderRequestedWith             = "X-Requested-With"
 	HeaderRequestedWithXML          = "XMLHttpRequest"
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
+	// Deprecated: the server no longer sets this header.
 	HeaderFirstInaccessibleFileTime = "First-Inaccessible-File-Time"
 	HeaderRange                     = "Range"
 	HeaderRejectReason              = "X-Reject-Reason"
