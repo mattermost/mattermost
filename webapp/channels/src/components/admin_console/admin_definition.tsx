@@ -55,7 +55,6 @@ import {searchableStrings as auditSearchableStrings} from './audits/audits';
 import BillingHistory, {searchableStrings as billingHistorySearchableStrings} from './billing/billing_history';
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
-import CompanyInfoEdit from './billing/company_info_edit';
 import BoardAttributes, {searchableStrings as boardAttributesSearchableStrings} from './board_attributes';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClassificationMarkings, {searchableStrings as classificationMarkingsSearchableStrings} from './classification_markings';
@@ -376,17 +375,6 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'CompanyInfo',
                     component: CompanyInfo,
-                },
-
-                // cloud only view
-                isHidden: it.not(it.licensedForFeature('Cloud')),
-                isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
-            },
-            company_info_edit: {
-                url: 'billing/company_info_edit',
-                schema: {
-                    id: 'CompanyInfoEdit',
-                    component: CompanyInfoEdit,
                 },
 
                 // cloud only view
