@@ -18,8 +18,6 @@ type CloudInterface interface {
 	GetCloudCustomer(userID string) (*model.CloudCustomer, error)
 
 	GetSubscription(userID string) (*model.Subscription, error)
-	GetInvoicesForSubscription(userID string) ([]*model.Invoice, error)
-	GetInvoicePDF(userID, invoiceID string) ([]byte, string, error)
 
 	ChangeSubscription(userID, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error)
 
