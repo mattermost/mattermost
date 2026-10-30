@@ -4,8 +4,11 @@
 import React, {useState, useEffect, useMemo, useCallback, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import {getAutoAddFromRules} from '@mattermost/types/access_control';
 
@@ -14,7 +17,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import * as Menu from 'components/menu';
-import SectionNotice from 'components/section_notice';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -445,14 +447,12 @@ export default function PolicyList(props: Props): JSX.Element {
                         onClick={() => {
                             history.push('/admin_console/system_attributes/membership_policies/edit_policy');
                         }}
+                        leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                     >
-                        <i className='icon icon-plus'/>
-                        <span>
-                            <FormattedMessage
-                                id='admin.access_control.policies.add_policy'
-                                defaultMessage='Add policy'
-                            />
-                        </span>
+                        <FormattedMessage
+                            id='admin.access_control.policies.add_policy'
+                            defaultMessage='Add policy'
+                        />
                     </Button>
                 </div>
             )}
@@ -503,7 +503,7 @@ export default function PolicyList(props: Props): JSX.Element {
                             defaultMessage='Delete Policy'
                         />
                     }
-                    confirmButtonVariant='destructive'
+                    destructive={true}
                     compassDesign={true}
                 >
                     <>
@@ -521,7 +521,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                             defaultMessage='Unable to delete policy'
                                         />
                                     }
-                                    text={deleteError}
+                                    description={deleteError}
                                 />
                             </div>
                         )}

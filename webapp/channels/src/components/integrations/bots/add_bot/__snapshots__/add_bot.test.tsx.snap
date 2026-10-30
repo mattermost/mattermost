@@ -78,16 +78,23 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
                 src="test-file-stub"
               />
             </div>
-            <div
-              class="btn btn-primary btn-file"
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Upload Image
-              <input
-                accept=".jpeg,.jpg,.png,.bmp"
-                class="btn-file__input"
-                type="file"
-              />
-            </div>
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Upload Image
+              </span>
+            </button>
           </div>
         </div>
         <div
@@ -203,21 +210,26 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             post:all
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <div
-              class="checkbox no-padding"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="postAll"
             >
-              <label
-                for="postAll"
+              <input
+                class="_checkbox__input_18swc_25"
+                id="postAll"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
               >
-                <input
-                  id="postAll"
-                  type="checkbox"
-                />
                 Enabled
-              </label>
-            </div>
+              </span>
+            </label>
             <div
               class="form__help"
             >
@@ -235,21 +247,26 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             post:channels
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <div
-              class="checkbox no-padding"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="postChannels"
             >
-              <label
-                for="postChannels"
+              <input
+                class="_checkbox__input_18swc_25"
+                id="postChannels"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
               >
-                <input
-                  id="postChannels"
-                  type="checkbox"
-                />
                 Enabled
-              </label>
-            </div>
+              </span>
+            </label>
             <div
               class="form__help"
             >
@@ -321,17 +338,25 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/DN/integrations/bots"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveBot"
             type="submit"
           >
-            Create Bot Account
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Create Bot Account
+            </span>
           </button>
         </div>
       </form>

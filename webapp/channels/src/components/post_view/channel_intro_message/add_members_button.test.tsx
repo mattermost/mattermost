@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -8,9 +9,16 @@ import type {Channel} from '@mattermost/types/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import * as teams from 'mattermost-redux/selectors/entities/teams';
 
+import {openModal} from 'actions/views/modals';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
 
 import AddMembersButton from './add_members_button';
+
+jest.mock('actions/views/modals', () => ({
+    openModal: jest.fn((modalData) => ({type: 'MOCK_OPEN_MODAL', modalData})),
+}));
 
 describe('components/post_view/AddMembersButton', () => {
     const channel = {
@@ -103,5 +111,69 @@ describe('components/post_view/AddMembersButton', () => {
         );
 
         expect(screen.queryByText(PLUGIN_TEXT)).toBeInTheDocument();
+    });
+
+    describe('Add people button (more than limit)', () => {
+        const moreThanLimitProps = {
+            totalUsers: 100,
+            usersLimit: 10,
+        };
+
+        beforeEach(() => {
+            jest.mocked(openModal).mockClear();
+        });
+
+        test('should be a dialog trigger, not a toggle', () => {
+            renderWithContext(
+                <AddMembersButton
+                    {...moreThanLimitProps}
+                    channel={channel}
+                />,
+                initialState,
+            );
+
+            const button = screen.getByRole('button', {name: 'Add people'});
+            expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+            expect(button).not.toHaveAttribute('aria-pressed');
+        });
+
+        test('should open the channel invite modal for a regular channel', async () => {
+            renderWithContext(
+                <AddMembersButton
+                    {...moreThanLimitProps}
+                    channel={channel}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Add people'}));
+
+            expect(openModal).toHaveBeenCalledTimes(1);
+            expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.CHANNEL_INVITE,
+                dialogProps: {channel},
+            }));
+        });
+
+        test('should open the add groups modal for a group constrained channel', async () => {
+            const groupConstrainedChannel = {...channel, group_constrained: true} as Channel;
+
+            renderWithContext(
+                <AddMembersButton
+                    {...moreThanLimitProps}
+                    channel={groupConstrainedChannel}
+                />,
+                initialState,
+            );
+
+            expect(screen.queryByRole('button', {name: 'Add people'})).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('button', {name: 'Add groups'}));
+
+            expect(openModal).toHaveBeenCalledTimes(1);
+            expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.ADD_GROUPS_TO_CHANNEL,
+                dialogProps: {channel: groupConstrainedChannel},
+            }));
+        });
     });
 });

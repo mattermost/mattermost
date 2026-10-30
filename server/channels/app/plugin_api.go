@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type PluginAPI struct {
@@ -473,7 +474,10 @@ func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *mo
 		channel.Name = model.NewId()
 	}
 
-	return api.app.CreateChannel(api.ctx, channel, false)
+	// Tagged with the plugin's ID so the managed category and attribute value
+	// writes CreateChannel makes are attributed to the plugin; api.ctx carries
+	// no caller, which the property access control hook refuses.
+	return api.app.CreateChannel(api.psaPluginContext(), channel, false)
 }
 
 func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
@@ -966,6 +970,57 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 	return list, appErr
 }
 
+func (api *PluginAPI) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	if !model.IsValidId(threadID) {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	followers, err := api.app.Srv().Store().Thread().GetThreadFollowers(threadID, true)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadFollowers", "plugin.api.get_thread_followers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(followers) == 0 {
+		return followers, nil
+	}
+
+	// A deactivated user keeps their memberships, so they are dropped here.
+	users, appErr := api.app.GetUsersByIds(api.ctx, followers, &store.UserGetByIdsOpts{IsAdmin: true})
+	if appErr != nil {
+		return nil, appErr
+	}
+	active := make([]string, 0, len(users))
+	for _, user := range users {
+		if user.DeleteAt == 0 {
+			active = append(active, user.Id)
+		}
+	}
+	return active, nil
+}
+
+func (api *PluginAPI) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	if !model.IsValidId(userID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !model.IsValidId(threadID) {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.invalid_thread_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	// The membership table doesn't reference Users, so an unknown id would be stored as a follower.
+	if _, appErr := api.app.GetUser(api.ctx, userID); appErr != nil {
+		return appErr
+	}
+	post, appErr := api.app.GetSinglePost(api.ctx, threadID, false)
+	if appErr != nil {
+		return appErr
+	}
+	if post.RootId != "" {
+		return model.NewAppError("SetThreadFollowing", "plugin.api.thread.not_root_post.app_error", nil, "", http.StatusBadRequest)
+	}
+	channel, appErr := api.app.GetChannel(api.ctx, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+	return api.app.UpdateThreadFollowForUser(userID, channel.TeamId, threadID, following)
+}
+
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
@@ -1012,27 +1067,65 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	// Grant mm_blocks_actions write access only when the plugin's update
-	// actually includes the prop, AND the value passes validation.
-	// Otherwise the freeze in UpdatePost preserves whatever the original
-	// post had — plugins that update unrelated fields don't accidentally
-	// drop or corrupt mm_blocks_actions.
-	allowMmBlocksActionsUpdate := false
-	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
-		if err := model.ValidateMmBlocksActions(post); err != nil {
-			return nil, model.NewAppError("UpdatePost", "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		}
-		allowMmBlocksActionsUpdate = true
-	}
-
 	// Display-identity props are not granted AllowIdentityPropsUpdate: no
 	// render path honors a plugin-authored override (see CreatePost above), so
 	// SanitizeProps' default strip-and-preserve-from-old behavior applies to
 	// plugin edits like any other non-federated caller.
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{
-		SafeUpdate:                 false,
-		AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate,
-	})
+	options := &model.UpdatePostOptions{}
+	if appErr := api.grantPluginMmBlocksActionsUpdate("UpdatePost", post, options); appErr != nil {
+		return nil, appErr
+	}
+	return api.updatePostForPlugin(post, options)
+}
+
+// UpdatePostWithOptions updates a post using the supplied options.
+func (api *PluginAPI) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	options = options.Copy()
+	if options == nil {
+		options = &model.UpdatePostOptions{}
+	}
+
+	if options.FileCreatorID != "" {
+		if !model.IsValidId(options.FileCreatorID) {
+			return nil, model.NewAppError("UpdatePostWithOptions", "plugin.api.update_post_with_options.invalid_file_creator.app_error", nil, "", http.StatusBadRequest)
+		}
+		if _, appErr := api.app.GetUser(api.ctx, options.FileCreatorID); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	if options.AllowMmBlocksActionsUpdate {
+		if appErr := api.rejectInvalidMmBlocksActions("UpdatePostWithOptions", post); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	return api.updatePostForPlugin(post, options)
+}
+
+// grantPluginMmBlocksActionsUpdate sets the grant when the post carries a
+// valid mm_blocks_actions value. An invalid value is an error, so UpdatePost
+// does not save a post that tried to write a bad registry.
+func (api *PluginAPI) grantPluginMmBlocksActionsUpdate(where string, post *model.Post, options *model.UpdatePostOptions) *model.AppError {
+	if post.GetProp(model.PostPropsMmBlocksActions) == nil {
+		return nil
+	}
+	if appErr := api.rejectInvalidMmBlocksActions(where, post); appErr != nil {
+		return appErr
+	}
+	options.AllowMmBlocksActionsUpdate = true
+	return nil
+}
+
+func (api *PluginAPI) rejectInvalidMmBlocksActions(where string, post *model.Post) *model.AppError {
+	if err := model.ValidateMmBlocksActions(post); err != nil {
+		return model.NewAppError(where, "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	return nil
+}
+
+func (api *PluginAPI) updatePostForPlugin(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, options)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1131,7 +1224,7 @@ func (api *PluginAPI) HasPermissionToFileAction(sessionID, fileID, action string
 	}
 
 	rctx := api.ctx.WithSession(session)
-	return api.app.HasPermissionToFileAction(rctx, session.UserId, session.Roles, fileInfo.ChannelId, action)
+	return api.app.HasPermissionToChannelAction(rctx, session.UserId, session.Roles, fileInfo.ChannelId, action)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
@@ -1596,7 +1689,8 @@ func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
 func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	opts model.PluginClusterEventSendOptions,
 ) error {
-	if api.app.Cluster() == nil {
+	cluster := api.app.Cluster()
+	if cluster == nil {
 		return nil
 	}
 
@@ -1607,20 +1701,47 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 		Props: map[string]string{
 			"PluginID": api.id,
 			"EventID":  ev.Id,
+			"SourceID": cluster.GetClusterId(),
 		},
 		Data: ev.Data,
 	}
 
 	// If TargetId is empty we broadcast to all other cluster nodes.
 	if opts.TargetId == "" {
-		api.app.Cluster().SendClusterMessage(msg)
+		cluster.SendClusterMessage(msg)
 	} else {
-		if err := api.app.Cluster().SendClusterMessageToNode(opts.TargetId, msg); err != nil {
+		if err := cluster.SendClusterMessageToNode(opts.TargetId, msg); err != nil {
 			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.TargetId, err)
 		}
 	}
 
 	return nil
+}
+
+// GetClusterNodeID returns the cluster ID of this node, or an empty string when
+// it hasn't joined a cluster.
+func (api *PluginAPI) GetClusterNodeID() string {
+	return api.app.ClusterNodeID()
+}
+
+// GetClusterNodes returns the nodes connected to the cluster, or an empty list
+// when this node hasn't joined one. Nodes that are only registered are left
+// out: their Id is a registration ID, which can't be used as a TargetId.
+func (api *PluginAPI) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	nodes := []*model.ClusterInfo{}
+	if api.app.ClusterNodeID() == "" {
+		return nodes, nil
+	}
+	infos, err := api.app.GetClusterStatus(api.ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, info := range infos {
+		if info.IPAddress != "" {
+			nodes = append(nodes, info)
+		}
+	}
+	return nodes, nil
 }
 
 // RequestTrialLicense requests a trial license and installs it in the server
@@ -1785,6 +1906,20 @@ func (api *PluginAPI) psaPluginContextWithOptions(options model.PropertyRequestO
 	return requestContextWithCallerIDAndOptions(api.ctx, api.manifest.Id, options)
 }
 
+// projectLegacyPermissionsForEach returns fields with each one's legacy
+// permission keys projected from its permissions object, so a plugin reading
+// a batch keeps seeing Protected/PermissionField/PermissionValues/
+// PermissionOptions/access_mode/owners computed from the same source a v2
+// caller's single-field read uses. Each linked template is read once.
+func (api *PluginAPI) projectLegacyPermissionsForEach(rctx request.CTX, fields []*model.PropertyField) []*model.PropertyField {
+	templates := make(map[string]*model.PropertyField)
+	projected := make([]*model.PropertyField, len(fields))
+	for i, field := range fields {
+		projected[i] = api.app.projectLegacyPermissions(rctx, field, templates)
+	}
+	return projected
+}
+
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
 	createdField, appErr := api.app.CreatePropertyField(api.psaPluginContext(), field, false, "")
 	if appErr != nil {
@@ -1794,19 +1929,21 @@ func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.Pr
 }
 
 func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
-	field, appErr := api.app.GetPropertyField(api.psaPluginContext(), groupID, fieldID)
+	rctx := api.psaPluginContext()
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return field, nil
+	return api.app.projectLegacyPermissions(rctx, field, make(map[string]*model.PropertyField)), nil
 }
 
 func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	fields, appErr := api.app.GetPropertyFields(api.psaPluginContext(), groupID, ids)
+	rctx := api.psaPluginContext()
+	fields, appErr := api.app.GetPropertyFields(rctx, groupID, ids)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return fields, nil
+	return api.projectLegacyPermissionsForEach(rctx, fields), nil
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
@@ -1825,11 +1962,12 @@ func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
 }
 
 func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	fields, appErr := api.app.SearchPropertyFields(api.psaPluginContext(), groupID, opts)
+	rctx := api.psaPluginContext()
+	fields, appErr := api.app.SearchPropertyFields(rctx, groupID, opts)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return fields, nil
+	return api.projectLegacyPermissionsForEach(rctx, fields), nil
 }
 
 func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
@@ -1976,11 +2114,12 @@ func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	field, appErr := api.app.GetPropertyFieldByName(api.psaPluginContext(), groupID, targetID, name)
+	rctx := api.psaPluginContext()
+	field, appErr := api.app.GetPropertyFieldByName(rctx, groupID, targetID, name)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return field, nil
+	return api.app.projectLegacyPermissions(rctx, field, make(map[string]*model.PropertyField)), nil
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
@@ -2022,15 +2161,23 @@ func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) erro
 }
 
 func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
-	return api.app.EvaluatePluginAccessRequest(api.ctx, api.id, userID, resourceType, resourceID, action)
+	// Tagged with the plugin's ID so the property reads the evaluation makes
+	// are attributed to the plugin; api.ctx carries no caller, which the
+	// property access control hook refuses.
+	return api.app.EvaluatePluginAccessRequest(api.psaPluginContext(), api.id, userID, resourceType, resourceID, action)
 }
 
 func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
-	return api.app.SavePluginAccessControlPolicy(api.ctx, api.id, actingUserID, policy)
+	// Tagged with the plugin's ID so the existence probe's policy read is
+	// attributed to the plugin; api.ctx carries no caller. The save itself runs
+	// as the acting user.
+	return api.app.SavePluginAccessControlPolicy(api.psaPluginContext(), api.id, actingUserID, policy)
 }
 
 func (api *PluginAPI) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
-	return api.app.GetPluginAccessControlPolicy(api.ctx, api.id, id)
+	// Tagged with the plugin's ID so the policy normalization's field lookups
+	// are attributed to the plugin; api.ctx carries no caller.
+	return api.app.GetPluginAccessControlPolicy(api.psaPluginContext(), api.id, id)
 }
 
 func (api *PluginAPI) DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError {

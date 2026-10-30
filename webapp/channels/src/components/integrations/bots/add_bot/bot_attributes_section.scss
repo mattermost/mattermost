@@ -1,0 +1,69 @@
+.BotAttributesSection {
+    &__title {
+        font-weight: 600;
+    }
+
+    &__description {
+        margin: 7px 0 12px; // aligns with .control-label padding-top
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__error {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 7px;
+        color: var(--error-text);
+        gap: 8px;
+    }
+
+    .BotAttributesSection__add {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .UserAttributeFields {
+        margin-bottom: 8px;
+
+        > .UserAttributeField.cpa-field {
+            display: block;
+        }
+
+        > .UserAttributeField.cpa-field,
+        > .UserAttributeField__row {
+            margin-bottom: 12px;
+        }
+    }
+
+    .UserAttributeField.cpa-field {
+        margin-bottom: 0;
+        font-weight: 600;
+        line-height: 20px;
+
+        > * {
+            font-weight: normal;
+        }
+
+        > :first-child {
+            margin-top: 4px;
+        }
+
+        > label:first-child {
+            display: block;
+            margin: 0 0 4px;
+            font-weight: 600; // graph fields put the name in a nested label
+        }
+
+        .form-control {
+            width: 100%;
+            max-width: 320px;
+
+            &.error,
+            &[aria-invalid='true'] {
+                border-color: var(--error-text);
+                box-shadow: 0 0 0 1px var(--error-text);
+            }
+        }
+    }
+}

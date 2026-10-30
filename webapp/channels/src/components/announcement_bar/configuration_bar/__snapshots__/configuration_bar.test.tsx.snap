@@ -3,7 +3,7 @@
 exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-gkugzX ixmCTt announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -18,9 +18,14 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
           />
           Enterprise license is expired and some features may be disabled.
           <button
-            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-x-small_we8pe_42 _button--appearance-inverted_we8pe_253 annnouncementBar__renewLicense"
+            type="button"
           >
-            Contact sales
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Contact sales
+            </span>
           </button>
         </div>
       </span>
@@ -40,7 +45,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, cloud licen
 exports[`components/ConfigurationBar should match snapshot, expired, in grace period 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-gkugzX ixmCTt announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -55,9 +60,14 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
           />
           Enterprise license is expired and some features may be disabled.
           <button
-            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-x-small_we8pe_42 _button--appearance-inverted_we8pe_253 annnouncementBar__renewLicense"
+            type="button"
           >
-            Contact sales
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Contact sales
+            </span>
           </button>
         </div>
       </span>
@@ -75,7 +85,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
 exports[`components/ConfigurationBar should match snapshot, expired, regular user 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-gkugzX ixmCTt announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -97,7 +107,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, cloud lice
 exports[`components/ConfigurationBar should match snapshot, expiring, trial license 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-gkugzX ixmCTt announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -112,9 +122,14 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
           />
           This is the last day of your free trial. Purchase a license now to continue using Mattermost Professional and Enterprise features.
           <button
-            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-x-small_we8pe_42 _button--appearance-inverted_we8pe_253 annnouncementBar__purchaseNow"
+            type="button"
           >
-            Purchase a License Now
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Purchase a License Now
+            </span>
           </button>
         </div>
       </span>
@@ -132,7 +147,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
 exports[`components/ConfigurationBar should match snapshot, expiring, trial license, mobile viewport 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-gkugzX ixmCTt announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -147,9 +162,14 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
           />
           This is the last day of your free trial.
           <button
-            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-x-small_we8pe_42 _button--appearance-inverted_we8pe_253 annnouncementBar__purchaseNow"
+            type="button"
           >
-            Purchase a License Now
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Purchase a License Now
+            </span>
           </button>
         </div>
       </span>

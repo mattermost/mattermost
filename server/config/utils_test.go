@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -257,6 +258,244 @@ func TestFixInvalidLocales(t *testing.T) {
 	assert.True(t, changed)
 	assert.NotContains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultServerLocale, "DefaultServerLocale should not be added to AvailableLocales")
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale, "DefaultClientLocale should have been added to AvailableLocales")
+}
+
+func TestFixLegacyImageProxyType(t *testing.T) {
+	for _, enable := range []bool{false, true} {
+		t.Run(fmt.Sprintf("enable=%t", enable), func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ImageProxySettings.Enable = enable
+
+			assert.False(t, fixLegacyImageProxyType(cfg))
+			assert.Equal(t, model.ImageProxyTypeLocal, *cfg.ImageProxySettings.ImageProxyType)
+
+			*cfg.ImageProxySettings.ImageProxyType = model.ImageProxyTypeLegacyAtmosCamo
+			assert.True(t, fixLegacyImageProxyType(cfg))
+			assert.Equal(t, model.ImageProxyTypeLocal, *cfg.ImageProxySettings.ImageProxyType)
+			assert.Equal(t, enable, *cfg.ImageProxySettings.Enable)
+		})
+	}
+}
+
+func TestFixRetiredFeatureFlags(t *testing.T) {
+	t.Run("nil feature flags", func(t *testing.T) {
+		assert.False(t, fixRetiredFeatureFlags(&model.Config{}))
+	})
+
+	t.Run("retired flags off", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		assert.False(t, fixRetiredFeatureFlags(cfg))
+	})
+
+	t.Run("AppsEnabled on", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.AppsEnabled = true
+
+		assert.True(t, fixRetiredFeatureFlags(cfg))
+		assert.False(t, cfg.FeatureFlags.AppsEnabled)
+	})
+
+	t.Run("MoveThreadsEnabled on", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.MoveThreadsEnabled = true
+
+		assert.True(t, fixRetiredFeatureFlags(cfg))
+		assert.False(t, cfg.FeatureFlags.MoveThreadsEnabled)
+	})
+}
+
+func TestFixTLSMinVer(t *testing.T) {
+	for _, version := range []string{"1.0", "1.1", "1.2", "1.3"} {
+		t.Run("supported "+version, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ServiceSettings.TLSMinVer = version
+
+			assert.False(t, fixTLSMinVer(cfg))
+			assert.Equal(t, version, *cfg.ServiceSettings.TLSMinVer)
+		})
+	}
+
+	for _, version := range []string{"", "1.4", "TLS1.2", "tls12"} {
+		t.Run("unsupported "+version, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ServiceSettings.TLSMinVer = version
+
+			assert.True(t, fixTLSMinVer(cfg))
+			assert.Equal(t, "1.2", *cfg.ServiceSettings.TLSMinVer)
+			assert.Nil(t, cfg.IsValid())
+		})
+	}
+}
+
+func TestFixWebserverMode(t *testing.T) {
+	t.Run("missing defaults to gzip", func(t *testing.T) {
+		cfg := &model.Config{}
+		require.NoError(t, json.Unmarshal([]byte(`{"ServiceSettings": {}}`), cfg))
+		cfg.SetDefaults()
+
+		assert.False(t, fixWebserverMode(cfg))
+		assert.Equal(t, "gzip", *cfg.ServiceSettings.WebserverMode)
+	})
+
+	for _, mode := range []string{"gzip", "uncompressed", "disabled"} {
+		t.Run("supported "+mode, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ServiceSettings.WebserverMode = mode
+
+			assert.False(t, fixWebserverMode(cfg))
+			assert.Equal(t, mode, *cfg.ServiceSettings.WebserverMode)
+		})
+	}
+
+	for _, mode := range []string{"", "GZIP", "none"} {
+		t.Run("unsupported "+mode, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ServiceSettings.WebserverMode = mode
+
+			assert.True(t, fixWebserverMode(cfg))
+			assert.Equal(t, "uncompressed", *cfg.ServiceSettings.WebserverMode)
+			assert.Nil(t, cfg.IsValid())
+		})
+	}
+}
+
+func TestFixEmailAddressSettings(t *testing.T) {
+	newConfig := func(value string) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		*cfg.SupportSettings.SupportEmail = value
+		*cfg.EmailSettings.FeedbackEmail = value
+		*cfg.EmailSettings.ReplyToAddress = value
+		return cfg
+	}
+
+	for _, value := range []string{"", "noreply@example.com", "NoReply@Example.com"} {
+		t.Run("unchanged "+value, func(t *testing.T) {
+			cfg := newConfig(value)
+
+			assert.False(t, fixEmailAddressSettings(cfg))
+			assert.Equal(t, value, *cfg.SupportSettings.SupportEmail)
+			assert.Equal(t, value, *cfg.EmailSettings.FeedbackEmail)
+			assert.Equal(t, value, *cfg.EmailSettings.ReplyToAddress)
+		})
+	}
+
+	for value, expected := range map[string]string{
+		"Mattermost <noreply@example.com>":                            "noreply@example.com",
+		"<noreply@example.com>":                                       "noreply@example.com",
+		`"Mattermost, Inc." <noreply@example.com>`:                    "noreply@example.com",
+		" noreply@example.com ":                                       "noreply@example.com",
+		"noreply@example.com, other@example.com":                      "noreply@example.com",
+		"Mattermost <noreply@example.com>, Other <other@example.com>": "noreply@example.com",
+		"noreply@example.com;other@example.com":                       "",
+		"noreply@example.com other@example.com":                       "",
+		"not an email, noreply@example.com":                           "",
+		"not an email":                                                "",
+		"noreply":                                                     "",
+		"Mattermost Support":                                          "",
+		"noreply@example.com@example.com":                             "",
+	} {
+		t.Run("fixed "+value, func(t *testing.T) {
+			cfg := newConfig(value)
+
+			assert.True(t, fixEmailAddressSettings(cfg))
+			assert.Equal(t, expected, *cfg.SupportSettings.SupportEmail)
+			assert.Equal(t, expected, *cfg.EmailSettings.FeedbackEmail)
+			assert.Equal(t, expected, *cfg.EmailSettings.ReplyToAddress)
+			assert.Nil(t, cfg.IsValid())
+		})
+	}
+}
+
+func TestFixOutOfRangeNumericSettings(t *testing.T) {
+	t.Run("defaults are in range", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		assert.False(t, fixOutOfRangeNumericSettings(cfg))
+	})
+
+	t.Run("values in range are kept", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		*cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 0
+		*cfg.ServiceSettings.SessionCacheInMinutes = 1
+		*cfg.ElasticsearchSettings.PostIndexReplicas = 0
+		*cfg.FileSettings.AmazonS3UploadPartSizeBytes = model.FileSettingsDefaultS3UploadPartSizeBytes
+
+		assert.False(t, fixOutOfRangeNumericSettings(cfg))
+		assert.Equal(t, 0, *cfg.ServiceSettings.SessionIdleTimeoutInMinutes)
+		assert.Equal(t, 1, *cfg.ServiceSettings.SessionCacheInMinutes)
+		assert.Equal(t, 0, *cfg.ElasticsearchSettings.PostIndexReplicas)
+	})
+
+	t.Run("out of range values are reset to defaults", func(t *testing.T) {
+		defaults := &model.Config{}
+		defaults.SetDefaults()
+
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		ints := []*int{
+			cfg.ServiceSettings.IdleTimeout,
+			cfg.ServiceSettings.SessionLengthMobileInDays,
+			cfg.ServiceSettings.SessionLengthMobileInHours,
+			cfg.ServiceSettings.SessionLengthSSOInDays,
+			cfg.ServiceSettings.SessionLengthSSOInHours,
+			cfg.ServiceSettings.SessionCacheInMinutes,
+			cfg.ServiceSettings.SessionIdleTimeoutInMinutes,
+			cfg.ServiceSettings.MinimumHashtagLength,
+			cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
+			cfg.ServiceSettings.AWSMeteringTimeoutSeconds,
+			cfg.ServiceSettings.FeatureFlagSyncIntervalSeconds,
+			cfg.ServiceSettings.BurnOnReadDurationSeconds,
+			cfg.ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds,
+			cfg.ServiceSettings.BurnOnReadSchedulerFrequencySeconds,
+			cfg.LogSettings.MaxFieldSize,
+			cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
+			cfg.AnnouncementSettings.NoticesFetchFrequency,
+			cfg.EmailSettings.PushNotificationBuffer,
+			cfg.LdapSettings.QueryTimeout,
+			cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize,
+			cfg.ConnectedWorkspacesSettings.MaxPostsPerSync,
+			cfg.ConnectedWorkspacesSettings.MemberSyncBatchSize,
+			cfg.SqlSettings.MigrationsStatementTimeoutSeconds,
+			cfg.SqlSettings.ReplicaMonitorIntervalSeconds,
+			cfg.ElasticsearchSettings.PostIndexShards,
+			cfg.ElasticsearchSettings.ChannelIndexShards,
+			cfg.ElasticsearchSettings.UserIndexShards,
+			cfg.ElasticsearchSettings.PostIndexReplicas,
+			cfg.ElasticsearchSettings.ChannelIndexReplicas,
+			cfg.ElasticsearchSettings.UserIndexReplicas,
+			cfg.DataRetentionSettings.BatchSize,
+			cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds,
+			cfg.DataRetentionSettings.RetentionIdsBatchSize,
+		}
+		for _, value := range ints {
+			*value = -1
+		}
+		*cfg.ServiceSettings.TLSStrictTransportMaxAge = -1
+		*cfg.FileSettings.MaxImageResolution = 0
+		*cfg.FileSettings.AmazonS3UploadPartSizeBytes = 1024
+		*cfg.FileSettings.ExportAmazonS3UploadPartSizeBytes = 1024
+
+		require.NotNil(t, cfg.IsValid())
+		assert.True(t, fixOutOfRangeNumericSettings(cfg))
+		assert.Nil(t, cfg.IsValid())
+
+		assert.Equal(t, *defaults.ServiceSettings.SessionCacheInMinutes, *cfg.ServiceSettings.SessionCacheInMinutes)
+		assert.Equal(t, *defaults.EmailSettings.PushNotificationBuffer, *cfg.EmailSettings.PushNotificationBuffer)
+		assert.Equal(t, *defaults.ServiceSettings.TLSStrictTransportMaxAge, *cfg.ServiceSettings.TLSStrictTransportMaxAge)
+		assert.Equal(t, *defaults.FileSettings.ExportAmazonS3UploadPartSizeBytes, *cfg.FileSettings.ExportAmazonS3UploadPartSizeBytes)
+	})
 }
 
 func TestIsDatabaseDSN(t *testing.T) {

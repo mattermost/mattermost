@@ -10,6 +10,12 @@ import (
 
 type ClusterMessageHandler func(msg *model.ClusterMessage)
 
+// NodeLogs is one node's result from ClusterInterface.QueryLogs. Err is set when the node's logs couldn't be fetched.
+type NodeLogs struct {
+	Lines []string
+	Err   *model.AppError
+}
+
 type ClusterInterface interface {
 	StartInterNodeCommunication()
 	StopInterNodeCommunication()
@@ -27,8 +33,7 @@ type ClusterInterface interface {
 	Shutdown()
 	NotifyMsg(buf []byte)
 	GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError)
-	GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError)
-	QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError)
+	QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string]NodeLogs, *model.AppError)
 	GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error)
 	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError

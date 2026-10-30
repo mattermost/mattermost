@@ -195,10 +195,6 @@
         font-weight: 600;
     }
 
-    .sectionNoticeTitle {
-        margin-bottom: 0;
-    }
-
     .form-control {
         border: 1px solid variables.$light-gray;
         background-color: variables.$white;
@@ -229,29 +225,18 @@
         }
     }
 
-    .log__panel {
-        overflow: scroll;
-        width: 100%;
-        min-height: 0;
-        flex: 1;
-        padding: 10px;
-        border: variables.$border-gray;
-        margin-top: 14px;
-        background-color: white;
-
-        &:has(.LoadingSpinner) {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    }
-
     &.admin {
         overflow: auto;
         height: 100%;
         min-height: 600px;
         padding: 0 40px 20px;
         background-color: #f1f1f1;
+    }
+
+    // Align SettingSet legend with radio controls.
+    fieldset.form-group > .form-legend.control-label {
+        padding-top: 7px;
+        margin-bottom: 0;
     }
 
     .form-horizontal {
@@ -279,10 +264,6 @@
             .admin-console__production-warning {
                 margin-bottom: 12px;
                 white-space: normal;
-
-                .sectionNoticeTitle {
-                    margin-bottom: 0;
-                }
             }
         }
 
@@ -547,37 +528,7 @@
         padding: 0 10px;
         border-top: 1px solid functions.alpha-color(variables.$black, 0.1);
         background: white;
-
-        .save-button {
-            min-width: 100px;
-            height: 34px;
-            margin: 0 10px;
-            background: variables.$light-gray;
-            color: functions.alpha-color(variables.$black, 0.5);
-            opacity: 1;
-
-            &.btn-primary {
-                background: variables.$primary-color;
-                color: variables.$white;
-            }
-        }
-
-        .cancel-button {
-            display: flex;
-            min-width: 100px;
-            height: 34px;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-s);
-            margin: 0 10px 0 0;
-            text-decoration: none;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background-color: variables.$primary-color;
-                color: variables.$white;
-            }
-        }
+        gap: 8px;
 
         .error-message {
             overflow: hidden;
@@ -639,12 +590,6 @@
         font-weight: 400;
     }
 
-    .logs-banner {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-    }
 }
 
 .job-table__table {
@@ -1187,69 +1132,6 @@
 #error-tooltip {
     .tooltip-inner {
         max-width: none;
-    }
-}
-
-.admin-console .admin-console__content.admin-logs-content {
-    display: flex;
-    overflow: hidden;
-    max-width: none;
-    height: 100%;
-    flex-direction: column;
-
-    // We keep the banner the same width and only expand the content box.
-    .banner {
-        max-width: 920px;
-    }
-
-    .banner-buttons {
-        display: flex;
-
-        .banner-buttons__log-format {
-            display: flex;
-            align-items: center;
-            margin-right: 28px;
-            gap: 8px;
-
-            label {
-                display: inline-flex;
-                align-items: center;
-                margin-bottom: 0;
-                gap: 8px;
-
-                input[type="radio"] {
-                    margin-top: 0;
-                }
-            }
-        }
-    }
-
-    > .btn {
-        width: fit-content;
-    }
-
-    .LogTable {
-        min-height: 0;
-        flex: 1;
-
-        .DataGrid {
-            display: flex;
-            height: 100%;
-            flex-direction: column;
-
-            .DataGrid_rows {
-                overflow: auto;
-                min-height: 0 !important;
-                flex: 1;
-            }
-        }
-    }
-
-    .plain-log-list {
-        display: flex;
-        min-height: 0;
-        flex: 1;
-        flex-direction: column;
     }
 }
 

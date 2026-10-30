@@ -152,7 +152,7 @@ export const entadv: IMEContent = {
             {alt: 'OpenAI', src: '/img/ime/logos/openai.png'},
             {alt: 'Meta', src: '/img/ime/logos/meta.png'},
             {alt: 'Elastic', src: '/img/ime/logos/elastic.png'},
-            {alt: 'Ask Sage', src: '/img/ime/logos/ask-sage.png'},
+            {alt: 'Ask Sage', src: '/img/ime/logos/ask-sage.webp'},
             {alt: 'Mattermost', src: '/img/ime/logos/mattermost.png'},
           ],
           logos: [

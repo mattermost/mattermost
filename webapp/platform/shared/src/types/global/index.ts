@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {PublishedComponents} from './components';
 import type {PublishedEditorUtils} from './editor';
 import type {PublishedModalUtils} from './modals';
 
+export * from './components';
 export * from './modals';
 export * from './editor';
 export * from './suggestions';
@@ -14,5 +16,6 @@ export type WindowShared = {
     WebappUtils: {
         modals: PublishedModalUtils;
         editor: PublishedEditorUtils;
+        components: PublishedComponents;
     };
 };
