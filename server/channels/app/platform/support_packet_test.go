@@ -39,8 +39,9 @@ import (
 
 type fixedDBStatsStore struct {
 	store.Store
-	masterStats  sql.DBStats
-	replicaStats sql.DBStats
+	masterStats    sql.DBStats
+	replicaStats   sql.DBStats
+	replicasOnline int
 }
 
 func (s *fixedDBStatsStore) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagnostics, error) {
@@ -57,6 +58,7 @@ func (s *fixedDBStatsStore) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagno
 		ReplicaPoolWaitDurationMs:           s.replicaStats.WaitDuration.Milliseconds(),
 		ReplicaConnectionsClosedMaxIdle:     s.replicaStats.MaxIdleClosed,
 		ReplicaConnectionsClosedMaxLifetime: s.replicaStats.MaxLifetimeClosed,
+		ReplicasOnline:                      s.replicasOnline,
 	}
 
 	return diagnostics, nil
@@ -313,6 +315,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)
+		assert.Equal(t, new(false), d.Config.AuditLoggingConfigured)
 
 		/* DB */
 		require.NotNil(t, d.Database.Type)
@@ -326,7 +329,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Zero(t, d.Database.SearchConnections)
 		require.NotNil(t, d.Database.MasterConnectionsInUse)
 		assert.GreaterOrEqual(t, *d.Database.MasterConnectionsInUse, 0)
-		for _, v := range []*int{d.Database.MasterConnectionsIdle, d.Database.ReplicaConnectionsInUse, d.Database.ReplicaConnectionsIdle} {
+		for _, v := range []*int{d.Database.MasterConnectionsIdle, d.Database.ReplicaConnectionsInUse, d.Database.ReplicaConnectionsIdle, d.Database.ReplicasOnline} {
 			require.NotNil(t, v)
 			assert.GreaterOrEqual(t, *v, 0)
 		}
@@ -455,6 +458,20 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Contains(t, string(fileData.Body), "is_cloud: true")
 	})
 
+	t.Run("trial recognized by duration writes is_trial", func(t *testing.T) {
+		trialLicense := model.NewTestLicense("ldap")
+		trialLicense.IsTrial = false
+		trialLicense.StartsAt = model.GetMillis()
+		trialLicense.ExpiresAt = trialLicense.StartsAt + (30*24*time.Hour + 8*time.Hour).Milliseconds()
+		require.True(t, trialLicense.IsTrialLicense())
+		require.True(t, th.Service.SetLicense(trialLicense))
+		t.Cleanup(func() {
+			require.True(t, th.Service.SetLicense(license))
+		})
+
+		assert.True(t, getDiagnostics(t).License.IsTrial)
+	})
+
 	t.Run("enforced license writes expiry, seat limit and features", func(t *testing.T) {
 		enforcedLicense := model.NewTestLicense("ldap")
 		enforcedLicense.IsSeatCountEnforced = true
@@ -478,6 +495,51 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Contains(t, body, "is_seat_count_enforced: true\n")
 		assert.Contains(t, body, "extra_users: 5\n")
 		assert.Contains(t, body, "    ldap: true\n")
+	})
+
+	t.Run("audit_logging_configured records this server's audit targets", func(t *testing.T) {
+		setAudit := func(t *testing.T, fileEnabled bool, advanced string) {
+			t.Helper()
+			prior := th.Service.Config().Clone().ExperimentalAuditSettings
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.FileEnabled = new(fileEnabled)
+				cfg.ExperimentalAuditSettings.FileName = new("audit.log")
+				cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(advanced)
+			})
+			t.Cleanup(func() {
+				th.Service.UpdateConfig(func(cfg *model.Config) {
+					cfg.ExperimentalAuditSettings = prior
+				})
+			})
+		}
+		auditTarget := `{"audit": {"type": "file", "format": "json", "levels": [{"id": 100, "name": "audit-api"}], "options": {"filename": "audit.log"}}}`
+
+		t.Run("file enabled", func(t *testing.T) {
+			setAudit(t, true, "{}")
+			d := getDiagnostics(t)
+			assert.Equal(t, new(true), d.Config.AuditLoggingConfigured)
+
+			fileData, err := supportPacketDiagnosticsFile(d, nil)
+			require.NoError(t, err)
+			assert.Contains(t, string(fileData.Body), "  audit_logging_configured: true #")
+		})
+
+		t.Run("advanced target with advanced logging licensed", func(t *testing.T) {
+			setAudit(t, false, auditTarget)
+			assert.Equal(t, new(true), getDiagnostics(t).Config.AuditLoggingConfigured)
+		})
+
+		t.Run("advanced target without advanced logging license", func(t *testing.T) {
+			setAudit(t, false, auditTarget)
+			unlicensed := model.NewTestLicense("ldap")
+			unlicensed.Features.AdvancedLogging = new(false)
+			require.True(t, th.Service.SetLicense(unlicensed))
+			t.Cleanup(func() {
+				require.True(t, th.Service.SetLicense(license))
+			})
+
+			assert.Equal(t, new(false), getDiagnostics(t).Config.AuditLoggingConfigured)
+		})
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -619,7 +681,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, packet.SAML.Error)
 	})
 
-	t.Run("SAML enabled with reachable metadata URL", func(t *testing.T) {
+	t.Run("SAML enabled with passing diagnostic", func(t *testing.T) {
 		diagMock := &emocks.SamlDiagnosticInterface{}
 		diagMock.On(
 			"RunSupportPacketTest",
@@ -635,7 +697,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
@@ -648,66 +709,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusOk, packet.SAML.Status)
 		assert.Empty(t, packet.SAML.Error)
 		assert.Equal(t, "Keycloak", packet.SAML.ProviderType)
-	})
-
-	t.Run("SAML enabled with missing metadata URL", func(t *testing.T) {
-		diagMock := &emocks.SamlDiagnosticInterface{}
-		diagMock.On(
-			"RunSupportPacketTest",
-			mock.AnythingOfType("*request.Context"),
-			mock.AnythingOfType("model.SamlSettings"),
-		).Return(errors.New("SAML metadata URL is not configured"))
-		originalSAMLDiag := th.Service.samlDiagnostic
-		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
-		th.Service.samlDiagnostic = diagMock
-
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("")
-		})
-
-		packet := getDiagnostics(t)
-
-		assert.Equal(t, model.StatusFail, packet.SAML.Status)
-		assert.Equal(t, "SAML metadata URL is not configured", packet.SAML.Error)
-	})
-
-	t.Run("SAML enabled with metadata URL returning non-200", func(t *testing.T) {
-		diagMock := &emocks.SamlDiagnosticInterface{}
-		diagMock.On(
-			"RunSupportPacketTest",
-			mock.AnythingOfType("*request.Context"),
-			mock.AnythingOfType("model.SamlSettings"),
-		).Return(errors.New("SAML metadata URL returned unexpected status 503"))
-		originalSAMLDiag := th.Service.samlDiagnostic
-		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
-		th.Service.samlDiagnostic = diagMock
-
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
-		})
-
-		packet := getDiagnostics(t)
-
-		assert.Equal(t, model.StatusFail, packet.SAML.Status)
-		assert.Equal(t, "SAML metadata URL returned unexpected status 503", packet.SAML.Error)
 	})
 
 	t.Run("SAML diagnostics enterprise interface override", func(t *testing.T) {
@@ -728,7 +729,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
@@ -929,13 +929,25 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, packet.Notifications.Push.Error)
 	})
 
-	t.Run("email notifications disabled", func(t *testing.T) {
+	t.Run("SMTP unused", func(t *testing.T) {
+		requireVerification := *th.Service.Config().EmailSettings.RequireEmailVerification
+		emailInvitations := *th.Service.Config().ServiceSettings.EnableEmailInvitations
+		signInWithEmail := *th.Service.Config().EmailSettings.EnableSignInWithEmail
+		signInWithUsername := *th.Service.Config().EmailSettings.EnableSignInWithUsername
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendEmailNotifications = new(false)
+			cfg.EmailSettings.RequireEmailVerification = new(false)
+			cfg.ServiceSettings.EnableEmailInvitations = new(false)
+			cfg.EmailSettings.EnableSignInWithEmail = new(false)
+			cfg.EmailSettings.EnableSignInWithUsername = new(false)
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.EmailSettings.SendEmailNotifications = new(true)
+				cfg.EmailSettings.RequireEmailVerification = new(requireVerification)
+				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
+				cfg.EmailSettings.EnableSignInWithEmail = new(signInWithEmail)
+				cfg.EmailSettings.EnableSignInWithUsername = new(signInWithUsername)
 			})
 		})
 
@@ -1029,6 +1041,31 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, packet.Notifications.Email.Error)
 	})
 
+	t.Run("email invitations probe SMTP with notification emails off", func(t *testing.T) {
+		emailInvitations := *th.Service.Config().ServiceSettings.EnableEmailInvitations
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = new(false)
+			cfg.ServiceSettings.EnableEmailInvitations = new(true)
+			cfg.EmailSettings.SMTPServer = new("localhost")
+			cfg.EmailSettings.SMTPPort = new("1")
+			cfg.EmailSettings.SMTPServerTimeout = new(1)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = new(true)
+				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
+				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
+				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+				cfg.EmailSettings.SMTPServerTimeout = new(10)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
+		assert.NotEmpty(t, packet.Notifications.Email.Error)
+	})
+
 	t.Run("maps connection pool diagnostics for master and replica", func(t *testing.T) {
 		originalStore := th.Service.Store
 		customStore := &fixedDBStatsStore{
@@ -1049,6 +1086,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 				MaxIdleClosed:     23,
 				MaxLifetimeClosed: 29,
 			},
+			replicasOnline: 2,
 		}
 		th.Service.Store = customStore
 		t.Cleanup(func() {
@@ -1069,6 +1107,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, new(int64(4090)), packet.Database.ReplicaPoolWaitDurationMs)
 		assert.Equal(t, new(int64(23)), packet.Database.ReplicaConnectionsClosedMaxIdle)
 		assert.Equal(t, new(int64(29)), packet.Database.ReplicaConnectionsClosedMaxLifetime)
+		assert.Equal(t, new(2), packet.Database.ReplicasOnline)
 	})
 
 	t.Run("OpenID disabled", func(t *testing.T) {
@@ -1332,6 +1371,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		assert.Nil(t, d.Database.ReplicaPoolWaitDurationMs)
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxIdle)
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
+		assert.Nil(t, d.Database.ReplicasOnline)
 	})
 
 	t.Run("disk space fails", func(t *testing.T) {
@@ -1634,6 +1674,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.BuildHash = "abc123"
 	diagnostics.Server.GoVersion = "go1.26"
 	diagnostics.Config.Source = "memory://"
+	diagnostics.Config.AuditLoggingConfigured = new(true)
 	diagnostics.Database.Type = new("postgres")
 	diagnostics.Database.Version = new("16.4")
 	diagnostics.Database.SchemaVersion = new("123")
@@ -1652,6 +1693,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Database.ReplicaPoolWaitDurationMs = new(int64(66))
 	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = new(int64(4))
 	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = new(int64(3))
+	diagnostics.Database.ReplicasOnline = new(1)
 	diagnostics.Database.CacheHitRatio = &cacheHitRatio
 	diagnostics.Database.Deadlocks = &deadlocks
 	diagnostics.Database.TempFiles = &tempFiles

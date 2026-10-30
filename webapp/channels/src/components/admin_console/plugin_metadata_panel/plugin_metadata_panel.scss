@@ -92,10 +92,6 @@
     &__statusError {
         min-width: 0;
 
-        .sectionNoticeBody {
-            gap: 0;
-        }
-
         p {
             overflow-wrap: anywhere;
         }
@@ -123,11 +119,6 @@
         border: none;
         margin: 0;
         gap: 8px;
-
-        .btn-toggle,
-        .btn-toggle-primary {
-            float: none;
-        }
     }
 
     &__enable {
@@ -138,8 +129,12 @@
         gap: 12px;
         line-height: 20px;
 
-        .LoadingSpinner .spinner {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+        // Compass Switch root is a <label>. Bootstrap form labels add
+        // margin-bottom, and Switch defaults to width: 100%, which throws off
+        // vertical alignment next to the actions menu button.
+        > label {
+            width: auto;
+            margin-bottom: 0;
         }
     }
 

@@ -35,6 +35,12 @@ func runCommand(th *TestHelper, provider app.CommandProvider, userID, channelID,
 	return provider.DoCommand(th.App, th.Context, args, "").Text
 }
 
+// quoteArg double-quotes a slash-command value so parseNamedArgs does not
+// treat a token that starts with "--" (for example a base64url invite) as a flag.
+func quoteArg(s string) string {
+	return `"` + s + `"`
+}
+
 // LastPingAt defaults to zero, so the remote is offline and invitations to it are stored
 // as pending instead of being sent over the network.
 func seedRemoteCluster(t *testing.T, th *TestHelper, opts ...func(rc *model.RemoteCluster)) *model.RemoteCluster {
@@ -248,8 +254,8 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 			missing string
 			command string
 		}{
-			{"password", "/secure-connection accept --name remote1 --invite " + code},
-			{"name", "/secure-connection accept --password " + password + " --invite " + code},
+			{"password", "/secure-connection accept --name remote1 --invite " + quoteArg(code)},
+			{"name", "/secure-connection accept --password " + password + " --invite " + quoteArg(code)},
 			{"invite", "/secure-connection accept --name remote1 --password " + password},
 		} {
 			t.Run(tc.missing, func(t *testing.T) {
@@ -261,20 +267,20 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 	t.Run("wrong password", func(t *testing.T) {
 		code, _ := makeInvite(t, "https://remote.example.com")
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password wrong --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password wrong --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.decode_invitation.error", map[string]any{"Error": T("api.remote_cluster.invite_decrypt_error")}), text)
 	})
 
 	t.Run("malformed invite", func(t *testing.T) {
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite not*base64")
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg("not*base64"))
 
 		require.Equal(t, T("api.command_remote.decode_invitation.error", map[string]any{"Error": T("api.remote_cluster.base64_decode_error")}), text)
 	})
 
 	t.Run("invalid name replies with the translated validation error", func(t *testing.T) {
 		code, remoteID := makeInvite(t, "https://remote.example.com")
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name bad!name --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name bad!name --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("model.cluster.is_valid.name.app_error")}), text)
 		_, appErr := th.App.GetRemoteCluster(remoteID, true)
@@ -288,7 +294,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		code, appErr := th.App.CreateRemoteClusterInvite(existing.RemoteId, "https://remote.example.com", model.NewId(), password)
 		require.Nil(t, appErr)
 
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+existing.Name+" --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+existing.Name+" --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.save_not_unique.app_error")}), text)
 		rc, appErr := th.App.GetRemoteCluster(existing.RemoteId, false)
@@ -300,7 +306,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		ts := httptest.NewServer(http.NotFoundHandler())
 		ts.Close()
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": ts.URL + "/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
@@ -315,7 +321,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		}))
 		t.Cleanup(ts.Close)
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.invalid_response.app_error")}), text)
 		_, appErr := th.App.GetRemoteCluster(remoteID, false)
@@ -326,7 +332,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		ts := httptest.NewServer(http.NotFoundHandler())
 		ts.Close()
 		code, remoteID := makeInvite(t, ts.URL+"/[click](https://evil.example.com)")
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		escapedURL := ts.URL + "/%5Bclick%5D%28https://evil.example.com%29/" + remotecluster.ConfirmInviteURL
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": escapedURL})
@@ -355,7 +361,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 			}))
 			t.Cleanup(ts.Close)
 			code, remoteID := makeInvite(t, ts.URL)
-			text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+			text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 			require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T(tc.errorID)}), text)
 			_, appErr := th.App.GetRemoteCluster(remoteID, false)
@@ -375,7 +381,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		}))
 		t.Cleanup(ts.Close)
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": ts.URL + "/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
@@ -390,7 +396,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		encrypted, err := invite.Encrypt(password)
 		require.NoError(t, err)
 		code := base64.URLEncoding.EncodeToString(encrypted)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		invalidURL := T("api.remote_cluster.accept_invitation.invalid_url.app_error", map[string]any{"URL": "http://remote.example.com/%7F/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": invalidURL}), text)
@@ -404,7 +410,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		ts, _ := newConfirmInviteServer(t, model.StatusOk, "")
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.site_url_not_set"), text)
 		_, appErr := th.App.GetRemoteCluster(remoteID, true)
@@ -414,7 +420,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 	t.Run("remote site rejects the invite with a translated reply that omits the remote's reason", func(t *testing.T) {
 		ts, _ := newConfirmInviteServer(t, model.StatusFail, "[click here](https://evil.example.com) to fix your connection")
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.rejected.app_error")}), text)
 
@@ -429,7 +435,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		ts, confirms := newConfirmInviteServer(t, model.StatusOk, "")
 		code, remoteID := makeInvite(t, ts.URL)
 		name := "remote" + model.NewId()
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+name+" --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+name+" --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, "##### "+T("api.command_remote.accept_invitation", map[string]any{"SiteURL": ts.URL}), text)
 		waitForFirstPing(t, th, remoteID)
@@ -451,7 +457,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 	t.Run("explicit display name is used", func(t *testing.T) {
 		ts, _ := newConfirmInviteServer(t, model.StatusOk, "")
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote"+model.NewId()+" --displayname Fancy --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote"+model.NewId()+" --displayname Fancy --password "+password+" --invite "+quoteArg(code))
 		require.Equal(t, "##### "+T("api.command_remote.accept_invitation", map[string]any{"SiteURL": ts.URL}), text)
 		waitForFirstPing(t, th, remoteID)
 
@@ -469,7 +475,7 @@ func TestRemoteProviderDoAcceptServiceNotEnabled(t *testing.T) {
 
 	code, appErr := th.App.CreateRemoteClusterInvite(model.NewId(), "https://remote.example.com", model.NewId(), "s3cret")
 	require.Nil(t, appErr)
-	text := runCommand(th, &RemoteProvider{}, th.SystemAdminUser.Id, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password s3cret --invite "+code)
+	text := runCommand(th, &RemoteProvider{}, th.SystemAdminUser.Id, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password s3cret --invite "+quoteArg(code))
 
 	require.Equal(t, T("api.command_remote.service_not_enabled"), text)
 }
@@ -813,5 +819,215 @@ func TestRemoteProviderDoCreateValidationFailure(t *testing.T) {
 		list, appErr := th.App.GetAllRemoteClusters(0, 10, model.RemoteClusterQueryFilter{IncludeDeleted: true})
 		require.Nil(t, appErr)
 		require.Empty(t, list, "no secure connection should be saved for an invalid name")
+	})
+}
+
+func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
+	th := setup(t).initBasic(t)
+	T := i18n.GetUserTranslations("en")
+
+	commands, appErr := th.App.ListAutocompleteCommands(th.BasicTeam.Id, T)
+	require.Nil(t, appErr)
+
+	pluginCreate := model.NewAutocompleteData("create", "", "")
+	pluginCreate.AddNamedTextArgument("name", "", "", "", true)
+	pluginCreate.AddNamedTextArgument("displayname", "", "", "", false)
+	pluginCreate.AddNamedTextArgument("password", "", "", "", true)
+	pluginCmd := model.NewAutocompleteData("plugincmd", "", "")
+	pluginCmd.AddCommand(pluginCreate)
+	commands = append(commands, &model.Command{Trigger: "plugincmd", AutoComplete: true, AutocompleteData: pluginCmd})
+
+	suggest := func(input string) []model.AutocompleteSuggestion {
+		args := &model.CommandArgs{T: T, UserId: th.SystemAdminUser.Id, TeamId: th.BasicTeam.Id, Command: input}
+		return th.App.GetSuggestions(th.Context, args, commands, model.SystemAdminRoleId)
+	}
+
+	t.Run("a closed quoted value is followed by the next flag, matching execution", func(t *testing.T) {
+		for _, tt := range []struct {
+			name        string
+			displayname string
+			want        string
+		}{
+			{"straight double quotes", `"My Remote"`, "My Remote"},
+			{"single quotes with an apostrophe", `'Bob's Remote'`, "Bob's Remote"},
+			{"curly double quotes", "\u201cMy Remote\u201d", "My Remote"},
+			{"curly single quotes with a curly apostrophe", "\u2018Bob\u2019s Remote\u2019", "Bob\u2019s Remote"},
+			{"double quoted value containing a flag", `"use --password here"`, "use --password here"},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				input := "secure-connection create --name n --displayname " + tt.displayname + " "
+
+				assert.Equal(t, []model.AutocompleteSuggestion{{
+					Complete:    input + "--password ",
+					Suggestion:  "--password",
+					Description: T("api.command_remote.invite_password.help"),
+				}}, suggest(input))
+
+				margs, err := parseNamedArgs(T, "/"+input+"--password pw")
+				require.NoError(t, err)
+				assert.Equal(t, tt.want, margs["displayname"])
+			})
+		}
+	})
+
+	t.Run("the input after a closed quoted value is parsed as the next argument", func(t *testing.T) {
+		pre := "secure-connection create --name n --displayname "
+
+		assert.Equal(t, []model.AutocompleteSuggestion{{
+			Complete:    pre + "'Bob's Remote' --password ",
+			Suggestion:  "--password",
+			Description: T("api.command_remote.invite_password.help"),
+		}}, suggest(pre+"'Bob's Remote' --pass"))
+
+		input := pre + "'Bob's Remote' --password "
+		assert.Equal(t, []model.AutocompleteSuggestion{{
+			Complete:    input,
+			Hint:        T("api.command_remote.invite_password.hint"),
+			Description: T("api.command_remote.invite_password.help"),
+		}}, suggest(input))
+	})
+
+	t.Run("next-flag completion after a closed quote preserves separator whitespace", func(t *testing.T) {
+		pre := "secure-connection create --name n --displayname "
+		quoted := `"My Remote"`
+		passwordHelp := T("api.command_remote.invite_password.help")
+
+		for _, tt := range []struct {
+			name      string
+			separator string
+		}{
+			{"one space", " "},
+			{"multiple spaces", "   "},
+			{"tab", "\t"},
+			{"no-break space", "\u00a0"},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				want := []model.AutocompleteSuggestion{{
+					Complete:    pre + quoted + tt.separator + "--password ",
+					Suggestion:  "--password",
+					Description: passwordHelp,
+				}}
+				assert.Equal(t, want, suggest(pre+quoted+tt.separator))
+				assert.Equal(t, want, suggest(pre+quoted+tt.separator+"--pa"))
+
+				margs, err := parseNamedArgs(T, "/"+pre+quoted+tt.separator+"--password pw")
+				require.NoError(t, err)
+				assert.Equal(t, "My Remote", margs["displayname"])
+			})
+		}
+
+		t.Run("extra space before the quote", func(t *testing.T) {
+			input := pre + " " + quoted + " "
+			want := []model.AutocompleteSuggestion{{
+				Complete:    input + "--password ",
+				Suggestion:  "--password",
+				Description: passwordHelp,
+			}}
+			assert.Equal(t, want, suggest(input))
+			assert.Equal(t, want, suggest(input+"--pa"))
+		})
+	})
+
+	t.Run("the value hint stays up until the quote is closed", func(t *testing.T) {
+		for _, tt := range []struct {
+			name        string
+			displayname string
+		}{
+			{"single quote", "'My Rem"},
+			{"curly double quote", "\u201cMy Rem"},
+			{"apostrophe then space", "'Bob's Rem"},
+			{"flag inside single quotes", "'My --pa"},
+			{"curly double quote opened again before it closes", "\u201cMy \u201cRemote\u201d "},
+			{"extra space before the quote", " 'My Rem"},
+			{"double quote closed at the end of the input", `"My Remote"`},
+			{"apostrophe at the end of the input", "'Bob'"},
+			{"curly apostrophe at the end of the input", "\u2018Bob\u2019"},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				input := "secure-connection create --name n --displayname " + tt.displayname
+				assert.Equal(t, []model.AutocompleteSuggestion{{
+					Complete:    input,
+					Hint:        T("api.command_remote.displayname.hint"),
+					Description: T("api.command_remote.displayname.help"),
+				}}, suggest(input))
+			})
+		}
+	})
+
+	t.Run("the value hint stays up when text follows the closing quote, which execution rejects", func(t *testing.T) {
+		for _, tt := range []struct {
+			name        string
+			displayname string
+		}{
+			{"straight double quote", `"My Remote"x`},
+			{"curly double quote", "\u201cMy Remote\u201dx"},
+			{"flag right after the quote", `"My Remote"--pa`},
+			{"word and flag after the quote", `"My Remote"x --pa`},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				input := "secure-connection create --name n --displayname " + tt.displayname
+				assert.Equal(t, []model.AutocompleteSuggestion{{
+					Complete:    input,
+					Hint:        T("api.command_remote.displayname.hint"),
+					Description: T("api.command_remote.displayname.help"),
+				}}, suggest(input))
+
+				_, err := parseNamedArgs(T, "/"+input+" --password pw")
+				require.Error(t, err)
+			})
+		}
+	})
+
+	t.Run("a plugin or custom command with the same trigger keeps straight double quote grouping", func(t *testing.T) {
+		create := model.NewAutocompleteData("create", "", "")
+		create.AddNamedTextArgument("name", "", "", "", true)
+		create.AddNamedTextArgument("displayname", "", "", "", false)
+		create.AddNamedTextArgument("password", "", "", "", true)
+		lookalike := model.NewAutocompleteData(CommandTriggerRemote, "", "")
+		lookalike.AddCommand(create)
+
+		assertDoubleQuotesOnly := func(t *testing.T, commands []*model.Command) {
+			suggestFor := func(input string) []model.AutocompleteSuggestion {
+				args := &model.CommandArgs{T: T, UserId: th.SystemAdminUser.Id, TeamId: th.BasicTeam.Id, Command: input}
+				return th.App.GetSuggestions(th.Context, args, commands, model.SystemAdminRoleId)
+			}
+			suggestions := suggestFor(`secure-connection create --name n --displayname "My Remote" `)
+			require.Len(t, suggestions, 1)
+			assert.Equal(t, "--password", suggestions[0].Suggestion)
+
+			assert.Empty(t, suggestFor("secure-connection create --name n --displayname 'My Remote' "))
+			assert.Empty(t, suggestFor("secure-connection create --name n --displayname \u201cMy Remote\u201d "))
+		}
+
+		t.Run("custom", func(t *testing.T) {
+			assertDoubleQuotesOnly(t, []*model.Command{{Id: model.NewId(), Trigger: CommandTriggerRemote, AutoComplete: true, AutocompleteData: lookalike}})
+		})
+
+		t.Run("plugin", func(t *testing.T) {
+			const pluginID = "com.example.quotes"
+			require.NoError(t, th.App.RegisterPluginCommand(pluginID, &model.Command{Trigger: CommandTriggerRemote, AutoComplete: true, AutocompleteData: lookalike}))
+			t.Cleanup(func() { th.App.UnregisterPluginCommand(pluginID, "", CommandTriggerRemote) })
+
+			commands, appErr := th.App.ListAutocompleteCommands(th.BasicTeam.Id, T)
+			require.Nil(t, appErr)
+			assertDoubleQuotesOnly(t, commands)
+		})
+	})
+
+	t.Run("the trigger is matched case-insensitively", func(t *testing.T) {
+		input := "Secure-Connection create --name n --displayname 'Bob's Remote' "
+		suggestions := suggest(input)
+		require.Len(t, suggestions, 1)
+		assert.Equal(t, "--password", suggestions[0].Suggestion)
+	})
+
+	t.Run("commands without their own quote parser still split single quoted values on whitespace", func(t *testing.T) {
+		suggestions := suggest(`plugincmd create --name n --displayname "My Remote" `)
+		require.Len(t, suggestions, 1)
+		assert.Equal(t, "--password", suggestions[0].Suggestion)
+
+		assert.Empty(t, suggest("plugincmd create --name n --displayname 'My Remote' "))
+		assert.Empty(t, suggest("plugincmd create --name n --displayname \u201cMy Remote\u201d "))
+		assert.Empty(t, suggest("rename 'My Ch"))
 	})
 }

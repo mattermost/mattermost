@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {TileButton} from '@mattermost/compass-ui/components/tile-button';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 import type {ChannelIntroButtonAction} from 'types/store/plugins';
@@ -26,14 +28,12 @@ const PluggableIntroButtons = React.memo(({
 
     const buttons = pluginButtons.map((buttonProps) => {
         return (
-            <button
+            <TileButton
                 key={buttonProps.id}
-                className={'action-button'}
                 onClick={() => buttonProps.action?.(channel, channelMember)}
-            >
-                {buttonProps.icon}
-                {buttonProps.text}
-            </button>
+                icon={<Icon glyph={buttonProps.icon}/>}
+                label={buttonProps.text}
+            />
         );
     });
 

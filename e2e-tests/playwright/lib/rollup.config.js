@@ -32,6 +32,7 @@ export default {
         '@azure/storage-blob',
         '@percy/playwright',
         '@testcontainers/postgresql',
+        '@expo/devcert',
         'dotenv',
         'ldapts',
         'luxon',

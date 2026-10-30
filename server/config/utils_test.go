@@ -368,7 +368,7 @@ func TestFixWebserverMode(t *testing.T) {
 	}
 }
 
-func TestFixEmailAddressDisplayNames(t *testing.T) {
+func TestFixEmailAddressSettings(t *testing.T) {
 	newConfig := func(value string) *model.Config {
 		cfg := &model.Config{}
 		cfg.SetDefaults()
@@ -378,25 +378,39 @@ func TestFixEmailAddressDisplayNames(t *testing.T) {
 		return cfg
 	}
 
-	for _, value := range []string{"", "noreply@example.com", "NoReply@Example.com", "not an email"} {
+	for _, value := range []string{"", "noreply@example.com", "NoReply@Example.com"} {
 		t.Run("unchanged "+value, func(t *testing.T) {
 			cfg := newConfig(value)
 
-			assert.False(t, fixEmailAddressDisplayNames(cfg))
+			assert.False(t, fixEmailAddressSettings(cfg))
 			assert.Equal(t, value, *cfg.SupportSettings.SupportEmail)
 			assert.Equal(t, value, *cfg.EmailSettings.FeedbackEmail)
 			assert.Equal(t, value, *cfg.EmailSettings.ReplyToAddress)
 		})
 	}
 
-	for _, value := range []string{"Mattermost <noreply@example.com>", "<noreply@example.com>", `"Mattermost, Inc." <noreply@example.com>`} {
-		t.Run("display name "+value, func(t *testing.T) {
+	for value, expected := range map[string]string{
+		"Mattermost <noreply@example.com>":                            "noreply@example.com",
+		"<noreply@example.com>":                                       "noreply@example.com",
+		`"Mattermost, Inc." <noreply@example.com>`:                    "noreply@example.com",
+		" noreply@example.com ":                                       "noreply@example.com",
+		"noreply@example.com, other@example.com":                      "noreply@example.com",
+		"Mattermost <noreply@example.com>, Other <other@example.com>": "noreply@example.com",
+		"noreply@example.com;other@example.com":                       "",
+		"noreply@example.com other@example.com":                       "",
+		"not an email, noreply@example.com":                           "",
+		"not an email":                                                "",
+		"noreply":                                                     "",
+		"Mattermost Support":                                          "",
+		"noreply@example.com@example.com":                             "",
+	} {
+		t.Run("fixed "+value, func(t *testing.T) {
 			cfg := newConfig(value)
 
-			assert.True(t, fixEmailAddressDisplayNames(cfg))
-			assert.Equal(t, "noreply@example.com", *cfg.SupportSettings.SupportEmail)
-			assert.Equal(t, "noreply@example.com", *cfg.EmailSettings.FeedbackEmail)
-			assert.Equal(t, "noreply@example.com", *cfg.EmailSettings.ReplyToAddress)
+			assert.True(t, fixEmailAddressSettings(cfg))
+			assert.Equal(t, expected, *cfg.SupportSettings.SupportEmail)
+			assert.Equal(t, expected, *cfg.EmailSettings.FeedbackEmail)
+			assert.Equal(t, expected, *cfg.EmailSettings.ReplyToAddress)
 			assert.Nil(t, cfg.IsValid())
 		})
 	}

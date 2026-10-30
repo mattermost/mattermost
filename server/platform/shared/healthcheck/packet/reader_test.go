@@ -6,6 +6,7 @@ package packet
 import (
 	"archive/zip"
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -34,6 +35,11 @@ const (
 
 	// The fixtures run 11.0, which has ended.
 	versionSubject = "11.0"
+
+	complianceDirSubject      = "ComplianceSettings.Directory"
+	expiresAtSubject          = "license.expires_at"
+	globalRelayTimeoutSubject = "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout"
+	seatsSubject              = "license.users"
 )
 
 type finding struct {
@@ -128,7 +134,19 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
+				{Code: "COMPLIANCE_NO_DIR", State: healthcheck.StateFiring, Subject: complianceDirSubject},
+				{Code: "JOB_FAILED", State: healthcheck.StateFiring, Subject: model.JobTypeLdapSync},
+				{Code: "LDAP_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: "LdapSettings.LdapServer"},
+				{Code: "LDAP_RECOMMENDED_AT_SCALE", State: healthcheck.StateFiring, Subject: "LdapSettings.Enable"},
+				{Code: "LDAP_SYNC_NO_BASEDN", State: healthcheck.StateFiring, Subject: "LdapSettings.BaseDN"},
+				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "METRICS_OFF", State: healthcheck.StateFiring, Subject: "MetricsSettings.Enable"},
+				{Code: "PLUGIN_NOT_RUNNING", State: healthcheck.StateFiring, Subject: "PluginSettings.PluginStates"},
+				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateUnknown, Subject: seatsSubject},
+				{Code: "SESSION_EXTEND_OFF", State: healthcheck.StateFiring, Subject: "ServiceSettings.ExtendSessionLengthWithActivity"},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
@@ -136,7 +154,16 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "ha",
 			expected: []finding{
+				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
+				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
+				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateFiring, Subject: globalRelayTimeoutSubject},
+				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: "FileSettings.Directory"},
+				{Code: "JOB_STUCK", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
+				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
+				{Code: "SAML_ENCRYPT_OFF", State: healthcheck.StateFiring, Subject: "SamlSettings.Encrypt"},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
@@ -144,6 +171,8 @@ func TestReadGoldenPackets(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			// Sorted so parallel rule PRs insert at different lines instead of all appending.
+			require.True(t, slices.IsSortedFunc(tc.expected, func(a, b finding) int { return cmp.Compare(a.Code, b.Code) }), "keep expected findings sorted by code")
 			p := readFiles(t, fixtureFiles(t, tc.name))
 
 			assert.Empty(t, p.Warnings)
@@ -162,11 +191,17 @@ func TestReadSnapshotFields(t *testing.T) {
 	assert.Empty(t, s.Version.Latest)
 	assert.False(t, s.IsCloud())
 
+	seats, ok := s.LicenseSeats()
+	require.True(t, ok)
+	assert.Equal(t, 500, seats)
+	_, ok = s.LicenseExpiresAt()
+	assert.False(t, ok)
+
 	license, ok := s.License()
 	require.True(t, ok)
 	assert.Equal(t, model.LicenseShortSkuEnterprise, license.SkuShortName)
 	assert.Equal(t, 500, license.Users)
-	idLoaded, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.IDLoadedPushNotifications })
+	idLoaded, ok := s.LicenseFeature(healthcheck.FeatureIDLoaded)
 	require.True(t, ok)
 	assert.True(t, idLoaded)
 
@@ -299,7 +334,72 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY"}, codes)
+	assert.ElementsMatch(t, []string{
+		"LDAP_PROBE_FAILED",
+		"LDAP_RECOMMENDED_AT_SCALE",
+		"LDAP_SYNC_NO_BASEDN",
+		"PLUGIN_NOT_RUNNING",
+		"PUSH_ID_ONLY",
+		"PUSH_TEST_PROXY",
+	}, codes)
+}
+
+func TestReadNodeFileDescriptors(t *testing.T) {
+	files := fixtureFiles(t, "ha")
+	name := "app-2.example.com/" + model.SupportPacketDiagnosticsFileName
+	require.Contains(t, string(files[name]), "open_file_descriptors: 120 ")
+	files[name] = bytes.Replace(files[name], []byte("open_file_descriptors: 120 "), []byte("open_file_descriptors: 62260 "), 1)
+
+	var fdFindings []finding
+	for _, f := range evaluate(t, readFiles(t, files).Snapshot) {
+		if f.Code == "NODE_FD_EXHAUSTION" {
+			fdFindings = append(fdFindings, f)
+		}
+	}
+	assert.Equal(t, []finding{{Code: "NODE_FD_EXHAUSTION", State: healthcheck.StateFiring, Subject: "Server.FileDescriptors", Scope: "app-2.example.com"}}, fdFindings)
+}
+
+func TestReadLicense(t *testing.T) {
+	t.Run("maps the license summary", func(t *testing.T) {
+		files := fixtureFiles(t, "standalone")
+		files[model.SupportPacketDiagnosticsFileName] = bytes.Replace(files[model.SupportPacketDiagnosticsFileName],
+			[]byte("  sku_short_name: enterprise\n"),
+			[]byte("  sku_short_name: enterprise\n  is_trial: true\n  expires_at: 1792058400000\n  is_seat_count_enforced: true\n  extra_users: 5\n"), 1)
+
+		license, ok := readFiles(t, files).Snapshot.License()
+		require.True(t, ok)
+		assert.Equal(t, 500, license.Users)
+		assert.Equal(t, model.LicenseShortSkuEnterprise, license.SkuShortName)
+		assert.True(t, license.IsTrial)
+		assert.Equal(t, int64(1792058400000), license.ExpiresAt)
+		assert.True(t, license.IsSeatCountEnforced)
+		assert.Equal(t, new(5), license.ExtraUsers)
+	})
+
+	t.Run("an older packet has no expiry but keeps its seats", func(t *testing.T) {
+		s := readFiles(t, fixtureFiles(t, "standalone")).Snapshot
+
+		license, ok := s.License()
+		require.True(t, ok)
+		assert.False(t, license.IsSeatCountEnforced)
+		assert.Nil(t, license.ExtraUsers)
+		_, ok = s.LicenseExpiresAt()
+		assert.False(t, ok)
+		seats, ok := s.LicenseSeats()
+		require.True(t, ok)
+		assert.Equal(t, 500, seats)
+	})
+
+	t.Run("the leader's summary is read", func(t *testing.T) {
+		s := readFiles(t, fixtureFiles(t, "ha")).Snapshot
+
+		license, ok := s.License()
+		require.True(t, ok)
+		assert.True(t, license.IsSeatCountEnforced)
+		expiresAt, ok := s.LicenseExpiresAt()
+		require.True(t, ok)
+		assert.Equal(t, time.Date(2026, time.October, 15, 10, 0, 0, 0, time.UTC), expiresAt)
+	})
 }
 
 func TestReadMissingStats(t *testing.T) {

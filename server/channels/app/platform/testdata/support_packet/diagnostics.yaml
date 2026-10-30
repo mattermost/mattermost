@@ -32,6 +32,7 @@ server:
   go_version: go1.26
 config:
   store_type: memory://
+  audit_logging_configured: true # this server's audit check of its current config and license; offline health checks use it
 database:
   type: postgres
   version: "16.4"
@@ -51,6 +52,7 @@ database:
   replica_pool_wait_duration_ms: 66 # cumulative across all replicas
   replica_connections_closed_max_idle: 4 # cumulative across all replicas
   replica_connections_closed_max_lifetime: 3 # cumulative across all replicas
+  replicas_online: 1
   # PostgreSQL-only (these fields are omitted on MySQL)
   cache_hit_ratio: 0.99 # blks_hit / (blks_hit + blks_read) from pg_stat_database; cumulative since stats reset
   deadlocks: 3 # cumulative since pg_stat_database reset

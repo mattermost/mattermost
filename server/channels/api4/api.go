@@ -146,8 +146,6 @@ type Routes struct {
 
 	Permissions *mux.Router // 'api/v4/permissions'
 
-	Usage *mux.Router // 'api/v4/usage'
-
 	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
 
 	Drafts *mux.Router // 'api/v4/drafts'
@@ -319,8 +317,6 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Permissions = api.BaseRoutes.APIRoot.PathPrefix("/permissions").Subrouter()
 
-	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
-
 	api.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()
 
 	api.BaseRoutes.Drafts = api.BaseRoutes.APIRoot.PathPrefix("/drafts").Subrouter()
@@ -407,7 +403,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitSharedChannels()
 	api.InitPermissions()
 	api.InitExport()
-	api.InitUsage()
 	api.InitHostedCustomer()
 	api.InitDrafts()
 	api.InitIPFiltering()
