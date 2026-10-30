@@ -7,7 +7,7 @@ name: Release cherry-pick labels
 # Linked PRs come from the ticket's Jira remote links, else PRs naming the ticket in their
 # title or branch. Labels and milestones are only added, never removed or overwritten:
 # another milestone is reported, PRs in other repos are reported, and dot-release fix
-# versions on a ticket are listed for the release manager.
+# versions on a ticket are listed for the release manager, never given a milestone.
 #
 # Runs:
 #   repository_dispatch jira-submitted — {"issue_key": "MM-12345"}, sent by a Jira Automation
@@ -26,17 +26,20 @@ name: Release cherry-pick labels
 # PRs, but mattermost/enterprise PRs only as "(private repo)" and the number. Titles and
 # links for those go to Hub only.
 #
-# GitHub App: a separate app, not the Phase 3 release docs app (RELEASE_DOCS_*), with only
-# Pull requests: Read and write and Issues: Read and write, installed on mattermost/mattermost
-# and mattermost/enterprise. The release docs app has Contents: write on the docs repos, and
-# installing it on enterprise would give that write access to private source too.
+# GitHub App: the existing changelog read app (CHANGELOG_READ_*), already installed on
+# mattermost/mattermost and mattermost/enterprise, with Pull requests: Read and write and
+# Issues: Read and write added to its grant (labels and milestones are issue endpoints).
+# This workflow's token is narrowed to those plus Contents: read, and the changelog and
+# release agent workflows narrow theirs to read-only, so only this workflow writes. Not the
+# release docs app (RELEASE_DOCS_*): it has Contents: write on the docs repos, and installing
+# it on enterprise would give that write access to private source too.
 #
 # Secrets:
-#   CHERRYPICK_APP_PRIVATE_KEY  — the cherry-pick app's private key
+#   CHANGELOG_READ_PRIVATE_KEY  — the changelog read app's private key
 #   RELEASE_AGENT_JIRA_TOKEN    — read-only Atlassian API token
 #   RELEASE_AGENT_MM_TOKEN      — optional; Hub bot token for release-agent-log and live posts
 # Variables:
-#   CHERRYPICK_APP_CLIENT_ID    — the cherry-pick app's client ID
+#   CHANGELOG_READ_CLIENT_ID    — the changelog read app's client ID
 #   CHERRYPICK_LABEL_MODE       — dry_run | live
 #   RELEASE_AGENT_JIRA_EMAIL    — the Jira token's account
 #   RELEASE_AGENT_LOG_CHANNEL_ID — optional; release-agent-log
@@ -96,10 +99,12 @@ jobs:
         uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: appToken
         with:
-          client-id: ${{ vars.CHERRYPICK_APP_CLIENT_ID }}
-          private-key: ${{ secrets.CHERRYPICK_APP_PRIVATE_KEY }}
+          client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
           owner: mattermost
           repositories: mattermost,enterprise
+          # Narrow below the App installation grant (cannot exceed it).
+          permission-contents: read
           permission-pull-requests: write
           permission-issues: write
 

@@ -102,6 +102,10 @@ jobs:
           private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
           owner: mattermost
           repositories: mattermost,enterprise
+          # The app can also write PRs and issues (cherry-pick labels); this job only reads.
+          permission-contents: read
+          permission-pull-requests: read
+          permission-issues: read
 
       - name: Run checks
         working-directory: .github/scripts
