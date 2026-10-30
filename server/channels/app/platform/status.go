@@ -308,7 +308,9 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 	var err *model.AppError
 
 	if status, err = ps.GetStatus(userID); err != nil {
-		status = &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+		// A user with no status row yet must still be able to pin themselves online, so the
+		// caller's intent is carried here too rather than defaulting to automatic.
+		status = &model.Status{UserId: userID, Status: model.StatusOnline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 		broadcast = true
 	} else {
 		if status.Manual && !manual {
@@ -324,7 +326,7 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 		oldManual = status.Manual
 
 		status.Status = model.StatusOnline
-		status.Manual = false // for "online" there's no manual setting
+		status.Manual = manual
 		status.LastActivityAt = model.GetMillis()
 	}
 
@@ -333,7 +335,9 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 	// Only update the database if the status has changed, the status has been manually set,
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.StatusMinUpdateTime {
-		if broadcast {
+		// UpdateLastActivityAt only writes the timestamp column, so a change to the manual
+		// flag alone still needs the full upsert to be persisted.
+		if broadcast || status.Manual != oldManual {
 			if err := ps.Store.Status().SaveOrUpdate(status); err != nil {
 				mlog.Warn("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
@@ -360,7 +364,7 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bo
 	status, err := ps.GetStatus(userID)
 	if err != nil {
 		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
-	} else if !force && status.Manual && !manual {
+	} else if !force && status.Manual && !manual && !isManualOnline(status) {
 		return // manually set status always overrides non-manual one
 	}
 	ps._setStatusOfflineAndNotify(userID, manual)
@@ -384,7 +388,7 @@ func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
 	status, err := ps.GetStatus(userID)
 	if err != nil {
 		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
-	} else if status.Manual && !manual {
+	} else if status.Manual && !manual && !isManualOnline(status) {
 		// Force will be false here, so no need to add another variable.
 		return // manually set status always overrides non-manual one
 	}
@@ -587,4 +591,11 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 
 func (ps *PlatformService) isUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *ps.Config().TeamSettings.UserStatusAwayTimeout*1000
+}
+
+// isManualOnline reports whether a user has pinned themselves online. Unlike the other manual
+// statuses, a manual online claims more availability than reality, so it must not survive the
+// loss of the connections that justify it: it overrides inactivity, never disconnection.
+func isManualOnline(status *model.Status) bool {
+	return status.Manual && status.Status == model.StatusOnline
 }
