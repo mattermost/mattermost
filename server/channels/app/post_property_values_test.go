@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -68,13 +69,15 @@ func (th *propertyValuesTestHelper) post(t *testing.T, channel *model.Channel) *
 	return post
 }
 
-// prepare re-fetches the post so metadata is built from scratch, as a real request would.
+// prepare re-fetches the post so metadata is built from scratch, as a real request from
+// BasicUser would. The viewer matters: value reads are gated per caller.
 func (th *propertyValuesTestHelper) prepare(t *testing.T, post *model.Post, groupID string) *model.Post {
 	t.Helper()
 	fresh, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 	require.Nil(t, appErr)
 	fresh.Metadata = nil
-	return th.App.PreparePostForClient(th.Context, fresh, &model.PreparePostForClientOpts{PropertyGroupID: groupID})
+	viewer := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId})
+	return th.App.PreparePostForClient(viewer, fresh, &model.PreparePostForClientOpts{PropertyGroupID: groupID})
 }
 
 func valueFieldIDs(post *model.Post) []string {
@@ -211,6 +214,27 @@ func TestHydratePropertyValues(t *testing.T) {
 		assert.Equal(t, []string{first.ID, second.ID}, valueFieldIDs(hydrated))
 	})
 
+	// A local-mode (mmctl --local) session names no user, so the viewer has to
+	// be tagged as the local admin; tagging its empty UserId would have the
+	// access control hook refuse the read and the post come back without values.
+	t.Run("a local-mode session gets values", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		post := th.post(t, th.BasicChannel)
+		th.setValue(t, post, field, `"confidential"`)
+
+		fresh, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr)
+		fresh.Metadata = nil
+		// Untagged, unlike th.Context, so only the session decides the caller.
+		viewer := request.EmptyContext(th.App.Log()).WithSession(&model.Session{Local: true})
+		hydrated := th.App.PreparePostForClient(viewer, fresh, &model.PreparePostForClientOpts{PropertyGroupID: th.groupID})
+
+		require.Len(t, hydrated.Metadata.PropertyValues, 1)
+		assert.Equal(t, field.ID, hydrated.Metadata.PropertyValues[0].FieldID)
+		assert.False(t, hydrated.Metadata.PropertyValuesUnavailable)
+	})
+
 	t.Run("a deleted post is never hydrated", func(t *testing.T) {
 		th := setupPropertyValuesTest(t)
 		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
@@ -312,14 +336,16 @@ func (th *propertyValuesTestHelper) createFieldsPastCap(t *testing.T, channelID 
 	t.Helper()
 	fields := make([]*model.PropertyField, n)
 	for i := range fields {
-		field, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		field := &model.PropertyField{
 			GroupID:    th.groupID,
 			Name:       "attr-" + strconv.Itoa(i),
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypePost,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channelID,
-		})
+		}
+		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: false})
+		field, err := th.App.Srv().Store().PropertyField().Create(field)
 		require.NoError(t, err)
 		fields[i] = field
 	}

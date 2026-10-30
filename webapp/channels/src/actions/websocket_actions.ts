@@ -2310,13 +2310,6 @@ export function handleCloudSubscriptionChanged(msg: WebSocketMessages.CloudSubsc
         const license = getLicense(state);
 
         if (license.Cloud === 'true') {
-            if (msg.data.limits) {
-                doDispatch({
-                    type: CloudTypes.RECEIVED_CLOUD_LIMITS,
-                    data: msg.data.limits,
-                });
-            }
-
             if (msg.data.subscription) {
                 doDispatch({
                     type: CloudTypes.RECEIVED_CLOUD_SUBSCRIPTION,

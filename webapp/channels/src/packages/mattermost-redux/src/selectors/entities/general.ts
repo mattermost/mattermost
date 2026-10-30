@@ -27,6 +27,10 @@ export function isPostAttributesEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPostAttributes === 'true';
 }
 
+export function isProductRailEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagProductRail === 'true';
+}
+
 export function isPostDeliveryTrackingEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPostDeliveryTracking === 'true';
 }

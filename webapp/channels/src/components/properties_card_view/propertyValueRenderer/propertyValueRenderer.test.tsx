@@ -548,6 +548,8 @@ describe('canRenderPropertyValue agrees with what PropertyValueRenderer draws', 
         multiuser: ['user_1'],
         date: 1700000000000,
         graph: ['opt_1'],
+        number: 42,
+        checkbox: true,
     };
 
     const ALL_FIELD_TYPES = Object.keys(VALUE_BY_TYPE) as FieldType[];
