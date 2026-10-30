@@ -250,11 +250,12 @@ class OverrideAndFailureTest(unittest.TestCase):
 
     def test_a_failing_service_is_an_error_not_a_crash(self):
         class DownJira(FakeJira):
-            def search(self, jql, limit=1000):
+            def search(self, jql, limit=1000, extra_fields=()):
                 raise ServiceError("Jira", 401, "token for someone@example.com rejected")
         body, details = run(services(DownJira()))
-        check = by_task(body["releases"][0])["new-regressions"]
-        self.assertEqual((check["state"], check["error"]), ("error", "Jira request failed (HTTP 401)"))
+        for task in ("new-regressions", "open-release-items", "cherry-picks-to-label"):
+            check = by_task(body["releases"][0])[task]
+            self.assertEqual((check["state"], check["error"]), ("error", "Jira request failed (HTTP 401)"))
         self.assertNotIn("someone@example.com", json.dumps(body))
         self.assertTrue(any("someone@example.com" in d for d in details))
 

@@ -102,6 +102,26 @@ class FormatPostTest(unittest.TestCase):
     def test_test_mode_says_so(self):
         self.assertIn("Test mode", posting.format_post(report(mode="test"), date(2026, 11, 4), NAMES))
 
+    def test_test_mode_mentions_notify_nobody(self):
+        items = [Item("MM-1", owner="@jesse.hallam", url="https://jira/MM-1"), Item("MM-2", owner="@zed")]
+        outcomes = [outcome("open-release-items", posting.REPORT, Result(INFO, "2 open", items), "open_release_items"),
+                    outcome("cherry-picks", posting.NEEDS_ATTENTION,
+                            Result(FAIL, "1 to label", [Item("mattermost#3", "Fix for @here", owner="@ann")]), "cherry_picks")]
+        flags = ["Dev lead `doug.lauder` in rules.yml is deactivated on Hub."]
+        test = posting.format_post(report(outcomes, flags, mode="test"), date(2026, 11, 4), NAMES)
+        self.assertIn("`@jesse.hallam` -- [MM-1](https://jira/MM-1)", test)
+        self.assertIn("`@zed` -- MM-2", test)
+        self.assertIn("Fix for `@here` (`@ann`)", test)
+        self.assertIn("Dev lead `doug.lauder` in rules.yml", test)
+        self.assertEqual(posting.MENTION.findall(test.replace("`@", "`")), [])
+        live = posting.format_post(report(outcomes, flags), date(2026, 11, 4), NAMES)
+        self.assertIn("@jesse.hallam -- [MM-1](https://jira/MM-1)", live)
+        self.assertNotIn("`@", live)
+
+    def test_quiet_mentions(self):
+        self.assertEqual(posting.quiet_mentions("@a, (@b.c) **@d** @e."), "`@a`, (`@b.c`) **`@d`** `@e`.")
+        self.assertEqual(posting.quiet_mentions("x@y.com [p](https://h/@u) `@code` @"), "x@y.com [p](https://h/@u) `@code` @")
+
 
 class UpsertPostTest(unittest.TestCase):
     def setUp(self):

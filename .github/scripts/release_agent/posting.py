@@ -1,6 +1,7 @@
 """The per-release status post on Hub, edited in place rather than reposted."""
 
 import hashlib
+import re
 from dataclasses import dataclass, field
 from datetime import date
 
@@ -146,6 +147,17 @@ def next_milestone(release, today: date, names: dict) -> str:
     return f" · Next: {names.get(key, key)} on {_day(day)}"
 
 
+# Hub notifies for @name (and @here, @channel, @all) anywhere except inside code.
+MENTION = re.compile(r"(?<![\w@/.`])@[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?")
+
+
+def quiet_mentions(text: str) -> str:
+    """``text`` with every mention outside code spans put in code, so it notifies nobody."""
+    parts = text.split("`")
+    return "`".join(MENTION.sub(lambda m: f"`{m.group(0)}`", part) if i % 2 == 0 else part
+                    for i, part in enumerate(parts))
+
+
 def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji: str = "no_entry_sign") -> str:
     release = report.release
     headline = "Needs attention" if report.needs_attention else "All good"
@@ -155,7 +167,8 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
         f"Release Day: {_day(release.release_day)}{next_milestone(release, today, milestone_names)}",
     ]
     if report.mode != "live":
-        lines.append("_Test mode: nothing is ticked, and this post is only in the test channel._")
+        lines.append("_Test mode: nothing is ticked, this post is only in the test channel, "
+                     "and mentions are shown as code so nobody is notified._")
 
     ticks = {tick.task: tick for tick in report.ticks}
     by_state = {}
@@ -209,7 +222,8 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
     if attention or flags:
         lines += ["", f"_Not a real problem? React with :{emoji}: to mark everything under Needs attention "
                       "as a false alarm. For anything raised after your reaction, remove it and react again._"]
-    return "\n".join(lines)
+    text = "\n".join(lines)
+    return text if report.mode == "live" else quiet_mentions(text)
 
 
 def ordinal(day: int) -> str:
