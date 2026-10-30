@@ -4,7 +4,7 @@
 import React from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
+import {HostedCustomerLinks} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import BillingHistory, {NoBillingHistorySection} from './billing_history';
@@ -131,7 +131,7 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.queryByTestId(invoiceA.id)).not.toBeInTheDocument();
         expect(screen.queryByTestId(invoiceB.id)).not.toBeInTheDocument();
 
-        expect(screen.getByRole('link')).toHaveAttribute('href', CloudLinks.BILLING_DOCS + '?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=billing_history&uid=current_user_id&sid=&edition=team&server_version=');
+        expect(screen.getByRole('link')).toHaveAttribute('href', 'http://localhost:8065/_documentation/product-overview/cloud-subscriptions');
         expect(screen.getByRole('link')).toHaveTextContent('See how billing works');
         expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
     });
@@ -170,7 +170,7 @@ describe('NoBillingHistorySection', () => {
             <NoBillingHistorySection selfHosted={false}/>,
             state,
         );
-        expect((screen.getByRole('link') as HTMLAnchorElement).href).toContain(CloudLinks.BILLING_DOCS);
+        expect((screen.getByRole('link') as HTMLAnchorElement).href).toContain('/_documentation/product-overview/cloud-subscriptions');
     });
 
     test('goes to self-hosted docs on self-hosted', () => {

@@ -84,7 +84,7 @@ exports[`components/error_page/ErrorMessage should match snapshot, oauth_missing
     <p>
       For 
       <a
-        href="https://docs.mattermost.com/deployment/sso-google.html?utm_source=mattermost&utm_medium=in-product&utm_content=error_link&uid=user-id-123&sid=telemetry-id-456&edition=team&server_version=9.0.0"
+        href="http://localhost:8065/_documentation/deployment/sso-google"
         location="error_link"
         rel="noopener noreferrer"
         target="_blank"
@@ -96,7 +96,7 @@ exports[`components/error_page/ErrorMessage should match snapshot, oauth_missing
     <p>
       For 
       <a
-        href="https://docs.mattermost.com/deployment/sso-office.html?utm_source=mattermost&utm_medium=in-product&utm_content=error_link&uid=user-id-123&sid=telemetry-id-456&edition=team&server_version=9.0.0"
+        href="http://localhost:8065/_documentation/deployment/sso-office"
         location="error_link"
         rel="noopener noreferrer"
         target="_blank"
@@ -108,7 +108,7 @@ exports[`components/error_page/ErrorMessage should match snapshot, oauth_missing
     <p>
       For 
       <a
-        href="https://docs.mattermost.com/deployment/sso-gitlab.html?utm_source=mattermost&utm_medium=in-product&utm_content=error_link&uid=user-id-123&sid=telemetry-id-456&edition=team&server_version=9.0.0"
+        href="http://localhost:8065/_documentation/deployment/sso-gitlab"
         location="error_link"
         rel="noopener noreferrer"
         target="_blank"

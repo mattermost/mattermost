@@ -44,7 +44,7 @@ describe('components/admin_console/feature_discovery/features/AutoTranslationFea
         expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'Learn more'})).toHaveAttribute(
             'href',
-            expect.stringContaining('docs.mattermost.com/administration-guide/manage/admin/autotranslation.html'),
+            expect.stringContaining('/_documentation/administration-guide/manage/admin/autotranslation'),
         );
         expect(screen.getByTestId('featureDiscovery').querySelector('svg')).toBeInTheDocument();
     });

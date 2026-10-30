@@ -46,7 +46,7 @@ describe('components/admin_console/feature_discovery/features/DataSpillageFeatur
         expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'Learn more'})).toHaveAttribute(
             'href',
-            expect.stringContaining('https://docs.mattermost.com/administration-guide/manage/admin/content-flagging.html'),
+            expect.stringContaining('/_documentation/administration-guide/manage/admin/content-flagging'),
         );
         expect(screen.getByTestId('featureDiscovery').querySelector('svg')).toBeInTheDocument();
     });

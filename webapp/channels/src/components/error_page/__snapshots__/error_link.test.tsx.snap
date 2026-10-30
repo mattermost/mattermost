@@ -3,7 +3,7 @@
 exports[`components/error_page/ErrorLink should match snapshot 1`] = `
 <div>
   <a
-    href="https://docs.mattermost.com/deployment/sso-gitlab.html?utm_source=mattermost&utm_medium=in-product&utm_content=error_link&uid=uid-123&sid=sid-456&edition=team&server_version=11.4.0"
+    href="http://localhost:8065/_documentation/deployment/sso-gitlab"
     location="error_link"
     rel="noopener noreferrer"
     target="_blank"

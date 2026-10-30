@@ -174,10 +174,32 @@ describe('useExternalLink', () => {
     });
 
     it('still tracks other mattermost.com links when the server is hosted on mattermost.com', () => {
-        const url = 'https://docs.mattermost.com/some/page';
+        const url = 'https://mattermost.com/some/page';
         const state = getBaseState();
         state.entities!.general!.config!.SiteURL = 'https://hub.mattermost.com';
         const {result: {current: [href]}} = renderHookWithContext(() => useExternalLink(url), state);
+        expect(new URL(href).searchParams.get('utm_source')).toBe('mattermost');
+    });
+
+    it('points docs links at the bundled documentation on a custom domain', () => {
+        const state = getBaseState();
+        state.entities!.general!.config!.SiteURL = 'https://chat.example.com';
+
+        const {result: {current: [docsHref, docsQueryParams]}} = renderHookWithContext(() => useExternalLink('https://docs.mattermost.com/end-user-guide/collaborate/format-messages.html#bold'), state);
+        expect(docsHref).toBe('https://chat.example.com/_documentation/end-user-guide/collaborate/format-messages#bold');
+        expect(docsQueryParams).toEqual({});
+
+        const {result: {current: [devHref, devQueryParams]}} = renderHookWithContext(() => useExternalLink('https://docs.mattermost.com/developers/integrate/slash-commands/custom'), state);
+        expect(devHref).toBe('https://chat.example.com/_documentation/developers/integrate/slash-commands/custom');
+        expect(devQueryParams).toEqual({});
+    });
+
+    it('keeps tracked public docs links when SiteURL has a subpath', () => {
+        const url = 'https://docs.mattermost.com/some/page';
+        const state = getBaseState();
+        state.entities!.general!.config!.SiteURL = 'https://chat.example.com/mattermost';
+        const {result: {current: [href]}} = renderHookWithContext(() => useExternalLink(url), state);
+        expect(href.startsWith(url + '?')).toBe(true);
         expect(new URL(href).searchParams.get('utm_source')).toBe('mattermost');
     });
 });

@@ -368,7 +368,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
               >
                 Learn more about compiling and deploying your own mobile apps from an 
                 <a
-                  href="https://docs.mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                  href="http://localhost:8065/_documentation/"
                   location="push_settings"
                   rel="noopener noreferrer"
                   target="_blank"

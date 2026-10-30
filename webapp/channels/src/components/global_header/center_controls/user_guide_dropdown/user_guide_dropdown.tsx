@@ -13,25 +13,9 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {getMattermostDocumentationURL} from 'utils/documentation';
 
 import type {PropsFromRedux} from './index';
-
-// Bundled docs live at /_documentation/ and only resolve when Mattermost is
-// installed at the root of the host. A SiteURL subpath falls back to the public site.
-export const MATTERMOST_DOCS_URL = 'https://docs.mattermost.com';
-
-export function getMattermostDocumentationURL(siteURL: string): string {
-    try {
-        const {origin, pathname} = new URL(siteURL);
-        if (pathname === '/') {
-            return `${origin}/_documentation/`;
-        }
-    } catch {
-        // new URL throws for an empty or unparseable SiteURL.
-    }
-
-    return MATTERMOST_DOCS_URL;
-}
 
 const trainingResourcesLink = 'https://academy.mattermost.com/';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
