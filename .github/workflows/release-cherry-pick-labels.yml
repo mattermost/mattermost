@@ -32,8 +32,9 @@ name: Release cherry-pick labels
 # GitHub access, with no app of its own:
 #   writes — the job's GITHUB_TOKEN, with pull-requests: write and issues: write (labels and
 #            milestones are issue endpoints). It only reaches this repo. Labels it adds don't
-#            start other workflows; the cherry-pick bot (Mattermod, as mattermost-build) is
-#            an outside service on GitHub webhooks, so it still sees them.
+#            start other workflows, and none here triggers on CherryPick labels; the
+#            cherry-pick bot (Mattermod, as mattermost-build) is an outside service on GitHub
+#            webhooks, so it still sees them.
 #   reads  — the changelog read app (CHANGELOG_READ_*), read-only on mattermost/mattermost
 #            and mattermost/enterprise, to read enterprise PRs and search both repos.
 #
