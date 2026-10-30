@@ -14317,6 +14317,11 @@
     "description": "SAML login error shown to end users when the Identity Provider's response body is empty."
   },
   {
+    "id": "ent.saml.do_login.fips_rejected.app_error",
+    "translation": "The response from the Identity Provider uses a cryptographic algorithm that is not allowed in FIPS 140 mode. Please contact your System Administrator.",
+    "description": "SAML login error shown to end users when the Identity Provider response is rejected because it is signed, hashed or encrypted with an algorithm, such as SHA-1, that the FIPS-compliant build does not allow."
+  },
+  {
     "id": "ent.saml.do_login.invalid_signature.app_error",
     "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator.",
     "description": "SAML login error shown to end users when the cryptographic signature on the Identity Provider response fails verification."
