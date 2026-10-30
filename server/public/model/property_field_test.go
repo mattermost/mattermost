@@ -70,6 +70,22 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
+	t.Run("number and checkbox are valid types", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox} {
+			pf := &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       fieldType,
+				ObjectType: PropertyFieldObjectTypePost,
+				TargetType: string(PropertyFieldTargetLevelSystem),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+			}
+			require.NoError(t, pf.IsValid(), "type %q", fieldType)
+		}
+	})
+
 	t.Run("invalid ID", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:       "invalid",
@@ -1296,6 +1312,13 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		require.NoError(t, patch.IsValid())
 	})
 
+	t.Run("number and checkbox are accepted types", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox} {
+			patch := &PropertyFieldPatch{Type: new(fieldType)}
+			require.NoError(t, patch.IsValid(), "type %q", fieldType)
+		}
+	})
+
 	t.Run("Name exceeds maximum length", func(t *testing.T) {
 		longName := strings.Repeat("a", PropertyFieldNameMaxRunes+1)
 		patch := &PropertyFieldPatch{
@@ -2240,6 +2263,8 @@ func TestPropertyFieldType_SupportsOptions(t *testing.T) {
 		PropertyFieldTypeDate:        false,
 		PropertyFieldTypeUser:        false,
 		PropertyFieldTypeMultiuser:   false,
+		PropertyFieldTypeNumber:      false,
+		PropertyFieldTypeCheckbox:    false,
 		PropertyFieldType("bogus"):   false,
 	}
 
@@ -2263,6 +2288,38 @@ func TestPropertyFieldType_SupportsExternalSync(t *testing.T) {
 
 	for fieldType, expected := range cases {
 		assert.Equal(t, expected, fieldType.SupportsExternalSync(), "SupportsExternalSync for %q", fieldType)
+	}
+}
+
+func TestPropertyFieldType_IsValid(t *testing.T) {
+	for _, fieldType := range []PropertyFieldType{
+		PropertyFieldTypeText, PropertyFieldTypeSelect, PropertyFieldTypeMultiselect,
+		PropertyFieldTypeDate, PropertyFieldTypeUser, PropertyFieldTypeMultiuser,
+		PropertyFieldTypeRank, PropertyFieldTypeGraph, PropertyFieldTypeNumber,
+		PropertyFieldTypeCheckbox,
+	} {
+		assert.True(t, fieldType.IsValid(), "IsValid for %q", fieldType)
+	}
+	assert.False(t, PropertyFieldType("bogus").IsValid())
+	assert.False(t, PropertyFieldType("").IsValid())
+}
+
+func TestPropertyFieldType_SupportsAccessControl(t *testing.T) {
+	cases := map[PropertyFieldType]bool{
+		PropertyFieldTypeText:        true,
+		PropertyFieldTypeSelect:      true,
+		PropertyFieldTypeMultiselect: true,
+		PropertyFieldTypeRank:        true,
+		PropertyFieldTypeGraph:       true,
+		PropertyFieldTypeDate:        true,
+		PropertyFieldTypeUser:        true,
+		PropertyFieldTypeMultiuser:   true,
+		PropertyFieldTypeNumber:      false,
+		PropertyFieldTypeCheckbox:    false,
+	}
+
+	for fieldType, expected := range cases {
+		assert.Equal(t, expected, fieldType.SupportsAccessControl(), "SupportsAccessControl for %q", fieldType)
 	}
 }
 
@@ -2700,6 +2757,13 @@ func TestPropertyFieldChangeIsOptionsOnly(t *testing.T) {
 		assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), nil))
 	})
 
+	t.Run("null grants stored and [] sent back alongside an option change reports true", func(t *testing.T) {
+		updated := stored()
+		changeOptions(updated)
+		updated.Permissions.Grants = []Grant{}
+		assert.True(t, PropertyFieldChangeIsOptionsOnly(stored(), updated))
+	})
+
 	alongside := map[string]func(*PropertyField){
 		"Name":              func(f *PropertyField) { f.Name = "Renamed" },
 		"Type":              func(f *PropertyField) { f.Type = PropertyFieldTypeMultiselect },
@@ -2715,6 +2779,9 @@ func TestPropertyFieldChangeIsOptionsOnly(t *testing.T) {
 		"PermissionOptions": func(f *PropertyField) { f.PermissionOptions = new(PermissionLevelMember) },
 		"a sibling attr":    func(f *PropertyField) { f.Attrs["sort_order"] = 2 },
 		"an added attr":     func(f *PropertyField) { f.Attrs[PropertyAttrsProtected] = true },
+		"an added grant": func(f *PropertyField) {
+			f.Permissions.Grants = []Grant{{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "userid"}, Allow: []string{PropertyActionFieldWrite}}}
+		},
 	}
 	for name, change := range alongside {
 		t.Run("an option list change alongside "+name+" reports false", func(t *testing.T) {

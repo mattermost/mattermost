@@ -554,10 +554,6 @@ export default class Client4 {
         return `${this.getBaseRoute()}/cloud`;
     }
 
-    getHostedCustomerRoute() {
-        return `${this.getBaseRoute()}/hosted_customer`;
-    }
-
     getUsageRoute() {
         return `${this.getBaseRoute()}/usage`;
     }

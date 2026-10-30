@@ -15,6 +15,7 @@ import ChannelPopout from 'components/channel_popout';
 import HelpPopout from 'components/help_popout';
 import LoggedIn from 'components/logged_in';
 import ModalController from 'components/modal_controller';
+import QuoteSelectionButton from 'components/quote_selection_button/quote_selection_button';
 import RhsPopout from 'components/rhs_popout';
 import {useUserTheme} from 'components/theme_provider';
 import ThreadPopout from 'components/thread_popout';
@@ -50,6 +51,7 @@ const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
     return (
         <LoggedIn {...routeProps}>
             <ModalController/>
+            <QuoteSelectionButton/>
             <Pluggable pluggableName='Root'/>
             <Switch>
                 <Route

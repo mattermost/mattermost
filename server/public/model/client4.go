@@ -377,10 +377,6 @@ func (c *Client4) testNotificationRoute() clientRoute {
 	return newClientRoute("notifications").Join("test")
 }
 
-func (c *Client4) usageRoute() clientRoute {
-	return newClientRoute("usage")
-}
-
 func (c *Client4) testSiteURLRoute() clientRoute {
 	return newClientRoute("site_url").Join("test")
 }
@@ -7932,39 +7928,6 @@ func (c *Client4) DeleteAIBridgeTestHelper(ctx context.Context) (*Response, erro
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
-}
-
-// Usage Section
-
-// GetPostsUsage returns rounded off total usage of posts for the instance
-func (c *Client4) GetPostsUsage(ctx context.Context) (*PostsUsage, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.usageRoute().Join("posts"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*PostsUsage](r)
-}
-
-// GetStorageUsage returns the file storage usage for the instance,
-// rounded down the most signigicant digit
-func (c *Client4) GetStorageUsage(ctx context.Context) (*StorageUsage, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.usageRoute().Join("storage"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*StorageUsage](r)
-}
-
-// GetTeamsUsage returns total usage of teams for the instance
-func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.usageRoute().Join("teams"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*TeamsUsage](r)
 }
 
 func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *Response, error) {

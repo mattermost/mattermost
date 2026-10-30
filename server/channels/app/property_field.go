@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 )
 
 // propertyFieldOptionsEqual reports whether two values from
@@ -107,18 +108,21 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	broadcastField := *field
 	broadcastField.Permissions = nil
 
-	// It has no recipient to filter options against either, so any non-public
-	// field must go out with none at all — a caller reads the field back
-	// afterward to get the copy filtered for them.
-	if field.GetAccessMode() != model.PropertyAccessModePublic && field.Type.SupportsOptions() {
+	// It has no recipient to filter options against either, so a field whose
+	// option list not everyone may read must go out with none at all — a
+	// caller reads the field back afterward to get the copy filtered for them.
+	// readableByEveryone follows a linked field to its template: a linked
+	// field's own Masking is always nil, even when the template whose option
+	// list it is broadcasting is masked.
+	if field.Type.SupportsOptions() && !a.readableByEveryone(rctx, field.GroupID, field, model.PropertyActionOptionRead) {
 		broadcastField.Attrs = make(model.StringInterface, len(field.Attrs))
 		maps.Copy(broadcastField.Attrs, field.Attrs)
 		broadcastField.HideOptions()
 		// The broadcast withheld the list whatever the source field carried, so
 		// restore the withheld-options marker HideOptions deletes — a client
 		// must be able to tell "options withheld" from "field has no options".
-		// options_count stays deleted: on a non-public field the count is
-		// controlled information too.
+		// options_count stays deleted: on a field not everyone may read the
+		// count is controlled information too.
 		broadcastField.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
 	}
 
@@ -212,6 +216,22 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	// Intrinsic invariants (apply to every caller — HTTP, plugin, internal).
 	CanonicalizeSystemObjectField(field)
 	field.Name = strings.TrimSpace(field.Name)
+
+	// A linked field takes its levels from its template; a default here would
+	// read to the property service as the caller pinning PermissionValues.
+	if !field.IsPSAv1() && field.Permissions == nil && !field.Protected && field.LinkSourceID() == "" {
+		defaultLevel := DefaultPropertyFieldPermissionLevel(field)
+		if field.PermissionField == nil {
+			field.PermissionField = &defaultLevel
+		}
+		if field.PermissionValues == nil {
+			defaultValuesLevel := DefaultPropertyFieldValuesPermissionLevel(field)
+			field.PermissionValues = &defaultValuesLevel
+		}
+		if field.PermissionOptions == nil {
+			field.PermissionOptions = &defaultLevel
+		}
+	}
 
 	if appErr := a.rankPropertyFieldGate("CreatePropertyField", field); appErr != nil {
 		return nil, appErr
@@ -509,7 +529,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		}
 
 		// Protected-check is the only invariant gated on the caller's opt-out.
-		if !bypassProtectedCheck && existing.Protected {
+		if !bypassProtectedCheck && model.ProjectLegacyPermissions(existing).Protected && !a.isAccessControlGroup(groupID) {
 			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.protected.app_error",
@@ -582,6 +602,21 @@ func anyUserObjectType(fields []*model.PropertyField) bool {
 	return false
 }
 
+// isAccessControlGroup reports whether groupID is the access_control group.
+// There the AccessControlHook decides a protected field's writes from its
+// Permissions, so the app layer's blanket protected guard must not run first.
+// A failed lookup reports false, which keeps the guard.
+func (a *App) isAccessControlGroup(groupID string) bool {
+	group, err := a.Srv().propertyService.GroupByID(groupID)
+	return err == nil && group.Name == model.AccessControlPropertyGroupName
+}
+
+// OrphanedPropertyFieldForDelete returns the field a session's delete of field
+// should be judged on; see properties.OrphanedFieldForDelete.
+func (a *App) OrphanedPropertyFieldForDelete(field *model.PropertyField) (*model.PropertyField, bool) {
+	return properties.OrphanedFieldForDelete(field, a.IsInstalledPlugin)
+}
+
 // DeletePropertyField deletes a property field.
 func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassProtectedCheck bool, connectionID string) *model.AppError {
 	existing, err := a.Srv().propertyService.GetPropertyField(rctx, groupID, id)
@@ -595,7 +630,7 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.not_found.app_error", nil, "", http.StatusNotFound)
 	}
 
-	if !bypassProtectedCheck && existing.Protected {
+	if !bypassProtectedCheck && model.ProjectLegacyPermissions(existing).Protected && !a.isAccessControlGroup(groupID) {
 		return model.NewAppError(
 			"DeletePropertyField",
 			"app.property_field.delete.protected.app_error",
