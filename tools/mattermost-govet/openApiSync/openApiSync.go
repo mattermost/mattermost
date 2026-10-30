@@ -145,43 +145,73 @@ func processRouterInit(pass *analysis.Pass, names []string, routerPrefixes map[s
 			if !ok || !stringInSlice(decl.Name.Name, names, false) {
 				return true
 			}
-			for _, stmt := range decl.Body.List {
-				expr, ok := stmt.(*ast.ExprStmt)
+			ast.Inspect(decl.Body, func(n ast.Node) bool {
+				call, ok := n.(*ast.CallExpr)
 				if !ok {
-					continue
+					return true
 				}
-				aexpr, ok := expr.X.(*ast.CallExpr).Fun.(*ast.SelectorExpr).X.(*ast.CallExpr)
-				if !ok || len(aexpr.Args) != 2 {
-					continue
+				name, prefix, handle, ok := parseHandleCall(call)
+				if !ok {
+					return true
 				}
-				prefix, _ := strconv.Unquote(aexpr.Args[0].(*ast.BasicLit).Value)
-				method := getMethodFromExpr(expr)
 
-				name := aexpr.Fun.(*ast.SelectorExpr).X.(*ast.SelectorExpr).Sel.Name
 				handler := cleanRegexp(routerPrefixes[name]) + cleanRegexp(prefix)
 				if stringInSlice(handler, IgnoredCases, true) { // ignore special cases
-					continue
+					return true
 				}
 				if !strings.HasPrefix(handler, "/") {
 					handler = "/" + handler
 				}
 				for _, h := range splitHandlerByGroup(handler) {
-					pathItem := findPathItem(paths, h)
-					if pathItem == nil {
-						suffix := ""
-						if suggestions := cm.Suggestions(h, false); len(suggestions) > 0 {
-							suffix = fmt.Sprintf(" (maybe you meant: %v)", suggestions)
+					for _, method := range getMethodsFromCall(call) {
+						pathItem := findPathItem(paths, h)
+						if pathItem == nil {
+							suffix := ""
+							if suggestions := cm.Suggestions(h, false); len(suggestions) > 0 {
+								suffix = fmt.Sprintf(" (maybe you meant: %v)", suggestions)
+							}
+							pass.Reportf(handle.Pos(), "Cannot find %v method: %v in OpenAPI 3 spec.%s", h, method, suffix)
+						} else if getOperation(pathItem, method) == nil {
+							pass.Reportf(handle.Pos(), "Handler %v is defined with method %s, but it's not in the spec", h, method)
 						}
-						pass.Reportf(aexpr.Pos(), "Cannot find %v method: %v in OpenAPI 3 spec.%s", h, method, suffix)
-					} else if getOperation(pathItem, method) == nil {
-						pass.Reportf(aexpr.Pos(), "Handler %v is defined with method %s, but it's not in the spec", h, method)
 					}
 				}
-			}
+				return true
+			})
 
 			return true
 		})
 	}
+}
+
+// parseHandleCall matches calls of the form `x.BaseRoutes.<Router>.Handle("<path>", h).Methods(...)`,
+// returning the router field name, the path, and the inner Handle call.
+func parseHandleCall(call *ast.CallExpr) (string, string, *ast.CallExpr, bool) {
+	methods, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok || methods.Sel.Name != "Methods" {
+		return "", "", nil, false
+	}
+	handle, ok := methods.X.(*ast.CallExpr)
+	if !ok || len(handle.Args) != 2 {
+		return "", "", nil, false
+	}
+	handleSel, ok := handle.Fun.(*ast.SelectorExpr)
+	if !ok || handleSel.Sel.Name != "Handle" {
+		return "", "", nil, false
+	}
+	router, ok := handleSel.X.(*ast.SelectorExpr)
+	if !ok {
+		return "", "", nil, false
+	}
+	lit, ok := handle.Args[0].(*ast.BasicLit)
+	if !ok {
+		return "", "", nil, false
+	}
+	prefix, err := strconv.Unquote(lit.Value)
+	if err != nil {
+		return "", "", nil, false
+	}
+	return router.Sel.Name, prefix, handle, true
 }
 
 // parseRoutesStruct scans Routes struct for mux.Router fields and scans their comments
@@ -214,21 +244,28 @@ func parseRoutesStruct(pass *analysis.Pass, decl *ast.GenDecl, routerPrefixes ma
 
 // parseInitFunction checks a specific Init function for proper documentation of registered API handlers
 func parseInitFunction(pass *analysis.Pass, decl *ast.FuncDecl, routerPrefixes map[string]string, initFunctions []string) []string {
+	ast.Inspect(decl.Body, func(n ast.Node) bool {
+		stmt, ok := n.(*ast.ExprStmt)
+		if !ok {
+			return true
+		}
+		call, ok := stmt.X.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		selector, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+		ident, ok := selector.X.(*ast.Ident)
+		if ok && ident.Name == "api" {
+			initFunctions = append(initFunctions, selector.Sel.Name)
+		}
+		return true
+	})
+
 	for _, stmt := range decl.Body.List {
 		switch node := stmt.(type) {
-		case *ast.ExprStmt:
-			call, ok := node.X.(*ast.CallExpr)
-			if !ok {
-				continue
-			}
-			selector, ok := call.Fun.(*ast.SelectorExpr)
-			if !ok {
-				continue
-			}
-			ident, ok := selector.X.(*ast.Ident)
-			if ok && ident.Name == "api" {
-				initFunctions = append(initFunctions, selector.Sel.Name)
-			}
 		case *ast.AssignStmt:
 			if len(node.Lhs) != 1 || !strings.HasPrefix(formatNode(pass.Fset, node.Lhs[0]), "api.BaseRoutes") {
 				continue
@@ -314,12 +351,19 @@ func run(pass *analysis.Pass) (any, error) {
 	return nil, nil
 }
 
-func getMethodFromExpr(expr *ast.ExprStmt) string {
+func getMethodsFromCall(call *ast.CallExpr) []string {
+	methods := make([]string, 0, len(call.Args))
+	for _, arg := range call.Args {
+		methods = append(methods, getMethodFromArg(arg))
+	}
+	return methods
+}
+
+func getMethodFromArg(methodArg ast.Expr) string {
 	var method string
-	methodArg := expr.X.(*ast.CallExpr).Args[0]
 
 	if methodSelectorExpr, ok := methodArg.(*ast.SelectorExpr); ok {
-		if methodSelectorExpr.X.(*ast.Ident).Name == "http" {
+		if ident, ok := methodSelectorExpr.X.(*ast.Ident); ok && ident.Name == "http" {
 			switch methodSelectorExpr.Sel.Name {
 			case "MethodGet":
 				method = http.MethodGet
