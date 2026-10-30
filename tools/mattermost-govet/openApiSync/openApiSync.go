@@ -184,6 +184,56 @@ func processRouterInit(pass *analysis.Pass, names []string, routerPrefixes map[s
 	}
 }
 
+// expandInitFunctions adds the methods transitively called on the receiver from the given Init functions,
+// so routes registered in helpers like InitChannel -> initChannelJoinRequestRoutes are checked too.
+func expandInitFunctions(pass *analysis.Pass, names []string) []string {
+	methods := map[string]*ast.FuncDecl{}
+	for _, file := range pass.Files {
+		for _, d := range file.Decls {
+			if decl, ok := d.(*ast.FuncDecl); ok && decl.Recv != nil && decl.Body != nil {
+				methods[decl.Name.Name] = decl
+			}
+		}
+	}
+
+	seen := map[string]bool{}
+	queue := append([]string{}, names...)
+	for len(queue) > 0 {
+		name := queue[0]
+		queue = queue[1:]
+		if seen[name] {
+			continue
+		}
+		seen[name] = true
+
+		decl, ok := methods[name]
+		if !ok || len(decl.Recv.List) == 0 || len(decl.Recv.List[0].Names) == 0 {
+			continue
+		}
+		recv := decl.Recv.List[0].Names[0].Name
+		ast.Inspect(decl.Body, func(n ast.Node) bool {
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+			sel, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok {
+				return true
+			}
+			if ident, ok := sel.X.(*ast.Ident); ok && ident.Name == recv && methods[sel.Sel.Name] != nil {
+				queue = append(queue, sel.Sel.Name)
+			}
+			return true
+		})
+	}
+
+	expanded := make([]string, 0, len(seen))
+	for name := range seen {
+		expanded = append(expanded, name)
+	}
+	return expanded
+}
+
 // parseHandleCall matches calls of the form `x.BaseRoutes.<Router>.Handle("<path>", h).Methods(...)`,
 // returning the router field name, the path, and the inner Handle call.
 func parseHandleCall(call *ast.CallExpr) (string, string, *ast.CallExpr, bool) {
@@ -346,7 +396,7 @@ func run(pass *analysis.Pass) (any, error) {
 	fuzzyModel := fuzzy.NewModel()
 	fuzzyModel.Train(swaggerPaths)
 
-	processRouterInit(pass, initFunctions, routerPrefixes, model.Model.Paths, fuzzyModel)
+	processRouterInit(pass, expandInitFunctions(pass, initFunctions), routerPrefixes, model.Model.Paths, fuzzyModel)
 
 	return nil, nil
 }

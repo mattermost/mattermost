@@ -17,8 +17,13 @@ func (a *API) InitUsers() {
 }
 
 func (a *API) InitGroups() {
+	a.initGroupHelpers()
 	a.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams/{syncable_id:[A-Za-z0-9]+}/link", a.ApiSessionRequired(getUsersByIds)).Methods(http.MethodPost, http.MethodHead) // want `Handler /api/v4/groups/{group_id}/teams/{syncable_id}/link is defined with method HEAD, but it's not in the spec`
 	a.BaseRoutes.Groups.Handle("/unflagged", a.ApiSessionRequired(getUsersByIds)).Methods(http.MethodGet)                                                                       // want `Cannot find /api/v4/groups/unflagged method: GET in OpenAPI 3 spec.`
+}
+
+func (a *API) initGroupHelpers() {
+	a.BaseRoutes.Groups.Handle("/helper", a.ApiSessionRequired(getUsersByIds)).Methods(http.MethodGet) // want `Cannot find /api/v4/groups/helper method: GET in OpenAPI 3 spec.`
 }
 
 func getUsersByIds(c *context.Context, w http.ResponseWriter, r *http.Request) {
