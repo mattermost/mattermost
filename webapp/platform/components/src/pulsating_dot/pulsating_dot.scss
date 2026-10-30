@@ -18,6 +18,9 @@
         border-radius: 50%;
     }
 
+    // The pulse rings grow to 2.5x the dot and are purely decorative. Left hit-testable they
+    // cover whatever the dot is placed over -- e.g. the burn-on-read button it sits on -- and
+    // swallow clicks meant for it.
     &::before,
     &::after {
         position: absolute;
@@ -25,6 +28,7 @@
         left: 0;
         display: block;
         content: "";
+        pointer-events: none;
     }
 
     &::after {

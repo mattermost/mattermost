@@ -30,8 +30,10 @@ test.describe(
          * @objective Ensure the Channels row writes every channel key onto a linked channel field.
          */
         test('creates a linked channel field carrying the configured keys', async ({pw}) => {
+            // The Required toggle this test flips only renders in the System Console
+            // while this kill switch is on (model.IsChannelAttributesRequiredEnabled).
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             const displayName = `Program ${suffix}`;
@@ -74,8 +76,8 @@ test.describe(
         test('an attribute configured here is required when creating a channel and shown in its header', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -120,8 +122,8 @@ test.describe(
          * @objective Ensure the Banner display location renders a banner and nothing else.
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -162,8 +164,8 @@ test.describe(
          * @objective Ensure an attribute with no display location is stored and shown nowhere.
          */
         test('stores a value for an attribute with no display location and renders it nowhere', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -218,8 +220,8 @@ test.describe(
          * @objective Ensure "Cannot be changed once set" locks the value in Channel Info.
          */
         test('locks the value in Channel Info when the change policy forbids changes', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -271,8 +273,8 @@ test.describe(
          * the tier is only correct as long as the payload keeps pinning it.
          */
         test('keeps a console-configured attribute out of a plain member reach', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -331,7 +333,6 @@ test.describe(
          */
         test('channel-linked field does not inherit ldap/saml sync attrs from the template', async ({pw}) => {
             const {adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             const name = `sync_attr_regression_${suffix}`;

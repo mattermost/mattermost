@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand/v2"
 	"slices"
 
@@ -30,6 +31,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -715,160 +717,6 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		err = th.App.AddUserToTeamByTeamId(th.Context, th.BasicTeam.Id, ruser)
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
-	})
-}
-
-func TestAdjustTeamsFromProductLimits(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	teams := []*model.Team{
-		{
-			DisplayName: "team-1",
-			Name:        "team-1",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-		{
-			DisplayName: "team-2",
-			Name:        "team-2",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-		{
-			DisplayName: "team-3",
-			Name:        "team-3",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-	}
-	teamIds := []string{}
-	for _, create := range teams {
-		team, err := th.App.CreateTeam(th.Context, create)
-		require.Nil(t, err)
-		teamIds = append(teamIds, team.Id)
-	}
-	t.Run("Should soft delete teams if there are more teams than the limit", func(t *testing.T) {
-		activeLimit := 1
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		teamsList, err := th.App.GetTeams(teamIds)
-
-		require.Nil(t, err)
-
-		// Sort the list of teams based on their creation date
-		slices.SortFunc(teamsList, func(a, b *model.Team) int {
-			return cmp.Compare(a.CreateAt, b.CreateAt)
-		})
-
-		for i := range teamsList {
-			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
-			require.NotEqual(t, 0, teamsList[i].DeleteAt)
-			require.Equal(t, true, teamsList[i].CloudLimitsArchived)
-		}
-	})
-
-	t.Run("Should not do anything if the amount of teams is equal to the limit", func(t *testing.T) {
-		expectedTeamsList, err := th.App.GetAllTeams()
-
-		var expectedActiveTeams []*model.Team
-		var expectedCloudArchivedTeams []*model.Team
-		for _, team := range expectedTeamsList {
-			if team.DeleteAt == 0 {
-				expectedActiveTeams = append(expectedActiveTeams, team)
-			}
-			if team.DeleteAt > 0 && team.CloudLimitsArchived {
-				expectedCloudArchivedTeams = append(expectedCloudArchivedTeams, team)
-			}
-		}
-
-		require.Nil(t, err)
-
-		activeLimit := len(expectedActiveTeams)
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		actualTeamsList, err := th.App.GetAllTeams()
-
-		require.Nil(t, err)
-		var actualActiveTeams []*model.Team
-		var actualCloudArchivedTeams []*model.Team
-		for _, team := range actualTeamsList {
-			if team.DeleteAt == 0 {
-				actualActiveTeams = append(actualActiveTeams, team)
-			}
-			if team.DeleteAt > 0 && team.CloudLimitsArchived {
-				actualCloudArchivedTeams = append(actualCloudArchivedTeams, team)
-			}
-		}
-
-		require.Equal(t, len(expectedActiveTeams), len(actualActiveTeams))
-		require.Equal(t, len(expectedCloudArchivedTeams), len(actualCloudArchivedTeams))
-	})
-
-	t.Run("Should restore archived teams if limit increases", func(t *testing.T) {
-		activeLimit := 1
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-		activeLimit = 10000 // make the limit extremely high so all teams are enabled
-		teamLimits = &model.TeamsLimits{Active: &activeLimit}
-
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		teamsList, err := th.App.GetTeams(teamIds)
-
-		require.Nil(t, err)
-
-		// Sort the list of teams based on their creation date
-		slices.SortFunc(teamsList, func(a, b *model.Team) int {
-			return cmp.Compare(a.CreateAt, b.CreateAt)
-		})
-
-		for i := range teamsList {
-			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
-			require.Equal(t, int64(0), teamsList[i].DeleteAt)
-			require.Equal(t, false, teamsList[i].CloudLimitsArchived)
-		}
-	})
-
-	t.Run("Should only restore teams that were archived by cloud limits", func(t *testing.T) {
-		activeLimit := 1
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		cloudLimitsArchived := false
-		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-		team, err := th.App.PatchTeam(teamIds[0], patch)
-		require.Nil(t, err)
-		require.Equal(t, false, team.CloudLimitsArchived)
-
-		activeLimit = 10000 // make the limit extremely high so all teams are enabled
-		teamLimits = &model.TeamsLimits{Active: &activeLimit}
-
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		teamsList, err := th.App.GetTeams(teamIds)
-
-		require.Nil(t, err)
-
-		// Sort the list of teams based on their creation date
-		slices.SortFunc(teamsList, func(a, b *model.Team) int {
-			return cmp.Compare(a.CreateAt, b.CreateAt)
-		})
-
-		require.NotEqual(t, int64(0), teamsList[0].DeleteAt)
-		require.Equal(t, int64(0), teamsList[1].DeleteAt)
-		require.Equal(t, int64(0), teamsList[2].DeleteAt)
 	})
 }
 
@@ -2723,4 +2571,59 @@ func TestTeamSendEvents(t *testing.T) {
 		require.Equal(t, "", teamFromEvent.Email)
 		require.Equal(t, "", teamFromEvent.InviteId)
 	}
+}
+
+func TestSetTeamIconFromFileEXIFOrientation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// quadrants-orientation-8.png: 128×128 color quadrants with EXIF orientation 8.
+	// quadrants-orientation-1.png: same visual content already rotated, EXIF orientation 1.
+	rotated, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-8.png")
+	require.NoError(t, err)
+	normal, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-1.png")
+	require.NoError(t, err)
+
+	rotatedTeam := th.CreateTeam(t)
+	normalTeam := th.CreateTeam(t)
+
+	appErr := th.App.SetTeamIconFromFile(th.Context, rotatedTeam, bytes.NewReader(rotated))
+	require.Nil(t, appErr)
+	appErr = th.App.SetTeamIconFromFile(th.Context, normalTeam, bytes.NewReader(normal))
+	require.Nil(t, appErr)
+
+	rotatedIcon, appErr := th.App.GetTeamIcon(rotatedTeam)
+	require.Nil(t, appErr)
+	normalIcon, appErr := th.App.GetTeamIcon(normalTeam)
+	require.Nil(t, appErr)
+
+	assert.Equal(t, normalIcon, rotatedIcon,
+		"EXIF-rotated image should produce the same team icon as the normally-oriented one")
+
+	t.Run("seek failure returns an error", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		// The decoder rewinds once after reading the image config.
+		reader := &limitedRewindReader{Reader: bytes.NewReader(rotated), rewindsLeft: 1}
+		appErr := th.App.SetTeamIconFromFile(th.Context, team, reader)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.team.set_team_icon.seek.app_error", appErr.Id)
+
+		_, appErr = th.App.GetTeamIcon(team)
+		require.NotNil(t, appErr)
+	})
+}
+
+type limitedRewindReader struct {
+	*bytes.Reader
+	rewindsLeft int
+}
+
+func (r *limitedRewindReader) Seek(offset int64, whence int) (int64, error) {
+	if whence == io.SeekStart {
+		if r.rewindsLeft == 0 {
+			return 0, errors.New("seek not supported")
+		}
+		r.rewindsLeft--
+	}
+	return r.Reader.Seek(offset, whence)
 }

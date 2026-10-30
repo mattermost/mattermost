@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"maps"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -76,6 +77,13 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// handler enforces for system-typed fields.
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	// CPA responses never carry a permissions object, so accepting one would
+	// enforce something the caller can neither see nor change here.
+	if pf.Permissions != nil {
+		c.Err = model.NewAppError("createCPAField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -203,8 +211,20 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Permission branching (session-bound).
-	isOptionsOnly := isOptionsOnlyPatch(patch)
+	// Mirrors patchPropertyField's optionsChanged: gate on option.write only
+	// when the submitted option list actually differs from what is stored.
+	optionsChanged := false
+	if patch.Attrs != nil {
+		if newOptions, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+			optionsChanged = !reflect.DeepEqual(existingField.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+		}
+	}
+
+	// Permission branching (session-bound). This handler never applies a
+	// permissions patch -- CPA is served the v2 shape, so patch.Permissions is
+	// dropped rather than applied -- which means a patch cannot change the
+	// permissions here and the routing is never a field write on that account.
+	isOptionsOnly := isOptionsOnlyPatch(patch, false, optionsChanged)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}
@@ -297,7 +317,8 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+	decideOn, _ := c.App.OrphanedPropertyFieldForDelete(existingField)
+	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), decideOn) {
 		c.Err = model.NewAppError("deleteCPAField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -348,6 +369,10 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 // the upsert through App.UpsertPropertyValues, and emits the CPA-specific
 // websocket event.
 func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID string, updates map[string]json.RawMessage) {
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
+
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	group, appErr := c.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
@@ -355,9 +380,11 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 		return
 	}
 
-	if !hasTargetAccess(c, model.PropertyFieldObjectTypeUser, userID, true) {
+	path, ok := hasTargetAccess(c, group.Name, model.PropertyFieldObjectTypeUser, userID, true)
+	if !ok {
 		return
 	}
+	model.AddEventParameterToAuditRec(auditRec, "target_access", string(path))
 
 	// Translate CPA format → generic PropertyValuePatchItem list. Map
 	// iteration is unordered, but FieldID uniqueness is guaranteed by the
@@ -447,14 +474,18 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 	// CPA-specific websocket event (backward compat). Broadcast copies, never
 	// results: results is what the caller who just wrote these values gets
 	// back over HTTP, and that caller is allowed to see them.
+	broadcastValue := c.App.PropertyValueBroadcaster(rctx)
 	broadcastResults := make(map[string]json.RawMessage, len(upserted))
 	for _, value := range upserted {
-		broadcastResults[value.FieldID] = model.BroadcastValue(fieldByID[value.FieldID], value.Value)
+		broadcastResults[value.FieldID] = broadcastValue(fieldByID[value.FieldID], value.Value)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
 	message.Add("user_id", userID)
 	message.Add("values", broadcastResults)
 	c.App.Publish(message)
+
+	auditRec.Success()
+	auditRec.AddEventObjectType("patchCPAValues")
 
 	if err := json.NewEncoder(w).Encode(results); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -470,17 +501,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
-
 	cpaPatchValues(c, w, r, userID, updates)
-	if c.Err != nil {
-		return
-	}
-
-	auditRec.Success()
-	auditRec.AddEventObjectType("patchCPAValues")
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -489,7 +510,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !hasTargetAccess(c, model.PropertyFieldObjectTypeUser, c.Params.UserId, false) {
+	if _, ok := hasTargetAccess(c, model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, c.Params.UserId, false); !ok {
 		return
 	}
 
@@ -533,15 +554,5 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
-
 	cpaPatchValues(c, w, r, userID, updates)
-	if c.Err != nil {
-		return
-	}
-
-	auditRec.Success()
-	auditRec.AddEventObjectType("patchCPAValues")
 }
