@@ -10251,6 +10251,10 @@
     "defaultMessage": "<link>Multi-factor authentication</link> is available for accounts with AD/LDAP or email login. If other login methods are used, MFA should be configured with the authentication provider.",
     "description": "Info banner at the top of the Authentication > MFA admin page; <link> wraps the words Multi-factor authentication and points to documentation."
   },
+  "admin.mfa.fipsBannerDesc": {
+    "defaultMessage": "TOTP code generation for multi-factor authentication uses HMAC-SHA1 and is not strictly FIPS compliant. <link>Learn more</link>",
+    "description": "Warning banner on the Authentication > MFA admin page, shown only when the server runs in FIPS mode; notes that TOTP code generation is not strictly FIPS compliant. <link> wraps the words Learn more and points to the FIPS documentation."
+  },
   "admin.mobile_security_feature_discovery.copy": {
     "defaultMessage": "Enable advanced security features like biometric authentication, screen capture prevention, and jailbreak/root detection for your mobile users.",
     "description": "Body copy on the feature discovery (upsell) page for mobile security features (biometrics, screen capture prevention, jailbreak detection)."

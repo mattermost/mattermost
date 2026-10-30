@@ -12,7 +12,7 @@ clean:
 	rm -rf dist
 
 golangci-lint:
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 	$(GOBIN)/golangci-lint run ./...
 
 check-style: golangci-lint
