@@ -87,6 +87,20 @@ func TestCWSLogin(t *testing.T) {
 					return user
 				},
 			},
+			{
+				name: "when the user has logged in with the CWS token before",
+				setup: func(t *testing.T, token *model.Token) *model.User {
+					user := th.CreateUser(t)
+					authenticatedUser, appErr := th.App.AuthenticateUserForLogin(th.Context, "", user.Username, "", "", token.Token, false)
+					require.Nil(t, appErr)
+					_, appErr = th.App.DoLogin(th.Context, httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/", nil), authenticatedUser, model.LoginOptions{})
+					require.Nil(t, appErr)
+
+					// Without the stored token, the user's login state alone decides the result.
+					require.NoError(t, th.App.Srv().Store().Token().Delete(token.Token))
+					return user
+				},
+			},
 		}
 
 		for _, tc := range testCases {
