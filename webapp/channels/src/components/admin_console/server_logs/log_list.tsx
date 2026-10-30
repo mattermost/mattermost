@@ -6,6 +6,9 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {LogNodeKey} from '@mattermost/types/admin';
 
@@ -85,9 +88,6 @@ const messages = defineMessages({
 });
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
-
-// Logged by the server in place of a node it could not reach
-const FAILED_NODE_MSG = 'Failed to fetch logs from node';
 
 type StoredPrefs = {
     pageSize: number;
@@ -235,7 +235,9 @@ export default function LogList({
             if (selectedNode && log[LogNodeKey] !== selectedNode) {
                 return false;
             }
-            if (cutoff === null || log.msg === FAILED_NODE_MSG) {
+
+            // The server sets failed_node on the entry it returns in place of a node it could not reach
+            if (cutoff === null || log.failed_node === true) {
                 return true;
             }
             const time = parseTimestamp(log.timestamp);
@@ -314,7 +316,7 @@ export default function LogList({
         setPage(0);
         setExpandedKey(null);
         setFocusedKey(null);
-    }, [search, enabledLevels, sortAsc, selectedNode]);
+    }, [search, enabledLevels, sortAsc, selectedNode, activeTimePreset]);
 
     // Clamp the page when a reload or poll shrinks the dataset
     useEffect(() => {
@@ -661,34 +663,33 @@ export default function LogList({
 
             <div className='LogViewer__filters-spacer'/>
 
-            <button
-                type='button'
-                className='btn btn-sm btn-tertiary'
+            <Button
+                emphasis='tertiary'
+                size='medium'
                 onClick={onReload}
+                leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
             >
-                <i
-                    className='icon icon-refresh'
-                    aria-hidden='true'
-                />
                 <FormattedMessage
                     id='admin.logs.ReloadLogs'
                     defaultMessage='Reload'
                 />
-            </button>
-            <ExternalLink
-                location='download_logs'
-                className='btn btn-sm btn-primary'
-                href={downloadUrl}
+            </Button>
+            <Button
+                asChild={true}
+                emphasis='primary'
+                size='medium'
+                leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
             >
-                <i
-                    className='icon icon-download-outline'
-                    aria-hidden='true'
-                />
-                <FormattedMessage
-                    id='admin.logs.DownloadLogs'
-                    defaultMessage='Download'
-                />
-            </ExternalLink>
+                <ExternalLink
+                    location='download_logs'
+                    href={downloadUrl}
+                >
+                    <FormattedMessage
+                        id='admin.logs.DownloadLogs'
+                        defaultMessage='Download'
+                    />
+                </ExternalLink>
+            </Button>
         </div>
     );
 
@@ -764,7 +765,7 @@ export default function LogList({
             {/* Empty state — kept outside the list so it only owns rows */}
             {visibleLogs.length === 0 && !loading && (
                 <div className='LogViewer__placeholder'>
-                    {search || !allLevelsEnabled || selectedNode ? (
+                    {search || !allLevelsEnabled || selectedNode || activeTimePreset !== null ? (
                         <FormattedMessage
                             id='admin.logs.noMatchingLogs'
                             defaultMessage='No logs match your filters. {clearLink}'
@@ -776,6 +777,7 @@ export default function LogList({
                                             clearSearch();
                                             enableAllLevels();
                                             onSelectedNodeChange('');
+                                            onClearTimePreset();
                                         }}
                                         type='button'
                                     >
@@ -861,9 +863,9 @@ export default function LogList({
                 </span>
 
                 <div className='LogViewer__footer-controls'>
-                    <button
-                        type='button'
-                        className={`btn btn-sm ${wrapText ? 'btn-tertiary' : 'btn-quaternary'}`}
+                    <Button
+                        emphasis={wrapText ? 'tertiary' : 'quaternary'}
+                        size='small'
                         onClick={() => setWrapText(!wrapText)}
                         aria-pressed={wrapText}
                     >
@@ -871,7 +873,7 @@ export default function LogList({
                             id='admin.logs.wrap'
                             defaultMessage='Wrap text'
                         />
-                    </button>
+                    </Button>
 
                     <div className='LogViewer__pagesize'>
                         <label htmlFor='logPageSize'>

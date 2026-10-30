@@ -374,7 +374,7 @@ export default class RecapsPage {
         await expect(this.page.getByRole('heading', {name: 'Set up your first recap'})).toBeVisible();
         await expect(
             this.page.getByText(
-                'Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
+                'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
             ),
         ).toBeVisible();
         await expect(
