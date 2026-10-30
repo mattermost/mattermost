@@ -12,18 +12,13 @@ import (
 type CloudInterface interface {
 	GetCloudProduct(userID string, productID string) (*model.Product, error)
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
-	GetSelfHostedProducts(userID string) ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
 
 	GetCloudCustomer(userID string) (*model.CloudCustomer, error)
 
 	GetSubscription(userID string) (*model.Subscription, error)
 
-	ChangeSubscription(userID, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error)
-
 	ValidateBusinessEmail(userID, email string) error
-
-	InvalidateCaches() error
 
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
 	HandleLicenseChange() error
