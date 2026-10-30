@@ -2279,77 +2279,17 @@
     "defaultMessage": "There is currently no company information on file.",
     "description": "Empty-state message on the Company Information page when nothing has been entered yet."
   },
-  "admin.billing.company_info_display.provideDetails": {
-    "defaultMessage": "Provide your company name and address",
-    "description": "Subtitle under the 'Company Details' heading prompting the admin to enter company information."
-  },
-  "admin.billing.company_info_edit.cancel": {
-    "defaultMessage": "Cancel",
-    "description": "Cancel link at the bottom of the company information edit form; discards changes and returns to the display page."
-  },
-  "admin.billing.company_info_edit.company_address": {
-    "defaultMessage": "Company Address",
-    "description": "Section heading in the company information edit form above the address fields."
-  },
-  "admin.billing.company_info_edit.companyDetails": {
-    "defaultMessage": "Company Details",
-    "description": "Section heading in the company information edit form above the name and employee-count fields."
-  },
-  "admin.billing.company_info_edit.sameAsBillingAddress": {
-    "defaultMessage": "Same as Billing Address",
-    "description": "Checkbox label in the company information edit form; reuses the billing address as the company address."
-  },
-  "admin.billing.company_info_edit.save": {
-    "defaultMessage": "Save info",
-    "description": "Save button at the bottom of the company information edit form."
-  },
-  "admin.billing.company_info_edit.title": {
-    "defaultMessage": "Edit Company Information",
-    "description": "Page title of the form for editing billing company information. 'Edit' is a verb."
-  },
-  "admin.billing.company_info.add": {
-    "defaultMessage": "Add Company Information",
-    "description": "Button/link on the Company Information page that opens the form to enter company details for billing."
-  },
-  "admin.billing.company_info.address": {
-    "defaultMessage": "Address",
-    "description": "Form field label for the first address line on the billing Company Information edit page in the System Console."
-  },
-  "admin.billing.company_info.address_2": {
-    "defaultMessage": "Address 2",
-    "description": "Form field label for the optional second address line on the billing Company Information edit page."
-  },
-  "admin.billing.company_info.billingAddress": {
-    "defaultMessage": "Billing Address",
-    "description": "Heading above the read-only billing address block in the company information edit form."
-  },
-  "admin.billing.company_info.city": {
-    "defaultMessage": "City",
-    "description": "Placeholder of the city input in the company address form for billing."
-  },
   "admin.billing.company_info.companyAddress": {
     "defaultMessage": "Company Address",
     "description": "Section heading on the Company Information display page above the stored company address."
-  },
-  "admin.billing.company_info.companyName": {
-    "defaultMessage": "Company name",
-    "description": "Placeholder of the company name input in the billing company information form."
   },
   "admin.billing.company_info.employees": {
     "defaultMessage": "{employees} employees",
     "description": "Line under the company name on the Company Information page; {employees} is the number of employees."
   },
-  "admin.billing.company_info.numEmployees": {
-    "defaultMessage": "Number of employees (optional)",
-    "description": "Placeholder of an optional numeric input for company size in the billing company information form."
-  },
   "admin.billing.company_info.title": {
     "defaultMessage": "Company Information",
     "description": "Page title of the Company Information section under Billing in the System Console."
-  },
-  "admin.billing.company_info.zipcode": {
-    "defaultMessage": "Zip/Postal Code",
-    "description": "Placeholder of the postal code input in the company address form for billing."
   },
   "admin.billing.deleteWorkspace.failureModal.buttonText": {
     "defaultMessage": "Try Again",
@@ -2358,74 +2298,6 @@
   "admin.billing.deleteWorkspace.resultModal.ContactSupport": {
     "defaultMessage": "Contact Support",
     "description": "Tertiary button on the workspace deletion result modal that opens a support form."
-  },
-  "admin.billing.history.allPaymentsShowHere": {
-    "defaultMessage": "All of your invoices will be shown here",
-    "description": "Subtitle under the 'Transactions' heading on the Billing History page in the System Console."
-  },
-  "admin.billing.history.date": {
-    "defaultMessage": "Date",
-    "description": "Column header for the invoice date in the billing history table; compact space."
-  },
-  "admin.billing.history.description": {
-    "defaultMessage": "Description",
-    "description": "Column header for the invoice description in the billing history table; compact space."
-  },
-  "admin.billing.history.fractionalAndRatedSeats": {
-    "defaultMessage": "{fractionalSeats} metered seats, {fullSeats} seats at full rate, {partialSeats} seats with partial charges",
-    "description": "Invoice user-count summary mixing metered and rated seats; {fractionalSeats}, {fullSeats} and {partialSeats} are seat counts. 'Seats' means billed user licenses."
-  },
-  "admin.billing.history.fractionalSeats": {
-    "defaultMessage": "{fractionalSeats} seats",
-    "description": "Invoice user-count summary for metered billing; {fractionalSeats} is a possibly fractional seat count. 'Seats' means billed user licenses."
-  },
-  "admin.billing.history.noBillingHistory": {
-    "defaultMessage": "In the future, this is where your billing history will show.",
-    "description": "Empty-state message on the Billing History page when no invoices exist yet."
-  },
-  "admin.billing.history.onPremSeats": {
-    "defaultMessage": "{num} seats",
-    "description": "Invoice user-count summary for self-hosted purchases; {num} is the whole number of licensed seats."
-  },
-  "admin.billing.history.pageInfo": {
-    "defaultMessage": "{startRecord} - {endRecord} of {totalRecords}",
-    "description": "Pagination summary under the billing history table; {startRecord} and {endRecord} are the visible row range, {totalRecords} the total invoice count."
-  },
-  "admin.billing.history.paid": {
-    "defaultMessage": "Paid",
-    "description": "Payment status badge in the billing history table for a settled invoice; adjective, compact space."
-  },
-  "admin.billing.history.paymentFailed": {
-    "defaultMessage": "Payment failed",
-    "description": "Payment status badge in the billing history table for an invoice whose charge failed; compact space."
-  },
-  "admin.billing.history.pending": {
-    "defaultMessage": "Pending",
-    "description": "Payment status badge in the billing history table for an invoice awaiting payment; adjective, compact space."
-  },
-  "admin.billing.history.seatsAndRates": {
-    "defaultMessage": "{fullSeats} seats at full rate, {partialSeats} seats with partial charges",
-    "description": "Invoice user-count summary; {fullSeats} are seats billed at full rate and {partialSeats} seats billed prorated. 'Seats' means billed user licenses."
-  },
-  "admin.billing.history.seeHowBillingWorks": {
-    "defaultMessage": "See how billing works",
-    "description": "Link under the billing history empty state pointing to external billing documentation."
-  },
-  "admin.billing.history.status": {
-    "defaultMessage": "Status",
-    "description": "Column header for the payment status in the billing history table; compact space."
-  },
-  "admin.billing.history.title": {
-    "defaultMessage": "Billing History",
-    "description": "Page title of the Billing History section in the System Console."
-  },
-  "admin.billing.history.total": {
-    "defaultMessage": "Total",
-    "description": "Column header for the invoice total amount in the billing history table; compact space."
-  },
-  "admin.billing.history.transactions": {
-    "defaultMessage": "Transactions",
-    "description": "Card heading above the invoice table on the Billing History page."
   },
   "admin.billing.subscription.cloudMonthlyBadge": {
     "defaultMessage": "Monthly",
@@ -2487,10 +2359,6 @@
     "defaultMessage": "You're currently on a free trial",
     "description": "Heading of the free-trial card in the billing summary while the trial is active."
   },
-  "admin.billing.subscription.invoice.next": {
-    "defaultMessage": "Next Invoice",
-    "description": "Card heading in the billing summary for the upcoming (not yet issued) invoice."
-  },
   "admin.billing.subscription.planDetails.currentPlan": {
     "defaultMessage": "Current Plan",
     "description": "Badge on the plan details card marking the plan the workspace is currently subscribed to."
@@ -2519,17 +2387,9 @@
     "defaultMessage": "Unlimited file storage",
     "description": "Feature bullet in the plan details list on the billing Subscription page."
   },
-  "admin.billing.subscription.planDetails.features.groupAndOneToOneMessaging": {
-    "defaultMessage": "Group and one-to-one messaging, file sharing, and search",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
-  },
   "admin.billing.subscription.planDetails.features.guestAccounts": {
     "defaultMessage": "Guest Accounts",
     "description": "Feature bullet in the plan details list; refers to the Guest Accounts feature for external collaborators."
-  },
-  "admin.billing.subscription.planDetails.features.incidentCollaboration": {
-    "defaultMessage": "Incident collaboration",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
   },
   "admin.billing.subscription.planDetails.features.ldapSync": {
     "defaultMessage": "AD/LDAP group sync to teams & channels",
@@ -2539,25 +2399,9 @@
     "defaultMessage": "AD/LDAP user sync",
     "description": "Feature bullet in the plan details list; AD/LDAP are directory technologies, keep as-is."
   },
-  "admin.billing.subscription.planDetails.features.limitedFileStorage": {
-    "defaultMessage": "Limited to {limit} file storage",
-    "description": "Feature bullet in the plan details list for free plans; {limit} is a storage size like '10GB'."
-  },
-  "admin.billing.subscription.planDetails.features.limitedMessageHistory": {
-    "defaultMessage": "Limited to a message history of {limit} messages",
-    "description": "Feature bullet in the plan details list for free plans; {limit} is a message count."
-  },
-  "admin.billing.subscription.planDetails.features.mfa": {
-    "defaultMessage": "Multi-Factor Authentication (MFA)",
-    "description": "Feature bullet in the plan details list; MFA is an acronym for the security feature."
-  },
   "admin.billing.subscription.planDetails.features.mfaEnforcement": {
     "defaultMessage": "MFA enforcement",
     "description": "Feature name in the plan features list on the Cloud billing plan details card; refers to enforcing multi-factor authentication."
-  },
-  "admin.billing.subscription.planDetails.features.multilanguage": {
-    "defaultMessage": "Multi-language translations",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
   },
   "admin.billing.subscription.planDetails.features.multiplatformSso": {
     "defaultMessage": "SSO with Google, O365",
@@ -2583,24 +2427,12 @@
     "defaultMessage": "SSO w/ SAML (includes Okta and OneLogIn)",
     "description": "Feature bullet in the plan details list; SAML, Okta and OneLogin are technology/product names."
   },
-  "admin.billing.subscription.planDetails.features.unlimitedUsers": {
-    "defaultMessage": "Unlimited users",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
-  },
-  "admin.billing.subscription.planDetails.features.unlimittedUsersAndMessagingHistory": {
-    "defaultMessage": "Unlimited users & message history",
-    "description": "Feature bullet in the plan details list on the billing Subscription page."
-  },
   "admin.billing.subscription.planDetails.productName.cloudAdvanced": {
     "defaultMessage": "Cloud Enterprise Advanced",
     "description": "Product/plan name displayed on the plan details card; Mattermost plan tier name."
   },
   "admin.billing.subscription.planDetails.productName.cloudEnterprise": {
     "defaultMessage": "Cloud Enterprise",
-    "description": "Product/plan name displayed on the plan details card; Mattermost plan tier name."
-  },
-  "admin.billing.subscription.planDetails.productName.cloudFree": {
-    "defaultMessage": "Cloud Free",
     "description": "Product/plan name displayed on the plan details card; Mattermost plan tier name."
   },
   "admin.billing.subscription.planDetails.productName.cloudProfessional": {
@@ -2627,14 +2459,6 @@
     "defaultMessage": "Looking to rollout Mattermost for your entire organization? ",
     "description": "Heading of the contact-sales card shown to Cloud Enterprise customers; ends with a space before the card body."
   },
-  "admin.billing.subscription.privateCloudCard.cloudFree.description": {
-    "defaultMessage": "Optimize your processes with Guest Accounts, Office365 suite integrations, GitLab SSO and advanced permissions.",
-    "description": "Body of the upgrade card shown to Cloud Free customers, listing paid-plan features."
-  },
-  "admin.billing.subscription.privateCloudCard.cloudFree.title": {
-    "defaultMessage": "Upgrade to Cloud Professional",
-    "description": "Heading of the upgrade card shown to Cloud Free customers on the Subscription page."
-  },
   "admin.billing.subscription.privateCloudCard.cloudProfessional.description": {
     "defaultMessage": "Advanced security and compliance features with premium support. See {pricingLink} for more details.",
     "description": "Body of the upgrade card shown to Cloud Professional customers; {pricingLink} renders as a link to the pricing page."
@@ -2655,10 +2479,6 @@
     "defaultMessage": "Questions about your trial?",
     "description": "Heading of the contact-sales card shown to customers on a free trial."
   },
-  "admin.billing.subscription.privateCloudCard.upgradeNow": {
-    "defaultMessage": "Upgrade Now",
-    "description": "Button on the subscription upgrade card that starts the purchase flow immediately."
-  },
   "admin.billing.subscription.stateprovince": {
     "defaultMessage": "State/Province",
     "description": "Label of the state/province dropdown in the billing address form of the payment/checkout screen."
@@ -2666,54 +2486,6 @@
   "admin.billing.subscription.title": {
     "defaultMessage": "Subscription",
     "description": "Page title of the Subscription section under Billing in the System Console; noun."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.monthlyFlatFee": {
-    "defaultMessage": "Monthly Flat Fee",
-    "description": "Line item description on the invoice summary card for flat-fee billing plans."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.paid": {
-    "defaultMessage": "Paid",
-    "description": "Status badge on the invoice summary card for a settled invoice; adjective, compact space."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.partialCharges": {
-    "defaultMessage": "Partial charges",
-    "description": "Sub-heading on the invoice summary card above prorated line items; has an info tooltip next to it."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.seatCount": {
-    "defaultMessage": " x {seats} seats",
-    "description": "Fragment concatenated directly after a currency amount on the invoice summary card (e.g. '$10 x 25 seats'); {seats} is the seat quantity; keep the leading space."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.seatCountPartial": {
-    "defaultMessage": "{seats} seats",
-    "description": "Line item in the last-invoice billing summary showing partially charged seats; {seats} is a number of user seats."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.seeBillingHistory": {
-    "defaultMessage": "See Billing History",
-    "description": "Link at the bottom of the invoice summary card leading to the full Billing History page."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.taxes": {
-    "defaultMessage": "Taxes",
-    "description": "Line item label on the invoice summary card for the tax amount; compact space."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.title": {
-    "defaultMessage": "Last Invoice",
-    "description": "Card heading in the billing summary for the most recent issued invoice."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.total": {
-    "defaultMessage": "Total",
-    "description": "Label of the total amount row on the invoice summary card; compact space."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.viewInvoice": {
-    "defaultMessage": "View Invoice",
-    "description": "Link/button on the invoice summary card that opens the invoice PDF preview."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges": {
-    "defaultMessage": "What are partial charges?",
-    "description": "Tooltip title on the info icon next to 'Partial charges' on the invoice summary card."
-  },
-  "admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message": {
-    "defaultMessage": "Users who have not been enabled for the full duration of the month are charged at a prorated monthly rate.",
-    "description": "Tooltip explaining partial charges on the last-invoice billing summary, shown to workspace admins."
   },
   "admin.billing.subscriptions.billing_summary.noBillingHistory.description": {
     "defaultMessage": "In the future, this is where your most recent bill summary will show.",
@@ -2726,10 +2498,6 @@
   "admin.billing.subscriptions.billing_summary.noBillingHistory.title": {
     "defaultMessage": "No billing history yet",
     "description": "Heading of the billing summary empty state when no invoices exist yet."
-  },
-  "admin.billing.subscriptions.billing_summary.upcomingInvoice.has_more_line_items": {
-    "defaultMessage": "And {count} more items",
-    "description": "Clickable line at the end of a truncated invoice summary; {count} is the number of line items not shown."
   },
   "admin.board_attributes.add_attribute": {
     "defaultMessage": "Add attribute",
@@ -15159,10 +14927,6 @@
     "defaultMessage": "Billing & Account",
     "description": "Category heading in the System Console left navigation sidebar, grouping billing and subscription pages; compact space."
   },
-  "admin.sidebar.billing_history": {
-    "defaultMessage": "Billing History",
-    "description": "Navigation item in the System Console left sidebar linking to the billing history page (Cloud)."
-  },
   "admin.sidebar.board_attributes": {
     "defaultMessage": "Board Attributes",
     "description": "Navigation item in the System Console sidebar; opens the Boards product attributes page; compact space."
@@ -21323,10 +21087,6 @@
     "defaultMessage": "Message Archived",
     "description": "Title of the error page shown when a linked message was archived due to Cloud free plan message limits."
   },
-  "cloud_billing_history_modal.title": {
-    "defaultMessage": "Invoice(s)",
-    "description": "Title of the modal listing one or more cloud invoices; '(s)' marks an optional plural."
-  },
   "cloud_preview_modal.aria_label": {
     "defaultMessage": "Cloud Preview Introduction",
     "description": "Accessible label (aria-label) of the whole cloud preview walkthrough modal shown to trial users."
@@ -21582,10 +21342,6 @@
   "cloud.fetch_error.retry": {
     "defaultMessage": "Retry",
     "description": "Button label to retry loading when cloud subscription/billing data fails to fetch; verb, compact button."
-  },
-  "cloud.invoice_pdf_preview.download": {
-    "defaultMessage": "<downloadLink>Download</downloadLink> this page for your records",
-    "description": "Subtitle in the cloud invoice preview modal header; <downloadLink> tags wrap the clickable word that downloads the invoice PDF."
   },
   "collapsed_reply_threads_modal.confirm": {
     "defaultMessage": "Got it",
@@ -23418,10 +23174,6 @@
   "forward_post_modal.title": {
     "defaultMessage": "Forward message",
     "description": "Title of the modal for forwarding a message to another channel."
-  },
-  "free.banner.downgraded": {
-    "defaultMessage": "Your workspace now has restrictions and some data has been archived",
-    "description": "Announcement banner shown after a Cloud trial ends and the workspace is downgraded to the free plan."
   },
   "free.professional_feature.back": {
     "defaultMessage": "Back",
@@ -26679,10 +26431,6 @@
     "defaultMessage": "Direct Messages",
     "description": "Title of the dialog for starting a direct or group message and selecting its participants."
   },
-  "more.details": {
-    "defaultMessage": "More details",
-    "description": "Button in the trial-ended announcement banner that opens details about the downgrade and its restrictions."
-  },
   "move_thread_modal.button.cancel": {
     "defaultMessage": "Cancel",
     "description": "Cancel button label in the 'Move thread' dialog."
@@ -28503,6 +28251,10 @@
     "defaultMessage": "Type to find a channel. Use <b>UP/DOWN</b> to browse, <b>ENTER</b> to select, <b>ESC</b> to dismiss.",
     "description": "Help text under the search box in the channel switcher modal (Ctrl+K); <b> tags render the key names in bold; UP/DOWN, ENTER and ESC are keyboard keys."
   },
+  "quote_selection_button.label": {
+    "defaultMessage": "Quote selection",
+    "description": "Tooltip and accessible name of the floating button shown next to text selected in a message, which inserts the selected text as a quote into the message box."
+  },
   "reaction_limit_reached_modal.body": {
     "defaultMessage": "Oops! It looks like we've hit a ceiling on emoji reactions for this message. Please contact your system administrator for any adjustments to this limit.",
     "description": "Body of the dialog shown when a message has reached the maximum number of unique emoji reactions; addressed to end users."
@@ -28970,14 +28722,6 @@
   "recaps.scheduled.delete.title": {
     "defaultMessage": "Delete scheduled recap?",
     "description": "Title of the confirmation dialog asked before deleting a recurring scheduled recap."
-  },
-  "recaps.scheduled.emptyState.cta": {
-    "defaultMessage": "Create a recap",
-    "description": "Call-to-action button on the empty scheduled-recaps tab that starts creating a recap; 'recap' is a noun."
-  },
-  "recaps.scheduled.emptyState.description": {
-    "defaultMessage": "Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.",
-    "description": "Empty-state description on the scheduled-recaps tab; 'Copilot' is the AI assistant product name."
   },
   "recaps.scheduled.emptyState.title": {
     "defaultMessage": "Set up your first recap",

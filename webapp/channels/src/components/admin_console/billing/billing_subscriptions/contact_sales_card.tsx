@@ -16,7 +16,6 @@ import {CloudLinks, CloudProducts} from 'utils/constants';
 type Props = {
     isFreeTrial: boolean;
     subscriptionPlan: string | undefined;
-    onUpgradeMattermostCloud: () => void;
 };
 
 const ContactSalesCard = (props: Props) => {
@@ -24,7 +23,6 @@ const ContactSalesCard = (props: Props) => {
     const {
         isFreeTrial,
         subscriptionPlan,
-        onUpgradeMattermostCloud,
     } = props;
     let title;
     let description;
@@ -69,20 +67,6 @@ const ContactSalesCard = (props: Props) => {
         );
     } else {
         switch (subscriptionPlan) {
-        case CloudProducts.STARTER:
-            title = (
-                <FormattedMessage
-                    id='admin.billing.subscription.privateCloudCard.cloudFree.title'
-                    defaultMessage='Upgrade to Cloud Professional'
-                />
-            );
-            description = (
-                <FormattedMessage
-                    id='admin.billing.subscription.privateCloudCard.cloudFree.description'
-                    defaultMessage='Optimize your processes with Guest Accounts, Office365 suite integrations, GitLab SSO and advanced permissions.'
-                />
-            );
-            break;
         case CloudProducts.PROFESSIONAL:
             title = (
                 <FormattedMessage
@@ -159,30 +143,14 @@ const ContactSalesCard = (props: Props) => {
                 {(!isFreeTrial && subscriptionPlan !== CloudProducts.ENTERPRISE && subscriptionPlan !== CloudProducts.LEGACY) &&
                     <Button
                         type='button'
-                        onClick={() => {
-                            if (subscriptionPlan === CloudProducts.STARTER) {
-                                onUpgradeMattermostCloud();
-                            } else {
-                                openSalesLink();
-                            }
-                        }}
+                        onClick={openSalesLink}
                         emphasis='tertiary'
                         className='PrivateCloudCard__actionButton'
                     >
-                        {subscriptionPlan === CloudProducts.STARTER ? (
-                            <FormattedMessage
-                                id='admin.billing.subscription.privateCloudCard.upgradeNow'
-                                defaultMessage='Upgrade Now'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.billing.subscription.privateCloudCard.contactSales'
-                                defaultMessage='Contact Sales'
-                            />
-                        )
-
-                        }
-
+                        <FormattedMessage
+                            id='admin.billing.subscription.privateCloudCard.contactSales'
+                            defaultMessage='Contact Sales'
+                        />
                     </Button>
                 }
             </div>
