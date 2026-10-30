@@ -176,7 +176,7 @@ function makeSystemValue(fieldId: string, optionId: string): PropertyValue<strin
 // so the same object type can be read more than once in a test.
 function mockFieldsByObjectType(byType: Partial<Record<string, PropertyField[]>>) {
     return jest.spyOn(Client4, 'getPropertyFields').mockImplementation(
-        async (_group, objectType, _targetType, _targetId, cursor) => (cursor?.cursorId ? [] : (byType[objectType] ?? [])),
+        async (_group, objectType, query) => (query?.cursorId ? [] : (byType[objectType] ?? [])),
     );
 }
 
@@ -194,11 +194,11 @@ function mockFieldsByObjectType(byType: Partial<Record<string, PropertyField[]>>
 // follow-up breaks the listing and nothing else.
 function mockFieldsByObjectTypeWithFailingTemplateListing(byType: Partial<Record<string, PropertyField[]>>, error: unknown) {
     return jest.spyOn(Client4, 'getPropertyFields').mockImplementation(
-        async (_group, objectType, _targetType, _targetId, cursor) => {
-            if (objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && cursor?.cursorId) {
+        async (_group, objectType, query) => {
+            if (objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && query?.cursorId) {
                 throw error;
             }
-            return cursor?.cursorId ? [] : (byType[objectType] ?? []);
+            return query?.cursorId ? [] : (byType[objectType] ?? []);
         },
     );
 }
@@ -208,7 +208,7 @@ function mockFieldsByObjectTypeWithFailingTemplateListing(byType: Partial<Record
 // page that holds `classification`, and an empty first page ends it too.
 function templateListingCalls() {
     return (Client4.getPropertyFields as jest.Mock).mock.calls.filter(
-        ([, objectType, , , cursor]) => objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && cursor?.cursorId,
+        ([, objectType, query]) => objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && query?.cursorId,
     );
 }
 
@@ -438,7 +438,7 @@ describe('fetchClassificationField', () => {
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2);
 
         const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
-        expect(secondCallArgs[4]).toEqual({cursorId: 'p2', cursorCreateAt: 200});
+        expect(secondCallArgs[2]).toMatchObject({cursorId: 'p2', cursorCreateAt: 200});
     });
 
     test('should report neither field nor conflict when no pages contain the name', async () => {
@@ -478,9 +478,7 @@ describe('fetchLinkedClassificationField', () => {
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
             ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            expect.any(Object),
+            expect.objectContaining({targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID}),
         );
     });
 
@@ -523,7 +521,7 @@ describe('fetchLinkedClassificationField', () => {
         expect(await fetchLinkedClassificationField('field1')).toEqual({field: expected});
 
         const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
-        expect(secondCallArgs[4]).toEqual({cursorId: 'p1', cursorCreateAt: 100});
+        expect(secondCallArgs[2]).toMatchObject({cursorId: 'p1', cursorCreateAt: 100});
     });
 });
 
@@ -543,9 +541,10 @@ describe('fetchChannelClassificationField', () => {
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
             ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            '',
-            expect.any(Object),
+            expect.objectContaining({
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: '',
+            }),
         );
     });
 
@@ -602,7 +601,7 @@ describe('fetchChannelClassificationField', () => {
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2);
 
         const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
-        expect(secondCallArgs[4]).toEqual({cursorId: 'p2', cursorCreateAt: 200});
+        expect(secondCallArgs[2]).toMatchObject({cursorId: 'p2', cursorCreateAt: 200});
     });
 
     test('should report neither field nor conflict when field list is empty', async () => {
@@ -708,7 +707,7 @@ describe('fetchUserLinkedFields', () => {
         expect(result).toEqual({fields: [linked], conflict: foreign});
 
         const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
-        expect(secondCallArgs[4]).toEqual({cursorId: 'linked', cursorCreateAt: 100});
+        expect(secondCallArgs[2]).toMatchObject({cursorId: 'linked', cursorCreateAt: 100});
     });
 });
 
@@ -1510,8 +1509,8 @@ describe('Channel classification linked field branches', () => {
         const linked = makeLinkedField({attrs: {actions: []}});
 
         let systemLookups = 0;
-        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType, _targetType, _targetId, cursor) => {
-            if (cursor?.cursorId) {
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType, query) => {
+            if (query?.cursorId) {
                 return [];
             }
             if (objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE) {

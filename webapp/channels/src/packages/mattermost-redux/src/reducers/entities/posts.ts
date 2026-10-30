@@ -523,6 +523,14 @@ function handlePostReceived(nextState: any, receivedPost: Post, nestedPermalinkL
         if (!post.last_reply_at && currentState[post.id].last_reply_at) {
             post.last_reply_at = currentState[post.id].last_reply_at;
         }
+
+        // Only responses that asked for property value hydration carry this flag, and the
+        // ones that did not (websocket events, search, getPostsByIds) say nothing about
+        // whether the values could be loaded, so keep what was stored.
+        const storedUnavailable = currentState[post.id].metadata?.property_values_unavailable;
+        if (post.metadata && post.metadata.property_values_unavailable == null && storedUnavailable != null) {
+            post = {...post, metadata: {...post.metadata, property_values_unavailable: storedUnavailable}};
+        }
     }
 
     if (post.delete_at > 0) {

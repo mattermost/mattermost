@@ -54,7 +54,7 @@ export default function SessionAttributesPage(props: Props) {
 
         const load = async () => {
             try {
-                await dispatch(fetchPropertyFields(SESSION_ATTRIBUTES_GROUP_ID, SESSION_ATTRIBUTES_OBJECT_TYPE, SESSION_ATTRIBUTES_TARGET_TYPE));
+                await dispatch(fetchPropertyFields(SESSION_ATTRIBUTES_GROUP_ID, SESSION_ATTRIBUTES_OBJECT_TYPE, {targetType: SESSION_ATTRIBUTES_TARGET_TYPE}));
                 if (active) {
                     setLoadError(false);
                 }

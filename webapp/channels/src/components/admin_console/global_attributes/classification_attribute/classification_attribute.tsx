@@ -14,6 +14,7 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
+import {formatPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -40,7 +41,7 @@ import type {ChannelResourceConfig} from '../applies_to/channels';
 import type {ResourceObjectType} from '../attribute_details/attribute_applies_to_constants';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import useAllowedResourceTypes from '../use_allowed_resource_types';
-import {fetchLinkedFieldsForTemplate, formatAttributeHeadingName, isResourceObjectType} from '../utils';
+import {fetchLinkedFieldsForTemplate, isResourceObjectType} from '../utils';
 
 import './classification_attribute.scss';
 
@@ -297,7 +298,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
     }, [canSave, channelField, channelResource, markClean, template]);
 
     const displayName = (template?.attrs?.display_name as string | undefined)?.trim() ||
-        formatAttributeHeadingName(template?.name ?? formatMessage(messages.nameFallback));
+        formatPropertyFieldLabel(template?.name ?? formatMessage(messages.nameFallback));
 
     return (
         <div

@@ -571,7 +571,7 @@ function fetchManagedCategories(teamId: string): ThunkActionFunc<unknown> {
         const propertyGroup = getPropertyGroupByName(state, ManagedCategoryPropertyGroupName);
         if (!propertyGroup) {
             try {
-                const fields = await Client4.getPropertyFields(ManagedCategoryPropertyGroupName, 'channel', 'system');
+                const fields = await Client4.getPropertyFields(ManagedCategoryPropertyGroupName, 'channel', {targetType: 'system'});
                 if (fields.length === 0) {
                     return {error: new Error(`No property fields found for ${ManagedCategoryPropertyGroupName}`)};
                 }

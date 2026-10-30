@@ -197,9 +197,12 @@ async function findLiveFieldByName(objectType: string, name: string): Promise<Pr
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
             ACCESS_CONTROL_PROPERTY_GROUP,
             objectType,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            {cursorId, cursorCreateAt},
+            {
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: CLASSIFICATIONS_FIELD_TARGET_ID,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         const found = fields.find((f: PropertyField) => f.name === name && f.delete_at === 0);
         if (found || fields.length === 0) {
@@ -232,9 +235,12 @@ export async function listLiveFields(objectType: string): Promise<PropertyField[
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
             ACCESS_CONTROL_PROPERTY_GROUP,
             objectType,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            {cursorId, cursorCreateAt},
+            {
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: CLASSIFICATIONS_FIELD_TARGET_ID,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         if (fields.length === 0) {
             break;
@@ -426,9 +432,12 @@ export async function fetchUserLinkedFields(templateFieldId: string): Promise<Cl
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
             ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_USER_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            {cursorId, cursorCreateAt},
+            {
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: CLASSIFICATIONS_FIELD_TARGET_ID,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         for (const f of fields) {
             if (f.delete_at !== 0) {

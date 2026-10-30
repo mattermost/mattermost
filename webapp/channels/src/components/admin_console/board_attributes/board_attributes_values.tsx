@@ -20,6 +20,7 @@ import {
     type BoardsColorToken,
     normalizeColor,
 } from 'utils/board_property_colors';
+import {resolveOptionChipColors} from 'utils/property_option_colors';
 
 import {ValidationWarningOptionsUnique, canEditFieldOptions, isOptionNameTaken, newPendingId} from './board_attributes_utils';
 import {useBoardOptionDnd} from './hooks/use_board_option_dnd';
@@ -177,8 +178,17 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
 
     // Normalize once: unknown legacy values fall back to `default` consistently
     // across the chip's background, the drag preview, and the menu's
-    // selected-state check.
+    // selected-state check. Normalizing here rather than inside
+    // `resolveOptionChipColors` keeps "no colour means `default`" as boards'
+    // policy — content flagging's renderer wants the theme-aware neutral for the
+    // same input.
     const color = normalizeColor(option.color);
+
+    // Background *and* foreground, the latter derived from the former. The chips
+    // previously took only a background and let the label inherit
+    // `var(--center-channel-color)`, which is near-white in a dark theme and read
+    // at 1.07:1 against these pastels.
+    const chipColors = resolveOptionChipColors(color);
 
     // The committed name conflicts with a sibling — render the chip with a
     // red border so the conflict is visible without opening the dropdown.
@@ -197,7 +207,8 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
         getDragPreview: () => {
             const node = document.createElement('span');
             node.className = 'BoardAttributes__optionDragPreview';
-            node.style.backgroundColor = COLOR_DESCRIPTOR[color].color;
+            node.style.backgroundColor = chipColors.backgroundColor;
+            node.style.color = chipColors.color;
             node.textContent = option.name;
             return node;
         },
@@ -265,7 +276,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                 <ChipShell
                     $invalid={false}
                     $readonly={true}
-                    style={{backgroundColor: COLOR_DESCRIPTOR[color].color}}
+                    style={chipColors}
                 >
                     <span
                         className='property-option-chip-trigger'
@@ -286,7 +297,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
             <ChipShell
                 ref={setChipElement}
                 $invalid={isInvalid}
-                style={{backgroundColor: COLOR_DESCRIPTOR[color].color}}
+                style={chipColors}
             >
                 <Menu.Container
                     menuButton={{
@@ -381,7 +392,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                     >
                         <CloseCircleIcon
                             size={14}
-                            color='rgba(var(--center-channel-color-rgb), 0.56)'
+                            color='currentColor'
                         />
                     </ChipDeleteButton>
                 )}
@@ -460,7 +471,11 @@ const ChipShell = styled.span<{$invalid?: boolean; $readonly?: boolean}>`
         line-height: normal;
         box-shadow: none;
         outline: none;
-        color: var(--center-channel-color);
+
+        /* Inherit the chip's derived foreground. Hard-coding
+           var(--center-channel-color) here is what made these chips illegible in
+           dark themes: the background is an opaque pastel regardless of theme. */
+        color: inherit;
         font-family: 'Open Sans';
         font-size: 12px;
         font-weight: 600;
@@ -500,10 +515,14 @@ const ChipDeleteButton = styled.button`
     border: 0;
     background: transparent;
     cursor: pointer;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+    /* Same reason as the trigger: on an opaque pastel, a theme-derived grey is
+       invisible in Onyx. Dim the chip's own foreground instead. */
+    color: inherit;
+    opacity: 0.64;
 
     &:hover {
-        color: var(--center-channel-color);
+        opacity: 1;
     }
 
     &:focus-visible {

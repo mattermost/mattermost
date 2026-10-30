@@ -19411,10 +19411,6 @@
     "defaultMessage": "+{count}",
     "description": "Compact button after the row of channel attribute chips in the channel header and thread headers, when some chips do not fit. {count} is the number of hidden chips. Opens a popover that lists them."
   },
-  "channel_attributes.labels.overflow_aria": {
-    "defaultMessage": "{count, plural, one {# more attribute} other {# more attributes}}",
-    "description": "Screen-reader label for the '+N' button after the channel attribute chips in the channel header. # is the number of attributes hidden from the row."
-  },
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
@@ -23735,6 +23731,10 @@
     "defaultMessage": "Enterprise Feature",
     "description": "Tooltip title shown over buttons for features locked behind an Enterprise license (e.g. the disabled Manage User Settings button)."
   },
+  "generic.more_attributes": {
+    "defaultMessage": "{count, plural, one {# more attribute} other {# more attributes}}",
+    "description": "Accessible label (screen readers only) on the overflow badge that stands in for attribute chips that do not fit, shown on channel attribute labels and on post attribute chips. {count} is the number of hidden attributes."
+  },
   "generic.next": {
     "defaultMessage": "Next",
     "description": "Generic 'Next' navigation button label, used in the file preview modal navigation and product notices modal."
@@ -27566,6 +27566,66 @@
   "popout_menu_item.openInNewWindow": {
     "defaultMessage": "Open in new window",
     "description": "Menu item that opens the current view in a separate popped-out window."
+  },
+  "post_attributes.card.edit": {
+    "defaultMessage": "Edit",
+    "description": "Button in the hover card on the attribute chips of a post. Opens the modal for editing the attributes of that post. Verb."
+  },
+  "post_attributes.card.title": {
+    "defaultMessage": "Attributes",
+    "description": "Heading of the hover card that appears over the attribute chips of a post, above the list of attribute names and values. Plural noun."
+  },
+  "post_attributes.chips.overflow": {
+    "defaultMessage": "+{count, number}",
+    "description": "Visible text of the overflow badge after the attribute chips under a post, for chips that do not fit. {count} is the number of hidden attributes."
+  },
+  "post_attributes.chips.unavailable": {
+    "defaultMessage": "Attributes unavailable",
+    "description": "Message shown in place of the attribute chips under a post when the attributes could not be loaded."
+  },
+  "post_attributes.composer.add": {
+    "defaultMessage": "Add attributes",
+    "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb."
+  },
+  "post_attributes.dot_menu.attributes": {
+    "defaultMessage": "Attributes",
+    "description": "Item in the three-dot (More actions) menu of a post that opens the modal for viewing and editing the attributes of that post. Plural noun."
+  },
+  "post_attributes.modal.add": {
+    "defaultMessage": "Add attribute",
+    "description": "Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb."
+  },
+  "post_attributes.modal.clear": {
+    "defaultMessage": "Clear {attribute}",
+    "description": "Accessible label (screen readers only) of the button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
+  },
+  "post_attributes.modal.empty": {
+    "defaultMessage": "There are no attributes on this post that you can view or add.",
+    "description": "Shown in the post attributes modal when the post has no attributes this user can see and there is none they are allowed to add."
+  },
+  "post_attributes.modal.error.forbidden": {
+    "defaultMessage": "You do not have permission to change this attribute",
+    "description": "Error shown in the post attributes modal when the server refuses to save a change to an attribute because the user lacks permission."
+  },
+  "post_attributes.modal.error.generic": {
+    "defaultMessage": "Could not update this attribute. Please try again.",
+    "description": "Error shown in the post attributes modal when saving a change to an attribute fails for any reason other than missing permission."
+  },
+  "post_attributes.modal.locked": {
+    "defaultMessage": "You don't have permission to modify this attribute.",
+    "description": "Tooltip on an attribute row in the post attributes modal that is read-only for the current user, explaining that they cannot change it."
+  },
+  "post_attributes.modal.picker.label": {
+    "defaultMessage": "Add an attribute",
+    "description": "Accessible label (screen readers only) of the menu, opened by the add attribute button in the post attributes modal, that lists attributes which can be added to the post."
+  },
+  "post_attributes.modal.subtitle": {
+    "defaultMessage": "{author} · {channel}",
+    "description": "Subtitle under the title of the post attributes modal, identifying the post. {author} is the name of the post author and {channel} is the name of the channel it was posted in; the dot between them is a separator."
+  },
+  "post_attributes.modal.title": {
+    "defaultMessage": "Post attributes",
+    "description": "Title of the modal where users view and edit the attributes (structured metadata fields) attached to a post."
   },
   "post_body.check_for_out_of_channel_groups_mentions.message": {
     "defaultMessage": "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.",

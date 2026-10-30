@@ -71,7 +71,7 @@ describe('useEnabledSessionAttributeFields', () => {
             stateWith([enabled, disabled]),
         );
 
-        expect(mockFetchPropertyFields).toHaveBeenCalledWith('session_attributes', 'session', 'system');
+        expect(mockFetchPropertyFields).toHaveBeenCalledWith('session_attributes', 'session', {targetType: 'system'});
         expect(result.current.map((field) => field.name)).toEqual(['ip_address']);
     });
 

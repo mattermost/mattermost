@@ -18,6 +18,8 @@ import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermis
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
 import type {PropertyFieldOwner} from '@mattermost/types/properties_user';
 
+import {formatPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -66,7 +68,6 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
-    formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
     listPropertyFields,
@@ -1617,7 +1618,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         <FormattedMessage
                             tagName='h1'
                             {...(isEditMode ? messages.editTitle : messages.title)}
-                            values={isEditMode ? {name: formatAttributeHeadingName(displayName || currentName)} : undefined}
+                            values={isEditMode ? {name: formatPropertyFieldLabel(displayName || currentName)} : undefined}
                         />
                         <FormattedMessage
                             tagName='p'
