@@ -7,7 +7,9 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {ChannelSettingsTabBodyProps} from 'types/plugins/channel_settings';
@@ -70,7 +72,6 @@ jest.mock('utils/url', () => ({
 
 // Mock child components to provide controlled testing interfaces
 jest.mock('./channel_settings_info_tab', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const React = require('react');
 
     return function MockChannelSettingsInfoTab({
@@ -385,6 +386,19 @@ describe('ChannelSettingsModal', () => {
         await waitFor(() => {
             expect(screen.getByText('Channel Settings')).toBeInTheDocument();
         });
+    });
+
+    it('says Board Settings and Archive Board for a board', async () => {
+        const testState = mergeObjects(makeTestState(), boardChannelsState(channelId));
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+
+        await waitFor(() => {
+            expect(screen.getByText('Board Settings')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+        expect(await screen.findByRole('tab', {name: 'archive board'})).toBeInTheDocument();
+        expect(screen.queryByRole('tab', {name: 'archive channel'})).not.toBeInTheDocument();
     });
 
     it('should render Info tab by default', async () => {

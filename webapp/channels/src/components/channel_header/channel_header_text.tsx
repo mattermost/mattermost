@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -16,6 +16,8 @@ import {openModal} from 'actions/views/modals';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {
     Constants,
     ModalIdentifiers,
@@ -81,8 +83,20 @@ export default function ChannelHeaderText(props: Props) {
     );
 }
 
+const addHeaderMessages: KindMessages = {
+    channel: defineMessage({
+        id: 'channel_header.headerText.addNewButton',
+        defaultMessage: 'Add a channel header',
+    }),
+    board: defineMessage({
+        id: 'channel_header.headerText.addNewButton.board',
+        defaultMessage: 'Add a board header',
+    }),
+};
+
 function AddChannelHeaderTextButton({channel}: {channel: Channel}) {
     const dispatch = useDispatch();
+    const channelKind = useChannelKind(channel);
 
     function handleClick() {
         dispatch(openModal({
@@ -97,10 +111,7 @@ function AddChannelHeaderTextButton({channel}: {channel: Channel}) {
             className='header-placeholder style--none'
             onClick={handleClick}
         >
-            <FormattedMessage
-                id='channel_header.headerText.addNewButton'
-                defaultMessage='Add a channel header'
-            />
+            <FormattedMessage {...addHeaderMessages[channelKind]}/>
             <i
                 className='icon icon-pencil-outline edit-icon'
                 aria-hidden={true}

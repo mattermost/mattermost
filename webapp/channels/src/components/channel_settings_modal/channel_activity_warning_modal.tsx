@@ -2,9 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import ConfirmModal from 'components/confirm_modal';
+
+import type {KindMessages} from 'utils/channel_kind';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 import './channel_activity_warning_modal.scss';
 
@@ -18,6 +22,9 @@ type Props = {
 
     /** Callback when user confirms the action */
     onConfirm: () => void;
+
+    /** The channel's kind, which picks the words: "board" rather than "channel" for a board */
+    channelKind?: ChannelKind;
 };
 
 /**
@@ -28,6 +35,7 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
     isOpen,
     onClose,
     onConfirm,
+    channelKind = 'channel',
 }) => {
     const [acknowledgeRisk, setAcknowledgeRisk] = useState(false);
 
@@ -64,12 +72,7 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
         <ConfirmModal
             id='activityWarningModal'
             show={isOpen}
-            title={
-                <FormattedMessage
-                    id='channel_settings.activity_warning.exposing_history_title'
-                    defaultMessage='Exposing channel history'
-                />
-            }
+            title={<FormattedMessage {...messages.title[channelKind]}/>}
             message={
                 <div className='channel-activity-warning-content'>
                     <div className='warning-description'>
@@ -82,12 +85,7 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
             }
             showCheckbox={true}
             checkboxClass='checkbox text-left mb-0 activity-warning-checkbox'
-            checkboxText={
-                <FormattedMessage
-                    id='channel_settings.activity_warning.acknowledge_expose_history'
-                    defaultMessage='I acknowledge this change will expose all historical channel messages to more users'
-                />
-            }
+            checkboxText={<FormattedMessage {...messages.acknowledge[channelKind]}/>}
             confirmButtonText={
                 <FormattedMessage
                     id='channel_settings.activity_warning.save_and_apply'
@@ -103,5 +101,28 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
         />
     );
 };
+
+const messages = {
+    title: {
+        channel: defineMessage({
+            id: 'channel_settings.activity_warning.exposing_history_title',
+            defaultMessage: 'Exposing channel history',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.activity_warning.exposing_history_title.board',
+            defaultMessage: 'Exposing board history',
+        }),
+    },
+    acknowledge: {
+        channel: defineMessage({
+            id: 'channel_settings.activity_warning.acknowledge_expose_history',
+            defaultMessage: 'I acknowledge this change will expose all historical channel messages to more users',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.activity_warning.acknowledge_expose_history.board',
+            defaultMessage: 'I acknowledge this change will expose all historical board messages to more users',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default ChannelActivityWarningModal;

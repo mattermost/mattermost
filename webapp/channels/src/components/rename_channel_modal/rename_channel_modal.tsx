@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
@@ -14,7 +14,11 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 
 import {getHistory} from 'utils/browser_history';
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import Constants from 'utils/constants';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 type Actions = {
     patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
@@ -24,6 +28,7 @@ type Props = {
     channel: Channel;
     teamName: string;
     onExited: () => void;
+    channelKind?: ChannelKind;
     actions: Actions;
     intl: IntlShape;
 };
@@ -100,16 +105,14 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='renameChannelModalLabel'
                     >
-                        <FormattedMessage
-                            id='rename_channel.title'
-                            defaultMessage='Rename Channel'
-                        />
+                        <FormattedMessage {...messages.title[this.props.channelKind ?? 'channel']}/>
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <ChannelNameFormField
                         value={this.state.displayName}
                         name='rename-channel'
+                        label={formatMessage(channelKindMessages.nameLabel[this.props.channelKind ?? 'channel'])}
                         placeholder={formatMessage({
                             id: 'rename_channel.displayNameHolder',
                             defaultMessage: 'Enter display name',
@@ -151,6 +154,19 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
         );
     }
 }
+
+const messages = {
+    title: {
+        channel: defineMessage({
+            id: 'rename_channel.title',
+            defaultMessage: 'Rename Channel',
+        }),
+        board: defineMessage({
+            id: 'rename_channel.title.board',
+            defaultMessage: 'Rename Board',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default injectIntl(RenameChannelModal);
 

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {LogoutVariantIcon} from '@mattermost/compass-icons/components';
@@ -14,6 +14,8 @@ import {openModal} from 'actions/views/modals';
 import LeaveChannelModal from 'components/leave_channel_modal';
 import * as Menu from 'components/menu';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
 // import type {PropsFromRedux} from './index';
@@ -28,6 +30,7 @@ const LeaveChannel = ({
     id,
 }: Props) => {
     const dispatch = useDispatch();
+    const channelKind = useChannelKind(channel);
     const handleLeave = () => {
         if (channel.type === Constants.PRIVATE_CHANNEL || channel.policy_enforced) {
             dispatch(
@@ -49,15 +52,23 @@ const LeaveChannel = ({
             id={id}
             leadingElement={<LogoutVariantIcon size='18px'/>}
             onClick={handleLeave}
-            labels={
-                <FormattedMessage
-                    id='channel_header.leave'
-                    defaultMessage='Leave Channel'
-                />
-            }
+            labels={<FormattedMessage {...messages.leave[channelKind]}/>}
             isDestructive={true}
         />
     );
 };
+
+const messages = {
+    leave: {
+        channel: defineMessage({
+            id: 'channel_header.leave',
+            defaultMessage: 'Leave Channel',
+        }),
+        board: defineMessage({
+            id: 'channel_header.leave.board',
+            defaultMessage: 'Leave Board',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default memo(LeaveChannel);

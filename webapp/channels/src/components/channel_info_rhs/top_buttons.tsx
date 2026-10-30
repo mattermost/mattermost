@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl, FormattedMessage} from 'react-intl';
+import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import {
@@ -20,7 +20,10 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import useCopyText from 'components/common/hooks/useCopyText';
 
+import type {KindMessages} from 'utils/channel_kind';
 import Constants from 'utils/constants';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 const ChannelInfoRhsTopButtons = styled.div`
     display: flex;
@@ -37,7 +40,27 @@ const ChannelInfoRhsTopButtons = styled.div`
     }
 `;
 
+const messages = {
+    favorite: {
+        channel: defineMessage({id: 'channel_info_rhs.top_buttons.favorite.tooltip', defaultMessage: 'Add this channel to favorites'}),
+        board: defineMessage({id: 'channel_info_rhs.top_buttons.favorite.tooltip.board', defaultMessage: 'Add this board to favorites'}),
+    },
+    mute: {
+        channel: defineMessage({id: 'channel_info_rhs.top_buttons.mute.tooltip', defaultMessage: 'Mute notifications for this channel'}),
+        board: defineMessage({id: 'channel_info_rhs.top_buttons.mute.tooltip.board', defaultMessage: 'Mute notifications for this board'}),
+    },
+    addPeople: {
+        channel: defineMessage({id: 'channel_info_rhs.top_buttons.add_people.tooltip', defaultMessage: 'Add team members to this channel'}),
+        board: defineMessage({id: 'channel_info_rhs.top_buttons.add_people.tooltip.board', defaultMessage: 'Add team members to this board'}),
+    },
+    copyLink: {
+        channel: defineMessage({id: 'channel_info_rhs.top_buttons.copy_link.tooltip', defaultMessage: 'Copy link to this channel'}),
+        board: defineMessage({id: 'channel_info_rhs.top_buttons.copy_link.tooltip.board', defaultMessage: 'Copy link to this board'}),
+    },
+} satisfies Record<string, KindMessages>;
+
 export interface Props {
+    channelKind?: ChannelKind;
     channelType: string;
     channelURL?: string;
 
@@ -56,6 +79,7 @@ export interface Props {
 }
 
 export default function TopButtons({
+    channelKind = 'channel',
     channelType,
     channelURL,
     isFavorite,
@@ -87,22 +111,22 @@ export default function TopButtons({
     const copyIcon = copyLink.copiedRecently ? <CheckIcon/> : <LinkVariantIcon/>;
     const copyText = copyLink.copiedRecently ? formatMessage({id: 'channel_info_rhs.top_buttons.copied', defaultMessage: 'Copied'}) : formatMessage({id: 'channel_info_rhs.top_buttons.copy', defaultMessage: 'Copy Link'});
 
+    let favoriteTooltip;
+    if (isInManagedCategory) {
+        favoriteTooltip = (
+            <FormattedMessage
+                id='channelHeader.managedCategoryFavoriteDisabled'
+                defaultMessage='Channels in managed categories cannot be favorited.'
+            />
+        );
+    } else {
+        favoriteTooltip = <FormattedMessage {...messages.favorite[channelKind]}/>;
+    }
+
     return (
         <ChannelInfoRhsTopButtons>
             <WithTooltip
-                title={
-                    isInManagedCategory ? (
-                        <FormattedMessage
-                            id='channelHeader.managedCategoryFavoriteDisabled'
-                            defaultMessage='Channels in managed categories cannot be favorited.'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.favorite.tooltip'
-                            defaultMessage='Add this channel to favorites'
-                        />
-                    )
-                }
+                title={favoriteTooltip}
             >
                 <TileButton
                     onClick={actions.toggleFavorite}
@@ -115,12 +139,7 @@ export default function TopButtons({
                 />
             </WithTooltip>
             <WithTooltip
-                title={
-                    <FormattedMessage
-                        id='channel_info_rhs.top_buttons.mute.tooltip'
-                        defaultMessage='Mute notifications for this channel'
-                    />
-                }
+                title={<FormattedMessage {...messages.mute[channelKind]}/>}
             >
                 <TileButton
                     onClick={actions.toggleMute}
@@ -133,12 +152,7 @@ export default function TopButtons({
             </WithTooltip>
             {canAddPeople && (
                 <WithTooltip
-                    title={
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.add_people.tooltip'
-                            defaultMessage='Add team members to this channel'
-                        />
-                    }
+                    title={<FormattedMessage {...messages.addPeople[channelKind]}/>}
                 >
                     <TileButton
                         onClick={actions.addPeople}
@@ -157,12 +171,7 @@ export default function TopButtons({
             )}
             {canCopyLink && (
                 <WithTooltip
-                    title={
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.copy_link.tooltip'
-                            defaultMessage='Copy link to this channel'
-                        />
-                    }
+                    title={<FormattedMessage {...messages.copyLink[channelKind]}/>}
                 >
                     <TileButton
                         onClick={copyLink.onClick}

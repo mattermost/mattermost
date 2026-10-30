@@ -112,6 +112,23 @@ describe('BannerTokenControls', () => {
         expect(screen.getByRole('menuitem', {name: /caveat.*has no value set and won't render in the banner/})).toBeInTheDocument();
     });
 
+    test('says board rather than channel on a board', async () => {
+        stubLayout();
+
+        renderWithContext(
+            <BannerTokenControls
+                attributes={[attribute('program', 'AURORA')]}
+                onInsertToken={jest.fn()}
+                channelKind='board'
+            />,
+        );
+
+        await userEvent.click(screen.getByTestId('bannerAttributeTokenButton'));
+
+        expect(await screen.findByRole('menu', {name: 'Board attributes'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /program.*Value on this board: AURORA/})).toBeInTheDocument();
+    });
+
     test('disables insertion when the banner fields are locked', () => {
         renderWithContext(
             <BannerTokenControls

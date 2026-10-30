@@ -15,6 +15,7 @@ import {
     userEvent,
     fireEvent,
 } from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 jest.mock('selectors/views/channel_settings', () => ({
@@ -314,5 +315,25 @@ describe('channel_info_rhs/menu', () => {
         );
         await act(async () => props.actions.getChannelStats());
         expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    test('should display Board Settings for a board', async () => {
+        mockedCanAccessChannelSettings.mockReturnValue(true);
+        const props = {
+            ...defaultProps,
+            channel: {id: 'board1', type: Constants.OPEN_CHANNEL} as Channel,
+        };
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+            boardChannelsState('board1'),
+        );
+        await act(async () => props.actions.getChannelStats());
+
+        expect(screen.getByText('Board Settings')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Board Info Actions')).toBeInTheDocument();
     });
 });

@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import SidebarBaseChannelIcon from './sidebar_base_channel_icon';
@@ -26,6 +28,7 @@ const SidebarBaseChannel = ({
     actions,
 }: Props) => {
     const intl = useIntl();
+    const channelKind = useChannelKind(channel);
 
     const handleLeavePublicChannel = useCallback((callback: () => void) => {
         actions.leaveChannel(channel.id);
@@ -52,9 +55,9 @@ const SidebarBaseChannel = ({
 
     let ariaLabelPrefix;
     if (channel.type === Constants.OPEN_CHANNEL) {
-        ariaLabelPrefix = intl.formatMessage({id: 'accessibility.sidebar.types.public', defaultMessage: 'public channel'});
+        ariaLabelPrefix = intl.formatMessage(messages.publicType[channelKind]);
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-        ariaLabelPrefix = intl.formatMessage({id: 'accessibility.sidebar.types.private', defaultMessage: 'private channel'});
+        ariaLabelPrefix = intl.formatMessage(messages.privateType[channelKind]);
     }
 
     return (
@@ -69,5 +72,28 @@ const SidebarBaseChannel = ({
         />
     );
 };
+
+const messages = {
+    publicType: {
+        channel: defineMessage({
+            id: 'accessibility.sidebar.types.public',
+            defaultMessage: 'public channel',
+        }),
+        board: defineMessage({
+            id: 'accessibility.sidebar.types.public.board',
+            defaultMessage: 'public board',
+        }),
+    },
+    privateType: {
+        channel: defineMessage({
+            id: 'accessibility.sidebar.types.private',
+            defaultMessage: 'private channel',
+        }),
+        board: defineMessage({
+            id: 'accessibility.sidebar.types.private.board',
+            defaultMessage: 'private board',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default SidebarBaseChannel;
