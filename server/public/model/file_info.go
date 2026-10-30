@@ -80,7 +80,8 @@ type FileInfo struct {
 	MiniPreview     *[]byte `json:"mini_preview" xml:"-"` // pointer to distinguish NULL (no preview) from empty data
 	Content         string  `json:"-" xml:"-"`
 	RemoteId        *string `json:"remote_id" xml:"RemoteId"`
-	Archived        bool    `json:"archived" xml:"Archived"`
+	// Deprecated: the server no longer archives files, so this is always false.
+	Archived bool `json:"archived" xml:"Archived"`
 }
 
 func (fi *FileInfo) Auditable() map[string]any {
@@ -244,6 +245,7 @@ func GetEtagForFileInfos(infos []*FileInfo) string {
 	return Etag(infos[0].PostId, maxUpdateAt)
 }
 
+// Deprecated: the server no longer archives files.
 func (fi *FileInfo) MakeContentInaccessible() {
 	if fi == nil {
 		return

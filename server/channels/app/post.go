@@ -2657,12 +2657,12 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 		}
 	}
 
-	infos, firstInaccessibleFileTime, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
+	infos, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if len(infos) == 0 && firstInaccessibleFileTime == 0 && len(post.Filenames) > 0 {
+	if len(infos) == 0 && len(post.Filenames) > 0 {
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		// The post has Filenames that need to be replaced with FileInfos
@@ -2672,20 +2672,19 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 	return infos, nil
 }
 
-// GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	fileIDs := post.FileIds
 	if fromMaster {
 		masterPost, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), post.Id, includeDeleted)
 		if err != nil {
-			return nil, 0, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		fileIDs = masterPost.FileIds
 	}
 
 	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(fileIDs, includeDeleted, true, fromMaster)
 	if err != nil {
-		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// GetByIds does not preserve the order of post.FileIds (the SQL store sorts
@@ -2693,14 +2692,9 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster
 	// reorder to match the post's stored attachment order.
 	fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
-	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
-	if appErr != nil {
-		return nil, 0, appErr
-	}
-
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
-	return fileInfos, firstInaccessibleFileTime, nil
+	return fileInfos, nil
 }
 
 func orderFileInfosByID(ids []string, infos []*model.FileInfo) []*model.FileInfo {

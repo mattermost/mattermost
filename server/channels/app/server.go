@@ -54,7 +54,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/mobile_session_metadata"
@@ -1820,12 +1819,6 @@ func (s *Server) initJobs() {
 		model.JobTypeLastAccessiblePost,
 		last_accessible_post.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		last_accessible_post.MakeScheduler(s.Jobs, s.License()),
-	)
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeLastAccessibleFile,
-		last_accessible_file.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		last_accessible_file.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.Jobs.RegisterJobType(
