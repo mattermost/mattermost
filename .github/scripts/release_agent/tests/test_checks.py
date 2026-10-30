@@ -189,7 +189,7 @@ class NewRegressionsTest(unittest.TestCase):
         result = checks.open_release_items(context(jira=jira, hub=hub), RULES["open-release-items"])
         self.assertEqual([(i.label, i.owner, i.reason) for i in result.items], [
             ("MM-71364", "@jesse.hallam", "unassigned"),  # Team = Reliability
-            ("MM-70317", "", "unassigned"),  # Team = Workflows, no route until its lead is named; component Bookmarks Bar
+            ("MM-70317", "", "unassigned"),  # Team = Workflows, which has no route; component Bookmarks Bar
         ])
 
     def test_team_field_values(self):
@@ -254,7 +254,9 @@ class NewRegressionsTest(unittest.TestCase):
             "platform integration": "doug.lauder", "integrations": "doug.lauder",
         })
         self.assertEqual(leads.by_component, {})
-        self.assertNotIn("jg.heithcock", {route["username"] for route in leads.routes})  # deactivated on Hub
+        self.assertEqual([route["username"] for route in leads.routes],
+                         ["jesse.hallam", "maria.nunez", "christopher", "doug.lauder"])
+        self.assertIsNone(leads.lead_for(issue("MM-1", team="Workflows", components=["Bookmarks Bar"])["fields"]))
 
 
 class DevLeadFlagsTest(unittest.TestCase):

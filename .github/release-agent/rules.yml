@@ -85,8 +85,9 @@ rules:
       # Unassigned and bot tickets go to the first route naming the ticket's Jira Team, else
       # the first naming one of its components, else Unassigned. Usernames are Hub
       # usernames; every run flags any that isn't an active Hub user. Changes go through a PR.
-      # Teams with no route (Workflows until its lead is named, Product Security, UX Design,
-      # Pod: PL3 Protection, CRE, Federal Biz Development) are listed under Unassigned.
+      # Teams with no route are listed under Unassigned: Workflows (the team no longer exists,
+      # but tickets such as the Bookmarks Bar ones still carry it), Product Security,
+      # UX Design, Pod: PL3 Protection, CRE and Federal Biz Development.
       dev_leads:
         match_field: team
         team_field: customfield_10800  # Jira "Team" (Atlassian team field)
@@ -95,9 +96,6 @@ rules:
           - {teams: [Information Control], username: maria.nunez, name: Maria Nunez}
           - {teams: [Agents], username: christopher, name: Christopher Speller}
           - {teams: [Platform Integration, Integrations], username: doug.lauder, name: Doug Lauder}
-          # Workflows' lead replaces JG Heithcock (deactivated on Hub). Bookmarks Bar tickets
-          # carry Team = Workflows, so they need no component route. Once named:
-          # - {teams: [Workflows], username: <hub username>, name: <name>}
     pass_when: report_only
     on_fail: report
 
