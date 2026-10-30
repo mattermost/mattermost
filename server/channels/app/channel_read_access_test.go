@@ -469,15 +469,7 @@ func TestBuildPushNotificationMessageChannelReadAccess(t *testing.T) {
 				true, false, "",
 			)
 			require.Nil(t, appErr)
-			// The badge count evaluates the recipient's other channels too; the post's
-			// channel is evaluated once.
-			evaluations := 0
-			for _, call := range mockACS.Calls {
-				if call.Method == "AccessEvaluation" && call.Arguments.Get(1).(model.AccessRequest).Resource.ID == h.th.BasicChannel.Id {
-					evaluations++
-				}
-			}
-			require.Equal(t, 1, evaluations)
+			mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
 
 			if tc.allow {
 				require.Contains(t, msg.Message, h.th.BasicPost.Message)
@@ -1448,7 +1440,7 @@ func captureWebsocketEvents(t *testing.T, h *channelReadAccessHarness, run func(
 // An email reaches no session, so a policy can't be evaluated for its recipient: while
 // channel_read_access governs the channel, every recipient gets the generic email.
 func TestNotificationEmailWithholdsContentsUnderReadAccessPolicy(t *testing.T) {
-	// Creating a post also sends push notifications in the background, whose badge count
+	// Creating a post also sends push notifications in the background, whose content gate
 	// asks the mock ACS questions this test doesn't answer and races its assertions.
 	disablePushes := func(h *channelReadAccessHarness) {
 		h.th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1748,9 +1740,9 @@ func TestPostRevealedCarriesTheReadAccessHook(t *testing.T) {
 	})
 }
 
-// The push badge sums mentions in the store, so a denied channel's mention would be a
-// badge the user can never clear: clearing it means opening the channel.
-func TestUserBadgeCountExcludesDeniedChannels(t *testing.T) {
+// The push worker has no session for the recipient, so a policy on session attributes
+// can't be evaluated for the badge. It counts every channel, denied ones included.
+func TestUserBadgeCountIncludesDeniedChannels(t *testing.T) {
 	h := setupChannelReadAccessTest(t)
 	user := h.th.BasicUser2
 	h.th.AddUserToChannel(t, user, h.th.BasicChannel)
@@ -1760,14 +1752,8 @@ func TestUserBadgeCountExcludesDeniedChannels(t *testing.T) {
 	governed(mockACS)
 	decides(mockACS, false)
 
-	badge, appErr := h.th.App.getUserBadgeCount(h.rctx, user.Id, false)
+	badge, appErr := h.th.App.getUserBadgeCount(user.Id, false)
 	require.Nil(t, appErr)
-	require.Zero(t, badge)
-
-	h.th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
-	})
-	badge, appErr = h.th.App.getUserBadgeCount(h.rctx, user.Id, false)
-	require.Nil(t, appErr)
-	require.Equal(t, 1, badge, "with enforcement off the mention is counted")
+	require.Equal(t, 1, badge)
+	mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 }
