@@ -253,20 +253,64 @@ func (us SqlUserStore) DeactivateMagicLinkGuests() ([]string, error) {
 	return userIds, nil
 }
 
+// legacyEmailForValidation swaps an unchanged "<user@example.com>" address for
+// the inner address so User.IsValid can succeed. The caller restores the
+// original value. A missing user is left unchanged so the usual validity error
+// is returned.
+func (us SqlUserStore) legacyEmailForValidation(user *model.User) (string, error) {
+	if !model.IsLegacyBracketedEmail(user.Email) {
+		return "", nil
+	}
+
+	query := us.getQueryBuilder().Select("Email").From("Users").Where(sq.Eq{"Id": user.Id})
+	var stored string
+	if err := us.GetMaster().GetBuilder(&stored, query); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+		return "", errors.Wrapf(err, "failed to get User with userId=%s", user.Id)
+	}
+	if !strings.EqualFold(stored, user.Email) {
+		return "", nil
+	}
+
+	inner, ok := model.UnwrapLegacyBracketedEmail(user.Email)
+	if !ok {
+		return "", nil
+	}
+
+	previous := user.Email
+	user.Email = inner
+	return previous, nil
+}
+
 func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
 	user.PreUpdate()
 
-	if err := user.IsValid(); err != nil {
+	// Rows saved before stricter email checks can contain "<user@example.com>".
+	// Validate the inner address when that stored value is unchanged, then put
+	// the original back so the row is not rewritten into a new invalid value.
+	restoreEmail, err := us.legacyEmailForValidation(user)
+	if err != nil {
 		return nil, err
 	}
+	if err := user.IsValid(); err != nil {
+		if restoreEmail != "" {
+			user.Email = restoreEmail
+		}
+		return nil, err
+	}
+	if restoreEmail != "" {
+		user.Email = restoreEmail
+	}
 
-	if err := us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
+	if err = us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
 		return nil, err
 	}
 
 	oldUser := model.User{}
 	query := us.usersQuery.Where(sq.Eq{"Users.Id": user.Id})
-	err := us.GetMaster().GetBuilder(&oldUser, query)
+	err = us.GetMaster().GetBuilder(&oldUser, query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get User with userId=%s", user.Id)
 	}
@@ -289,11 +333,16 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	user.LastLogin = oldUser.LastLogin
 	user.RemoteId = oldUser.RemoteId
 
+	// An unchanged legacy address is not a correction. A different, already
+	// validated address is an admin replacing the broken stored value, including
+	// for OAuth and LDAP users whose email is otherwise provider-owned.
+	correctingLegacyEmail := model.IsLegacyBracketedEmail(oldUser.Email) && user.Email != oldUser.Email
+
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
 		user.DeleteAt = oldUser.DeleteAt
 
-		if user.IsOAuthUser() {
+		if user.IsOAuthUser() && !correctingLegacyEmail {
 			user.Email = oldUser.Email
 		}
 
@@ -301,7 +350,7 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 			if user.Username != oldUser.Username {
 				return nil, store.NewErrInvalidInput("User", "id", user.Id)
 			}
-			if user.Email != oldUser.Email {
+			if user.Email != oldUser.Email && !correctingLegacyEmail {
 				return nil, store.NewErrInvalidInput("User", "email", user.Id)
 			}
 		}

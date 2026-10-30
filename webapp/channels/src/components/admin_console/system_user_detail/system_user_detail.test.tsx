@@ -546,6 +546,61 @@ describe('SystemUserDetail', () => {
             });
         });
 
+        test('should let an admin replace a legacy angle-bracket email on an SSO user', async () => {
+            const userEventInstance = userEvent.setup();
+            const legacyUser = {
+                ...user,
+                email: '<legacy.user@example.com>',
+                auth_service: Constants.GITLAB_SERVICE,
+            } as UserProfile;
+            const getLegacyUser = jest.fn().mockResolvedValue({data: legacyUser, error: null});
+            const patchUser = jest.fn().mockImplementation((updatedUser: UserProfile) => Promise.resolve({data: updatedUser, error: null}));
+            renderWithContext(
+                <SystemUserDetail
+                    {...defaultProps}
+                    getUser={getLegacyUser}
+                    patchUser={patchUser}
+                />,
+            );
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const emailInput = screen.getByLabelText('Email');
+            expect(emailInput).toBeEnabled();
+            expect(emailInput).toHaveValue('<legacy.user@example.com>');
+
+            await userEventInstance.clear(emailInput);
+            await userEventInstance.type(emailInput, 'legacy.user@example.com');
+            await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(await screen.findByTestId('changesList')).toHaveTextContent('Email: <legacy.user@example.com> → legacy.user@example.com');
+            await userEventInstance.click(screen.getByRole('button', {name: 'Save Changes'}));
+
+            await waitFor(() => {
+                expect(patchUser).toHaveBeenCalledWith(expect.objectContaining({
+                    email: 'legacy.user@example.com',
+                }));
+            });
+        });
+
+        test('should keep a provider-managed email locked when it is a plain address', async () => {
+            const gitlabUser = {
+                ...user,
+                email: 'gitlab.user@example.com',
+                auth_service: Constants.GITLAB_SERVICE,
+            } as UserProfile;
+            renderWithContext(
+                <SystemUserDetail
+                    {...defaultProps}
+                    getUser={jest.fn().mockResolvedValue({data: gitlabUser, error: null})}
+                />,
+            );
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            expect(screen.getByLabelText('Email')).toBeDisabled();
+        });
+
         test('should show validation error for empty email', async () => {
             const userEventInstance = userEvent.setup();
             renderWithContext(<SystemUserDetail {...defaultProps}/>);
