@@ -203,6 +203,12 @@ func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
 func (s *Store) HealthFinding() store.HealthFindingStore {
 	return &s.HealthFindingStore
 }
+func (s *Store) PostEntity() store.PostEntityStore {
+	return postEntityStore{}
+}
+func (s *Store) EntityTerm() store.EntityTermStore {
+	return entityTermStore{}
+}
 func (s *Store) View() store.ViewStore {
 	return &s.ViewStore
 }

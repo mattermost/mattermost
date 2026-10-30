@@ -56,6 +56,10 @@ type PostMetadata struct {
 	// without the flag says nothing about the values, so a client should only change what it
 	// stored for this flag on a response that carries it.
 	PropertyValuesUnavailable *bool `json:"property_values_unavailable,omitempty"`
+
+	// Entities holds tokens detected in the post message. Transient: populated on
+	// read, not persisted on the post.
+	Entities []*PostEntity `json:"entities,omitempty"`
 }
 
 // PostTranslation represents a translation of a post in a specific language
@@ -95,6 +99,7 @@ func (p *PostMetadata) Auditable() map[string]any {
 		"translations":        p.Translations,
 		"redacted_file_count": p.RedactedFileCount,
 		"property_values":     p.PropertyValues,
+		"entity_count":        len(p.Entities),
 	}
 }
 
@@ -143,6 +148,9 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	translationsCopy := map[string]*PostTranslation{}
 	maps.Copy(translationsCopy, p.Translations)
 
+	entitiesCopy := make([]*PostEntity, len(p.Entities))
+	copy(entitiesCopy, p.Entities)
+
 	var postPriorityCopy *PostPriority
 	if p.Priority != nil {
 		postPriorityCopy = &PostPriority{
@@ -166,5 +174,6 @@ func (p *PostMetadata) Copy() *PostMetadata {
 		RedactedFileCount:         p.RedactedFileCount,
 		PropertyValues:            propertyValuesCopy,
 		PropertyValuesUnavailable: propertyValuesUnavailableCopy,
+		Entities:                  entitiesCopy,
 	}
 }

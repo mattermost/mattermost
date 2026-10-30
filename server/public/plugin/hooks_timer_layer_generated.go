@@ -383,6 +383,20 @@ func (hooks *hooksTimerLayer) PropertyValuesHaveBeenUpdated(c *Context, userID, 
 	hooks.recordTime(startTime, "PropertyValuesHaveBeenUpdated", true)
 }
 
+func (hooks *hooksTimerLayer) EntityLookup(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.EntityLookup(c, req)
+	hooks.recordTime(startTime, "EntityLookup", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) EntityValidate(c *Context, req *model.EntityValidateRequest) (bool, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.EntityValidate(c, req)
+	hooks.recordTime(startTime, "EntityValidate", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
@@ -682,4 +696,18 @@ func (hooks *hooksTimerLayer) PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context
 	_returnsRPCErr := hooks.hooksWithRPCErrImpl.PropertyValuesHaveBeenUpdatedWithRPCErr(c, userID, groupID, targetType, targetID, values, previousValues)
 	hooks.recordTime(startTime, "PropertyValuesHaveBeenUpdatedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) EntityLookupWithRPCErr(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.EntityLookupWithRPCErr(c, req)
+	hooks.recordTime(startTime, "EntityLookupWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) EntityValidateWithRPCErr(c *Context, req *model.EntityValidateRequest) (bool, error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.EntityValidateWithRPCErr(c, req)
+	hooks.recordTime(startTime, "EntityValidateWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
 }

@@ -88,6 +88,41 @@ export type PostMetadata = {
     redacted_file_count?: number;
     property_values?: Array<PropertyValue<unknown>>;
     property_values_unavailable?: boolean;
+    entities?: PostEntity[];
+};
+
+export type PostEntity = {
+    id: string;
+    start: number;
+    end: number;
+    type_ids: string[];
+    matcher_id: string;
+    value: string;
+    url?: string;
+    display_name?: string;
+    title?: string;
+    has_card?: boolean;
+};
+
+export type EntityCard = {
+    type_id: string;
+    value: string;
+    title: string;
+    summary?: string;
+    score?: string;
+    severity?: string;
+    exploited?: boolean;
+    rows?: Array<{label: string; value: string}>;
+    vector?: Array<{metric: string; value: string; severe?: boolean}>;
+    related?: Array<{label: string; text?: string; url?: string; type_id?: string}>;
+    sections?: Array<{title: string; count: number; url?: string; items?: Array<{head?: string; text?: string; url?: string}>}>;
+    url?: string;
+    map?: {
+        kind: string;
+        points?: Array<{lat: number; lon: number; label?: string}>;
+        geojson?: unknown;
+    };
+    instant?: number;
 };
 
 export type Post = {

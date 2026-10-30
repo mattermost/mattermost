@@ -10,6 +10,7 @@ import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
 import ChannelInfoRhs from 'components/channel_info_rhs';
+import EntityRhs from 'components/entity_rhs/entity_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
@@ -44,6 +45,7 @@ export type Props = {
     isChannelMembers: boolean;
     isPluginView: boolean;
     isPostEditHistory: boolean;
+    isEntityView: boolean;
     previousRhsState: RhsState;
     rhsChannel?: Channel;
     selectedPostId: string;
@@ -286,6 +288,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelMembers,
             isExpanded,
             isPostEditHistory,
+            isEntityView,
         } = this.props;
 
         if (!isOpen) {
@@ -320,6 +323,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             content = <ChannelMembersRhs/>;
         } else if (isPostEditHistory) {
             content = <PostEditHistory/>;
+        } else if (isEntityView) {
+            content = <EntityRhs/>;
         }
 
         const isRHSLoading = Boolean(
