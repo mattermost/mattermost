@@ -580,9 +580,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             delete (Range.prototype as Partial<Range>).getBoundingClientRect;
         });
 
-        it('should save rich text typed right before a channel switch when the next channel changes too', () => {
-            jest.useFakeTimers();
-            const {rerender, container} = renderWithContext(
+        const renderRichTextEditor = () => {
+            const result = renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 mergeObjects(initialState, {
                     entities: {
@@ -601,9 +600,35 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 }),
             );
             const typeInEditor = (text: string) => act(() => {
-                const editor = (container.querySelector('.ProseMirror') as HTMLElement & {editor: Editor}).editor;
+                const editor = (result.container.querySelector('.ProseMirror') as HTMLElement & {editor: Editor}).editor;
                 editor.view.dispatch(editor.state.tr.insertText(text));
             });
+            return {...result, typeInEditor};
+        };
+
+        it('should save and show rich text typed right before a channel switch without waiting', () => {
+            jest.useFakeTimers();
+            const {rerender, typeInEditor} = renderRichTextEditor();
+
+            typeInEditor('typed before leaving');
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expect(mockedUpdateDraft).toHaveBeenCalledWith(
+                StoragePrefixes.DRAFT + channelId,
+                expect.objectContaining({message: 'typed before leaving', show: true}),
+                '',
+                true,
+            );
+        });
+
+        it('should save rich text typed right before a channel switch when the next channel changes too', () => {
+            jest.useFakeTimers();
+            const {rerender, typeInEditor} = renderRichTextEditor();
 
             typeInEditor('typed in the first channel');
             rerender(
@@ -621,6 +646,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 StoragePrefixes.DRAFT + channelId,
                 expect.objectContaining({message: 'typed in the first channel'}),
                 '',
+                true,
             );
         });
     });

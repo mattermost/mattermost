@@ -48,6 +48,7 @@ import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
+import {useLatest} from 'hooks/useLatest';
 import Constants, {
     Locations,
     StoragePrefixes,
@@ -242,6 +243,7 @@ const AdvancedTextEditor = ({
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>(undefined);
     const pendingDraftSave = useRef<{key: string; save: () => void; timeout: NodeJS.Timeout}>(undefined);
     const draftRef = useRef(draftFromStore);
+    const locationRef = useLatest({channelId, rootId});
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
@@ -295,6 +297,12 @@ const AdvancedTextEditor = ({
             }
         }
 
+        // A draft for a channel or thread the user has left is saved right away, as leaving it does.
+        const location = locationRef.current;
+        const leftLocation = draftToChange.channelId !== location.channelId || draftToChange.rootId !== location.rootId;
+        const instant = options.instant || leftLocation;
+        const show = options.show || leftLocation;
+
         // A late async callback (slow submit, finished file upload) may call handleDraftChange
         // with the channelId/rootId captured when it started. If the user has since moved to
         // another channel or thread, do not overwrite the text they have typed here.
@@ -321,7 +329,7 @@ const AdvancedTextEditor = ({
                 return;
             }
 
-            if (options.show) {
+            if (show) {
                 dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
                 return;
             }
@@ -329,7 +337,7 @@ const AdvancedTextEditor = ({
             dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
         };
 
-        if (options.instant) {
+        if (instant) {
             saveDraft();
         } else {
             const timeout = setTimeout(() => {
@@ -340,7 +348,7 @@ const AdvancedTextEditor = ({
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch, isInEditMode, storageKey]);
+    }, [dispatch, isInEditMode, locationRef, storageKey]);
 
     const applyFormatting = useCallback((mode: MarkdownMode) => {
         if (showPreview) {
