@@ -14317,6 +14317,11 @@
     "description": "SAML login error shown to end users when the Identity Provider's response body is empty."
   },
   {
+    "id": "ent.saml.do_login.invalid_audience.app_error",
+    "translation": "We received a response from the Identity Provider that was not issued for this Mattermost instance. Please contact your System Administrator.",
+    "description": "SAML login error shown to end users when the Identity Provider response is not issued for this Mattermost instance."
+  },
+  {
     "id": "ent.saml.do_login.invalid_signature.app_error",
     "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator.",
     "description": "SAML login error shown to end users when the cryptographic signature on the Identity Provider response fails verification."
