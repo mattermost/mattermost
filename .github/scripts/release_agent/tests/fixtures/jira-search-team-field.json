@@ -1,41 +1,60 @@
 {
-  "_source": "POST /rest/api/3/search/jql response shape for an MM ticket with the Atlassian Team field (customfield_10800, schema com.atlassian.jira.plugin.system.customfieldtypes:atlassian-team). Replace with a recorded response from mattermost.atlassian.net to pin the real values.",
+  "_source": "Real MM tickets read from mattermost.atlassian.net on 2026-10-30 (MM-71364, MM-70317), laid out as a POST /rest/api/3/search/jql response; customfield_10800 is the Atlassian Team field. Summaries, labels and the component's description and Compass metadata are left out of this public repo. The layout is reconstructed; _refresh records the raw response (trim it the same way before committing).",
+  "_refresh": "curl -s -u \"$RELEASE_AGENT_JIRA_EMAIL:$RELEASE_AGENT_JIRA_TOKEN\" -H 'Content-Type: application/json' -X POST https://mattermost.atlassian.net/rest/api/3/search/jql -d '{\"jql\":\"key in (MM-71364, MM-70317)\",\"fields\":[\"summary\",\"status\",\"assignee\",\"labels\",\"fixVersions\",\"resolution\",\"components\",\"customfield_10800\"]}'",
   "isLast": true,
   "issues": [
     {
-      "id": "171234",
-      "key": "MM-68700",
+      "id": "155060",
+      "key": "MM-71364",
       "fields": {
-        "summary": "Calls: screen share freezes after reconnect",
-        "status": {"name": "Open", "statusCategory": {"key": "new"}},
+        "summary": "(left out)",
+        "status": {
+          "name": "Open",
+          "id": "1",
+          "statusCategory": {"id": 2, "key": "new", "colorName": "blue-gray", "name": "To Do"}
+        },
         "assignee": null,
         "labels": [],
-        "fixVersions": [{"id": "20117", "name": "v12.2 (November 2026)", "released": false}],
+        "fixVersions": [
+          {"id": "16328", "description": "", "name": "v12.1 (November 2026)", "archived": false, "released": false, "releaseDate": "2026-11-16"}
+        ],
         "resolution": null,
-        "components": [{"id": "10703", "name": "Webapp"}],
+        "components": [],
         "customfield_10800": {
-          "id": "9b4c3e8a-1f2d-4c6b-8a7e-2d5f0c1b3a94",
-          "name": "Calls",
-          "avatarUrl": "",
+          "id": "b51431f6-cd1f-4a64-9fce-55adf9977b92",
+          "name": "Reliability",
+          "avatarUrl": "https://teams-directory-frontend.prod-east.frontend.public.atl-paas.net/assets/teams/avatars/v4/purple_no-highlight_3.svg",
           "isVisible": true,
           "isVerified": false,
-          "title": "Calls",
+          "title": "Reliability",
           "isShared": true
         }
       }
     },
     {
-      "id": "171235",
-      "key": "MM-68701",
+      "id": "153310",
+      "key": "MM-70317",
       "fields": {
-        "summary": "Bookmarks bar overflows on narrow screens",
-        "status": {"name": "Open", "statusCategory": {"key": "new"}},
-        "assignee": {"accountId": "5b10ac8d82e05b22cc7d4ef5", "displayName": "Matty Code", "accountType": "app"},
+        "summary": "(left out)",
+        "status": {
+          "name": "Open",
+          "id": "1",
+          "statusCategory": {"id": 2, "key": "new", "colorName": "blue-gray", "name": "To Do"}
+        },
+        "assignee": null,
         "labels": [],
-        "fixVersions": [{"id": "20117", "name": "v12.2 (November 2026)", "released": false}],
+        "fixVersions": [],
         "resolution": null,
-        "components": [{"id": "10812", "name": "Bookmarks Bar"}],
-        "customfield_10800": null
+        "components": [{"id": "14701", "name": "Bookmarks Bar"}],
+        "customfield_10800": {
+          "id": "1d525752-1010-45bf-95eb-0a449c8ab640",
+          "name": "Workflows",
+          "avatarUrl": "https://teams-directory-frontend.prod-east.frontend.public.atl-paas.net/assets/teams/avatars/v4/red_no-highlight_1.svg",
+          "isVisible": true,
+          "isVerified": false,
+          "title": "Workflows",
+          "isShared": true
+        }
       }
     }
   ]

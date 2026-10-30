@@ -169,21 +169,27 @@ class NewRegressionsTest(unittest.TestCase):
         self.assertEqual(jira.extra_fields, [TEAM_FIELD])
 
     def test_component_routes_are_a_fallback_when_no_team_route_matches(self):
-        result, _, _ = self.routed(
-            issue("MM-1", components=["Webapp", "Bookmarks Bar"]),
-            issue("MM-2", team="Calls", components=["Bookmarks Bar"]),
-            users=[("jg.heithcock", "JG", "Heithcock"), ("jesse.hallam", "Jesse", "Hallam")])
-        self.assertEqual([i.owner for i in result.items], ["@jg.heithcock", "@jesse.hallam"])
+        leads = checks.DevLeads({"match_field": "team", "team_field": TEAM_FIELD, "routes": [
+            {"teams": ["Calls"], "username": "jesse.hallam"}, {"components": ["Bookmarks Bar"], "username": "lead"}]})
 
-    def test_a_real_ticket_shaped_team_field(self):
-        jira = FakeJira({"fixVersion": json.loads((FIXTURES / "jira-search-team-field.json").read_text())["issues"]})
+        def lead_for(**fields):
+            return (leads.lead_for(issue("MM-1", **fields)["fields"]) or {}).get("username")
+
+        self.assertEqual(lead_for(components=["Webapp", "Bookmarks Bar"]), "lead")
+        self.assertEqual(lead_for(team="Calls", components=["Bookmarks Bar"]), "jesse.hallam")
+        self.assertEqual(lead_for(team="Workflows", components=["Bookmarks Bar"]), "lead")
+        self.assertIsNone(lead_for(team="Workflows"))
+
+    def test_real_tickets_team_field(self):
+        issues = json.loads((FIXTURES / "jira-search-team-field.json").read_text())["issues"]
+        self.assertEqual([checks.team_names(i["fields"][TEAM_FIELD]) for i in issues], [["Reliability"], ["Workflows"]])
+        jira = FakeJira({"fixVersion": issues})
         hub = FakeHub()
-        hub.users = [{"username": "jesse.hallam", "first_name": "Jesse", "last_name": "Hallam"},
-                     {"username": "jg.heithcock", "first_name": "JG", "last_name": "Heithcock"}]
+        hub.users = [{"username": "jesse.hallam", "first_name": "Jesse", "last_name": "Hallam"}]
         result = checks.open_release_items(context(jira=jira, hub=hub), RULES["open-release-items"])
         self.assertEqual([(i.label, i.owner, i.reason) for i in result.items], [
-            ("MM-68700", "@jesse.hallam", "unassigned"),  # Team "Calls"; its component Webapp has no route
-            ("MM-68701", "@jg.heithcock", "Matty Code"),  # no Team; component Bookmarks Bar
+            ("MM-71364", "@jesse.hallam", "unassigned"),  # Team = Reliability
+            ("MM-70317", "", "unassigned"),  # Team = Workflows, no route until its lead is named; component Bookmarks Bar
         ])
 
     def test_team_field_values(self):
@@ -247,7 +253,8 @@ class NewRegressionsTest(unittest.TestCase):
             "agents": "christopher",
             "platform integration": "doug.lauder", "integrations": "doug.lauder",
         })
-        self.assertEqual({c: lead["username"] for c, lead in leads.by_component.items()}, {"bookmarks bar": "jg.heithcock"})
+        self.assertEqual(leads.by_component, {})
+        self.assertNotIn("jg.heithcock", {route["username"] for route in leads.routes})  # deactivated on Hub
 
 
 class DevLeadFlagsTest(unittest.TestCase):
