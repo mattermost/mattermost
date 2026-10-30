@@ -28535,6 +28535,10 @@
     "defaultMessage": "Type to find a channel. Use <b>UP/DOWN</b> to browse, <b>ENTER</b> to select, <b>ESC</b> to dismiss.",
     "description": "Help text under the search box in the channel switcher modal (Ctrl+K); <b> tags render the key names in bold; UP/DOWN, ENTER and ESC are keyboard keys."
   },
+  "quote_selection_button.label": {
+    "defaultMessage": "Quote selection",
+    "description": "Tooltip and accessible name of the floating button shown next to text selected in a message, which inserts the selected text as a quote into the message box."
+  },
   "reaction_limit_reached_modal.body": {
     "defaultMessage": "Oops! It looks like we've hit a ceiling on emoji reactions for this message. Please contact your system administrator for any adjustments to this limit.",
     "description": "Body of the dialog shown when a message has reached the maximum number of unique emoji reactions; addressed to end users."
@@ -29002,14 +29006,6 @@
   "recaps.scheduled.delete.title": {
     "defaultMessage": "Delete scheduled recap?",
     "description": "Title of the confirmation dialog asked before deleting a recurring scheduled recap."
-  },
-  "recaps.scheduled.emptyState.cta": {
-    "defaultMessage": "Create a recap",
-    "description": "Call-to-action button on the empty scheduled-recaps tab that starts creating a recap; 'recap' is a noun."
-  },
-  "recaps.scheduled.emptyState.description": {
-    "defaultMessage": "Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.",
-    "description": "Empty-state description on the scheduled-recaps tab; 'Copilot' is the AI assistant product name."
   },
   "recaps.scheduled.emptyState.title": {
     "defaultMessage": "Set up your first recap",

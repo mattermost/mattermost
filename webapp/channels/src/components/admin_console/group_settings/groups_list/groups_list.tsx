@@ -9,6 +9,7 @@ import {LinkVariantIcon, LinkVariantOffIcon} from '@mattermost/compass-icons/com
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {Button as SharedButton} from '@mattermost/shared/components/button';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -514,24 +515,28 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <Button
+                        <SharedButton
                             type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: firstPage})}
+                            emphasis='quaternary'
+                            size='sm'
+                            className={classNames('btn-icon ml-2', 'prev', {disabled: firstPage})}
                             onClick={(e: any) => this.previousPage(e)}
                             disabled={firstPage}
+                            data-testid='page-link-prev'
                         >
                             <PreviousIcon/>
-                        </Button>
-                        <Button
+                        </SharedButton>
+                        <SharedButton
                             type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: lastPage})}
+                            emphasis='quaternary'
+                            size='sm'
+                            className={classNames('btn-icon', 'next', {disabled: lastPage})}
                             onClick={(e: any) => this.nextPage(e)}
                             disabled={lastPage}
+                            data-testid='page-link-next'
                         >
                             <NextIcon/>
-                        </Button>
+                        </SharedButton>
                     </div>
                 }
             </div>

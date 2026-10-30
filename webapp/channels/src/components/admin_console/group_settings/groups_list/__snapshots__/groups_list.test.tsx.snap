@@ -566,32 +566,26 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
       </button>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
       </button>
     </div>
   </div>
@@ -847,32 +841,26 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
       </button>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
       </button>
     </div>
   </div>
@@ -1128,32 +1116,26 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
       </button>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
       </button>
     </div>
   </div>
@@ -1441,32 +1423,26 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 3 of 3
       </div>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
       </button>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
       </button>
     </div>
   </div>
@@ -2111,31 +2087,25 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 200 of 401
       </div>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
       </button>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+        class="btn btn-quaternary btn-sm btn-icon next"
+        data-testid="page-link-next"
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
       </button>
     </div>
   </div>
@@ -2780,30 +2750,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev"
+        data-testid="page-link-prev"
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
       </button>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+        class="btn btn-quaternary btn-sm btn-icon next"
+        data-testid="page-link-next"
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
       </button>
     </div>
   </div>
@@ -3091,30 +3055,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev"
+        data-testid="page-link-prev"
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
       </button>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+        class="btn btn-quaternary btn-sm btn-icon next"
+        data-testid="page-link-next"
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
       </button>
     </div>
   </div>
@@ -3437,32 +3395,26 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
       </button>
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
-        <span
-          class="_button__label_we8pe_31"
-        >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
-        </span>
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
       </button>
     </div>
   </div>

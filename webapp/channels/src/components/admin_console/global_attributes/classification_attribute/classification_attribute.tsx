@@ -9,6 +9,7 @@ import {Link} from 'react-router-dom';
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
@@ -469,7 +470,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                             ))}
                                         </ul>
                                         <div className='ClassificationAttribute__markingsFooter'>
-                                            <p className='ClassificationAttribute__markingsCopy'>
+                                            <div className='ClassificationAttribute__markingsCopy'>
                                                 <FormattedMessage {...messages.markingsFooter}/>
                                                 <Button
                                                     asChild={true}
@@ -477,18 +478,13 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                                     size='small'
                                                     className='ClassificationAttribute__markingsOpen'
                                                     data-testid='classificationAttributeMarkingsLink'
-                                                    trailingIcon={
-                                                        <OpenInNewIcon
-                                                            size={12}
-                                                            aria-hidden={true}
-                                                        />
-                                                    }
+                                                    trailingIcon={<Icon glyph={<OpenInNewIcon/>}/>}
                                                 >
                                                     <Link to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}>
                                                         <FormattedMessage {...messages.openMarkings}/>
                                                     </Link>
                                                 </Button>
-                                            </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
