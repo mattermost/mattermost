@@ -1,12 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Permissions, Posts} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getMyActiveChannelIds} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getMyActiveChannelIds, isDeactivatedDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
+import {isBurnOnReadPost} from 'selectors/burn_on_read_posts';
 import {getGlobalItem} from 'selectors/storage';
 
-import {StoragePrefixes} from 'utils/constants';
+import {PostTypes, StoragePrefixes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
 
 import type {GlobalState} from 'types/store';
@@ -144,4 +148,35 @@ export function makeGetDraft() {
 
 export function getDraftRemotes(state: GlobalState) {
     return state.views.drafts.remotes;
+}
+
+export function getPendingQuote(state: GlobalState) {
+    return state.views.drafts.pendingQuote;
+}
+
+/**
+ * Whether text from the given post can be quoted, meaning the message box it would be quoted into
+ * (the channel's, or the thread's when the post is shown in the RHS) can be used to post.
+ */
+export function canQuoteFromPost(state: GlobalState, postId: string, isRHS: boolean): boolean {
+    const post = getPost(state, postId);
+
+    // Burn-on-read posts can't be copied, so that they aren't kept around after they're deleted
+    if (!post || isBurnOnReadPost(state, postId)) {
+        return false;
+    }
+
+    const channel = getChannel(state, post.channel_id);
+    if (!channel || channel.delete_at || isDeactivatedDirectChannel(state, channel.id)) {
+        return false;
+    }
+
+    if (isRHS) {
+        const rootPost = getPost(state, post.root_id || post.id);
+        if (!rootPost || rootPost.state === Posts.POST_DELETED || rootPost.type === PostTypes.FAKE_PARENT_DELETED) {
+            return false;
+        }
+    }
+
+    return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST);
 }
