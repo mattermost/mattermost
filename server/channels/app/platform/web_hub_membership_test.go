@@ -36,7 +36,10 @@ func (s *membershipInterceptingStore) Channel() store.ChannelStore {
 // GetAllChannelMembersForUser: to count it, fail it, answer it from memory, or pause it.
 type membershipInterceptingChannelStore struct {
 	store.ChannelStore
-	numCalls                atomic.Int64
+	numCalls atomic.Int64
+	// numReplicaCalls counts the calls whose context does not ask for the primary, so a
+	// replica could answer them.
+	numReplicaCalls         atomic.Int64
 	simulateDatabaseFailure atomic.Bool
 
 	mu      sync.Mutex
@@ -54,6 +57,9 @@ type loadPause struct {
 
 func (s *membershipInterceptingChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 	s.numCalls.Add(1)
+	if !store.HasMaster(rctx.Context()) {
+		s.numReplicaCalls.Add(1)
+	}
 
 	if s.simulateDatabaseFailure.Load() {
 		return nil, fmt.Errorf("simulated database failure")
@@ -433,6 +439,7 @@ func TestHubInvalidateUserLoadsOnlyForConnectedUsers(t *testing.T) {
 	require.Equal(t, 0, ps.WebConnCountForUser(userID))
 	ps.InvalidateChannelCacheForUser(userID)
 	require.EqualValues(t, 3, channelStore.numCalls.Load(), "an inactive connection still gets the new list")
+	require.Zero(t, channelStore.numReplicaCalls.Load(), "every load asks the primary: it runs right after a membership change that a replica may not have yet")
 }
 
 // TestHubInvalidateUserAsksHubUnderLock checks that the invalidation holds the user's lock while it asks the hub for the user's connections.
@@ -468,15 +475,23 @@ func BenchmarkHubInvalidateUser(b *testing.B) {
 	b.Cleanup(func() { mlog.InitGlobalLogger(nil) })
 	for _, connected := range []bool{false, true} {
 		b.Run(fmt.Sprintf("connected=%t", connected), func(b *testing.B) {
-			ps := newBroadcastBenchPlatform(b, logger, th.Service.Store, true)
+			// The intercepting store counts the membership loads, so the report shows how many
+			// queries an invalidation costs, and how many of them a replica could answer, and not
+			// only how long the query took on this machine.
+			channelStore := &membershipInterceptingChannelStore{ChannelStore: th.Service.Store.Channel()}
+			ps := newBroadcastBenchPlatform(b, logger, &membershipInterceptingStore{Store: th.Service.Store, channel: channelStore}, true)
 			userID := th.BasicUser.Id
 			if connected {
 				require.NoError(b, ps.HubRegister(newBroadcastBenchConn(ps, userID)))
 			}
 			hub := ps.GetHubForUserId(userID)
+			channelStore.numCalls.Store(0)
+			channelStore.numReplicaCalls.Store(0)
 			for b.Loop() {
 				hub.InvalidateUser(userID)
 			}
+			b.ReportMetric(float64(channelStore.numCalls.Load())/float64(b.N), "queries/op")
+			b.ReportMetric(float64(channelStore.numReplicaCalls.Load())/float64(b.N), "replica-queries/op")
 		})
 	}
 }
