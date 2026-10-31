@@ -1,8 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {installMessageChannel} from 'tests/helpers/message_channel';
+
 import Constants from './constants';
-import {highlight, renderLineNumbers} from './syntax_highlighting';
+import {canHighlightCode, highlight, renderLineNumbers} from './syntax_highlighting';
+
+installMessageChannel();
 
 const LANGUAGE = 'cpp';
 
@@ -365,6 +369,32 @@ describe('utils/syntax_highlighting input bounds', () => {
             `where at most ${MAX_HIGHLIGHTED_BLOCK_MS} ms is allowed`,
         )).toBe('within budget');
     }, 300000);
+
+    // Inputs made of many short lines are costly in some grammars even though no line is long.
+    test.each([
+        {name: 'blank lines in haskell', lang: 'haskell', code: '\n'.repeat(4999)},
+        {name: 'one character per line in cpp', lang: 'cpp', code: 'x\n'.repeat(2500).slice(0, 4999)},
+    ])('should complete a block of $name just under the length limit within a fixed time budget', async ({lang, code}) => {
+        await highlight(lang, SHORT_SOURCE);
+
+        const durationMs = await measureBest(lang, code);
+
+        expect(budgetReport(
+            durationMs < MAX_HIGHLIGHTED_BLOCK_MS,
+            `${code.length} characters of ${lang} took ${round(durationMs)} ms ` +
+            `where at most ${MAX_HIGHLIGHTED_BLOCK_MS} ms is allowed`,
+        )).toBe('within budget');
+    }, 300000);
+
+    test.each([
+        {length: 4999},
+        {length: 5000},
+        {length: 5001},
+    ])('should report whether an input of $length characters is highlighted the same way highlight does', async ({length}) => {
+        const result = await highlight(LANGUAGE, realisticSource(length));
+
+        expect(canHighlightCode(LANGUAGE, realisticSource(length))).toBe(result.includes('class="hljs-'));
+    });
 
     test.each([
         {name: 'an empty input', code: ''},

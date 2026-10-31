@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {installMessageChannel} from 'tests/helpers/message_channel';
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {act, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
@@ -10,6 +11,8 @@ import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import CodeBlock from './code_block';
 
 describe('codeBlock', () => {
+    installMessageChannel();
+
     let highlightSpy: jest.SpyInstance;
 
     beforeEach(() => {
@@ -71,6 +74,27 @@ describe('codeBlock', () => {
         await waitFor(() => {
             expect(container.querySelectorAll('code .hljs-keyword')).toHaveLength(3);
         });
+    });
+
+    test('should not show the language or line numbers for code too long to highlight', async () => {
+        const input = 'const value = 1;\n'.repeat(400);
+
+        const {container} = renderWithContext(
+            <CodeBlock
+                code={input}
+                language='typescript'
+            />,
+        );
+
+        expect(screen.queryByText('TypeScript')).not.toBeInTheDocument();
+        expect(container.querySelector('.post-code__line-numbers')).not.toBeInTheDocument();
+
+        await waitForHighlightCalls();
+
+        expect(highlightSpy).toHaveBeenCalled();
+        expect(container.querySelector('.hljs-keyword')).not.toBeInTheDocument();
+        expect(screen.queryByText('TypeScript')).not.toBeInTheDocument();
+        expect(container.querySelector('.post-code__line-numbers')).not.toBeInTheDocument();
     });
 
     test('should render unknown language before syntax highlighting', async () => {

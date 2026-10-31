@@ -27,7 +27,13 @@ let previousTask: Promise<void> = Promise.resolve();
 function runInOwnTask<T>(work: () => T): Promise<T> {
     const result = previousTask.
         then(() => new Promise<void>((resolve) => {
-            setTimeout(resolve, 0);
+            // Unlike nested setTimeout calls, a message post isn't clamped to a 4 ms minimum delay.
+            const channel = new MessageChannel();
+            channel.port1.onmessage = () => {
+                channel.port1.close();
+                resolve();
+            };
+            channel.port2.postMessage(null);
         })).
         then(work);
 
@@ -74,6 +80,11 @@ export function getLanguageFromFileExtension(extension: string): string | null {
 
 export function canHighlight(language: string): boolean {
     return Boolean(getLanguageFromNameOrAlias(language));
+}
+
+// Whether highlight() will apply syntax highlighting to this code rather than return it as plain text.
+export function canHighlightCode(language: string, code: string): boolean {
+    return canHighlight(language) && code.length <= MAX_HIGHLIGHTED_LENGTH;
 }
 
 export function getLanguageName(language: string): string {
