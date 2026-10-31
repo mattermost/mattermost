@@ -117,8 +117,12 @@ type TimeInputManualProps = {
     timezone?: string;
     isMilitaryTime: boolean;
     onTimeChange: (time: Moment) => void;
+    onTimeInputError?: (hasError: boolean) => void;
     minDateTime?: Moment;
     maxDateTime?: Moment;
+
+    // Changes each time a day is picked, so picking the day already selected still restores a cleared time
+    dayPickCount: number;
 };
 
 const TimeInputManual: React.FC<TimeInputManualProps> = ({
@@ -126,8 +130,10 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     timezone,
     isMilitaryTime,
     onTimeChange,
+    onTimeInputError,
     minDateTime,
     maxDateTime,
+    dayPickCount,
 }) => {
     const {formatMessage} = useIntl();
     const [timeInputValue, setTimeInputValue] = useState<string>('');
@@ -142,7 +148,12 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
         } else {
             setTimeInputValue('');
         }
-    }, [time, isMilitaryTime]);
+        setTimeInputError(false);
+    }, [time, isMilitaryTime, dayPickCount]);
+
+    useEffect(() => {
+        onTimeInputError?.(timeInputError);
+    }, [timeInputError, onTimeInputError]);
 
     const handleTimeInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setTimeInputValue(event.target.value);
@@ -153,7 +164,8 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
         const parsed = parseTimeString(timeInputValue);
 
         if (!parsed) {
-            if (timeInputValue.trim() !== '') {
+            // A cleared field still holds the previous time, so it's an error unless there is none
+            if (timeInputValue.trim() !== '' || time) {
                 setTimeInputError(true);
             }
             return;
@@ -230,6 +242,9 @@ type Props = {
     timePickerInterval?: number;
     allowPastDates?: boolean;
     manualTimeEntry?: boolean;
+
+    // Called when the manually entered time becomes invalid or valid again. The time keeps its last valid value meanwhile
+    onTimeInputError?: (hasError: boolean) => void;
     minDateTime?: Moment;
     maxDateTime?: Moment;
 };
@@ -243,6 +258,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     timePickerInterval,
     allowPastDates = false,
     manualTimeEntry = false,
+    onTimeInputError,
     minDateTime,
     maxDateTime,
 }: Props) => {
@@ -254,6 +270,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const [isTimeMenuOpen, setIsTimeMenuOpen] = useState(false);
     const [menuWidth, setMenuWidth] = useState<string>('200px');
+    const [dayPickCount, setDayPickCount] = useState(0);
     const {formatMessage} = useIntl();
     const timeContainerRef = useRef<HTMLDivElement>(null);
 
@@ -363,10 +380,11 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 getRoundedTime(nowInTimezone, timePickerInterval || 60);
         }
 
+        // Past dates are allowed, so today has no earliest time and keeps the one already chosen
         let result: Moment;
-        if (modifiers.today) {
+        if (modifiers.today && !allowPastDates) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            if (!allowPastDates && isBeforeTime(baseTime, effectiveTime)) {
+            if (isBeforeTime(baseTime, effectiveTime)) {
                 baseTime.hour(effectiveTime.hours());
                 baseTime.minute(effectiveTime.minutes());
             }
@@ -397,6 +415,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         }
 
         handleChange(result);
+        setDayPickCount((count) => count + 1);
         handlePopperOpenState(false);
     };
 
@@ -484,8 +503,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         timezone={timezone}
                         isMilitaryTime={isMilitaryTime}
                         onTimeChange={handleTimeChange}
+                        onTimeInputError={onTimeInputError}
                         minDateTime={minDateTime}
                         maxDateTime={maxDateTime}
+                        dayPickCount={dayPickCount}
                     />
                 ) : (
                     <Menu.Container

@@ -15,6 +15,16 @@
     white-space: normal;
 }
 
+// Also in the portal, above the live tail intervals it explains
+#serverLogsLiveTailUnavailable {
+    max-width: 220px;
+    padding: 8px 20px 4px;
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    line-height: 16px;
+}
+
 .LogViewer {
     @include log_viewer.viewer-shell;
 
@@ -28,6 +38,16 @@
         // Wide enough for the longest selector value, 'Every 10 seconds'
         .inputWithMenu input.form-control {
             width: 150px;
+        }
+
+        // Fits a range spanning two days, e.g. 'Oct 26, 11:00 PM – Oct 27, 4:15 AM'
+        .LogViewer__duration--custom input.form-control {
+            width: 270px;
+        }
+
+        // Fits a range with years, e.g. 'Sep 30, 2025, 12:45 PM – Oct 31, 2026, 12:45 PM'
+        .LogViewer__duration--custom-year input.form-control {
+            width: 380px;
         }
     }
 
