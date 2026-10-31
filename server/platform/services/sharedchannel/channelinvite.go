@@ -453,6 +453,8 @@ func (scs *Service) getOrCreateUser(userID string, participantsMap map[string]*m
 	}
 
 	var rctx request.CTX = request.EmptyContext(scs.server.Log())
+	// Preserve the original email before assigning the sender's RemoteId.
+	prepareRemoteEmailForSync(inviteUser)
 	inviteUser.RemoteId = new(rc.RemoteId)
 	user, iErr := scs.insertSyncUser(rctx, inviteUser, nil, rc)
 	if iErr != nil {

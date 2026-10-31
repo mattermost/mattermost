@@ -313,6 +313,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 		// new user.  Make sure the remoteID is correct and insert the record
 		// Preserve original remote ID before overwriting RemoteId
 		originalRemoteId := user.GetRemoteID()
+		prepareRemoteEmailForSync(user)
 		user.RemoteId = new(rc.RemoteId)
 		if user.Props == nil || user.Props[model.UserPropsKeyOriginalRemoteId] == "" {
 			if originalRemoteId == "" {
@@ -334,9 +335,8 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			)
 			return nil, fmt.Errorf("error updating user: %w", ErrRemoteIDMismatch)
 		}
-		// save the updated username and email in props
 		user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
-		user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
+		remoteEmail, hasRemoteEmail := prepareRemoteEmailForSync(user)
 
 		patch := &model.UserPatch{
 			Username:  &user.Username,
@@ -348,6 +348,11 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
 		}
+		// Never use a forwarded user's synthetic Email as the original email.
+		if user.GetRemoteID() == "" || hasRemoteEmail {
+			patch.Email = &remoteEmail
+		}
+
 		if userSaved, err = scs.updateSyncUser(rctx, patch, euser, channel, rc); err != nil {
 			return nil, err
 		}
@@ -381,9 +386,9 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	// ensure the new user is created with system_user role and random password.
 	user = sanitizeUserForSync(user)
 
-	// save the original username and email in props
+	// RemoteEmail was selected before the incoming RemoteId was rewritten.
+	// Preserve it instead of replacing it with a synthetic email.
 	user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
-	user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
 	// rare since we are joining a username that is unique at a remote site with a unique
