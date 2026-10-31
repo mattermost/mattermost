@@ -6,6 +6,7 @@ import React from 'react';
 
 import {useEmojiByName} from '../../context/useEmojiByName';
 import {useEmojiUrl} from '../../context/useEmojiUrl';
+import {useFreezableImageUrl} from '../../utils/animated_image';
 
 import './emoji.css';
 
@@ -28,6 +29,7 @@ export function Emoji({
 }: EmojiProps) {
     const emoji = useEmojiByName(emojiName);
     const emojiImageUrl = useEmojiUrl(emoji);
+    const displayUrl = useFreezableImageUrl(emojiImageUrl);
 
     if (!emoji || !emojiImageUrl) {
         return null;
@@ -40,7 +42,7 @@ export function Emoji({
             aria-label={`:${emojiName}:`}
             data-emoticon={emojiName}
             style={{
-                backgroundImage: `url(${emojiImageUrl})`,
+                backgroundImage: `url(${displayUrl})`,
                 backgroundSize: 'contain',
                 height: size,
                 width: size,
