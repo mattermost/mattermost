@@ -20,6 +20,7 @@ function SidebarChannel({
     isCategoryDragged,
     isUnread,
     isCurrentChannel,
+    collapseCategoryWithUnreads,
     setChannelRef,
     channel,
     currentTeamName,
@@ -41,7 +42,12 @@ function SidebarChannel({
     }
 
     function isCollapsed() {
-        return isCategoryDragged || (isCategoryCollapsed && !isUnread && !isCurrentChannel);
+        if (isCategoryDragged) {
+            return true;
+        }
+
+        // The current channel always stays visible. Unread channels stay visible unless the user chose to hide them too.
+        return isCategoryCollapsed && !isCurrentChannel && (collapseCategoryWithUnreads || !isUnread);
     }
 
     function setRef(refMethod?: (element: HTMLLIElement) => void) {

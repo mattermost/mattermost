@@ -7,6 +7,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {Preferences as WebappPreferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -629,6 +630,164 @@ describe('getDisplayedChannels', () => {
             expect(Selectors.getDisplayedChannels(baseState)).not.toBe(Selectors.getDisplayedChannels(modifiedState));
             expect(Selectors.getDisplayedChannels(modifiedState)).toBe(Selectors.getDisplayedChannels(modifiedState));
         });
+    });
+});
+
+describe('getChannelsInCategoryOrder with a collapsed category', () => {
+    const currentChannel = TestHelper.getChannelMock({id: 'currentChannel', delete_at: 0, last_post_at: 0});
+    const readChannel = {id: 'readChannel', delete_at: 0, last_post_at: 300};
+    const unreadChannel = {id: 'unreadChannel', delete_at: 0, last_post_at: 100};
+    const mutedMentionChannel = {id: 'mutedMentionChannel', delete_at: 0, last_post_at: 200};
+    const otherReadChannel = {id: 'otherReadChannel', delete_at: 0, last_post_at: 400};
+    const otherUnreadChannel = {id: 'otherUnreadChannel', delete_at: 0, last_post_at: 500};
+
+    const noisyCategory = {
+        id: 'noisyCategory',
+        team_id: 'team1',
+        collapsed: true,
+        channel_ids: [currentChannel.id, readChannel.id, unreadChannel.id, mutedMentionChannel.id],
+    };
+    const openCategory = {
+        id: 'openCategory',
+        team_id: 'team1',
+        collapsed: false,
+        channel_ids: [otherReadChannel.id, otherUnreadChannel.id],
+    };
+
+    const collapseCategoryWithUnreadsKey = getPreferenceKey(WebappPreferences.CATEGORY_DISPLAY_SETTINGS, WebappPreferences.COLLAPSE_CATEGORY_WITH_UNREADS);
+
+    const baseState = {
+        entities: {
+            channels: {
+                channels: {
+                    currentChannel,
+                    readChannel,
+                    unreadChannel,
+                    mutedMentionChannel,
+                    otherReadChannel,
+                    otherUnreadChannel,
+                },
+                channelsInTeam: {
+                    team1: new Set(['currentChannel', 'readChannel', 'unreadChannel', 'mutedMentionChannel', 'otherReadChannel', 'otherUnreadChannel']),
+                },
+                currentChannelId: 'currentChannel',
+                messageCounts: {
+                    currentChannel: {total: 0},
+                    readChannel: {total: 10},
+                    unreadChannel: {total: 10},
+                    mutedMentionChannel: {total: 10},
+                    otherReadChannel: {total: 10},
+                    otherUnreadChannel: {total: 10},
+                },
+                myMembers: {
+                    currentChannel: {notify_props: {}, mention_count: 0, msg_count: 0},
+                    readChannel: {notify_props: {}, mention_count: 0, msg_count: 10},
+                    unreadChannel: {notify_props: {}, mention_count: 0, msg_count: 8},
+                    mutedMentionChannel: {notify_props: {mark_unread: 'mention'}, mention_count: 2, msg_count: 8},
+                    otherReadChannel: {notify_props: {}, mention_count: 0, msg_count: 10},
+                    otherUnreadChannel: {notify_props: {}, mention_count: 0, msg_count: 8},
+                },
+            },
+            channelCategories: {
+                byId: {
+                    noisyCategory,
+                    openCategory,
+                },
+                orderByTeam: {
+                    team1: [noisyCategory.id, openCategory.id],
+                },
+            },
+            general: {
+                config: {},
+            },
+            posts: {
+                postsInChannel: {},
+            },
+            preferences: {
+                myPreferences: {
+                    [getPreferenceKey(Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION)]: {value: 'false'},
+                },
+            },
+            teams: {
+                currentTeamId: 'team1',
+            },
+            users: {
+                profiles: {},
+            },
+        },
+        storage: {
+            storage: {},
+        },
+        views: {
+            channel: {
+                lastUnreadChannel: null,
+            },
+            channelSidebar: {
+                unreadFilterEnabled: false,
+            },
+        },
+    } as unknown as GlobalState;
+
+    const enabledState = mergeObjects(baseState, {
+        entities: {
+            preferences: {
+                myPreferences: {
+                    [collapseCategoryWithUnreadsKey]: {value: 'true'},
+                },
+            },
+        },
+    }) as GlobalState;
+
+    test('should read a missing preference as false', () => {
+        expect(Selectors.shouldCollapseCategoryWithUnreads(baseState)).toBe(false);
+        expect(Selectors.shouldCollapseCategoryWithUnreads(enabledState)).toBe(true);
+    });
+
+    test('with the setting off, should keep unread channels and the current channel in a collapsed category', () => {
+        expect(Selectors.getChannelsInCategoryOrder(baseState)).toEqual([
+            currentChannel,
+            unreadChannel,
+            mutedMentionChannel,
+            otherReadChannel,
+            otherUnreadChannel,
+        ]);
+    });
+
+    test('with the setting on, should hide unread channels and muted channels with mentions in a collapsed category', () => {
+        expect(Selectors.getChannelsInCategoryOrder(enabledState)).toEqual([
+            currentChannel,
+            otherReadChannel,
+            otherUnreadChannel,
+        ]);
+    });
+
+    test('with the setting on, should keep every channel in an open category', () => {
+        const state = mergeObjects(enabledState, {
+            entities: {
+                channelCategories: {
+                    byId: {
+                        noisyCategory: {collapsed: false},
+                    },
+                },
+            },
+        }) as GlobalState;
+
+        expect(Selectors.getChannelsInCategoryOrder(state)).toEqual([
+            currentChannel,
+            readChannel,
+            unreadChannel,
+            mutedMentionChannel,
+            otherReadChannel,
+            otherUnreadChannel,
+        ]);
+    });
+
+    test('with the setting on, should leave hidden channels out of the displayed channels', () => {
+        expect(Selectors.getDisplayedChannels(enabledState)).toEqual([
+            currentChannel,
+            otherReadChannel,
+            otherUnreadChannel,
+        ]);
     });
 });
 
