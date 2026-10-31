@@ -16,6 +16,8 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 ## Release v12.0 - [Major Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-0-major-release}
 
+- **12.0.2, release date TBD**
+  - Database migration 000217 no longer widens the ``message`` columns on ``posts``, ``drafts``, ``scheduledposts`` and ``temporaryposts`` for existing installations, avoiding a long rebuild of ``idx_posts_message_txt`` during upgrade. New installations still support messages of up to 262,144 characters. Installations that already applied the resize keep the wider columns.
 - **12.0.1, released 2026-10-22**
   - Mattermost v12.0.1 contains Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Go runtime was updated from 1.26.7 to 1.26.10.
@@ -30,7 +32,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
 <Important>
 
 **Breaking Changes**
- - This release includes a database migration that increases the maximum message length from 16,383 to 262,144 characters by widening the ``message`` column from ``VARCHAR(65535)`` to ``VARCHAR(1048576)``. The message limit is a quarter of the column size, to allow for characters of up to four bytes. Widening ``VARCHAR`` is metadata-only on supported PostgreSQL versions, but the migration still takes a brief ``ACCESS EXCLUSIVE`` lock on each affected table, including ``posts``. Acquiring this lock can be delayed by active or idle-in-transaction database sessions, and reads and writes on the table wait while it is pending. To keep the lock short, the full-text index on post messages (``idx_posts_message_txt``) is dropped before the column is widened and rebuilt concurrently by a later migration, so database full-text search of posts runs without that index until the rebuild completes. Large or busy deployments should test the migration and schedule a maintenance window.
+ - Starting with v12.0.2, new installations support post messages of up to 262,144 characters, with the ``message`` column on ``posts``, ``drafts``, ``scheduledposts`` and ``temporaryposts`` created as ``VARCHAR(1048576)``. Existing installations keep their current column sizes and maximum message length. The maximum message length is a quarter of the ``Posts.Message`` column size, to allow for characters of up to four bytes.
  - Several pre-packaged plugins received major version updates in v12.0 because they required changes to run on this release without errors. Web app plugins that have not been rebuilt for v12.0 may have their activation suppressed to prevent runtime errors. Before upgrading, update community-built plugins to a release that supports v12.0, and rebuild and test any self-built plugins against v12.0. See the React 19 note in this section for the APIs removed in that version and the codemod for updating a plugin.
  - Dropped support for RHEL 7 and RHEL 8. The server binary now requires glibc 2.34 or later (reported on Linux).
  - Dropped support for OpenSearch 1.x. Mattermost now requires OpenSearch 2.x or newer, and logs an error on startup when connected to an unsupported version.
@@ -65,8 +67,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
  - Dropped the partial index ``idx_channelmembers_autotranslation_enabled`` from ``channelmembers`` non-blocking using ``CONCURRENTLY``; no downtime or query correctness impact expected.
  - Migration 000215 removed the long-deprecated ``autotranslation`` column from ``channelmembers`` via a fast catalog-only operation with no table rewrite and minimal locking impact.
  - Split the ``AttributeView`` materialized view into ``UserAttributeView`` and ``ChannelAttributeView`` for independent ABAC attribute querying; no performance impact expected as tables are feature-flagged and empty in production.
- - Increased the ``message`` column limit from 65,535 to 1,048,576 characters on ``posts``, ``drafts``, ``scheduledposts``, and ``temporaryposts``, which raises the maximum message length from 16,383 to 262,144 characters; expect a brief ``ACCESS EXCLUSIVE`` lock on each table during migration. Acquiring this lock can be delayed by active or idle-in-transaction database sessions and may temporarily block reads and writes. The full-text index ``idx_posts_message_txt`` is dropped before ``posts.message`` is widened, so that Postgres does not rebuild it while holding the lock.
- - Migration 000234 recreates the full-text index ``idx_posts_message_txt`` on ``posts`` using ``CREATE INDEX CONCURRENTLY``, without blocking reads or writes. Database full-text search of posts runs without the index until the build completes.
+ - Starting with v12.0.2, the ``message`` columns on ``posts``, ``drafts``, ``scheduledposts``, and ``temporaryposts`` are created as ``VARCHAR(1048576)`` on new installations only, raising the maximum message length from 16,383 to 262,144 characters.
  - Added new ``PostDeliveryTrackingChannels`` table with a unique index on ``ChannelId`` to support post-delivery tracking; no impact on existing tables or queries.
  - Added composite index ``idx_fileinfo_create_at_id`` on ``Fileinfo(CreateAt, Id)`` using ``CONCURRENTLY`` to improve file query performance with no downtime impact.
  - Added composite index ``idx_channels_create_at_id`` on ``Channels (CreateAt, Id)`` to accelerate cursor-based pagination; no downtime expected, minimal impact on concurrent operations.
@@ -80,7 +81,6 @@ Platform and OS scope reflects reported and tested environments and may not repr
  - Added GIN index ``idx_access_control_policies_rules`` on ``AccessControlPolicies(Data -> 'rules')`` to speed up access-control policy membership lookups with no downtime or locking impact.
  - Added a GIN index on ``AccessControlPolicies(Data -> 'imports')`` using ``jsonb_path_ops``, eliminating sequential scans on imports containment queries with no downtime or lock impact on normal traffic.
  - Removed stale ``ldap`` and ``saml`` keys from the ``Attrs JSONB`` column in ``PropertyFields`` for all non-user, non-template rows; irreversible data cleanup with no expected downtime but potential full-table scan on unindexed deployments.
- - Added GIN full-text ``index idx_posts_message_txt`` on ``posts(message)`` using ``CREATE INDEX CONCURRENTLY``; large deployments should expect an extended, I/O-intensive build with no downtime.
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
