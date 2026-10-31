@@ -41,6 +41,7 @@ export type PluginManifestServer = {
 
 export type PluginManifestWebapp = {
     bundle_path: string;
+    pre_auth?: boolean;
 };
 
 export type PluginSettingsSchema = {
@@ -117,6 +118,7 @@ export type ClientPluginManifest = {
     version: string;
     webapp: {
         bundle_path: string;
+        pre_auth?: boolean;
     };
 };
 

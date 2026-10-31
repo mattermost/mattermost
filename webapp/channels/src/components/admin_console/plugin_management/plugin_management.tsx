@@ -221,6 +221,8 @@ const messages = defineMessages({
     enableRemoteMarketplaceDesc: {id: 'admin.plugins.settings.enableRemoteMarketplaceDesc', defaultMessage: 'When true, marketplace fetches latest plugins from the configured Marketplace URL.'},
     automaticPrepackagedPlugins: {id: 'admin.plugins.settings.automaticPrepackagedPlugins', defaultMessage: 'Enable Automatic Prepackaged Plugins:'},
     automaticPrepackagedPluginsDesc: {id: 'admin.plugins.settings.automaticPrepackagedPluginsDesc', defaultMessage: 'When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'},
+    restrictUnauthenticatedWebappPlugins: {id: 'admin.plugins.settings.restrictUnauthenticatedWebappPlugins', defaultMessage: 'Restrict Plugins Available Before Login:'},
+    restrictUnauthenticatedWebappPluginsDesc: {id: 'admin.plugins.settings.restrictUnauthenticatedWebappPluginsDesc', defaultMessage: 'When true, only plugins that declare <code>webapp.pre_auth</code> in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.'},
     marketplaceUrl: {id: 'admin.plugins.settings.marketplaceUrl', defaultMessage: 'Marketplace URL:'},
     marketplaceUrlDesc: {id: 'admin.plugins.settings.marketplaceUrlDesc', defaultMessage: 'URL of the marketplace server.'},
     uploadSuccess: {id: 'admin.plugin.upload.success', defaultMessage: 'Successfully uploaded plugin: {pluginName}'},
@@ -245,6 +247,8 @@ export const searchableStrings = [
     messages.enableRemoteMarketplaceDesc,
     messages.automaticPrepackagedPlugins,
     messages.automaticPrepackagedPluginsDesc,
+    messages.restrictUnauthenticatedWebappPlugins,
+    messages.restrictUnauthenticatedWebappPluginsDesc,
     messages.marketplaceUrl,
     messages.marketplaceUrlDesc,
 ];
@@ -534,6 +538,7 @@ type State = BaseState & {
     automaticPrepackagedPlugins: boolean;
     marketplaceUrl: string;
     requirePluginSignature: boolean;
+    restrictUnauthenticatedWebappPlugins: boolean;
     removing: string | null;
     draggingUpload: boolean;
 };
@@ -572,6 +577,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             config.PluginSettings.AutomaticPrepackagedPlugins = this.state.automaticPrepackagedPlugins;
             config.PluginSettings.MarketplaceURL = this.state.marketplaceUrl;
             config.PluginSettings.RequirePluginSignature = this.state.requirePluginSignature;
+            config.PluginSettings.RestrictUnauthenticatedWebappPlugins = this.state.restrictUnauthenticatedWebappPlugins;
         }
 
         return config;
@@ -587,6 +593,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             automaticPrepackagedPlugins: config?.PluginSettings?.AutomaticPrepackagedPlugins,
             marketplaceUrl: config?.PluginSettings?.MarketplaceURL,
             requirePluginSignature: config?.PluginSettings?.RequirePluginSignature,
+            restrictUnauthenticatedWebappPlugins: config?.PluginSettings?.RestrictUnauthenticatedWebappPlugins,
         };
 
         return state;
@@ -1316,6 +1323,22 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                     disabled={this.props.isDisabled || !this.state.enable}
                                     onChange={this.handleChange}
                                     setByEnv={this.isSetByEnv('PluginSettings.AutomaticPrepackagedPlugins')}
+                                />
+                                <BooleanSetting
+                                    id='restrictUnauthenticatedWebappPlugins'
+                                    label={<FormattedMessage {...messages.restrictUnauthenticatedWebappPlugins}/>}
+                                    helpText={
+                                        <FormattedMessage
+                                            {...messages.restrictUnauthenticatedWebappPluginsDesc}
+                                            values={{
+                                                code: (msg: React.ReactNode) => <code>{msg}</code>,
+                                            }}
+                                        />
+                                    }
+                                    value={this.state.restrictUnauthenticatedWebappPlugins}
+                                    disabled={this.props.isDisabled || !this.state.enable}
+                                    onChange={this.handleChange}
+                                    setByEnv={this.isSetByEnv('PluginSettings.RestrictUnauthenticatedWebappPlugins')}
                                 />
                                 <SettingSet
                                     helpText={uploadHelpText}

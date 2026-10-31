@@ -12771,6 +12771,14 @@
     "defaultMessage": "When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more.",
     "description": "Help text for the Require Plugin Signature setting in System Console Plugin Management; <link> wraps a documentation link."
   },
+  "admin.plugins.settings.restrictUnauthenticatedWebappPlugins": {
+    "defaultMessage": "Restrict Plugins Available Before Login:",
+    "description": "Label for a true/false setting in System Console Plugin Management that limits which plugins are sent to visitors who are not logged in."
+  },
+  "admin.plugins.settings.restrictUnauthenticatedWebappPluginsDesc": {
+    "defaultMessage": "When true, only plugins that declare <code>webapp.pre_auth</code> in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.",
+    "description": "Help text for the Restrict Plugins Available Before Login setting in System Console Plugin Management; <code> wraps the manifest field name webapp.pre_auth, which should not be translated."
+  },
   "admin.posts.burnOnRead.duration.10min": {
     "defaultMessage": "10 minutes",
     "description": "Dropdown option for the Burn-on-Read Duration setting in the admin console; a time duration in a compact list."

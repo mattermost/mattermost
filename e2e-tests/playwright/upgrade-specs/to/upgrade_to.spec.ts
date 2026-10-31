@@ -13,7 +13,9 @@ import {
     channelIdForAttachmentSeed,
     ensureUpgradeTeam,
     loadUpgradeToContext,
+    readRestrictUnauthenticatedWebappPlugins,
     readServerIdentity,
+    readUnauthenticatedWebappPluginIds,
     seeder,
 } from '../upgrade_fixtures';
 
@@ -143,5 +145,18 @@ test.describe.serial('upgrade-to baseline', {tag: ['@upgrade-to']}, () => {
                 isInstalled: true,
                 isActive: true,
             });
+    });
+
+    test('restrict unauthenticated webapp plugins is off after upgrade', async ({pw}) => {
+        const {adminClient, baseline} = await loadUpgradeToContext(pw);
+        const fromValue = baseline.restrictUnauthenticatedWebappPlugins ?? null;
+
+        // * Verify an existing install is migrated to off, or keeps the value the from-image already had
+        expect(await readRestrictUnauthenticatedWebappPlugins(adminClient)).toBe(fromValue ?? false);
+        test.skip(fromValue === true, 'From-image already restricted unauthenticated webapp plugins');
+
+        // * Verify unauthenticated requests still list every webapp plugin an authenticated admin sees
+        const authenticatedIds = (await adminClient.getWebappPlugins()).map((p) => p.id).sort();
+        expect(await readUnauthenticatedWebappPluginIds(pw.loginPage.page.request)).toEqual(authenticatedIds);
     });
 });

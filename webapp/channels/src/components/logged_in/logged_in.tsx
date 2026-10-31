@@ -14,6 +14,7 @@ import BrowserStore from 'stores/browser_store';
 import LoadingScreen from 'components/loading_screen';
 
 import WebSocketClient from 'client/web_websocket_client';
+import {ensureAuthenticatedPluginsLoaded} from 'plugins';
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isKeyPressed} from 'utils/keyboard';
@@ -67,6 +68,8 @@ export default class LoggedIn extends React.PureComponent<Props> {
     public componentDidMount(): void {
         // Initialize websocket
         WebSocketActions.initialize();
+
+        ensureAuthenticatedPluginsLoaded();
 
         this.updateTimeZone();
 
