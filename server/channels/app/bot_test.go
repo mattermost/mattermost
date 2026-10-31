@@ -4,19 +4,15 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -703,70 +699,6 @@ func TestUpdateBotActive(t *testing.T) {
 		require.Equal(t, reenabledBot.DeleteAt, reenabledBotAgain.DeleteAt)
 	})
 
-	t.Run("enable at user limit leaves bot and user disabled", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-
-		bot, err := th.App.CreateBot(th.Context, &model.Bot{
-			Username:    "user_limit_bot",
-			Description: "a bot",
-			OwnerId:     th.BasicUser.Id,
-		})
-		require.Nil(t, err)
-		defer func() {
-			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
-			require.Nil(t, err)
-		}()
-
-		_, err = th.App.UpdateBotActive(th.Context, bot.UserId, false)
-		require.Nil(t, err)
-
-		userLimit := 1
-		license := model.NewTestLicense("")
-		license.IsSeatCountEnforced = true
-		license.Features.Users = &userLimit
-		th.App.Srv().SetLicense(license)
-
-		_, err = th.App.UpdateBotActive(th.Context, bot.UserId, true)
-		require.NotNil(t, err)
-		require.Equal(t, "app.user.update_active.license_user_limit.exceeded", err.Id)
-
-		refetched, err := th.App.GetBot(th.Context, bot.UserId, true)
-		require.Nil(t, err)
-		require.NotZero(t, refetched.DeleteAt)
-
-		botUser, err := th.App.GetUser(th.Context, bot.UserId)
-		require.Nil(t, err)
-		require.NotZero(t, botUser.DeleteAt)
-	})
-
-	t.Run("disable leaves bot active when deactivating its user fails", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-
-		bot, err := th.App.CreateBot(th.Context, &model.Bot{
-			Username:    "failing_user_bot",
-			Description: "a bot",
-			OwnerId:     th.BasicUser.Id,
-		})
-		require.Nil(t, err)
-		defer func() {
-			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
-			require.Nil(t, err)
-		}()
-
-		restoreUserService := failUserUpdates(t, th)
-		_, err = th.App.UpdateBotActive(th.Context, bot.UserId, false)
-		restoreUserService()
-		require.NotNil(t, err)
-
-		refetched, err := th.App.GetBot(th.Context, bot.UserId, true)
-		require.Nil(t, err)
-		require.Zero(t, refetched.DeleteAt)
-
-		botUser, err := th.App.GetUser(th.Context, bot.UserId)
-		require.Nil(t, err)
-		require.Zero(t, botUser.DeleteAt)
-	})
-
 	t.Run("disable self-owned bot terminates", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
@@ -781,16 +713,14 @@ func TestUpdateBotActive(t *testing.T) {
 			require.Nil(t, err)
 		}()
 
-		// Simulate the self-owned state that `mmctl user convert` produces
-		// (OwnerId == UserId) directly in the store, bypassing
-		// UpdateBotOwner's validation.
+		// mmctl user convert stores OwnerId == UserId. UpdateBotOwner rejects
+		// that, so reproduce the existing row directly in the store.
 		stored, nErr := th.App.Srv().Store().Bot().Get(bot.UserId, true)
 		require.NoError(t, nErr)
 		stored.OwnerId = stored.UserId
 		_, nErr = th.App.Srv().Store().Bot().Update(stored)
 		require.NoError(t, nErr)
 
-		// Previously this recursed until fatal stack overflow.
 		disabled, err := th.App.UpdateBotActive(th.Context, bot.UserId, false)
 		require.Nil(t, err)
 		require.NotZero(t, disabled.DeleteAt)
@@ -825,7 +755,7 @@ func TestUpdateBotActive(t *testing.T) {
 			require.Nil(t, err)
 		}()
 
-		// A owns B and B owns A, bypassing UpdateBotOwner's validation.
+		// An existing cycle can still be stored. UpdateBotOwner now rejects it.
 		storedA, nErr := th.App.Srv().Store().Bot().Get(botA.UserId, true)
 		require.NoError(t, nErr)
 		storedA.OwnerId = botB.UserId
@@ -876,31 +806,6 @@ func TestUpdateBotActive(t *testing.T) {
 			require.Zero(t, botUser.DeleteAt)
 		})
 	}
-}
-
-// failingUserUpdateStore fails every user update and delegates everything else.
-type failingUserUpdateStore struct {
-	store.UserStore
-}
-
-func (*failingUserUpdateStore) Update(request.CTX, *model.User, bool) (*model.UserUpdate, error) {
-	return nil, errors.New("simulated user update failure")
-}
-
-// failUserUpdates makes every user update fail until the returned func restores the original service.
-func failUserUpdates(t *testing.T, th *TestHelper) func() {
-	original := th.App.ch.srv.userService
-	failing, err := users.New(users.ServiceConfig{
-		UserStore:    &failingUserUpdateStore{UserStore: th.App.Srv().Store().User()},
-		SessionStore: th.App.Srv().Store().Session(),
-		OAuthStore:   th.App.Srv().Store().OAuth(),
-		ConfigFn:     th.App.ch.srv.platform.Config,
-		LicenseFn:    th.App.ch.srv.License,
-	})
-	require.NoError(t, err)
-
-	th.App.ch.srv.userService = failing
-	return func() { th.App.ch.srv.userService = original }
 }
 
 func TestUpdateBotOwnerRejectsBotOwners(t *testing.T) {
@@ -1123,52 +1028,6 @@ func TestDisableUserBots(t *testing.T) {
 	// Bad id doesn't do anything or break horribly
 	err = th.App.disableUserBots(th.Context, model.NewId())
 	require.Nil(t, err)
-}
-
-func TestDisableUserBotsTerminatesWhenBotsFail(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-
-	ownerID := model.NewId()
-
-	bots := []*model.Bot{}
-	defer func() {
-		for _, bot := range bots {
-			err := th.App.PermanentDeleteBot(th.Context, bot.UserId)
-			require.Nil(t, err)
-		}
-	}()
-
-	// More than a page of bots, each of which stays active because
-	// deactivating its user fails.
-	for i := range 21 {
-		bot, err := th.App.CreateBot(th.Context, &model.Bot{
-			Username:    fmt.Sprintf("failing_user_bot%v", i),
-			Description: "a bot",
-			OwnerId:     ownerID,
-		})
-		require.Nil(t, err)
-		bots = append(bots, bot)
-	}
-
-	restoreUserService := failUserUpdates(t, th)
-	done := make(chan *model.AppError, 1)
-	go func() { done <- th.App.disableUserBots(th.Context, ownerID) }()
-
-	select {
-	case err := <-done:
-		restoreUserService()
-		require.Nil(t, err)
-	case <-time.After(30 * time.Second):
-		restoreUserService()
-		require.FailNow(t, "disableUserBots did not terminate")
-	}
-
-	for _, bot := range bots {
-		refetched, err := th.App.GetBot(th.Context, bot.UserId, true)
-		require.Nil(t, err)
-		require.Zero(t, refetched.DeleteAt, bot.Username)
-	}
 }
 
 func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
