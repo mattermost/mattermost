@@ -21,13 +21,9 @@ const HighlightedLanguages: LanguageObject = Constants.HighlightedLanguages;
 // rendered as escaped plain text instead.
 const MAX_HIGHLIGHTED_LENGTH = 5000;
 
-// Resolves once everything handed to runInOwnTask so far has run, so that each piece of work is
-// scheduled only after the previous one is done rather than all of them at once.
 let previousTask: Promise<void> = Promise.resolve();
 
-// Runs work in a task of its own, once the previously queued work has finished. Highlighting runs on
-// the main thread, so spreading a series of blocks over one task each lets the browser pick up other
-// queued work in between them instead of running them all in a single stretch.
+// Lets the browser run other work between highlighted blocks.
 function runInOwnTask<T>(work: () => T): Promise<T> {
     const result = previousTask.
         then(() => new Promise<void>((resolve) => {
@@ -35,8 +31,7 @@ function runInOwnTask<T>(work: () => T): Promise<T> {
         })).
         then(work);
 
-    // Only the timing of the result is of interest here, so neither its value nor a rejection is
-    // carried over to whatever is queued next.
+    // A failed job must not stall the jobs queued after it.
     previousTask = result.then(() => undefined, () => undefined);
 
     return result;

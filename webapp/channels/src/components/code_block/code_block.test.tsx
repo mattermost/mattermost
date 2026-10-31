@@ -4,23 +4,26 @@
 import React from 'react';
 
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 
 import CodeBlock from './code_block';
 
-// Waits for the work the code block queues, which runs in a task scheduled after the one a
-// setImmediate callback runs in.
-const actImmediate = () =>
-    act(
-        () =>
-            new Promise<void>((resolve) => {
-                setImmediate(() => {
-                    setTimeout(resolve, 0);
-                });
-            }),
-    );
-
 describe('codeBlock', () => {
+    let highlightSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        highlightSpy = jest.spyOn(SyntaxHighlighting, 'highlight');
+    });
+
+    afterEach(() => {
+        highlightSpy.mockRestore();
+    });
+
+    const waitForHighlightCalls = () => act(async () => {
+        await Promise.all(highlightSpy.mock.results.map((result) => result.value));
+    });
+
     test('should render typescript code block with syntax highlighting', async () => {
         const language = 'typescript';
         const input = `const myFunction = () => {
@@ -39,13 +42,35 @@ describe('codeBlock', () => {
 
         expect(container.querySelector('.hljs-keyword')).not.toBeInTheDocument();
 
-        // Wait for highlight.js to finish loading
-        await actImmediate();
+        await waitFor(() => {
+            expect(container.querySelector('.hljs-keyword')).toBeInTheDocument();
+        });
 
         expect(screen.getByText('TypeScript')).toBeInTheDocument();
         expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
+    });
 
-        expect(container.querySelector('.hljs-keyword')).toBeInTheDocument();
+    test('should highlight every code block when several are rendered at once', async () => {
+        const {container} = renderWithContext(
+            <>
+                <CodeBlock
+                    code='const first = 1;'
+                    language='typescript'
+                />
+                <CodeBlock
+                    code='const second = 2;'
+                    language='typescript'
+                />
+                <CodeBlock
+                    code='const third = 3;'
+                    language='typescript'
+                />
+            </>,
+        );
+
+        await waitFor(() => {
+            expect(container.querySelectorAll('code .hljs-keyword')).toHaveLength(3);
+        });
     });
 
     test('should render unknown language before syntax highlighting', async () => {
@@ -63,9 +88,9 @@ it shouldn't highlight, it's just garbage`;
         expect(screen.queryByText('unknownLanguage')).toBeFalsy();
         expect(container.querySelector('.post-code__line-numbers')).toBeFalsy();
 
-        // Wait for highlight.js to finish loading
-        await actImmediate();
+        await waitForHighlightCalls();
 
+        expect(highlightSpy).toHaveBeenCalled();
         expect(screen.queryByText('unknownLanguage')).toBeFalsy();
         expect(container.querySelector('.post-code__line-numbers')).toBeFalsy();
     });
@@ -88,9 +113,9 @@ it shouldn't highlight, it's just garbage`;
         expect(container.querySelector('code')).toHaveTextContent('foo foo foo foofoo foo foo foo');
         expect(container.querySelector('code')).not.toHaveTextContent('foo foo foo foo foo foo foo foo');
 
-        // Wait for highlight.js to finish loading
-        await actImmediate();
+        await waitForHighlightCalls();
 
+        expect(highlightSpy).toHaveBeenCalled();
         expect(container.querySelector('code')).toHaveTextContent('foo foo foo foofoo foo foo foo');
         expect(container.querySelector('code')).not.toHaveTextContent('foo foo foo foo foo foo foo foo');
     });
