@@ -2,27 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Tab as ReactBootstrapTab} from 'react-bootstrap';
 
-type Props = {
+export type TabProps = {
     children?: React.ReactNode;
-    eventKey?: any;
-    title?: React.ReactNode | undefined;
-    unmountOnExit?: boolean | undefined;
-    tabClassName?: string | undefined;
+    eventKey?: string | number;
+    title?: React.ReactNode;
+    unmountOnExit?: boolean;
+    tabClassName?: string;
     tabIndex?: number;
 };
 
-export default function Tab({children, title, unmountOnExit, tabClassName, eventKey, tabIndex = -1}: Props) {
-    return (
-        <ReactBootstrapTab
-            eventKey={eventKey}
-            title={title}
-            unmountOnExit={unmountOnExit}
-            tabClassName={tabClassName}
-            tabIndex={tabIndex}
-        >
-            {children}
-        </ReactBootstrapTab>
-    );
+/**
+ * Marker child for `components/tabs/tabs`. Tab panels are rendered by the parent
+ * `Tabs` adapter; this component does not mount react-bootstrap `Tab`.
+ */
+export default function Tab(_props: TabProps) {
+    return null;
 }
