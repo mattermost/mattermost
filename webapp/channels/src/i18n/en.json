@@ -30395,6 +30395,34 @@
     "defaultMessage": "{count} selected",
     "description": "Badge shown on the dragged item when multiple sidebar channels are drag-selected at once; {count} is how many are selected."
   },
+  "sidebar_left.sidebar_channel.subItem.collapse": {
+    "defaultMessage": "Collapse {label}",
+    "description": "Label of the sidebar button that hides the children of a plugin-provided sub-item under a channel; {label} is the sub-item label."
+  },
+  "sidebar_left.sidebar_channel.subItem.expand": {
+    "defaultMessage": "Expand {label}",
+    "description": "Label of the sidebar button that shows the children of a plugin-provided sub-item under a channel; {label} is the sub-item label."
+  },
+  "sidebar_left.sidebar_channel.subItem.noActions": {
+    "defaultMessage": "No actions available",
+    "description": "Disabled menu entry shown when a plugin-provided sidebar sub-item has no actions to offer."
+  },
+  "sidebar_left.sidebar_channel.subItem.options": {
+    "defaultMessage": "Item options for {label}",
+    "description": "Accessible label of the sidebar button and menu with the actions of a plugin-provided sub-item under a channel; {label} is the sub-item label."
+  },
+  "sidebar_left.sidebar_channel.subItem.optionsTooltip": {
+    "defaultMessage": "Item options",
+    "description": "Tooltip of the sidebar button that opens the actions menu of a plugin-provided sub-item under a channel."
+  },
+  "sidebar_left.sidebar_channel.subItems.collapse": {
+    "defaultMessage": "Collapse {channelName}",
+    "description": "Label of the sidebar button that hides the plugin-provided sub-items under a channel; {channelName} is the channel display name."
+  },
+  "sidebar_left.sidebar_channel.subItems.expand": {
+    "defaultMessage": "Expand {channelName}",
+    "description": "Label of the sidebar button that shows the plugin-provided sub-items under a channel; {channelName} is the channel display name."
+  },
   "sidebar_right_menu.console": {
     "defaultMessage": "System Console",
     "description": "Browser tab title used for the System Console; also the name of the menu item that opens it."

@@ -367,6 +367,7 @@ describe('PluginRegistry — registerChannelViewComponent', () => {
         expect(entries[0].pluginId).toBe(PLUGIN_ID);
         expect(entries[0].matcher).toBe(matcher);
         expect(entries[0].component).toBe(component);
+        expect(entries[0].handlesSubpaths).toBe(false);
     });
 
     it('(b) accepts positional arguments', () => {
@@ -374,11 +375,24 @@ describe('PluginRegistry — registerChannelViewComponent', () => {
         const matcher = () => true;
         const component = () => null;
         registry.registerChannelViewComponent(matcher, component);
+        registry.registerChannelViewComponent(matcher, component, true);
 
         const entries = getChannelViewRegs();
-        expect(entries).toHaveLength(1);
+        expect(entries).toHaveLength(2);
         expect(entries[0].matcher).toBe(matcher);
         expect(entries[0].component).toBe(component);
+        expect(entries[0].handlesSubpaths).toBe(false);
+        expect(entries[1].handlesSubpaths).toBe(true);
+    });
+
+    it('(b3) stores handlesSubpaths only when it is exactly true', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelViewComponent({matcher: () => true, component: () => null, handlesSubpaths: true});
+        registry.registerChannelViewComponent({matcher: () => true, component: () => null, handlesSubpaths: 'yes' as unknown as boolean});
+
+        const entries = getChannelViewRegs();
+        expect(entries[0].handlesSubpaths).toBe(true);
+        expect(entries[1].handlesSubpaths).toBe(false);
     });
 
     it('(c) unregisterComponent removes only that registration', () => {
@@ -430,6 +444,142 @@ describe('PluginRegistry — registerChannelViewComponent', () => {
 
         expect(typeof id).toBe('string');
         expect(getChannelViewRegs()).toHaveLength(0);
+    });
+});
+
+describe('PluginRegistry — registerChannelSidebarSubItems', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getRegs() {
+        return mockCurrentStore.getState().components.ChannelSidebarSubItems;
+    }
+
+    it('adds an entry with the returned id, plugin id, and getItems', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const getItems = () => [];
+        const id = registry.registerChannelSidebarSubItems({getItems});
+
+        expect(typeof id).toBe('string');
+        expect(id.length).toBeGreaterThan(0);
+
+        const entries = getRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].id).toBe(id);
+        expect(entries[0].pluginId).toBe(PLUGIN_ID);
+        expect(entries[0].getItems).toBe(getItems);
+    });
+
+    it('stores getItemActions, canDrop and onItemDrop when they are functions', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const getItemActions = () => [];
+        const canDrop = () => true;
+        const onItemDrop = () => {};
+        registry.registerChannelSidebarSubItems({getItems: () => [], getItemActions, canDrop, onItemDrop});
+
+        const [entry] = getRegs();
+        expect(entry.getItemActions).toBe(getItemActions);
+        expect(entry.canDrop).toBe(canDrop);
+        expect(entry.onItemDrop).toBe(onItemDrop);
+    });
+
+    it('leaves the optional callbacks unset when omitted', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelSidebarSubItems({getItems: () => []});
+
+        const [entry] = getRegs();
+        expect(entry).not.toHaveProperty('getItemActions');
+        expect(entry).not.toHaveProperty('canDrop');
+        expect(entry).not.toHaveProperty('onItemDrop');
+    });
+
+    it('ignores non-function optional callbacks', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelSidebarSubItems({
+            getItems: () => [],
+            getItemActions: 'nope',
+            canDrop: true,
+            onItemDrop: {},
+        });
+
+        const [entry] = getRegs();
+        expect(entry).not.toHaveProperty('getItemActions');
+        expect(entry).not.toHaveProperty('canDrop');
+        expect(entry).not.toHaveProperty('onItemDrop');
+    });
+
+    it('accepts the optional callbacks as positional arguments', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const getItems = () => [];
+        const getItemActions = () => [];
+        const canDrop = () => true;
+        const onItemDrop = () => {};
+        registry.registerChannelSidebarSubItems(getItems, getItemActions, canDrop, onItemDrop);
+
+        const [entry] = getRegs();
+        expect(entry.getItems).toBe(getItems);
+        expect(entry.getItemActions).toBe(getItemActions);
+        expect(entry.canDrop).toBe(canDrop);
+        expect(entry.onItemDrop).toBe(onItemDrop);
+    });
+
+    it('accepts a positional argument', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const getItems = () => null;
+        registry.registerChannelSidebarSubItems(getItems);
+
+        expect(getRegs()[0].getItems).toBe(getItems);
+    });
+
+    it('unregisterComponent removes only that registration', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id1 = registry.registerChannelSidebarSubItems({getItems: () => []});
+        const id2 = registry.registerChannelSidebarSubItems({getItems: () => []});
+        expect(id1).not.toBe(id2);
+
+        registry.unregisterComponent(id1);
+
+        const entries = getRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].id).toBe(id2);
+    });
+
+    it('REMOVED_WEBAPP_PLUGIN sweeps entries for that plugin and leaves others intact', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerChannelSidebarSubItems({getItems: () => []});
+        otherRegistry.registerChannelSidebarSubItems({getItems: () => []});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const entries = getRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe('other_plugin');
+    });
+
+    it('registrations from different plugins are sorted by pluginId', () => {
+        const registryZ = new PluginRegistry('zzz_plugin');
+        const registryA = new PluginRegistry('aaa_plugin');
+
+        registryZ.registerChannelSidebarSubItems({getItems: () => []});
+        registryA.registerChannelSidebarSubItems({getItems: () => []});
+
+        expect(getRegs().map((r: {pluginId: string}) => r.pluginId)).toEqual(['aaa_plugin', 'zzz_plugin']);
+    });
+
+    it('is ignored when the plugin is no longer active', () => {
+        const registry = new PluginRegistry(PLUGIN_ID, () => false);
+        const id = registry.registerChannelSidebarSubItems({getItems: () => []});
+
+        expect(typeof id).toBe('string');
+        expect(getRegs()).toHaveLength(0);
     });
 });
 

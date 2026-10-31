@@ -14,6 +14,7 @@ export type Match = match<{
     identifier: string;
     team: string;
     postid?: string;
+    subpath?: string;
     path: string;
 }>;
 
