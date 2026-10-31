@@ -458,20 +458,36 @@ func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (
 		}
 	}
 
+	// Persist the disable before deactivating the user. UpdateActive calls
+	// userDeactivated -> disableUserBots, which lists with IncludeDeleted
+	// false. Until DeleteAt is set, a self-owned bot or an ownership cycle
+	// is passed back into UpdateBotActive and the stack overflows. If
+	// UpdateActive fails, that error is returned and the bot stays disabled.
+	if !active && bot.DeleteAt == 0 {
+		bot.DeleteAt = model.GetMillis()
+		bot, nErr = a.Srv().Store().Bot().Update(bot)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			var appErr *model.AppError
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.MakeBotNotFoundError("SqlBotStore.Get", nfErr.ID).Wrap(nErr)
+			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+				return nil, appErr
+			default: // last fallback in case it doesn't map to an existing app error.
+				return nil, model.NewAppError("PatchBot", "app.bot.patchbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		}
+	}
+
 	if _, err := a.UpdateActive(rctx, user, active); err != nil {
 		return nil, err
 	}
 
-	changed := true
+	// Enable still updates the user first, so a rejected enable (user limit)
+	// leaves DeleteAt set.
 	if active && bot.DeleteAt != 0 {
 		bot.DeleteAt = 0
-	} else if !active && bot.DeleteAt == 0 {
-		bot.DeleteAt = model.GetMillis()
-	} else {
-		changed = false
-	}
-
-	if changed {
 		bot, nErr = a.Srv().Store().Bot().Update(bot)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
@@ -532,6 +548,18 @@ func (a *App) UpdateBotOwner(rctx request.CTX, botUserId, newOwnerId string) (*m
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("UpdateBotOwner", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	if newOwnerId == botUserId {
+		return nil, model.NewAppError("UpdateBotOwner", "app.bot.updatebotowner.self_owner.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	_, err = a.Srv().Store().Bot().Get(newOwnerId, true)
+	if err == nil {
+		return nil, model.NewAppError("UpdateBotOwner", "app.bot.updatebotowner.bot_owner.app_error", nil, "", http.StatusBadRequest)
+	}
+	if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+		return nil, model.NewAppError("UpdateBotOwner", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	bot.OwnerId = newOwnerId
