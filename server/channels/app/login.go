@@ -53,8 +53,8 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 		if err = checkUserNotDisabled(user); err != nil {
 			return nil, err
 		}
-		if err = checkUserNotBot(user); err != nil {
-			return nil, err
+		if err := checkUserNotBot(user); err != nil {
+			return nil, model.AsAppError(err)
 		}
 		if user.LastLogin > 0 {
 			return nil, model.NewAppError("AuthenticateUserForLogin",
