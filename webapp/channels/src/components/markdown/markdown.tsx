@@ -110,6 +110,8 @@ function Markdown({
     team,
     minimumHashtagLength,
     managedResourcePaths,
+    enablePhoneNumberAutolinkingInternational,
+    enablePhoneNumberAutolinkingNorthAmerican,
 }: Props) {
     if (message === '' || !enableFormatting) {
         return (
@@ -134,6 +136,8 @@ function Markdown({
         managedResourcePaths,
         editedAt,
         postId,
+        enablePhoneNumberAutolinkingInternational,
+        enablePhoneNumberAutolinkingNorthAmerican,
     }, options);
 
     const htmlFormattedText = formatText(message, inputOptions, emojiMap);

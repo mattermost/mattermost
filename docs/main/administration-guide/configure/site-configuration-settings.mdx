@@ -2487,3 +2487,39 @@ The following self-hosted deployment settings are only configurable in the `conf
 </tr>
 </tbody>
 </table>
+
+### Phone number autolinking (international)
+
+<table>
+<colgroup>
+<col style={{width: '38%'}} />
+<col style={{width: '61%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Control whether international phone numbers in message text are automatically displayed as clickable links. See <a href={useBaseUrl('/end-user-guide/collaborate/format-messages#automatic-phone-number-links')}>automatic phone number links</a> for the formats that are recognized.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> International phone numbers that start with <code>+</code>, such as <code>+44 20 7946 0958</code>, are displayed as clickable <code>tel:</code> links.</li><li><strong>false</strong>: International phone numbers are displayed as plain text.</li></ul></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ServiceSettings.EnablePhoneNumberAutolinkingInternational</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEPHONENUMBERAUTOLINKINGINTERNATIONAL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Phone number autolinking (North American)
+
+<table>
+<colgroup>
+<col style={{width: '38%'}} />
+<col style={{width: '61%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Control whether North American phone numbers in message text are automatically displayed as clickable links. Numbers that start with <code>+</code> are controlled by the international setting instead.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> North American 10-digit phone numbers, such as <code>555-123-4567</code> or <code>(555) 123-4567</code>, are displayed as clickable <code>tel:</code> links.</li><li><strong>false</strong>: North American phone numbers are displayed as plain text.</li></ul></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ServiceSettings.EnablePhoneNumberAutolinkingNorthAmerican</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEPHONENUMBERAUTOLINKINGNORTHAMERICAN</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Phone number autolinking only changes how messages are displayed. The stored message text is never modified.
+
+</Note>

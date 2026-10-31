@@ -82,6 +82,8 @@ export type ClientConfig = {
     EnableJoinLeaveMessageByDefault: string;
     EnableLatex: string;
     EnableInlineLatex: string;
+    EnablePhoneNumberAutolinkingInternational: string;
+    EnablePhoneNumberAutolinkingNorthAmerican: string;
     EnableLdap: string;
     EnableLinkPreviews: string;
     EnableMarketplace: string;
