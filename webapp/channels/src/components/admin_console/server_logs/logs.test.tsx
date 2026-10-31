@@ -6,7 +6,7 @@ import React from 'react';
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import {fakeNow} from 'tests/helpers/date';
-import {renderWithContext, userEvent, screen, waitFor, within} from 'tests/react_testing_utils';
+import {act, renderWithContext, userEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import Logs from './logs';
 import type {LogObjectWithAdditionalInfo} from './types';
@@ -411,6 +411,21 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         await typeRangeTime('To', '13:00');
 
         expect(rangeTimeInput('To')).toHaveValue('12:00 PM');
+    });
+
+    test('should let a custom range end in a minute that started after the dialog opened', async () => {
+        // Moments before the next minute, so the dialog's clock ticks over soon
+        fakeNow('2026-10-20T12:00:59.950Z');
+        renderLogs(jest.fn().mockResolvedValue({}));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        expect(rangeTimeInput('To')).toHaveValue('12:00 PM');
+
+        jest.setSystemTime(new Date('2026-10-20T12:01:10Z'));
+        await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
+        await typeRangeTime('To', '12:01');
+
+        expect(rangeTimeInput('To')).toHaveValue('12:01 PM');
     });
 
     test('should not apply a custom range while a time entry is invalid', async () => {

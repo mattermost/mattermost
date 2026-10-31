@@ -181,6 +181,40 @@ describe('components/datetime_input/DateTimeInput', () => {
                 jest.useRealTimers();
             }
         });
+
+        test('should restore a cleared time when the selected day is picked again', async () => {
+            fakeNow('2025-06-08T10:00:00Z');
+            mockGetCurrentMomentForTimezone.mockReturnValue(moment.tz('2025-06-08T10:00:00Z', 'UTC'));
+            const onTimeInputError = jest.fn();
+
+            try {
+                // handleChange doesn't update the time, so picking the same day leaves the prop unchanged
+                renderWithContext(
+                    <DateTimeInput
+                        {...baseProps}
+                        time={moment.tz('2025-06-08T09:12:00Z', 'UTC')}
+                        allowPastDates={true}
+                        manualTimeEntry={true}
+                        onTimeInputError={onTimeInputError}
+                    />,
+                );
+
+                const timeInput = screen.getByLabelText('Time');
+                await userEvent.clear(timeInput);
+                await userEvent.tab();
+                expect(timeInput).toHaveClass('error');
+                expect(onTimeInputError).toHaveBeenLastCalledWith(true);
+
+                await userEvent.click(screen.getByText('Date').closest('.date-time-input')!);
+                await userEvent.click(screen.getByText('8')); // June 8th, already selected
+
+                expect(timeInput).toHaveValue('9:12 AM');
+                expect(timeInput).not.toHaveClass('error');
+                expect(onTimeInputError).toHaveBeenLastCalledWith(false);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
     });
 
     describe('timezone handling', () => {

@@ -3,7 +3,7 @@
 
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -17,7 +17,8 @@ import type {CustomTimeRange} from './types';
 
 import './custom_range_modal.scss';
 
-const DEFAULT_RANGE_MS = 60 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
+const DEFAULT_RANGE_MS = 60 * MINUTE_MS;
 
 type Props = {
     initialRange: CustomTimeRange | null;
@@ -25,13 +26,33 @@ type Props = {
     onExited: () => void;
 };
 
+// The current minute, moving on while the dialog stays open so it never caps a time at the minute it opened
+function useCurrentMinute(timezone: string) {
+    const [now, setNow] = useState(() => moment.tz(timezone).startOf('minute'));
+
+    useEffect(() => {
+        let timeout: ReturnType<typeof setTimeout>;
+        const scheduleNextMinute = () => {
+            timeout = setTimeout(() => {
+                setNow(moment.tz(timezone).startOf('minute'));
+                scheduleNextMinute();
+            }, MINUTE_MS - (Date.now() % MINUTE_MS));
+        };
+        scheduleNextMinute();
+
+        return () => clearTimeout(timeout);
+    }, [timezone]);
+
+    return now;
+}
+
 export default function CustomRangeModal({initialRange, onConfirm, onExited}: Props) {
     const intl = useIntl();
     const timezone = useSelector(getCurrentTimezone);
     const timezoneLabel = useSelector(getCurrentTimezoneLabel);
 
     // The pickers clamp both bounds to this, so the end can't be in the future
-    const [now] = useState(() => moment.tz(timezone).startOf('minute'));
+    const now = useCurrentMinute(timezone);
     const [from, setFrom] = useState<Moment>(() => (initialRange ? moment.tz(initialRange.from, timezone) : now.clone().subtract(DEFAULT_RANGE_MS, 'ms')));
     const [to, setTo] = useState<Moment>(() => (initialRange ? moment.tz(initialRange.to, timezone).startOf('minute') : now));
 

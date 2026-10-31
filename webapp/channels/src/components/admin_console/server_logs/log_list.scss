@@ -44,6 +44,11 @@
         .LogViewer__duration--custom input.form-control {
             width: 270px;
         }
+
+        // Fits a range with years, e.g. 'Sep 30, 2025, 12:45 PM – Oct 31, 2026, 12:45 PM'
+        .LogViewer__duration--custom-year input.form-control {
+            width: 380px;
+        }
     }
 
     &__filters-spacer {

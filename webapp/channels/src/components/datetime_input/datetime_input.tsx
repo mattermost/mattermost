@@ -120,6 +120,9 @@ type TimeInputManualProps = {
     onTimeInputError?: (hasError: boolean) => void;
     minDateTime?: Moment;
     maxDateTime?: Moment;
+
+    // Changes each time a day is picked, so picking the day already selected still restores a cleared time
+    dayPickCount: number;
 };
 
 const TimeInputManual: React.FC<TimeInputManualProps> = ({
@@ -130,6 +133,7 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     onTimeInputError,
     minDateTime,
     maxDateTime,
+    dayPickCount,
 }) => {
     const {formatMessage} = useIntl();
     const [timeInputValue, setTimeInputValue] = useState<string>('');
@@ -145,7 +149,7 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
             setTimeInputValue('');
         }
         setTimeInputError(false);
-    }, [time, isMilitaryTime]);
+    }, [time, isMilitaryTime, dayPickCount]);
 
     useEffect(() => {
         onTimeInputError?.(timeInputError);
@@ -266,6 +270,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const [isTimeMenuOpen, setIsTimeMenuOpen] = useState(false);
     const [menuWidth, setMenuWidth] = useState<string>('200px');
+    const [dayPickCount, setDayPickCount] = useState(0);
     const {formatMessage} = useIntl();
     const timeContainerRef = useRef<HTMLDivElement>(null);
 
@@ -410,6 +415,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         }
 
         handleChange(result);
+        setDayPickCount((count) => count + 1);
         handlePopperOpenState(false);
     };
 
@@ -500,6 +506,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         onTimeInputError={onTimeInputError}
                         minDateTime={minDateTime}
                         maxDateTime={maxDateTime}
+                        dayPickCount={dayPickCount}
                     />
                 ) : (
                     <Menu.Container

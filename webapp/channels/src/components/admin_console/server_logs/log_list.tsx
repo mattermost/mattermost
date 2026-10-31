@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -436,8 +437,9 @@ export default function LogList({
 
     // The end is never in the future, so a start in this year means the whole range is
     const yearOf = (time: number) => intl.formatDate(time, {year: 'numeric', timeZone: timezone});
+    const showsYear = customRange !== null && yearOf(customRange.from) !== yearOf(Date.now());
     const durationValue = customRange ? intl.formatDateTimeRange(customRange.from, customRange.to, {
-        year: yearOf(customRange.from) === yearOf(Date.now()) ? undefined : 'numeric',
+        year: showsYear ? 'numeric' : undefined,
         month: 'short',
         day: 'numeric',
         hour: 'numeric',
@@ -654,7 +656,10 @@ export default function LogList({
             <Menu.Container
                 menuButton={{
                     id: 'serverLogsDurationMenuButton',
-                    class: customRange ? 'inputWithMenu LogViewer__duration--custom' : 'inputWithMenu',
+                    class: classNames('inputWithMenu', {
+                        'LogViewer__duration--custom': customRange,
+                        'LogViewer__duration--custom-year': showsYear,
+                    }),
                     'aria-label': intl.formatMessage({id: 'admin.logs.duration.menuButtonAriaLabel', defaultMessage: 'Open menu to select a time range'}),
                     as: 'div',
                     children: (

@@ -856,6 +856,7 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             // Intl separates the parts with thin and narrow no-break spaces
             expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Mar 12, 10:00 – 10:30 AM');
+            expect(screen.getByLabelText('Open menu to select a time range')).not.toHaveClass('LogViewer__duration--custom-year');
         });
 
         test('should mark the custom range as the selected duration', () => {
@@ -894,6 +895,9 @@ describe('components/admin_console/server_logs/LogList', () => {
             }});
 
             expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Dec 31, 2025, 11:00 PM – Jan 1, 2026, 1:00 AM');
+
+            // The longer label gets a wider field
+            expect(screen.getByLabelText('Open menu to select a time range')).toHaveClass('LogViewer__duration--custom-year');
         });
 
         test('should decide on the year in the user\'s timezone', () => {
