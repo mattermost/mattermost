@@ -8,8 +8,10 @@ import {useIntl} from 'react-intl';
 import {
     DotsVerticalIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import * as Menu from 'components/menu';
+import {SidebarMenuTrigger} from 'components/sidebar/sidebar_menu_trigger';
 
 type Props = {
     id: string;
@@ -45,8 +47,9 @@ const SidebarCategoryGenericMenu = ({
                 menuButton={{
                     id: `SidebarCategoryMenu-Button-${id}`,
                     'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name}),
+                    as: SidebarMenuTrigger,
                     class: 'SidebarMenu_menuButton',
-                    children: <DotsVerticalIcon size={16}/>,
+                    children: <Icon glyph={<DotsVerticalIcon/>}/>,
                 }}
                 menuButtonTooltip={{
                     text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name}),

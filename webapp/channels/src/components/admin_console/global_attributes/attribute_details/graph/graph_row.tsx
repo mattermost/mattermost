@@ -15,6 +15,8 @@ import {
     SitemapIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
@@ -267,38 +269,36 @@ export const GraphRow = React.memo(({
             {!disabled && (
                 <div className='attribute-options-graph-values__actions'>
                     <WithTooltip title={addChildLabel}>
-                        <button
-                            type='button'
-                            className='btn btn-icon btn-xs attribute-options-graph-values__action'
+                        <IconButton
+                            size='x-small'
+                            className='attribute-options-graph-values__action'
+                            icon={<Icon glyph={<PlusIcon/>}/>}
                             aria-label={addChildLabel}
                             disabled={atMax}
                             onClick={() => onOpenMenuAddChild(occurrence, index)}
                             data-testid='attributeOptionsGraphRow__addChild'
-                        >
-                            <PlusIcon size={16}/>
-                        </button>
+                        />
                     </WithTooltip>
                     <WithTooltip title={formatMessage(messages.parentsActionTooltip)}>
-                        <button
-                            type='button'
-                            className='btn btn-icon btn-xs attribute-options-graph-values__action'
+                        <IconButton
+                            size='x-small'
+                            className='attribute-options-graph-values__action'
+                            icon={<Icon glyph={<SitemapIcon/>}/>}
                             aria-label={formatMessage(messages.parentsAria, {name: occurrence.option.name})}
                             onClick={() => toggleMenu('parents')}
                             data-testid='attributeOptionsGraphRow__parents'
-                        >
-                            <SitemapIcon size={16}/>
-                        </button>
+                        />
                     </WithTooltip>
                     <WithTooltip title={deleteLabel}>
-                        <button
-                            type='button'
-                            className='btn btn-icon btn-xs attribute-options-graph-values__action attribute-options-graph-values__action--danger'
+                        <IconButton
+                            size='x-small'
+                            destructive={true}
+                            className='attribute-options-graph-values__action'
+                            icon={<Icon glyph={<TrashCanOutlineIcon/>}/>}
                             aria-label={deleteLabel}
                             onClick={() => onDelete(occurrence.option.name)}
                             data-testid='attributeOptionsGraphRow__delete'
-                        >
-                            <TrashCanOutlineIcon size={16}/>
-                        </button>
+                        />
                     </WithTooltip>
                 </div>
             )}

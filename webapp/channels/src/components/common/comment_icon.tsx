@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react';
+import classNames from 'classnames';
+import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {ReplyOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-
-import ReplyIcon from 'components/widgets/icons/reply_icon';
 
 import type {Locations} from 'utils/constants';
 
@@ -29,19 +31,6 @@ const CommentIcon = ({
 }: Props) => {
     const intl = useIntl();
 
-    let commentCountSpan: JSX.Element | null = null;
-    let iconStyle = 'post-menu__item post-menu__item--wide';
-    if (commentCount > 0) {
-        iconStyle += ' post-menu__item--show';
-        commentCountSpan = (
-            <span className='post-menu__comment-count'>
-                {commentCount}
-            </span>
-        );
-    } else if (searchStyle !== '') {
-        iconStyle = `${iconStyle} ${searchStyle}`;
-    }
-
     const replyTitle = intl.formatMessage({
         id: 'post_info.comment_icon.tooltip.reply',
         defaultMessage: 'Reply',
@@ -51,17 +40,24 @@ const CommentIcon = ({
         <WithTooltip
             title={replyTitle}
         >
-            <button
+            <IconButton
                 id={`${location}_commentIcon_${postId}`}
+                size='small'
+                padding='compact'
+                className={classNames(
+                    'post-menu__item',
+                    {
+                        'post-menu__item--wide': commentCount > 0 || Boolean(searchStyle),
+                        'post-menu__item--show': commentCount > 0,
+                    },
+                    searchStyle,
+                    extraClass,
+                )}
+                icon={<Icon glyph={<ReplyOutlineIcon/>}/>}
+                count={commentCount > 0 ? commentCount : undefined}
                 aria-label={replyTitle.toLowerCase()}
-                className={`${iconStyle} ${extraClass}`}
                 onClick={handleCommentClick}
-            >
-                <span className='d-flex align-items-center'>
-                    <ReplyIcon className='icon icon--small'/>
-                    {commentCountSpan}
-                </span>
-            </button>
+            />
         </WithTooltip>
     );
 };

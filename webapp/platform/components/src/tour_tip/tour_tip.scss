@@ -160,6 +160,28 @@ $z-index-tour-tips-backdrop: 1250;
         .Tag {
             margin-left: 4px;
         }
+
+        // Temporary until TourTip uses Compass inverted IconButton: default
+        // IconButton fg/hover/active use center-channel / link-color, which
+        // disappear or clash on button-bg. Mirror inverted opacities with button-color.
+        // Extra :not([class*='--']) matching is required to beat Compass hover
+        // specificity (0,6,0); .tour-tip__header button[class*=] alone loses.
+        button[class*='_icon-button_'] {
+            --icon-button-fg: rgba(var(--button-color-rgb), 0.64);
+            color: var(--icon-button-fg);
+
+            &:hover:not(:disabled, [class*='--disabled']):not(:active):not([class*='--active']):not([class*='--toggled']) {
+                --icon-button-fg: var(--button-color);
+                background-color: rgba(var(--button-color-rgb), 0.08);
+                color: var(--icon-button-fg);
+            }
+
+            &:active:not(:disabled, [class*='--disabled']):not([class*='--toggled']) {
+                --icon-button-fg: var(--button-color);
+                background-color: rgba(var(--button-color-rgb), 0.16);
+                color: var(--icon-button-fg);
+            }
+        }
     }
 
     &__body {

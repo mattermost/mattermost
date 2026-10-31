@@ -46,15 +46,6 @@
             grid-template-columns: minmax(0, auto) minmax(0, auto);
         }
 
-        .right-anchor {
-            .Button {
-                padding: 4px 0;
-
-                &:disabled {
-                    cursor: not-allowed;
-                }
-            }
-        }
     }
 
     .threads {

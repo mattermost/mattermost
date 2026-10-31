@@ -5,6 +5,9 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {AppsIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 type ActionsMenuButtonProps = {
@@ -21,6 +24,7 @@ const ActionsMenuButton = React.forwardRef<HTMLButtonElement, ActionsMenuButtonP
     popupId,
 }, ref) => {
     const {formatMessage} = useIntl();
+    const ariaLabel = formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase();
 
     return (
         <WithTooltip
@@ -31,22 +35,24 @@ const ActionsMenuButton = React.forwardRef<HTMLButtonElement, ActionsMenuButtonP
                 />
             }
         >
-            <button
+            <IconButton
                 key='more-actions-button'
                 ref={ref}
                 id={buttonId}
-                aria-label={formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase()}
+                size='small'
+                padding='compact'
+                type='button'
                 className={classNames('post-menu__item', {
                     'post-menu__item--active': isMenuOpen,
                 })}
-                type='button'
+                icon={<Icon glyph={<AppsIcon/>}/>}
+                active={isMenuOpen}
+                aria-label={ariaLabel}
                 aria-controls={popupId}
                 aria-expanded={isMenuOpen}
                 aria-haspopup={true}
                 onClick={onClick}
-            >
-                <i className={'icon icon-apps'}/>
-            </button>
+            />
         </WithTooltip>
     );
 });

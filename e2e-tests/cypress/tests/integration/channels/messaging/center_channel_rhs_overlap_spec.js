@@ -664,9 +664,11 @@ describe('Messaging', () => {
         cy.postMessage(messageX);
 
         cy.getLastPostId().then((postId) => {
-            // # Search for the posted message
-            cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().should('be.visible').type(messageX).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            // # Search for the posted message and wait for RHS results to finish loading
+            cy.uiSearchPosts(messageX);
+
+            // * Wait for the search hit before interacting with its post menu
+            cy.get(`#searchResult_${postId}`, {timeout: TIMEOUTS.TEN_SEC}).should('be.visible');
 
             // # Click on post dot menu so we can edit
             cy.clickPostDotMenu(postId, 'SEARCH');
@@ -680,16 +682,16 @@ describe('Messaging', () => {
             // * Update the post message and type ENTER
             cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).invoke('val', '').type(message2).wait(TIMEOUTS.HALF_SEC).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
-            // * Post appears in RHS search results, displays Pinned badge
-            cy.get(`#searchResult_${postId}`).findByText('Edited').should('exist');
+            // * Post appears in RHS search results, displays Edited badge
+            cy.get('#searchContainer').find(`#searchResult_${postId}`, {timeout: TIMEOUTS.TEN_SEC}).findByText('Edited').should('exist');
 
             // # Verify that the updated post contains 'Edited'
             cy.get(`#post_${postId}`).within((el) => {
                 cy.wrap(el).find('.post-edited__indicator').should('have.text', 'Edited');
             });
 
-            // # Close the modal
-            cy.findAllByLabelText('Close').should('be.visible').first().click();
+            // # Close the search RHS
+            cy.uiCloseRHS();
         });
     });
 

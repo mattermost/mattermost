@@ -45,6 +45,12 @@ export const MENU_CLOSE_ANIMATION_DURATION = 100;
 export type MenuButtonComponentProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     ref: Ref<HTMLButtonElement>;
     'data-testid'?: string;
+
+    /**
+     * Forwarded to custom `as` triggers (e.g. Compass IconButton). Ignored for
+     * native button/div triggers.
+     */
+    count?: number;
 };
 
 type MenuButtonProps = {
@@ -56,6 +62,12 @@ type MenuButtonProps = {
     class?: string;
     as?: 'button' | 'div' | ComponentType<MenuButtonComponentProps>;
     children?: ReactNode;
+
+    /**
+     * Numeric count shown by Compass IconButton triggers (`menuButton.as`).
+     * Not applied to native button/div triggers.
+     */
+    count?: number;
 
     /**
      * Opt-in passthrough for callers that need to inspect or adjust the
@@ -306,6 +318,9 @@ export function Menu(props: Props) {
             divTabIndex = isDisabled ? -1 : 0;
         }
 
+        const isNativeTrigger = MenuButtonComponent === 'button' || MenuButtonComponent === 'div';
+        const customTriggerProps = isNativeTrigger ? undefined : {count: props.menuButton.count};
+
         const triggerElement = (
             <MenuButtonComponent
                 ref={setMenuButton}
@@ -327,6 +342,7 @@ export function Menu(props: Props) {
                 onMouseDown={props.menuButton?.onMouseDown}
                 onClick={isDisabled ? undefined : handleMenuButtonClick}
                 onKeyDown={isDivTrigger && !isDisabled ? handleMenuButtonKeyDown : undefined}
+                {...customTriggerProps}
             >
                 {props.menuButton.children}
             </MenuButtonComponent>

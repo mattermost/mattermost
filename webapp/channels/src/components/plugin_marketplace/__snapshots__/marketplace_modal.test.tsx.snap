@@ -50,18 +50,34 @@ exports[`components/marketplace/ doesn't show web marketplace banner for Cloud 1
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_13ryy_41"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -178,18 +194,34 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_13ryy_41"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -494,18 +526,34 @@ exports[`components/marketplace/ should render default 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_13ryy_41"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -647,18 +695,34 @@ exports[`components/marketplace/ should render with error banner 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_13ryy_41"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -841,18 +905,34 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_13ryy_41"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -1019,18 +1099,34 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_13ryy_41"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -1244,18 +1340,34 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_13ryy_41"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>

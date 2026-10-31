@@ -2131,14 +2131,6 @@
     "defaultMessage": "Delete orphaned field",
     "description": "Accessible label for the delete button on a user attribute whose owning plugin has been uninstalled. \"Field\" is the attribute: use the same word as in Attribute Management. \"Orphaned\" means its plugin is no longer installed, as the neighbouring orphaned-attribute strings say; prefer that meaning over a literal calque."
   },
-  "admin.accessibility.next_page": {
-    "defaultMessage": "Next page",
-    "description": "Accessible label for the next-page button in the reusable System Console data grid."
-  },
-  "admin.accessibility.previous_page": {
-    "defaultMessage": "Previous page",
-    "description": "Accessible label for the previous-page button in the reusable System Console data grid."
-  },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
     "description": "Page title of the High Availability (server clustering) page in the System Console."
@@ -4414,6 +4406,10 @@
   "admin.data_retention.jobTimePM": {
     "defaultMessage": "{time} PM (UTC)",
     "description": "Displays the daily deletion job start time in the afternoon/evening; {time} is an hour:minute value, UTC timezone noted."
+  },
+  "admin.data_retention.policyActionsMenu": {
+    "defaultMessage": "Policy actions menu",
+    "description": "Accessible name and tooltip for the row actions menu button in the global and custom data retention policy tables."
   },
   "admin.data_retention.retention_days": {
     "defaultMessage": "{count} {count, plural, one {day} other {days}}",
@@ -14775,6 +14771,10 @@
     "defaultMessage": "Disable attribute",
     "description": "Title of the confirmation modal for disabling a session attribute in the System Console."
   },
+  "admin.session_attributes.dotmenu.button.aria_label": {
+    "defaultMessage": "Attribute actions",
+    "description": "Accessibility label and tooltip for the per-row '...' actions menu button in the session attributes table."
+  },
   "admin.session_attributes.dotmenu.disable.label": {
     "defaultMessage": "Disable",
     "description": "Menu item in a session attribute row's '...' menu; disables the attribute."
@@ -17227,10 +17227,6 @@
     "defaultMessage": "Member",
     "description": "Role label shown in the Role column of admin console member lists for regular (non-admin) members."
   },
-  "admin.user_item.menuAriaLabel": {
-    "defaultMessage": "User Actions Menu",
-    "description": "Accessibility label for the per-row '...' actions menu; reused here for retention policy rows in the Data Retention tables despite the 'User' wording."
-  },
   "admin.user_item.remoteUser": {
     "defaultMessage": "Remote user",
     "description": "Indicator label on a user row for a user from a remote server via shared channels."
@@ -17588,12 +17584,12 @@
     "description": "Empty-state text shown inside admin console tables when there are no rows to display."
   },
   "adminConsole.list.table.pagination.next": {
-    "defaultMessage": "Go to next page",
-    "description": "Accessibility label for the next-page arrow button below admin console tables."
+    "defaultMessage": "Next page",
+    "description": "Accessibility label and tooltip for the next-page arrow in shared list pagination controls (admin console and backstage lists)."
   },
   "adminConsole.list.table.pagination.previous": {
-    "defaultMessage": "Go to previous page",
-    "description": "Accessibility label for the previous-page arrow button below admin console tables."
+    "defaultMessage": "Previous page",
+    "description": "Accessibility label and tooltip for the previous-page arrow in shared list pagination controls (admin console and backstage lists)."
   },
   "adminConsole.list.table.rowCount.label": {
     "defaultMessage": "Show {count} rows per page",
@@ -18611,17 +18607,9 @@
     "defaultMessage": "{overflowUnnamedCount, plural, =0 {{names}} =1 {{names} and one other} other {{names} and # others}}",
     "description": "Tooltip for the overflow indicator on a stack of user avatars; {names} is a list of usernames and {overflowUnnamedCount} the count of further unnamed people."
   },
-  "backstage_list.nextButton.ariaLabel": {
-    "defaultMessage": "Next",
-    "description": "Aria-label of the icon-only next-page button in the pagination footer of backstage lists (integrations, emoji)."
-  },
   "backstage_list.paginatorCount": {
     "defaultMessage": "{startCount, number} - {endCount, number} of {total, number}",
     "description": "Pagination range indicator in the footer of backstage lists; {startCount} and {endCount} are the first/last visible item numbers, {total} is the total item count."
-  },
-  "backstage_list.previousButton.ariaLabel": {
-    "defaultMessage": "Previous",
-    "description": "Aria-label of the icon-only previous-page button in the pagination footer of backstage lists."
   },
   "backstage_list.search": {
     "defaultMessage": "Search",
@@ -23522,6 +23510,10 @@
   "generic_modal.cancel": {
     "defaultMessage": "Cancel",
     "description": "Default cancel button label of the shared generic modal component used across the app."
+  },
+  "generic_modal.close": {
+    "defaultMessage": "Close",
+    "description": ""
   },
   "generic_modal.confirm": {
     "defaultMessage": "Confirm",
@@ -29063,6 +29055,10 @@
     "defaultMessage": "Undo",
     "description": "Button in the unsaved-changes panel at the bottom of settings screens that reverts the pending changes; 'Undo' is a verb."
   },
+  "saveChangesPanel.dismiss": {
+    "defaultMessage": "Dismiss",
+    "description": ""
+  },
   "saveChangesPanel.error": {
     "defaultMessage": "There was an error saving your settings",
     "description": "Error text in the unsaved-changes panel when saving settings fails."
@@ -30446,10 +30442,6 @@
   "sidebar.sortedManually": {
     "defaultMessage": "Manually",
     "description": "Sorting option label meaning channels in a sidebar category are ordered manually by the user (drag and drop); adverb."
-  },
-  "sidebar.team_menu.button.plusIcon": {
-    "defaultMessage": "Plus Icon",
-    "description": "Accessible label of the plus icon on the team sidebar button for joining or creating teams."
   },
   "sidebar.team_menu.button.teamImage": {
     "defaultMessage": "{teamName} Team Image",
@@ -31866,6 +31858,10 @@
   "trial_benefits.modal.useSsoTitle": {
     "defaultMessage": "Use SSO (with OpenID, SAML, Google, O365)",
     "description": "Carousel slide title in the trial benefits modal; SSO means single sign-on."
+  },
+  "tutorial_tip.close": {
+    "defaultMessage": "Close",
+    "description": "Accessible name and tooltip for the dismiss control on an in-app tour tip."
   },
   "tutorial_tip.done": {
     "defaultMessage": "Done",

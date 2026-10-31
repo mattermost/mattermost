@@ -54,8 +54,8 @@
             background: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.75);
 
-            .channel-members-rhs__send-message {
-                display: block;
+            button.channel-members-rhs__send-message {
+                display: inline-flex;
                 flex: 0 0 auto;
             }
         }
@@ -106,24 +106,10 @@
         line-height: 18px;
     }
 
-    &__send-message {
+    // `button.` raises specificity so IconButton's display:inline-flex does not win the hide rule.
+    button#{&}__send-message {
         display: none;
-        width: 24px;
-        height: 24px;
-        padding: 0;
-        border: 0;
-        border-radius: 4px;
         margin-left: 8px;
-        background-color: transparent;
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.12);
-        }
-
-        .icon {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-            font-size: 14.4px;
-        }
     }
 
     &__role-chooser {
