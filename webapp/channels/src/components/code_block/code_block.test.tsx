@@ -3,22 +3,30 @@
 
 import React from 'react';
 
+import {installMessageChannel} from 'tests/helpers/message_channel';
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 
 import CodeBlock from './code_block';
 
-const actImmediate = () =>
-    act(
-        () =>
-            new Promise<void>((resolve) => {
-                setImmediate(() => {
-                    resolve();
-                });
-            }),
-    );
-
 describe('codeBlock', () => {
+    installMessageChannel();
+
+    let highlightSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        highlightSpy = jest.spyOn(SyntaxHighlighting, 'highlight');
+    });
+
+    afterEach(() => {
+        highlightSpy.mockRestore();
+    });
+
+    const waitForHighlightCalls = () => act(async () => {
+        await Promise.all(highlightSpy.mock.results.map((result) => result.value));
+    });
+
     test('should render typescript code block with syntax highlighting', async () => {
         const language = 'typescript';
         const input = `const myFunction = () => {
@@ -37,13 +45,56 @@ describe('codeBlock', () => {
 
         expect(container.querySelector('.hljs-keyword')).not.toBeInTheDocument();
 
-        // Wait for highlight.js to finish loading
-        await actImmediate();
+        await waitFor(() => {
+            expect(container.querySelector('.hljs-keyword')).toBeInTheDocument();
+        });
 
         expect(screen.getByText('TypeScript')).toBeInTheDocument();
         expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
+    });
 
-        expect(container.querySelector('.hljs-keyword')).toBeInTheDocument();
+    test('should highlight every code block when several are rendered at once', async () => {
+        const {container} = renderWithContext(
+            <>
+                <CodeBlock
+                    code='const first = 1;'
+                    language='typescript'
+                />
+                <CodeBlock
+                    code='const second = 2;'
+                    language='typescript'
+                />
+                <CodeBlock
+                    code='const third = 3;'
+                    language='typescript'
+                />
+            </>,
+        );
+
+        await waitFor(() => {
+            expect(container.querySelectorAll('code .hljs-keyword')).toHaveLength(3);
+        });
+    });
+
+    test('should not show the language or line numbers for code too long to highlight', async () => {
+        const input = 'const value = 1;\n'.repeat(400);
+
+        const {container} = renderWithContext(
+            <CodeBlock
+                code={input}
+                language='typescript'
+            />,
+        );
+
+        expect(screen.queryByText('TypeScript')).not.toBeInTheDocument();
+        expect(container.querySelector('.post-code__line-numbers')).not.toBeInTheDocument();
+
+        await waitForHighlightCalls();
+
+        expect(highlightSpy).toHaveBeenCalled();
+        expect(container.querySelector('.hljs-keyword')).not.toBeInTheDocument();
+        expect(screen.queryByText('TypeScript')).not.toBeInTheDocument();
+        expect(container.querySelector('.post-code__line-numbers')).not.toBeInTheDocument();
     });
 
     test('should render unknown language before syntax highlighting', async () => {
@@ -61,9 +112,9 @@ it shouldn't highlight, it's just garbage`;
         expect(screen.queryByText('unknownLanguage')).toBeFalsy();
         expect(container.querySelector('.post-code__line-numbers')).toBeFalsy();
 
-        // Wait for highlight.js to finish loading
-        await actImmediate();
+        await waitForHighlightCalls();
 
+        expect(highlightSpy).toHaveBeenCalled();
         expect(screen.queryByText('unknownLanguage')).toBeFalsy();
         expect(container.querySelector('.post-code__line-numbers')).toBeFalsy();
     });
@@ -86,9 +137,9 @@ it shouldn't highlight, it's just garbage`;
         expect(container.querySelector('code')).toHaveTextContent('foo foo foo foofoo foo foo foo');
         expect(container.querySelector('code')).not.toHaveTextContent('foo foo foo foo foo foo foo foo');
 
-        // Wait for highlight.js to finish loading
-        await actImmediate();
+        await waitForHighlightCalls();
 
+        expect(highlightSpy).toHaveBeenCalled();
         expect(container.querySelector('code')).toHaveTextContent('foo foo foo foofoo foo foo foo');
         expect(container.querySelector('code')).not.toHaveTextContent('foo foo foo foo foo foo foo foo');
     });
