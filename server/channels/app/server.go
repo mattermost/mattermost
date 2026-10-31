@@ -51,7 +51,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
@@ -1843,12 +1842,6 @@ func (s *Server) initJobs() {
 		model.JobTypeInstallPluginNotifyAdmin,
 		notify_admin.MakeInstallPluginNotifyWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
-	)
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeHostedPurchaseScreening,
-		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
-		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.Jobs.RegisterJobType(
