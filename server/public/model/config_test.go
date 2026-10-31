@@ -1571,6 +1571,56 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	require.Nil(t, c1.TeamSettings.isValid())
 }
 
+func TestTeamSettingsMaxUsersAndChannelsPerTeam(t *testing.T) {
+	t.Run("defaults to no limit", func(t *testing.T) {
+		config := Config{}
+		config.SetDefaults()
+
+		require.Equal(t, 0, *config.TeamSettings.MaxUsersPerTeam)
+		require.Equal(t, int64(0), *config.TeamSettings.MaxChannelsPerTeam)
+		require.Nil(t, config.TeamSettings.isValid())
+	})
+
+	for name, testCase := range map[string]struct {
+		value        int
+		expectsError bool
+	}{
+		"zero means no limit": {value: 0},
+		"positive":            {value: 50},
+		"negative":            {value: -1, expectsError: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Run("MaxUsersPerTeam", func(t *testing.T) {
+				config := Config{}
+				config.SetDefaults()
+				config.TeamSettings.MaxUsersPerTeam = new(testCase.value)
+
+				appErr := config.TeamSettings.isValid()
+				if testCase.expectsError {
+					require.NotNil(t, appErr)
+					require.Equal(t, "model.config.is_valid.max_users.app_error", appErr.Id)
+				} else {
+					require.Nil(t, appErr)
+				}
+			})
+
+			t.Run("MaxChannelsPerTeam", func(t *testing.T) {
+				config := Config{}
+				config.SetDefaults()
+				config.TeamSettings.MaxChannelsPerTeam = new(int64(testCase.value))
+
+				appErr := config.TeamSettings.isValid()
+				if testCase.expectsError {
+					require.NotNil(t, appErr)
+					require.Equal(t, "model.config.is_valid.max_channels.app_error", appErr.Id)
+				} else {
+					require.Nil(t, appErr)
+				}
+			})
+		})
+	}
+}
+
 func TestTeamSettingsLockProfileFieldsForEmailUsersIsValid(t *testing.T) {
 	for name, testCase := range map[string]struct {
 		value        string
