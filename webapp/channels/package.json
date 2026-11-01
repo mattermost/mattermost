@@ -34,7 +34,7 @@
     "@tiptap/markdown": "3.32.2",
     "@tiptap/react": "3.32.2",
     "@tiptap/starter-kit": "3.32.2",
-    "@types/color-hash": "1.0.5",
+    "@types/color-hash": "2.0.0",
     "@types/react-is": "19.3.0",
     "@types/turndown": "5.0.6",
     "bootstrap": "3.4.1",
@@ -106,7 +106,7 @@
     "timezones.json": "1.7.2",
     "tinycolor2": "1.6.0",
     "turndown": "7.2.4",
-    "web-vitals": "5.3.0",
+    "web-vitals": "6.2.3",
     "zen-observable": "0.10.0"
   },
   "devDependencies": {
@@ -123,7 +123,7 @@
     "@types/lodash": "4.17.27",
     "@types/luxon": "3.7.6",
     "@types/mark.js": "8.11.12",
-    "@types/marked": "0.7.4",
+    "@types/marked": "5.0.2",
     "@types/react": "19.3.0",
     "@types/react-bootstrap": "0.32.37",
     "@types/react-color": "3.0.13",
@@ -170,7 +170,7 @@
     "svgo": "2.8.4",
     "typescript-eslint-language-service": "5.0.5",
     "webpack-pwa-manifest": "4.3.0",
-    "yargs": "17.7.3"
+    "yargs": "18.2.0"
   },
   "overrides": {
     "@mattermost/desktop-api": {
