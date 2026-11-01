@@ -1,28 +1,13 @@
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
-  scrape_timeout: 10s
+  scrape_interval: 10s
+  evaluation_interval: 10s
+  scrape_timeout: 5s
 
 rule_files:
   - "rules/*.yml"
 
 scrape_configs:
-  # ─── Métricas nativas de Mattermost (Enterprise) ────────────────────────────
-  # Si Mattermost Team Edition no expone estas métricas, el job fallará
-  # con un error de conexión (esperado). Las reglas SLI usan OR vector()
-  # para manejar la ausencia de datos graciosamente.
-  - job_name: "mattermost"
-    metrics_path: "/metrics"
-    scrape_interval: 15s
-    static_configs:
-      - targets: ["mattermost-app:8067"]
-        labels:
-          service: "mattermost"
-          env: "production"
-
-  # ─── Blackbox Exporter: disponibilidad HTTP del servicio ────────────────────
-  # Mide si Mattermost responde correctamente a peticiones HTTP reales.
-  # Funciona INDEPENDIENTEMENTE de si MM expone /metrics internos.
+  # ─── Blackbox Exporter: disponibilidad y latencia HTTP de Mattermost ────────
   - job_name: "blackbox_http_mattermost"
     metrics_path: /probe
     params:
@@ -42,8 +27,7 @@ scrape_configs:
       - target_label: env
         replacement: production
 
-  # ─── Blackbox: métricas de latencia y disponibilidad con carga ──────────────
-  # Sondas a los endpoints principales de la API REST de Mattermost
+  # ─── Blackbox Exporter: sondeo de endpoints web para métricas de tráfico/latencia
   - job_name: "blackbox_http_api"
     metrics_path: /probe
     params:
@@ -62,10 +46,10 @@ scrape_configs:
       - target_label: env
         replacement: production
 
-  # ─── Node Exporter: métricas de CPU, Memoria, Disco y Red del host ──────────
+  # ─── Node Exporter: métricas de CPU y Memoria del host ──────────────────────
   - job_name: "node"
     static_configs:
-      - targets: ["node-exporter:9100"]
+      - targets: ["mattermost-node-exporter:9100"]
         labels:
           service: "host"
           env: "production"
@@ -73,7 +57,7 @@ scrape_configs:
   # ─── cAdvisor: métricas de contenedores Docker ──────────────────────────────
   - job_name: "cadvisor"
     static_configs:
-      - targets: ["cadvisor:8080"]
+      - targets: ["mattermost-cadvisor:8080"]
         labels:
           service: "containers"
           env: "production"
@@ -81,7 +65,7 @@ scrape_configs:
   # ─── PostgreSQL Exporter ─────────────────────────────────────────────────────
   - job_name: "postgres"
     static_configs:
-      - targets: ["postgres-exporter:9187"]
+      - targets: ["mattermost-postgres-exporter:9187"]
         labels:
           service: "postgres"
           env: "production"
