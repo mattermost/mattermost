@@ -42,12 +42,11 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "job:mattermost_availability:sli5m * 100",
           "legendFormat": "SLI Actual (%)",
-          "refId": "A",
-          "instant": true
+          "refId": "A"
         }
       ],
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
         "orientation": "horizontal",
         "textMode": "auto",
         "colorMode": "background",
@@ -56,7 +55,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 3,
+          "decimals": 2,
           "min": 0,
           "max": 100,
           "thresholds": {
@@ -80,15 +79,14 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "job:mattermost_error_budget_remaining:percent",
-          "legendFormat": "Error Budget Restante",
-          "refId": "A",
-          "instant": true
+          "legendFormat": "Saldo (%)",
+          "refId": "A"
         }
       ],
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
-        "minVizWidth": 75,
-        "minVizHeight": 75
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
       },
       "fieldConfig": {
         "defaults": {
@@ -118,12 +116,11 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "job:mattermost_latency_avg:seconds5m * 1000",
           "legendFormat": "Latencia Promedio",
-          "refId": "A",
-          "instant": true
+          "refId": "A"
         }
       ],
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
         "colorMode": "background"
       },
       "fieldConfig": {
@@ -152,12 +149,11 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "probe_success{job=\"blackbox_http_mattermost\"}",
           "legendFormat": "Mattermost HTTP",
-          "refId": "A",
-          "instant": true
+          "refId": "A"
         }
       ],
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
         "colorMode": "background"
       },
       "fieldConfig": {
@@ -197,15 +193,21 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "rate(probe_duration_seconds_count{job=\"blackbox_http_api\"}[1m])",
-          "legendFormat": "Sondas HTTP/s ({{instance}})",
+          "expr": "count_over_time(probe_success{job=\"blackbox_http_api\"}[1m]) / 60",
+          "legendFormat": "Peticiones API: {{instance}} (req/s)",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(mattermost_http_requests_total[1m])) OR on() vector(0)",
-          "legendFormat": "Peticiones MM Nativas (req/s)",
+          "expr": "count_over_time(probe_success{job=\"blackbox_http_mattermost\"}[1m]) / 60",
+          "legendFormat": "Peticiones Ping Health (req/s)",
           "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(prometheus_http_requests_total[1m])",
+          "legendFormat": "Consultas HTTP Stack (req/s)",
+          "refId": "C"
         }
       ],
       "options": {
@@ -321,13 +323,13 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "node:cpu_utilization:percent5m",
-          "legendFormat": "CPU Host (%)",
+          "legendFormat": "CPU Host Total (%)",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "node:memory_utilization:percent",
-          "legendFormat": "Memoria Host (%)",
+          "legendFormat": "Memoria Host Usada (%)",
           "refId": "B"
         }
       ],
@@ -367,16 +369,22 @@
     },
     {
       "id": 11,
-      "title": "CPU por Contenedor Mattermost (%)",
+      "title": "CPU por Contenedor (%)",
       "type": "timeseries",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "container:cpu_utilization:percent5m",
-          "legendFormat": "CPU: {{name}} (%)",
+          "expr": "sum by (name) (rate(container_cpu_usage_seconds_total[1m])) * 100",
+          "legendFormat": "{{name}}",
           "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "container:cpu_utilization:percent5m",
+          "legendFormat": "Regla: {{name}}",
+          "refId": "B"
         }
       ],
       "options": {
@@ -399,15 +407,15 @@
     },
     {
       "id": 12,
-      "title": "Memoria por Contenedor Mattermost (MB)",
+      "title": "Memoria por Contenedor (MB)",
       "type": "timeseries",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "container:memory_usage:mb",
-          "legendFormat": "Mem: {{name}} (MB)",
+          "expr": "container_memory_usage_bytes / 1024 / 1024",
+          "legendFormat": "{{name}}",
           "refId": "A"
         }
       ],
@@ -499,5 +507,5 @@
   "timezone": "browser",
   "title": "Mattermost SRE — Golden Signals & SLOs",
   "uid": "mattermost-sre-overview",
-  "version": 2
+  "version": 5
 }

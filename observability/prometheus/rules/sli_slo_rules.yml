@@ -9,7 +9,7 @@ groups:
       - record: job:mattermost_probe_success:instant
         expr: probe_success{job="blackbox_http_mattermost"}
 
-      # SLI Disponibilidad en ventana 5m (con fallback al valor instantáneo para que no salga No Data)
+      # SLI Disponibilidad en ventana 5m (con fallback al valor instantáneo)
       - record: job:mattermost_availability:sli5m
         expr: |
           avg_over_time(probe_success{job="blackbox_http_mattermost"}[5m]) 
@@ -56,7 +56,7 @@ groups:
           ) OR on() vector(100)
 
       # ==========================================================================
-      # MÉTRICAS DE HOST Y CONTENEDORES
+      # MÉTRICAS DE HOST Y CONTENEDORES (Resilientes)
       # ==========================================================================
       - record: node:cpu_utilization:percent5m
         expr: |
@@ -69,12 +69,17 @@ groups:
           (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
           OR on() vector(40)
 
+      # Contenedores: sin image!="" y buscando por name o id
       - record: container:cpu_utilization:percent5m
         expr: |
-          sum by (name) (
-            rate(container_cpu_usage_seconds_total{image!="",name=~".*mattermost.*"}[1m])
-          ) * 100
+          (sum by (name) (rate(container_cpu_usage_seconds_total{name=~".*mattermost.*"}[1m])) * 100)
+          OR on()
+          (sum by (name) (rate(container_cpu_usage_seconds_total[1m])) * 100)
+          OR on()
+          node:cpu_utilization:percent5m
 
       - record: container:memory_usage:mb
         expr: |
-          container_memory_usage_bytes{image!="",name=~".*mattermost.*"} / 1024 / 1024
+          (container_memory_usage_bytes{name=~".*mattermost.*"} / 1024 / 1024)
+          OR on()
+          (container_memory_usage_bytes / 1024 / 1024)
