@@ -69,7 +69,7 @@
     "marked": "github:mattermost/marked#467bc9e99fc75d69424188dfbea7fe0409a9fc15",
     "memoize-one": "6.0.0",
     "moment-timezone": "0.6.6",
-    "monaco-editor": "0.52.2",
+    "monaco-editor": "0.57.0",
     "monaco-editor-webpack-plugin": "7.1.1",
     "p-queue": "7.4.1",
     "pdfjs-dist": "4.10.38",
