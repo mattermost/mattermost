@@ -1,0 +1,117 @@
+groups:
+  - name: mattermost_burn_rate_alerts
+    rules:
+      # =====================================================================
+      # ALERTAS DE BURN RATE (SRE Multi-Window, Multi-Burn-Rate)
+      # SLO Target: 99.5% disponibilidad
+      # Error Budget Allowed: 0.5% (0.005)
+      # Basado en: Google SRE Workbook - Chapter 5
+      # =====================================================================
+
+      # ─── 1. CRÍTICO: Burn Rate > 14.4x (Page / Inmediata) ────────────────
+      # Consume el Error Budget en ~2 días. Requiere respuesta inmediata.
+      # Señal: error_rate > 14.4 * 0.005 = 7.2% de peticiones fallando
+      - alert: MattermostHighBurnRateCritical
+        expr: |
+          job:mattermost_error_rate:ratio5m > (14.4 * (1 - 0.995))
+        for: 2m
+        labels:
+          severity: critical
+          tier: sre-alerts
+        annotations:
+          summary: "🔴 Consumo crítico de Error Budget (Burn Rate > 14.4x)"
+          description: |
+            Mattermost tiene una tasa de indisponibilidad del {{ $value | humanizePercentage }}.
+            A este ritmo se agotará el Error Budget mensual en menos de 48 horas.
+            Acción inmediata requerida.
+          runbook_url: "https://github.com/sespinosab/mattermost/blob/master/observability/runbooks/incident-response-runbook.md"
+
+      # ─── 2. ADVERTENCIA: Burn Rate > 6x (Ticket / Alertar equipo) ─────────
+      # Consume el Error Budget en ~5 días. Requiere atención en horas.
+      # Señal: error_rate > 6 * 0.005 = 3% de peticiones fallando por >5min
+      - alert: MattermostElevatedBurnRateWarning
+        expr: |
+          job:mattermost_error_rate:ratio5m > (6 * (1 - 0.995))
+        for: 5m
+        labels:
+          severity: warning
+          tier: sre-alerts
+        annotations:
+          summary: "🟡 Consumo elevado de Error Budget (Burn Rate > 6x)"
+          description: |
+            La tasa de indisponibilidad es {{ $value | humanizePercentage }} sostenida por 5+ minutos.
+            Si continúa, se consumirá >10% del Error Budget mensual en 12 horas.
+          runbook_url: "https://github.com/sespinosab/mattermost/blob/master/observability/runbooks/incident-response-runbook.md"
+
+      # ─── 3. LATENCIA: SLO Rendimiento violado (P95 > 250ms) ──────────────
+      - alert: MattermostLatencySLODegraded
+        expr: |
+          job:mattermost_latency_avg:seconds5m > 0.250
+        for: 3m
+        labels:
+          severity: warning
+          tier: sre-alerts
+        annotations:
+          summary: "🟡 Violación de SLO de Latencia (Promedio > 250ms)"
+          description: |
+            La latencia promedio de respuesta HTTP es de {{ $value | humanizeDuration }},
+            superando el objetivo de 250ms durante 3+ minutos.
+          runbook_url: "https://github.com/sespinosab/mattermost/blob/master/observability/runbooks/incident-response-runbook.md"
+
+      # ─── 4. SERVICIO CAÍDO: Mattermost no responde ────────────────────────
+      - alert: MattermostServiceDown
+        expr: |
+          probe_success{job="blackbox_http_mattermost"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "🔴 Mattermost no responde a peticiones HTTP"
+          description: |
+            El health check de Mattermost ({{ $labels.instance }}) ha fallado por 1+ minutos.
+            El servicio puede estar caído o inaccesible.
+          runbook_url: "https://github.com/sespinosab/mattermost/blob/master/observability/runbooks/incident-response-runbook.md"
+
+      # ─── 5. BASE DE DATOS: PostgreSQL inaccesible ─────────────────────────
+      - alert: MattermostDatabaseDown
+        expr: |
+          pg_up == 0
+        for: 30s
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "🔴 PostgreSQL Database Engine Down"
+          description: |
+            La base de datos PostgreSQL de Mattermost no responde.
+            Esto causará fallo total del servicio de mensajería.
+          runbook_url: "https://github.com/sespinosab/mattermost/blob/master/observability/runbooks/incident-response-runbook.md"
+
+      # ─── 6. INFRAESTRUCTURA: CPU del host alto ────────────────────────────
+      - alert: HostHighCPUUsage
+        expr: |
+          node:cpu_utilization:percent5m > 85
+        for: 5m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "🟡 Uso de CPU del host superior al 85%"
+          description: |
+            El host tiene {{ $value | humanize }}% de CPU utilizada durante 5+ minutos.
+            Revisar procesos y posible saturación del sistema.
+
+      # ─── 7. INFRAESTRUCTURA: Memoria del host alta ────────────────────────
+      - alert: HostHighMemoryUsage
+        expr: |
+          node:memory_utilization:percent > 90
+        for: 3m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "🟡 Uso de memoria del host superior al 90%"
+          description: |
+            El host tiene {{ $value | humanize }}% de memoria utilizada.
+            Riesgo de OOM killer activo.

@@ -1,0 +1,92 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+rule_files:
+  - "rules/*.yml"
+
+scrape_configs:
+  # ─── Métricas nativas de Mattermost (Enterprise) ────────────────────────────
+  # Si Mattermost Team Edition no expone estas métricas, el job fallará
+  # con un error de conexión (esperado). Las reglas SLI usan OR vector()
+  # para manejar la ausencia de datos graciosamente.
+  - job_name: "mattermost"
+    metrics_path: "/metrics"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["mattermost-app:8067"]
+        labels:
+          service: "mattermost"
+          env: "production"
+
+  # ─── Blackbox Exporter: disponibilidad HTTP del servicio ────────────────────
+  # Mide si Mattermost responde correctamente a peticiones HTTP reales.
+  # Funciona INDEPENDIENTEMENTE de si MM expone /metrics internos.
+  - job_name: "blackbox_http_mattermost"
+    metrics_path: /probe
+    params:
+      module: [http_mattermost_ping]
+    static_configs:
+      - targets:
+          - http://mattermost-app:8065/api/v4/system/ping
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: mattermost-blackbox:9115
+      - target_label: service
+        replacement: mattermost
+      - target_label: env
+        replacement: production
+
+  # ─── Blackbox: métricas de latencia y disponibilidad con carga ──────────────
+  # Sondas a los endpoints principales de la API REST de Mattermost
+  - job_name: "blackbox_http_api"
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://mattermost-app:8065/
+          - http://mattermost-app:8065/api/v4/system/ping
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: mattermost-blackbox:9115
+      - target_label: env
+        replacement: production
+
+  # ─── Node Exporter: métricas de CPU, Memoria, Disco y Red del host ──────────
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+        labels:
+          service: "host"
+          env: "production"
+
+  # ─── cAdvisor: métricas de contenedores Docker ──────────────────────────────
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+        labels:
+          service: "containers"
+          env: "production"
+
+  # ─── PostgreSQL Exporter ─────────────────────────────────────────────────────
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+        labels:
+          service: "postgres"
+          env: "production"
+
+  # ─── Prometheus self-monitoring ──────────────────────────────────────────────
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

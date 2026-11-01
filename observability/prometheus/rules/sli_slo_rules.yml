@@ -1,0 +1,125 @@
+groups:
+  - name: mattermost_sli_slo_rules
+    interval: 15s
+    rules:
+      # ==========================================================================
+      # SLI 1: DISPONIBILIDAD
+      # Fuente primaria: blackbox_exporter (probe_success)
+      # Fuente secundaria: métricas nativas MM (si disponibles)
+      # SLO objetivo: 99.5% de disponibilidad en ventana de 30 días
+      # ==========================================================================
+
+      # Disponibilidad instantánea medida por Blackbox (0 o 1)
+      - record: job:mattermost_probe_success:instant
+        expr: probe_success{job="blackbox_http_mattermost"}
+
+      # SLI Disponibilidad en ventana 5m (blackbox)
+      # avg_over_time convierte la señal 0/1 del probe en ratio de disponibilidad
+      - record: job:mattermost_availability:sli5m
+        expr: |
+          avg_over_time(probe_success{job="blackbox_http_mattermost"}[5m])
+
+      # SLI Disponibilidad en ventana 30m
+      - record: job:mattermost_availability:sli30m
+        expr: |
+          avg_over_time(probe_success{job="blackbox_http_mattermost"}[30m])
+
+      # SLI Disponibilidad en ventana 1h
+      - record: job:mattermost_availability:sli1h
+        expr: |
+          avg_over_time(probe_success{job="blackbox_http_mattermost"}[1h])
+
+      # ==========================================================================
+      # SLI 2: LATENCIA (RENDIMIENTO)
+      # Fuente: probe_duration_seconds del blackbox (medición real de latencia)
+      # SLO objetivo: P95 < 250ms (0.250 segundos)
+      # ==========================================================================
+
+      # Latencia P95 de respuesta HTTP medida por blackbox (ventana 5m)
+      - record: job:mattermost_latency_p95:seconds5m
+        expr: |
+          histogram_quantile(0.95,
+            rate(probe_duration_seconds_bucket{job="blackbox_http_api"}[5m])
+          ) OR on() avg_over_time(probe_duration_seconds{job="blackbox_http_mattermost"}[5m])
+
+      # Latencia promedio en ventana 5m
+      - record: job:mattermost_latency_avg:seconds5m
+        expr: |
+          avg_over_time(probe_duration_seconds{job="blackbox_http_mattermost"}[5m])
+
+      # ==========================================================================
+      # SLI 3: TASA DE ERROR
+      # 0 = sin errores (probe exitoso), 1 = error total
+      # ==========================================================================
+
+      # Tasa de error instantánea (inverso de disponibilidad)
+      - record: job:mattermost_error_rate:ratio5m
+        expr: |
+          1 - avg_over_time(probe_success{job="blackbox_http_mattermost"}[5m])
+
+      # Tasa de error en ventana 30m (para cálculo de Error Budget)
+      - record: job:mattermost_error_rate:ratio30m
+        expr: |
+          1 - avg_over_time(probe_success{job="blackbox_http_mattermost"}[30m])
+
+      # ==========================================================================
+      # TRÁFICO (si métricas nativas de MM están disponibles)
+      # OR on() vector(0) previene errores cuando el job falla
+      # ==========================================================================
+
+      - record: job:mattermost_http_requests:rate5m
+        expr: |
+          sum(rate(mattermost_http_requests_total[5m])) OR on() vector(0)
+
+      - record: job:mattermost_http_errors:rate5m
+        expr: |
+          sum(rate(mattermost_http_errors_total[5m])) OR on() vector(0)
+
+      # ==========================================================================
+      # ERROR BUDGET CALCULATIONS
+      # SLO = 99.5%  →  Error Budget = 0.5% = 0.005
+      # Ventana de evaluación: 30 días
+      # ==========================================================================
+
+      # Saldo restante del Error Budget (100% = todo el presupuesto intacto)
+      # Si availability=0.998 → (0.998-0.995)/0.005 * 100 = 60% restante
+      # Si availability=1.000 → (1.000-0.995)/0.005 * 100 = 100% restante
+      # Si availability=0.990 → (0.990-0.995)/0.005 * 100 = -100% → clamp a 0
+      - record: job:mattermost_error_budget_remaining:percent
+        expr: |
+          clamp_max(
+            clamp_min(
+              ( (job:mattermost_availability:sli30m - 0.995) / (1 - 0.995) ) * 100,
+              0
+            ),
+            100
+          )
+
+      # ==========================================================================
+      # MÉTRICAS DE INFRAESTRUCTURA (node-exporter y cAdvisor)
+      # Siempre disponibles independientemente de MM Edition
+      # ==========================================================================
+
+      # CPU del host en porcentaje (modo "idle" invertido)
+      - record: node:cpu_utilization:percent5m
+        expr: |
+          100 - (avg by (instance) (
+            rate(node_cpu_seconds_total{mode="idle"}[5m])
+          ) * 100)
+
+      # Memoria del host en porcentaje utilizado
+      - record: node:memory_utilization:percent
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+      # CPU de contenedores (cAdvisor) - solo contenedores reales (image!="")
+      - record: container:cpu_utilization:percent5m
+        expr: |
+          sum by (name) (
+            rate(container_cpu_usage_seconds_total{image!="",name=~"mattermost.*"}[5m])
+          ) * 100
+
+      # Memoria de contenedores en MB
+      - record: container:memory_usage:mb
+        expr: |
+          container_memory_usage_bytes{image!="",name=~"mattermost.*"} / 1024 / 1024

@@ -1,0 +1,29 @@
+modules:
+  # Sonda HTTP básica: verifica que el servicio responde 2xx
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: []  # cualquier 2xx
+      method: GET
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"
+      ip_protocol_fallback: true
+
+  # Sonda HTTP GET con validación de cuerpo (para health check de Mattermost)
+  http_mattermost_ping:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"
+      ip_protocol_fallback: true
+
+  # Sonda TCP: verifica que el puerto esté abierto
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
