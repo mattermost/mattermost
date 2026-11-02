@@ -2189,6 +2189,18 @@ func TestAccessControlPolicyAutoAddWire(t *testing.T) {
 
 func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInterface {
 	t.Helper()
+	mockACS := setupTeamAdminABACService(t, th)
+	allowSelfInclusion(mockACS, th.TeamAdminUser.Id)
+	return mockACS
+}
+
+// setupTeamAdminABACService applies the team-admin ABAC test config without
+// stubbing QueryUsersForExpression. setupTeamAdminABAC adds allowSelfInclusion
+// on top. Tests that need one expression to match the caller and another not
+// to match register QueryUsersForExpression themselves: allowSelfInclusion's
+// match-any expectation is registered first and would win for every expression.
+func setupTeamAdminABACService(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInterface {
+	t.Helper()
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.True(t, ok, "SetLicense should return true")
 
@@ -2201,7 +2213,6 @@ func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServic
 	})
 
 	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
-	allowSelfInclusion(mockACS, th.TeamAdminUser.Id)
 	return mockACS
 }
 
@@ -3028,6 +3039,201 @@ func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
 		defer r.Body.Close()
 		require.Equal(t, 400, r.StatusCode)
 	})
+}
+
+// TestAccessControlPolicyTeamAdminStoredRules checks team-admin requests for a
+// parent policy against that policy's stored rules.
+//
+// When the caller does not satisfy the stored rules, the handler returns 403
+// with the manage_team_access_rules permission error. When the caller does
+// satisfy the stored rules, the handler returns 200.
+//
+// Update submits a different expression, one the caller does satisfy. Delete
+// uses a parent with no channel children. The other cases persist a child
+// channel policy on a private channel of the caller's team so the parent is
+// assigned to that channel.
+func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Distinct from newParentPolicy's stored expression. The update row submits
+	// this expression, which the caller satisfies, while the stored expression
+	// does not.
+	const submittedExpr = "user.attributes.department == 'platform'"
+
+	type storedRuleCase struct {
+		name               string
+		action             string
+		callerSatisfies    bool
+		withPrivateChannel bool
+		systemAdmin        bool
+		want               int
+	}
+
+	cases := []storedRuleCase{
+		{name: "assign when caller does not satisfy stored rules", action: "assign", withPrivateChannel: true, want: http.StatusForbidden},
+		{name: "unassign when caller does not satisfy stored rules", action: "unassign", withPrivateChannel: true, want: http.StatusForbidden},
+		{name: "activate when caller does not satisfy stored rules", action: "activate", withPrivateChannel: true, want: http.StatusForbidden},
+		{name: "update when caller does not satisfy stored rules", action: "update", withPrivateChannel: true, want: http.StatusForbidden},
+		{name: "delete when caller does not satisfy stored rules", action: "delete", want: http.StatusForbidden},
+		{name: "get when caller does not satisfy stored rules", action: "get", withPrivateChannel: true, want: http.StatusForbidden},
+		{name: "get channels when caller does not satisfy stored rules", action: "get_channels", withPrivateChannel: true, want: http.StatusForbidden},
+		{name: "search channels when caller does not satisfy stored rules", action: "search_channels", withPrivateChannel: true, want: http.StatusForbidden},
+		{name: "get when caller satisfies stored rules", action: "get", callerSatisfies: true, withPrivateChannel: true, want: http.StatusOK},
+		{name: "assign when caller satisfies stored rules", action: "assign", callerSatisfies: true, withPrivateChannel: true, want: http.StatusOK},
+		{name: "update when caller satisfies stored rules", action: "update", callerSatisfies: true, withPrivateChannel: true, want: http.StatusOK},
+		{name: "delete when caller satisfies stored rules", action: "delete", callerSatisfies: true, want: http.StatusOK},
+		{name: "get for a system admin when stored rules match no user", action: "get", withPrivateChannel: true, systemAdmin: true, want: http.StatusOK},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockACS := setupTeamAdminABACService(t, th)
+			mockACS.Test(t)
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.EnableDeveloper = true
+			})
+
+			parent := newParentPolicy(th.BasicTeam.Id)
+			require.NotEmpty(t, parent.Rules)
+			storedExpr := parent.Rules[0].Expression
+			require.NotEqual(t, storedExpr, submittedExpr)
+
+			savedParent, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parent)
+			require.NoError(t, err)
+			t.Cleanup(func() {
+				_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedParent.ID)
+			})
+
+			var linked *model.Channel
+			if tc.withPrivateChannel {
+				linked = th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+				child := &model.AccessControlPolicy{
+					ID:      linked.Id,
+					Type:    model.AccessControlPolicyTypeChannel,
+					Version: model.AccessControlPolicyVersionV0_3,
+					Props:   map[string]any{},
+				}
+				require.Nil(t, child.Inherit(savedParent))
+				savedChild, childErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, child)
+				require.NoError(t, childErr)
+				t.Cleanup(func() {
+					_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedChild.ID)
+				})
+				mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), linked.Id).
+					Return(savedChild, nil).Maybe()
+			}
+
+			var assignTarget *model.Channel
+			if tc.action == "assign" {
+				assignTarget = th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+			}
+
+			matchedUser := []*model.User{}
+			matchedCount := int64(0)
+			if tc.callerSatisfies {
+				matchedUser = []*model.User{{Id: th.TeamAdminUser.Id}}
+				matchedCount = 1
+			}
+			// Register the stored expression before any broader expectation.
+			// testify uses the first match.
+			mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), storedExpr, mock.Anything).
+				Return(matchedUser, matchedCount, nil).Maybe()
+			if tc.action == "update" && !tc.callerSatisfies {
+				mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), submittedExpr, mock.Anything).
+					Return([]*model.User{{Id: th.TeamAdminUser.Id}}, int64(1), nil).Maybe()
+			}
+
+			mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedParent.ID).
+				Return(savedParent, nil).Maybe()
+			notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
+			mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.Anything).
+				Return(nil, notFound).Maybe()
+			mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+				Return(func(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+					return policy, nil
+				}).Maybe()
+			mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), mock.Anything).
+				Return(nil).Maybe()
+			mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+				Return(func(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+					return policy, nil
+				}).Maybe()
+
+			client := th.Client
+			if tc.systemAdmin {
+				client = th.SystemAdminClient
+			} else {
+				makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+				defer th.LoginBasic(t)
+			}
+
+			teamQuery := "?team_id=" + th.BasicTeam.Id
+			var resp *http.Response
+			switch tc.action {
+			case "assign":
+				resp, err = client.DoAPIPostJSON(context.Background(),
+					"/access_control_policies/"+savedParent.ID+"/assign",
+					map[string]any{
+						"channel_ids": []string{assignTarget.Id},
+						"team_id":     th.BasicTeam.Id,
+					})
+			case "unassign":
+				resp, err = client.DoAPIDeleteJSON(context.Background(),
+					"/access_control_policies/"+savedParent.ID+"/unassign",
+					map[string]any{
+						"channel_ids": []string{linked.Id},
+						"team_id":     th.BasicTeam.Id,
+					})
+			case "activate":
+				resp, err = client.DoAPIPutJSON(context.Background(),
+					"/access_control_policies/activate",
+					model.AccessControlPolicyActiveUpdateRequest{
+						TeamID: th.BasicTeam.Id,
+						Entries: []model.AccessControlPolicyActiveUpdate{
+							{ID: savedParent.ID, Active: true},
+						},
+					})
+			case "update":
+				body := *savedParent
+				if !tc.callerSatisfies {
+					body.Rules = []model.AccessControlPolicyRule{{
+						Expression: submittedExpr,
+						Actions:    []string{"membership"},
+					}}
+				}
+				resp, err = client.DoAPIPutJSON(context.Background(),
+					"/access_control_policies"+teamQuery,
+					&body)
+			case "delete":
+				resp, err = client.DoAPIDelete(context.Background(),
+					"/access_control_policies/"+savedParent.ID+teamQuery)
+			case "get":
+				resp, err = client.DoAPIGet(context.Background(),
+					"/access_control_policies/"+savedParent.ID+teamQuery, "")
+			case "get_channels":
+				resp, err = client.DoAPIGet(context.Background(),
+					"/access_control_policies/"+savedParent.ID+"/resources/channels"+teamQuery+"&limit=100", "")
+			case "search_channels":
+				resp, err = client.DoAPIPostJSON(context.Background(),
+					"/access_control_policies/"+savedParent.ID+"/resources/channels/search"+teamQuery,
+					map[string]any{})
+			default:
+				t.Fatalf("unknown action %s", tc.action)
+			}
+			require.NotNil(t, resp)
+			defer resp.Body.Close()
+			require.Equalf(t, tc.want, resp.StatusCode, "status got %d want %d", resp.StatusCode, tc.want)
+			if tc.want != http.StatusForbidden {
+				require.NoError(t, err)
+				return
+			}
+
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			require.Equal(t, "api.context.permissions.app_error", appErr.Id)
+			require.Contains(t, appErr.DetailedError, "permission="+model.PermissionManageTeamAccessRules.Id)
+		})
+	}
 }
 
 func TestScopeReconciliationCrossTeam(t *testing.T) {
