@@ -17,7 +17,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LogFormatMenu from './log_format_menu';
 import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
-import type {LogObjectWithAdditionalInfo} from './types';
+import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
 import useLogPolling from './use_log_polling';
 import {LEVEL_GROUPS, groupLevels, presetStartMs} from './utils';
 
@@ -109,7 +109,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
     const [initialPrefs] = useState(loadPrefs);
     const [enabledLevels, setEnabledLevels] = useState(() => new Set(initialPrefs.enabledLevels));
     const [selectedNode, setSelectedNode] = useState(initialPrefs.node);
-    const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);
+    const [timeRange, setTimeRange] = useState<TimeRange>(null);
     const [plainPage, setPlainPage] = useState(0);
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
@@ -152,7 +152,15 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
             setLoading(true);
         }
 
-        const rangeStart = activeTimePreset === null ? null : presetStartMs(activeTimePreset);
+        // A preset has no end, so the server ends the range at its own clock rather than the browser's
+        let rangeStart: number | null = null;
+        let rangeEnd: number | null = null;
+        if (typeof timeRange === 'number') {
+            rangeStart = presetStartMs(timeRange);
+        } else if (timeRange) {
+            rangeStart = timeRange.from;
+            rangeEnd = timeRange.to;
+        }
         setTimeRangeStart(rangeStart);
 
         const fetchLogs = async () => {
@@ -174,12 +182,11 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
             const since = lastFetchStartRef.current === null ? rangeStart : Math.max(lastFetchStartRef.current - POLL_OVERLAP_MS, rangeStart ?? 0);
             const startedAt = Date.now();
 
-            // No end date, so the server ends the range at its own clock rather than the browser's
             const query = {
                 serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES,
                 logLevels,
                 dateFrom: since === null ? '' : formatFilterDate(new Date(since)),
-                dateTo: '',
+                dateTo: rangeEnd === null ? '' : formatFilterDate(new Date(rangeEnd)),
                 search,
             };
             const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query));
@@ -197,7 +204,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
         });
         fetchQueueRef.current = fetched.catch(() => undefined);
         return fetched;
-    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, search, actions]);
+    }, [isPlainLogs, plainPage, timeRange, enabledLevels, selectedNode, search, actions]);
 
     // reload's deps are the query's inputs, so this also covers every filter and page change
     useEffect(() => {
@@ -227,7 +234,13 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
         }
     }, []);
 
-    const clearTimePreset = useCallback(() => setActiveTimePreset(null), []);
+    const clearTimeRange = useCallback(() => setTimeRange(null), []);
+
+    // A range that ends in the past has nothing new to tail
+    const applyCustomRange = useCallback((range: CustomTimeRange) => {
+        setTimeRange(range);
+        setLiveTailEnabled(false);
+    }, []);
 
     const logFormatMenu = configIsPlainLogs ? null : (
         <LogFormatMenu
@@ -270,10 +283,11 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
             pollIntervals={POLL_INTERVALS}
             pollIntervalLabels={POLL_INTERVAL_LABELS}
             timePresets={TIME_PRESETS}
-            activeTimePreset={activeTimePreset}
+            timeRange={timeRange}
             timeRangeStart={timeRangeStart}
-            onTimePreset={setActiveTimePreset}
-            onClearTimePreset={clearTimePreset}
+            onTimePreset={setTimeRange}
+            onCustomRange={applyCustomRange}
+            onClearTimeRange={clearTimeRange}
             logFormatMenu={logFormatMenu}
         />
     );

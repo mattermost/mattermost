@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {ArrowDownIcon, ArrowUpIcon, DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
@@ -14,7 +16,10 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {LogNodeKey} from '@mattermost/types/admin';
 
 import {General} from 'mattermost-redux/constants';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
+
+import {isUseMilitaryTime} from 'selectors/preferences';
 
 import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
@@ -23,9 +28,10 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {useLatest} from 'hooks/useLatest';
 
+import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
-import type {LogObjectWithAdditionalInfo} from './types';
+import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
 import {LEVEL_GROUPS, levelGroup, newestLogTimes} from './utils';
 
 import './log_list.scss';
@@ -62,12 +68,13 @@ type Props = {
     pollIntervalLabels: Record<number, MessageDescriptor>;
 
     timePresets: readonly TimePreset[];
-    activeTimePreset: number | null;
+    timeRange: TimeRange;
 
     // Where the active time range starts, moved on by the parent with every fetch
     timeRangeStart: number | null;
     onTimePreset: (minutes: number) => void;
-    onClearTimePreset: () => void;
+    onCustomRange: (range: CustomTimeRange) => void;
+    onClearTimeRange: () => void;
 
     // Rendered alongside the other filters so both viewers share one filter row
     logFormatMenu?: React.ReactNode;
@@ -94,6 +101,7 @@ const LEVEL_LABELS = defineMessages({
 
 const messages = defineMessages({
     allTime: {id: 'admin.logs.time.allTime', defaultMessage: 'All time'},
+    customRange: {id: 'admin.logs.time.custom', defaultMessage: 'Custom range…'},
     allLevels: {id: 'admin.logs.allLevels', defaultMessage: 'All levels'},
     liveTail: {id: 'admin.logs.liveTail', defaultMessage: 'Live tail'},
     liveTailOff: {id: 'admin.logs.liveTail.off', defaultMessage: 'Off'},
@@ -102,6 +110,8 @@ const messages = defineMessages({
 });
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
+
+const LIVE_TAIL_UNAVAILABLE_ID = 'serverLogsLiveTailUnavailable';
 
 type StoredPrefs = {
     pageSize: number;
@@ -175,7 +185,7 @@ function isNewerThan(log: LogObjectWithAdditionalInfo, times: NodeTimes): boolea
 
 // Older nodes ignore the server's date filter, and a node switch shows before its fetch returns.
 // Returns the same array when nothing is dropped, so a moved cutoff only re-sorts when it matters
-function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, cutoff: number | null) {
+function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, cutoff: number | null, end: number | null) {
     if (!selectedNode && cutoff === null) {
         return logs;
     }
@@ -189,7 +199,7 @@ function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, cu
             return true;
         }
         const time = logEntryTime(log);
-        return Number.isNaN(time) || time >= cutoff;
+        return Number.isNaN(time) || (time >= cutoff && (end === null || time <= end));
     });
     return scoped.length === logs.length ? logs : scoped;
 }
@@ -220,10 +230,14 @@ export default function LogList({
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
     pollIntervals, pollIntervalLabels,
-    timePresets, activeTimePreset, timeRangeStart, onTimePreset, onClearTimePreset,
+    timePresets, timeRange, timeRangeStart, onTimePreset, onCustomRange, onClearTimeRange,
     logFormatMenu,
 }: Props) {
+    const customRange = typeof timeRange === 'number' ? null : timeRange;
     const intl = useIntl();
+    const timezone = useSelector(getCurrentTimezone);
+    const isMilitaryTime = useSelector(isUseMilitaryTime);
+    const [showCustomRangeModal, setShowCustomRangeModal] = useState(false);
     const initialPrefs = useMemo(() => loadPrefs(), []);
 
     const [page, setPage] = useState(0);
@@ -300,7 +314,13 @@ export default function LogList({
         setTail((prev) => (prev?.highlight && prev.highlight.page !== page ? {...prev, highlight: null} : prev));
     }, [page]);
 
-    const inRangeLogs = useMemo(() => scopeLogs(logs, selectedNode, activeTimePreset === null ? null : timeRangeStart), [logs, selectedNode, activeTimePreset, timeRangeStart]);
+    // A custom range is fixed, so it doesn't wait on the parent's fetch to move its start
+    const inRangeLogs = useMemo(() => {
+        if (customRange) {
+            return scopeLogs(logs, selectedNode, customRange.from, customRange.to);
+        }
+        return scopeLogs(logs, selectedNode, timeRange === null ? null : timeRangeStart, null);
+    }, [logs, selectedNode, timeRange, timeRangeStart, customRange]);
 
     const {scopedLogs, heldLogs} = useMemo(() => {
         if (!tail) {
@@ -376,7 +396,7 @@ export default function LogList({
         setPage(0);
         setExpandedKey(null);
         setFocusedKey(null);
-    }, [search, enabledLevels, sortAsc, selectedNode, activeTimePreset]);
+    }, [search, enabledLevels, sortAsc, selectedNode, timeRange]);
 
     // Clamp the page when a reload or poll shrinks the dataset
     useEffect(() => {
@@ -494,7 +514,20 @@ export default function LogList({
         }
     }, [visibleLogs, rowKeys, focusedIndex, focusRow]);
 
-    const activePresetLabel = timePresets.find((preset) => preset.minutes === activeTimePreset)?.label;
+    const activePresetLabel = timePresets.find((preset) => preset.minutes === timeRange)?.label;
+
+    // The end is never in the future, so a start in this year means the whole range is
+    const yearOf = (time: number) => intl.formatDate(time, {year: 'numeric', timeZone: timezone});
+    const showsYear = customRange !== null && yearOf(customRange.from) !== yearOf(Date.now());
+    const durationValue = customRange ? intl.formatDateTimeRange(customRange.from, customRange.to, {
+        year: showsYear ? 'numeric' : undefined,
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hourCycle: isMilitaryTime ? 'h23' : 'h12',
+        timeZone: timezone,
+    }) : intl.formatMessage(activePresetLabel ?? messages.allTime);
     const enabledLevelCount = LEVEL_GROUPS.filter((level) => enabledLevels.has(level)).length;
 
     // One selector for on/off and the interval, so picking an interval turns polling on
@@ -663,6 +696,14 @@ export default function LogList({
                         />
                     ),
                 }}
+                menuHeader={customRange && (
+                    <p id={LIVE_TAIL_UNAVAILABLE_ID}>
+                        <FormattedMessage
+                            id='admin.logs.liveTail.customRange'
+                            defaultMessage='Not available with a custom time range'
+                        />
+                    </p>
+                )}
                 menu={{
                     id: 'serverLogsLiveTailMenu',
                     'aria-label': intl.formatMessage({id: 'admin.logs.liveTail.dropdownAriaLabel', defaultMessage: 'Live tail menu'}),
@@ -683,6 +724,8 @@ export default function LogList({
                         key={interval}
                         id={`serverLogsLiveTail-${interval}`}
                         role='menuitemradio'
+                        disabled={customRange !== null}
+                        aria-describedby={customRange ? LIVE_TAIL_UNAVAILABLE_ID : undefined}
                         aria-checked={liveTailEnabled && interval === pollInterval}
                         forceCloseOnSelect={true}
                         labels={<FormattedMessage {...pollIntervalLabels[interval]}/>}
@@ -695,14 +738,17 @@ export default function LogList({
             <Menu.Container
                 menuButton={{
                     id: 'serverLogsDurationMenuButton',
-                    class: 'inputWithMenu',
+                    class: classNames('inputWithMenu', {
+                        'LogViewer__duration--custom': customRange,
+                        'LogViewer__duration--custom-year': showsYear,
+                    }),
                     'aria-label': intl.formatMessage({id: 'admin.logs.duration.menuButtonAriaLabel', defaultMessage: 'Open menu to select a time range'}),
                     as: 'div',
                     children: (
                         <Input
                             label={intl.formatMessage({id: 'admin.logs.duration', defaultMessage: 'Duration'})}
                             name='serverLogsDuration'
-                            value={intl.formatMessage(activePresetLabel ?? messages.allTime)}
+                            value={durationValue}
                             readOnly={true}
                             inputSuffix={<i className='icon icon-chevron-down'/>}
                         />
@@ -717,25 +763,45 @@ export default function LogList({
                 <Menu.Item
                     id='serverLogsDuration-all'
                     role='menuitemradio'
-                    aria-checked={activeTimePreset === null}
+                    aria-checked={timeRange === null}
                     forceCloseOnSelect={true}
                     labels={<FormattedMessage {...messages.allTime}/>}
-                    trailingElements={activeTimePreset === null && <i className='icon icon-check'/>}
-                    onClick={onClearTimePreset}
+                    trailingElements={timeRange === null && <i className='icon icon-check'/>}
+                    onClick={onClearTimeRange}
                 />
                 {timePresets.map((preset) => (
                     <Menu.Item
                         key={preset.minutes}
                         id={`serverLogsDuration-${preset.minutes}`}
                         role='menuitemradio'
-                        aria-checked={activeTimePreset === preset.minutes}
+                        aria-checked={timeRange === preset.minutes}
                         forceCloseOnSelect={true}
                         labels={<FormattedMessage {...preset.label}/>}
-                        trailingElements={activeTimePreset === preset.minutes && <i className='icon icon-check'/>}
+                        trailingElements={timeRange === preset.minutes && <i className='icon icon-check'/>}
                         onClick={() => onTimePreset(preset.minutes)}
                     />
                 ))}
+                <Menu.Separator/>
+                <Menu.Item
+                    id='serverLogsDuration-custom'
+                    role='menuitemradio'
+                    aria-checked={customRange !== null}
+                    forceCloseOnSelect={true}
+                    labels={<FormattedMessage {...messages.customRange}/>}
+                    trailingElements={customRange !== null && <i className='icon icon-check'/>}
+                    onClick={() => setShowCustomRangeModal(true)}
+                />
             </Menu.Container>
+            {showCustomRangeModal && (
+                <CustomRangeModal
+                    initialRange={customRange}
+                    onConfirm={(range) => {
+                        onCustomRange(range);
+                        setShowCustomRangeModal(false);
+                    }}
+                    onExited={() => setShowCustomRangeModal(false)}
+                />
+            )}
 
             {logFormatMenu}
 
@@ -877,7 +943,7 @@ export default function LogList({
             {/* Empty state — kept outside the list so it only owns rows */}
             {visibleLogs.length === 0 && !loading && (
                 <div className='LogViewer__placeholder'>
-                    {search || !allLevelsEnabled || selectedNode || activeTimePreset !== null ? (
+                    {search || !allLevelsEnabled || selectedNode || timeRange !== null ? (
                         <FormattedMessage
                             id='admin.logs.noMatchingLogs'
                             defaultMessage='No logs match your filters. {clearLink}'
@@ -889,7 +955,7 @@ export default function LogList({
                                             clearSearch();
                                             enableAllLevels();
                                             onSelectedNodeChange('');
-                                            onClearTimePreset();
+                                            onClearTimeRange();
                                         }}
                                         type='button'
                                     >
