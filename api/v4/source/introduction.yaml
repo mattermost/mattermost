@@ -482,12 +482,22 @@ tags:
       `access_control` group a `template` field defines a global attribute
       that user and channel fields link to. These endpoints replace the
       custom profile attributes endpoints for managing user attributes.
+
+
+      In the `access_control` group, every endpoint requires an Entry,
+      Enterprise or Enterprise Advanced license (403 otherwise). Channel
+      fields and their values, and templates that channel fields link to,
+      require an Entry or Enterprise Advanced license (501 otherwise).
   - name: custom profile attributes
     description: >
       Endpoints for managing user attributes (formerly custom profile
       attributes) and their values. Deprecated since v12.0: use the
       properties endpoints in the `access_control` group instead. These
       endpoints will be removed in a future release.
+
+
+      Every endpoint requires an Entry, Enterprise or Enterprise Advanced
+      license (403 otherwise).
   - name: integration_actions
     description: Endpoints for interactive actions for use by integrations.
   - name: shared channels

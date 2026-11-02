@@ -687,13 +687,16 @@ components:
           type: string
         name:
           type: string
+          description: >
+            The name of the field. In the `access_control` group it's used in
+            access rule expressions, so it must match `^[A-Za-z_][A-Za-z0-9_]*$`
+            and not be a CEL reserved word (422 otherwise).
         type:
           type: string
           description: >
-            The type of property. `rank` is a select whose options are ordered
-            by the `rank` each option carries. `graph` is a hierarchical
-            multiselect: its options can sit below other options. Converting a
-            field to or from `graph` returns 400.
+            The type of property. `rank` is a select with ordered options;
+            `graph` is a multiselect whose options can sit below other options.
+            A field can't be converted to or from `graph`.
           enum: [text, select, multiselect, date, user, multiuser, rank, graph]
         object_type:
           type: string
@@ -702,22 +705,16 @@ components:
         attrs:
           type: object
           description: >
-            Additional attributes.
+            Additional attributes. In the `access_control` group,
+            `display_name` is the label shown in the UI, up to 255 characters
+            (400 otherwise).
 
 
-            For field types with options (`select`, `multiselect`, `rank`,
-            `graph`), `attrs.options` lists the options. When a field has more
-            than 1000 options, reads leave `attrs.options` out and set
-            `attrs.options_count` to the number of options and
-            `attrs.options_omitted` to `true`. Page through the options with
-            the get property field options endpoint instead. A write that
-            supplies an option list for such a field returns 400.
-
-
-            On a `graph` field, an option written in `attrs.options` may carry
-            `parents`, a list of the names of the options directly above it.
-            Options read back from `attrs.options` don't include `parents`; the
-            get property field options endpoint returns them.
+            `options` lists a field's options. Above 1000 options, reads omit
+            it and set `options_count` and `options_omitted`, writes can't
+            supply it (400), and the property field options endpoints manage
+            the options instead. A `graph` option written here may carry
+            `parents`; only the options endpoints return them.
         target_id:
           type: string
           description: The ID of the target (empty for system-level, team ID for team-level, channel ID for channel-level)
@@ -756,11 +753,9 @@ components:
           type: string
           nullable: true
           description: >
-            The ID of the template field this field is linked to. When set, the field
-            inherits its type and options from the source template. Can only be set at
-            creation time. Null when the field is not linked.
-            The type and options of a linked field can't be changed. Patch
-            `linked_field_id` to an empty string to unlink the field.
+            The ID of the template field this field is linked to, or null. A
+            linked field inherits its type and options and can't change them.
+            Set only at creation; patch to an empty string to unlink.
         create_at:
           type: integer
           format: int64
@@ -806,12 +801,9 @@ components:
           type: string
         value:
           description: >
-            The property's value, whose JSON shape depends on the field's type: most types
-            (`text`, `select`, `date`, `user`) store a JSON string, while `multiselect` and
-            `multiuser` store a JSON array of strings.
-            A `select` or `rank` value is an option ID, and a `multiselect` or
-            `graph` value is an array of option IDs. A `user` value is a user
-            ID, and a `multiuser` value is an array of user IDs.
+            The property's value. A string for `text` and `date`, an option ID
+            for `select` and `rank`, a user ID for `user`, and an array of
+            option IDs or user IDs for `multiselect`, `graph` and `multiuser`.
         create_at:
           type: integer
           format: int64
@@ -858,18 +850,15 @@ components:
           items:
             type: string
           description: >
-            Hierarchical (`graph`) fields only: the names of the options
-            directly above this one, at most 100. An option with no parents is
-            a top-level option. On an update, sending `parents` replaces the
-            option's parents, and omitting it leaves them as they were. Returns
-            400 for other field types, or if the change would create a cycle
-            or a hierarchy deeper than 100 levels.
+            `graph` fields only: the names of up to 100 options directly above
+            this one; none makes it top-level. Omitting it on an update keeps
+            the current parents. A cycle or a hierarchy deeper than 100 levels
+            returns 400.
         read_only:
           type: boolean
           description: >
-            `true` when the field inherits the option from the template it's
-            linked to. A read-only option can only be changed on the template.
-            Ignored on writes.
+            `true` when the option is inherited from the linked template, where
+            it must be changed. Ignored on writes.
         create_at:
           type: integer
           format: int64
@@ -4904,21 +4893,17 @@ components:
           enum: [parent, channel, team, permission]
           description: >
             The type of policy. `parent` is a system-wide policy that channel
-            and team policies can import, `channel` and `team` apply to the
-            channel or team with the same ID, and `permission` restricts
-            actions such as file uploads and downloads for a system role.
-            Plugin-owned policies use a type of the form `<pluginId>:<type>`;
-            they're managed through the plugin API, and the REST API rejects
-            them.
+            and team policies can import; `channel` and `team` apply to the
+            channel or team with the same ID; `permission` restricts actions
+            for a system role. The REST API rejects plugin-owned types
+            (`<pluginId>:<type>`).
         active:
           type: boolean
           deprecated: true
           description: >
-            Deprecated. Kept for older clients. From Mattermost v12.0, whether
-            a policy adds matching users automatically is set per membership
-            rule in `rules[].metadata.auto_add`, and the activate endpoints
-            set that value instead. The server ignores this field when a
-            policy is saved.
+            Deprecated and ignored when a policy is saved. From v12.0,
+            auto-adding is set per membership rule in
+            `rules[].metadata.auto_add`, which the activate endpoints set.
         create_at:
           type: integer
           format: int64
@@ -4931,17 +4916,11 @@ components:
         version:
           type: string
           enum: [v0.1, v0.2, v0.3, v0.4, v0.5]
-          description: |
-            The policy format version, which sets the rules the policy is
-            validated against. The server sets it when the policy is saved
-            through the REST API, to `v0.3`, or to `v0.4` for a `channel`
-            policy that has permission rules. Older policies can still have
-            `v0.1` or `v0.2`.
-            * `v0.1`: `parent` and `channel` policies. A channel policy has rules and imports at most one parent.
-            * `v0.2`: a channel policy can import several parents and can have no rules of its own.
-            * `v0.3`: adds `team` and `permission` policies, rule actions, and rule metadata.
-            * `v0.4`: lets a `channel` policy hold named permission rules for a channel role alongside its membership rule.
-            * `v0.5`: plugin-owned policies, which the REST API rejects.
+          description: >
+            The policy format version, which sets how the policy is validated.
+            The server sets it on save: `v0.3`, or `v0.4` for a `channel`
+            policy with permission rules. Older policies can have `v0.1` or
+            `v0.2`; `v0.5` is for plugin-owned policies.
         roles:
           type: array
           items:
@@ -4955,9 +4934,9 @@ components:
           items:
             type: string
           description: >
-            The IDs of the `parent` policies this policy imports. A user must
-            satisfy both this policy's rules and the rules of every policy it
-            imports. A `parent` or `permission` policy can't import anything.
+            The IDs of the `parent` policies this policy imports; users must
+            also satisfy their rules. `parent` and `permission` policies can't
+            import.
         rules:
           type: array
           items:
@@ -4978,10 +4957,9 @@ components:
           type: object
           additionalProperties: true
           description: >
-            Extra information computed by the server and not saved with the
-            policy. For a `parent` policy, getting the policy or searching with
-            `include_children` adds `child_ids` (the IDs of the channel and
-            team policies that import it), `channel_count` and `team_count`.
+            Computed by the server and not saved. For a `parent` policy,
+            getting it or searching with `include_children` adds `child_ids`
+            (the policies that import it), `channel_count` and `team_count`.
     AccessControlPolicyRule:
       type: object
       properties:
@@ -5005,18 +4983,16 @@ components:
             type: string
             enum: [membership, upload_file_attachment, download_file_attachment]
           description: >
-            The actions the rule governs. `membership` decides who can be a
-            member of the channel or team; in a `channel` policy it can't be
-            combined with other actions in the same rule.
-            `upload_file_attachment` and `download_file_attachment` restrict
-            file uploads and downloads.
+            The actions the rule governs: `membership` (who can be a member;
+            alone in its rule in a `channel` policy), or
+            `upload_file_attachment` and `download_file_attachment`.
         expression:
           type: string
           description: >
-            The rule, written in CEL (Common Expression Language), for example
-            `user.attributes.Department == "Engineering"`. Users for whom it
-            evaluates to true are allowed the rule's actions. Only a
-            membership rule can leave it empty, to carry metadata alone.
+            The rule in CEL, for example
+            `user.attributes.Department == "Engineering"`. Users for whom it's
+            true are allowed the rule's actions. Only a membership rule can
+            leave it empty.
         metadata:
           type: object
           description: >
@@ -5027,10 +5003,9 @@ components:
               type: string
               enum: ["", always]
               description: >
-                Only valid on the membership rule. `always` adds users who
-                match the policy to the channel or team at each sync, and an
-                empty value or no key turns this off. A channel or team policy
-                doesn't inherit this setting from the parents it imports.
+                Membership rule only. `always` adds matching users to the
+                channel or team at each sync; empty turns it off. Not
+                inherited from imported parents.
     AccessControlPolicySearch:
       type: object
       properties:
@@ -5058,9 +5033,8 @@ components:
         auto_add:
           type: boolean
           description: >
-            When `true`, returns only policies whose membership rule adds
-            matching users automatically; when `false`, only policies whose
-            membership rule doesn't. Leave it out to return both.
+            `true` returns only policies whose membership rule adds matching
+            users automatically, `false` only those that don't. Omit for both.
         actions:
           type: array
           items:
@@ -5070,10 +5044,9 @@ components:
         team_id:
           type: string
           description: >
-            Returns the `parent` policies that a team admin of this team can
-            manage: those assigned only to channels in the team, and those
-            owned by the team. Requires the `manage_team_access_rules`
-            permission on the team.
+            Returns the `parent` policies a team admin of this team can
+            manage: those owned by the team or assigned only to its channels.
+            Requires `manage_team_access_rules` on the team.
         scope:
           type: string
           enum: [team]
@@ -5114,11 +5087,9 @@ components:
     PolicySimulationUserOverride:
       type: object
       description: |
-        Per-user payload for the picker-driven `/cel/simulate_users` endpoint.
-        The simulator resolves each user's profile attributes and then layers
-        session context on top: first the requesting admin's own session
-        attributes, as the server resolves them, then the explicit
-        `session_overrides` map.
+        Per-user input for `/cel/simulate_users`. Each user's profile
+        attributes are combined with the requesting admin's own session
+        attributes, then `session_overrides`.
       required:
         - user_id
       properties:
@@ -5135,11 +5106,9 @@ components:
           type: object
           additionalProperties: true
           description: |
-            Replaces individual `session.*` attributes for this user only.
-            Applied on top of the active-session snapshot when both are set,
-            so a "configure session" panel can shadow specific values without
-            discarding the rest of the active session. Values can be of any
-            JSON type, for example a boolean alongside strings.
+            Replaces individual `session.*` attributes for this user only,
+            keeping the rest of the session attributes. Values can be of any
+            JSON type.
     PolicySimulationByUsersParams:
       type: object
       description: |
@@ -5218,26 +5187,14 @@ components:
             - no_applicable_rule
           description: |
             Origin of the blamed contribution.
-            * `this_rule` — the rule the author is currently editing.
-            * `sibling_rule` — another rule in the same draft policy.
-            * `sibling_saved` — recorded on ALLOW decisions where the
-              author's own rule alone would have denied; a sibling rule
-              flipped the verdict.
-            * `peer_policy` — a different policy at the SAME scope as the
-              draft. Carries `expression` / `evaluation_tree`.
-            * `system_permission` — a higher-scoped system permission policy.
-              Expression / tree are stripped to avoid leaking the contents
-              of policies outside the editing scope.
-            * `channel_policy` — a higher-scoped channel policy. Same
-              privacy stripping as `system_permission`.
-            * `no_applicable_policy` — no policy at any scope contributed a
-              decision (vacuous allow).
-            * `no_session_data` — the user has no recent session attributes
-              and no `session_overrides`, but the rules for the action use
-              `user.session.*`. Recorded as an allow.
-            * `no_applicable_rule` — only with `evaluation_scope` set to
-              `this_rule`: the rule being edited doesn't decide the outcome
-              for this user. Recorded as an allow.
+            * `this_rule`: the rule being edited.
+            * `sibling_rule`: another rule in the draft policy.
+            * `sibling_saved`: on an allow, another rule allowed what the edited rule alone would deny.
+            * `peer_policy`: another policy at the draft's scope.
+            * `system_permission`, `channel_policy`: a higher-scoped permission or channel policy, without `expression` or `evaluation_tree`.
+            * `no_applicable_policy`: no policy decided (allow).
+            * `no_session_data`: the rules use `user.session.*`, but the user has no session attributes or `session_overrides` (allow).
+            * `no_applicable_rule`: with `evaluation_scope` `this_rule`, the edited rule doesn't decide this user (allow).
         outcome:
           type: string
           enum:
@@ -5289,9 +5246,9 @@ components:
           items:
             $ref: "#/components/schemas/PolicySimulationMergedRule"
           description: |
-            The individual rules that were combined with OR into `expression`,
-            in policy order. Present only when more than one rule shares the
-            same role and action. Same scope-privacy rule as `expression`.
+            The rules combined with OR into `expression`, in policy order,
+            when more than one shares the role and action. Omitted when
+            `expression` is.
     PolicySimulationMergedRule:
       type: object
       description: One of the rules combined into a blame entry's expression.
@@ -5515,10 +5472,9 @@ components:
         teamId:
           type: string
           description: >
-            The team ID, required for team admins, who need the
-            `manage_team_access_rules` permission on the team. When the caller
-            is a system admin or that team admin, only members of the team are
-            returned.
+            The team ID, required for team admins, who need
+            `manage_team_access_rules` on the team. For a system admin or that
+            team admin, only members of the team are returned.
     CELExpression:
       type: object
       properties:
@@ -5970,10 +5926,9 @@ components:
           type: string
           enum: [restricted_by_policy]
           description: >
-            Generic denial reason. Never contains policy names, expressions, or
-            attribute values. Set to `restricted_by_policy` when the server
-            couldn't evaluate the action and denied it to be safe; an ordinary
-            deny leaves it empty.
+            `restricted_by_policy` when the server couldn't evaluate the
+            action and denied it to be safe; empty on an ordinary deny. Never
+            names policies, expressions or attribute values.
     ActionSearchResult:
       type: object
       required:
@@ -6020,10 +5975,9 @@ components:
         actions:
           type: array
           description: >
-            Actions to evaluate (max 16). Omit or leave empty for discovery mode:
-            the server evaluates all registered actions for the resource type and
-            returns the permitted set. An action that isn't registered for the
-            resource type returns 400.
+            Actions to evaluate, at most 16. Omit for discovery mode, which
+            returns the permitted set of all registered actions for the
+            resource type. An unregistered action returns 400.
           maxItems: 16
           items:
             type: string
