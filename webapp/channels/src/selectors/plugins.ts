@@ -11,7 +11,7 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
 import type {GlobalState} from 'types/store';
-import type {ChannelBookmarksMenuAction, ChannelInfoMenuAction} from 'types/store/plugins';
+import type {ChannelBookmarksMenuAction} from 'types/store/plugins';
 
 export const getPluginUserSettings = createSelector(
     'getPluginUserSettings',

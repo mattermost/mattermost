@@ -87,7 +87,8 @@ interface MenuItemProps {
 
 function MenuItem(props: MenuItemProps) {
     const {icon, text, opensSubpanel, badge, onClick, id} = props;
-    const hasRightSide = (badge !== undefined) || opensSubpanel;
+    const hasBadge = badge != null;
+    const hasRightSide = hasBadge || opensSubpanel;
 
     return (
         <MenuItemButton
@@ -100,7 +101,7 @@ function MenuItem(props: MenuItemProps) {
             <MenuItemText>{text}</MenuItemText>
             {hasRightSide && (
                 <RightSide>
-                    {badge !== undefined && (
+                    {hasBadge && (
                         <Badge>{badge}</Badge>
                     )}
                     {opensSubpanel && (

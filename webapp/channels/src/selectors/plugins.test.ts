@@ -5,9 +5,10 @@ import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {GlobalState} from 'types/store';
-import type {ChannelHeaderAction, ChannelInfoMenuAction, ChannelSettingsTabComponent, MobileChannelHeaderButtonAction} from 'types/store/plugins';
+import type {ChannelBookmarksMenuAction, ChannelHeaderAction, ChannelInfoMenuAction, ChannelSettingsTabComponent, MobileChannelHeaderButtonAction} from 'types/store/plugins';
 
 import {
+    getChannelBookmarksMenuPluginComponents,
     getChannelHeaderMenuPluginComponents,
     getChannelInfoMenuPluginComponents,
     getChannelMobileHeaderPluginButtons,
@@ -293,6 +294,37 @@ describe('Selectors.Plugins', () => {
                 shown,
                 noPredicate,
             ]);
+        });
+    });
+
+    describe('getChannelBookmarksMenuPluginComponents', () => {
+        function makeState(items: ChannelBookmarksMenuAction[]): GlobalState {
+            const state: DeepPartial<GlobalState> = {
+                plugins: {
+                    components: {
+                        ChannelBookmarksMenu: items,
+                    },
+                },
+            };
+            return state as GlobalState;
+        }
+
+        test('filters by shouldRender(state, channelId)', () => {
+            const shown = {
+                id: 'shown',
+                shouldRender: (_state: GlobalState, channelId: string) => channelId === 'channel1',
+            } as ChannelBookmarksMenuAction;
+            const hidden = {
+                id: 'hidden',
+                shouldRender: () => false,
+            } as unknown as ChannelBookmarksMenuAction;
+            const noPredicate = {id: 'always'} as ChannelBookmarksMenuAction;
+
+            expect(getChannelBookmarksMenuPluginComponents(makeState([shown, hidden, noPredicate]), 'channel1')).toEqual([
+                shown,
+                noPredicate,
+            ]);
+            expect(getChannelBookmarksMenuPluginComponents(makeState([shown]), 'other')).toEqual([]);
         });
     });
 });
