@@ -127,6 +127,42 @@ func requireTeamAdminPolicySelfInclusion(c *Context, policyID string, addedChann
 	return true
 }
 
+// teamAdminOnPolicyGet reports whether this read is from a team admin of the
+// team_id query, or of the channel's team when that query does not identify one.
+func teamAdminOnPolicyGet(c *Context, channelID, teamID string) bool {
+	if teamID != "" && model.IsValidId(teamID) &&
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
+		return true
+	}
+	if channelID == "" || !model.IsValidId(channelID) {
+		return false
+	}
+	channel, appErr := c.App.GetChannel(c.AppContext, channelID)
+	if appErr != nil || channel.TeamId == "" || channel.TeamId == teamID {
+		return false
+	}
+	return c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeamAccessRules)
+}
+
+// requireParentPolicySelfInclusion runs the stored-rule check when policyID is
+// a parent. Returns false when the handler should stop. A missing policy or
+// any other type returns true so the caller keeps the channel read result; the
+// handler reports a missing policy on its own lookup.
+func requireParentPolicySelfInclusion(c *Context, policyID string) bool {
+	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return true
+		}
+		c.Err = appErr
+		return false
+	}
+	if policy.Type != model.AccessControlPolicyTypeParent {
+		return true
+	}
+	return requireTeamAdminPolicySelfInclusion(c, policyID, nil)
+}
+
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var policy model.AccessControlPolicy
 	if jsonErr := json.NewDecoder(r.Body).Decode(&policy); jsonErr != nil {
@@ -316,6 +352,11 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 				}
 			} else {
 				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
+		} else if teamAdminOnPolicyGet(c, channelID, r.URL.Query().Get("team_id")) {
+			// Team admins run the stored-rule check on this read as well.
+			if !requireParentPolicySelfInclusion(c, policyID) {
 				return
 			}
 		}
