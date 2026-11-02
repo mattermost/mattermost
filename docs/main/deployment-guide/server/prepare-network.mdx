@@ -2,7 +2,7 @@
 title: "Network ports and outbound proxy"
 sidebar_label: "Prepare your network"
 ---
-Open the ports Mattermost needs before you install, and note the outbound destinations your deployment will reach. If your environment blocks direct outbound access, configure an outbound proxy at the same time.
+Open the ports Mattermost needs before you install, and note the [outbound destinations](#outbound-destinations) your deployment will reach. If your environment blocks direct outbound access, configure an outbound proxy at the same time.
 
 ## Network ports
 
@@ -104,6 +104,69 @@ The following table outlines the network ports and protocols required for Matter
 </Note>
 
 Only the inbound ports your readers actually reach need to be exposed externally. When Mattermost runs behind [an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy), expose 80 and 443 at the proxy and keep 8065, 8067, and 8074 internal.
+
+## Outbound destinations
+
+Use this section to build an egress allowlist for a firewall or [outbound proxy](#outbound-proxy-configuration). It covers connections that the server itself opens. The destinations your deployment reaches depend on its configuration, license, and the features and plugins you enable, so allow only the entries that apply to you.
+
+Unless noted otherwise, each destination uses HTTPS on TCP port 443.
+
+### Built-in destinations
+
+The following hosts are built into Mattermost. Some are contacted with the default configuration, and others only after a system admin enables a feature or takes an action.
+
+| Destination | Purpose | When it's contacted | How to disable or redirect |
+|---|---|---|---|
+| `securityupdatecheck.mattermost.com` | [Security update check](/administration-guide/manage/telemetry#security-update-check-feature). Sends basic server details and receives security bulletins for your version. | By default, about once every 24 hours. | Disable [Enable security alerts](/administration-guide/configure/environment-configuration-settings#enable-security-alerts) (`ServiceSettings.EnableSecurityFixAlert`) in **System Console > Environment > SMTP**. |
+| `notices.mattermost.com` | Downloads [in-product notices](/administration-guide/manage/in-product-notices). | By default, at startup and then hourly. | Disable both [Enable admin notices](/administration-guide/configure/site-configuration-settings#enable-admin-notices) and [Enable end user notices](/administration-guide/configure/site-configuration-settings#enable-end-user-notices) in **System Console > Site Configuration > Notices**. To use another source, set `AnnouncementSettings.NoticesURL` in `config.json`. |
+| `push-test.mattermost.com` (TPNS), `global.push.mattermost.com` (HPNS), and the regional HPNS hosts `us.push.mattermost.com`, `eu.push.mattermost.com`, and `ap.push.mattermost.com`. Older configurations may use the legacy hosts `push.mattermost.com` and `hpns-de.mattermost.com`. | [Mobile push notifications](/administration-guide/configure/environment-configuration-settings#push-notification-server). | By default, whenever the server sends a push notification or a mobile app acknowledges one. Servers with a Professional or higher license also authenticate to the push service weekly. | New servers use TPNS. If your license includes HPNS, the server switches from TPNS to `global.push.mattermost.com` automatically. Allow only the host in **System Console > Environment > Push Notification Server** (`EmailSettings.PushNotificationServer`), or disable push notifications there (`EmailSettings.SendPushNotifications`). |
+| `customers.mattermost.com` | Mattermost Customer Portal. Checks whether the portal is reachable, validates business email addresses, and requests trial licenses. | When users load Mattermost on an Enterprise Edition server, and when a system admin requests a trial license. | Set [Disable Customer Portal requests](/administration-guide/configure/environment-configuration-settings#disable-customer-portal-requests) (`CloudSettings.Disable`) to `true` in `config.json`. Trial license requests still contact this host. |
+| `api.integrations.mattermost.com` | Lists plugins in the Marketplace. | When the Marketplace is opened, and when a system admin installs a plugin from it. | Disable [Enable Marketplace](/administration-guide/configure/plugins-configuration-settings#enable-marketplace) or [Enable remote Marketplace](/administration-guide/configure/plugins-configuration-settings#enable-remote-marketplace) in **System Console > Plugins > Plugin Management**, or change the [Marketplace URL](/administration-guide/configure/plugins-configuration-settings#marketplace-url). |
+| `plugins.releases.mattermost.com` | Downloads plugin packages listed in the Marketplace. | When a system admin installs or upgrades a plugin from the Marketplace. | Use the Marketplace settings above. Prepackaged plugins are installed from local files and don't need this host. |
+| `o94110.ingest.us.sentry.io` | Error and crash reporting to Mattermost's [Sentry](/administration-guide/manage/telemetry#error-and-diagnostics-reporting-feature) project. | By default, when the server records an error or recovers from a crash. | Disable [Enable diagnostics and error reporting](/administration-guide/configure/environment-configuration-settings#enable-diagnostics-and-error-reporting) (`LogSettings.EnableDiagnostics`) in **System Console > Environment > Logging**, or set [`LogSettings.EnableSentry`](/administration-guide/configure/environment-configuration-settings#enable-sentry-reporting) to `false`. |
+| `api.github.com` | Looks up the latest Mattermost release. | When a system admin opens **System Console > Reporting > Workspace Optimization**. | No setting. If the host is blocked, the page can't show whether an update is available. |
+| `stun.global.calls.mattermost.com` (UDP port 3478) | Public IP discovery (STUN) for the Calls plugin, which is enabled by default. No call media passes through this service. | When Calls starts and when users join a call. | Change [ICE servers configurations](/administration-guide/configure/plugins-configuration-settings#ice-servers-configurations) in **System Console > Plugins > Calls**. See the [Calls deployment guide](/deployment-guide/calls/calls-deployment-guide) to decide whether you need STUN. |
+| `releases.mattermost.com` | Downloads the Enterprise Edition binary for an in-place upgrade from Team Edition. | Only when a system admin starts the upgrade in **System Console > About > Edition and License**. | No setting. The server doesn't contact this host unless the upgrade is started. |
+| `metering.marketplace.<region>.amazonaws.com` | AWS Marketplace usage metering, for servers deployed from AWS Marketplace. | Hourly, only when `ServiceSettings.EnableAWSMetering` is `true` in `config.json`. | Off by default. |
+| `mailarchivespool1.globalrelay.com` (`208.81.212.70`) or `feeds.globalrelay.com` (`208.81.213.24`), SMTP on TCP port 25 | Delivers compliance exports to Global Relay. | Only when [compliance export](/administration-guide/configure/compliance-configuration-settings#global-relay-customer-account) uses the Global Relay format. | The server connects to the IP address shown for your Global Relay customer account, so allow the IP address as well as the hostname. To use your own SMTP relay, set the customer account to **Custom** in **System Console > Compliance > Compliance Export**. |
+
+### Destinations you configure
+
+Many outbound connections go to hosts that you or your users specify. These include:
+
+- the database
+- file storage, such as Amazon S3, an S3-compatible service, or Azure Blob Storage
+- the SMTP server
+- AD/LDAP
+- SAML and OAuth or OpenID Connect identity providers
+- Elasticsearch or OpenSearch
+- Redis
+- other nodes in a high availability cluster
+- [connected workspaces](/administration-guide/onboard/connected-workspaces)
+- the targets of outgoing webhooks, custom slash commands, and interactive messages
+
+Allow the hosts you configure for these features. Some identity providers come with default endpoints:
+
+- Google sign-in uses `www.googleapis.com` and `people.googleapis.com`.
+- Entra ID sign-in uses `login.microsoftonline.com` and `graph.microsoft.com`.
+
+### User-triggered destinations
+
+Users can cause the server to contact arbitrary hosts:
+
+- When a message contains a link, the server fetches the page to build a link preview, unless [website link previews](/administration-guide/configure/site-configuration-settings#enable-website-link-previews) are disabled.
+- The server also fetches images that are embedded in messages to determine their dimensions. Disabling link previews doesn't turn this off. Use [Disable link previews for specific domains](/administration-guide/configure/site-configuration-settings#disable-link-previews-for-specific-domains) to exclude specific domains.
+- When the [image proxy](/deployment-guide/server/image-proxy) is enabled, the server also downloads images on behalf of clients.
+
+The server blocks these requests from reaching private and reserved IP addresses unless you allow them in [Allow untrusted internal connections](/administration-guide/configure/environment-configuration-settings#allow-untrusted-internal-connections).
+
+<Note>
+
+- **Client traffic:** Some traffic comes from users' browsers and the desktop and mobile apps rather than from the server, so it isn't covered by server egress rules. The GIF picker contacts Giphy (`*.giphy.com`) directly from the client; you can disable it in **System Console > Integrations > [GIF](/administration-guide/configure/integrations-configuration-settings#enable-gif-picker)**. Unless the [image proxy](/deployment-guide/server/image-proxy) is enabled, clients also load images in messages and link previews directly from their source.
+- **Plugins:** Plugins can open their own outbound connections. For example, the GitHub, GitLab, Jira, and Zoom plugins connect to those services, and the Agents plugin connects to the LLM providers you configure. Check each plugin's documentation for the hosts it needs.
+- **Air-gapped deployments:** See [Configure for air-gapped operation](/deployment-guide/air-gapped-operations/disable-phone-home-features) and [Telemetry](/administration-guide/manage/telemetry) for the features that depend on internet access.
+
+</Note>
 
 ## Outbound proxy configuration
 
