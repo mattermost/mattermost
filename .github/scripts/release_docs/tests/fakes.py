@@ -57,6 +57,9 @@ class FakeGitHub:
         commits = self.repos.get(repo, {}).get("branches", {}).get(branch)
         return commits[-1]["sha"] if commits else None
 
+    def on_branch(self, repo, branch, sha):
+        return any(c["sha"] == sha for c in self.repos.get(repo, {}).get("branches", {}).get(branch, []))
+
     def file(self, repo, path, ref):
         commits = self.repos.get(repo, {}).get("branches", {}).get(ref)
         return commits[-1]["files"].get(path) if commits else None

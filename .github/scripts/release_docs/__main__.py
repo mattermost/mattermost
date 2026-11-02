@@ -47,6 +47,7 @@ DOT_RELEASE_HANDLED = "handled by the dot release docs PR"
 # published this recently, in case their own runs were cancelled while waiting their turn.
 SWEEP_DAYS = 3
 RELEASE_BRANCH = re.compile(r"release-(\d+)\.(\d+)")
+RC1_TAG = re.compile(r"v(\d+)\.(\d+)\.0-rc1")
 
 
 # ── Resolve: does this event run the task, for which version, in which mode ─────────
@@ -98,11 +99,25 @@ def resolve(task: str, env: dict, event: dict, gh=None) -> dict:
             return {"run": "false", "reason": "no release-X.Y branch is waiting for its final vX.Y.0 tag"}
         return {"run": "true", "version": version.tag, "mode": mode,
                 "reason": f"weekday run between the release-{version.major}.{version.minor} branch cut and {version.tag}"}
+    if name == "push" and event.get("ref", "").startswith("refs/tags/"):
+        # The release docs PR opens at RC-1, the same point as the changelog PR: when vX.Y.0-rc1
+        # is tagged on release-X.Y.
+        tag = event["ref"].removeprefix("refs/tags/")
+        match = RC1_TAG.fullmatch(tag)
+        if task != release_docs_pr.TASK or not match or not event.get("created"):
+            return {"run": "false", "reason": f"tag {tag} is not a vX.Y.0-rc1 tag being created"}
+        branch = f"release-{match.group(1)}.{match.group(2)}"
+        sha = gh.tag_sha(SERVER_REPO, tag)
+        if not gh.branch_sha(SERVER_REPO, branch) or not sha or not gh.on_branch(SERVER_REPO, branch, sha):
+            return {"run": "false", "reason": f"{tag} is not on {branch}"}
+        return {"run": "true", "version": f"v{match.group(1)}.{match.group(2)}.0", "mode": mode, "reason": f"{tag} tagged"}
     if name == "push":
         ref = event.get("ref", "").removeprefix("refs/heads/")
         match = RELEASE_BRANCH.fullmatch(ref)
         if not match or not event.get("created"):
             return {"run": "false", "reason": f"push to {ref} is not a release branch being created"}
+        if task == release_docs_pr.TASK:
+            return {"run": "false", "reason": "the release docs PR opens when vX.Y.0-rc1 is tagged, not at the branch cut"}
         return {"run": "true", "version": f"v{match.group(1)}.{match.group(2)}.0", "mode": mode, "reason": "branch cut"}
     raise ValueError(f"{task} does not run on {name or 'an unknown'} events")
 

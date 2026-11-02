@@ -93,6 +93,11 @@ class GitHub:
             target = self.request("GET", target["url"])["object"]
         return target["sha"]
 
+    def on_branch(self, repo: str, branch: str, sha: str) -> bool:
+        """Whether ``sha`` is ``branch``'s head or one of its ancestors."""
+        found = self.request("GET", f"/repos/{repo}/compare/{urllib.parse.quote(branch)}...{sha}", missing_ok=True)
+        return bool(found) and found.get("status") in ("identical", "behind")
+
     def commit(self, repo: str, sha: str) -> dict:
         """One commit with its message, committer date and changed file names (``files``)."""
         found = self.request("GET", f"/repos/{repo}/commits/{urllib.parse.quote(sha)}")
