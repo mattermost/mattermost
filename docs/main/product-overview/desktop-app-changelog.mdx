@@ -22,9 +22,14 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 
 ### Compatibility
 
+- macOS 13 or later is now required.
 - Desktop App is supported on any currently supported [Mattermost server version](https://docs.mattermost.com/product-overview/mattermost-desktop-releases.html#latest-releases).
 
 ### Improvements
+
+#### Linux
+
+- The unread badge now shows on any dock that supports it, not just Unity.
 
 #### All Platforms
 
@@ -35,9 +40,13 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 
 ### Architectural Changes
 
-- Upgraded Electron to v43.3.0. Electron is the underlying technology used to build the Desktop App.
+- Upgraded Electron to v45.2.1. Electron is the underlying technology used to build the Desktop App.
 
 ### Bug Fixes
+
+#### Windows
+
+- Fixed an issue where devices set to the new British Columbia or Alberta time zones showed times in UTC instead of local time.
 
 #### macOS
 
@@ -51,6 +60,7 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 
 #### All Platforms
 
+- Fixed timestamps for the 2026 time zone changes in Morocco, British Columbia, Alberta, the Northwest Territories and Manitoba.
 - Fixed an issue where the Calls widget could crash the app when resized to a very large size.
 - Fixed an issue with some local network access checks.
 - Fixed an issue where the pre-authentication secret wasn't applied to WebSocket connections.
