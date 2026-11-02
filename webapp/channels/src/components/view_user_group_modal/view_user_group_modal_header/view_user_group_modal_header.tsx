@@ -6,7 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -105,8 +105,8 @@ const ViewUserGroupModalHeader = ({
         if (permissionToJoinGroup) {
             return (
                 <Button
-                    emphasis='secondary'
-                    size='sm'
+                    emphasis='tertiary'
+                    size='small'
                     className='mr-2'
                     onClick={goToAddPeopleModal}
                 >
@@ -124,8 +124,8 @@ const ViewUserGroupModalHeader = ({
         if (permissionToRestoreGroup) {
             return (
                 <Button
-                    emphasis='secondary'
-                    size='sm'
+                    emphasis='tertiary'
+                    size='small'
                     onClick={restoreGroup}
                 >
                     <FormattedMessage

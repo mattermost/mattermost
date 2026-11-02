@@ -69,6 +69,26 @@ $positions: 't'top,
     box-shadow: none;
 }
 
+// ...and let that Compass ring actually render. The global `*:focus { outline:
+// none }` in base/_structure.scss resets outline-style and outline-width, and
+// Compass's own :focus-visible rule only overrides outline-color and
+// outline-offset -- so with our box-shadow suppressed above, these controls
+// ended up with no focus indicator at all. Restoring style and width here
+// leaves Compass to supply the colour and offset, and keeps the blast radius
+// to Compass controls rather than narrowing the global reset for the whole app.
+#root [class*="_text-input__wrapper"]:focus-visible,
+#root [class*="_text-area__wrapper"]:focus-visible,
+#root [class*="_search-input__wrapper"]:focus-visible,
+#root [class*="_select__wrapper"]:focus-visible,
+#root [class*="_combobox__wrapper"]:focus-visible,
+#root [class*="_date-range-picker__trigger"]:focus-visible,
+#root button[class*="_button--emphasis-"]:focus-visible,
+#root button[class*="_icon-button"]:focus-visible,
+#root button[class*="_action-button"]:focus-visible {
+    outline-style: solid;
+    outline-width: 2px;
+}
+
 .pos-relative {
     position: relative;
 }

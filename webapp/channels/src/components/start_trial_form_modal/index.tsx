@@ -7,7 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';

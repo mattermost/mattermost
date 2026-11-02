@@ -306,7 +306,7 @@ else
 	docker compose down -v
 	docker compose rm -v
 
-	docker volume rm mattermost-server_postgres-14-data || true
+	docker volume rm mattermost-server_postgres-15-data || true
 endif
 
 .PHONY: plugin-checker
@@ -1015,7 +1015,7 @@ endif
 vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
-vet-api: setup-go-work install-govet ## Run mattermost go vet to verify api4 documentation, currently not passing
+vet-api: setup-go-work install-govet ## Run mattermost go vet to verify api4 documentation
 	make -C ../api build
 	./scripts/vet-api-check.sh
 

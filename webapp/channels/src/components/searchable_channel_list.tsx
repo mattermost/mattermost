@@ -6,7 +6,7 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -18,7 +18,6 @@ import * as Menu from 'components/menu';
 import QuickInput from 'components/quick_input';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -269,22 +268,21 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     id='joinViewChannelButton'
                     onClick={(e) => this.handleJoin(channel, e)}
                     emphasis={joinViewChannelButtonEmphasis}
-                    size='sm'
+                    size='small'
                     className={joinViewChannelButtonClass}
                     disabled={Boolean(this.state.joiningChannel)}
+                    loading={this.state.joiningChannel === channel.id}
                     tabIndex={-1}
                     aria-label={isMember ? this.props.intl.formatMessage({id: 'more_channels.view', defaultMessage: 'View'}) : this.props.intl.formatMessage({id: 'joinChannel.JoinButton', defaultMessage: 'Join'})}
                 >
-                    <LoadingWrapper
-                        legacy={true}
-                        loading={this.state.joiningChannel === channel.id}
-                        text={messages.joiningButton}
-                    >
+                    {this.state.joiningChannel === channel.id ? (
+                        this.props.intl.formatMessage(messages.joiningButton)
+                    ) : (
                         <FormattedMessage
                             id={isMember ? 'more_channels.view' : 'joinChannel.JoinButton'}
                             defaultMessage={isMember ? 'View' : 'Join'}
                         />
-                    </LoadingWrapper>
+                    )}
                 </Button>
             );
         };
@@ -294,44 +292,43 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 id='requestToJoinChannelButton'
                 onClick={(e) => this.handleRequestToJoin(channel, e)}
                 emphasis='primary'
-                size='sm'
+                size='small'
                 className='primaryButton'
                 disabled={Boolean(this.state.requestingChannel)}
+                loading={this.state.requestingChannel === channel.id}
                 tabIndex={-1}
                 aria-label={this.props.intl.formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
             >
-                <LoadingWrapper
-                    legacy={true}
-                    loading={this.state.requestingChannel === channel.id}
-                    text={messages.requesting}
-                >
+                {this.state.requestingChannel === channel.id ? (
+                    this.props.intl.formatMessage(messages.requesting)
+                ) : (
                     <FormattedMessage
                         id='more_channels.requestToJoin'
                         defaultMessage='Request to join'
                     />
-                </LoadingWrapper>
+                )}
             </Button>
         );
 
         const renderWithdrawButton = () => (
             <Button
                 id='withdrawRequestButton'
+                className='withdrawButton'
                 onClick={(e) => this.handleWithdrawRequest(channel, e)}
                 emphasis='tertiary'
-                size='sm'
+                size='small'
                 disabled={Boolean(this.state.withdrawingChannel)}
+                loading={this.state.withdrawingChannel === channel.id}
                 aria-label={this.props.intl.formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'})}
             >
-                <LoadingWrapper
-                    legacy={true}
-                    loading={this.state.withdrawingChannel === channel.id}
-                    text={messages.withdrawing}
-                >
+                {this.state.withdrawingChannel === channel.id ? (
+                    this.props.intl.formatMessage(messages.withdrawing)
+                ) : (
                     <FormattedMessage
                         id='more_channels.withdraw'
                         defaultMessage='Withdraw'
                     />
-                </LoadingWrapper>
+                )}
             </Button>
         );
 
@@ -615,7 +612,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 nextButton = (
                     <Button
                         emphasis='tertiary'
-                        size='sm'
+                        size='small'
                         className='filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
@@ -633,7 +630,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 previousButton = (
                     <Button
                         emphasis='tertiary'
-                        size='sm'
+                        size='small'
                         className='filter-control filter-control__prev'
                         onClick={this.previousPage}
                         aria-label={this.props.intl.formatMessage({id: 'more_channels.prev', defaultMessage: 'Previous'})}

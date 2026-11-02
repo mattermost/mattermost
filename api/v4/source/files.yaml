@@ -117,11 +117,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -179,11 +174,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -241,11 +231,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -315,11 +300,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -358,11 +338,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -400,11 +375,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
         "404":
           $ref: "#/components/responses/NotFound"
         "501":

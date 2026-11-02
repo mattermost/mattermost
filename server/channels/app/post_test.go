@@ -317,7 +317,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Contains(t, attachedFiles, info1.Id)
 		assert.Contains(t, attachedFiles, info2.Id)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
@@ -348,7 +348,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Len(t, attachedFiles, 1)
 		assert.Contains(t, attachedFiles, info2.Id)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
@@ -5677,6 +5677,89 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}, {ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, th.BasicChannel, th.BasicUser)
 		require.Error(t, e)
 		require.Equal(t, "the thread is 2 posts long, but this command is configured to only move threads of up to 1 posts", e.Error())
+	})
+}
+
+func TestMoveThreadUploadFileAttachmentABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		cfg.WranglerSettings.MoveThreadToAnotherTeamEnable = new(true)
+		cfg.WranglerSettings.MoveThreadMaxCount = new(int64(100))
+	})
+
+	// CreateChannel makes th.BasicUser a member, as moving requires.
+	targetChannel := th.CreateChannel(t, th.BasicTeam)
+
+	// mockUploadPolicy denies the upload_file_attachment action in deniedChannelID
+	// and allows every other evaluation.
+	mockUploadPolicy := func(t *testing.T, deniedChannelID string) {
+		t.Helper()
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = original })
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment && req.Resource.ID == deniedChannelID
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
+	}
+
+	createPost := func(t *testing.T, withFile bool) *model.Post {
+		t.Helper()
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "thread to move",
+		}
+		if withFile {
+			info, appErr := th.App.UploadFile(th.Context, []byte("file contents"), th.BasicChannel.Id, "test.txt")
+			require.Nil(t, appErr)
+			post.FileIds = model.StringArray{info.Id}
+		}
+
+		created, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		return created
+	}
+
+	t.Run("a thread with files is not moved into a channel that denies the upload action", func(t *testing.T) {
+		post := createPost(t, true)
+		mockUploadPolicy(t, targetChannel.Id)
+
+		appErr := th.App.MoveThread(th.Context, post.Id, th.BasicChannel.Id, targetChannel.Id, th.BasicUser)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "api.file.upload_file.abac_denied.app_error", appErr.Id)
+
+		_, appErr = th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr, "the original thread must be left in place")
+	})
+
+	t.Run("a thread without files is moved into a channel that denies the upload action", func(t *testing.T) {
+		post := createPost(t, false)
+		mockUploadPolicy(t, targetChannel.Id)
+
+		appErr := th.App.MoveThread(th.Context, post.Id, th.BasicChannel.Id, targetChannel.Id, th.BasicUser)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("a thread with files is moved into a channel that allows the upload action", func(t *testing.T) {
+		post := createPost(t, true)
+		mockUploadPolicy(t, th.BasicChannel.Id)
+
+		appErr := th.App.MoveThread(th.Context, post.Id, th.BasicChannel.Id, targetChannel.Id, th.BasicUser)
+		require.Nil(t, appErr)
 	})
 }
 

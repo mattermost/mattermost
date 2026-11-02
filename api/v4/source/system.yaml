@@ -1175,6 +1175,13 @@
         Get a page of server logs, selected with `page` and `logs_per_page`
         query parameters.
 
+        In a licensed, enabled cluster, each node's lines follow a separator
+        naming the node. If another node's logs can't be fetched, the request
+        still succeeds and that node's separator is followed by a single JSON
+        line with `level` set to `error`, `msg` set to
+        `Failed to fetch logs from node`, `failed_node` set to `true`, and an
+        `error` field describing the failure.
+
         ##### Permissions
 
         Must have `manage_system` permission.
@@ -1257,9 +1264,9 @@
         If another cluster node's logs can't be fetched (for example, it doesn't
         respond in time), the request still succeeds and that node's array
         contains a single entry with `level` set to `error`, `msg` set to
-        `Failed to fetch logs from node`, and an `error` field describing the
-        failure. This entry is returned regardless of `log_levels`, `date_from`
-        and `date_to`.
+        `Failed to fetch logs from node`, `failed_node` set to `true`, and an
+        `error` field describing the failure. This entry is returned regardless
+        of `log_levels`, `date_from` and `date_to`.
 
         ##### Permissions
         Must have `get_logs` permission.

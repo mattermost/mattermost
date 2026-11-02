@@ -5,7 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -94,7 +94,7 @@ export default class ChannelMembersModal extends React.PureComponent<Props, Stat
                             <Button
                                 id='showInviteModal'
                                 emphasis='primary'
-                                size='md'
+                                size='medium'
                                 onClick={this.onAddNewMembersButton}
                             >
                                 <FormattedMessage

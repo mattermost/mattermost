@@ -171,22 +171,28 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/teams"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -240,22 +246,28 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/teams"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"

@@ -136,7 +136,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             // * Update email outside whitelisted domain and verify error message
             cy.get('#resetEmailModal').should('be.visible').within(() => {
                 cy.get('input[type="email"]').type(email);
-                cy.get('button.btn-primary.confirm').click();
+                cy.get('button.GenericModal__button.confirm').click();
                 cy.get('.error').should('be.visible').and('have.text', 'The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email.');
                 cy.get('.close').click();
             });

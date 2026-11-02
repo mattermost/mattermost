@@ -585,6 +585,19 @@ func TestQueryLogs(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("null filter is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, nil)
+		CheckErrorID(t, err, "api.system.logs.invalidFilter")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("undecodable filter is rejected with 400", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/logs/query", "{")
+		CheckErrorID(t, err, "api.system.logs.invalidFilter")
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
 	t.Run("non-admin is forbidden", func(t *testing.T) {
 		_, resp, err := th.Client.QueryLogs(context.Background(), 0, 200, &model.LogFilter{})
 		require.Error(t, err)

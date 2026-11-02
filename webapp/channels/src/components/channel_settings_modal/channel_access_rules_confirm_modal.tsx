@@ -5,8 +5,8 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
@@ -172,20 +172,18 @@ function ChannelAccessRulesConfirmModal({
                     />
                 </Button>
                 <Button
-                    variant='destructive'
                     onClick={onConfirm}
                     disabled={isProcessing}
+                    destructive={true}
+                    loading={isProcessing}
                 >
                     {(() => {
                         if (isProcessing) {
                             return (
-                                <>
-                                    <span className='icon icon-loading icon-spin'/>
-                                    <FormattedMessage
-                                        id='channel_settings.access_rules.confirm_modal.saving'
-                                        defaultMessage='Saving...'
-                                    />
-                                </>
+                                <FormattedMessage
+                                    id='channel_settings.access_rules.confirm_modal.saving'
+                                    defaultMessage='Saving...'
+                                />
                             );
                         }
 

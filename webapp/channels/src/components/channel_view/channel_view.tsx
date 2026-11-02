@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import AdvancedCreatePost from 'components/advanced_create_post';
 import ChannelBanner from 'components/channel_banner/channel_banner';
