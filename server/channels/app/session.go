@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // maxSessionsLimit prevents a potential DOS caused by creating an unbounded number of sessions; MM-55320
@@ -66,7 +67,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 		session.AddProp(model.SessionPropType, model.SessionTypeCloudKey)
 		return session, nil
 	}
-	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
+	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]any{"Token": utils.TokenDigest(token), "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
 }
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
@@ -81,7 +82,7 @@ func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Ses
 		session.AddProp(model.SessionPropType, model.SessionTypeRemoteclusterToken)
 		return session, nil
 	}
-	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
+	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_token.error", map[string]any{"Token": utils.TokenDigest(token), "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
@@ -90,11 +91,12 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	rctx := request.EmptyContext(a.Log())
 
 	var session *model.Session
+	tokenID := utils.TokenDigest(token)
 	// We intentionally skip the error check here, we only want to check if the token is valid.
 	// If we don't have the session we are going to create one with the token eventually.
 	if session, _ = a.ch.srv.platform.GetSession(rctx, token); session != nil {
 		if session.Token != token {
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "session token is different from the one in DB", http.StatusUnauthorized)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": tokenID, "Error": ""}, "session token is different from the one in DB", http.StatusUnauthorized)
 		}
 
 		if !session.IsExpired() {
@@ -108,12 +110,12 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	if session == nil || session.Id == "" {
 		session, appErr = a.createSessionForUserAccessToken(rctx, token)
 		if appErr != nil {
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token}, "", appErr.StatusCode).Wrap(appErr)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": tokenID}, "", appErr.StatusCode).Wrap(appErr)
 		}
 	}
 
 	if session.Id == "" || session.IsExpired() {
-		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "session is either nil or expired", http.StatusUnauthorized)
+		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": tokenID, "Error": ""}, "session is either nil or expired", http.StatusUnauthorized)
 	}
 
 	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
@@ -135,7 +137,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 					rctx.Logger().Warn("Error while revoking session", mlog.Err(err))
 				}
 			})
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "idle timeout", http.StatusUnauthorized)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": tokenID, "Error": ""}, "idle timeout", http.StatusUnauthorized)
 		}
 	}
 

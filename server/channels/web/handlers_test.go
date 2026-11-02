@@ -5,6 +5,7 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"net/http"
@@ -19,7 +20,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -1463,4 +1466,62 @@ func TestHandlerServeDoesNotLogRawToken(t *testing.T) {
 
 		assert.NotContains(t, buffer.String(), session.Token)
 	})
+
+	t.Run("user lookup failure", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		buffer := captureLogs(t, th)
+
+		created, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+			UserId:      th.BasicUser.Id,
+			Description: "lookup",
+		})
+		require.Nil(t, appErr)
+
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(&userLookupOuterStore{
+			Store: original,
+			users: &userLookupStore{
+				UserStore: original.User(),
+				userID:    th.BasicUser.Id,
+				err:       errors.New("lookup failed"),
+			},
+		})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		handler := newHandler(th)
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: created.Token})
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusInternalServerError, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+		// The log buffer does not include the submitted value.
+		assert.NotContains(t, buffer.String(), created.Token)
+	})
+}
+
+// userLookupStore returns an error from Get for one user id. Other calls pass through.
+type userLookupStore struct {
+	store.UserStore
+	userID string
+	err    error
+}
+
+func (s *userLookupStore) Get(rctx request.CTX, id string) (*model.User, error) {
+	if id == s.userID {
+		return nil, s.err
+	}
+	return s.UserStore.Get(rctx, id)
+}
+
+// userLookupOuterStore swaps User() for userLookupStore. Other stores pass through.
+type userLookupOuterStore struct {
+	store.Store
+	users *userLookupStore
+}
+
+func (s *userLookupOuterStore) User() store.UserStore {
+	return s.users
 }

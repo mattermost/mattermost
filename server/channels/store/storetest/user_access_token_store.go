@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,6 +16,7 @@ import (
 
 func TestUserAccessTokenStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("UserAccessTokenSaveGetDelete", func(t *testing.T) { testUserAccessTokenSaveGetDelete(t, rctx, ss) })
+	t.Run("UserAccessTokenGetByTokenErrorText", func(t *testing.T) { testUserAccessTokenGetByTokenErrorText(t, ss) })
 	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, rctx, ss) })
 	t.Run("UserAccessTokenSearch", func(t *testing.T) { testUserAccessTokenSearch(t, rctx, ss) })
 	t.Run("UserAccessTokenPagination", func(t *testing.T) { testUserAccessTokenPagination(t, rctx, ss) })
@@ -50,8 +52,10 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, rctx request.CTX, ss store.S
 	require.NoError(t, err2)
 	require.Equal(t, received.Token, uat.Token, "received incorrect token after save")
 
-	_, nErr = ss.UserAccessToken().GetByToken("notarealtoken")
+	missingToken := model.NewId()
+	_, nErr = ss.UserAccessToken().GetByToken(missingToken)
 	require.Error(t, nErr, "should have failed on bad token")
+	require.NotContains(t, nErr.Error(), missingToken, "returned error text does not include the submitted value")
 
 	received2, err2 := ss.UserAccessToken().GetByUser(uat.UserId, 0, 100)
 	require.NoError(t, err2)
@@ -88,6 +92,22 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, rctx request.CTX, ss store.S
 
 	_, nErr = ss.UserAccessToken().GetByToken(s2.Token)
 	require.Error(t, nErr, "should error - access token should be deleted")
+}
+
+func testUserAccessTokenGetByTokenErrorText(t *testing.T, ss store.Store) {
+	// A value the database rejects exercises the non-not-found return.
+	rejected := model.NewId() + "\x00"
+	_, dbErr := ss.UserAccessToken().GetByToken(rejected)
+	require.Error(t, dbErr)
+	var nfErr *store.ErrNotFound
+	require.NotErrorAs(t, dbErr, &nfErr)
+	require.NotContains(t, dbErr.Error(), rejected, "returned error text does not include the submitted value")
+	require.NotContains(t, dbErr.Error(), strings.TrimSuffix(rejected, "\x00"), "returned error text does not include the submitted value")
+
+	_, emptyErr := ss.UserAccessToken().GetByToken("")
+	require.Error(t, emptyErr)
+	require.ErrorAs(t, emptyErr, &nfErr)
+	require.Contains(t, emptyErr.Error(), "token=<none>")
 }
 
 func testUserAccessTokenDisableEnable(t *testing.T, rctx request.CTX, ss store.Store) {
