@@ -197,14 +197,6 @@
             }
         }
 
-        // Whole-header toggle (former accordion-card-header click target).
-        &--expandable {
-            > header,
-            > [class*='admin-panel-header'] {
-                cursor: pointer;
-            }
-        }
-
         // Header-only (no recommendations): hide empty Compass body + divider.
         &--header-only {
             [class*='admin-panel-header--divided'] {
