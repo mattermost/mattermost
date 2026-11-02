@@ -428,7 +428,7 @@ export function fetchChannelsMissingValueSummary(fieldId?: string): Promise<Chan
     return Client4.getChannelAttributeComplianceSummary(GLOBAL_ATTRIBUTES_GROUP_NAME, fieldId);
 }
 
-export function fetchChannelsMissingValue(fieldId: string | undefined, page: number, perPage: number = CHANNEL_MISSING_VALUES_PER_PAGE): Promise<ChannelsMissingAttributeValueList> {
+export function fetchChannelsMissingValue(fieldId: string, page: number, perPage: number = CHANNEL_MISSING_VALUES_PER_PAGE): Promise<ChannelsMissingAttributeValueList> {
     return Client4.getChannelsMissingAttributeValue(GLOBAL_ATTRIBUTES_GROUP_NAME, fieldId, page, perPage);
 }
 

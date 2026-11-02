@@ -63,7 +63,6 @@ func (api *API) InitProperties() {
 	// so gated on its own flag rather than the broader OR-of-six-flags block
 	// above.
 	if api.srv.Config().FeatureFlags.ChannelAttributes {
-		api.BaseRoutes.PropertyFields.Handle("/missing_values", api.APISessionRequired(getPropertyFieldsMissingValues)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyFields.Handle("/missing_values/summary", api.APISessionRequired(getPropertyFieldsComplianceSummary)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyField.Handle("/missing_values", api.APISessionRequired(getPropertyFieldMissingValues)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyField.Handle("/missing_values/summary", api.APISessionRequired(getPropertyFieldComplianceSummary)).Methods(http.MethodGet)

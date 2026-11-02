@@ -247,61 +247,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  "/api/v4/properties/groups/{group_name}/{object_type}/fields/missing_values":
-    get:
-      tags:
-        - properties
-      summary: List channels missing a value for a new channel attribute
-      description: >
-        Lists the active channels that would lack a value for a channel attribute
-        that has not been created yet, which is every active channel. Shared
-        channels are included for information but are marked with `is_local: false`.
-
-        ##### Permissions
-
-        Must have `manage_system` permission. Requires the `ChannelAttributes`
-        feature flag and an Enterprise Advanced license.
-      operationId: GetChannelsMissingAttributeValueForNewField
-      parameters:
-        - name: group_name
-          in: path
-          description: The name of the property group. Only `access_control` is supported.
-          required: true
-          schema:
-            type: string
-        - name: object_type
-          in: path
-          description: The type of object the property field applies to. Only `channel` is supported.
-          required: true
-          schema:
-            type: string
-        - name: page
-          in: query
-          description: The page to select.
-          schema:
-            type: integer
-            default: 0
-        - name: per_page
-          in: query
-          description: The number of channels per page.
-          schema:
-            type: integer
-            default: 60
-      responses:
-        "200":
-          description: Channels missing a value retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChannelsMissingAttributeValueList"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
   "/api/v4/properties/groups/{group_name}/{object_type}/fields/missing_values/summary":
     get:
       tags:

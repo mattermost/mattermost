@@ -26,7 +26,7 @@ const PER_PAGE = 20;
 type Filter = 'all' | 'local' | 'shared';
 
 type Props = {
-    fieldId?: string;
+    fieldId: string;
     attributeDisplayName?: string;
 
     // Seeds the subtitle count before the first page resolves. Includes shared
@@ -42,7 +42,7 @@ type Props = {
 export const useChannelsWithoutValueModal = () => {
     const dispatch = useDispatch();
 
-    return (args: {fieldId?: string; attributeDisplayName?: string; totalCount: number; sharedCount?: number}) => {
+    return (args: {fieldId: string; attributeDisplayName?: string; totalCount: number; sharedCount?: number}) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.GLOBAL_ATTRIBUTE_CHANNELS_WITHOUT_VALUE,
             dialogType: ChannelsWithoutValueModal,

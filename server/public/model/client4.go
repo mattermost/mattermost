@@ -8340,13 +8340,12 @@ func (c *Client4) DeletePropertyFieldOptions(ctx context.Context, groupName, obj
 }
 
 // GetChannelsMissingAttributeValue returns a paginated list of active, local
-// channels that lack a value for the given channel attribute field. An empty
-// fieldID lists every active, local channel (create mode).
+// channels that lack a value for the given channel attribute field.
 func (c *Client4) GetChannelsMissingAttributeValue(ctx context.Context, groupName, fieldID string, page, perPage int) (*ChannelsMissingAttributeValueList, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	r, err := c.doAPIGetWithQuery(ctx, c.channelAttributeMissingValuesRoute(groupName, fieldID), values, "")
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldRoute(groupName, PropertyFieldObjectTypeChannel, fieldID).Join("missing_values"), values, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

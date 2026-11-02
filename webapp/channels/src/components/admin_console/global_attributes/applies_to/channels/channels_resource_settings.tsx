@@ -123,6 +123,9 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
     }, [blockedByMissingValues, onChange, value]);
 
     const handleViewList = useCallback(() => {
+        if (!channelFieldId) {
+            return;
+        }
         openChannelsWithoutValueModal({
             fieldId: channelFieldId,
             attributeDisplayName,

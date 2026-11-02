@@ -2607,12 +2607,11 @@ export default class Client4 {
     };
 
     // getChannelsMissingAttributeValue returns a paginated list of active
-    // channels lacking a value for the given channel attribute field. An empty
-    // fieldId lists every active channel (create mode).
-    getChannelsMissingAttributeValue = async (groupName: string, fieldId: string | undefined, page: number, perPage: number) => {
+    // channels lacking a value for the given channel attribute field.
+    getChannelsMissingAttributeValue = async (groupName: string, fieldId: string, page: number, perPage: number) => {
         const params = new URLSearchParams({page: String(page), per_page: String(perPage)});
         return this.doFetch<ChannelsMissingAttributeValueList>(
-            `${this.channelAttributeMissingValuesRoute(groupName, fieldId)}?${params.toString()}`,
+            `${this.getPropertyFieldRoute(groupName, 'channel', fieldId)}/missing_values?${params.toString()}`,
             {method: 'GET'},
         );
     };

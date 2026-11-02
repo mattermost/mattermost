@@ -227,14 +227,6 @@ func TestGetPropertyFieldMissingValues(t *testing.T) {
 
 		assert.EqualValues(t, totalReported, totalSeen)
 	})
-
-	t.Run("create mode (no field id) lists channels without requiring one to exist", func(t *testing.T) {
-		th, group := setupChannelComplianceTest(t)
-
-		_, resp, err := th.SystemAdminClient.GetChannelsMissingAttributeValue(context.Background(), group.Name, "", 0, 20)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-	})
 }
 
 func TestGetPropertyFieldComplianceSummary(t *testing.T) {
@@ -351,19 +343,11 @@ func TestGetPropertyFieldComplianceSummary(t *testing.T) {
 	})
 }
 
-// The create-mode ("plural") routes serve the missing-values list and
-// compliance summary before the attribute has been saved, so they gate on
-// PermissionManageSystem directly rather than an edit-this-field check.
+// The create-mode summary route serves the banner count before the attribute
+// has been saved, so it gates on PermissionManageSystem directly rather than an
+// edit-this-field check.
 func TestPropertyFieldsComplianceCreateMode(t *testing.T) {
 	mainHelper.Parallel(t)
-
-	t.Run("missing_values is refused for a regular (non-admin) session", func(t *testing.T) {
-		th, group := setupChannelComplianceTest(t)
-
-		_, resp, err := th.Client.GetChannelsMissingAttributeValue(context.Background(), group.Name, "", 0, 20)
-		require.Error(t, err)
-		require.Equal(t, http.StatusForbidden, resp.StatusCode)
-	})
 
 	t.Run("missing_values/summary is refused for a regular (non-admin) session", func(t *testing.T) {
 		th, group := setupChannelComplianceTest(t)

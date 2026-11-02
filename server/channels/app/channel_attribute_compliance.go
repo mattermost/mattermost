@@ -30,13 +30,11 @@ func toChannelAttributeAdmins(users []*model.User) []*model.ChannelAttributeAdmi
 
 // GetChannelsMissingAttributeValue returns a paginated list of active
 // channels lacking a value for the given channel attribute field, with each
-// channel's channel admins. field is nil in create mode -- the attribute has
-// no ID yet, so every active channel counts as missing.
+// channel's channel admins.
 func (a *App) GetChannelsMissingAttributeValue(rctx request.CTX, groupID string, field *model.PropertyField, page, perPage int) (*model.ChannelsMissingAttributeValueList, *model.AppError) {
-	opts := store.ChannelSearchOpts{}
-	if field != nil {
-		opts.MissingPropertyValueGroupID = groupID
-		opts.MissingPropertyValueFieldID = field.ID
+	opts := store.ChannelSearchOpts{
+		MissingPropertyValueGroupID: groupID,
+		MissingPropertyValueFieldID: field.ID,
 	}
 
 	channels, err := a.Srv().Store().Channel().GetAllChannels(page*perPage, perPage, opts)

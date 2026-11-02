@@ -195,7 +195,6 @@ const (
 // Channel Attribute Compliance
 const (
 	AuditEventGetPropertyFieldMissingValues      = "getPropertyFieldMissingValues"      // list channels missing a value for a channel attribute
-	AuditEventGetPropertyFieldsMissingValues     = "getPropertyFieldsMissingValues"     // list channels missing a value for a not-yet-created channel attribute
 	AuditEventGetPropertyFieldComplianceSummary  = "getPropertyFieldComplianceSummary"  // get channel attribute compliance summary
 	AuditEventGetPropertyFieldsComplianceSummary = "getPropertyFieldsComplianceSummary" // get compliance summary for a not-yet-created channel attribute
 	AuditEventNotifyPropertyFieldMissingValues   = "notifyPropertyFieldMissingValues"   // notify channel admins of a missing channel attribute value

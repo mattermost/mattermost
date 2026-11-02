@@ -112,46 +112,6 @@ func getPropertyFieldMissingValues(c *Context, w http.ResponseWriter, r *http.Re
 	}
 }
 
-// getPropertyFieldsMissingValues is the create-mode form of
-// getPropertyFieldMissingValues: no field_id exists yet, so every active,
-// local channel is "missing" a value. Registered on the fields collection
-// route (no {field_id}), gated on the ability to create a system-scoped
-// property field rather than edit-this-field, since there is no field yet.
-func getPropertyFieldsMissingValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireGroupName().RequireObjectType()
-	if c.Err != nil {
-		return
-	}
-
-	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyFieldsMissingValues, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
-
-	group := resolveChannelAttributeComplianceGroup(c, "getPropertyFieldsMissingValues")
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
-
-	list, appErr := c.App.GetChannelsMissingAttributeValue(rctx, group.ID, nil, c.Params.Page, c.Params.PerPage)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	auditRec.Success()
-
-	if err := writeChannelAttributeComplianceJSON(w, list); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
 func getPropertyFieldComplianceSummary(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupName().RequireObjectType().RequireFieldId()
 	if c.Err != nil {
