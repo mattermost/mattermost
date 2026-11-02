@@ -158,8 +158,8 @@ func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyI
 // ReconcilePolicyTeamScope leaves a parent policy's scope unchanged, except when
 // the policy already has scope=team and a channel's team is not ScopeID. In that
 // case the scope is cleared. An empty scope stays empty, including when every
-// channel is in one team. A team scope stays in place when there are no channels,
-// when a channel lookup is short, or when every channel's team is ScopeID.
+// channel is in one team. A team scope stays in place when there are no channels
+// or when every returned channel's team is ScopeID.
 func (a *App) ReconcilePolicyTeamScope(rctx request.CTX, policyID string) *model.AppError {
 	// Find all child channel policies for this parent.
 	// Limit of 1000 is ok, since In practice a single policy will not have 1000+ channel
@@ -186,15 +186,11 @@ func (a *App) ReconcilePolicyTeamScope(rctx request.CTX, policyID string) *model
 		channelIDs[i] = child.ID
 	}
 
-	// Resolve channels to determine their teams.
-	// If some channels were deleted after being assigned, GetChannels returns
-	// fewer results — skip reconciliation to avoid stamping a stale scope.
+	// Missing channel rows do not change the outcome: a returned channel in
+	// another team still clears the scope.
 	channels, appErr := a.GetChannels(rctx, channelIDs)
 	if appErr != nil {
 		return appErr
-	}
-	if len(channels) != len(channelIDs) {
-		return nil
 	}
 
 	// Fetch the parent policy directly from the store (not the enterprise layer)
