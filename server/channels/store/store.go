@@ -848,8 +848,6 @@ type FileInfoStore interface {
 	GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
-	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
-	GetUptoNSizeFileTime(n int64) (int64, error)
 	// RefreshFileStats recomputes the fileinfo materialized views.
 	RefreshFileStats() error
 }
@@ -935,6 +933,7 @@ type PluginStore interface {
 	DeleteAllForPlugin(PluginID string) error
 	DeleteAllExpired() error
 	List(pluginID string, page, perPage int) ([]string, error)
+	ListWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, error)
 }
 
 type RoleStore interface {

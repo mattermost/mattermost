@@ -20,25 +20,23 @@ export function getPlainLogs(state: GlobalState) {
 export const getAllLogs = createSelector(
     'getAllLogs',
     getLogs,
-    (logs) => {
-        return Object.values(logs).reduce<LogObject[]>((acc, log) => {
-            // @ts-expect-error: object that is returned from the server contains an array of logs but ts gets confused that its one log object
-            acc.push(...log);
-            return acc;
-        }, []);
-    },
+    (logs) => Object.values(logs).flat(),
 );
+
+// A poll keeps the stored entries it doesn't change, so their tagged copies are reused too
+const entriesWithNode = new WeakMap<LogObject, LogObjectWithNode>();
 
 export const getAllLogsWithNode = createSelector(
     'getAllLogsWithNode',
     getLogs,
-    (logs) => {
-        // The reducer stores the query response unchanged: entries keyed by node name
-        const logsByNode = logs as unknown as Record<string, LogObject[]>;
-        return Object.entries(logsByNode).flatMap(([node, entries]) =>
-            entries.map((entry): LogObjectWithNode => ({...entry, [LogNodeKey]: node})),
-        );
-    },
+    (logs) => Object.entries(logs).flatMap(([node, entries]) => entries.map((entry) => {
+        let tagged = entriesWithNode.get(entry);
+        if (tagged === undefined) {
+            tagged = {...entry, [LogNodeKey]: node};
+            entriesWithNode.set(entry, tagged);
+        }
+        return tagged;
+    })),
 );
 
 // Includes nodes that returned no entries, which the flattened entries can't show

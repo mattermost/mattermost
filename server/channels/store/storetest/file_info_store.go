@@ -37,7 +37,6 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, rctx, ss) })
 	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, rctx, ss) })
 	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, rctx, ss) })
-	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, rctx, ss, s) })
 	t.Run("FileInfoPermanentDeleteForPost", func(t *testing.T) { testPermanentDeleteForPost(t, rctx, ss) })
 	t.Run("FileInfoGetByIds", func(t *testing.T) { testGetByIds(t, rctx, ss) })
 	t.Run("FileInfoDeleteForPostByIds", func(t *testing.T) { testDeleteForPostByIds(t, rctx, ss) })
@@ -970,82 +969,6 @@ func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store)
 	usage, err = ss.FileInfo().GetStorageUsage(false, true)
 	require.NoError(t, err)
 	require.Equal(t, int64(30), usage)
-}
-
-func testGetUptoNSizeFileTime(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
-	assert.Error(t, err)
-	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
-	assert.Error(t, err)
-
-	// Delete all existing file infos so parallel tests don't interfere with
-	// the cumulative size calculation (MM-53905).
-	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis()+3600000, 100000)
-	require.NoError(t, err)
-
-	// Use far-future timestamps so these are always "most recent" even if
-	// parallel tests create file infos concurrently.
-	diff := int64(10000)
-	now := utils.MillisFromTime(time.Now()) + 3600000 // 1 hour in the future
-
-	f1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
-		PostId:    model.NewId(),
-		CreatorId: model.NewId(),
-		Size:      10,
-		Path:      "file1.txt",
-		CreateAt:  now,
-	})
-	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, f1.Id)
-	now = now + diff
-	f2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
-		PostId:    model.NewId(),
-		CreatorId: model.NewId(),
-		Size:      10,
-		Path:      "file2.txt",
-		CreateAt:  now,
-	})
-	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, f2.Id)
-	now = now + diff
-	f3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
-		PostId:    model.NewId(),
-		CreatorId: model.NewId(),
-		Size:      10,
-		Path:      "file3.txt",
-		CreateAt:  now,
-	})
-	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, f3.Id)
-	now = now + diff
-	tmp, err := ss.FileInfo().Save(rctx, &model.FileInfo{
-		PostId:    model.NewId(),
-		CreatorId: model.NewId(),
-		Size:      10,
-		Path:      "file4.txt",
-		CreateAt:  now,
-	})
-	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, tmp.Id)
-
-	createAt, err := ss.FileInfo().GetUptoNSizeFileTime(20)
-	require.NoError(t, err)
-	assert.Equal(t, f3.CreateAt, createAt)
-
-	_, err = ss.FileInfo().GetUptoNSizeFileTime(5)
-	assert.Error(t, err)
-	assert.IsType(t, &store.ErrNotFound{}, err)
-
-	createAt, err = ss.FileInfo().GetUptoNSizeFileTime(1000)
-	require.NoError(t, err)
-	assert.Equal(t, f1.CreateAt, createAt)
-
-	_, err = ss.FileInfo().DeleteForPost(rctx, f3.PostId)
-	require.NoError(t, err)
-
-	createAt, err = ss.FileInfo().GetUptoNSizeFileTime(20)
-	require.NoError(t, err)
-	assert.Equal(t, f2.CreateAt, createAt)
 }
 
 func testPermanentDeleteForPost(t *testing.T, rctx request.CTX, ss store.Store) {

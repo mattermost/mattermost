@@ -5075,22 +5075,6 @@ func (s *TimerLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDe
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
-	start := time.Now()
-
-	result, err := s.FileInfoStore.GetUptoNSizeFileTime(n)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetUptoNSizeFileTime", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	start := time.Now()
 
@@ -7262,6 +7246,22 @@ func (s *TimerLayerPluginStore) List(pluginID string, page int, perPage int) ([]
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.List", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPluginStore) ListWithOptions(pluginID string, options model.PluginKVListOptions, page int, perPage int) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PluginStore.ListWithOptions(pluginID, options, page, perPage)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.ListWithOptions", success, elapsed)
 	}
 	return result, err
 }

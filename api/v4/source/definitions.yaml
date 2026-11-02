@@ -3676,56 +3676,6 @@ components:
           type: integer
         is_paid_tier:
           type: string
-    Invoice:
-      type: object
-      properties:
-        id:
-          type: string
-        number:
-          type: string
-        create_at:
-          type: integer
-          format: int64
-        total:
-          type: integer
-          format: int64
-        tax:
-          type: integer
-          format: int64
-        status:
-          type: string
-        period_start:
-          type: integer
-          format: int64
-        period_end:
-          type: integer
-          format: int64
-        subscription_id:
-          type: string
-        item:
-          type: array
-          items:
-            $ref: "#/components/schemas/InvoiceLineItem"
-    InvoiceLineItem:
-      type: object
-      properties:
-        price_id:
-          type: string
-        total:
-          type: integer
-          format: int64
-        quantity:
-          type: integer
-          format: int64
-        price_per_unit:
-          type: integer
-          format: int64
-        description:
-          type: string
-        metadata:
-          type: array
-          items:
-            type: string
     Group:
       type: object
       properties:
