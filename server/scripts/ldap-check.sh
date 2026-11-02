@@ -78,16 +78,13 @@ else
 	GroupFilter="(&($GroupIdAttribute=$2)$GroupFilter)"
 fi
 
-umask 077; pwfile=$(mktemp) || exit 1
-trap 'rm -f "$pwfile"' EXIT
-printf '%s' "$BindPassword" > "$pwfile"
-
 run_ldap_search() {
 	local filter="$1"; shift
-	local args=(-LLL -x -H "$LdapUri" -D "$BindUsername" -y "$pwfile" -b "$BaseDN")
+	local args=(-LLL -x -H "$LdapUri" -D "$BindUsername" -b "$BaseDN")
 	[[ -n $StartTlsFlag ]] && args+=(-ZZ)
-	printf '%q ' "$ldapsearch_cmd" "${args[@]}" -- "$filter" "$@"; echo
-	"$ldapsearch_cmd" "${args[@]}" -- "$filter" "$@"
+	printf '%q ' "$ldapsearch_cmd" "${args[@]}" -W -- "$filter" "$@"; echo
+	echo "-------------------------"
+	"$ldapsearch_cmd" "${args[@]}" -y <(printf '%s' "$BindPassword") -- "$filter" "$@"
 }
 
 if [[ $1 == '-u' ]]; then

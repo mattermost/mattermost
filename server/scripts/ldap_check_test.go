@@ -39,11 +39,12 @@ type ldapSettings struct {
 }
 
 type ldapCheckResult struct {
-	stdout          string
-	stderr          string
-	argv            []string
-	invoked         bool
-	extraCommandRan bool
+	stdout           string
+	stderr           string
+	argv             []string
+	passwordReceived string
+	invoked          bool
+	extraCommandRan  bool
 }
 
 func defaultLDAPSettings() ldapSettings {
@@ -90,7 +91,9 @@ func runLdapCheck(t *testing.T, settings ldapSettings, args []string) ldapCheckR
 	require.NoError(t, os.Mkdir(binDir, 0o755))
 
 	argvFile := filepath.Join(workdir, "ldapsearch.argv")
-	stub := "#!/bin/bash\nprintf '%s\\0' \"$@\" > \"${LDAPCHECK_ARGV_FILE}\"\nexit 0\n"
+	passwordFile := filepath.Join(workdir, "ldapsearch.password")
+	stub := "#!/bin/bash\nprintf '%s\\0' \"$@\" > \"${LDAPCHECK_ARGV_FILE}\"\n" +
+		"while (($#)); do [[ $1 == -y ]] && cat \"$2\" > \"${LDAPCHECK_PW_FILE}\"; shift; done\nexit 0\n"
 	require.NoError(t, os.WriteFile(filepath.Join(binDir, "ldapsearch"), []byte(stub), 0o755))
 
 	cfg, err := json.Marshal(struct {
@@ -104,6 +107,7 @@ func runLdapCheck(t *testing.T, settings ldapSettings, args []string) ldapCheckR
 	cmd.Env = withEnv(os.Environ(), map[string]string{
 		"PATH":                binDir + string(os.PathListSeparator) + os.Getenv("PATH"),
 		"LDAPCHECK_ARGV_FILE": argvFile,
+		"LDAPCHECK_PW_FILE":   passwordFile,
 	})
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -118,6 +122,9 @@ func runLdapCheck(t *testing.T, settings ldapSettings, args []string) ldapCheckR
 	if raw, readErr := os.ReadFile(argvFile); readErr == nil {
 		result.invoked = true
 		result.argv = splitNUL(raw)
+	}
+	if raw, readErr := os.ReadFile(passwordFile); readErr == nil {
+		result.passwordReceived = string(raw)
 	}
 	return result
 }
@@ -189,6 +196,7 @@ func TestLdapCheckInvokesLdapsearch(t *testing.T) {
 			t.Parallel()
 			got := runLdapCheck(t, defaultLDAPSettings(), tc.args)
 			require.True(t, got.invoked, "ldapsearch should be invoked")
+			assert.Equal(t, bindPassword, got.passwordReceived, "ldapsearch should read exactly the configured bind password")
 			require.Contains(t, got.argv, tc.wantFilter)
 			for _, attr := range tc.wantAttrs {
 				require.Contains(t, got.argv, attr)
@@ -390,6 +398,7 @@ func TestLdapCheckTreatsConfigValuesAsData(t *testing.T) {
 				for _, arg := range got.argv {
 					assert.NotContains(t, arg, bindPassword, "bind password should not appear in the ldapsearch argument list")
 				}
+				assert.Equal(t, settings.BindPassword, got.passwordReceived, "ldapsearch should read exactly the configured bind password")
 			}
 			if tc.forbidDashLeadingOption {
 				require.True(t, got.invoked, "ldapsearch should be invoked")
