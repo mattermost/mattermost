@@ -8,13 +8,14 @@ import {useSelector} from 'react-redux';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {isPropertyFieldSyncedForAuthService} from 'mattermost-redux/utils/property_utils';
+
 import {getPluginDisplayName} from 'selectors/plugins';
 
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 
-import {Constants} from 'utils/constants';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
@@ -68,8 +69,7 @@ export default function GraphProfileAttribute({
     const {labelForId} = useGraphOptionNames(attribute, storedIds);
 
     const isProtected = Boolean(attribute.attrs?.protected);
-    const isSynced = Boolean((user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
-        (user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml));
+    const isSynced = isPropertyFieldSyncedForAuthService(attribute, user.auth_service);
     const isAdminManaged = attribute.attrs?.managed === 'admin';
     const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
     const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected;

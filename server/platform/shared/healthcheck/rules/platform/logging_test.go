@@ -97,6 +97,7 @@ func TestMetricsOff(t *testing.T) {
 
 	licensedFor := func(metrics *bool) *healthcheck.NodeSnapshot {
 		return leaderNode(func(diag *model.SupportPacketDiagnostics) {
+			diag.License.SkuShortName = model.LicenseShortSkuEnterprise
 			diag.License.Features = &model.Features{Metrics: metrics}
 		})
 	}
@@ -111,7 +112,7 @@ func TestMetricsOff(t *testing.T) {
 		want     want
 	}{
 		{"license unavailable", configSnapshot(nil), licenseUnknown},
-		{"license metrics feature unreadable", configSnapshot(nil, licensedFor(nil)), licenseUnknown},
+		{"metrics feature not recorded runs the rule", configSnapshot(nil, licensedFor(nil)), firing("health.rule.metrics_off.message", nil)},
 		{"not licensed for metrics", configSnapshot(nil, licensedFor(new(false))), resolved},
 		{"licensed with metrics off", configSnapshot(nil, licensedFor(new(true))), firing("health.rule.metrics_off.message", nil)},
 		{"licensed with metrics on", configSnapshot(metricsOn, licensedFor(new(true))), resolved},

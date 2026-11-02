@@ -122,7 +122,7 @@ describe('components/SizeAwareImage', () => {
         expect(miniPreviewImg?.getAttribute('src')).toEqual('data:mime_type;base64,mini_preview');
     });
 
-    test('should have display set to initial in loaded state', async () => {
+    test('should leave display to CSS in loaded state', async () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
         const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
@@ -131,7 +131,7 @@ describe('components/SizeAwareImage', () => {
         expect(screen.getByRole('img')).toBeVisible();
 
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('block');
+        expect(filePreviewButton.style.display).toEqual('');
     });
 
     test('should render the actual image when first mounted without dimensions', () => {
@@ -154,9 +154,9 @@ describe('components/SizeAwareImage', () => {
         const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
         await simulateImageLoad(img, width, height);
 
-        // Verify loaded state through DOM: file-preview__button should be visible
+        // Verify loaded state through DOM: file-preview__button should no longer be hidden
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('block');
+        expect(filePreviewButton.style.display).toEqual('');
         expect(baseProps.onImageLoaded).toHaveBeenCalledWith({height, width});
     });
 

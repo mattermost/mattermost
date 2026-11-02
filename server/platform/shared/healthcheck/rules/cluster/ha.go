@@ -4,12 +4,12 @@
 package cluster
 
 import (
-	"net"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
 )
 
 func init() {
@@ -36,7 +36,7 @@ var clusterGossipUnencrypted = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ClusterSettings.EnableGossipEncryption",
-	Eval:       evalClusterGossipUnencrypted,
+	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterGossipUnencrypted)),
 }
 
 var clusterLRUCache = healthcheck.Rule{
@@ -51,7 +51,7 @@ var clusterLRUCache = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    "CacheSettings.CacheType",
-	Eval:       evalClusterLRUCache,
+	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterLRUCache)),
 }
 
 var clusterSingleNode = healthcheck.Rule{
@@ -67,7 +67,7 @@ var clusterSingleNode = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityTopology,
 	Subject:    "ClusterSettings.Enable",
-	Eval:       evalClusterSingleNode,
+	Eval:       clusterLicensed(healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalClusterSingleNode)),
 }
 
 var clusterBadAdvertise = healthcheck.Rule{
@@ -82,7 +82,7 @@ var clusterBadAdvertise = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ClusterSettings.AdvertiseAddress",
-	Eval:       evalClusterBadAdvertise,
+	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterBadAdvertise)),
 }
 
 var clusterConfigWritable = healthcheck.Rule{
@@ -97,12 +97,16 @@ var clusterConfigWritable = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ClusterSettings.ReadOnlyConfig",
-	Eval:       evalClusterConfigWritable,
+	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterConfigWritable)),
+}
+
+func clusterLicensed(eval func(*healthcheck.Snapshot) []healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
+	return healthcheck.Licensed(healthcheck.FeatureCluster, eval)
 }
 
 // haRunning is the HA gate shared by four codes. ok is false when Config is absent.
 func haRunning(s *healthcheck.Snapshot) (running, ok bool) {
-	enabled, ok := clusterEnabled(s)
+	enabled, ok := s.ClusterEnabled()
 	if !ok || !enabled {
 		return false, ok
 	}
@@ -111,151 +115,83 @@ func haRunning(s *healthcheck.Snapshot) (running, ok bool) {
 	return name != "", ok
 }
 
-func clusterEnabled(s *healthcheck.Snapshot) (bool, bool) {
-	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.Enable })
-}
-
-func registeredUsers(s *healthcheck.Snapshot) (int64, bool) {
-	return s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.RegisteredUsers })
-}
-
-// leaderDiag returns the leader's diagnostics when section was collected without error.
-func leaderDiag(s *healthcheck.Snapshot, section model.NodeSection) (*model.SupportPacketDiagnostics, bool) {
-	leader, ok := s.Leader()
-	if !ok || !leader.Has(section) {
-		return nil, false
-	}
-
-	return leader.Diag()
-}
-
-func evalClusterGossipUnencrypted(s *healthcheck.Snapshot) []healthcheck.Result {
-	running, ok := haRunning(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !running {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalClusterGossipUnencrypted(s *healthcheck.Snapshot) healthcheck.Result {
 	encrypted, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.EnableGossipEncryption })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case !encrypted:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_gossip_unencrypted.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_gossip_unencrypted.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
-func evalClusterLRUCache(s *healthcheck.Snapshot) []healthcheck.Result {
-	running, ok := haRunning(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !running {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalClusterLRUCache(s *healthcheck.Snapshot) healthcheck.Result {
 	cacheType, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.CacheSettings.CacheType })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
 	if cacheType != model.CacheTypeLRU {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
-	users, ok := registeredUsers(s)
+	users, ok := s.RegisteredUsers()
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)
 	case users >= redisRecommendedUsers:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_lru_cache.message")).
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_lru_cache.message")).
 			WithDetail("users", strconv.FormatInt(users, 10)).
-			WithValue(float64(users))}
+			WithValue(float64(users))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(users))}
+		return healthcheck.Resolved().WithValue(float64(users))
 	}
 }
 
 // The server writes NumberOfConnectedNodes as 1 when it has no running cluster, so that also fires.
 // NumberOfNodes would hide a node cut off from gossip, because it still counts its database registration.
-func evalClusterSingleNode(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := clusterEnabled(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
-	diag, ok := leaderDiag(s, model.SectionCluster)
+func evalClusterSingleNode(s *healthcheck.Snapshot) healthcheck.Result {
+	diag, ok := s.LeaderDiag(model.SectionCluster)
 	if !ok || diag.Cluster.NumberOfConnectedNodes == nil {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 	if *diag.Cluster.NumberOfConnectedNodes < 2 {
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_single_node.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_single_node.message"))
 	}
-	return []healthcheck.Result{healthcheck.Resolved()}
+	return healthcheck.Resolved()
 }
 
-// isUnreachableAddress reports whether other nodes cannot reach address. Empty is fine: the
-// server then advertises its network interface address.
-func isUnreachableAddress(address string) bool {
-	if strings.EqualFold(address, "localhost") {
-		return true
-	}
-
-	ip := net.ParseIP(address)
-	return ip != nil && (ip.IsLoopback() || ip.IsUnspecified())
-}
-
-func evalClusterBadAdvertise(s *healthcheck.Snapshot) []healthcheck.Result {
-	running, ok := haRunning(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !running {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalClusterBadAdvertise(s *healthcheck.Snapshot) healthcheck.Result {
 	address, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.ClusterSettings.AdvertiseAddress })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case isUnreachableAddress(address):
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_bad_advertise.message")).WithDetail("address", address)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	// Empty is fine: the server then advertises its network interface address.
+	case hosts.IsLocal(address):
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_bad_advertise.message")).WithDetail("address", address)
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
 // ReadOnlyConfig only has an effect on a file config store; the database store ignores it.
-func evalClusterConfigWritable(s *healthcheck.Snapshot) []healthcheck.Result {
-	running, ok := haRunning(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !running {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalClusterConfigWritable(s *healthcheck.Snapshot) healthcheck.Result {
 	readOnly, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.ReadOnlyConfig })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
 	if readOnly {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
-	diag, ok := leaderDiag(s, model.SectionConfigSource)
+	diag, ok := s.LeaderDiag(model.SectionConfigSource)
 	switch {
 	case !ok || diag.Config.Source == "":
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	case strings.HasPrefix(diag.Config.Source, "file://"):
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_config_writable.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_config_writable.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }

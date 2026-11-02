@@ -50,7 +50,7 @@
                     options are ordered by the `rank` each option carries.
                     `graph` is a hierarchical multiselect: its options can sit
                     below other options.
-                  enum: [text, select, multiselect, date, user, multiuser, rank, graph]
+                  enum: [text, select, multiselect, date, user, multiuser, rank, graph, number, checkbox]
                 attrs:
                   type: object
                   description: Additional attributes for the property field

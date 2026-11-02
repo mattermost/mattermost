@@ -26,7 +26,8 @@ var filestoreLocalInCluster = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "FileSettings.Directory",
-	Eval:       evalFilestoreLocalInCluster,
+	Eval: healthcheck.Licensed(healthcheck.FeatureCluster,
+		healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalFilestoreLocalInCluster)),
 }
 
 var filestoreS3NoBucket = healthcheck.Rule{
@@ -41,7 +42,7 @@ var filestoreS3NoBucket = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "FileSettings.AmazonS3Bucket",
-	Eval:       evalFilestoreS3NoBucket,
+	Eval:       healthcheck.Gate(usesS3, healthcheck.ReasonConfigUnavailable, evalFilestoreS3NoBucket),
 }
 
 var filestoreS3SSLOff = healthcheck.Rule{
@@ -56,7 +57,7 @@ var filestoreS3SSLOff = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "FileSettings.AmazonS3SSL",
-	Eval:       evalFilestoreS3SSLOff,
+	Eval:       healthcheck.Gate(usesS3, healthcheck.ReasonConfigUnavailable, evalFilestoreS3SSLOff),
 }
 
 var filestoreUnreachable = healthcheck.Rule{
@@ -71,7 +72,7 @@ var filestoreUnreachable = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityProbe,
 	Subject:    "FileSettings.DriverName",
-	EvalNode:   evalFilestoreUnreachable,
+	EvalNode:   healthcheck.SingleNode(evalFilestoreUnreachable),
 }
 
 func usesS3(s *healthcheck.Snapshot) (bool, bool) {
@@ -79,82 +80,58 @@ func usesS3(s *healthcheck.Snapshot) (bool, bool) {
 	return driver == model.ImageDriverS3, ok
 }
 
-func evalFilestoreLocalInCluster(s *healthcheck.Snapshot) []healthcheck.Result {
-	clustered, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.Enable })
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !clustered {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalFilestoreLocalInCluster(s *healthcheck.Snapshot) healthcheck.Result {
 	driver, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.DriverName })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
 	if driver != model.ImageDriverLocal {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
 	directory, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.Directory })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_local_in_cluster.message")).WithDetail("directory", directory)}
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_local_in_cluster.message")).WithDetail("directory", directory)
 }
 
-func evalFilestoreS3NoBucket(s *healthcheck.Snapshot) []healthcheck.Result {
-	s3, ok := usesS3(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !s3 {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalFilestoreS3NoBucket(s *healthcheck.Snapshot) healthcheck.Result {
 	bucket, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.AmazonS3Bucket })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case bucket == "":
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_s3_no_bucket.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_s3_no_bucket.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
-func evalFilestoreS3SSLOff(s *healthcheck.Snapshot) []healthcheck.Result {
-	s3, ok := usesS3(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !s3 {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalFilestoreS3SSLOff(s *healthcheck.Snapshot) healthcheck.Result {
 	ssl, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.FileSettings.AmazonS3SSL })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case !ssl:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_s3_ssl_off.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_s3_ssl_off.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
-func evalFilestoreUnreachable(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) []healthcheck.Result {
+func evalFilestoreUnreachable(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
 	diag, ok := n.Diag()
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 
 	switch diag.FileStore.Status {
 	case model.StatusFail:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_unreachable.message")).WithDetail("error", diag.FileStore.Error)}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_unreachable.message")).WithDetail("error", diag.FileStore.Error)
 	case model.StatusOk:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	default:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 }

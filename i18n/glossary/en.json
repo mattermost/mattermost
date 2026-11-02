@@ -25,22 +25,26 @@
   "Channels": {
     "definition": "Product name of the Mattermost messaging product; as a product name it stays in English, unlike the common noun 'channel'.",
     "partOfSpeech": "noun",
-    "doNotTranslate": true
+    "doNotTranslate": true,
+    "commonWord": true
   },
   "Playbooks": {
     "definition": "Product name of the Mattermost workflow product; as a product name it stays in English.",
     "partOfSpeech": "noun",
-    "doNotTranslate": true
+    "doNotTranslate": true,
+    "commonWord": true
   },
   "Boards": {
     "definition": "Product name of the Mattermost project/kanban board product; as a product name it stays in English.",
     "partOfSpeech": "noun",
-    "doNotTranslate": true
+    "doNotTranslate": true,
+    "commonWord": true
   },
   "Calls": {
     "definition": "Product name of the Mattermost voice/video calling feature; as a product name it stays in English.",
     "partOfSpeech": "noun",
-    "doNotTranslate": true
+    "doNotTranslate": true,
+    "commonWord": true
   },
   "Markdown": {
     "definition": "Name of the text formatting syntax used in Mattermost messages.",

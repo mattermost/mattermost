@@ -697,7 +697,7 @@ components:
             The type of property. `rank` is a select with ordered options;
             `graph` is a multiselect whose options can sit below other options.
             A field can't be converted to or from `graph`.
-          enum: [text, select, multiselect, date, user, multiuser, rank, graph]
+          enum: [text, select, multiselect, date, user, multiuser, rank, graph, number, checkbox]
         object_type:
           type: string
           description: The type of object this property applies to
@@ -804,6 +804,7 @@ components:
             The property's value. A string for `text` and `date`, an option ID
             for `select` and `rank`, a user ID for `user`, and an array of
             option IDs or user IDs for `multiselect`, `graph` and `multiuser`.
+            `number` stores a JSON number, and `checkbox` a JSON boolean.
         create_at:
           type: integer
           format: int64
@@ -3758,56 +3759,6 @@ components:
           type: integer
         is_paid_tier:
           type: string
-    Invoice:
-      type: object
-      properties:
-        id:
-          type: string
-        number:
-          type: string
-        create_at:
-          type: integer
-          format: int64
-        total:
-          type: integer
-          format: int64
-        tax:
-          type: integer
-          format: int64
-        status:
-          type: string
-        period_start:
-          type: integer
-          format: int64
-        period_end:
-          type: integer
-          format: int64
-        subscription_id:
-          type: string
-        item:
-          type: array
-          items:
-            $ref: "#/components/schemas/InvoiceLineItem"
-    InvoiceLineItem:
-      type: object
-      properties:
-        price_id:
-          type: string
-        total:
-          type: integer
-          format: int64
-        quantity:
-          type: integer
-          format: int64
-        price_per_unit:
-          type: integer
-          format: int64
-        description:
-          type: string
-        metadata:
-          type: array
-          items:
-            type: string
     Group:
       type: object
       properties:
@@ -4424,18 +4375,6 @@ components:
         value:
           description: System property value
           type: string
-    PostsUsage:
-      type: object
-      properties:
-        count:
-          type: number
-          description: Total no. of posts
-    StorageUsage:
-      type: object
-      properties:
-        bytes:
-          type: number
-          description: Total file storage usage for the instance in bytes rounded down to the most significant digit
     BridgeAgentInfo:
       type: object
       properties:

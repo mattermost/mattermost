@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {
     AccessControlSettings,
     AdminConfig,
@@ -86,6 +87,9 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableForgotLink: true,
         },
         PrivacySettings: {
+            // Server defaults, listed so specs that hide them don't leak that to later specs.
+            ShowEmailAddress: true,
+            ShowFullName: true,
             UseAnonymousURLs: false,
         },
         ServiceSettings: {
@@ -95,6 +99,8 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             // internalBaseURL is the Docker network alias there, and the same as baseURL in
             // `external` mode — correct in both cases.
             SiteURL: testConfig.internalBaseURL,
+            // The server default, listed so specs that disable it don't leak that to later specs.
+            CollapsedThreads: CollapsedThreads.ALWAYS_ON,
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',

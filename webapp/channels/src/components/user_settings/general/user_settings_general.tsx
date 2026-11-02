@@ -19,6 +19,7 @@ import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
 import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
+import {isPropertyFieldSyncedForAuthService} from 'mattermost-redux/utils/property_utils';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
@@ -903,6 +904,16 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     }}
                 />
             );
+        } else if (this.props.user.auth_service === Constants.OPENID_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.general.loginOpenId'
+                    defaultMessage='Login done through OpenID Connect ({email})'
+                    values={{
+                        email: this.state.originalEmail,
+                    }}
+                />
+            );
         } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
             describe = (
                 <FormattedMessage
@@ -1592,8 +1603,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 };
 
                 const isProtected = Boolean(attribute.attrs?.protected);
-                const isSynced = Boolean((this.props.user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
-                    (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml));
+                const isSynced = isPropertyFieldSyncedForAuthService(attribute, this.props.user.auth_service);
                 const isAdminManaged = attribute.attrs?.managed === 'admin';
 
                 // Owner-managed fields (e.g. SCIM-provisioned) are written only

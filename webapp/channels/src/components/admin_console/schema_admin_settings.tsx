@@ -7,6 +7,7 @@ import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-in
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckIcon, CloseCircleIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
@@ -35,7 +36,6 @@ import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_
 import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
@@ -533,7 +533,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 <SectionNotice
                     type='warning'
                     title={title}
-                    text={text}
+                    description={text}
                 />
             </div>
         );
@@ -814,22 +814,9 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             }
         }
 
-        // used to hide help in case of cloud-starter and open-id selection to show upgrade notice.
-        let hideHelp = false;
-        if (setting.isHelpHidden) {
-            if (typeof (setting.isHelpHidden) === 'function') {
-                hideHelp = setting.isHelpHidden(this.props.config, this.state, this.props.license, this.props.enterpriseReady);
-            } else {
-                hideHelp = setting.isHelpHidden;
-            }
-        }
-
         const label = renderLabel(setting, this.props.schema, this.props.intl);
 
-        let helpText: string | JSX.Element = '';
-        if (!hideHelp) {
-            helpText = selectedOptionForHelpText ? renderDropdownOptionHelpText(selectedOptionForHelpText) : renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
-        }
+        const helpText = selectedOptionForHelpText ? renderDropdownOptionHelpText(selectedOptionForHelpText) : renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
         return (
             <DropdownSetting
                 key={this.props.schema.id + '_dropdown_' + setting.key}
@@ -1017,13 +1004,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
     };
 
     handleChange = (id: string, value: any, confirm = false, doSubmit = false, warning = false) => {
-        let saveNeeded: State['saveNeeded'] = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
-
-        // Exception: Since OpenId-Custom is treated as feature discovery for Cloud Starter licenses, save button is disabled.
-        const isCloudStarter = this.props.license.Cloud === 'true' && this.props.license.SkuShortName === 'starter';
-        if (id === 'openidType' && value === 'openid' && isCloudStarter) {
-            saveNeeded = false;
-        }
+        const saveNeeded: State['saveNeeded'] = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
 
         const clientWarning = warning === false ? this.state.clientWarning : warning;
 

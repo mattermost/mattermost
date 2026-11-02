@@ -101,8 +101,7 @@ func (ts *TeamService) UpdateTeam(team *model.Team, opts UpdateOptions) (*model.
 			if nErr == nil {
 				return oldTeam, &NameOccupiedError{Name: team.Name}
 			}
-			var nfErr *store.ErrNotFound
-			if !errors.As(nErr, &nfErr) {
+			if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 				return oldTeam, nErr
 			}
 			oldTeam.Name = team.Name

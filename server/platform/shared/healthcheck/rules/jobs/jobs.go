@@ -80,6 +80,22 @@ var jobFailed = healthcheck.Rule{
 	Eval:       evalJobFailed,
 }
 
+// licensed reports whether the license carries the feature jobType's scheduler and worker require.
+func licensed(s *healthcheck.Snapshot, jobType string) (granted, ok bool) {
+	switch jobType {
+	case model.JobTypeLdapSync:
+		return s.LicenseAllows(healthcheck.FeatureLDAP)
+	case model.JobTypeMessageExport:
+		return s.LicenseAllows(healthcheck.FeatureMessageExport)
+	case model.JobTypeElasticsearchPostIndexing, model.JobTypeElasticsearchPostAggregation:
+		return s.LicenseAllows(healthcheck.FeatureElasticsearch)
+	case model.JobTypeDataRetention:
+		return s.LicenseAllows(healthcheck.FeatureDataRetention)
+	default:
+		return true, true
+	}
+}
+
 // gate reports whether the feature behind jobType is enabled; ok is false when Config is absent.
 func gate(s *healthcheck.Snapshot, jobType string) (enabled, ok bool) {
 	switch jobType {
@@ -90,7 +106,8 @@ func gate(s *healthcheck.Snapshot, jobType string) (enabled, ok bool) {
 	case model.JobTypeElasticsearchPostIndexing, model.JobTypeElasticsearchPostAggregation:
 		return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableIndexing })
 	default:
-		return true, s.Has(model.SectionConfig) && s.Config != nil && s.Config.Config != nil
+		_, ok := s.ConfigRoot()
+		return true, ok
 	}
 }
 
@@ -104,6 +121,17 @@ func evalJobTypes(s *healthcheck.Snapshot, jobTypes []string, check func(jobType
 			continue
 		}
 		if !enabled {
+			results = append(results, healthcheck.ResolvedSubject(jobType))
+			continue
+		}
+
+		// Checked after the config gate so a disabled job type stays resolved in packets without license data.
+		granted, ok := licensed(s, jobType)
+		if !ok {
+			results = append(results, healthcheck.UnknownSubject(jobType, healthcheck.ReasonLicenseUnavailable))
+			continue
+		}
+		if !granted {
 			results = append(results, healthcheck.ResolvedSubject(jobType))
 			continue
 		}
@@ -218,11 +246,12 @@ func retentionLeftover(s *healthcheck.Snapshot, job *model.Job) bool {
 		return false
 	}
 	files, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableFileDeletion })
-	if !ok || files || s.CollectedAt.IsZero() {
+	if !ok || files {
 		return false
 	}
 
-	return s.CollectedAt.Sub(time.UnixMilli(job.LastActivityAt)) > retentionStaleAfter
+	idle, ok := s.Since(time.UnixMilli(job.LastActivityAt))
+	return ok && idle > retentionStaleAfter
 }
 
 func evalJobFailed(s *healthcheck.Snapshot) []healthcheck.Result {

@@ -83,9 +83,11 @@ input.AdminUserCard__picture-input[type='file'] {
 .AdminUserCard__footer {
     display: flex;
     flex-direction: row;
+    align-items: center;
     padding: 20px;
     border-top: solid 1px rgba(0, 0, 0, 0.2);
     background-color: #fff;
+    gap: 8px;
 }
 
 .AdminUserCard__user-info {

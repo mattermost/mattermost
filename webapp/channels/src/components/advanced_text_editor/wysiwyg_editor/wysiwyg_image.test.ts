@@ -29,6 +29,8 @@ const type = (editor: Editor, text: string) => {
     }
 };
 
+const contentImage = (root: ParentNode) => root.querySelector('img.markdown-inline-img');
+
 describe('WysiwygImage', () => {
     let editor: Editor;
 
@@ -78,15 +80,15 @@ describe('WysiwygImage', () => {
         expect(markdown).toBe('![a \\[big\\] cat](https://example.com/cat.png "say \\"hi\\"")');
 
         editor.commands.setContent(markdown, {contentType: 'markdown'});
-        expect(editor.view.dom.querySelector('img')?.getAttribute('alt')).toBe('a [big] cat');
-        expect(editor.view.dom.querySelector('img')?.getAttribute('title')).toBe('say "hi"');
+        expect(contentImage(editor.view.dom)?.getAttribute('alt')).toBe('a [big] cat');
+        expect(contentImage(editor.view.dom)?.getAttribute('title')).toBe('say "hi"');
     });
 
     it('renders the src through the image proxy when it is enabled', () => {
         editor = createEditor(true);
         editor.commands.setContent('![a kitten](https://example.com/cat.png)', {contentType: 'markdown'});
 
-        const src = editor.view.dom.querySelector('img')?.getAttribute('src');
+        const src = contentImage(editor.view.dom)?.getAttribute('src');
         expect(src).toContain('/image?url=');
         expect(src).toContain(encodeURIComponent('https://example.com/cat.png'));
     });
@@ -95,14 +97,14 @@ describe('WysiwygImage', () => {
         editor = createEditor();
         editor.commands.setContent('![a kitten](https://example.com/cat.png)', {contentType: 'markdown'});
 
-        expect(editor.view.dom.querySelector('img')?.getAttribute('src')).toBe('https://example.com/cat.png');
+        expect(contentImage(editor.view.dom)?.getAttribute('src')).toBe('https://example.com/cat.png');
     });
 
     it('replaces the typed markdown with the image, leaving no text behind', () => {
         editor = createEditor();
         type(editor, '![a kitten](https://example.com/cat.png)');
 
-        expect(editor.view.dom.querySelector('img')?.getAttribute('src')).toBe('https://example.com/cat.png');
+        expect(contentImage(editor.view.dom)?.getAttribute('src')).toBe('https://example.com/cat.png');
         expect(editor.view.dom.textContent).toBe('');
     });
 
@@ -111,7 +113,7 @@ describe('WysiwygImage', () => {
         const src = 'https://example.com/filters:no_upscale():max_bytes(150000):format(webp)/cat.jpg';
         type(editor, `![a kitten](${src})`);
 
-        expect(editor.view.dom.querySelector('img')?.getAttribute('src')).toBe(src);
+        expect(contentImage(editor.view.dom)?.getAttribute('src')).toBe(src);
         expect(editor.view.dom.textContent).toBe('');
     });
 
@@ -125,7 +127,7 @@ describe('WysiwygImage', () => {
         it('inserts an image that is alone in its paragraph', () => {
             editor = createEditor();
 
-            expect(paste('![a kitten](https://example.com/cat.png)').querySelector('img')?.getAttribute('src')).
+            expect(contentImage(paste('![a kitten](https://example.com/cat.png)'))?.getAttribute('src')).
                 toBe('https://example.com/cat.png');
         });
 
@@ -140,7 +142,7 @@ describe('WysiwygImage', () => {
             editor = createEditor();
             const dom = paste('before ![a kitten](https://example.com/cat.png) after');
 
-            expect(dom.querySelector('img')?.getAttribute('src')).toBe('https://example.com/cat.png');
+            expect(contentImage(dom)?.getAttribute('src')).toBe('https://example.com/cat.png');
             expect(dom.textContent).toBe('before  after');
         });
     });
@@ -151,7 +153,7 @@ describe('WysiwygImage', () => {
         editor.commands.insertContent({type: 'text', text: 'https://example.com/cat.png'});
         type(editor, ')');
 
-        expect(editor.view.dom.querySelector('img')?.getAttribute('src')).toBe('https://example.com/cat.png');
+        expect(contentImage(editor.view.dom)?.getAttribute('src')).toBe('https://example.com/cat.png');
         expect(editor.view.dom.textContent).toBe('');
     });
 });

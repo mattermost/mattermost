@@ -46,7 +46,7 @@ export async function buildFileArchive(files: FileInfo[], {signal, onProgress}: 
     }
     zip.end();
 
-    return new Blob(chunks, {type: 'application/zip'});
+    return new Blob(chunks as BlobPart[], {type: 'application/zip'});
 }
 
 async function fetchFileBytes(fileId: string, signal?: AbortSignal): Promise<Uint8Array> {

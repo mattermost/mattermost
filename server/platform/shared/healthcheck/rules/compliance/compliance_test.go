@@ -140,8 +140,8 @@ func TestRulesLicenseFeature(t *testing.T) {
 				{"licensed", enterpriseLeader(rc.feature(true)), healthcheck.StateFiring},
 				{"feature not licensed", enterpriseLeader(rc.feature(false)), healthcheck.StateResolved},
 				{"unlicensed", []*healthcheck.NodeSnapshot{licensedLeader("", nil)}, healthcheck.StateResolved},
-				{"features missing from older packet", enterpriseLeader(nil), healthcheck.StateUnknown},
-				{"feature missing", enterpriseLeader(&model.Features{}), healthcheck.StateUnknown},
+				{"older packet without features runs the rule", enterpriseLeader(nil), healthcheck.StateFiring},
+				{"feature not recorded runs the rule", enterpriseLeader(&model.Features{}), healthcheck.StateFiring},
 				{"license unavailable", nil, healthcheck.StateUnknown},
 			}
 

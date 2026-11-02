@@ -4,7 +4,6 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import FormError from 'components/form_error';
@@ -89,7 +88,7 @@ export const UsersWillBeRemovedError = ({users, total, scope, scopeId}: UsersWil
                 <span>
                     {error}
                     <ToggleModalButton
-                        className={buttonClassNames({emphasis: 'tertiary'})}
+                        emphasis='tertiary'
                         modalId={ModalIdentifiers.USERS_TO_BE_REMOVED}
                         dialogType={UsersToBeRemovedModal}
                         dialogProps={{total, users, scope, scopeId}}

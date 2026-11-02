@@ -77,8 +77,10 @@ jobs:
               exit 1
             fi
 
-            echo "PR_NUMBER=${INPUT_PR_NUMBER}" >> $GITHUB_OUTPUT
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
+            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
             echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+            echo "BASE_SHA=$(echo "$PR_DATA" | jq -r '.base.sha')" >> $GITHUB_OUTPUT
             echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -111,7 +113,10 @@ jobs:
             fi
 
             echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
+            # Status publication locks use the full tested SHA, never the dispatch ref.
+            COMMIT_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${INPUT_COMMIT_SHA}" --jq '.sha')
+            echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+            echo "BASE_SHA=$(echo "$PR_DATA" | jq -r '.base.sha // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
             echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -125,6 +130,10 @@ jobs:
         id: e2e-check
         uses: ./.github/actions/check-e2e-test-only
         with:
+          # The tested commit, not the PR's current head: a push after the dispatch would
+          # otherwise name an image that isn't built yet, and every worker fails to start.
+          base_sha: ${{ steps.resolve.outputs.BASE_SHA }}
+          head_sha: ${{ steps.resolve.outputs.COMMIT_SHA }}
           pr_number: ${{ steps.resolve.outputs.PR_NUMBER }}
 
 
@@ -139,6 +148,7 @@ jobs:
       should_run: "${{ steps.check.outputs.should_run }}"
       should_run_fips: "${{ steps.check.outputs.should_run_fips }}"
       should_run_rolling_upgrades: "${{ steps.check.outputs.should_run_rolling_upgrades }}"
+      should_run_subpath: "${{ steps.check.outputs.should_run_subpath }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -240,6 +250,23 @@ jobs:
           echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
           echo "Should run rolling upgrades: ${SHOULD_RUN_ROLLING_UPGRADES}"
 
+          # Subpath: run the full suite against a server booted under a subpath when subpath-specific
+          # server code or test specs changed.
+          SHOULD_RUN_SUBPATH="false"
+          if echo "$CHANGED_FILES" | grep -qE '^server/channels/utils/subpath\.go$'; then
+            echo "Found server subpath.go changes"
+            SHOULD_RUN_SUBPATH="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/specs/functional/subpath/'; then
+            echo "Found subpath spec changes"
+            SHOULD_RUN_SUBPATH="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^(\.github/workflows/e2e-tests-playwright(-template)?\.yml|e2e-tests/playwright/(playwright\.config\.ts|lib/src/(flag\.ts|test_config\.ts|browser_context\.ts|test_fixture\.ts|util\.ts|server/server_env\.ts|ui/pages/(channels|system_console)\.ts|containers/(nginx_container\.ts|mattermost_container\.ts|stack\.ts|constants\.ts|default_images\.ts|requirements\.ts))))$'; then
+            echo "Found subpath deployment implementation changes"
+            SHOULD_RUN_SUBPATH="true"
+          fi
+
+          echo "should_run_subpath=${SHOULD_RUN_SUBPATH}" >> $GITHUB_OUTPUT
+          echo "Should run subpath E2E tests: ${SHOULD_RUN_SUBPATH}"
+
   e2e-cypress:
     needs:
       - resolve-pr
@@ -267,6 +294,7 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   e2e-playwright:
     needs:
@@ -291,6 +319,34 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
+
+  # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
+  # Only when subpath-specific server code or test specs changed.
+  e2e-playwright-subpath:
+    needs:
+      - resolve-pr
+      - check-changes
+    if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_subpath == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
+    uses: ./.github/workflows/e2e-tests-playwright.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server: "onprem"
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      enable_reporting: true
+      report_type: "PR"
+      pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      server_deploy: subpath
+      playwright_project: subpath
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   # Enterprise FIPS Edition
   e2e-cypress-fips:
@@ -320,6 +376,7 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   e2e-playwright-fips:
     needs:
@@ -344,3 +401,4 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"

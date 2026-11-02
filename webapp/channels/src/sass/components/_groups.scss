@@ -78,27 +78,14 @@
             }
 
             .filter-row {
+                display: flex;
                 height: 30px;
+                align-items: center;
                 vertical-align: middle;
             }
 
             .filter-check {
-                display: inline-block;
-                width: 18px;
-                height: 18px;
-                border: 2px solid variables.$dark-gray;
-                border-radius: 3px;
-                margin-right: 7px;
-                vertical-align: middle;
-
-                &.checked {
-                    border: 0;
-
-                    svg {
-                        background: variables.$white;
-                        fill: variables.$primary-color;
-                    }
-                }
+                margin-right: 0;
             }
         }
     }
@@ -182,23 +169,7 @@
     }
 
     .group-check {
-        display: flex;
-        min-width: 18px;
-        min-height: 18px;
-        align-items: center;
-        justify-content: space-around;
-        border: 2px solid variables.$dark-gray;
-        border-radius: 3px;
-        margin: 5px 5px 4px 14px;
-
-        &.checked {
-            border: 0;
-
-            svg {
-                background: variables.$white;
-                fill: variables.$primary-color;
-            }
-        }
+        margin-left: 14px;
     }
 
     .group-name {
@@ -490,31 +461,12 @@
                 &:not(:first-child) {
                     text-align: center;
                     vertical-align: middle;
-                }
-            }
 
-            .checkbox {
-                display: inline-block;
-                width: 18px;
-                height: 18px;
-                padding: 0;
-                border: 2px solid variables.$dark-gray;
-                border-radius: 3px;
-                background: none;
-
-                > * {
-                    pointer-events: none;
-                }
-
-                &.disabled {
-                    border-color: variables.$light-gray;
-                }
-
-                &.checked {
-                    border: 0;
-
-                    svg {
-                        fill: #145dbf;
+                    // Compass Checkbox root is a full-width label; shrink it so the control stays centered.
+                    > label {
+                        display: inline-flex;
+                        width: auto;
+                        justify-content: center;
                     }
                 }
             }
@@ -647,10 +599,6 @@
     position: relative;
     margin-top: -36px;
     margin-left: 10px;
-
-    .fa-caret-down {
-        margin-left: 5px;
-    }
 
     .add-team-or-channel-menu {
         position: absolute;

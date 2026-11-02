@@ -47,54 +47,55 @@ func TestFilestoreConfigRules(t *testing.T) {
 	}{
 		{
 			name:     "config section absent",
-			snapshot: healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{leaderNode(nil)}),
+			snapshot: healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{clusterLeader()}),
 			want:     allUnknown,
 		},
 		{
 			name: "config section failed",
-			snapshot: &healthcheck.Snapshot{
-				Config:   defaultConfig(nil),
-				Sections: map[model.WorkspaceSection]error{model.SectionConfig: errors.New("boom")},
-			},
+			snapshot: func() *healthcheck.Snapshot {
+				s := clusterSnapshot(nil)
+				s.Sections[model.SectionConfig] = errors.New("boom")
+				return s
+			}(),
 			want: allUnknown,
 		},
 		{
 			name:     "defaults",
-			snapshot: configSnapshot(nil),
+			snapshot: clusterSnapshot(nil),
 			want:     allResolved,
 		},
 		{
 			name:     "standalone local relative directory",
-			snapshot: configSnapshot(filestoreConfig(false, model.ImageDriverLocal, "./data/")),
+			snapshot: clusterSnapshot(filestoreConfig(false, model.ImageDriverLocal, "./data/")),
 			want:     allResolved,
 		},
 		{
 			name:     "clustered local relative directory fires even when the connection test succeeds",
-			snapshot: configSnapshot(filestoreConfig(true, model.ImageDriverLocal, "./data/"), leaderNode(nil)),
+			snapshot: clusterSnapshot(filestoreConfig(true, model.ImageDriverLocal, "./data/")),
 			want: with(map[string]want{
 				"FILESTORE_LOCAL_IN_CLUSTER": firing("health.rule.filestore_local_in_cluster.message", map[string]string{"directory": "./data/"}),
 			}),
 		},
 		{
 			name:     "clustered local absolute directory",
-			snapshot: configSnapshot(filestoreConfig(true, model.ImageDriverLocal, "/mnt/mattermost")),
+			snapshot: clusterSnapshot(filestoreConfig(true, model.ImageDriverLocal, "/mnt/mattermost")),
 			want: with(map[string]want{
 				"FILESTORE_LOCAL_IN_CLUSTER": firing("health.rule.filestore_local_in_cluster.message", map[string]string{"directory": "/mnt/mattermost"}),
 			}),
 		},
 		{
 			name:     "clustered s3",
-			snapshot: configSnapshot(all(filestoreConfig(true, model.ImageDriverS3, "./data/"), withBucket("mattermost-files"))),
+			snapshot: clusterSnapshot(all(filestoreConfig(true, model.ImageDriverS3, "./data/"), withBucket("mattermost-files"))),
 			want:     allResolved,
 		},
 		{
 			name:     "clustered azure",
-			snapshot: configSnapshot(filestoreConfig(true, model.ImageDriverAzure, "./data/")),
+			snapshot: clusterSnapshot(filestoreConfig(true, model.ImageDriverAzure, "./data/")),
 			want:     allResolved,
 		},
 		{
 			name: "cluster flag unreadable",
-			snapshot: configSnapshot(func(cfg *model.Config) {
+			snapshot: clusterSnapshot(func(cfg *model.Config) {
 				cfg.ClusterSettings.Enable = nil
 			}),
 			want: with(map[string]want{
@@ -103,7 +104,7 @@ func TestFilestoreConfigRules(t *testing.T) {
 		},
 		{
 			name: "driver unreadable",
-			snapshot: configSnapshot(func(cfg *model.Config) {
+			snapshot: clusterSnapshot(func(cfg *model.Config) {
 				cfg.ClusterSettings.Enable = new(true)
 				cfg.FileSettings.DriverName = nil
 			}),
@@ -111,7 +112,7 @@ func TestFilestoreConfigRules(t *testing.T) {
 		},
 		{
 			name: "driver unreadable outside a cluster",
-			snapshot: configSnapshot(func(cfg *model.Config) {
+			snapshot: clusterSnapshot(func(cfg *model.Config) {
 				cfg.FileSettings.DriverName = nil
 			}),
 			want: map[string]want{
@@ -122,7 +123,7 @@ func TestFilestoreConfigRules(t *testing.T) {
 		},
 		{
 			name: "directory unreadable in a cluster",
-			snapshot: configSnapshot(func(cfg *model.Config) {
+			snapshot: clusterSnapshot(func(cfg *model.Config) {
 				cfg.ClusterSettings.Enable = new(true)
 				cfg.FileSettings.Directory = nil
 			}),
@@ -132,14 +133,14 @@ func TestFilestoreConfigRules(t *testing.T) {
 		},
 		{
 			name:     "s3 with empty bucket",
-			snapshot: configSnapshot(filestoreConfig(false, model.ImageDriverS3, "./data/")),
+			snapshot: clusterSnapshot(filestoreConfig(false, model.ImageDriverS3, "./data/")),
 			want: with(map[string]want{
 				"FILESTORE_S3_NO_BUCKET": firing("health.rule.filestore_s3_no_bucket.message", nil),
 			}),
 		},
 		{
 			name: "s3 with ssl off",
-			snapshot: configSnapshot(all(filestoreConfig(false, model.ImageDriverS3, "./data/"), withBucket("mattermost-files"), func(cfg *model.Config) {
+			snapshot: clusterSnapshot(all(filestoreConfig(false, model.ImageDriverS3, "./data/"), withBucket("mattermost-files"), func(cfg *model.Config) {
 				cfg.FileSettings.AmazonS3SSL = new(false)
 			})),
 			want: with(map[string]want{
@@ -148,14 +149,14 @@ func TestFilestoreConfigRules(t *testing.T) {
 		},
 		{
 			name: "local with empty bucket and ssl off",
-			snapshot: configSnapshot(all(filestoreConfig(false, model.ImageDriverLocal, "./data/"), func(cfg *model.Config) {
+			snapshot: clusterSnapshot(all(filestoreConfig(false, model.ImageDriverLocal, "./data/"), func(cfg *model.Config) {
 				cfg.FileSettings.AmazonS3SSL = new(false)
 			})),
 			want: allResolved,
 		},
 		{
 			name: "s3 settings unreadable",
-			snapshot: configSnapshot(all(filestoreConfig(false, model.ImageDriverS3, "./data/"), func(cfg *model.Config) {
+			snapshot: clusterSnapshot(all(filestoreConfig(false, model.ImageDriverS3, "./data/"), func(cfg *model.Config) {
 				cfg.FileSettings.AmazonS3Bucket = nil
 				cfg.FileSettings.AmazonS3SSL = nil
 			})),
@@ -170,6 +171,42 @@ func TestFilestoreConfigRules(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assertRules(t, rules, tc.snapshot, tc.want)
+		})
+	}
+}
+
+func clusterLeader() *healthcheck.NodeSnapshot {
+	return leaderNode(func(diag *model.SupportPacketDiagnostics) {
+		diag.License = model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, Features: &model.Features{Cluster: new(true)}}
+	})
+}
+
+func clusterSnapshot(mutate func(*model.Config)) *healthcheck.Snapshot {
+	return configSnapshot(mutate, clusterLeader())
+}
+
+func TestFilestoreLocalInClusterLicense(t *testing.T) {
+	t.Parallel()
+
+	clusteredLocal := filestoreConfig(true, model.ImageDriverLocal, "/mnt/mattermost")
+	licensed := func(license model.SupportPacketLicense) *healthcheck.Snapshot {
+		return configSnapshot(clusteredLocal, leaderNode(func(diag *model.SupportPacketDiagnostics) { diag.License = license }))
+	}
+
+	testCases := []struct {
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     want
+	}{
+		{"unlicensed", licensed(model.SupportPacketLicense{}), resolved},
+		{"cluster feature off", licensed(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuProfessional, Features: &model.Features{Cluster: new(false)}}), resolved},
+		{"license unavailable", configSnapshot(clusteredLocal), want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertResult(t, tc.want, filestoreLocalInCluster.Eval(tc.snapshot))
 		})
 	}
 }

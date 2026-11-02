@@ -9,6 +9,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Timezone} from 'timezones.json';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile, UserTimezone} from '@mattermost/types/users';
@@ -506,18 +507,16 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             if (childOptionToShow) {
                 const childDisplay = childOptionToShow.display;
                 childOptionSection = (
-                    <div className='checkbox'>
+                    <div className='checkbox no-padding'>
                         <hr/>
-                        <label>
-                            <input
-                                id={name + 'childOption'}
-                                type='checkbox'
-                                name={childOptionToShow.label.id}
-                                checked={childOptionToShow.value === 'true'}
-                                onChange={(e) => {
-                                    this.handleOnChange(e, {[childDisplay]: e.target.checked ? 'true' : 'false'});
-                                }}
-                            />
+                        <Checkbox
+                            id={name + 'childOption'}
+                            name={childOptionToShow.label.id}
+                            checked={childOptionToShow.value === 'true'}
+                            onChange={(e) => {
+                                this.handleOnChange(e, {[childDisplay]: e.target.checked ? 'true' : 'false'});
+                            }}
+                        >
                             <FormattedMessage
                                 id={childOptionToShow.label.id}
                                 defaultMessage={childOptionToShow.label.defaultMessage}
@@ -529,7 +528,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                                     defaultMessage={childOptionToShow.more.defaultMessage}
                                 />
                             </span>
-                        </label>
+                        </Checkbox>
                         <br/>
                     </div>
                 );
