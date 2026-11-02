@@ -10,7 +10,9 @@ import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
+import {KeyVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
 import {valueRefersToOptions} from '@mattermost/types/properties';
@@ -1489,7 +1491,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     {this.state.user?.delete_at === 0 && (
                                         <Button
                                             emphasis='secondary'
-                                            variant='destructive'
+                                            destructive={true}
                                             onClick={this.toggleOpenModalDeactivateMember}
                                             disabled={this.state.user?.auth_service === Constants.LDAP_SERVICE}
                                         >
@@ -1532,10 +1534,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 emphasis='tertiary'
                                                 className='manageUserSettingsBtn disabled'
                                                 disabled={true}
+                                                leadingIcon={<Icon glyph={<KeyVariantIcon/>}/>}
                                             >
-                                                <div className='RestrictedIndicator__content'>
-                                                    <i className={classNames('RestrictedIndicator__icon-tooltip', 'icon', 'icon-key-variant')}/>
-                                                </div>
                                                 <FormattedMessage
                                                     id='admin.user_item.manageSettings'
                                                     defaultMessage='Manage User Settings'
@@ -1659,7 +1659,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             )}
                         </div>
                     }
-                    confirmButtonVariant='destructive'
+                    destructive={true}
                     confirmButtonText={
                         <FormattedMessage
                             id='deactivate_member_modal.deactivate'

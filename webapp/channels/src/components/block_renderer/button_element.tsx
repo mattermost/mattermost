@@ -4,13 +4,13 @@
 import React, {useCallback, useContext, useState} from 'react';
 import {useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {MmButtonBlock} from '@mattermost/types/mm_blocks';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import Markdown from 'components/markdown';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {MmBlocksInteractionsDisabledContext} from './context';
 import type {ActionHandler} from './types';
@@ -48,20 +48,23 @@ export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
     }
 
     const button = (
-        <button
+        <Button
             type='button'
+            size='medium'
+            emphasis={element.style === 'primary' ? 'primary' : 'tertiary'}
+            destructive={element.style === 'danger'}
             className={mmBlocksButtonClassName(element.style)}
             style={mmBlocksButtonInlineStyle(element.style, theme)}
             onClick={handleClick}
-            disabled={interactionsDisabled || element.disabled === true || isExecuting}
-            aria-busy={isExecuting}
+            disabled={interactionsDisabled || element.disabled === true}
+            loading={isExecuting}
+            aria-busy={isExecuting || undefined}
         >
-            {isExecuting && <LoadingSpinner legacy={true}/>}
             <Markdown
                 message={element.text}
                 options={buttonMarkdownOptions}
             />
-        </button>
+        </Button>
     );
 
     if (!element.tooltip) {

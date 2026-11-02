@@ -84,7 +84,8 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 this.props.hideGuestTags,
                 this.props.isUserCanManageMembers,
                 this.props.isMilitaryTime,
-                this.props.timezone) : null;
+                this.props.timezone,
+                this.props.channelKind) : null;
             if (renderedSystemMessage) {
                 return <div>{renderedSystemMessage}</div>;
             }
@@ -147,7 +148,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         );
 
         let highlightKeys;
-        if (!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) {
+        if (!this.props.isEnterpriseOrSKUStarterFree && this.props.isEnterpriseReady) {
             highlightKeys = this.props.highlightKeys;
         }
 

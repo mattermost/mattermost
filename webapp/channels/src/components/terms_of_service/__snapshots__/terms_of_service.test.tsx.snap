@@ -40,18 +40,26 @@ exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = 
           class="terms-of-service__button-group"
         >
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="acceptTerms"
             type="submit"
           >
-            I Agree
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Agree
+            </span>
           </button>
           <button
-            class="btn btn-quaternary"
+            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
             id="rejectTerms"
             type="reset"
           >
-            I Disagree
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Disagree
+            </span>
           </button>
         </div>
       </div>
@@ -128,30 +136,39 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on ac
           class="terms-of-service__button-group"
         >
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             disabled=""
             id="acceptTerms"
             type="submit"
           >
             <span
-              class="LoadingSpinner"
-              data-testid="loadingSpinner"
-              id="loadingSpinner"
+              aria-hidden="true"
+              class="_button__icon-slot_we8pe_35"
             >
               <span
-                class="fa fa-spinner fa-fw fa-pulse spinner"
-                title="Loading Icon"
+                aria-label="Loading"
+                class="_spinner_3elm7_10"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />
             </span>
-            I Agree
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Agree
+            </span>
           </button>
           <button
-            class="btn btn-quaternary"
+            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
             disabled=""
             id="rejectTerms"
             type="reset"
           >
-            I Disagree
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Disagree
+            </span>
           </button>
         </div>
       </div>
@@ -200,30 +217,39 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on re
           class="terms-of-service__button-group"
         >
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             disabled=""
             id="acceptTerms"
             type="submit"
           >
-            I Agree
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Agree
+            </span>
           </button>
           <button
-            class="btn btn-quaternary"
+            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
             disabled=""
             id="rejectTerms"
             type="reset"
           >
             <span
-              class="LoadingSpinner"
-              data-testid="loadingSpinner"
-              id="loadingSpinner"
+              aria-hidden="true"
+              class="_button__icon-slot_we8pe_35"
             >
               <span
-                class="fa fa-spinner fa-fw fa-pulse spinner"
-                title="Loading Icon"
+                aria-label="Loading"
+                class="_spinner_3elm7_10"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />
             </span>
-            I Disagree
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Disagree
+            </span>
           </button>
         </div>
       </div>

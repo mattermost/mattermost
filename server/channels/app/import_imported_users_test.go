@@ -194,11 +194,12 @@ func postureZip(t *testing.T, jsonl string) *zip.Reader {
 // disabled; the pre-creation pass it gates still runs.
 func runPostureImport(t *testing.T, th *TestHelper, jsonl string, posture model.ImportedUsersPosture) (int, *model.AppError) {
 	t.Helper()
-	return th.App.BulkImportWithPathAndOpts(
+	lineNum, _, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context, strings.NewReader(jsonl), postureZip(t, jsonl),
 		false, false, 1, "",
 		model.BulkImportOpts{ImportedUsers: posture, SkipPreflight: true},
 	)
+	return lineNum, appErr
 }
 
 // createPostureUserInDB pre-creates the account on the destination with the same
@@ -363,7 +364,7 @@ func TestScopedImportRequiresImportedUsersChoice(t *testing.T) {
 	}
 	jsonl := postureArchive(t, teamName, chanName, users, "")
 
-	lineNum, appErr := th.App.BulkImportWithPathAndOpts(
+	lineNum, _, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context, strings.NewReader(jsonl), postureZip(t, jsonl),
 		false, false, 1, "",
 		model.BulkImportOpts{SkipPreflight: true},

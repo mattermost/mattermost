@@ -1,5 +1,4 @@
 @use 'utils/variables';
-@use 'utils/mixins';
 
 .marketplace-modal {
     width: 832px;
@@ -149,18 +148,6 @@
                 padding-left: 16px;
                 margin: 0;
 
-                .plugin-configure,
-                .app-installed {
-                    @include mixins.secondary-button;
-                    @include mixins.button-medium;
-                }
-
-                .plugin-install,
-                .app-install {
-                    @include mixins.primary-button;
-                    @include mixins.button-medium;
-                }
-
                 a {
                     &:hover,
                     &:focus {
@@ -279,9 +266,6 @@
         }
 
         &__action {
-            @include mixins.primary-button;
-            @include mixins.button-medium;
-
             margin-top: 30px;
         }
 

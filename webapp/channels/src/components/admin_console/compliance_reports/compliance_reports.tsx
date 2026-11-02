@@ -4,7 +4,9 @@
 import React, {type JSX} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -13,7 +15,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
-import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 
 type Props = {
 
@@ -442,8 +443,8 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                         emphasis='tertiary'
                         disabled={this.state.runningReport}
                         onClick={this.reload}
+                        leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
                     >
-                        <ReloadIcon/>
                         <FormattedMessage
                             id='admin.compliance_reports.reload'
                             defaultMessage='Reload Completed Compliance Reports'

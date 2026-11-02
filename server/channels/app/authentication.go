@@ -344,7 +344,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *m
 	}
 
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -428,7 +428,7 @@ func (a *App) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }
 
-func checkUserLoginAttempts(user *model.User, maxAttempts int) *model.AppError {
+func checkUserLoginAttempts(user *model.User, maxAttempts int) error {
 	if user.FailedAttempts >= maxAttempts {
 		if user.AuthService == model.UserAuthServiceLdap {
 			return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many_ldap.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)

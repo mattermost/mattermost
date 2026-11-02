@@ -6,8 +6,8 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {matchPath} from 'react-router-dom';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
-import {Button} from '@mattermost/shared/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Post} from '@mattermost/types/posts';
 
@@ -36,11 +36,8 @@ type State = {
 };
 
 export default class DeletePostModal extends React.PureComponent<Props, State> {
-    deletePostBtn: React.RefObject<HTMLButtonElement | null>;
-
     constructor(props: Props) {
         super(props);
-        this.deletePostBtn = React.createRef();
 
         this.state = {
             show: true,
@@ -82,7 +79,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
     };
 
     handleEntered = () => {
-        this.deletePostBtn?.current?.focus();
+        document.getElementById('deletePostModalButton')?.focus();
     };
 
     onHide = () => {
@@ -188,12 +185,11 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                         />
                     </Button>
                     <Button
-                        ref={this.deletePostBtn}
                         type='button'
                         autoFocus={true}
-                        variant='destructive'
                         onClick={this.handleDelete}
                         id='deletePostModalButton'
+                        destructive={true}
                     >
                         <FormattedMessage
                             id='delete_post.del'

@@ -7,7 +7,7 @@ import {Modal, Fade} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
@@ -1017,15 +1017,15 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return (
-            <>
-                <div>
-                    {this.state.formError && (
-                        <div>
-                            <div className='error-text'>
-                                <Markdown message={this.state.formError}/>
-                            </div>
+            <div className='apps-form-footer'>
+                {this.state.formError && (
+                    <div className='apps-form-footer__error'>
+                        <div className='error-text'>
+                            <Markdown message={this.state.formError}/>
                         </div>
-                    )}
+                    </div>
+                )}
+                <div className='apps-form-footer__buttons'>
                     <Button
                         id={this.elementId('appsModalCancel')}
                         type='button'
@@ -1039,7 +1039,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     </Button>
                     {submitButtons}
                 </div>
-            </>
+            </div>
         );
     }
 

@@ -33,7 +33,6 @@ type ClusterInterface interface {
 	Shutdown()
 	NotifyMsg(buf []byte)
 	GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError)
-	GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError)
 	QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string]NodeLogs, *model.AppError)
 	GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error)
 	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
