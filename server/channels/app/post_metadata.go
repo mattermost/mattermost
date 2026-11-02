@@ -443,14 +443,15 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 			continue
 		}
 
-		// Fetch the channel from database (gets fresh data)
-		channel, err := a.GetChannelByNameForTeamName(rctx, channelName, teamName, true)
-
-		// ~<channel_id> mentions are keyed by the channel ID rather than its name (see FillInPostProps).
-		if err != nil && model.IsValidId(channelName) {
-			if storedID, _ := dataMap["id"].(string); storedID == channelName {
-				channel, err = a.GetChannel(rctx, channelName)
-			}
+		// Fetch the channel from database (gets fresh data). ~<channel_id> mentions are keyed by the
+		// channel ID rather than its name (see FillInPostProps); look those up by ID directly, which is
+		// cached, instead of paying for a name lookup that cannot match.
+		var channel *model.Channel
+		var err *model.AppError
+		if storedID, _ := dataMap["id"].(string); storedID == channelName && model.IsValidId(channelName) {
+			channel, err = a.Srv().getChannel(rctx, channelName)
+		} else {
+			channel, err = a.GetChannelByNameForTeamName(rctx, channelName, teamName, true)
 		}
 
 		if err != nil {
