@@ -255,8 +255,8 @@ class TextTaskTest(unittest.TestCase):
 class ResolveTest(unittest.TestCase):
     def test_events(self):
         resolve = cli.resolve
-        self.assertEqual(resolve("version-archive", {"EVENT_NAME": "release"}, {"action": "published", "release": {"tag_name": "v12.0.1"}}),
-                         {"run": "true", "version": "v12.0.1", "mode": "dry_run", "reason": "release published"})
+        self.assertEqual(resolve("version-archive", {"EVENT_NAME": "release"}, {"action": "published", "release": {"tag_name": "v12.1.0"}}),
+                         {"run": "true", "version": "v12.1.0", "mode": "dry_run", "reason": "release published"})
         self.assertEqual(resolve("version-archive", {"EVENT_NAME": "release"}, {"release": {"tag_name": "v12.1.0-rc1"}})["run"], "false")
         self.assertEqual(resolve("release-docs", {"EVENT_NAME": "push", "PHASE3_MODE": "live"},
                                  {"ref": "refs/heads/release-12.2", "created": True}),

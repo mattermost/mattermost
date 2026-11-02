@@ -81,6 +81,8 @@ class TemplatesTest(unittest.TestCase):
         "key-dates-post.md": {"releases"},
         "esr-comms.md": {"ending", "end_long", "first_send", "second_send", "current", "current_end_long",
                          "current_changelog_url"},
+        "dot-release-security.md": {"version", "fixes"},
+        "dot-release-pr-body.md": {"versions", "files", "details"},
     }
 
     def test_every_template_has_exactly_its_placeholders(self):
