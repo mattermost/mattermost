@@ -1,17 +1,27 @@
 name: Release Docs - Breaking Change Notices
 
-# Lists a milestone's merged PRs labelled "Breaking Change" (the PR template's checkbox,
-# or a removed config setting or API found by config-change-checker.yml), and has Claude
-# draft one notice per PR from its release note and upgrade notes, citing the PR. Drafts go
-# to the run summary and the release-docs-breaking-changes artifact; nothing is published.
-# See release-docs-task.yml for settings.
+# Developers are asked nothing. At code freeze (a release-X.Y branch is created) this lists the
+# milestone's possible breaking changes, each with its source PR and why: breaking-change or
+# deprecation labels on the PR or its Jira ticket, removals config-change-checker.yml wrote into
+# the release note, release-note wording, removed WebSocket events and destructive migrations
+# in the release diff, and a Claude review of the milestone's release notes.
+# A person keeps or removes items, then runs this by hand with `confirmed` set to the PRs kept,
+# and Claude drafts one notice per confirmed PR, citing it. Output goes to the run summary and
+# the release-docs-breaking-changes artifact; nothing is published. See release-docs-task.yml.
 
 on:
+  push:
+    branches:
+      - 'release-*'
   workflow_dispatch:
     inputs:
       version:
         description: 'Milestone title, e.g. v12.2.0'
         required: true
+        type: string
+      confirmed:
+        description: 'PRs to draft notices for, e.g. "39001, mattermost/enterprise#1234", or "none". Empty lists the candidates.'
+        required: false
         type: string
 
 permissions: {}
@@ -22,6 +32,7 @@ jobs:
     with:
       task: breaking-changes
       version: ${{ inputs.version }}
+      confirmed: ${{ inputs.confirmed }}
       mode: dry_run
     secrets: inherit
     permissions:

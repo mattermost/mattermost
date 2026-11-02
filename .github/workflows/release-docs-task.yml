@@ -20,11 +20,11 @@ name: Release Docs Task
 #                                              read with GITHUB_TOKEN.
 #   CHANGELOG_ESR_VERSIONS          (variable) ESR lines, e.g. "v10.11,v11.7,v12.4"
 #   RELEASE_AGENT_CALENDAR_ICS_URL  (secret or variable) Release Dates calendar, shared with the release agent
-#   ANTHROPIC_API_KEY               (secret)   highlights, breaking-change notices, blog and email drafts,
-#                                              dot release bullets for PRs with no release note
+#   ANTHROPIC_API_KEY               (secret)   highlights, the breaking-change review and notices, blog and
+#                                              email drafts, dot release bullets for PRs with no release note
 #   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): Jira versions and epics
-#                                              for drafts and release-highlights, and the security labels
-#                                              of the tickets behind dot release fixes
+#                                              for drafts and release-highlights, and the ticket labels
+#                                              that mark security fixes and breaking changes
 #   CHANGELOG_READ_CLIENT_ID        (variable) and CHANGELOG_READ_PRIVATE_KEY (secret): reads
 #                                              mattermost/enterprise PRs for the drafts
 
@@ -59,6 +59,11 @@ on:
         default: ''
       severity:
         description: dot-release-docs only, e.g. "v12.1.1=Medium, v11.7.15=Low to Medium"
+        required: false
+        type: string
+        default: ''
+      confirmed:
+        description: breaking-changes only, the PRs to draft notices for
         required: false
         type: string
         default: ''
@@ -143,6 +148,7 @@ jobs:
           JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
           JIRA_FIX_VERSION: ${{ inputs.jira_fix_version }}
           SEVERITY: ${{ inputs.severity }}
+          CONFIRMED: ${{ inputs.confirmed }}
           RELEASE_DATE: ${{ inputs.release_date }}
           MILESTONE: ${{ inputs.milestone }}
           OUTPUT_DIR: ${{ runner.temp }}/release-docs-output

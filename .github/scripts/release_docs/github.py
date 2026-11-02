@@ -59,6 +59,21 @@ class GitHub:
         blob = self.request("GET", found["git_url"])
         return base64.b64decode(blob["content"]).decode()
 
+    def list_dir(self, repo: str, path: str, ref: str) -> list[str]:
+        """File names in a directory at ``ref`` (the contents API lists up to 1,000)."""
+        found = self.request("GET", f"/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={urllib.parse.quote(ref)}",
+                             missing_ok=True)
+        return [item["name"] for item in found] if isinstance(found, list) else []
+
+    def last_commit_for_path(self, repo: str, path: str, ref: str) -> str | None:
+        found = self.request("GET", f"/repos/{repo}/commits?" + urllib.parse.urlencode({"path": path, "sha": ref, "per_page": 1}))
+        return found[0]["sha"] if found else None
+
+    def matching_refs(self, repo: str, prefix: str) -> list[str]:
+        """Full ref names starting with ``prefix``, such as ``tags/v12.`` or ``heads/release-``."""
+        refs = self.request("GET", f"/repos/{repo}/git/matching-refs/{urllib.parse.quote(prefix)}") or []
+        return [ref["ref"] for ref in refs]
+
     def commits_ahead(self, repo: str, base: str, head: str) -> list[dict]:
         compare = self.request("GET", f"/repos/{repo}/compare/{urllib.parse.quote(base)}...{urllib.parse.quote(head)}")
         return compare.get("commits", [])

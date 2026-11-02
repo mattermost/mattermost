@@ -16,6 +16,7 @@ from datetime import date, datetime, timezone
 from changelog_release import changelog_path
 
 from . import (
+    breaking,
     calendar,
     changelog,
     docker_env,
@@ -113,20 +114,34 @@ def released_together(gh, trigger: Version, now: datetime) -> list[Version]:
     return sorted(set(found), reverse=True)
 
 
-def jira_labels_reader(env: dict, problems: list):
-    """A function from Jira keys to their labels, or None without Jira credentials."""
+def jira_labels_by_key(env: dict, problems: list):
+    """A function from Jira keys to each ticket's labels, or None without Jira credentials."""
     if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
         return None
     client = jira.Jira(env.get("JIRA_URL") or jira.DEFAULT_URL, env["JIRA_EMAIL"], env["JIRA_TOKEN"])
 
-    def labels(keys: set) -> set:
-        try:
-            issues = client.search(f"key in ({', '.join(sorted(keys))})", ["labels"])
-        except Exception as err:  # noqa: BLE001 - reported, and the PR lists every bullet for review
-            problems.append(f"Jira labels for {', '.join(sorted(keys))} could not be read: {err}")
-            return set()
-        return {label for issue in issues for label in issue.get("fields", {}).get("labels", [])}
+    def labels(keys: set) -> dict:
+        found = {}
+        ordered = sorted(keys)
+        for start in range(0, len(ordered), 100):
+            batch = ordered[start:start + 100]
+            try:
+                issues = client.search(f"key in ({', '.join(batch)})", ["labels"])
+            except Exception as err:  # noqa: BLE001 - reported; the results are listed for review either way
+                problems.append(f"Jira labels for {', '.join(batch)} could not be read: {err}")
+                continue
+            for issue in issues:
+                found[issue["key"]] = set(issue.get("fields", {}).get("labels", []))
+        return found
     return labels
+
+
+def jira_labels_reader(env: dict, problems: list):
+    """A function from Jira keys to all their labels together, or None without Jira credentials."""
+    by_key = jira_labels_by_key(env, problems)
+    if by_key is None:
+        return None
+    return lambda keys: set().union(*by_key(keys).values())
 
 def load_events(env: dict, fetch) -> tuple[list | None, str | None]:
     url = env.get("CALENDAR_ICS_URL", "").strip()
@@ -195,8 +210,13 @@ def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=
 
     if task == "breaking-changes":
         repos = [r.strip() for r in env.get("REPOS", SERVER_REPO).split(",") if r.strip()]
-        prs = drafts.milestone_prs(read_gh, repos, raw_version, drafts.BREAKING_LABEL)
-        return Run(drafts.breaking_notices(raw_version, prs, claude), "Nothing published: drafts only.")
+        jira_problems = []
+        result = breaking.run(read_gh, repos, raw_version, env.get("CONFIRMED", ""), claude,
+                              jira_labels_by_key(env, jira_problems))
+        if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
+            result.notes.append("Jira was not read (no RELEASE_AGENT_JIRA_* settings): labels were read from GitHub only.")
+        result.notes += jira_problems
+        return Run(result, "Nothing published: drafts only.")
 
     if task == dot_release.TASK:
         versions = parse_versions(raw_version)

@@ -44,12 +44,11 @@ def slim_file(path: str, text: str | None) -> str | None:
 
 
 def slim_body(body: str) -> str:
-    """The description without comments, cut short, plus every release-note block and checkbox."""
+    """The description without comments, cut short, plus every release-note block."""
     text = re.sub(r"<!--.*?-->", "", (body or "").replace("\r\n", "\n"), flags=re.DOTALL)
     blocks = re.findall(r"```release-note[ \t]*\n.*?\n?```", text, re.DOTALL)
     rest = re.sub(r"```release-note[ \t]*\n.*?\n?```", "", text, flags=re.DOTALL)
-    boxes = re.findall(r"(?im)^\s*-\s*\[[ xX]\]\s*Breaking change.*$", rest)
-    return "\n\n".join([rest.strip()[:BODY_CHARS], *blocks, *boxes]).strip()
+    return "\n\n".join([rest.strip()[:BODY_CHARS], *blocks]).strip()
 
 
 def slim_pull(pr: dict | None) -> dict | None:

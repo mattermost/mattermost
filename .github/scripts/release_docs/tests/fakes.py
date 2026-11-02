@@ -27,6 +27,9 @@ class FakeGitHub:
         self.releases = {}
         self.latest = {}
         self.search_results = {}
+        self.tags = {}  # repo -> tag names
+        self.path_commits = {}  # (repo, path) -> the last commit that touched it
+        self.pulls_by_commit = {}  # (repo, sha) -> PRs
         self.writes = []
         self._shas = (f"sha{n}" for n in itertools.count(1))
 
@@ -56,6 +59,24 @@ class FakeGitHub:
     def file(self, repo, path, ref):
         commits = self.repos.get(repo, {}).get("branches", {}).get(ref)
         return commits[-1]["files"].get(path) if commits else None
+
+    def list_dir(self, repo, path, ref):
+        files = self.file_map(repo, ref)
+        return sorted({p[len(path) + 1:].split("/")[0] for p in files if p.startswith(path + "/")})
+
+    def file_map(self, repo, ref):
+        commits = self.repos.get(repo, {}).get("branches", {}).get(ref)
+        return commits[-1]["files"] if commits else {}
+
+    def matching_refs(self, repo, prefix):
+        return [f"refs/heads/{b}" for b in self.repos.get(repo, {}).get("branches", {}) if f"heads/{b}".startswith(prefix)] + \
+               [f"refs/tags/{t}" for t in self.tags.get(repo, []) if f"tags/{t}".startswith(prefix)]
+
+    def last_commit_for_path(self, repo, path, ref):
+        return self.path_commits.get((repo, path))
+
+    def commit_pulls(self, repo, sha):
+        return self.pulls_by_commit.get((repo, sha), [])
 
     def commits_ahead(self, repo, base, head):
         base_shas = {c["sha"] for c in self.repos[repo]["branches"][base]}
