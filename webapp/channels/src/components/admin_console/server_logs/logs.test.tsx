@@ -444,6 +444,35 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
     });
 
+    test('should not apply a custom range when Apply is clicked straight after typing an invalid time', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await userEvent.clear(rangeTimeInput('To'));
+        await userEvent.type(rangeTimeInput('To'), 'abc');
+
+        // A browser blurs the time on mousedown and clicks on mouseup, with only microtasks in between.
+        // Outside act, so React schedules work as it would there instead of flushing everything per event
+        const actEnvironment = (globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT;
+        (globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT = false;
+        try {
+            rangeTimeInput('To').blur();
+            await Promise.resolve();
+            screen.getByRole('button', {name: 'Apply'}).click();
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        } finally {
+            (globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT = actEnvironment;
+        }
+
+        expect(screen.getByRole('dialog', {name: 'Custom time range'})).toBeInTheDocument();
+        expect(rangeTimeInput('To')).toHaveClass('error');
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+        expect(getLogs).toHaveBeenCalledTimes(1);
+    });
+
     test('should turn off live tail when a custom range is applied', async () => {
         fakeNow('2026-10-20T12:00:30Z');
         renderLogs(jest.fn().mockResolvedValue({}));

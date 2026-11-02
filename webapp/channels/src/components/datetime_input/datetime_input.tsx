@@ -14,6 +14,7 @@ import {isUseMilitaryTime} from 'selectors/preferences';
 import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 
+import {useLatest} from 'hooks/useLatest';
 import Constants from 'utils/constants';
 import {formatDateForDisplay} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
@@ -137,8 +138,17 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
 }) => {
     const {formatMessage} = useIntl();
     const [timeInputValue, setTimeInputValue] = useState<string>('');
-    const [timeInputError, setTimeInputError] = useState<boolean>(false);
+    const [timeInputError, setTimeInputErrorState] = useState<boolean>(false);
     const timeInputRef = useRef<HTMLInputElement>(null);
+
+    // Reported from the same handler as the change, not an effect, so the parent hears about it as soon as a valid
+    // time would be. An effect's update can land after a click that blurred the input, letting that click act on it.
+    // Through a ref, so a new callback each render doesn't re-run the sync below and reset what's typed
+    const onTimeInputErrorRef = useLatest(onTimeInputError);
+    const setTimeInputError = useCallback((hasError: boolean) => {
+        setTimeInputErrorState(hasError);
+        onTimeInputErrorRef.current?.(hasError);
+    }, [onTimeInputErrorRef]);
 
     // Sync input value with time prop changes
     useEffect(() => {
@@ -149,16 +159,12 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
             setTimeInputValue('');
         }
         setTimeInputError(false);
-    }, [time, isMilitaryTime, dayPickCount]);
-
-    useEffect(() => {
-        onTimeInputError?.(timeInputError);
-    }, [timeInputError, onTimeInputError]);
+    }, [time, isMilitaryTime, dayPickCount, setTimeInputError]);
 
     const handleTimeInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setTimeInputValue(event.target.value);
         setTimeInputError(false); // Clear error as user types
-    }, []);
+    }, [setTimeInputError]);
 
     const handleTimeInputBlur = useCallback(() => {
         const parsed = parseTimeString(timeInputValue);
@@ -203,7 +209,7 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
         // Valid time - update (no auto-advance, no exclusion checking)
         onTimeChange(targetMoment);
         setTimeInputError(false);
-    }, [timeInputValue, time, timezone, onTimeChange, minDateTime, maxDateTime]);
+    }, [timeInputValue, time, timezone, onTimeChange, minDateTime, maxDateTime, setTimeInputError]);
 
     const handleTimeInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (isKeyPressed(event as any, Constants.KeyCodes.ENTER)) {
